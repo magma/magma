@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>S1AP Integration Tests · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# S1AP Integration Tests"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="S1AP Integration Tests · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# S1AP Integration Tests"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Access Gateway</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/config_agw_bridged">AGW Bridged Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Troubleshooting</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install_ubuntu">Install AGW on Ubuntu 20.04</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/hold_terraform_state_on_s3">Hold Terraform state outside my local machine</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/override_values_of_terraform_files">Override values of Terraform files</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_orcl">Experimental Orc8r Deployer</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/deploy_config">Configure NMS</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_install">Install FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_configure">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/debug_logs">View Logs</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_ci_checks">Continuous Integration Checks</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/1.5.0/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_dependencies">Module Dependencies</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="s1ap-integration-tests"></a><a href="#s1ap-integration-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>S1AP Integration Tests</h1>
+<p>Current testing workflow for VM-only S1AP integration tests. We cover
+gateway-only tests and some general notes.</p>
+<p>TODO: Update this document once integration tests with cloud are also supported</p>
+<p>Our VM-only tests use 3 Vagrant-managed VMs hosted on the local device (laptop):</p>
+<ul>
+<li><em>magma</em>, i.e. magma-dev or gateway</li>
+<li><em>magma_test</em>, i.e. s1ap_tester</li>
+<li><em>magma_trfserver</em>, i.e. an Iperf server to generate uplink/downlink traffic</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="gateway-only-tests"></a><a href="#gateway-only-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Gateway-only tests</h2>
+<p>These tests use all 3 VMs listed above. The <em>magma_test</em> VM abstracts away the
+UE and eNodeB, the <em>magma_trfserver</em> emulates the Internet, while the <em>magma</em> VM
+acts as the gateway between <em>magma_test</em> and <em>magma_trfserver</em>.</p>
+<h3><a class="anchor" aria-hidden="true" id="gateway-vm-setup"></a><a href="#gateway-vm-setup" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Gateway VM setup</h3>
+<p>Spin up and provision the gateway VM, then make and start its services:</p>
+<ol>
+<li>From <code>magma/lte/gateway</code> on the host machine: <code>vagrant up magma &amp;&amp; vagrant ssh magma</code></li>
+<li>Now in the gateway VM: <code>cd $MAGMA_ROOT/lte/gateway &amp;&amp; make run</code></li>
+</ol>
+<h3><a class="anchor" aria-hidden="true" id="test-vm-setup"></a><a href="#test-vm-setup" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test VM setup</h3>
+<p>Spin up and provision the s1ap tester's VM, make, then make in the integ_tests directory.</p>
+<ol>
+<li>From <code>magma/lte/gateway</code> on the host machine: <code>vagrant up magma_test &amp;&amp; vagrant ssh magma_test</code></li>
+<li>Now in the <em>magma_test</em> VM:
+<ol>
+<li><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></li>
+<li><code>cd integ_tests &amp;&amp; make</code></li>
+</ol></li>
+</ol>
+<h3><a class="anchor" aria-hidden="true" id="run-tests"></a><a href="#run-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run tests</h3>
+<p>From <code>$MAGMA_ROOT/lte/gateway/python/integ_tests</code> on the <em>magma_test</em> VM, run
+either individual tests or the full suite of tests. A safe, non-flaky test to
+run is <code>s1aptests/test_attach_detach.py</code>.</p>
+<ul>
+<li>Individual test(s): <code>make integ_test TESTS=&lt;test(s)_to_run&gt;</code></li>
+<li>All tests: <code>make integ_test</code></li>
+</ul>
+<p><strong>Note</strong>: The traffic tests will fail as traffic server is not running in this
+setup. Look at the section below on running traffic tests.</p>
+<h3><a class="anchor" aria-hidden="true" id="running-uplinkdownlink-traffic-tests"></a><a href="#running-uplinkdownlink-traffic-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Running uplink/downlink traffic tests</h3>
+<ol>
+<li><p>On the <em>magma</em> VM, run, <code>disable-tcp-checksumming</code></p></li>
+<li><p>On the <em>magma_test</em> VM, <code>disable-tcp-checksumming</code></p></li>
+<li><p>Start the traffic server VM from the host, <code>vagrant up magma_trfserver &amp;&amp; vagrant ssh magma_trfserver</code></p></li>
+<li><p>From <em>magma_trfserver</em> VM, run <code>disable-tcp-checksumming &amp;&amp; trfgen-server</code></p></li>
+</ol>
+<p>Running <code>make integ_test</code> in <em>magma_test</em> VM should succeed now.</p>
+<h2><a class="anchor" aria-hidden="true" id="testing-stateless-access-gateway"></a><a href="#testing-stateless-access-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing stateless Access Gateway</h2>
+<p>The Access Gateway by default runs a set of stateful services, which means that
+whenever the services are restarted, all previous state of UEs and eNodeBs, and
+they need to reconnect and re-register. Alternatively, we can switch the Access
+Gateway to be stateless, as shown below, so that all UE state is preserved
+across service restarts.</p>
+<p>Note that this is a feature in development, so some tests from the integ_test
+suite may not pass.</p>
+<p>All the tests below assume you have completed the Gateway Setup and Test VM
+Setup described above.</p>
+<h3><a class="anchor" aria-hidden="true" id="testing-one-stateless-service"></a><a href="#testing-one-stateless-service" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing one stateless service</h3>
+<h4><a class="anchor" aria-hidden="true" id="stateless-mme"></a><a href="#stateless-mme" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless MME</h4>
+<p>This section describes how to test whether MME service is persisting state to Redis.</p>
+<p>On gateway VM:</p>
+<ol>
+<li>Disable Pipelined, Mobilityd, Sctpd and Sessiond from restarting when MME
+restarts.</li>
+</ol>
+<p><code>cd /etc/systemd/system</code></p>
+<p>comment out the line <code>PartOf=magma@mme.service</code> from the following files
+(you will need sudo privileges):</p>
+<p>magma@mobilityd.service, magma@pipelined.service, magma@sessiond.service and
+sctpd.service</p>
+<p><code>sudo systemctl daemon-reload</code></p>
+<ol>
+<li>In <code>/etc/magma/mme.yml</code>, set <code>use_stateless</code> to true</li>
+<li>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
+throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
+the redis service with <code>sudo service magma@redis start</code> and then try again.</li>
+<li><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></li>
+</ol>
+<p>On test VM:</p>
+<ol>
+<li>Basic attach/detach test where MME is restarted mid-way:</li>
+</ol>
+<p><code>make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py</code></p>
+<ol>
+<li>Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
+flowing:</li>
+</ol>
+<p><code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py</code></p>
+<p>, make sure traffic server VM is running (as described in traffic tests above) and
+TCP checksum is disabled on all VMs.</p>
+<h4><a class="anchor" aria-hidden="true" id="stateless-mobilityd"></a><a href="#stateless-mobilityd" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Mobilityd</h4>
+<p>This section describes how to test whether Mobilityd service is persisting state to Redis.</p>
+<p>On gateway VM:</p>
+<ol>
+<li>Disable MME from restarting when Mobilityd restarts.</li>
+</ol>
+<p>comment out the line <code>PartOf=magma@mobilityd.service</code> from the MME system
+service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges):</p>
+<p><code>sudo systemctl daemon-reload</code></p>
+<ol>
+<li><p>In <code>/etc/magma/mobilityd.yml</code>, set <code>persist_to_redis</code> to <code>true</code></p></li>
+<li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
+throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
+the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
+<li><p><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></p></li>
+</ol>
+<p>On test VM:</p>
+<ol>
+<li><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></li>
+<li><code>cd integ_tests &amp;&amp; make</code></li>
+<li>Basic attach/detach test where Mobilityd is restarted mid-way:</li>
+</ol>
+<p><code>make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py</code></p>
+<ol>
+<li>Test IP blocks are maintained across service restart</li>
+</ol>
+<p><code>make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py</code></p>
+<h4><a class="anchor" aria-hidden="true" id="stateless-pipelined"></a><a href="#stateless-pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Pipelined</h4>
+<p>This section describes how to test whether Pipelined service is persisting state to Redis.</p>
+<p>On gateway VM:</p>
+<ol>
+<li>Disable MME from restarting when Pipelined restarts.</li>
+</ol>
+<p>comment out the line <code>PartOf=magma@pipelined.service</code> from the MME system
+service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges):</p>
+<p><code>sudo systemctl daemon-reload</code></p>
+<ol>
+<li><p>In <code>/etc/magma/pipelined.yml</code>, set <code>clean_restart</code> to <code>false</code></p></li>
+<li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
+throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
+the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
+<li><p><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></p></li>
+</ol>
+<p>On test VM:</p>
+<ol>
+<li><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></li>
+<li><code>cd integ_tests &amp;&amp; make</code></li>
+<li>UDP traffic test where Pipelined is restarted mid-way:</li>
+</ol>
+<p><code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py</code></p>
+<h3><a class="anchor" aria-hidden="true" id="testing-stateless-gateway-with-all-services"></a><a href="#testing-stateless-gateway-with-all-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing stateless gateway with all services</h3>
+<p>To test the gateway with all services being stateless,</p>
+<ol>
+<li><p>On gateway VM, follow steps 1 and 2 for each of Stateless MME, Mobilityd and Pipelined as
+listed above</p></li>
+<li><p>On test VM, you can run any of the test cases for individual service restarts
+listed above. Further, you can test attach with uplink UDP traffic, where
+multiple services are restarted while UDP traffic is flowing:</p></li>
+</ol>
+<p><code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py</code></p>
+<p>, make sure traffic server VM is running (as described in traffic tests above) and
+TCP checksum is disabled on all VMs.</p>
+<h2><a class="anchor" aria-hidden="true" id="notes"></a><a href="#notes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Notes</h2>
+<ul>
+<li>Restart the <em>magma</em> VM (<code>vagrant reload magma</code>) on an assertion error involving <code>ENB_S1_SETUP_RESP.</code> This is a known issue.</li>
+<li>See <em><a href="https://fb.quip.com/4tmUAtlox4Oy">Bindings for Magma's REST API</a></em> for notes on the Python bindings for our REST API generated by <a href="https://github.com/swagger-api/swagger-codegen">swagger-codegen</a>.</li>
+<li>It may be cleaner to set the host using the <a href="https://github.com/swagger-api/swagger-codegen/blob/master/samples/client/petstore/python/petstore_api/configuration.py">configuration class</a>. This is also where we can set SSL options.</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/1.5.0/lte/tr069"><span class="arrow-prev">← </span><span class="function-name-prevnext">Add eNB TR-069 Support</span></a><a class="docs-next button" href="/magma/docs/1.5.0/lte/eventd"><span>Event Reporting</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#gateway-only-tests">Gateway-only tests</a><ul class="toc-headings"><li><a href="#gateway-vm-setup">Gateway VM setup</a></li><li><a href="#test-vm-setup">Test VM setup</a></li><li><a href="#run-tests">Run tests</a></li><li><a href="#running-uplinkdownlink-traffic-tests">Running uplink/downlink traffic tests</a></li></ul></li><li><a href="#testing-stateless-access-gateway">Testing stateless Access Gateway</a><ul class="toc-headings"><li><a href="#testing-one-stateless-service">Testing one stateless service</a></li><li><a href="#testing-stateless-gateway-with-all-services">Testing stateless gateway with all services</a></li></ul></li><li><a href="#notes">Notes</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Overview · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Architecture Overview"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Overview · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Architecture Overview"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Orchestrator</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/config_agw_bridged">AGW Bridged Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Troubleshooting</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install_ubuntu">Install AGW on Ubuntu 20.04</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/hold_terraform_state_on_s3">Hold Terraform state outside my local machine</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/override_values_of_terraform_files">Override values of Terraform files</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_orcl">Experimental Orc8r Deployer</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/deploy_config">Configure NMS</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_install">Install FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_configure">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/debug_logs">View Logs</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_ci_checks">Continuous Integration Checks</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_dependencies">Module Dependencies</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="architecture-overview"></a><a href="#architecture-overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture Overview</h1>
+<p>This document serves as an introduction to Orchestrator functionality and
+architecture. Operators may find this useful to better understand their
+deployment.</p>
+<h2><a class="anchor" aria-hidden="true" id="functionality"></a><a href="#functionality" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Functionality</h2>
+<p>Magma’s Orchestrator is a centralized controller for a set of networks.
+Orchestrator handles the control plane for various types of gateways in Magma.
+Orchestrator functionality is composed of two primary components</p>
+<ul>
+<li>A standardized, vendor-agnostic <strong>northbound REST API</strong> which exposes
+configuration and metrics for network devices</li>
+<li><strong>A southbound interface</strong> which applies device configuration and reports
+device status</li>
+</ul>
+<p><img src="/magma/docs/assets/orc8r/orc8r_overview.png" alt="Orc8r Overview"></p>
+<p>At a lower level, Orchestrator supports the following functionality</p>
+<ul>
+<li>Network entity configuration (networks, gateway, subscribers, policies, etc.)</li>
+<li>Metrics querying via Prometheus and Grafana</li>
+<li>Event and log aggregation via Fluentd and Elasticsearch Kibana</li>
+<li>Config streaming for gateways, subscribers, policies, etc.</li>
+<li>Device state reporting (metrics and status)</li>
+<li>Request relaying between access gateways and federated gateways</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h2>
+<p>Orchestrator follows a modular design. Core Orchestrator services
+(located at <code>orc8r/cloud/go</code>) provide domain-agnostic implementations of
+the functionality described above. Orchestrator modules, such as <code>lte</code>
+(located at <code>lte/cloud/go</code>), provide domain-specific knowledge to the
+core services. This modularity allows Orchestrator to remain flexible to new
+use-cases while allowing operators to only deploy the services needed for their
+specific use-case.</p>
+<h3><a class="anchor" aria-hidden="true" id="controller-supercontainer-pre-v13"></a><a href="#controller-supercontainer-pre-v13" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Controller Supercontainer (pre-v1.3)</h3>
+<p>Prior to v1.4, the Orchestrator application was deployed in a single
+“supercontainer” on Kubernetes.</p>
+<p><img src="/magma/docs/assets/orc8r/orc8r_plugin.png" alt="Orc8r Plugin Architecture"></p>
+<p>Modularity was achieved via the following plugin interface</p>
+<pre><code class="hljs css language-go"><span class="hljs-keyword">type</span> OrchestratorPlugin <span class="hljs-keyword">interface</span> {
+  GetName()
+  GetServices()
+  GetSerdes()
+  GetMconfigBuilders()
+  GetMetricsProfiles()
+  GetObsidianHandlers()
+  GetStreamerProviders()
+  GetStateIndexers()
+}
+</code></pre>
+<p>Each Orchestrator module (e.g. <code>lte</code>, <code>feg</code>, <code>cwf</code>) implemented this interface.
+Plugins were built into the controller container image and loaded into memory for
+each service at runtime.</p>
+<h3><a class="anchor" aria-hidden="true" id="service-mesh-v14"></a><a href="#service-mesh-v14" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service Mesh (v1.4+)</h3>
+<p>Starting in v1.4, Orchestrator is deployed as a service mesh. Every
+Orchestrator service is now deployed with its own Kubernetes service and pod.</p>
+<p><img src="/magma/docs/assets/orc8r/orc8r_service_mesh.png" alt="Orc8r Service Mesh Architecture"></p>
+<p>The service mesh changes provide the following benefits</p>
+<ul>
+<li>Major memory reduction from the removal of the Orchestrator plugins</li>
+<li>Better monitoring via open source tooling</li>
+<li>Ability to horizontally scale specific services</li>
+</ul>
+<p>To achieve the same modularity described above, the in-memory plugin has been
+decomposed into strictly RPC interfaces. Individual services in an Orchestrator
+module register labels and annotations in its Kubernetes service definition to
+declare what functionality the service provides. Core Orchestrator services
+then query the Kubernetes API to discover service functionality.</p>
+<h3><a class="anchor" aria-hidden="true" id="configuration"></a><a href="#configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration</h3>
+<p>The following diagram displays an example call flow for LTE gateway
+configuration</p>
+<p><img src="/magma/docs/assets/orc8r/orc8r_configuration.png" alt="Orc8r Configuration"></p>
+<h3><a class="anchor" aria-hidden="true" id="metrics"></a><a href="#metrics" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metrics</h3>
+<p>The following diagram displays the call flow for the metrics pipeline</p>
+<p><img src="/magma/docs/assets/orc8r/orc8r_metrics.png" alt="Orc8r Metrics"></p>
+<h3><a class="anchor" aria-hidden="true" id="services"></a><a href="#services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Services</h3>
+<p>This section outlines the functionality of each service in the core
+Orchestrator, LTE, and FeG modules.</p>
+<p><strong>Orchestrator</strong></p>
+<ul>
+<li><em>accessd</em> stores, manages and verifies operator identity objects and their
+rights to access (read/write) entities</li>
+<li><em>analytics</em> periodically fetches and aggregates metrics for all deployed
+Orchestrator modules, exporting the aggregations to Prometheus</li>
+<li><em>bootstrapper</em> manages the certificate bootstrapping process for newly
+registered gateways and gateways whose cert has expired</li>
+<li><em>certifier</em> maintains and verifies signed client certificates and their
+associated identities</li>
+<li><em>configurator</em> maintains configurations and metadata for networks and
+network entity structures</li>
+<li><em>ctraced</em> handles gateway call traces, exposing this functionality via a
+CRUD API</li>
+<li><em>device</em> maintains configurations and metadata for devices in the network
+(e.g. gateways)</li>
+<li><em>directoryd</em> stores subscriber identity (e.g. IMSI, IP address,
+MAC address) and location (gateway hardware ID)</li>
+<li><em>dispatcher</em> maintains SyncRPC connections (HTTP2 bidirectional streams)
+with gateways</li>
+<li><em>metricsd</em> collects runtime metrics from gateways and Orchestrator
+services</li>
+<li><em>obsidian</em> verifies API request access control and reverse proxies
+requests to Orchestrator services with the appropriate API handlers</li>
+<li><em>orchestrator</em> provides
+<ul>
+<li>Mconfigs for configuration of core gateway service configurations
+(e.g. magmad, eventd, state)</li>
+<li>Metrics exporting to Prometheus</li>
+<li>CRUD API for core Orchestrator network entities (networks, gateways,
+upgrade tiers, events, etc.)</li>
+</ul></li>
+<li><em>service_registry</em> provides service discovery for all services in the
+Orchestrator by querying Kubernetes's API server</li>
+<li><em>state</em> maintains reported state from devices in the network</li>
+<li><em>streamer</em> fetches updates for various data streams (e.g. mconfig,
+subscribers, etc.) from the appropriate Orchestrator service, returning these
+to the gateways</li>
+<li><em>tenants</em> provides CRUD interface for managing NMS tenants</li>
+</ul>
+<p><strong>LTE</strong></p>
+<ul>
+<li><em>ha</em> provides interface for secondary gateways in an HA deployment to find
+offload status for UEs</li>
+<li><em>lte</em> provides
+<ul>
+<li>Mconfigs for configuration of LTE-related gateway service configurations
+(e.g. mme, pipelined, policydb)</li>
+<li>CRUD API for LTE network entities (LTE networks, LTE gateways, eNodeBs, etc.)</li>
+</ul></li>
+<li><em>policydb</em> manages subscriber policies via a northbound CRUD API and
+a southbound policy stream</li>
+<li><em>smsd</em> provides CRUD support for SMS messages to be fetched by LTE gateways</li>
+<li><em>subscriberdb</em> manages subscribers via a northbound CRUD API and
+a southbound subscriber stream</li>
+</ul>
+<p><strong>FeG</strong></p>
+<ul>
+<li><em>feg</em> provides
+<ul>
+<li>Mconfigs for configuration of FeG-related gateway service configurations
+(e.g. s6a_proxy, session_proxy)</li>
+<li>CRUD API for LTE network entities (FeG networks, federated gateways, etc.)</li>
+</ul></li>
+<li><em>feg relay</em> relays requests between access gateways and federated gateways</li>
+<li><em>health</em> manages active/standby clusters of federated gateways</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/1.5.0/lte/architecture_overview"><span class="arrow-prev">← </span><span>Overview</span></a><a class="docs-next button" href="/magma/docs/1.5.0/orc8r/architecture_modularity"><span>Modularity</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#functionality">Functionality</a></li><li><a href="#architecture">Architecture</a><ul class="toc-headings"><li><a href="#controller-supercontainer-pre-v13">Controller Supercontainer (pre-v1.3)</a></li><li><a href="#service-mesh-v14">Service Mesh (v1.4+)</a></li><li><a href="#configuration">Configuration</a></li><li><a href="#metrics">Metrics</a></li><li><a href="#services">Services</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

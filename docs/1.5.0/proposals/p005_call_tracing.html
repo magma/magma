@@ -1,0 +1,326 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Call Tracing for Troubleshooting · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Tracing Support"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Call Tracing for Troubleshooting · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Tracing Support"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Proposals</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/config_agw_bridged">AGW Bridged Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Troubleshooting</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install_ubuntu">Install AGW on Ubuntu 20.04</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/hold_terraform_state_on_s3">Hold Terraform state outside my local machine</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/override_values_of_terraform_files">Override values of Terraform files</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_orcl">Experimental Orc8r Deployer</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/deploy_config">Configure NMS</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_install">Install FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_configure">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/debug_logs">View Logs</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_ci_checks">Continuous Integration Checks</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_dependencies">Module Dependencies</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/1.5.0/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="tracing-support"></a><a href="#tracing-support" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Tracing Support</h1>
+<p><em>Status: In review</em>
+<em>Feature owner: @andreilee</em>
+<em>Feedback requested from: @amarpad, @xjtian, @karthiksubraveti</em>
+<em>Last Updated: 10/21</em></p>
+<h2><a class="anchor" aria-hidden="true" id="summary"></a><a href="#summary" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Summary</h2>
+<p>As a general purpose debugging tool, a tracing tool will be added for
+understanding control messaging flow through a Magma access gateway.</p>
+<h2><a class="anchor" aria-hidden="true" id="motivation"></a><a href="#motivation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Motivation</h2>
+<p>Example use cases include the following:</p>
+<p><strong>Subscriber Tracing</strong></p>
+<p>When issues are experienced by a subscriber on the network, network operators
+would like to have a tool which allows them to see the messages between the UE,
+eNodeB, and Magma components relating to the subscriber. This feature already
+exists for other NMS tools. Ideally, this capture should be a packet capture to
+fit with existing workflows using Wireshark. Wireshark has features to decode
+and display relevant messages for Gx, Gy, S1AP, TR-069, etc., as well as
+plugins to support decoding and viewing gRPC messages which are passed between
+Magma gateway components.</p>
+<p><strong>Protocol Tracing</strong></p>
+<p>Operators would like to be able to capture traces for specific protocol stacks,
+such as SCTP or DIAMETER. This could be used for troubleshooting specific
+integrations.</p>
+<h2><a class="anchor" aria-hidden="true" id="goals"></a><a href="#goals" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Goals</h2>
+<ul>
+<li>Allow network operators to trace the control plane messaging for a subscriber</li>
+<li>Allow network operators to trace control plane messaging for a specific
+protocol or interface</li>
+<li>Allow call trace captures to started and stopped from the NMS</li>
+<li>Allow call trace captures to be filtered by subscriber/protocol/interface
+control plane messaging</li>
+</ul>
+<p>As an additional criteria which is not necessary, call trace captures should
+be viewable in Wireshark.</p>
+<h2><a class="anchor" aria-hidden="true" id="implementation-phases"></a><a href="#implementation-phases" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implementation Phases</h2>
+<p>The implementation will be done in two phases.</p>
+<p><strong>Phase 1 - MVP</strong></p>
+<p>(October - November 27)</p>
+<p>The first phase of implementation will focus on bringing an MVP. Call traces
+will be able to be initiated from the NMS, and downloads of captures viewable
+through Wireshark after capture will be available.</p>
+<p><strong>Phase 2 - Call Trace Filtering</strong></p>
+<p>(December - January)</p>
+<p>In the second phase, features will be provided for filtering call traces by
+subscriber, protocol, or interface.</p>
+<h2><a class="anchor" aria-hidden="true" id="phase-1"></a><a href="#phase-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Phase 1</h2>
+<h4><a class="anchor" aria-hidden="true" id="user-flow"></a><a href="#user-flow" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>User Flow</h4>
+<p>For call tracing with Magma, we will provide the following user flow:</p>
+<ol>
+<li>User accesses NMS</li>
+<li>User selects either the gateway or subscriber that they would like to do
+call tracing for</li>
+<li>User starts the call trace</li>
+<li>After a timeout, or by user control, the call trace stops</li>
+<li>The call trace will be provided as a download to the user</li>
+</ol>
+<h3><a class="anchor" aria-hidden="true" id="design"></a><a href="#design" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Design</h3>
+<h4><a class="anchor" aria-hidden="true" id="orchestrator---api"></a><a href="#orchestrator---api" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Orchestrator - API</h4>
+<p>The API supports starting the call trace, ending the tracing session, and
+downloading the resulting capture.</p>
+<p>The API will be as follows:</p>
+<pre><code class="hljs"><span class="xml">GET      /networks/</span><span class="hljs-template-variable">{network_id}</span><span class="xml">/tracing/</span><span class="hljs-template-variable">{trace_type}</span><span class="xml">/</span><span class="hljs-template-variable">{trace_id}</span><span class="xml">
+POST     /networks/</span><span class="hljs-template-variable">{network_id}</span><span class="xml">/tracing/</span><span class="hljs-template-variable">{trace_type}</span><span class="xml">/</span><span class="hljs-template-variable">{trace_id}</span><span class="xml">
+PUT      /networks/</span><span class="hljs-template-variable">{network_id}</span><span class="xml">/tracing/</span><span class="hljs-template-variable">{trace_type}</span><span class="xml">/</span><span class="hljs-template-variable">{trace_id}</span><span class="xml">
+DELETE   /networks/</span><span class="hljs-template-variable">{network_id}</span><span class="xml">/tracing/</span><span class="hljs-template-variable">{trace_type}</span><span class="xml">/</span><span class="hljs-template-variable">{trace_id}</span><span class="xml">
+
+GET      /networks/</span><span class="hljs-template-variable">{network_id}</span><span class="xml">/tracing/</span><span class="hljs-template-variable">{trace_type}</span><span class="xml">/download/</span><span class="hljs-template-variable">{trace_id}</span><span class="xml">
+</span></code></pre>
+<p>To use call tracing via the REST API, the following steps should be followed.</p>
+<p>To begin a call trace, the POST endpoint should be called to create a
+<code>call_trace</code> resource. During this time, the type of call trace should be
+specified, along with timeout, and the <code>trace_id</code>.</p>
+<p>To end a call trace, either the user can wait for the timeout, or to manually
+end the call trace, the PUT endpoint can be called, specifying <code>requested_end</code>
+as <code>true</code>.</p>
+<p>To download the call trace, the GET endpoint should return whether the call
+trace has ended and is ready to download, and if it is, will return the
+download URL.</p>
+<pre><code class="hljs">definitions:
+  call_trace:
+   description: Mutable <span class="hljs-keyword">Call</span> <span class="hljs-keyword">Trace</span>
+   <span class="hljs-keyword">type</span>: <span class="hljs-keyword">object</span>
+   <span class="hljs-keyword">required</span>:
+     - trace_id
+     - config
+   properties:
+     trace_id:
+       <span class="hljs-keyword">type</span>: <span class="hljs-keyword">string</span>
+       x-nullable: <span class="hljs-literal">false</span>
+       example: <span class="hljs-string">"pair1"</span>
+     config:
+       $<span class="hljs-keyword">ref</span>: call_trace_config
+     state:
+       $<span class="hljs-keyword">ref</span>: call_trace_state
+
+  mutable_call_trace:
+   description: Mutable <span class="hljs-keyword">Call</span> <span class="hljs-keyword">Trace</span>
+   <span class="hljs-keyword">type</span>: <span class="hljs-keyword">object</span>
+   <span class="hljs-keyword">required</span>:
+     - trace_id
+     - config
+   properties:
+     trace_id:
+       <span class="hljs-keyword">type</span>: <span class="hljs-keyword">string</span>
+       x-nullable: <span class="hljs-literal">false</span>
+       example: <span class="hljs-string">"pair1"</span>
+     requested_end:
+       <span class="hljs-keyword">type</span>: <span class="hljs-built_in">boolean</span>
+     config:
+       $<span class="hljs-keyword">ref</span>: call_trace_config
+
+  call_trace_config:
+    <span class="hljs-keyword">type</span>: <span class="hljs-keyword">object</span>
+    description: <span class="hljs-keyword">Call</span> <span class="hljs-keyword">Trace</span> spec
+    <span class="hljs-keyword">required</span>:
+      - <span class="hljs-keyword">type</span>
+    properties:
+      trace_type:
+        <span class="hljs-keyword">type</span>: <span class="hljs-keyword">string</span>
+        x-nullable: <span class="hljs-literal">false</span>
+        enum:
+          - <span class="hljs-string">'GATEWAY'</span>
+          - <span class="hljs-string">'SUBSCRIBER'</span>
+          - <span class="hljs-string">'PROTOCOL'</span>
+          - <span class="hljs-string">'INTERFACE'</span>
+      imsi:
+        <span class="hljs-keyword">type</span>: <span class="hljs-keyword">string</span>
+      protocol:
+        <span class="hljs-keyword">type</span>: <span class="hljs-keyword">string</span>
+      <span class="hljs-keyword">interface</span>:
+        <span class="hljs-keyword">type</span>: <span class="hljs-keyword">string</span>
+      <span class="hljs-keyword">timeout</span>:
+        <span class="hljs-keyword">type</span>: <span class="hljs-built_in">integer</span>
+        <span class="hljs-keyword">format</span>: uint32
+        description: <span class="hljs-keyword">Timeout</span> <span class="hljs-keyword">of</span> <span class="hljs-keyword">call</span> <span class="hljs-keyword">trace</span> <span class="hljs-keyword">in</span> <span class="hljs-keyword">seconds</span>
+
+  call_trace state:
+    <span class="hljs-keyword">type</span>: <span class="hljs-keyword">object</span>
+    description: <span class="hljs-keyword">Full</span> state <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> a <span class="hljs-keyword">call</span> <span class="hljs-keyword">trace</span>
+    properties:
+      call_trace_available:
+        <span class="hljs-keyword">type</span>: <span class="hljs-built_in">boolean</span>
+</code></pre>
+<h4><a class="anchor" aria-hidden="true" id="orchestrator---ctraced"></a><a href="#orchestrator---ctraced" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Orchestrator - ctraced</h4>
+<p>On the gateway, the ctraced service will manage call tracing for the network.
+This service will be responsible for initiating call tracing sessions on
+gateways, and servicing downloads of call trace captures.</p>
+<p>Call traces will be stored in postgresql, and periodically, ctraced should
+delete old traces. Traces will expire after a week, and so a cronjob will be
+responsible for deleting old traces. This setting will be configurable.</p>
+<h4><a class="anchor" aria-hidden="true" id="orchestrator---trace-storage"></a><a href="#orchestrator---trace-storage" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Orchestrator - Trace storage</h4>
+<p>Storage of call trace captures will be done in postgresql, stored as binary
+data. A new table will be created for storage of call traces.</p>
+<p>A migration script is required to ensure that existing deployments will get
+this new table for storing call traces.</p>
+<h4><a class="anchor" aria-hidden="true" id="gateway---ctraced"></a><a href="#gateway---ctraced" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Gateway - ctraced</h4>
+<p>The ctraced service on the gateway will be a new service, responsible for
+managing call tracing. Options will be provided for gateway wide
+packet-capture, and later on, options will be provided for protocol, interface,
+or subscriber specific call tracing.</p>
+<pre><code class="hljs"><span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">CallTraceService</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> StartCallTrace (StartTraceRequest) <span class="hljs-keyword">returns</span> (StartTraceResponse) {}
+
+  <span class="hljs-keyword">rpc</span> EndCallTrace (EndTraceRequest) <span class="hljs-keyword">returns</span> (EndTraceResponse) {}
+}
+
+
+message StartTraceRequest {
+  enum TraceType {
+    ALL = 0</span>;
+    SUBSCRIBER = <span class="hljs-number">1</span>;
+    PROTOCOL = <span class="hljs-number">2</span>;
+    INTERFACE = <span class="hljs-number">3</span>;
+  }
+
+  TraceType trace_type = <span class="hljs-number">1</span>;
+  <span class="hljs-comment">// IMSI specified only if trace_type is SUBSCRIBER</span>
+  <span class="hljs-built_in">string</span> imsi = <span class="hljs-number">2</span>; <span class="hljs-comment">// Include prefix 'IMSI'</span>
+
+  <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">ProtocolName</span> </span>{
+    SCTP = <span class="hljs-number">0</span>;
+    DIAMETER = <span class="hljs-number">1</span>;
+  }
+  <span class="hljs-comment">// Protocol name specified only if trace_type is PROTOCOL</span>
+  ProtocolName protocol = <span class="hljs-number">3</span>;
+  <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">InterfaceName</span> </span>{
+    S1AP = <span class="hljs-number">0</span>;
+    GX = <span class="hljs-number">1</span>;
+    GT = <span class="hljs-number">2</span>;
+  }
+  <span class="hljs-comment">// Interface name specified only if trace_type is INTERFACE</span>
+  InterfaceName interface = <span class="hljs-number">4</span>;
+}
+
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">StartTraceResponse</span> </span>{
+  <span class="hljs-built_in">bool</span> success = <span class="hljs-number">1</span>; <span class="hljs-comment">// May fail due to an existing tracing session</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">EndTraceRequest</span> </span>{}
+
+<span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">EndTraceResponse</span> </span>{
+  <span class="hljs-built_in">bool</span> success = <span class="hljs-number">1</span>; <span class="hljs-comment">// May fail due to no existing tracing session</span>
+  <span class="hljs-built_in">bytes</span> trace_content = <span class="hljs-number">1</span>; <span class="hljs-comment">// Max size of 4MB</span>
+}
+</code></pre>
+<p>To perform call tracing, ctraced will use <code>tshark</code>, a terminal-based wireshark
+tool to do packet capture on the gateway. This will be installed as a
+provisioning step on the gateway.</p>
+<p>Call tracing will be initiated from the orc8r, and the packet-capture will be
+transferred back to orc8r from AGW via gRPC. Currently there is a limit for
+gRPC message sizes to 4MB, which limits the size of packet capture. Given that
+the packet capture should filter out data plane traffic, this should be
+sufficient for short tracing sessions, for an MVP.</p>
+<h4><a class="anchor" aria-hidden="true" id="nms---interface"></a><a href="#nms---interface" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>NMS - Interface</h4>
+<p>A new section will be added to the NMS to initiate call traces,
+see past call traces, and download them.</p>
+<hr>
+<h2><a class="anchor" aria-hidden="true" id="phase-2"></a><a href="#phase-2" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Phase 2</h2>
+<h4><a class="anchor" aria-hidden="true" id="user-flow-1"></a><a href="#user-flow-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>User Flow</h4>
+<p>Phase 2 user flow will be the same from the user interface. The differentiation
+will be in the call trace provided to the operator, which will have its tracing
+information filtered by the specified subscriber.</p>
+<ol>
+<li>User accesses NMS</li>
+<li>User options of the trace: protocol, interface, and subscriber/gateway</li>
+<li>User starts the call trace</li>
+<li>After a timeout, or by user control, the call trace stops</li>
+<li>The call trace will be provided as a download to the user</li>
+</ol>
+<h4><a class="anchor" aria-hidden="true" id="gateway---ctraced-1"></a><a href="#gateway---ctraced-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Gateway - ctraced</h4>
+<p>The ctraced service will need to be modified to filter messages. For protocols
+including S1-AP or interfaces like Gx, tshark will be used to filter for the
+relevant subscriber, protocol, or interface.</p>
+<p>For gRPC messages, tshark does not provide features to filter.
+Separate gRPC tracing will need to be implemented, and from this separate gRPC
+trace, ctraced will filter for relevant messages. Together with the packet
+capture acquired through tshark, these two traces will be provided for download
+to the user.</p>
+<h4><a class="anchor" aria-hidden="true" id="tracing-options"></a><a href="#tracing-options" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Tracing Options</h4>
+<p>Tracing will be able to be filtered for the following interfaces:</p>
+<ul>
+<li>S6a</li>
+<li>Gx</li>
+<li>Gy</li>
+</ul>
+<p>Or for the following protocols:</p>
+<ul>
+<li>S1-AP</li>
+<li>Diameter Credit-Control Application</li>
+<li>TR-069</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/1.5.0/proposals/p004_fua-restrict-feature"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/magma/docs/1.5.0/proposals/p007_header_enrichment"><span>Header enrichment</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#summary">Summary</a></li><li><a href="#motivation">Motivation</a></li><li><a href="#goals">Goals</a></li><li><a href="#implementation-phases">Implementation Phases</a></li><li><a href="#phase-1">Phase 1</a><ul class="toc-headings"><li><a href="#design">Design</a></li></ul></li><li><a href="#phase-2">Phase 2</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

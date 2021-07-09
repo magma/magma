@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>NMS Regression Testing · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Proposal: NMS Regression Testing"/><meta name="docsearch:version" content="1.6.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="NMS Regression Testing · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Proposal: NMS Regression Testing"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.6.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="proposal-nms-regression-testing"></a><a href="#proposal-nms-regression-testing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: NMS Regression Testing</h1>
+<p>Author(s): @andreilee</p>
+<p>Last updated: 04/22/2021</p>
+<p>Discussion at
+<a href="https://github.com/magma/magma/issues/4888">https://github.com/magma/magma/issues/4888</a>.</p>
+<h2><a class="anchor" aria-hidden="true" id="abstract"></a><a href="#abstract" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Abstract</h2>
+<p>The Magma NMS currently lacks many end-to-end tests for critical worksflows.
+Given the current velocity of contributions to the Magma NMS, a tool such as
+<a href="https://www.testim.io/">Testim</a> will be used and integrated with Magma's
+CI framework to cover the gap in testing, with limited time investment from
+involved developers.</p>
+<h2><a class="anchor" aria-hidden="true" id="background"></a><a href="#background" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Background</h2>
+<p>As of the time of this document's conception, Magma has high feature velocity.
+Without infinite developer resources, this presents a trade-off between
+spending time on feature work and validation.
+The use of tools such as Testim are intended to free up time for developers to
+focus on feature work.</p>
+<h2><a class="anchor" aria-hidden="true" id="proposal"></a><a href="#proposal" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal</h2>
+<p>Testim will be used for daily testing of various workflows on NMS.
+This testing will be limited to what can be automatically tested without
+interaction with eNodeBs, CPEs, or UE devices, and will focus on interactivity
+with the Magma NMS.</p>
+<p>A representative test set of NMS workflows useful for verification of pure-play
+FWA usage of Magma will be created on Testim.
+The Testim account will be managed by the Magma Core Foundation, and the
+subscription will be paid for by Facebook.</p>
+<p>The test suite will be triggered to run daily through Github Actions.
+A kubernetes cluster will be set up to run daily images of the Magma
+orchestrator and NMS. The tests will run on this test cluster.</p>
+<p><strong>Daily Reports</strong></p>
+<p>A Slack channel will be used for contributors to see the results of tests.
+The results of each test should be visible in the Slack channel, and a link
+to the test run should also be provided, as well as a reference to which
+container image tags were used for the test run.</p>
+<p><strong>Budget</strong></p>
+<p>Facebook will pay for the associated costs with using the service provided by
+Testim, for at least one year.</p>
+<p><strong>Tests</strong></p>
+<p>The following tests are proposed to verify pure-play FWA usage of the Magma
+NMS:</p>
+<ol>
+<li>Create/update/delete an LTE network</li>
+<li>Verifying dialogs for PLMN restriction, dataplans, and IMEI restrictions</li>
+<li>Create/update/delete an LTE AGW</li>
+<li>Create/update/delete LTE AGWs with IP allocation schemes: IP_POOL, bridged, STATIC</li>
+<li>Create and register a managed eNodeB configuration</li>
+<li>Create and register an unmanaged eNodeB configuration</li>
+<li>Verify LTE networks dashboard</li>
+<li>Verify Grafana dashboard</li>
+<li>Verify charting components</li>
+<li>Verify presence of logs/events components</li>
+<li>Create/update/delete a gateway pool and register the LTE AGW</li>
+<li>Create/update/delete a subscriber through single and bulk edits</li>
+<li>Create/update/delete an APN</li>
+<li>Create/update/delete a policy</li>
+<li>Create/update/delete a traffic profile</li>
+<li>Create/update/delete a rating group</li>
+<li>Search through NMS metrics explorer</li>
+<li>Add/update/delete an alert receiver</li>
+<li>Add/update/delete an alert rule</li>
+<li>Create/update/delete an NMS user</li>
+<li>Create/update/delete an NMS organization</li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="implementation"></a><a href="#implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implementation</h2>
+<p>Implementation will proceed in 4 phases.
+The entire implementation is proposed to be completed by the end of June 2021,
+and should validate the Magma NMS for version 1.6 and onwards.</p>
+<p><strong>Phase 1: Proposal Review and Github Comments</strong></p>
+<p><em>April 19 - 26</em></p>
+<p>The proposal will be visible on Github for at least a week to solicit comments
+and feedback. At the end of this phase, there should be some consensus on the
+plan to add NMS E2E/regression testing.</p>
+<p><strong>Phase 2: Testim Test Suite Creation</strong></p>
+<p>The test suite will be created on the Testim account.</p>
+<p>At the end of this phase, there should be a full test suite capable of
+verifying the use of Magma NMS for pure-play FWA usage. This test suite will
+need to be run manually.</p>
+<p><strong>Phase 3: Daily Github Actions Triggering Tests</strong></p>
+<p>Github Action integration will be completed during this phase.
+At the end of this phase, the full test suite should run on a daily basis.
+This test suite should run against the Magma staging setup, currently
+maintained by Facebook. Results of the tests should be posted to the Magma
+Slack.</p>
+<p><strong>Phase 4: Kubernetes Test Cluster for NMS Testing</strong></p>
+<p>A separate kubernetes test cluster will be set up specifically for NMS testing.
+This cluster will run daily builds of orchestrator and NMS.
+The test suite will run against the NMS hosted on this test cluster to get
+an up-to-date view of the NMS.</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#abstract">Abstract</a></li><li><a href="#background">Background</a></li><li><a href="#proposal">Proposal</a></li><li><a href="#implementation">Implementation</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

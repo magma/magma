@@ -1,0 +1,426 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Contributing Conventions · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Contributing Conventions"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Contributing Conventions · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Contributing Conventions"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Contribute</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/config_agw_bridged">AGW Bridged Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Troubleshooting</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install_ubuntu">Install AGW on Ubuntu 20.04</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/hold_terraform_state_on_s3">Hold Terraform state outside my local machine</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/override_values_of_terraform_files">Override values of Terraform files</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_orcl">Experimental Orc8r Deployer</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/deploy_config">Configure NMS</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_install">Install FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_configure">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/debug_logs">View Logs</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_ci_checks">Continuous Integration Checks</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_dependencies">Module Dependencies</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="contributing-conventions"></a><a href="#contributing-conventions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Contributing Conventions</h1>
+<p>This document describes contributing conventions for the Magma project. The goal of this style guide is to</p>
+<ul>
+<li>Steer contributors away from experienced landmines</li>
+<li>Align on coding styles in support of a uniform Magma codebase, with the aim to improve developer productivity and codebase approachability</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="general"></a><a href="#general" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>General</h2>
+<p>Follow these conventions when making changes to the Magma codebase.</p>
+<h3><a class="anchor" aria-hidden="true" id="leave-it-better-than-you-found-it"></a><a href="#leave-it-better-than-you-found-it" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Leave it better than you found it</h3>
+<ul>
+<li>The project's principal convention is the <a href="https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html">boy scout rule</a>: leave it better than you found it</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="add-tests-for-your-changes"></a><a href="#add-tests-for-your-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Add tests for your changes</h3>
+<ul>
+<li>Tests should cover, at minimum, the mainline of the new feature. For reference, that usually ends up around 50-70% coverage.</li>
+<li>Unit tests should default to being placed in the same directory as the files they're testing, except for the following
+<ul>
+<li>Python: directly-adjacent <code>tests</code> directory</li>
+<li>C/C++: directly-adjacent <code>tests</code> directory</li>
+</ul></li>
+<li>Integration tests should be placed as close to the code-under-test as possible</li>
+<li>If you're not sure how to test a change, reach out on the community Slack workspace for input</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="separate-cleanup-prs-from-functional-changes"></a><a href="#separate-cleanup-prs-from-functional-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Separate cleanup PRs from functional changes</h3>
+<ul>
+<li>Keeps PRs small and understandable</li>
+<li>Exception: if the area of the codebase you're editing needs a cleanup PR, but you don't have bandwidth to add one, default to mimicking the surrounding code</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="scope-component-responsibilities"></a><a href="#scope-component-responsibilities" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scope component responsibilities</h3>
+<ul>
+<li>Functions, and components in general, should be narrowly scoped to a single, specific role</li>
+<li>When writing a function over 100 lines long, consider extracting a helper functions out of the intermediate logical steps</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="prefer-immutability-and-idempotency"></a><a href="#prefer-immutability-and-idempotency" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prefer immutability and idempotency</h3>
+<ul>
+<li>Prefer immutable state</li>
+<li>When mutability is necessary, consider the following
+<ul>
+<li>Prefer to set a component's state entirely in its constructor</li>
+<li>Mutate a component's state as close to construction-time as possible</li>
+<li>Perform mutations as high in the call chain as possible</li>
+</ul></li>
+<li>Prefer side-effect-free functions
+<ul>
+<li>When side-effects are necessary, move them as high in the call chain as possible</li>
+</ul></li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="prefer-composition-over-inheritance"></a><a href="#prefer-composition-over-inheritance" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prefer composition over inheritance</h3>
+<ul>
+<li>Avoid inheritance as a design pattern, in favor of composition and dependency injection</li>
+<li>If complex logic begins bleeding into test case setup, consider pulling that logic into a dependency interface</li>
+<li>Build a complex component as a composition of multiple simpler components with clear interfaces</li>
+<li>Avoid non-trivial static functions: pull interfaces out of the static functions and inject them into depending components</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="use-simple-constructors"></a><a href="#use-simple-constructors" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use simple constructors</h3>
+<ul>
+<li>Split complex logic and side-effect-inducing functionality out of the constructor and into an initialization method</li>
+<li>If desired, can also use a static factory function to construct the component and call its initialization method</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="comment-with-why-not-what"></a><a href="#comment-with-why-not-what" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Comment with why, not what</h3>
+<ul>
+<li>Good code is self-documenting</li>
+<li>Instead of defaulting to inline comments, focus on
+<ul>
+<li>Concise and descriptive identifier names</li>
+<li>Intelligent types and pervasive typing information</li>
+<li>High-quality docstrings on functions, components, and top-level identifiers</li>
+</ul></li>
+<li>Avoid &quot;topic sentence&quot; comments
+<ul>
+<li>E.g. &quot;this block of code does X ... this block of code does Y&quot;, when there's no value-add other than summarizing the next few lines</li>
+<li>Instead, code paragraphs should be skimmable</li>
+<li>Consider breaking dense code paragraphs out into private functions.</li>
+</ul></li>
+<li>Save comments for code blocks that require non-obvious context, e.g. answering why an idiosyncratic or non-obvious decision was made</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="follow-style-conventions"></a><a href="#follow-style-conventions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Follow style conventions</h3>
+<ul>
+<li>Use <a href="https://golang.org/doc/effective_go#commentary">Go-style doc comments</a>, where the doc comment is prefixed by the name of the object being documented</li>
+<li>Use <a href="https://en.wikipedia.org/wiki/Wikipedia:List_of_spelling_variants">Americanized spellings</a>
+<ul>
+<li>marshaling, marshaled</li>
+<li>canceling, canceled, cancellation</li>
+</ul></li>
+<li>Use alphabetized <a href="https://en.wikipedia.org/wiki/Metasyntactic_variable">metasyntactic variables</a>
+<ul>
+<li>Good: <code>apple, banana, cherry, date, egg</code></li>
+<li>Bad: <code>foo, bar, baz, quz, soap</code></li>
+</ul></li>
+<li>Prefer underscores over hyphens
+<ul>
+<li>File, directory names</li>
+<li>YAML, JSON</li>
+<li>Exception: in certain parts of K8s, underscores are disallowed. In this case, hyphens are preferred, and translation between hyphens and underscores is acceptable.</li>
+</ul></li>
+<li>Omit trailing slash of directory paths, except where semantically meaningful</li>
+<li>Don't terminate new service names with <code>d</code></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="documentation"></a><a href="#documentation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Documentation</h2>
+<h3><a class="anchor" aria-hidden="true" id="all-documentation"></a><a href="#all-documentation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>All documentation</h3>
+<p>The end-goal is uniform, approachable documentation, especially in the Docusaurus</p>
+<ul>
+<li>Write in <a href="https://www.plainenglish.co.uk/how-to-write-in-plain-english.html">plain English</a>
+<ul>
+<li>Short sentences</li>
+<li>Active verbs</li>
+<li>Use &quot;you&quot; and &quot;we&quot;</li>
+<li>Avoid nominalisations</li>
+<li>Use lists</li>
+</ul></li>
+<li><a href="https://www.nngroup.com/articles/writing-links/">Use descriptive hyperlink text</a>
+<ul>
+<li>Don't use &quot;here&quot; as the text for a hyperlink</li>
+</ul></li>
+<li>Consistent capitalization and spelling
+<ul>
+<li>Magma-specific
+<ul>
+<li>Orc8r, Orchestrator</li>
+<li>NMS</li>
+<li>Magma</li>
+<li>Mconfig</li>
+</ul></li>
+<li>Magma-adjacent
+<ul>
+<li>K8s, Kubernetes</li>
+<li>Helm</li>
+<li>gRPC</li>
+<li>eNodeB</li>
+</ul></li>
+<li>Everyday words
+<ul>
+<li>metadata</li>
+<li>use-case</li>
+</ul></li>
+<li>Magma service names
+<ul>
+<li>state, subscriberdb, lte, etc.</li>
+</ul></li>
+</ul></li>
+<li>Use long form of CLI flags
+<ul>
+<li><code>--deployment</code> rather than <code>-d</code>.</li>
+</ul></li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="markdown"></a><a href="#markdown" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Markdown</h3>
+<p>Consider the following Markdown conventions</p>
+<ul>
+<li>Don't wrap long lines</li>
+<li>Use <code>#</code> for headers, rather than underlining</li>
+<li>Place an empty line before and after a list block</li>
+<li>Don't preface lists with punctuation
+<ul>
+<li>Good: <code>Consider the following Markdown conventions</code></li>
+<li>Bad: <code>Consider the following Markdown conventions:</code></li>
+<li>Bad: <code>Consider the following Markdown conventions,</code></li>
+<li>Bad: <code>Consider the following Markdown conventions.</code></li>
+</ul></li>
+<li>Default to sentence-casing listables
+<ul>
+<li>Good: <code>- Default to sentence-casing listables</code></li>
+<li>Bad: <code>- default to sentence-casing listables</code></li>
+</ul></li>
+<li>Use hyphens for unordered lists, not asterisks
+<ul>
+<li>Good: <code>- Magma</code></li>
+<li>Bad: <code>* Magma</code></li>
+</ul></li>
+<li>Use flat apostrophes and quotes, not curly
+<ul>
+<li>Good: <code>Magma's</code>, <code>&quot;Magma&quot;</code></li>
+<li>Bad: <code>Magma’s</code>, <code>“Magma”</code></li>
+</ul></li>
+<li>Title-case H1 headers, sentence-case H2 and lower headers
+<ul>
+<li>Good: <code># Code Conventions in Magma</code>, <code>## Code conventions in Magma</code></li>
+<li>Bad: <code># Code conventions in Magma</code>, <code>## Code Conventions in Magma</code></li>
+</ul></li>
+<li>Use space-padded double-hyphen to approximate an <a href="https://www.thepunctuationguide.com/em-dash.html">em dash</a>
+<ul>
+<li>Good: <code>Magma -- an open source project -- has code conventions</code></li>
+<li>Bad: <code>Magma--an open source project--has code conventions</code></li>
+<li>Bad: <code>Magma - an open source project - has code conventions</code></li>
+</ul></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="languages"></a><a href="#languages" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Languages</h2>
+<h3><a class="anchor" aria-hidden="true" id="go"></a><a href="#go" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Go</h3>
+<p>Orc8r's cloud code has some basic <a href="https://github.com/magma/magma/blob/master/.golangci.yml">CI lint checks</a>. The <a href="https://github.com/golang/go/wiki/CodeReviewComments">Go style guide</a> and anything concrete from <a href="https://golang.org/doc/effective_go">Effective Go</a> are authoritative. Aside from those, consider the following conventions</p>
+<p><strong>General</strong></p>
+<ul>
+<li>Familiarize yourself with these <a href="https://gist.github.com/lavalamp/4bd23295a9f32706a48f">3 common Go landmines</a></li>
+<li>Check in generated code</li>
+<li>Avoid init functions in Magma code
+<ul>
+<li>Exception: generated code and imported code</li>
+<li>If a new init function absolutely must be added, it must be idempotent, contained to its package, and not cause global state mutation</li>
+</ul></li>
+<li>Avoid global state
+<ul>
+<li>This includes global registries</li>
+<li>Preferred alternative: pass instance of object around directly</li>
+<li>Acceptable alternative: singleton instances of a private object accessed by public functions</li>
+</ul></li>
+<li>Default to using separate <code>_test</code> package for tests
+<ul>
+<li>I.e. <a href="https://medium.com/@matryer/5-simple-tips-and-tricks-for-writing-unit-tests-in-golang-619653f90742">same directory, different package</a></li>
+<li>Example: <a href="https://github.com/magma/magma/blob/51843e3245e0b785a738d991f62657c2cac328b6/orc8r/cloud/go/services/state/indexer/indexer_test.go#L14"><code>orc8r/cloud/go/services/state/indexer/indexer_test.go</code></a></li>
+<li>In almost all cases, the code-under-test should be re-writable into something that can be tested from an external test package</li>
+<li>Only use same-package tests when absolutely necessary, and in that case put them in a separate test file</li>
+</ul></li>
+<li>When returning an error, all other returns should contain their <a href="https://yourbasic.org/golang/default-zero-value/">zero value</a></li>
+</ul>
+<p><strong>Logging</strong></p>
+<ul>
+<li>Use <a href="https://pkg.go.dev/github.com/golang/glog">the <code>golang/glog</code> package</a> for all logging
+<ul>
+<li>Default to <code>-v=0</code> for all services</li>
+</ul></li>
+<li>Deciding when to log errors
+<ul>
+<li>There are two types of errors: <em>platform</em> errors, where there's something wrong with Orc8r, and <em>client</em> errors, where a client made an invalid request. The former must be logged to communicate the error. The latter can be logged as a high-verbosity info log, as a helpful debugging tool -- that is, client errors should <em>not</em> be logged as Orc8r errors</li>
+<li>Prefer returning an error rather than error logging -- error logging should occur as high in the call stack as possible</li>
+<li>Add an explanatory comment when swallowing errors (i.e. when choosing to log an error and not bubble it up the call stack)</li>
+</ul></li>
+<li>Log level
+<ul>
+<li><code>Fatal</code> <em>conservatively</em>, and only when the service has degraded to the point of inability to function. Fatal-ing on service startup is a useful pattern, but fatal-ing after service initialization should be avoided unless absolutely necessary.</li>
+<li><code>Error</code> when something is definitely wrong, e.g. a violated invariant.</li>
+<li><code>Warning</code> when something is probably wrong, but it's not possible to be sure it's an error. This is an infrequent use-case, prefer error.</li>
+<li><code>Info</code> for everything else, with appropriate verbosity.</li>
+</ul></li>
+</ul>
+<p><strong>Style</strong></p>
+<ul>
+<li>Verbify function names
+<ul>
+<li>Exception: composable method names with well-understood functionality, e.g. <code>foo.Filter(...).Keys().Sorted()</code></li>
+<li>Exception: using <code>new*</code> or <code>New*</code> when instantiating new objects</li>
+</ul></li>
+<li>When import aliasing is required, prefer to alias with <code>snake_case</code> rather than <code>camelCase</code></li>
+<li>Prefer readable code over rigid adherence to max line lengths. Capping around 140 characters feels about right.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="python"></a><a href="#python" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Python</h3>
+<p>The <a href="https://www.python.org/dev/peps/pep-0008/">PEP 8 style guide</a> is authoritative.</p>
+<p><strong>Type annotations</strong></p>
+<ul>
+<li>All new code should be fully type-annotated
+<ul>
+<li>For reference, please look at this <a href="https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html">type hints cheat sheet for Python 3</a></li>
+</ul></li>
+</ul>
+<p><strong>Documentation</strong></p>
+<ul>
+<li>Document all public functions and <em>keep those docs up to date</em> when you make changes</li>
+<li>We use <a href="https://google.github.io/styleguide/pyguide.html#383-functions-and-methods">Google style docstrings</a> in our codebase
+<ul>
+<li>For VSCode users, <a href="https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring">Python Docstring Generator</a> plugin is recommended</li>
+<li>For IntelliJ users, you can configure a doc string format via <code>Preferences-&gt;Tools-&gt;Python Integrated Tools-&gt;Docstring format</code></li>
+</ul></li>
+</ul>
+<p>Example:</p>
+<pre><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">foo</span><span class="hljs-params">(arg1: str)</span> -&gt; int:</span>
+    <span class="hljs-string">"""Returns the length of arg1.
+
+    Args:
+        arg1 (str): string to calculate the length of
+
+    Returns: the length of the provided parameter
+    """</span>
+    <span class="hljs-keyword">return</span> len(arg1)
+</code></pre>
+<p><strong>Logging</strong></p>
+<ul>
+<li>Use the <a href="https://docs.python.org/3/library/logging.html">logging</a> module for all logging</li>
+<li>Refer to the Go logging section for deciding between log levels</li>
+</ul>
+<p><strong>Linter</strong></p>
+<ul>
+<li>For mandatory lint checks, we have a unit test that runs <a href="https://pypi.org/project/pylint/">Pylint</a> on all gateway services
+<ul>
+<li>On CI, the check gets run as part of the <code>lte-test</code> job</li>
+</ul></li>
+<li>Additionally, we have a <a href="https://github.com/reviewdog/reviewdog">Reviewdog</a> linter using <a href="https://wemake-python-stylegui.de/en/latest/">wemake-python-styleguide</a> enabled to aid the code review process
+<ul>
+<li>To run the linter locally, use the <a href="https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py">precommit script</a></li>
+</ul></li>
+</ul>
+<p><strong>Formatters</strong></p>
+<ul>
+<li>We recommend <a href="https://pypi.org/project/autopep8/">autopep8</a> as it conforms to <a href="https://www.python.org/dev/peps/pep-0008/">pep8</a>
+<ul>
+<li>The above-mentioned <a href="https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py">precommit script</a> also has an option to format your changes with
+<a href="https://pypi.org/project/isort/">isort</a>, <a href="https://pypi.org/project/autopep8/">autopep8</a>, and <a href="https://pypi.org/project/add-trailing-comma/">add-trailing-comma</a></li>
+</ul></li>
+<li>We do <em>not</em> recommend other formatters such as <a href="https://black.readthedocs.io/en/stable/installation_and_usage.html">black</a>, as it diverges from pep8 on basic things like line length, etc.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="shell"></a><a href="#shell" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Shell</h3>
+<ul>
+<li>Shell script names should be suffixed with the proper file extension
+<ul>
+<li>Reference: <a href="https://medium.com/100-days-of-linux/bash-vs-sh-whats-your-take-3e886e4c1cbc"><code>sh</code> vs. <code>bash</code></a></li>
+<li><code>.sh</code> for POSIX-compliant shell</li>
+<li><code>.bash</code> for bash</li>
+<li>Default to <code>.bash</code> except with specific reason</li>
+</ul></li>
+<li>When a shell script passes around 100 lines, it's time to re-write it in Python or Go</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="tools"></a><a href="#tools" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Tools</h2>
+<h3><a class="anchor" aria-hidden="true" id="grpc"></a><a href="#grpc" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>gRPC</h3>
+<p>The <a href="https://developers.google.com/protocol-buffers/docs/style">Google Protocol Buffer style guide</a> is authoritative. We also follow a subset of the <a href="https://github.com/uber/prototool/blob/dev/style/README.md">Uber Protocol Buffer style guide</a>. Consider the selection below</p>
+<ul>
+<li><a href="https://github.com/uber/prototool/blob/dev/style/README.md#streaming-rpcs">Streaming RPCs are strongly discouraged</a></li>
+<li>When deprecating a field, <a href="https://github.com/uber/prototool/blob/dev/style/README.md#reserved-keyword">use the <code>deprecated</code> option instead of the <code>reserved</code> keyword</a></li>
+<li>RPC request and return definitions should be unique to the RPC
+<ul>
+<li>E.g. <code>rpc GetTrip(GetTripRequest) returns (GetTripResponse);</code></li>
+<li>This is especially relevant for servicer definitions at the Orc8r-gateway interface</li>
+</ul></li>
+<li>Uniform file structure <a href="https://github.com/protocolbuffers/protobuf/blob/master/examples/addressbook.proto">(example)</a>
+<ul>
+<li>License</li>
+<li>File overview</li>
+<li>Syntax</li>
+<li>Package</li>
+<li>Imports (sorted)</li>
+<li>File options</li>
+<li>Everything else
+<ul>
+<li>Define <em>services first</em>, then their constituent objects</li>
+</ul></li>
+</ul></li>
+<li>Use <code>PascalCase</code> for message names and <code>snake_case</code> for field names</li>
+<li>Two-space indents</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="swagger"></a><a href="#swagger" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Swagger</h3>
+<ul>
+<li>Routes always return an object (forward compatibility)</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="yaml"></a><a href="#yaml" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>YAML</h3>
+<ul>
+<li>Use the casing convention that is idiomatic for the code that will be reading the YAML file
+<ul>
+<li>Rationale: facilitates automatically unmarshaling the file to native object</li>
+<li>Example: for Go config files, use <code>camelCase</code></li>
+<li>When a YAML file may be read by multiple languages, default to <code>snake_case</code></li>
+</ul></li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="clis"></a><a href="#clis" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>CLIs</h3>
+<ul>
+<li>Consolidate related functionality into a single CLI</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/1.5.0/contributing/contribute_workflow"><span class="arrow-prev">← </span><span>Development Workflow</span></a><a class="docs-next button" href="/magma/docs/1.5.0/contributing/contribute_ci_checks"><span>Continuous Integration Checks</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#general">General</a><ul class="toc-headings"><li><a href="#leave-it-better-than-you-found-it">Leave it better than you found it</a></li><li><a href="#add-tests-for-your-changes">Add tests for your changes</a></li><li><a href="#separate-cleanup-prs-from-functional-changes">Separate cleanup PRs from functional changes</a></li><li><a href="#scope-component-responsibilities">Scope component responsibilities</a></li><li><a href="#prefer-immutability-and-idempotency">Prefer immutability and idempotency</a></li><li><a href="#prefer-composition-over-inheritance">Prefer composition over inheritance</a></li><li><a href="#use-simple-constructors">Use simple constructors</a></li><li><a href="#comment-with-why-not-what">Comment with why, not what</a></li><li><a href="#follow-style-conventions">Follow style conventions</a></li></ul></li><li><a href="#documentation">Documentation</a><ul class="toc-headings"><li><a href="#all-documentation">All documentation</a></li><li><a href="#markdown">Markdown</a></li></ul></li><li><a href="#languages">Languages</a><ul class="toc-headings"><li><a href="#go">Go</a></li><li><a href="#python">Python</a></li><li><a href="#shell">Shell</a></li></ul></li><li><a href="#tools">Tools</a><ul class="toc-headings"><li><a href="#grpc">gRPC</a></li><li><a href="#swagger">Swagger</a></li><li><a href="#yaml">YAML</a></li><li><a href="#clis">CLIs</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

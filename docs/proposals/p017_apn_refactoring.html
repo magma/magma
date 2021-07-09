@@ -1,0 +1,228 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>APN Refactoring Proposal · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Proposal: APN Refactoring"/><meta name="docsearch:version" content="1.6.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="APN Refactoring Proposal · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Proposal: APN Refactoring"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.6.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Proposals</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/config_agw_bridged">AGW Non-NAT Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/he_api">Header Enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/federation">Federation</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/admin">Admin</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_orcl">Install Orchestrator (Managed)</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_terraform_options">Terraform Options</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_install">Install FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Configure<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/configure_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/configure_thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/configure_federation">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_debian_to_ubuntu">Migrate AGWs to Ubuntu</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_6">Upgrade to v1.6</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_6">Upgrade to v1.6</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/datapath_connectivity">Debugging AGW datapath issues</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federated Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/debug_cli">FeG CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/debug_logs">View Logs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/alerts_troubleshooting">Alerts</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Contribute</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_id_mappings">Codeowners GitHub to Slack IDs</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_ci_checks">Continuous Integration Checks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Maintain</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/resources/ref_pcap">PCAP Collection</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/resources/ref_useful_links">Useful Links</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_dependencies">Module Dependencies</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_aws_stack">AWS Stack</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p013_Ubuntu_upgrade">AGW Ubuntu upgrade</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p014_proposal_process">Magma Proposals</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p015_tech_debt_week">Tech Debt Week Processes</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/proposals/p017_apn_refactoring">APN Refactoring Proposal</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="proposal-apn-refactoring"></a><a href="#proposal-apn-refactoring" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: APN Refactoring</h1>
+<p>Author(s): @ksubraveti</p>
+<p>Last updated: 05/27/2021</p>
+<p>Discussion at
+<a href="https://github.com/magma/magma/issues/7189">https://github.com/magma/magma/issues/7189</a>.</p>
+<h2><a class="anchor" aria-hidden="true" id="abstract"></a><a href="#abstract" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Abstract</strong></h2>
+<p>Current APN models in magma have issues around poor abstraction and tight coupling
+with other entities. This causes inefficiencies in the product and also makes it
+harder to maintain and extend it in future.
+This proposal is to cleanup existing data models and adding new services
+in orc8r and gateways to handle the new data models.</p>
+<h2><a class="anchor" aria-hidden="true" id="summary"></a><a href="#summary" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Summary</strong></h2>
+<p>APN is an access point name. APN is used to identify the packet data network(PDN), the UE wants to be connected to.
+From Magma’s perspective, APN configuration consists of two main entities.</p>
+<ul>
+<li>APN - network level entity which defines APN information and Qos characteristics.</li>
+<li>APN resource - gateway level entity which provides transport information for APN</li>
+</ul>
+<p>Currently two main issues exists in the way APNs are handled</p>
+<ul>
+<li>Poor abstraction - APN resource entity contains low level network information including vlan_id, gateway_ip, gateway_mac information. It is undesirable to directly associate the low level network information with an APN resource entity and abstracting these details into a separate transport entity is important for enabling the transport to evolve independent of APN resource mapping. For e.g: Immediate use case is for adding vxlan as a new transport mechanism for APN. In future, we could possibly extend this to other forms of transport including GRE tunnels, IP in IP etc.</li>
+<li>APN resource configuration is too tightly coupled with Subscriberdb data models. This makes any further changes to APN config hard and unnecessarily affects subscriber data models.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="existing-implementation"></a><a href="#existing-implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Existing Implementation</strong></h2>
+<p><img src="/magma/docs/assets/proposals/p017/apn_old.png" alt="existing"></p>
+<h3><a class="anchor" aria-hidden="true" id="orc8r"></a><a href="#orc8r" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Orc8r</strong></h3>
+<ul>
+<li>Subscriberdb service provides ListSubscribers API which provides a list of all subscribers associated with their complete denormalized APN information. <a href="https://github.com/magma/magma/blob/master/lte/protos/subscriberdb.proto#L174"><em>https://github.com/magma/magma/blob/master/lte/protos/subscriberdb.proto#L174</em></a></li>
+<li>PolicyDB service exposes per subscriber APN to rule mapping through streamer interface.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="gateway"></a><a href="#gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Gateway</strong></h3>
+<ul>
+<li>Subscriberdb holds the APN config for each subscriber as it gets streamed down from the orc8r.</li>
+<li>During subscriber session set up, we have two distinct workflows</li>
+</ul>
+<ol>
+<li>Configure APN transport configuration into OVS((MME &lt;-&gt; Mobilityd &lt;-&gt; Subscriberdb)</li>
+</ol>
+<ul>
+<li>Mobilityd gets APN resource config from subscriberdb and passes transport information to MME.</li>
+<li>MME controller pushes this vlan tagging information to OVS(table 0)</li>
+</ul>
+<ol>
+<li>Configure APN QOS information into OVS (PolicyDB, MME &lt;-&gt; Sessiond &lt;-&gt; Pipelined)
+<ol>
+<li>MME pushes APN AMBR information to sessiond</li>
+<li>PolicyDB pushes per subscriber APN specific rules to sessiond</li>
+<li>Sessiond combines both this information and builds the flow request to pipelined</li>
+<li>Pipelined install flows with apn ambr and qos information into OVS.</li>
+</ol></li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="proposal"></a><a href="#proposal" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Proposal</strong></h2>
+<ul>
+<li>Add new transport level entity which encapsulates the data network information specific to each gateway and refactor &quot;apn_resource&quot; and rename &quot;apn_resource&quot; → &quot;gateway_apn_config&quot;</li>
+<li>Add APN DB servicer on the Orc8r to provide APN specific configs. This will include both network level and gateway level configs.</li>
+<li>Add APN DB client on ConfigDB(rename subscriberDB -&gt; ConfigDB) and periodically poll apn configs from Orc8r and store locally on sqlite db.</li>
+<li>Refactor mme and enhance pipelined code to get transport level configs from subscriberdb and directly program APN transport information through pipelined.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="api-changes"></a><a href="#api-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>API changes</strong></h2>
+<p>/lte/{network_id}/gateways/{gateway_id}/apn_configs (Add new apn config to the gateway)
+gateway_apn_config</p>
+<ul>
+<li>apn_id</li>
+<li>Permit/Block (APN filtering)</li>
+<li>DNS configs (dns_primary, dns_secondary)</li>
+<li>Data Network Config
+<ul>
+<li>enable_static_ip_assignment</li>
+<li>Address allocation mode (IP_POOL/DHCP)</li>
+<li>Ip_block</li>
+<li>ip6_block</li>
+<li>gateway_addr [ip/ip6]</li>
+<li>gateway_mac</li>
+<li>transport_profile
+<ul>
+<li>egress interface or logical tunnels - (vlan/vxlan/gre etc)</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="implementation"></a><a href="#implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implementation</h2>
+<p><img src="/magma/docs/assets/proposals/p017/apn_new.png" alt="new"></p>
+<h3><a class="anchor" aria-hidden="true" id="orc8r-1"></a><a href="#orc8r-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Orc8r</h3>
+<ul>
+<li>Current subscriberdb in Orc8r should stream the APNs similar to how it streams policy information. It just be a list of APNs associated with the subscriber instead of pushing down the APN configuration for every subscriber.</li>
+<li>New ApnDB service needs to be added on Orc8r for handling APN related configuration. ApnDB can be a grpc servicer colocated within existing subscriberdb(since both share the same fault domain).</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="gateway-1"></a><a href="#gateway-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Gateway</h3>
+<ul>
+<li>Add an APN db python client on the gateway which can pull the updates periodically from Orc8r and store it locally in SQLite db(more details in the <strong>state management</strong> section below). This can be co located with existing subscriber db service running on the gateway. Additionally, rename the service on the gateway to generic Config DB service.</li>
+<li>Add APN DB rpc servicer to provide APN network and transport level configuration. Given the limited set of APNs on any gateway or network(single digit APNs), we should completely cache this information in memory and should never reach sqlite unless upon a restart.</li>
+<li>Existing Subscriberdb rpc servicer can be slightly modified to pull the additional APN network configuration, IP allocation information to avoid modification on mobilityd side for it to perform IP allocation as it does currently.</li>
+<li>Modify Pipelined to pull the corresponding APN transport configuration and configure OVS independent of subscriber information.</li>
+<li>Given that APN changes are infrequent and involve considerable network reconfiguration, It would be cleaner to restart all the services to ensure that the configs and cached state across all services is consistent and uses the latest APN configuration.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="state-management"></a><a href="#state-management" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>State Management</h3>
+<p>In Magma, we store config state in a persistent store and status information in a memory cache status information is periodically pushed to Orc8r. This pattern ensures that Orc8r acts as a management plane and gateway can be fully functional in a headless environment. This is the rationale behind storing the APN information in persistent store such as SQLite.</p>
+<p>[Medium Term]</p>
+<p>We have some <a href="https://fb.quip.com/kWZ3AIOc3lyb"><em>kludge with policydb</em></a> persisting its config in redis. This has to be refactored and moved to the newly proposed Config DB. This will ensure consistency in the way we store our configs and will improve redis performance since we can eliminate it persisting the state.
+[Longer Term]
+We remove references to redis and sqlite in the code and abstract it behind our services such as ConfigDB service and state service.</p>
+<h2><a class="anchor" aria-hidden="true" id="implementation-plan"></a><a href="#implementation-plan" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Implementation Plan</strong></h2>
+<ol>
+<li>NMS/Orc8r (3 weeks)
+<ol>
+<li>Defining a new data model for above mentioned APN changes in orc8r and add obsidian handlers to support REST API changes and add corresponding unit tests</li>
+<li>Adding APN servicer to stream the APN state southbound and cleaning up APN state in corresponding subscriber state</li>
+<li>DB migration script to migrate existing APN information contained within subscribers into a separate APN entity</li>
+<li>NMS changes to support new APN API and configure gateway APN config</li>
+</ol></li>
+</ol>
+<ol>
+<li>Gateway ConfigDB(1 week)
+<ol>
+<li>Adding AGW client to handle streamed APN information and store it in SQLite</li>
+<li>Add APN servicer to handle new RPC requests from Pipelined</li>
+<li>Add cache to store APN information in memory.</li>
+</ol></li>
+<li>Gateway (Mobility/Pipelined)</li>
+</ol>
+<p>We have two options to implement this, we will choose it depending on time in 1.6 release.</p>
+<ol>
+<li>Option 1: this implementation would take less time and handle Partner (Blink) ask about per APN IP pools
+<ol>
+<li>Call APN API from mobilityD and cache the APN transport info in mobilityD at start up.</li>
+<li>On any IP allocation RCP call, mobilityD can return the required information as today. Rest of the services remain the same.</li>
+</ol></li>
+<li>Option 2: This is clean design
+<ol>
+<li>mobilityD:
+<ol>
+<li>mobilityD only allocates IP address, so it queries IP pool or ip-allocation config from APN config</li>
+</ol></li>
+<li>PipelineD:
+<ol>
+<li>SessionD would pass APN name to pipelineD in activateFlows RPC</li>
+<li>PipelineD queries APN transport parameters from APN service using the APN name. PipelinedD can cache this info to avoid RPN calls on every session activate flow request.</li>
+<li>PipelineD builds flows as per the transport parameters</li>
+</ol></li>
+</ol></li>
+</ol>
+<p>[Medium Term]</p>
+<ol>
+<li>Refactor policyDB and move corresponding config state management to ConfigDB</li>
+</ol>
+<p>[Long Term]</p>
+<ol>
+<li>Abstract out AGW references to redis and sqlite from all services and enable plug and play approach to persistent store and memory cache.</li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="references"></a><a href="#references" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>References</strong></h2>
+<ul>
+<li><a href="https://gist.github.com/karthiksubraveti/0daee7f5446cc72460497e247d427ee6">https://gist.github.com/karthiksubraveti/0daee7f5446cc72460497e247d427ee6</a></li>
+<li><em><a href="https://raw.githubusercontent.com/magma/magma/d691319dd40e0a7d2822a993f819beca7490e65d/docs/readmes/lte/Attach_call_flow_in_Magma.txt">https://raw.githubusercontent.com/magma/magma/d691319dd40e0a7d2822a993f819beca7490e65d/docs/readmes/lte/Attach_call_flow_in_Magma.txt</a></em></li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/proposals/p016_nms_regression_testing"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/magma/docs/faq/faq_magma"><span>Frequently Asked Questions</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#abstract"><strong>Abstract</strong></a></li><li><a href="#summary"><strong>Summary</strong></a></li><li><a href="#existing-implementation"><strong>Existing Implementation</strong></a><ul class="toc-headings"><li><a href="#orc8r"><strong>Orc8r</strong></a></li><li><a href="#gateway"><strong>Gateway</strong></a></li></ul></li><li><a href="#proposal"><strong>Proposal</strong></a></li><li><a href="#api-changes"><strong>API changes</strong></a></li><li><a href="#implementation">Implementation</a><ul class="toc-headings"><li><a href="#orc8r-1">Orc8r</a></li><li><a href="#gateway-1">Gateway</a></li><li><a href="#state-management">State Management</a></li></ul></li><li><a href="#implementation-plan"><strong>Implementation Plan</strong></a></li><li><a href="#references"><strong>References</strong></a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Tech Debt Week Processes · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Proposal: Tech Debt Week (TDW) Processes"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Tech Debt Week Processes · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Proposal: Tech Debt Week (TDW) Processes"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="proposal-tech-debt-week-tdw-processes"></a><a href="#proposal-tech-debt-week-tdw-processes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: Tech Debt Week (TDW) Processes</h1>
+<p>Author: @electronjoe</p>
+<p>Last updated: 04/21/21</p>
+<h2><a class="anchor" aria-hidden="true" id="what-is-tech-debt-week"></a><a href="#what-is-tech-debt-week" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>What is Tech Debt Week</h2>
+<p>Tech debt weeks are an opportunity for all Magma core contributors, plus new and existing comunity stakeholders - to focus on burning down tech debt topics.  The objective is to provide responsive and focused support for the following.</p>
+<ul>
+<li>GH Issue dissemination</li>
+<li>GH Issue clarification and or prototype demonstration</li>
+<li>GH PR early feedback</li>
+<li>GH PR final review</li>
+<li>GH PR merge support</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="getting-help"></a><a href="#getting-help" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Getting Help</h2>
+<p>There are several options for getting help - reach out early and often! Preferred contact will be provided to you based upon the GH Issue you are working, but additionally the following general methods always exist.</p>
+<ul>
+<li>GH user tag (if not at all urgent)</li>
+<li>[Video conference](TBD LINK) monitored by <a href="#magma-tdw-on-call">TDW On-Call</a></li>
+<li>Slack channel <a href="https://magmacore.slack.com/archives/C0202TW1VRN">#project-tech-debt-week-apr-2021</a> monitored by <a href="#magma-tdw-on-call">TDW On-Call</a></li>
+<li>Page: email the TDW On-call at <a href="mailto:tdw@magma.pagerduty.com">tdw@magma.pagerduty.com</a>
+<ul>
+<li>Provide a preferred contact (e.g. slack id, github id, ...)</li>
+</ul></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="process-for-contributors"></a><a href="#process-for-contributors" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Process for Contributors</h2>
+<ol>
+<li>Review the list of <a href="">TDW Available Work</a>
+<ol>
+<li>What <code>Unassigned</code> tasks interest you?</li>
+</ol></li>
+<li>Reach out to <a href="#tdw-on-call-contact">TDW On-Call</a>
+<ol>
+<li>Settle on a task</li>
+<li>You will be provided contact information for an <a href="#magma-issue-lead">Issue Lead</a></li>
+<li>You now have a task! Fun!</li>
+</ol></li>
+<li>Review the GH issue
+<ol>
+<li>Ensure a comment has been filed tagging the <a href="#magma-issue-lead">Issue Lead</a> GH id for tracking</li>
+<li>If possible, assign the GH Issue to yourself (<code>Assignees</code> at right side)
+<ol>
+<li>Otherwise comment on the GH issue - to make clear you are assigned</li>
+</ol></li>
+<li>See if you understand the GH Issue, prepare questions</li>
+</ol></li>
+<li>Reach out to <a href="#magma-issue-lead">Issue Lead</a> using the provided contact method
+<ol>
+<li>Check with the lead to ensure you understand the problem</li>
+<li>And the preferred solution approach</li>
+<li>If the Issue lacks detail, do not hesitate to ask
+<ol>
+<li>For an example of the shape of the solution</li>
+<li>To existing committed code that is similar</li>
+</ol></li>
+</ol></li>
+<li>Create an early Draft PR
+<ol>
+<li>Work towards a draft PR early, post to GH as a <a href="https://github.blog/2019-02-14-introducing-draft-pull-requests/">Draft</a> and
+<ol>
+<li>Directly notify your <a href="#magma-issue-lead">Issue Lead</a> over preferred communications</li>
+<li>Post it in Slack <a href="https://magmacore.slack.com/archives/C0202TW1VRN">#project-tech-debt-week-apr-2021</a></li>
+<li>You can convert to draft if you mistakenly create full fledge PR (<code>Still in progress? Convert to draft</code>)</li>
+</ol></li>
+<li>Review Timeliness and Tone (for both Draft and Final)
+<ol>
+<li>Expect <a href="#issues-lead-response-time">Timely review</a></li>
+<li>With a <a href="https://github.com/magma/magma/blob/master/docs/readmes/contributing/contribute_codeowners.md#shepherds-not-gatekeepers">Spheherd menality</a></li>
+<li>Feel free to ask for precise assistance or examples (e.g. a GH gist with example code on an ask)</li>
+</ol></li>
+<li>The <a href="#magma-issue-lead">Issue Lead</a> will aim to make contact daily if they haven't heard from you</li>
+<li>Apply any directional changes advised to draft PR</li>
+</ol></li>
+<li>When a final PR is ready for review
+<ol>
+<li>Click <code>Ready for Review</code> to convert from Draft PR to PR</li>
+<li>Directly notify your <a href="#magma-issue-lead">Issue Lead</a> over preferred communications</li>
+<li>Post it in Slack <a href="https://magmacore.slack.com/archives/C0202TW1VRN">#project-tech-debt-week-apr-2021</a></li>
+<li>See above Review Timeliness and Tone</li>
+</ol></li>
+<li>If Review is completed but you are blocked by CI Checks
+<ol>
+<li>Reach out to your <a href="#magma-issue-lead">Issue Lead</a> or the <a href="#tdw-on-call-contact">TDW On-Call</a> for help</li>
+</ol></li>
+<li>When Review is complete and CI Checks are clear
+<ol>
+<li>Reach out to <a href="#magma-issue-lead">Issue Lead</a> or <a href="#tdw-on-call-contact">TDW On-Call</a> to Merge</li>
+</ol></li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="magma-tdw-on-call"></a><a href="#magma-tdw-on-call" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Magma TDW On-Call</h2>
+<h3><a class="anchor" aria-hidden="true" id="tdw-on-call-contact"></a><a href="#tdw-on-call-contact" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>TDW On-call Contact</h3>
+<ul>
+<li>[Video conference](TBD LINK) monitored by <a href="#magma-tdw-on-call">TDW On-Call</a></li>
+<li>Slack channel <a href="https://magmacore.slack.com/archives/C0202TW1VRN">#project-tech-debt-week-apr-2021</a> monitored by <a href="#magma-tdw-on-call">TDW On-Call</a></li>
+<li>Page: email the TDW On-call at <a href="mailto:tdw@magma.pagerduty.com">tdw@magma.pagerduty.com</a>
+<ul>
+<li>Provide a preferred contact (e.g. slack id, github id, ...)</li>
+</ul></li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="tdw-on-call-response-time"></a><a href="#tdw-on-call-response-time" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>TDW On-Call Response time</h3>
+<p>During TDW, We ask that the following interactions and actions are given <code>highest work priority</code> - ideally with a response time of <code>&lt; 1 hour</code> between the hours of <code>9AM and 3PM Pacific Time</code>.  This is to ensure maximum velocity for our external contributors during this tight week work window.</p>
+<h3><a class="anchor" aria-hidden="true" id="tdw-on-call-responsibilities"></a><a href="#tdw-on-call-responsibilities" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>TDW On-Call Responsibilities</h3>
+<ol>
+<li>Monitor for communications
+<ol>
+<li>Pop open the video conference
+<ol>
+<li>If empty you can mute yourself and turn off video</li>
+<li>Make sure sound is on!</li>
+</ol></li>
+<li>GH Taggs of your user (consider <a href="https://slack.github.com/">slack integration</a>)</li>
+<li>Slack channel <a href="https://magmacore.slack.com/archives/C0202TW1VRN">#project-tech-debt-week-apr-2021</a></li>
+<li>Pages</li>
+</ol></li>
+<li>General Assistance
+<ol>
+<li>You may be contacted for help with CI failures</li>
+<li>You may be contacted for help with the final Merge</li>
+</ol></li>
+<li>Contribution life cycle for TDW On-Call
+<ol>
+<li>Find appropriate task for contributor
+<ol>
+<li>Area of expertise</li>
+<li>Complexity</li>
+<li>Compare with task scope and provided detail</li>
+</ol></li>
+<li>Reach out to potential <a href="#magma-issue-lead">Magma Issue Lead</a> and confirm ownership
+<ol>
+<li>With confirmation, reply to GH Issue with text <code>Issue Lead: &lt;username tag&gt;</code></li>
+<li>Update status in <code>TDW Available Work</code> coordinating GH Issue
+<ol>
+<li>Unassigned -&gt; Assigned and add tag to GH user assigned</li>
+</ol></li>
+</ol></li>
+<li>Put contributor in touch with GH Issue lead
+<ol>
+<li>Generally the person filing the issue</li>
+<li>Otherwise a CODEOWNER</li>
+<li>Wait for notifications from GH Issue Lead
+<ol>
+<li>E.g. Completed or MIA</li>
+</ol></li>
+<li>Update status in <code>TDW Available Work</code> coordinating GH Issue
+<ol>
+<li>Assigned -&gt; Merged</li>
+</ol></li>
+</ol></li>
+</ol></li>
+<li>Handle MIA contributions
+<ol>
+<li>If a <a href="#magma-issue-lead-responsibilities">Magma Issue Lead</a> reaches out about lack of contact with a contributor
+<ol>
+<li>Attempt direct outreach for 2 days (on top of 2 days issue lead waited)</li>
+<li>Move GH Issue back to available stack
+<ol>
+<li>Assigned -&gt; Unassigned</li>
+</ol></li>
+</ol></li>
+</ol></li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="magma-issue-lead"></a><a href="#magma-issue-lead" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Magma Issue Lead</h2>
+<p>A Magma Issue Lead is the designated individual who has filed a GH Issue deemed appropriate for TDW inclusion.  These individuals may be a CODEOWNER for the relevant code base, but at least have a clear understanding of the issue's resolution and has strong communications channels with the CODEOWNERS implicated.  Determining who is Issue Lead will occur between TDW On-Call and relevant Mamga core team members.</p>
+<h3><a class="anchor" aria-hidden="true" id="issues-lead-response-time"></a><a href="#issues-lead-response-time" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Issues Lead Response time</h3>
+<p>During TDW, We ask that the following interactions and actions are given <code>highest work priority</code> - ideally with a response time of <code>&lt; 1 hour</code> between the hours of <code>9AM and 3PM Pacific Time</code>.  This is to ensure maximum velocity for our external contributors during this tight week work window.</p>
+<h3><a class="anchor" aria-hidden="true" id="issues-lead-responsibilities"></a><a href="#issues-lead-responsibilities" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Issues Lead Responsibilities</h3>
+<p>The following describes the contribution life cycle for a Magma Issue Lead.</p>
+<ol>
+<li>Receive first contact from contributor assigned your GH Issue
+<ol>
+<li>This contact will be made by e.g. the <a href="#magma-tdw-on-call-responsibilities">TDW on-call</a></li>
+<li>Ensure that the Magma TDW On-Call tagged your GH username in the issue
+<ol>
+<li>With text <code>Issue Lead: &lt;username tag&gt;</code> for clarity to all</li>
+</ol></li>
+</ol></li>
+<li>Validate alignment of contributor withe GH Issue
+<ol>
+<li>Understanding of the problem statement and solution</li>
+<li>Appropriate matching of skills and knowledge
+<ol>
+<li>If possibly a mismatch, check with TDW on-call about re-matching</li>
+</ol></li>
+</ol></li>
+<li>Give contributor preferred communications method
+<ol>
+<li>E.g. slack username, GH tagging, etc - your call</li>
+</ol></li>
+<li>Ask for an early Draft PR
+<ol>
+<li>So that any substantial direction correction can happen early</li>
+<li>Check in at least once a day on the progress - even if you haven't heard anything</li>
+<li>In providing PR feedback (draft or other)
+<ol>
+<li>Apply the <a href="https://github.com/magma/magma/blob/master/docs/readmes/contributing/contribute_codeowners.md#shepherds-not-gatekeepers">Spheherd menality</a> to PR review</li>
+<li>Provide early directional feedback</li>
+</ol></li>
+<li>Once directionally correct - ask for outreach on final PR</li>
+<li>Repeat the <code>reach out any time</code> mentality and preferred contact method</li>
+</ol></li>
+<li>Wait for final PR notification
+<ol>
+<li>Apply timely review</li>
+<li>Check CI Checks, help contributor resolve any failures</li>
+<li>Once all CI checks are clear and review is good, confirm Mereg with contributor</li>
+<li>Merge PR and notify <code>TDW On-Call</code> of the Merge for accounting</li>
+</ol></li>
+<li>If at any stage communications halts for more than two days
+<ol>
+<li>Notify <a href="#magma-tdw-on-call-responsibilities">TDW on-call</a></li>
+</ol></li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="magmas-tdw-planning-and-execution-process"></a><a href="#magmas-tdw-planning-and-execution-process" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Magma's TDW Planning and Execution Process</h2>
+<p><strong>If you are not personally planning another Magma TDW, you can stop reading here.</strong></p>
+<p>The following is an attempt to generate a repeatable recipe for <code>Tech Debt Weeks</code> at Magma.</p>
+<ol>
+<li>Getting the word out via early and pro-active outreach
+<ol>
+<li>1:1 notification of all partners</li>
+<li>Announcement in Magma community meetings</li>
+<li>Announcement in Slack</li>
+<li>Announcement on GH Discussions</li>
+<li>Announcement in Magma Conferences</li>
+</ol></li>
+<li>Collect diverse set of well scoped, well defined GH Issues
+<ol>
+<li>Across all segments of the code base
+<ol>
+<li>Continuous Integration</li>
+<li>c/c++ AGW</li>
+<li>Python AGW</li>
+<li>Golang (Orc8r, FEG, CWF)</li>
+<li>Documentation</li>
+<li>Kubernetes Config</li>
+<li>Installation Process</li>
+</ol></li>
+<li>They should be very scoped (Say 4-8 hour efforts max)</li>
+<li>They should be very clear in their ask
+<ol>
+<li>Ideally even with sample code and precise insertion links to GH files</li>
+<li>Or even a prototype example...</li>
+</ol></li>
+</ol></li>
+<li>Set up TDW on-call rotation during business hours
+<ol>
+<li>Point members at this document's <a href="#magma-tdw-on-call">TDW on-call</a>
+<ol>
+<li>Ensure they read it!</li>
+</ol></li>
+<li>Have all TDW on-call set up pagerduty accounts
+<ol>
+<li>And tie them to the pagingn service at <code>tdw@magma.pagerduty.com</code></li>
+</ol></li>
+</ol></li>
+<li>Set up a video conference meeting for the TDW on-call
+<ol>
+<li>And cross post to Slack <a href="https://magmacore.slack.com/archives/C0202TW1VRN">#project-tech-debt-week-apr-2021</a></li>
+</ol></li>
+<li>Amend this process document to incorporate improvmenets
+<ol>
+<li>From lessons learned during the TDW</li>
+</ol></li>
+</ol>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#what-is-tech-debt-week">What is Tech Debt Week</a></li><li><a href="#getting-help">Getting Help</a></li><li><a href="#process-for-contributors">Process for Contributors</a></li><li><a href="#magma-tdw-on-call">Magma TDW On-Call</a><ul class="toc-headings"><li><a href="#tdw-on-call-contact">TDW On-call Contact</a></li><li><a href="#tdw-on-call-response-time">TDW On-Call Response time</a></li><li><a href="#tdw-on-call-responsibilities">TDW On-Call Responsibilities</a></li></ul></li><li><a href="#magma-issue-lead">Magma Issue Lead</a><ul class="toc-headings"><li><a href="#issues-lead-response-time">Issues Lead Response time</a></li><li><a href="#issues-lead-responsibilities">Issues Lead Responsibilities</a></li></ul></li><li><a href="#magmas-tdw-planning-and-execution-process">Magma's TDW Planning and Execution Process</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

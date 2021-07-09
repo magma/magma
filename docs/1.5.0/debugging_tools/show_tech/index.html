@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Show Tech · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Show-Tech"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Show Tech · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Show-Tech"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="show-tech"></a><a href="#show-tech" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Show-Tech</h1>
+<h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview:</h2>
+<p>This feature enables an operator to capture the essential state of the gateway (Currently only supported on AGW) and dumps it in a destination directory. The collected data can then be shared with support teams to help identify and resolve issues quickly.</p>
+<h3><a class="anchor" aria-hidden="true" id="usage"></a><a href="#usage" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Usage</h3>
+<pre><code class="hljs"><span class="hljs-comment"># On your GW host, run the following command as user root:</span>
+<span class="hljs-comment"># If you have git repo checked out already</span>
+<span class="hljs-variable">$ </span>cd <span class="hljs-variable">${</span>MAGMA_ROOT}/show-tech
+<span class="hljs-variable">$ </span>ansible-playbook show-tech.yml
+
+<span class="hljs-comment"># In case you want to download and process latest version of this playbook from Magma's master:</span>
+<span class="hljs-variable">$ </span>ansible-pull -U <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/github.com/magma</span><span class="hljs-regexp">/magma.git show-tech/show</span>-tech.yml -d /tmp/show-tech --purge
+</code></pre>
+<p>The captured output is dumped in <code>/tmp/magma_reports/report.magma.&lt;date&gt;.tgz</code></p>
+<h3><a class="anchor" aria-hidden="true" id="what-is-collected-upon-running-show-tech-"></a><a href="#what-is-collected-upon-running-show-tech-" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>What is collected upon running show-tech ?</h3>
+<p>Currently, show-tech tool collects the following information and packages them into a destination directory.
+<em>Disclaimer : Note this tool collects information necessary for debugging issues on the AGW. These could contain customer sensitive data.</em></p>
+<p><strong>Outputs from running various commands</strong></p>
+<ul>
+<li>System information  (kernel-name, node-name, kernel-version, machine, processor, hardware platform, OS)</li>
+<li>Top command output</li>
+<li>Disk space usage</li>
+<li>Magma packages installed</li>
+<li>Ovs switch database content</li>
+<li>Status of magma services</li>
+<li>Gateway information (hardwareID and challenge key of the gateway)</li>
+<li>Orc8r check in information</li>
+<li>Subscriber table on the gateway</li>
+<li>Current set of flows managed by pipelined</li>
+<li>IP address of interfaces on the gateway</li>
+<li>Logs of all magma services</li>
+<li>Sctp packet capture for 60 seconds</li>
+<li>MME core stack traces</li>
+</ul>
+<p><strong>Following Files on the gateway</strong></p>
+<ul>
+<li>Gateway configs: mconfig and overriding yaml files</li>
+<li>Syslog, MME, enodebd service logs</li>
+<li>MME binary</li>
+<li>Core files</li>
+<li>Systemd files</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="developer-guide"></a><a href="#developer-guide" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Developer guide</h2>
+<h3><a class="anchor" aria-hidden="true" id="design-principles"></a><a href="#design-principles" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Design principles</h3>
+<ul>
+<li><strong>Extensibility</strong>: Easy to add new state collectors without the need for rebuilding software. This allows operators to extend the functionality at runtime.</li>
+<li><strong>Reliability</strong>: The tool is used to debug issues and needs to reliably collect all needed state. In the event of any failure, tool should still gather as much information as possible.</li>
+</ul>
+<p>The show-tech tool is built using ansible playbooks that are located on the magma github repo. We currently provide the following playbooks:</p>
+<ol>
+<li>install_prereq.yml - to be run once on host to upgrade ansible version to &gt; 2.9.0</li>
+<li>show-tech.yml - the state collection playbook. It is responsible for collecting all state and packaging the all files into one .tar.gz file.</li>
+<li>constants.yml - is the constants file and includes all files we collect, as well as all commands we run and gather their outputs. The role that reads all constants is <code>load_vars</code> as can be seen in show-tech playbook.</li>
+</ol>
+<h3><a class="anchor" aria-hidden="true" id="how-to-add-a-new-file-or-set-of-files-to-be-included-in-the-destination-"></a><a href="#how-to-add-a-new-file-or-set-of-files-to-be-included-in-the-destination-" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to add a new file or set of files to be included in the destination ?</h3>
+<p>This can be added to the <code>paths_to_collect</code> in <code>constants.yml</code> file in “show-tech” directory.
+For example, if we want to include core files to the list of files we capture using <code>show-tech</code> tool, add the line as indicated below to the <code>constants.yml</code> file.</p>
+<pre><code class="hljs"># files to collect from src to relative destination in tar.gz package
+paths_to_collect:
+  -<span class="ruby"> <span class="hljs-string">"/var/opt/magma/configs/*"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"/etc/magma/configs/*"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"/etc/systemd/system/*"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"/usr/local/bin/mme"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"/var/log/syslog"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"/var/log/MME.*"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"/var/log/enode.*"</span>
+</span> **** **- "/var/core/*"** **** &lt;&lt; Add the new file/path here
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="how-to-add-a-new-command-output-to-be-included-in-the-destination-"></a><a href="#how-to-add-a-new-command-output-to-be-included-in-the-destination-" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to add a new command output to be included in the destination ?</h3>
+<p>This can be added to the <code>debian_commands</code> in <code>constants.yml</code> file in “show-tech” directory.
+For example, if we want to add current running processes to the output we capture using <code>show tech</code> tool, add the command as indicated below to the <code>constants.yml</code> file</p>
+<pre><code class="hljs">debian_commands:
+  -<span class="ruby"> <span class="hljs-string">"dpkg -l | grep magma"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"ovs-vsctl show"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"apt show magma"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"service magma@* status"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"show_gateway_info.py"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"checkin_cli.py"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"mobility_cli.py get_subscriber_table"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"pipelined_cli.py debug display_flows"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"enodebd_cli.py get_all_status"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"ip addr"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"ping google.com -I eth0 -c 5"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"journalctl -u magma@*"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"timeout 60 sudo tcpdump -i any sctp -w {{report_dir_output.stdout}}/sctp.pcap"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"timeout 60 sudo tcpdump -i any port 48080 -w {{report_dir_output.stdout}}/any-48080.pcap"</span>
+</span>  -<span class="ruby"> <span class="hljs-string">"ps aux"</span> &lt;&lt;&lt; Add the new command here
+</span></code></pre>
+<h3><a class="anchor" aria-hidden="true" id="how-to-add-a-new-role-"></a><a href="#how-to-add-a-new-role-" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to add a new role ?</h3>
+<p>Roles include tasks that can be built-in ansible modules or community ones. In this example we will look into the role that collects files already set in the variable called “<em>paths_to_collect</em>”. This uses a built-in module to work with the specified files. (<a href="https://docs.ansible.com/ansible/2.8/modules/list_of_files_modules.html">https://docs.ansible.com/ansible/2.8/modules/list_of_files_modules.html</a>)
+<em>NOTE</em>: <em>report_dir_output.stdout</em> is the variable containing the dynamic report dir to be used across all roles and is being created on role <em>destdir.</em></p>
+<pre><code class="hljs"><span class="hljs-comment"># Magma files collection based on map paths_to_collect</span>
+<span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Create</span> <span class="hljs-string">a</span> <span class="hljs-string">dest</span> <span class="hljs-string">directory</span> <span class="hljs-string">for</span> <span class="hljs-string">magma</span> <span class="hljs-string">files</span> <span class="hljs-string">under</span> <span class="hljs-string">report</span> <span class="hljs-string">directory</span>
+  <span class="hljs-attr">file:</span>
+    <span class="hljs-attr">path:</span> <span class="hljs-string">"<span class="hljs-template-variable">{{report_dir_output.stdout}}</span>/<span class="hljs-template-variable">{{item | dirname}}</span>"</span>
+    <span class="hljs-attr">state:</span> <span class="hljs-string">directory</span>
+    <span class="hljs-attr">mode:</span> <span class="hljs-string">"0700"</span>
+  <span class="hljs-attr">with_fileglob:</span> <span class="hljs-string">"<span class="hljs-template-variable">{{paths_to_collect}}</span>"</span>
+
+
+
+<span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Copy</span> <span class="hljs-string">magma</span> <span class="hljs-string">files</span> <span class="hljs-string">to</span> <span class="hljs-string">destination</span>
+  <span class="hljs-attr">copy:</span>
+    <span class="hljs-attr">src:</span> <span class="hljs-string">"<span class="hljs-template-variable">{{item}}</span>"</span>
+    <span class="hljs-attr">dest:</span> <span class="hljs-string">"<span class="hljs-template-variable">{{report_dir_output.stdout }}</span>/<span class="hljs-template-variable">{{item | dirname}}</span>"</span>
+  <span class="hljs-attr">with_fileglob:</span> <span class="hljs-string">"<span class="hljs-template-variable">{{paths_to_collect}}</span>"</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="how-to-test-changes"></a><a href="#how-to-test-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to test changes:</h3>
+<p>On the AGW host, clone your PR and upgrade ansible. Run the following as root</p>
+<pre><code class="hljs">$ git clone https://github.com/<span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">your_github_user</span>&gt;</span></span>/magma.git -b <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">your_branch</span>&gt;</span></span>
+$ cd magma/show-tech/
+$ ansible-playbook install_prereq.yml
+...
+PLAY [install pre-requisites for show-tech] <span class="hljs-strong">*****</span><span class="hljs-strong">*****</span><span class="hljs-strong">*****</span><span class="hljs-strong">*****</span><span class="hljs-strong">*****</span><span class="hljs-strong">*****</span><span class="hljs-strong">*****</span>*
+...
+</code></pre>
+<p>Run the show-tech playbook:</p>
+<pre><code class="hljs"><span class="hljs-variable">$</span> ansible<span class="hljs-literal">-playbook</span> <span class="hljs-built_in">show-tech</span>.yml
+</code></pre>
+<p>Validate the content of the package.
+commands_output.log includes all commands and their stdout/stderr</p>
+<pre><code class="hljs">$ tar tvf /tmp/magma_reports/report.magma<span class="hljs-number">.2020</span><span class="hljs-number">-11</span><span class="hljs-number">-29</span>T14\:<span class="hljs-number">21</span>\:<span class="hljs-number">42</span>Z.tgz
+</code></pre>
+<pre><code class="hljs">$ grep <span class="hljs-string">"Command:"</span> -A <span class="hljs-number">3</span> report.magma<span class="hljs-number">.2020</span><span class="hljs-number">-11</span><span class="hljs-number">-29</span>T14:<span class="hljs-number">21</span>:<span class="hljs-number">42</span>Z/commands_output.log
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="references"></a><a href="#references" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>References:</h2>
+<p><a href="https://docs.ansible.com/ansible/2.8/modules/modules_by_category.html">https://docs.ansible.com/ansible/2.8/modules/modules_by_category.html</a> - all ansible modules by category. <a href="https://docs.ansible.com/ansible/2.8/user_guide/playbooks.html">https://docs.ansible.com/ansible/2.8/user_guide/playbooks.html</a> - ansible user guide on playbooks.</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview:</a><ul class="toc-headings"><li><a href="#usage">Usage</a></li><li><a href="#what-is-collected-upon-running-show-tech-">What is collected upon running show-tech ?</a></li></ul></li><li><a href="#developer-guide">Developer guide</a><ul class="toc-headings"><li><a href="#design-principles">Design principles</a></li><li><a href="#how-to-add-a-new-file-or-set-of-files-to-be-included-in-the-destination-">How to add a new file or set of files to be included in the destination ?</a></li><li><a href="#how-to-add-a-new-command-output-to-be-included-in-the-destination-">How to add a new command output to be included in the destination ?</a></li><li><a href="#how-to-add-a-new-role-">How to add a new role ?</a></li><li><a href="#how-to-test-changes">How to test changes:</a></li></ul></li><li><a href="#references">References:</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

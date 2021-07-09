@@ -1,0 +1,728 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Vendor Neutral CBSD Domain Proxy · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="- [Proposal: Vendor Neutral CBSD Domain Proxy](#proposal-vendor-neutral-cbsd-domain-proxy)"/><meta name="docsearch:version" content="1.6.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Vendor Neutral CBSD Domain Proxy · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="- [Proposal: Vendor Neutral CBSD Domain Proxy](#proposal-vendor-neutral-cbsd-domain-proxy)"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.6.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><ul>
+<li><a href="#proposal-vendor-neutral-cbsd-domain-proxy">Proposal: Vendor Neutral CBSD Domain Proxy</a></li>
+<li><a href="#abstract">Abstract</a></li>
+<li><a href="#background">Background</a>
+<ul>
+<li><a href="#references">References</a></li>
+</ul></li>
+<li><a href="#proposal">Proposal</a>
+<ul>
+<li><a href="#vendor-neutral-domain-proxy-hld">Vendor Neutral Domain Proxy HLD</a></li>
+<li><a href="#sas-client-interface-requirements">SAS Client Interface Requirements</a></li>
+<li><a href="#cbsd-proxy-interface-requirements">CBSD Proxy Interface Requirements</a></li>
+<li><a href="#aggregation-and-proxy-management-requirements">Aggregation and Proxy Management Requirements</a></li>
+<li><a href="#user-interface-requirements">User Interface Requirements</a></li>
+<li><a href="#deployment-architecture-requirements">Deployment Architecture Requirements</a></li>
+</ul></li>
+<li><a href="#rationale">Rationale</a></li>
+<li><a href="#compatibility">Compatibility</a></li>
+<li><a href="#observability-and-debug">Observability and Debug</a></li>
+<li><a href="#implementation">Implementation</a>
+<ul>
+<li><a href="#dp-microservices">DP Microservices</a></li>
+<li><a href="#component-interactions">Component Interactions</a></li>
+<li><a href="#solution-scaling">Solution scaling</a></li>
+<li><a href="#batching-of-messages">Batching of messages</a></li>
+<li><a href="#architectural-discussion">Architectural Discussion</a>
+<ul>
+<li><a href="#relational-database">Relational database</a></li>
+<li><a href="#queuing-mechanisms">Queuing mechanisms</a></li>
+<li><a href="#message-queue-proscons">Message Queue Pros/Cons</a></li>
+</ul></li>
+<li><a href="#resource-requirements-and-estimates">Resource requirements and estimates</a></li>
+<li><a href="#system-architecture">System Architecture</a></li>
+<li><a href="#schedule-and-milestones">Schedule and Milestones</a></li>
+</ul></li>
+<li><a href="#qa-feedback">Q/A Feedback</a></li>
+</ul>
+<hr>
+<h1><a class="anchor" aria-hidden="true" id="proposal-vendor-neutral-cbsd-domain-proxy"></a><a href="#proposal-vendor-neutral-cbsd-domain-proxy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: Vendor Neutral CBSD Domain Proxy</h1>
+<p>Authors:</p>
+<ul>
+<li>Boris Renski</li>
+<li>Joey Padden</li>
+</ul>
+<p>Co-Authors:</p>
+<ul>
+<li>Vitalii Kostenko</li>
+<li>Tomasz Jędrośka</li>
+<li>Szymon Krasuski</li>
+<li>Marcin Trojanowski</li>
+<li>Wojciech Sadowy</li>
+<li>Artur Dębski</li>
+</ul>
+<p>Last updated: 20.04.2021</p>
+<p>Discussion at
+<a href="https://github.com/magma/magma/issues/5514">https://github.com/magma/magma/issues/5514</a>.</p>
+<h1><a class="anchor" aria-hidden="true" id="abstract"></a><a href="#abstract" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Abstract</h1>
+<p>This document provides the requirements and architectural design details for creating a
+vendor neutral Citizens Broadband Radio Service Device (CBSD) Domain Proxy (DP).</p>
+<p>A Domain Proxy provides proxy and aggregation services
+for signaling between CBSD radios (eNBs or CPEs)
+and a Spectrum Access System (SAS).</p>
+<h1><a class="anchor" aria-hidden="true" id="background"></a><a href="#background" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Background</h1>
+<p>The interface between SAS and CBSD/DP is a standardized interface.</p>
+<p>The interface between a DP and the CBSD is not standardized and can be based on
+multiple protocols including the WInnForum defined SAS to
+CBSD/DP REST API, TR-069, SNMP, or NETCONF.</p>
+<p>This solution will include support for DP to CBSD interface based on the standard
+WInnForum SAS to CBSD/DP signaling protocol.</p>
+<p>Support for additional DP to CBSD interface protocols is not in scope
+but the design should take into consideration the ability to easily extend DP
+functionality with in a plugin-based manner.</p>
+<h2><a class="anchor" aria-hidden="true" id="references"></a><a href="#references" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>References</h2>
+<table>
+<thead>
+<tr><th></th><th></th></tr>
+</thead>
+<tbody>
+<tr><td>[1]</td><td>SSC-Wireless Innovation Forum, “Signaling Protocols and Procedures for Citizens Broadband Radio Service (CBRS): Spectrum Access System (SAS) - Citizens Broadband Radio Service Device (CBSD) Interface Technical Specification”, WINNF-TS-0016-V1.x.x <a href="https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0016.pdf"><u>https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0016.pdf</u></a></td></tr>
+<tr><td>[2]</td><td>SSC-Wireless Innovation Forum, “Test and Certification for Citizens Broadband Radio Service (CBRS); Conformance and Performance Test Technical Specification; CBSD/DP as Unit Under Test (UUT)”, WINNF-TS-0122-V1.x.x <a href="https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0122.pdf"><u>https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0122.pdf</u></a></td></tr>
+<tr><td>[3]</td><td>SSC-Wireless Innovation Forum, “CBRS Communications Security Technical Specification”, WINNF-TS-0065-V1.x.x <a href="https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0065.pdf"><u>https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0065.pdf</u></a></td></tr>
+<tr><td>[4]</td><td><a href="https://github.com/Wireless-Innovation-Forum/Citizens-Broadband-Radio-Service-Device"><u>https://github.com/Wireless-Innovation-Forum/Citizens-Broadband-Radio-Service-Device</u></a></td></tr>
+<tr><td>[5]</td><td><a href="https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System"><u>https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System</u></a></td></tr>
+<tr><td></td></tr>
+</tbody>
+</table>
+<h1><a class="anchor" aria-hidden="true" id="proposal"></a><a href="#proposal" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal</h1>
+<p>The DP will sit between the SAS and the CBSD or downstream DP.</p>
+<p><img src="media/p010_vendor_neutral_dp_image1.png" style="width:5.21875in;height:2.09375in" /></p>
+<hr>
+<h2><a class="anchor" aria-hidden="true" id="vendor-neutral-domain-proxy-hld"></a><a href="#vendor-neutral-domain-proxy-hld" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Vendor Neutral Domain Proxy HLD</h2>
+<p>The vendor neutral DP will run as kubernetes managed containers
+in a microservice architecture.
+The deployment of the vendor neutral DP can be in any generic kubernetes
+environment such as an on premise compute node (or set of nodes) or in a
+cloud environment such as AWS.</p>
+<p><img src="media/p010_vendor_neutral_dp_image2.png" style="width:5.54167in;height:2.72917in" /></p>
+<hr>
+<h2><a class="anchor" aria-hidden="true" id="sas-client-interface-requirements"></a><a href="#sas-client-interface-requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SAS Client Interface Requirements</h2>
+<p>The following section provides functional requirements for the SAS facing interface of the DP.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td><strong>Requirement ID</strong></td>
+<td><strong>Description</strong></td>
+<td><strong>Priority</strong></td>
+</tr>
+<tr class="even">
+<td>SCI-01</td>
+<td>The SAS client interface shall expose a single SSL connection between the DP and the SAS used for all proxied connections.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>SCI-02</td>
+<td><p>The SAS client interface shall be compliant with [1] when sending the following messages on behalf of proxied CBSDs:</p>
+<ol type="1">
+<li><p>Registration Request</p></li>
+<li><p>Spectrum Inquiry Request</p></li>
+<li><p>Grant Request</p></li>
+<li><p>Heartbeat Request</p></li>
+<li><p>CBSD Measurement Report</p></li>
+<li><p>Relinquishment Request</p></li>
+<li><p>Deregistration Request</p></li>
+</ol></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>SCI-03</td>
+<td>The SAS client interface shall validate the SAS connection using a certificate that chains back to a Domain Proxy CA according to [3].</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>SCI-04</td>
+<td>The SAS client interface shall comply with all interface test cases defined in [2].</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>SCI-05</td>
+<td>The SAS client interface shall be implemented with a TCP_NODELAY socket so that no extra queuing delay is added between the application and the wire.</td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="cbsd-proxy-interface-requirements"></a><a href="#cbsd-proxy-interface-requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>CBSD Proxy Interface Requirements</h2>
+<p>The following section provides functional requirements for the CBSD Proxy Interface facing interface of the DP.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td><strong>Requirement ID</strong></td>
+<td><strong>Description</strong></td>
+<td><strong>Priority</strong></td>
+</tr>
+<tr class="even">
+<td>CPI-01</td>
+<td><p>The CBSD proxy interface shall accept incoming connections from the SAS client interfaces in CBSDs as defined in [1], receiving and processing request message types including:</p>
+<ol type="1">
+<li><p>Registration Request</p></li>
+<li><p>Spectrum Inquiry Request</p></li>
+<li><p>Grant Request</p></li>
+<li><p>Heartbeat Request</p></li>
+<li><p>CBSD Measurement Report</p></li>
+<li><p>Relinquishment Request</p></li>
+<li><p>Deregistration Request</p></li>
+</ol></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>CPI-02</td>
+<td>The CBSD proxy interface shall comply with security validation requirements for incoming proxy connections according to [3] with certificates that chain to a SAS CA.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>CPI-03</td>
+<td>The CBSD proxy interface shall be implemented as a pluggable module to internal APIs such that other external interface protocol modules (TR-069, SNMP, NETCONF) can be supported in parallel to the SAS client interface defined in [1] on a per connection basis.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>CPI-04</td>
+<td>The CBSD proxy interface shall be implemented with a TCP_NODELAY socket so that no extra queuing delay is added between the application and the wire.</td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="aggregation-and-proxy-management-requirements"></a><a href="#aggregation-and-proxy-management-requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Aggregation and Proxy Management Requirements</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td><strong>Requirement ID</strong></td>
+<td><strong>Description</strong></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>APM-01</td>
+<td>The aggregation and proxy management process shall support two modes of operation including Active and Passive.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>APM-02</td>
+<td>The aggregation and proxy management process shall allow the selection of Active or Passive operation as a global setting for all connections on the CBSD Proxy Interface.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>APM-03</td>
+<td>The aggregation and proxy management process shall allow the selection of Active or Passive operation on a per CBSD/DP basis on the CBSD Proxy Interface. This selection shall override the global configuration for the specified CBSD.</td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>APM-04</td>
+<td>The aggregation and proxy management process in Passive mode shall perform a proxy and forward function for all messages received on the CBSD Proxy Interface without modification to message body contents.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>APM-05</td>
+<td>The aggregation and proxy management process in Active mode shall instantiate and maintain two state machines according to [1] on the SAS Client interface and separately on the CBSD Proxy Interface for each CBSD connection.</td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>APM-06</td>
+<td>The aggregation and proxy management process in Active mode shall have an extensible logic module that can create and/or modify message body contents independently for SAS Client Interface and CBSD Proxy Interface for a given CBSD.</td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>APM-07</td>
+<td>The aggregation and proxy management process in Active mode shall allow logic modules to be specific to a CBSD class (e.g. FCC ID specific, list of FCC IDs).</td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>APM-08</td>
+<td><p>The aggregation and proxy management process shall log state information for CBSDs and grants of Passive and Active mode connections in the CBSD &amp; Grant Database with metadata including at least:</p>
+<ul>
+<li><p>CBSD ID (FCC_ID + Serial #)</p></li>
+<li><p>State</p></li>
+<li><p>Message Type</p></li>
+<li><p>Message Body</p></li>
+<li><p>Response code (if applicable)</p></li>
+<li><p>Timestamp</p></li>
+<li><p>SAS Operator Name</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>APM-09</td>
+<td>The aggregation and proxy management process shall store state information for CBSDs and grants of Active mode connections in the CBSD &amp; Grant Database.</td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="user-interface-requirements"></a><a href="#user-interface-requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>User Interface Requirements</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td><strong>Requirement ID</strong></td>
+<td><strong>Description</strong></td>
+<td><strong>Priority</strong></td>
+</tr>
+<tr class="even">
+<td>UI-01</td>
+<td><p>The DP UI shall provide the ability to configure a SAS operator with SAS specific details:</p>
+<ul>
+<li><p>Provider Name</p></li>
+<li><p>Host URL</p></li>
+<li><p>User ID</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>UI-02</td>
+<td>The DP UI shall provide the ability to configure a global default SAS operator from the configured SAS operator list.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>UI-03</td>
+<td>The DP UI shall provide the ability to configure an override SAS operator for a selected set of CBSDs.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>UI-04</td>
+<td>The DP UI shall provide the ability to set the global default mode of operation to either Passive or Active</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>UI-05</td>
+<td>The DP UI shall provide the ability to configure override Passive or Active mode on a per CBSD.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>UI-06</td>
+<td>The DP UI shall display a table of current connections and their state.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>UI-07</td>
+<td><p>The DP UI shall provide the ability to filter historical logs based on:</p>
+<ul>
+<li><p>FCC_ID</p></li>
+<li><p>CBSD Serial #</p></li>
+<li><p>State</p></li>
+<li><p>Message Type</p></li>
+<li><p>Message Body</p></li>
+<li><p>Response code (if applicable)</p></li>
+<li><p>Timestamp</p></li>
+<li><p>SAS Operator Name</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>UI-08</td>
+<td><p>The DP UI shall allow configuration of users with rights including at least:</p>
+<ul>
+<li><p>Read Only Users</p></li>
+<li><p>Read/Write Users</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>UI-09</td>
+<td>The DP UI shall authenticate user credentials upon login of a user and enforce user permissions for the user session duration.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>UI-10</td>
+<td>The DP UI shall allow the export/download of log files in csv format that include all fields in requirement UI-07.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>UI-11</td>
+<td><p>The DP UI shall allow the user to select a connection/CBSD ID to view real-time updates on messaging including:</p>
+<ul>
+<li><p>CBSD ID (FCC_ID + Serial #)</p></li>
+<li><p>State</p></li>
+<li><p>Message Type</p></li>
+<li><p>Message Body</p></li>
+<li><p>Response code (if applicable)</p></li>
+<li><p>Timestamp</p></li>
+<li><p>SAS Operator Name</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>UI-12</td>
+<td><p>The DP UI shall provide a summary dashboard with graphical displays of:</p>
+<ul>
+<li><p>Session counts in each state per [1] including at least:</p>
+<ul>
+<li><p>Registered</p></li>
+<li><p>Granted</p></li>
+<li><p>Suspended</p></li>
+<li><p>Authorized</p></li>
+</ul></li>
+<li><p>A table of sessions that have changed state in the last 24 hours</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>UI-13</td>
+<td>The DP UI shall provide the ability to define a CBSD record based on FCC ID and Serial Number</td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>UI-14</td>
+<td><p>The DP UI shall provide configuration interface to allow creation, modification, or deletion of CBSD records including the following installation parameters:</p>
+<ul>
+<li><p>CBSD Serial Number</p></li>
+<li><p>FCC ID</p></li>
+<li><p>User ID (SAS account user ID)</p></li>
+<li><p>cbsdCategory</p></li>
+<li><p>CBSD Type</p></li>
+<li><p>antennaAzimuth</p></li>
+<li><p>antennaBeamwidth</p></li>
+<li><p>antennaDowntilt</p></li>
+<li><p>antennaGain</p></li>
+<li><p>height</p></li>
+<li><p>heightType</p></li>
+<li><p>indoorDeployment</p></li>
+<li><p>latitude</p></li>
+<li><p>longitude</p></li>
+</ul></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>UI-15</td>
+<td>The DP UI shall provide the ability to define a CBSD record as active or inactive allowing the DP to activate/deactivate CBSDs based on configuration.</td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="deployment-architecture-requirements"></a><a href="#deployment-architecture-requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deployment Architecture Requirements</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td><strong>Requirement ID</strong></td>
+<td><strong>Description</strong></td>
+<td><strong>Priority</strong></td>
+</tr>
+<tr class="even">
+<td>DA-01</td>
+<td>The DP shall be deployable as a kubernetes managed container system.</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>DA-02</td>
+<td>The DP shall be horizontally scalable based on number of connections/CBSDs.</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>DA-03</td>
+<td><p>The DP shall be self contained such that it is deployable in any standard kubernetes environment including:</p>
+<ul>
+<li><p>On premises x86 compute platform</p>
+<ul>
+<li><p>Specs TBD</p></li>
+</ul></li>
+<li><p>AWS EKS</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>DA-04</td>
+<td>The DP delivery shall include all helm charts and any necessary installation scripts and procedures</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>DA-05</td>
+<td><p>The DP shall support networking requirements on both SAS Client Interface and CBSD Proxy Interface including:</p>
+<ul>
+<li><p>1Gbps or 10Gbps NIC (copper or fiber for both)</p></li>
+<li><p>DHCP or Static IP based on configuration</p></li>
+<li><p>Multiple IP address support per interface</p></li>
+<li><p>VLAN support based on configuration</p></li>
+</ul></td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h1><a class="anchor" aria-hidden="true" id="rationale"></a><a href="#rationale" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Rationale</h1>
+<p>A vendor neutral Domain Proxy provides a number of benefits to a CBRS
+deployment:</p>
+<ul>
+<li><p>The aggregation and proxy function allows for a single connection
+between a customer network of CBSDs and the SAS. This provides a
+small attack surface by reducing the number of outbound connections
+traversing the customer firewall and edge devices.</p></li>
+<li><p>A domain proxy can be deployed in a controlled stable environment
+allowing it to provide a consistent interface to the SAS on behalf
+of a CBSD which may be subject to intermittent loss of power or
+connectivity.</p></li>
+<li><p>It provides a point of coordination/control for radio channel
+allocation in a multi-vendor deployment.</p></li>
+<li><p>It allows for the application of additional grant requesting and
+maintenance logic which can correct errant behavior and/or provide
+an optimization layer over vendor SAS client algorithms.</p></li>
+</ul>
+<h1><a class="anchor" aria-hidden="true" id="compatibility"></a><a href="#compatibility" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Compatibility</h1>
+<p>Domain Proxy solution will reuse as much of the Magma services as possible.</p>
+<p>It should be easily deployed within existing Magma environment.</p>
+<p>As DP will be implementing radio interfaces, the intention is to follow
+and comply with the Magma Community guidelines and codebase where applicable.</p>
+<h1><a class="anchor" aria-hidden="true" id="observability-and-debug"></a><a href="#observability-and-debug" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Observability and Debug</h1>
+<p>The plan is to follow Magma best practices regarding application observability
+(logging, telemetry, debugging applications and the DP state)
+as well as utilize already existing tools and solutions in Magma infrastructure.</p>
+<p>Applications should produce logs with a capability to ingest that data
+into monitoring systems (like ElasticSearch).</p>
+<p>Applications will gather and expose various telemetry data,
+like number or requests received,
+number or request failures,
+generic application resource use (CPU, RAM, etc.)</p>
+<h1><a class="anchor" aria-hidden="true" id="implementation"></a><a href="#implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implementation</h1>
+<h2><a class="anchor" aria-hidden="true" id="dp-microservices"></a><a href="#dp-microservices" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>DP Microservices</h2>
+<p>Domain Proxy will consist of a number of components in a microservice architecture.</p>
+<ul>
+<li><p><strong>API Gateway</strong></p>
+<p>API Gateway will act as a central API router of the Domain Proxy.
+It will be responsible for receiving incoming CBSD requests
+and routing them to the appropriate Protocol Controllers
+based on the protocol.</p></li>
+<li><p><strong>Protocol Controller (PC)</strong></p>
+<p>Protocol Controller is responsible for receiving the initial traffic
+from individual CBSDs (radios), translating the requests
+into a common API protocol and forwarding them to the Radio Controller.</p>
+<p>One PC will implement support for one interface from CBSD side.</p>
+<p>Initially this means only Domain Proxy protocol, but the idea behind
+Protocol Controllers is for them to be written in such a manner that
+having one of them in place, it should be straightforward to add
+another one (it can be achieved by having a ProtocolController abstract class
+to provide structure for particular PC implementations).</p>
+<p>To scale the system better we are decoupling PC (responsible for protocol)
+from Radio controller (responsible for the business domain).
+Additional benefit is maintaining all of the protocol customizations
+and tricks at the PC level and making the PC layer scalable
+according to the number of eNBs of each type.</p></li>
+<li><p><strong>Radio Controller (RC)</strong></p>
+<p>RC is responsible for receiving the requests from
+and sending responses to  PCs.
+It manages all request data and state within the Database.</p></li>
+<li><p><strong>Configuration controller (CC)</strong></p>
+<p>CC is used process requests and communicate with the SAS server
+using SAS protocol.
+This component issues a request to SAS and updates the request state
+after receiving a reply within the Database.</p></li>
+<li><p><strong>Database</strong></p>
+<p>Relational DB storing the state CBSD requests and responses.</p>
+<p>DB allows to keep track of grants and CBSDs configuration limiting redundant CBSD - SAS connections.</p></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="component-interactions"></a><a href="#component-interactions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Component Interactions</h2>
+<ul>
+<li><p><strong>API Gateway</strong>
+API gateway will receive incoming requests from CBSDs.
+Depending on the incoming protocol it will route the traffic to appropriate
+k8s protocol controller handling that protocol via a k8s service (which will act as a load balancer).</p></li>
+<li><p><strong>Protocol Controller</strong></p>
+<p>PC will pass the requests it receives from CBSDs to the RC over gRPC.</p>
+<p>PC will check for the request response with RC via gRPC
+and send the response back to CBSD.</p></li>
+<li><p><strong>Radio Controller</strong></p>
+<p>RC receives requests from the PC over HTTPs and puts them in
+the DB.</p>
+<p>RC accepts incoming request response check requests from PC.</p></li>
+<li><p><strong>Configuration Controller</strong></p>
+<p>CC fetches pending requests from the DB, batches them and sends them to SAS.</p>
+<p>After receiving the response from SAS, it updates the DB state
+for the requests processed.</p></li>
+<li><p><strong>Database</strong></p>
+<p>Handles DB queries coming from RC and CC.</p></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="solution-scaling"></a><a href="#solution-scaling" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Solution scaling</h2>
+<p>The Domain Proxy will be split into separate services in separate containers.</p>
+<p>Every service will work in HA mode to provide service even in failover scenarios.</p>
+<p>All DP components will be stateless Python based services
+which do not need synchronization between them
+so it is not vital to create sync mechanisms.
+Applications will take over processing of data
+when one of the containers fail.</p>
+<p>Because the DP applications/containers are stateless,
+a horizontal scaling would be possible if there is a need to improve
+DP application performance.
+For instance, if there is a very big number or CBSD devices,
+it would be possible to have multiple PC container instances,
+each sharing a portion of the CBSD traffic.
+Similarly, if there is a big number or requests that need to be processed, multiple RCs could be deployed to share the PC load.</p>
+<h2><a class="anchor" aria-hidden="true" id="batching-of-messages"></a><a href="#batching-of-messages" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Batching of messages</h2>
+<p>Batching of messages allows to limit the number of connections to the SAS servers
+which is useful in the case when a number of CBSDs send requests at once
+(e.g. heartbeat requests are sent continuously).
+Batching it limits a chance of failure on sending requests to the SAS,
+because SAS has to process only a minimum number of requests
+instead of numerous requests sent one by one.
+In large infrastructures it may reduce the cost of SAS usage
+and limit the chance of running out of requests per given time
+(for Google SAS server it is 50,000 requests per day and 10 queries per second).</p>
+<p>Keeping the state is not necessary on the early stage of the project
+when Domain Proxy supports only Passive Mode
+where requests only pass through the DP.
+However, on Active Mode it is necessary to keep the CBSDs objects in the database
+as components such as UI monitor registered CBSDs in the Domain Proxy
+and allow to edit attributes of the CBSDs.
+Using stateless solutions would require to send requests to the SAS server
+or CBSDs itself which is not a good design
+considering that it may generate additional costs and add additional traffic
+between Domain Proxy and other components.
+Active Mode with state in the database allows to add additional attributes
+not recognized by SAS or CBSD, but useful for the Domain Proxy usage
+(labels or additional descriptions for UI purposes such as sorting by groups of CBSDs).</p>
+<h2><a class="anchor" aria-hidden="true" id="architectural-discussion"></a><a href="#architectural-discussion" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architectural Discussion</h2>
+<h3><a class="anchor" aria-hidden="true" id="relational-database"></a><a href="#relational-database" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Relational database</h3>
+<p>Since there is a planned UI and additionally we need to store basic,
+well defined information about CBSD we suggest to reuse an already existing MySQL / PostgreSQL database
+from the Magma Orchestrator component (with a new schema).
+At the very beginning the database usage would be limited to:</p>
+<ul>
+<li>storing records for CBSDs (registration parameters, SAS <code>cbsd_id</code>, name, configuration, name, location, etc.)</li>
+<li>storing grants</li>
+<li>storing all incoming CBSD requests and SAS responses</li>
+<li>user administration &amp; access rights within DP system</li>
+</ul>
+<p>We do not intend to use the Database to store the state changes.
+This information will be logged with a possibility to expose it
+to external monitoring systems (like ElasticSearch) for observability
+and debugging purposes.</p>
+<p>Because the use of a relational DB is necessary to fulfill the DP requirements,
+this fact was one of the incentives to use the DB as a data exchange point
+for the DP components, acting both as a persistent DP state
+and data buffer/queue.</p>
+<h3><a class="anchor" aria-hidden="true" id="queuing-mechanisms"></a><a href="#queuing-mechanisms" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Queuing mechanisms</h3>
+<p>One of the goals of the Domain Proxy is to provide a stable exchange
+of information between CBSDs and SAS and minimize the network traffic
+between them.
+In the initial concept of the design, we took into consideration popular
+existing queuing mechanisms which would gives us natural batching functionality
+while the DB would only serve as a persistent state store.</p>
+<p>There are many benefits where workload dispatching realized over a queue would give
+(out-of-the-box batching, acknowledgement, retry, persistence, speed).
+While those concepts could also be modeled within a relational DB,
+the logic behind it would require application development support
+and an increased transactional traffic to the DB.</p>
+<h3><a class="anchor" aria-hidden="true" id="message-queue-proscons"></a><a href="#message-queue-proscons" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Message Queue Pros/Cons</h3>
+<ul>
+<li><p><strong>RabbitMQ</strong></p>
+<ul>
+<li><p>Pros:</p>
+<ul>
+<li>Out-of-the-box fulfills our requirement for batching requests</li>
+<li>Microservice approach: easier to split into components, mock &amp; test</li>
+<li>Event-based flow is a reasonable way when there can be multiple consumers</li>
+<li>Utilizing a full-blown queue makes the architecture extendable - we don’t need to incorporate a pub/sub solution in each new subscribing component</li>
+<li>The component is purely internal - it won’t affect other architecture components built by the community</li>
+</ul></li>
+<li><p>Cons:</p>
+<ul>
+<li>Additional infrastructure component to maintain (internal to th DP)</li>
+<li>Pub/Sub overhead (minor in our scenario)</li>
+</ul></li>
+</ul></li>
+<li><p><strong>ZeroMQ</strong></p>
+<ul>
+<li><p>Pros:</p>
+<ul>
+<li>ZeroMQ implements queuing at a higher abstraction level - no need to deal with networking, sockets, etc.</li>
+<li>Component is already used in the ecosystem</li>
+</ul></li>
+<li><p>Cons:</p>
+<ul>
+<li>It’s a very simple queue, the required functionalities like message batching, persistency, still would need to be implemented and later maintained as separate components (potentially bug-prone)</li>
+<li>It would need to be separately added to each component which would need queuing functionalities</li>
+<li>Cannot be easily replaced, mocked, up- or downscaled basing on the needs</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>Based on the Magma Community discussion and feedback, the additional cost
+of development and DB transaction load is negligible. As a result, DP will
+fully realize the DB for state persistence and data exchange, &quot;queueing&quot;
+and batching.</p>
+<h2><a class="anchor" aria-hidden="true" id="resource-requirements-and-estimates"></a><a href="#resource-requirements-and-estimates" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Resource requirements and estimates</h2>
+<p>All requirements and estimates here are a subject to change as development
+progresses.</p>
+<p>Assuming DP will handle 10000 CBSDs,
+we estimate the following total system requirements for each DP service
+(if there is horizontal scaling,
+those requirements are divided among the number of containers):</p>
+<ul>
+<li><p><strong>API Gateway</strong>
+8 CPUs, 8GB RAM</p></li>
+<li><p><strong>Protocol Controller</strong>
+16 CPUs, 16GB RAM</p></li>
+<li><p><strong>Radio Controller</strong>
+16 CPUs, 16GB RAM</p></li>
+<li><p><strong>Configuration Controller</strong>
+4 CPUs, 8GB RAM</p></li>
+</ul>
+<p>Assuming DP will handle 10000 CBSD devices simultaneously, with 1 min heartbeat interval
+we estimate the following Database traffic:</p>
+<ul>
+<li>DB <code>select</code> - up to 20000 select queries per minute (check request states and responses, request polling)</li>
+<li>DB <code>insert</code> - up to 70000 insert queries per minute (each request, each response, cbsd and grant)</li>
+<li>DB <code>update</code> - up to 35000 update queries per minute (update request state, update grant state, update cbsd state)</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="system-architecture"></a><a href="#system-architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>System Architecture</h2>
+<p>Based on the analysis and Community discussions, the resulting architecture
+of the DP is as follows:</p>
+<p><img src="media/p010_vendor_neutral_dp_image3.png" style="width:5.21875in;height:2.09375in" /></p>
+<p>Assuming the architecture, and example data flow for a Registration Request is as follows:</p>
+<p><img src="media/p010_vendor_neutral_dp_image4.png" style="width:5.21875in;height:2.09375in" /></p>
+<h2><a class="anchor" aria-hidden="true" id="schedule-and-milestones"></a><a href="#schedule-and-milestones" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Schedule and Milestones</h2>
+<table>
+<thead>
+<tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Milestones</strong></td><td><strong>T0+1</strong></td><td><strong>T0+2</strong></td><td><strong>T0+3</strong></td><td><strong>T0+4</strong></td><td><strong>T0+5</strong></td><td><strong>T0+6</strong></td><td><strong>T0+7</strong></td></tr>
+<tr><td>MS1: Setup development infrastructure (Airspan eNB + DP)</td><td>x</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>MS2: POC Implementation of SAS-facing signaling service based on [1]</td><td></td><td>x</td><td>x</td><td>x</td><td>x</td><td></td><td></td></tr>
+<tr><td>MS3: POC CBSD Proxy Interface in Passive mode</td><td></td><td></td><td></td><td>x</td><td>x</td><td>x</td><td></td></tr>
+<tr><td>MS4: GUI development</td><td></td><td></td><td></td><td>x</td><td>x</td><td>x</td><td></td></tr>
+<tr><td>MS5: Lab testing and iterative bug-fixing for SAS-signaling (SAS discovery, authentication, CBSD registration, CBSD Heartbeat etc.)</td><td></td><td></td><td></td><td>x</td><td>x</td><td>x</td><td></td></tr>
+<tr><td>MS6: Testing and bug-fixing with a small pilot deployment (3-5 CBSDs)</td><td></td><td></td><td></td><td></td><td>x</td><td>x</td><td>x</td></tr>
+<tr><td>MS7: Documentation and beta deployment support gate</td><td></td><td></td><td></td><td></td><td></td><td></td><td>x</td></tr>
+<tr><td></td></tr>
+</tbody>
+</table>
+<h1><a class="anchor" aria-hidden="true" id="qa-feedback"></a><a href="#qa-feedback" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Q/A Feedback</h1>
+<p>Q: Can we run on VMware</p>
+<p>A: To make it more future proof, we should build it on k8s (not VMs);
+but vSphere should have the ability to deploy and manage k8s. so it can
+be VMware k8s</p>
+<p>Q: High availability: will these be active-active or active-standby?</p>
+<p>A: The app itself running on k8s will be active-active. k8s controller
+will provide for HA by managing the individual DP application
+containers; with k8s managed HA is active-active.</p>
+<p>Q: multi-vendor SAS capabilities</p>
+<p>A: Yes, the plan is for multi-vendor SAS support. We have UI-2 in place
+to allow for selection of a default. UI-3 requirement has been edited to
+more specifically allow for batch override of SAS vendor for a selected
+set of CBSDs e.g. a vendor group, or all radios at a site.</p>
+<p>Q: Audit trail abilities</p>
+<p>A: Full audit details will be displayable and exportable including all
+configuration changes and SAS and eNB message logging.</p>
+<p>Q: Easy eNB location mapping</p>
+<p>A: All CBSD data the DP has will be exportable and we can have a
+selection pane to allow selection of attributes to export e.g. if you
+just want name and lat/long.</p>
+<p>Q: What are Active/Passive modes:</p>
+<p>A: The idea is to start with a simple Passive mode where there is no
+message mangling or internal logic applied as messages are proxied from
+the CBSD interface to the SAS interface. However, we want the
+architecture to plan for and allow the insertion of logic modules in the
+future that sit between the CBSD and SAS interface to allow for more
+than a simply proxy. The motivation here is it allows for a DP to mask
+undesirable behavior in CBSDs and/or optimize a multi-vendor deployment
+by separately controlling SAS and CBSD messaging per CBSD.</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#references">References</a></li><li><a href="#vendor-neutral-domain-proxy-hld">Vendor Neutral Domain Proxy HLD</a></li><li><a href="#sas-client-interface-requirements">SAS Client Interface Requirements</a></li><li><a href="#cbsd-proxy-interface-requirements">CBSD Proxy Interface Requirements</a></li><li><a href="#aggregation-and-proxy-management-requirements">Aggregation and Proxy Management Requirements</a></li><li><a href="#user-interface-requirements">User Interface Requirements</a></li><li><a href="#deployment-architecture-requirements">Deployment Architecture Requirements</a></li><li><a href="#dp-microservices">DP Microservices</a></li><li><a href="#component-interactions">Component Interactions</a></li><li><a href="#solution-scaling">Solution scaling</a></li><li><a href="#batching-of-messages">Batching of messages</a></li><li><a href="#architectural-discussion">Architectural Discussion</a><ul class="toc-headings"><li><a href="#relational-database">Relational database</a></li><li><a href="#queuing-mechanisms">Queuing mechanisms</a></li><li><a href="#message-queue-proscons">Message Queue Pros/Cons</a></li></ul></li><li><a href="#resource-requirements-and-estimates">Resource requirements and estimates</a></li><li><a href="#system-architecture">System Architecture</a></li><li><a href="#schedule-and-milestones">Schedule and Milestones</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

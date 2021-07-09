@@ -1,0 +1,121 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>APN Configuration · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Access Point Name (APN) Configuration"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="APN Configuration · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Access Point Name (APN) Configuration"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="access-point-name-apn-configuration"></a><a href="#access-point-name-apn-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access Point Name (APN) Configuration</h1>
+<p>Before any of your subscribers can attach to your network, you will first have
+to provision at least one APN.</p>
+<p>UEs can successfully attach and connected to the Magma AGWs if they have a
+valid APN configuration in their subscription profile on the network side.
+Typically, UEs send APN information explicitly in their connection requests.
+The AGW pulls APN information from subscription data synced down from
+Orchestrator to verify that UEs have a valid subscription for the requested APN.
+If APN information is missing from the connection request, the AGW picks the
+first APN in the subscriber profile as the default APN and establishes a
+connection session according to that default APN. Once APN information is
+selected, Magma allocates IP address for the UE under that APN.</p>
+<h2><a class="anchor" aria-hidden="true" id="define-apn-configurations"></a><a href="#define-apn-configurations" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Define APN Configurations</h2>
+<p>First, check that there is at least one APN provisioned for your network:</p>
+<ul>
+<li><p>Navigate to your NMS instance and on the sidebar click on &quot;Configure&quot; button.</p></li>
+<li><p>In the newly opened page, on the top bar select &quot;APN CONFIGURATION&quot;.
+If there are already APNs defined, it will show up on this page.</p></li>
+<li><p>You can edit or delete any of the existing APN configurations.
+Note that the updates and deletions will be reflected automatically in
+subscriber profiles and any new attaches as well as PDN connection requests
+will be impacted by these changes.</p></li>
+<li><p>You can also add a new APN configuration by clicking on the &quot;Add APN&quot;
+button and filling out the requested fields. After saving these changes, the
+page should refresh with the new list of APNs and their configurations.</p></li>
+</ul>
+<p><img src="/magma/docs/assets/nms/add_apnconfig.png" alt="Creating an APN Configuration"></p>
+<h2><a class="anchor" aria-hidden="true" id="add-apn-configurations-to-subscriber-profiles"></a><a href="#add-apn-configurations-to-subscriber-profiles" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Add APN Configurations to Subscriber Profiles</h2>
+<p>The next step is to add one or more APN configurations to subscriber profiles
+so that UEs can start consuming network services based on their APNs:</p>
+<ul>
+<li>For an existing subscriber, to update its subscription profile, click on the
+edit field and perform a multi-select under the &quot;Access Point Names&quot;.</li>
+<li>For a new subscriber, fill out the fields including the &quot;Access Point Names&quot;
+field (screenshot below shows the view after clicking on the &quot;Add Subscriber&quot;
+button). Once you save the updated or new subscriber information, the APNs
+added to the subscriber profile will show be reflected on the page.</li>
+</ul>
+<p><img src="/magma/docs/assets/nms/add_apn2subscriber.png" alt="Adding subscriber with APN"></p>
+<h3><a class="anchor" aria-hidden="true" id="notes"></a><a href="#notes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Notes</h3>
+<ul>
+<li><p>The first APN listed under &quot;Active APNs&quot; for each subscriber becomes the
+default APN that will be used if the UE omits the APN information in its
+connection requests.</p></li>
+<li><p>The subscriber data is streamed down to AGWs periodically and the new configs
+should be reflected on AGW with some lag (typically, 1-2 minutes).</p></li>
+<li><p>To check if an AGW is already updated, on the AGW, you can run the following
+command to retrieve local subscriber data:</p></li>
+</ul>
+<p><code>subscriber_cli.py get IMSI&lt;15 digit IMSI&gt;</code></p>
+<p>An example output for a hypothetical user with IMSI 001010000000001 and APNs
+<code>internet</code>, <code>ims</code> is shown below:</p>
+<pre><code class="hljs"><span class="hljs-class">sid </span>{
+<span class="hljs-symbol">  id:</span> <span class="hljs-string">"001010000000001"</span>
+}
+<span class="hljs-class">lte </span>{
+<span class="hljs-symbol">  state:</span> ACTIVE
+<span class="hljs-symbol">  auth_key:</span> <span class="hljs-string">"..."</span> <span class="hljs-meta"># not shown in this example</span>
+}
+<span class="hljs-class">network_id </span>{
+<span class="hljs-symbol">  id:</span> <span class="hljs-string">"my_network"</span>
+}
+<span class="hljs-class">state </span>{
+}
+<span class="hljs-symbol">sub_profile:</span> <span class="hljs-string">"default"</span>
+<span class="hljs-class">non_3gpp </span>{
+  <span class="hljs-class">apn_config </span>{
+<span class="hljs-symbol">    service_selection:</span> <span class="hljs-string">"ims"</span>
+    <span class="hljs-class">qos_profile </span>{
+<span class="hljs-symbol">      class_id:</span> <span class="hljs-number">5</span>
+<span class="hljs-symbol">      priority_level:</span> <span class="hljs-number">9</span>
+    }
+    <span class="hljs-class">ambr </span>{
+<span class="hljs-symbol">      max_bandwidth_ul:</span> <span class="hljs-number">100000</span>
+<span class="hljs-symbol">      max_bandwidth_dl:</span> <span class="hljs-number">100000</span>
+    }
+  }
+  <span class="hljs-class">apn_config </span>{
+<span class="hljs-symbol">    service_selection:</span> <span class="hljs-string">"internet"</span>
+    <span class="hljs-class">qos_profile </span>{
+<span class="hljs-symbol">      class_id:</span> <span class="hljs-number">9</span>
+<span class="hljs-symbol">      priority_level:</span> <span class="hljs-number">15</span>
+    }
+    <span class="hljs-class">ambr </span>{
+<span class="hljs-symbol">      max_bandwidth_ul:</span> <span class="hljs-number">100000000</span>
+<span class="hljs-symbol">      max_bandwidth_dl:</span> <span class="hljs-number">200000000</span>
+    }
+  }
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="apn-override-config-in-mme"></a><a href="#apn-override-config-in-mme" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>APN Override Config in MME</h2>
+<p>To override the UE requested APN with a network specified APN, you can use the
+<code>enable_apn_correction</code> and <code>apn_correction_map_list</code> in <code>/etc/magma/mme.yml</code>.</p>
+<pre><code class="hljs"><span class="hljs-string">enable_apn_correction:</span> <span class="hljs-literal">false</span>
+<span class="hljs-string">apn_correction_map_list:</span>
+        - <span class="hljs-string">imsi_prefix:</span> <span class="hljs-string">"00101"</span>
+<span class="hljs-symbol">          apn_override:</span> <span class="hljs-string">"magma.ipv4"</span>
+</code></pre>
+<p>If <code>enable_apn_correction</code> is set to <code>true</code>, MME will override the original APN
+based on the specified IMSI-prefix filtering.
+We support up to 10 IMSI prefix filters and corresponding APNs.
+See under Proposals for a more detailed design doc.</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#define-apn-configurations">Define APN Configurations</a></li><li><a href="#add-apn-configurations-to-subscriber-profiles">Add APN Configurations to Subscriber Profiles</a><ul class="toc-headings"><li><a href="#notes">Notes</a></li></ul></li><li><a href="#apn-override-config-in-mme">APN Override Config in MME</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

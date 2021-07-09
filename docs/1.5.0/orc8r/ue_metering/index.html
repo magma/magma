@@ -1,0 +1,124 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>UE Usage Metering · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="*Last Updated: 07/31/2020*"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="UE Usage Metering · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="*Last Updated: 07/31/2020*"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><p><em>Last Updated: 07/31/2020</em></p>
+<h1><a class="anchor" aria-hidden="true" id="ue-usage-metering"></a><a href="#ue-usage-metering" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>UE Usage Metering</h1>
+<p>Magma currently supports basic usage metering. This allows for real-time
+monitoring of data usage specified with the following labels:</p>
+<ul>
+<li><code>IMSI</code></li>
+<li><code>session_id</code></li>
+<li><code>traffic direction</code></li>
+</ul>
+<p>This feature is currently built to enable post-pay charging.</p>
+<p>Metering information is available through our metrics REST endpoint.
+The metric name used is <code>ue_traffic</code>.</p>
+<p><img src="/magma/docs/assets/ue_metering.png" alt="Swagger REST API Endpoint"></p>
+<h3><a class="anchor" aria-hidden="true" id="configuring-metering"></a><a href="#configuring-metering" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuring Metering</h3>
+<p>As a pre-requisite, ensure you have the following:</p>
+<ul>
+<li>a functional orc8r</li>
+<li>a configured LTE network</li>
+<li>a configured LTE gateway with eNodeB</li>
+<li>subscribers that can attach to your LTE gateway</li>
+<li>network running in un-federated mode</li>
+</ul>
+<p>In un-federated mode, the <code>policydb</code> service on the LTE gateway acts
+as a lightweight PCRF, and federated support for metering is not currently
+supported.</p>
+<p>To enable metering for a single subscriber,
+the following steps need to be completed:</p>
+<ol>
+<li>A rating group configured with infinite, metered credit</li>
+<li>A policy rule configured with the above rating group</li>
+<li>Your policy rule assigned to the subscriber to be metered</li>
+</ol>
+<p>If you do not have a NMS setup with integration to Magma's REST API, the
+details below should help. If your <code>orc8r</code> is functional, you should be able to
+manually access the Swagger API.</p>
+<p><strong>Configuring Rating Group</strong></p>
+<p><code>/networks/{network_id}/rating_groups</code></p>
+<p>Configure with the following JSON as an example. Modify the ID as necessary.</p>
+<pre><code class="hljs">{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-number">1</span>,
+  <span class="hljs-attr">"limit_type"</span>: <span class="hljs-string">"INFINITE_METERED"</span>
+}
+</code></pre>
+<p><strong>Configuring Policy Rule</strong></p>
+<p><code>/networks/{network_id}/policies/rules</code></p>
+<p>Configure with the following JSON as an example. Here, the flow list is set
+to allow all traffic. A high priority is also set to override other rules.
+You may need to modify the <code>rating_group</code> to match the ID of the rating group
+you configured earlier. Here you also have a chance to directly assign the
+policy to the subscriber you wish to meter for.</p>
+<pre><code class="hljs">{
+  <span class="hljs-attr">"app_name"</span>: <span class="hljs-string">"NO_APP_NAME"</span>,
+  <span class="hljs-attr">"app_service_type"</span>: <span class="hljs-string">"NO_SERVICE_TYPE"</span>,
+  <span class="hljs-attr">"assigned_subscribers"</span>: [],
+  <span class="hljs-attr">"flow_list"</span>: [
+    {
+      <span class="hljs-attr">"action"</span>: <span class="hljs-string">"PERMIT"</span>,
+      <span class="hljs-attr">"match"</span>: {
+        <span class="hljs-attr">"direction"</span>: <span class="hljs-string">"UPLINK"</span>,
+        <span class="hljs-attr">"ip_proto"</span>: <span class="hljs-string">"IPPROTO_IP"</span>
+      }
+    },
+    {
+      <span class="hljs-attr">"action"</span>: <span class="hljs-string">"PERMIT"</span>,
+      <span class="hljs-attr">"match"</span>: {
+        <span class="hljs-attr">"direction"</span>: <span class="hljs-string">"DOWNLINK"</span>,
+        <span class="hljs-attr">"ip_proto"</span>: <span class="hljs-string">"IPPROTO_IP"</span>
+      }
+    }
+  ],
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"metering_rule"</span>,
+  <span class="hljs-attr">"priority"</span>: <span class="hljs-number">10</span>,
+  <span class="hljs-attr">"qos"</span>: {
+    <span class="hljs-attr">"max_req_bw_dl"</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-attr">"max_req_bw_ul"</span>: <span class="hljs-number">0</span>
+  },
+  <span class="hljs-attr">"rating_group"</span>: <span class="hljs-number">1</span>,
+  <span class="hljs-attr">"tracking_type"</span>: <span class="hljs-string">"ONLY_OCS"</span>
+}
+</code></pre>
+<p><strong>Assigning Policy to Subscriber</strong></p>
+<p><code>/lte/{network_id}/subscribers</code>
+<code>/networks/{network_id}/policies/rules/{rule_id}</code></p>
+<p>Two endpoints can be used for assigning the metering policy to a subscriber.
+Set the <code>assigned_subscribers</code> field for a policy rule, or set the
+<code>active_policies</code> field for a subscriber.</p>
+<h3><a class="anchor" aria-hidden="true" id="verifying-metering"></a><a href="#verifying-metering" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Verifying Metering</h3>
+<p>It may take up to a minute for the update configurations to propagate to
+the LTE gateway, where they should be received and stored by <code>policydb</code>.</p>
+<p>Check the metrics REST endpoint to verify that metering data is being recorded.</p>
+<h3><a class="anchor" aria-hidden="true" id="debugging-metering"></a><a href="#debugging-metering" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Debugging Metering</h3>
+<p>On subscriber attach, <code>policydb</code> will provide the metered policy to install for
+the subscriber. By tailing these logs, it is possible to verify that the
+configurations are being received.
+<code>journalctl -fu magma@policydb</code></p>
+<p><code>pipelined</code> is the service which is responsible for enforcement, by use of OVS.
+By using the CLI tool, it is possible to verify that the policy rule is being
+installed for the user. The policy id will be listed if installed, along with
+tracked usage.
+<code>pipelined_cli.py debug display_flows</code>
+This command may need to be run as root.</p>
+<p><code>sessiond</code> is responsible for aggregating metrics and sending metering through
+our metrics pipeline. To check the tracked metrics for metering, and the
+<code>sessiond</code> service, run the following:
+<code>service303_cli.py metrics sessiond</code></p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

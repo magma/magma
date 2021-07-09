@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Deploy on Minikube · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Deploy on Minikube"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Deploy on Minikube · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Deploy on Minikube"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="deploy-on-minikube"></a><a href="#deploy-on-minikube" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy on Minikube</h1>
+<p>Deploying orchestrator on minikube is the easiest way to test changes to the helm
+charts. Most steps are similar to the main deployment guide, but there are some
+significant differences and many things in there you don't need to worry about.</p>
+<blockquote>
+<p>Note: All terminal commands are run from HOST unless otherwise specified</p>
+</blockquote>
+<blockquote>
+<p>Helm commands are written for Helm 3</p>
+</blockquote>
+<h2><a class="anchor" aria-hidden="true" id="steps"></a><a href="#steps" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Steps</h2>
+<h3><a class="anchor" aria-hidden="true" id="build-and-publish-images"></a><a href="#build-and-publish-images" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Build and publish images</h3>
+<p>Follow the instructions at <a href="./deploy_build.md#build-and-publish-container-images">Building Orchestrator</a>.</p>
+<p>In the end you should have your container images published to a registry.</p>
+<h3><a class="anchor" aria-hidden="true" id="setup-minikube-and-helm"></a><a href="#setup-minikube-and-helm" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup Minikube and Helm</h3>
+<p>Setup minikube with the following command to give it enough resources and seed the
+metrics config files:</p>
+<pre><code class="hljs">$ minikube start <span class="hljs-attribute">--memory</span>=8192 <span class="hljs-attribute">--cpus</span>=8 <span class="hljs-attribute">--kubernetes-version</span>=v1.18.0 --mount --mount-string <span class="hljs-string">"<span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/docker/metrics-configs:/configs"</span>
+</code></pre>
+<blockquote>
+<p>Note: This has been tested on MacOS. There are a lot of things that can go wrong
+with spinning up minikube, so if you have problems check for documentation specific
+to your system. Also make sure you are not connected to a VPN when running this command.</p>
+</blockquote>
+<p>Now you can install preqrequisites for orc8r and create the magma namespace in kubernetes:</p>
+<pre><code class="hljs">$ helm install <span class="hljs-string">\</span>
+    postgresql <span class="hljs-string">\</span>
+    --create-namespace <span class="hljs-string">\</span>
+    --namespace magma <span class="hljs-string">\</span>
+    --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql <span class="hljs-string">\</span>
+    bitnami/postgresql
+</code></pre>
+<p>Mysql is a requirement to run the NMS (you can skip this step if you don't want the NMS)</p>
+<pre><code class="hljs">$ helm install mysql \
+  --namespace magma \
+  --<span class="hljs-builtin-name">set</span> <span class="hljs-attribute">mysqlRootPassword</span>=password,mysqlUser=magma,mysqlPassword=password,mysqlDatabase=magma \
+    stable/mysql
+</code></pre>
+<blockquote>
+<p>Note: You may need to run <code>helm repo add bitnami https://charts.bitnami.com/bitnami</code> if the chart is not found</p>
+</blockquote>
+<h3><a class="anchor" aria-hidden="true" id="generate-secrets"></a><a href="#generate-secrets" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Generate Secrets</h3>
+<p>First you'll need to create a few certs and the kubernetes secrets that orchestrator
+uses.</p>
+<p>Generate the NMS certificate</p>
+<pre><code class="hljs"><span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/.cache/test_certs</span>
+<span class="hljs-meta">$</span><span class="bash"> openssl req -nodes -new -x509 -batch -keyout nms_nginx.key -out nms_nginx.pem -subj <span class="hljs-string">"/CN=*.localhost"</span></span>
+</code></pre>
+<p>Move the certs to the charts directory</p>
+<pre><code class="hljs">$ cd ${MAGMA_ROOT}<span class="hljs-regexp">/orc8r/</span>cloud<span class="hljs-regexp">/helm/</span>orc8r
+$ mkdir -p charts<span class="hljs-regexp">/secrets/</span>.secrets/certs
+$ cp -r ..<span class="hljs-regexp">/../</span>..<span class="hljs-regexp">/../</span>.cache<span class="hljs-regexp">/test_certs/</span>* charts<span class="hljs-regexp">/secrets/</span>.secrets<span class="hljs-regexp">/certs/</span>.
+</code></pre>
+<p>Create the kubernetes secrets</p>
+<pre><code class="hljs">helm template orc8r charts/secrets \
+    --namespace magma \
+    --<span class="hljs-keyword">set</span>-string <span class="hljs-comment">secret.certs.enabled=true \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"rootCA\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">rootCA.pem \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"bootstrapper\.key"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">bootstrapper.key \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"controller\.crt"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">controller.crt \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"controller\.key"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">controller.key \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"admin_operator\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">admin_operator.pem \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"admin_operator\.key\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">admin_operator.key.pem \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"certifier\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">certifier.pem \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"certifier\.key"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">certifier.key \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"nms_nginx\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">nms_nginx.pem \</span>
+    --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"nms_nginx\.key\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">nms_nginx.key \</span>
+    --<span class="hljs-keyword">set</span>=docker.registry=$DOCKER_REGISTRY <span class="hljs-comment">\</span>
+    --<span class="hljs-keyword">set</span>=docker.username=$DOCKER_USERNAME <span class="hljs-comment">\</span>
+    --<span class="hljs-keyword">set</span>=docker.password=$DOCKER_PASSWORD |
+    kubectl <span class="hljs-comment">apply -f -</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="create-values-file"></a><a href="#create-values-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create Values File</h3>
+<p>A minimum values file that can be used to deploy orc8r is at <code>${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube_values.yml</code>.
+Use that file and make sure to replace <code>&lt;DOCKER_REGISTRY&gt;</code> with your registry and <code>&lt;TAG&gt;</code> with your tag.</p>
+<p>Save this file wherever you want.</p>
+<h3><a class="anchor" aria-hidden="true" id="install-with-helm"></a><a href="#install-with-helm" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Install with Helm</h3>
+<pre><code class="hljs">$ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
+$ helm dep <span class="hljs-keyword">update</span>
+$ helm install orc8r --<span class="hljs-keyword">namespace</span> magma . --<span class="hljs-keyword">values</span>=&lt;<span class="hljs-keyword">path</span>-<span class="hljs-keyword">to</span>-<span class="hljs-keyword">values</span>-file&gt;
+</code></pre>
+<p>If everything worked you should get something like this:</p>
+<pre><code class="hljs">$ kubectl -n magma <span class="hljs-keyword">get</span> pods
+
+NAME                                             READY   STATUS    RESTARTS   AGE
+mysql<span class="hljs-number">-57955549</span>d5-n69pd                           <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">6</span>m14s
+nms-magmalte<span class="hljs-number">-7</span>c84667c4c-pvtlj                    <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+nms-nginx-proxy<span class="hljs-number">-5</span>b86f479f7-lvjpn                 <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-alertmanager<span class="hljs-number">-57</span>d5d6ccc4-ht4n4              <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-alertmanager-configurer<span class="hljs-number">-76</span>cf8f8f57-rmwjf   <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-controller-fdf59f456-vvqr2                 <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-nginx<span class="hljs-number">-7</span>d6c78647-n6d8z                      <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-prometheus<span class="hljs-number">-77</span>dccb799b-w9z6z                <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-prometheus-cache<span class="hljs-number">-6</span>d647df4d9<span class="hljs-number">-2</span>wqkc          <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-prometheus-configurer<span class="hljs-number">-6</span>d6d987c88-pgm87     <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+orc8r-user-grafana<span class="hljs-number">-6498</span>bb6959-rchx5              <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">2</span>m58s
+postgresql<span class="hljs-number">-0</span>                                     <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">4</span>          <span class="hljs-number">6</span>d23h
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="access-api"></a><a href="#access-api" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access API</h3>
+<p>Create an admin user:</p>
+<pre><code class="hljs">kubectl exec -it -n magma \
+    <span class="hljs-constructor">$(<span class="hljs-params">kubectl</span> <span class="hljs-params">get</span> <span class="hljs-params">pod</span> -<span class="hljs-params">n</span> <span class="hljs-params">magma</span> -<span class="hljs-params">l</span> <span class="hljs-params">app</span>.<span class="hljs-params">kubernetes</span>.<span class="hljs-params">io</span><span class="hljs-operator">/</span><span class="hljs-params">component</span>=<span class="hljs-params">controller</span> -<span class="hljs-params">o</span> <span class="hljs-params">jsonpath</span>=<span class="hljs-string">"{.items[0].metadata.name}"</span>)</span> -- \
+    /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+</code></pre>
+<p>Now make sure that the API and your certs are working:</p>
+<pre><code class="hljs"># Tab <span class="hljs-number">1</span>
+kubectl -n magma port-forward <span class="hljs-constructor">$(<span class="hljs-params">kubectl</span> -<span class="hljs-params">n</span> <span class="hljs-params">magma</span> <span class="hljs-params">get</span> <span class="hljs-params">pods</span> -<span class="hljs-params">l</span> <span class="hljs-params">app</span>.<span class="hljs-params">kubernetes</span>.<span class="hljs-params">io</span><span class="hljs-operator">/</span><span class="hljs-params">component</span>=<span class="hljs-params">nginx</span>-<span class="hljs-params">proxy</span> -<span class="hljs-params">o</span> <span class="hljs-params">jsonpath</span>=<span class="hljs-string">"{.items[0].metadata.name}"</span>)</span> <span class="hljs-number">9443</span>:<span class="hljs-number">9443</span>
+</code></pre>
+<pre><code class="hljs"><span class="hljs-comment"># Tab 2</span>
+$ curl -k \
+  --cert MAGMA_ROOT<span class="hljs-regexp">/orc8r/</span>cloud<span class="hljs-regexp">/helm/</span>orc8r<span class="hljs-regexp">/charts/</span>secrets<span class="hljs-regexp">/.secrets/</span>certs<span class="hljs-regexp">/admin_operator.pem \
+  --key MAGMA_ROOT/</span>orc8r<span class="hljs-regexp">/cloud/</span>helm<span class="hljs-regexp">/orc8r/</span>charts<span class="hljs-regexp">/secrets/</span>.secrets<span class="hljs-regexp">/certs/</span>admin_operator.key.pem \
+https:<span class="hljs-regexp">//</span>localhost:<span class="hljs-number">9443</span>
+<span class="hljs-string">"hello"</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="access-nms"></a><a href="#access-nms" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access NMS</h3>
+<p>Follow the instructions to <a href="/magma/docs/1.5.0/orc8r/deploy_install#create-an-nms-admin-user">Create an admin user</a></p>
+<p>Port-forward nginx:</p>
+<pre><code class="hljs">kubectl -n magma port-forward svc/nginx-proxy  <span class="hljs-number">8443</span>:<span class="hljs-number">443</span>
+</code></pre>
+<p>Login to NMS at <a href="https://magma-test.localhost:8443">https://magma-test.localhost:8443</a> using credentials: admin@magma.test/password1234</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#steps">Steps</a><ul class="toc-headings"><li><a href="#build-and-publish-images">Build and publish images</a></li><li><a href="#setup-minikube-and-helm">Setup Minikube and Helm</a></li><li><a href="#generate-secrets">Generate Secrets</a></li><li><a href="#create-values-file">Create Values File</a></li><li><a href="#install-with-helm">Install with Helm</a></li><li><a href="#access-api">Access API</a></li><li><a href="#access-nms">Access NMS</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

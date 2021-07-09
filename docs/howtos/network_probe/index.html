@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Network Probe · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="*Last Updated: 6/09/2021*"/><meta name="docsearch:version" content="1.6.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Network Probe · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="*Last Updated: 6/09/2021*"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.6.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><p><em>Last Updated: 6/09/2021</em></p>
+<h1><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h1>
+<p>Network Probe allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in ETSI TS 103 221-2. This feature takes advantage of the rest API (swagger) to provide the X1 interface.</p>
+<h1><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h1>
+<p>Current architecture leverages both AGW and Orc8r to deliver the magma LI feature. It aims at providing a 3GPP complaint solution and smooth integration with different Lawful Interception Management System (LIMS).</p>
+<p>The high level design is described in the picture below,</p>
+<p><img src="/magma/docs/assets/lte/network_probe_architecture.png" alt="Network Probe Architecture" title="Network Probe Architecture"></p>
+<p>The LI feature can be summarized as follow,</p>
+<h2><a class="anchor" aria-hidden="true" id="x1-interface"></a><a href="#x1-interface" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>X1 Interface:</h2>
+<p>It relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution (nprobe-proxy) can handle the translation 3GPP (XML based) &lt;-&gt; Orc8r Swagger When required.</p>
+<p>Swagger nprobe endpoints allow the following,</p>
+<h3><a class="anchor" aria-hidden="true" id="1-tasks-management"></a><a href="#1-tasks-management" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Tasks management:</h3>
+<p>Network Probe Tasks represent an interception warrant and must be configured by LIMS. They provide the following information,</p>
+<ul>
+<li>TaskID : is UUID v4 representing an XiD identifier.</li>
+<li>TargetID : represents the subscriber identifier</li>
+<li>TargetType : represents the subscriber identifier type (IMSI, IMEI, MSISDN)</li>
+<li>DeliveryType : (events_only/all) states whether to deliver X2 or both X2 and X3 to the LIMS.</li>
+<li>Duration: specifies the lifetime of the task. If set to 0, the task will not expire until deleted through APIs.</li>
+<li>CorrelationID : allows to correlates X2 and X3 records. If not provided, Orc8r will generate a random value.</li>
+</ul>
+<p>Each configured task in swagger will be then propagated to the appropriate service (nprobe, liagentd, pipelined)</p>
+<h3><a class="anchor" aria-hidden="true" id="2-destinations-management"></a><a href="#2-destinations-management" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. Destinations management:</h3>
+<p>Network Probe Destinations represent the configuration of the remote server in charge of collecting the records.</p>
+<ul>
+<li>DeliveryAddress : provides the address of the remote server.</li>
+<li>DeliveryType : (events_only/all) states whether the server can receive X2 or both X2 and X3.</li>
+</ul>
+<p><em>Note that destination configuration is not currently taken in account. Only manual config is supported.</em></p>
+<h2><a class="anchor" aria-hidden="true" id="x2-interface"></a><a href="#x2-interface" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>X2 Interface:</h2>
+<p>It is provided by the nprobe service in Orc8r. This service collects all the relevant events for targeted subscriber through elastic search from fluentd. Then, it parses them to create X2 records (aka Intercept Related Information - IRI) as specified ETSI TS 103 221-2 before exporting them to a remote server over TLS.</p>
+<h2><a class="anchor" aria-hidden="true" id="x3-interface"></a><a href="#x3-interface" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>X3 Interface:</h2>
+<p>It leverages AGW services to deliver X3 records as specified ETSI TS 103 221-2.
+First, PipelineD mirrors all the data plane of the targeted subscriber to a dedicated network interface. Then, LiAgentD continuously listens on this port and process each packet as follow,</p>
+<ul>
+<li>For each new target, It interrogates MobilityD to retrieve the subscriber ID from IP address</li>
+<li>Create a new intercept state (currently stored locally)</li>
+<li>Create X3 record by encapsulating the mirrored packet (starting from IP layer) in X3 header.</li>
+<li>Exports records to a remote server over TLS.</li>
+</ul>
+<h1><a class="anchor" aria-hidden="true" id="prerequisites"></a><a href="#prerequisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisites</h1>
+<p>Before starting to configure the LI feature, first you need to prepare the following,</p>
+<ul>
+<li>An orchestrator setup (Orc8r)</li>
+<li>An LTE Gateway (AGW)</li>
+<li>A remote TLS server to collect records and corresponding certificates.</li>
+<li>TLS Client certificates for X2 and X3 Interfaces</li>
+</ul>
+<p><em>Note that nprobe-proxy is provided outside magma project and will be described separately.</em></p>
+<h1><a class="anchor" aria-hidden="true" id="networkprobe-configuration"></a><a href="#networkprobe-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>NetworkProbe Configuration</h1>
+<p>The following instructions use Orc8r Swagger API to configure Network Probe feature.
+We will mainly use GET and POST methods to read and write from Swagger.
+Below are the steps to enable this feature in your current setup:</p>
+<h3><a class="anchor" aria-hidden="true" id="1-enable-li-mirroring-in-pipelined-in-agw"></a><a href="#1-enable-li-mirroring-in-pipelined-in-agw" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Enable LI mirroring in PipelineD in AGW</h3>
+<p>Edit /etc/magma/pipelined.yml</p>
+<ul>
+<li>Enable li_mirror in static_services list</li>
+<li>Set the following items,
+<ul>
+<li>li_local_iface: eth2</li>
+<li>li_mirror_all: false</li>
+<li>li_dst_iface: li_port</li>
+</ul></li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="2-enable-liagentd-service-in-agw"></a><a href="#2-enable-liagentd-service-in-agw" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. Enable LiAgentD service in AGW</h3>
+<p>Edit /etc/magma/liagentd.yml</p>
+<ul>
+<li>Enable the service</li>
+<li>Copy nprobe.pem/.key to /var/opt/magma/certs/</li>
+<li>Set the following remote TLS server information
+<ul>
+<li>proxy_addr</li>
+<li>proxy_port</li>
+<li>cert_file</li>
+<li>key_file</li>
+</ul></li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="3-configure-the-nprobe-service-in-orc8r"></a><a href="#3-configure-the-nprobe-service-in-orc8r" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. Configure the NProbe service in Orc8r</h3>
+<p>Similarly to the liagentd, you will need to configure orc8r with the appropriate details of
+the remote server. This can be achieved automatically through terraform as follow,</p>
+<ul>
+<li>Go to your terraform deployment directory</li>
+<li>Copy client certificates to your certs directory</li>
+<li>Load nprobe.pem/.key in secrets manager using</li>
+</ul>
+<pre><code class="hljs">~ terraform taint module<span class="hljs-selector-class">.orc8r-app</span><span class="hljs-selector-class">.null_resource</span><span class="hljs-selector-class">.orc8r_seed_secrets</span>
+~ terraform apply -target=module<span class="hljs-selector-class">.orc8r-app</span><span class="hljs-selector-class">.null_resource</span><span class="hljs-selector-class">.orc8r_seed_secrets</span>
+</code></pre>
+<ul>
+<li>Set the following variables in your main.tf
+<ul>
+<li>nprobe_operator_id</li>
+<li>nprobe_delivery_server</li>
+<li>nprobe_skip_verify_server</li>
+</ul></li>
+</ul>
+<p>Then, run</p>
+<pre><code class="hljs">~ terraform <span class="hljs-built_in">apply</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="4-configure-a-networkprobe-task"></a><a href="#4-configure-a-networkprobe-task" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. Configure a NetworkProbe Task</h3>
+<p>Go to <strong>Swagger API</strong>:</p>
+<ul>
+<li>Go to <code>nprobe</code> POST method <code>Add a new NetworkProbeTask to the network</code> and set the content.</li>
+<li>Run the GET method again to see the applied changes.</li>
+</ul>
+<pre><code class="hljs">{
+  <span class="hljs-attr">"task_details"</span>: {
+    <span class="hljs-attr">"correlation_id"</span>: <span class="hljs-number">605394647632969700</span>,
+    <span class="hljs-attr">"delivery_type"</span>: <span class="hljs-string">"events_only"</span>,
+    <span class="hljs-attr">"domain_id"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"duration"</span>: <span class="hljs-number">300</span>,
+    <span class="hljs-attr">"target_id"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"target_type"</span>: <span class="hljs-string">"imsi"</span>,
+    <span class="hljs-attr">"timestamp"</span>: <span class="hljs-string">"2020-03-11T00:36:59.65Z"</span>
+  },
+  <span class="hljs-attr">"task_id"</span>: <span class="hljs-string">"29f28e1c-f230-486a-a860-f5a784ab9177"</span>
+}
+</code></pre>
+<p><em>Note that timestamp, correlation ID, domain ID and duration are optional and can be skipped. Task ID must be a valid uuid v4.</em></p>
+<h1><a class="anchor" aria-hidden="true" id="test-and-troubleshooting"></a><a href="#test-and-troubleshooting" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test and Troubleshooting</h1>
+<p>It is recommendable that before running the tests, you enable some extra logging capabilities in both Access Gateway.</p>
+<p>For better details in Access Gateway logs:</p>
+<ul>
+<li>Enable <code>log_level: DEBUG</code> in <code>liagentd.yml</code></li>
+<li>See the logs using <code>sudo journalctl -fu magma@liagentd</code></li>
+</ul>
+<p>Verify that the configured nprobe tasks through swagger were properly propagated to AGW services,</p>
+<ul>
+<li>Open /var/opt/magma/configs/gateway.mconfig</li>
+<li>Verify that pipelined config contains the targeted subscribers id.</li>
+</ul>
+<pre><code class="hljs"><span class="hljs-string">"liUes"</span>:{<span class="hljs-string">"imsis"</span>:[<span class="hljs-string">"IMSI001010000000001"</span>]}
+</code></pre>
+<ul>
+<li>Verify that liagentd config contains the task information.</li>
+</ul>
+<pre><code class="hljs"><span class="hljs-string">"nprobeTasks"</span>:[{<span class="hljs-string">"taskId"</span>:<span class="hljs-string">"29f28e1c-f230-486a-a860-f5a784ab9177"</span>,<span class="hljs-string">"targetId"</span>:<span class="hljs-string">"IMSI001010000000001"</span>,<span class="hljs-string">"targetType"</span>:<span class="hljs-string">"imsi"</span>,<span class="hljs-string">"deliveryType"</span>:<span class="hljs-string">"events_only"</span>,<span class="hljs-string">"correlationId"</span>:<span class="hljs-string">"605394647632070000"</span>}]
+</code></pre>
+<p>Verify that events are streamed from the AGW to Orc8r in the NMS</p>
+<ul>
+<li>Observe nprobe service logs in Orc8r with</li>
+</ul>
+<pre><code class="hljs"><span class="hljs-comment">// Local setup</span>
+~ docker logs orc<span class="hljs-number">8</span>r_co<span class="hljs-symbol">ntroller_1</span>
+</code></pre>
+<pre><code class="hljs"><span class="hljs-string">//</span> Remote Setup
+~ kubectl -n orc8r logs nprobe-orc8r-<span class="hljs-string">...</span>
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#x1-interface">X1 Interface:</a><ul class="toc-headings"><li><a href="#1-tasks-management">1. Tasks management:</a></li><li><a href="#2-destinations-management">2. Destinations management:</a></li></ul></li><li><a href="#x2-interface">X2 Interface:</a></li><li><a href="#x3-interface">X3 Interface:</a><ul class="toc-headings"><li><a href="#1-enable-li-mirroring-in-pipelined-in-agw">1. Enable LI mirroring in PipelineD in AGW</a></li><li><a href="#2-enable-liagentd-service-in-agw">2. Enable LiAgentD service in AGW</a></li><li><a href="#3-configure-the-nprobe-service-in-orc8r">3. Configure the NProbe service in Orc8r</a></li><li><a href="#4-configure-a-networkprobe-task">4. Configure a NetworkProbe Task</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

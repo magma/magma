@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Metrics · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Metrics"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Metrics · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Metrics"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>NMS</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/config_agw_bridged">AGW Bridged Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/traffic">Traffic</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/1.5.0/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Troubleshooting</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_install_ubuntu">Install AGW on Ubuntu 20.04</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/deploy_config_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/hold_terraform_state_on_s3">Hold Terraform state outside my local machine</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/override_values_of_terraform_files">Override values of Terraform files</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_orcl">Experimental Orc8r Deployer</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/deploy_config">Configure NMS</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_install">Install FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/feg/deploy_configure">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/debug_logs">View Logs</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_ci_checks">Continuous Integration Checks</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/orc8r/dev_dependencies">Module Dependencies</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.5.0/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="metrics"></a><a href="#metrics" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metrics</h1>
+<h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
+<p>Magma gateways and orc8r generate a lot of metrics which provides a great deal of visibility into gateways, base stations, subscribers, reliability, throughput etc. These metrics are regularly pushed into prometheus, which along with grafana enables us to store and query for these metrics. All the metrics are stored in prometheus for a default of <a href="https://github.com/magma/magma/blob/master/orc8r/cloud/helm/orc8r/charts/metrics/values.yaml#L99">30 days.</a>
+For unlimited retention and a more scaled metrics pipeline, we also support deploying magma with <a href="howtos/thanos.md">thanos.</a></p>
+<h2><a class="anchor" aria-hidden="true" id="metrics-explorer"></a><a href="#metrics-explorer" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metrics Explorer</h2>
+<p>Metrics explorer provides an easy way to learn and explore the metrics available in our system.  Metrics explorer can be viewed through NMS. We can search and filter the metrics by the name or description. Additionally if we click on the detailed view on the metric, we enable exploring the current trends on the metric via grafana explorer.
+<img src="/magma/docs/assets/nms/userguide/metrics/metric_explorer1.png" alt="Metric Explorer1">
+<img src="/magma/docs/assets/nms/userguide/metrics/metric_explorer2.png" alt="Metric Explorer2"></p>
+<h2><a class="anchor" aria-hidden="true" id="grafana"></a><a href="#grafana" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Grafana</h2>
+<p>Grafana provides a powerful, configurable, and user-friendly dashboarding solution. Any users within an organization can create and edit custom timeseries dashboards that will be visible to all other users in their organization. An important detail is that Grafana access is limited only to users in an organization with the &quot;Super-User&quot; title (you will select this when provisioning users in an organization). This is a technical workaround to ensure that users with additional network visibility restrictions within an organization can't see information from networks that they are restricted from as Grafana will allow all users to query across any network that the organization owns.</p>
+<p>When you click on this link we have to do some book-keeping on the backend, so the initial load may take a few seconds.
+<img src="/magma/docs/assets/nms/grafana_homepage.png" alt="Grafana homepage">
+You’ll see built in dashboards available to you.
+<img src="/magma/docs/assets/nms/grafana_variables.png" alt="Grafana variables">
+These dashboards contain dropdown selectors to choose which network(s) and gateway(s) you want to look at.
+In Grafana you can look at any collection of networks or gateways your organization has access to at once. Simply select or
+deselect the networks/gateways that you want to see and the graphs will be updated. In the top right corner, there is an option to choose the time range that the graphs display. The default is 6 hours.</p>
+<h3><a class="anchor" aria-hidden="true" id="custom-dashboards"></a><a href="#custom-dashboards" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom Dashboards</h3>
+<p>With Grafana, you can create your own custom dashboards and populate them with any graphs and queries you want. These custom dashboards will be visible to all other users in the organization that you belong to in the NMS.
+The simple way is to just click on the “+” icon on the left sidebar, then create a new dashboard. There is ample documentation about grafana dashboards online if you need help creating your dashboard.</p>
+<p><img src="/magma/docs/assets/nms/grafana_new_dashboard.png" alt="Grafana new dashboard"></p>
+<ul>
+<li>Grafana documentation on creating dashboards: <a href="_https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/_">Grafana Dashboards</a></li>
+<li>Prometheus documentation on writing queries: <a href="_https://prometheus.io/docs/prometheus/latest/querying/basics/_">Prometheus Querying</a></li>
+</ul>
+<p>If you want to replicate the networkID or gatewayID variables that you find in the preconfigured dashboards, we provide a “template” dashboard to make that easy. Simply open the Template dashboard, and click on the gear icon near the
+top right. From there, click “Save As” and enter the name you want. Your new dashboard will now have the gatewayID and networkID variables. An example of how to use these variables in your queries:
+<img src="/magma/docs/assets/nms/grafana_query.png" alt="Grafana query">
+Some technical details: You need to use <code>=~</code> when matching label names with these variables in order to see more than one network or gateway at a time. This is because the <code>=~</code> operator tells Prometheus to match the value as a regex.</p>
+<h3><a class="anchor" aria-hidden="true" id="enabling-access"></a><a href="#enabling-access" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enabling Access</h3>
+<p>The feature flag is enabled by default for all new organizations created in the NMS. If you want to turn this feature off or on, you can do so from the <code>master</code> organization. Login to the <code>master</code> organization, navigate to the feature flag page using
+the left sidebar, then edit the feature flag named &quot;Include tab for Grafana in the Metrics page&quot;. Support can be turned on and off for individual organizations.</p>
+<h2><a class="anchor" aria-hidden="true" id="list-of-metrics-which-are-currently-available"></a><a href="#list-of-metrics-which-are-currently-available" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>List of metrics which are currently available</h2>
+<p><em>upto date view would be available through metrics explorer</em></p>
+<table>
+<thead>
+<tr><th>Metric Identifier</th><th>Description</th><th>Category</th><th>Service</th></tr>
+</thead>
+<tbody>
+<tr><td></td><td></td><td></td><td></td></tr>
+<tr><td>s1_connection</td><td>eNodeB S1 connection status</td><td>eNodeB</td><td>MME</td></tr>
+<tr><td>user_plane_bytes_ul</td><td>User plane uplink bytes</td><td>eNodeB</td><td></td></tr>
+<tr><td>user_plane_bytes_dl</td><td>User plane downlink bytes</td><td>eNodeB</td><td></td></tr>
+<tr><td>enodeb_mgmt_connected</td><td>eNodeB management plane connected</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_mgmt_configured</td><td>eNodeB is in configured state</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_rf_tx_enabled</td><td>eNodeB RF transmitter enabled</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_rf_tx_desired</td><td>eNodeB RF transmitter desired state</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_gps_connected</td><td>eNodeB GPS synchronized</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_ptp_connected</td><td>eNodeB PTP/1588 synchronized</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_opstate_enabled</td><td>eNodeB operationally enabled</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_reboot_timer_active</td><td>Is timer for eNodeB reboot active</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>enodeb_reboots</td><td>eNodeb reboots counter</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rcc_estab_attempts</td><td>RRC establishment attempts</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rrc_estab_successes</td><td>RRC establishment successes</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rrc_reestab_attempts</td><td>RRC re-establishment attempts</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rrc_reestab_attempts_reconf_fail</td><td>RRC re-establishment attempts due to reconfiguration failure</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rrc_reestab_attempts_ho_fail</td><td>RRC re-establishment attempts due to handover failure</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rrc_reestab_attempts_other</td><td>RRC re-establishment attempts due to other cause</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>rrc_reestab_successes</td><td>RRC re-establishment successes</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_estab_attempts</td><td>ERAB establishment attempts</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_estab_failures</td><td>ERAB establishment failures</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_estab_successes</td><td>ERAB establishment successes</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests</td><td>ERAB release requests</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_user_inactivity</td><td>ERAB release requests due to user inactivity</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_normal</td><td>ERAB release requests due to normal cause</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_radio_resources_not_available</td><td>ERAB release requests due to radio resources not available</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_reduce_load</td><td>ERAB release requests due to reducing load in serving cell</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_fail_in_radio_proc</td><td>ERAB release requests due to failure in the radio interface procedure</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_eutran_reas</td><td>ERAB release requests due to EUTRAN generated reasons</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_radio_conn_lost</td><td>ERAB release requests due to radio connection with UE lost</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>erab_release_requests_oam_intervention</td><td>ERAB release requests due to OAM intervetion</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>pdcp_user_plane_bytes_ul</td><td>User plane uplink bytes at PDCP</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>pdcp_user_plane_bytes_dl</td><td>User plane downlink bytes at PDCP</td><td>eNodeB</td><td>enodebd</td></tr>
+<tr><td>ip_address_allocated</td><td>Total IP addresses allocated</td><td>AGW</td><td>mobilityd</td></tr>
+<tr><td>ip_address_released</td><td>Total IP addresses released</td><td>AGW</td><td>mobilityd</td></tr>
+<tr><td>s6a_auth_success</td><td>Total successful S6a auth requests</td><td>AGW</td><td>subscriberdb</td></tr>
+<tr><td>s6a_auth_failure</td><td>Total failed S6a auth requests</td><td>AGW</td><td>subscriberdb</td></tr>
+<tr><td>s6a_location_update</td><td>Total S6a lcoation update requests</td><td>AGW</td><td>subscriberdb</td></tr>
+<tr><td>diameter_capabilities_exchange</td><td>Total Diameter capabilities exchange requests</td><td>AGW</td><td>subscriberdb</td></tr>
+<tr><td>diameter_watchdog</td><td>Total Diameter watchdog requests</td><td>AGW</td><td>subscriberdb</td></tr>
+<tr><td>diameter_disconnect</td><td>Total Diameter disconnect requests</td><td>AGW</td><td>subscriberdb</td></tr>
+<tr><td>dp_send_msg_error</td><td>Total datapath message send errors</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td>arp_default_gw_mac_error</td><td>Total errors with default gateway MAC resolution</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td>openflow_error_msg</td><td>Total openflow error messages received by code and type</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td>unknown_pkt_direction</td><td>Counts number of times a packet is missing its flow direction</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td>enforcement_rule_install_fail</td><td>Counts number of times rule install failed in enforcement app</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td>enforcement_stats_rule_install_fail</td><td>Counts number of times rule install failed in enforcement stats app</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td>network_iface_status</td><td>Status of a network interface required for data pipeline</td><td>AGW</td><td>pipelined</td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+<tr><td>subscriber_icmp_latency_ms</td><td>Reported latency for subscriber in milliseconds</td><td>AGW</td><td>monitord</td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+<tr><td>magmad_ping_rtt_ms</td><td>Gateway ping metrics in milliseconds</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>cpu_percent</td><td>System-wide CPU utilization as percentage over 1 second</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>swap_memory_percent</td><td>Percent of memory that can be assigned to processes</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>virtual_memory_percent</td><td>Percent of memoery that can be assigned to processes without the system going to swap</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>mem_total</td><td>Total memory</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>mem_available</td><td>Available memory</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>mem_used</td><td>Used memory</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>mem_free</td><td>Free memory</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>disk_percent</td><td>Percent of disk space used for the volume mounted at root</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>bytes_sent</td><td>System-wide network I/O bytes sent</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>bytes_received</td><td>System-wide network I/O bytes received</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>temperature</td><td>Temperature readings from system sensors</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>checkin_status</td><td>1 for checkin success, and 0 for failure</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>bootstrap_exception</td><td>Count for exceptions raised by bootstrapper</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>unexpected_service_restarts</td><td>Count of unexpected service restarts</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>unattended_upgrade_status</td><td>Unattended Upgrade status</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>service_restart_status</td><td>Count of service restarts</td><td>AGW</td><td>magmad</td></tr>
+<tr><td>enb_connected</td><td>Number of eNodeb connected to MME</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_registered</td><td>Number of UE registered succesfully</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_connected</td><td>Number of UE connected</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_attach</td><td>Number of UE attach success</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_detach</td><td>Number of UE detach</td><td>AGW</td><td>MME</td></tr>
+<tr><td>s1_setup</td><td>Counter for S1 setup success</td><td>AGW</td><td>MME</td></tr>
+<tr><td>mme_sgs_eps_detach_indication_sent</td><td>SGS EPS detach indication sent</td><td>AGW</td><td>MME</td></tr>
+<tr><td>sgs_eps_detach_timer_expired</td><td>SGS EPS Detach Timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>sgs_eps_implicit_detach_timer_expired</td><td>SGS EPS Implicit detach Timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>mme_sgs_imsi_detach_indication_sent</td><td>SGS IMSI detach indication sent</td><td>AGW</td><td>MME</td></tr>
+<tr><td>sgs_imsi_detach_timer_expired</td><td>SGS IMSI detach timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>sgs_imsi_implicit_detach_timer_expired</td><td>SGS IMSI implicit detach timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>mme_spgw_delete_session_rsp</td><td>SPGW delete session response</td><td>AGW</td><td>MME</td></tr>
+<tr><td>initial_context_setup_failure_received</td><td>Initial context setup failure received</td><td>AGW</td><td>MME</td></tr>
+<tr><td>nas_service_reject</td><td>NAS Service Reject</td><td>AGW</td><td>MME</td></tr>
+<tr><td>mme_s6a_update_location_ans</td><td>S6a Update location</td><td>AGW</td><td>MME</td></tr>
+<tr><td>sgsap_paging_reject</td><td>SGS Paging Reject</td><td>AGW</td><td>MME</td></tr>
+<tr><td>duplicate_attach_request</td><td>Duplicate attach request</td><td>AGW</td><td>MME</td></tr>
+<tr><td>authentication_failure</td><td>Auth failure</td><td>AGW</td><td>MME</td></tr>
+<tr><td>nas_auth_rsp_timer_expired</td><td>NAS Auth response timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>emm_status_rcvd</td><td>EMM status received</td><td>AGW</td><td>MME</td></tr>
+<tr><td>emm_status_sent</td><td>EMM status sent</td><td>AGW</td><td>MME</td></tr>
+<tr><td>nas_security_mode_command_timer_expired</td><td>NAS security mode command timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>extended_service_request</td><td>Extended service request</td><td>AGW</td><td>MME</td></tr>
+<tr><td>tracking_area_update_req</td><td>Tracking area update request</td><td>AGW</td><td>MME</td></tr>
+<tr><td>tracking_area_update</td><td>Tracking area update success</td><td>AGW</td><td>MME</td></tr>
+<tr><td>service_request</td><td>Service request</td><td>AGW</td><td>MME</td></tr>
+<tr><td>security_mode_reject_received</td><td>Security mode reject received</td><td>AGW</td><td>MME</td></tr>
+<tr><td>mme_new_association</td><td>New SCTP association</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_context_release_command_timer_expired</td><td>UE context release command timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>enb_sctp_shutdown_ue_clean_up_timer_expired</td><td>SCTP shutdown UE clean up timer expired</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_context_release_req</td><td>UE context release request</td><td>AGW</td><td>MME</td></tr>
+<tr><td>s1ap_error_ind_rcvd</td><td>S1AP error indication received</td><td>AGW</td><td>MME</td></tr>
+<tr><td>s1_reset_from_enb</td><td>S1 reset from eNB</td><td>AGW</td><td>MME</td></tr>
+<tr><td>nas_non_delivery_indication_received</td><td>NAS non delivery indication received</td><td>AGW</td><td>MME</td></tr>
+<tr><td>spgw_create_session</td><td>SPGW create session success</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_pdn_connection</td><td>UE PDN connection</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_pdn_connectivity_req</td><td>UE PDN connectivity request</td><td>AGW</td><td>MME</td></tr>
+<tr><td>ue_reported_usage / up</td><td>Reported TX traffic for subscriber / session in bytes</td><td>AGW</td><td>sessiond</td></tr>
+<tr><td>ue_reported_usage / down</td><td>Reported RX traffic for subscriber / session in bytes</td><td>AGW</td><td>sessiond</td></tr>
+<tr><td>ue_dropped_usage / up</td><td>Reported dropped TX traffic for subscriber / session in bytes</td><td>AGW</td><td>sessiond</td></tr>
+<tr><td>ue_dropped_usage / down</td><td>Reported dropped RX traffic for subscriber / session in bytes</td><td>AGW</td><td>sessiond</td></tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="rest-api-for-querying-metrics"></a><a href="#rest-api-for-querying-metrics" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>REST API for querying metrics</h2>
+<p><img src="/magma/docs/assets/nms/userguide/metrics/metrics_api.png" alt="api"></p>
+<h2><a class="anchor" aria-hidden="true" id="troubleshooting-metrics"></a><a href="#troubleshooting-metrics" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Troubleshooting Metrics</h2>
+<p>On the gateways, magmad service collects metrics from all the services and pushes them to Orc8r.
+In Orc8r, metricsd receives the metrics and pushes them to registered metric exporters. Prometheus
+is one the main metric exporters. Specifically, Orc8r pushes the metrics to the [edge-hub]
+(<a href="https://github.com/facebookincubator/prometheus-edge-hub">https://github.com/facebookincubator/prometheus-edge-hub</a>), which later scraped by prometheus instance.</p>
+<p>On the query side, When we make queries through NMS or swagger, the Orc8r queries the prometheus
+instance directly.</p>
+<p>We can effectively troubleshoot the metrics by looking at the logs in all these components involved.
+On the gateways, syslog might have error logs in case there is a failure during metric upload</p>
+<pre><code class="hljs"><span class="hljs-string">ERROR:</span><span class="hljs-string">root:</span>Metrics upload error! [StatusCode.UNKNOWN] rpc <span class="hljs-string">error:</span> code = Unavailable desc = <span class="hljs-string">client_loop:</span> send <span class="hljs-string">disconnect:</span> Broken pipe
+</code></pre>
+<p>On the orc8r, we can debug the issues by dumping the logs on prometheus, prometheus-configmanager, prometheus-cache and metricsd</p>
+<pre><code class="hljs">kubectl --namespace orc8r logs -l app.kubernetes.io/<span class="hljs-attribute">component</span>=prometheus-configurer -c prometheus-configurer
+kubectl --namespace orc8r logs -l app.kubernetes.io/<span class="hljs-attribute">component</span>=prometheus -c prometheus
+kubectl --namespace orc8r logs -l app.kubernetes.io/<span class="hljs-attribute">component</span>=metricsd
+helm --<span class="hljs-builtin-name">debug</span> -n orc8r <span class="hljs-builtin-name">get</span> values orc8r
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/1.5.0/nms/traffic"><span class="arrow-prev">← </span><span>Traffic</span></a><a class="docs-next button" href="/magma/docs/1.5.0/nms/alerts"><span>Alerts</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#metrics-explorer">Metrics Explorer</a></li><li><a href="#grafana">Grafana</a><ul class="toc-headings"><li><a href="#custom-dashboards">Custom Dashboards</a></li><li><a href="#enabling-access">Enabling Access</a></li></ul></li><li><a href="#list-of-metrics-which-are-currently-available">List of metrics which are currently available</a></li><li><a href="#rest-api-for-querying-metrics">REST API for querying metrics</a></li><li><a href="#troubleshooting-metrics">Troubleshooting Metrics</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

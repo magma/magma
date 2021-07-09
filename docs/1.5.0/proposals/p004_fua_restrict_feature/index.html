@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Service Restriction Feature · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Final Unit Action - Service Restriction Feature"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Service Restriction Feature · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Final Unit Action - Service Restriction Feature"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="final-unit-action---service-restriction-feature"></a><a href="#final-unit-action---service-restriction-feature" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Final Unit Action - Service Restriction Feature</h1>
+<p><em>Status: Accepted</em><br>
+<em>Author: @ymasmoudi</em><br>
+<em>Last Updated: 08/27</em></p>
+<h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
+<p>Currently, upon exhaustion of subscriber quota, we support two final unit
+actions :
+1/ session termination
+2/ redirection to a predifined IP/URL address.</p>
+<p>A third option called service restriction would allow us to restrict traffic
+to a list of IP filter rules with specified QoS.</p>
+<p>FUA-Restrict indicates to SessionD that the user's access MUST be restricted
+according to IP filters definitions or IDs provided in AVPs. This is enabled
+by sending CCA-I/U with a Final-Unit-Action AVP set to RESTRICT_ACCESS.</p>
+<h2><a class="anchor" aria-hidden="true" id="propostion"></a><a href="#propostion" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Propostion</h2>
+<p>FUA-Restrict can be enabled by including either the Restriction-Filter-Rule
+AVP or the Filter-Id AVP in the Credit-Control-Answer message.</p>
+<pre><code class="hljs">  [<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-Indication]
+    {<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-<span class="hljs-keyword">Action</span>}
+    *[Restriction-Filter-Rule]
+    *[Filter-Id]
+    [Redirect-Server]
+      {Redirect-Address-<span class="hljs-keyword">Type</span>}
+      {Redirect-Server-Address}
+</code></pre>
+<p>Restriction-Filter-Rule: of type IPFilterRule (FlowDescription). This will
+need to be translated to a PolicyRule.
+Filter-Id: Provides IP packet filter identifiers (In our case, It will be a
+list of PolicyRule identifiers)</p>
+<p>It is important to note that QoS can be enabled only when using Filter-Id AVP.
+Restriction-Filter-Rule AVP would only provide allowed traffic filters.</p>
+<p>This implementation will not provide Restriction-Filter-Rule as Filter-id
+provides support of all the required use-cases. Nevertheless,
+Restriction-Filter-Rule could be translated to restriction dynamic rules with
+lower priority and apply them similar to static rules.
+LocalEnforcer will ensure priority in this case.</p>
+<p>As we would like to use any static rule when restriction is enabled, there will
+no change to PolicyRules definition.</p>
+<h2><a class="anchor" aria-hidden="true" id="how-we-will-change-magma"></a><a href="#how-we-will-change-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How We Will Change Magma</h2>
+<p><strong>PolicyRule</strong></p>
+<p>Policy Object definition remains the same as the current definition. At the
+opposite of a policy rule used in the FUA-Redirect case, there is no need to
+introduce any additional field for FUA-Restrict.
+We will be able to apply any static rule when restricting access.</p>
+<p><strong>Session Proxy</strong></p>
+<p>We will limit this implementation to Filter-Id AVP only as It covers the desired
+use-cases. The AVP will reference a PolicyRule Identifier.</p>
+<pre><code class="hljs">  [<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-Indication]
+    {<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-<span class="hljs-keyword">Action</span>}
+    *[Filter-Id]
+    [Redirect-Server]
+      {Redirect-Address-<span class="hljs-keyword">Type</span>}
+      {Redirect-Server-Address}
+</code></pre>
+<p>The support of Restriction-Filter-Rule can be added later if required. In this
+case, ReceivedCredits will need to be updated to include a FlowDescription list.</p>
+<p>We will need to translation IPFilterRule to FlowDescription as well.</p>
+<p><strong>SessionD</strong></p>
+<p>ServiceAction will need to be updated to support RESTRICT_ACCESS action. Mostly,
+we will need to be able to store a restricted list of rule ids received from
+OCS/SessionProxy.</p>
+<p>In addition, we will need to store the list of rules ID to be used when restriction
+is enabled. A method get_restricted_rule_ids will be added to retrive this list
+prior to sending rules activation to pipelined.</p>
+<p>We will re-use the same pipelined client method add_gy_final_action_flow as It
+provides support for this case as well.</p>
+<p>Static Rules will be sent using their original priority and will be applied as gy
+final action flow.</p>
+<p>The service state SERVICE_RESTRICTED will need to be supported as well.</p>
+<p><strong>Pipelined</strong></p>
+<p>GYController needs to be updated to support restriction FUA. This translates to,
+1/ activate all the flows as they are received from SessionD.
+2/ Support QoS in GY APP (Include a Qos Manager)
+3/ Updating statistics back to SessionD
+4/ Support Gy rules enforcement stats in SessionD</p>
+<p>Since some of these logic is common between enforcement and gy apps, we will need
+to move it to  policy_mixin.py</p>
+<p><strong>Swagger API</strong></p>
+<p>No change is planned</p>
+<p><strong>NMS</strong></p>
+<p>No change is planned</p>
+<p><strong>Additional Changes</strong></p>
+<p>Full support Restrict FUA-Restrict in OCS
+Add integration tests for FUA-Restrict to cover Filter-Id with and without QoS.</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#propostion">Propostion</a></li><li><a href="#how-we-will-change-magma">How We Will Change Magma</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
