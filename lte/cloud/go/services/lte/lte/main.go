@@ -46,7 +46,10 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	var serviceConfig lte_service.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, lte_service.ServiceName, &serviceConfig)
+
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
@@ -62,13 +65,6 @@ func main() {
 		glog.Fatalf("Error initializing enodeb state lookup storage: %v", err)
 	}
 	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, servicers.NewLookupServicer(enbStateStore))
-
-	var serviceConfig lte_service.Config
-	_, _, err = config.GetStructuredServiceConfig(lte.ModuleName, lte_service.ServiceName, &serviceConfig)
-	if err != nil {
-		glog.Infof("Failed unmarshaling service config %v", err)
-		return
-	}
 
 	// Initialize analytics
 	// userStateExpr is a metric which enables us to compute the number of active users using the network
