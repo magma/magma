@@ -1,10 +1,9 @@
 ---
 name: Python Format Check
 on:  # yamllint disable-line rule:truthy
-  pull_request:
+  pull_request_target:
     types:
       - opened
-      - reopened
       - synchronize
     paths:  # order matters here, always put includes then excludes
       - 'lte/gateway/python/**.py'
@@ -51,3 +50,18 @@ jobs:
         run: |
           echo "::error Use the formatter script 'lte/gateway/python/precommit.py' to run the formatters locally."
           echo "::error Run './precommit.py --build' to build the setup, and then run './precommit.py --format --diff'"
+      - name: Python Formatting Instructions
+        if: failure()
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var msg = `Oops! Looks like you failed the \`Python Format Check\`.
+
+            Instructions on running the formatter locally are provided [here](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit).`
+
+            await github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: msg,
+            })
