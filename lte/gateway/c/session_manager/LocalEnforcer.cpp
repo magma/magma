@@ -268,7 +268,7 @@ void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
   // so we bind to the object and the two arguments the function needs
   // which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
-      cookie, cookie_maks, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+      cookie, cookie_mask, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
@@ -2006,19 +2006,11 @@ void LocalEnforcer::propagate_bearer_updates_to_mme(
 }
 
 void LocalEnforcer::handle_cwf_roaming(
-    SessionMap& session_map, const std::string& imsi,
-    const SessionConfig& config, SessionUpdate& session_update) {
-  auto it = session_map.find(imsi);
-  if (it != session_map.end()) {
-    for (const auto& session : it->second) {
-      auto& uc = session_update[imsi][session->get_session_id()];
-      session->set_config(config);
-      uc.is_config_updated = true;
-      uc.updated_config    = session->get_config();
-      // TODO Check for event triggers and send updates to the core if needed
-      update_ipfix_flow(imsi, config, session->get_pdp_start_time());
-    }
-  }
+    std::unique_ptr<SessionState>& session, const SessionConfig& new_config,
+    SessionStateUpdateCriteria* session_uc) {
+  session->set_config(new_config, session_uc);
+  update_ipfix_flow(
+      new_config.get_imsi(), new_config, session->get_pdp_start_time());
 }
 
 bool LocalEnforcer::bind_policy_to_bearer(
