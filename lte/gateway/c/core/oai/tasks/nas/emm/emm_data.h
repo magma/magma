@@ -121,7 +121,7 @@ typedef enum { SUCCESS, FAILURE } sgs_loc_updt_status_t;
 typedef enum {
   NEW_EMM_CONTEXT_NOT_CREATED,
   NEW_EMM_CONTEXT_CREATED,
-  UNKOWN_GUTI
+  UNKNOWN_GUTI
 } emm_context_state_t;
 
 typedef struct csfb_params_s {
