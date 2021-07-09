@@ -232,9 +232,7 @@ class Tr069Test(TestCase):
             'InternetGatewayDevice.DeviceInfo.SpecVersion',
         )
         self.assertEqual(
-            str(
-                ctx.in_object.ParameterList.ParameterValueStruct[1].Value,
-            ), '1.1',
+            str(ctx.in_object.ParameterList.ParameterValueStruct[1].Value), '1.1',
         )
 
     def test_parse_inform_cavium(self):
@@ -352,9 +350,7 @@ class Tr069Test(TestCase):
             'Device.DeviceInfo.SoftwareVersion',
         )
         self.assertEqual(
-            str(
-                ctx.in_object.ParameterList.ParameterValueStruct[1].Value,
-            ), '1.0',
+            str(ctx.in_object.ParameterList.ParameterValueStruct[1].Value), '1.0',
         )
 
     def test_handle_transfer_complete(self):

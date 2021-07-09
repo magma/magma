@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from fabric.api import env, lcd, local
+
 from tools.fab import vagrant
 
 
@@ -38,10 +39,8 @@ def vagrant_setup(host, destroy_vm, force_provision='false'):
     return env.hosts[0]
 
 
-def ansible_setup(
-    hoststr, ansible_group, playbook,
-    preburn='false', full_provision='true',
-):
+def ansible_setup(hoststr, ansible_group, playbook,
+                  preburn='false', full_provision='true'):
     """
     Setup the specified ansible machine
 
@@ -62,12 +61,8 @@ def ansible_setup(
     # Provision the gateway host
     (user, ip, port) = split_hoststring(hoststr)
 
-    local(
-        "echo '[%s]\nhost ansible_host=%s ansible_user=%s"
-        " ansible_port=%s' > /tmp/hosts" % (ansible_group, ip, user, port),
-    )
-    local(
-        "ansible-playbook -i /tmp/hosts deploy/%s "
-        "--extra-vars '{\"preburn\": %s, \"full_provision\": %s}'" %
-        (playbook, preburn, full_provision),
-    )
+    local("echo '[%s]\nhost ansible_host=%s ansible_user=%s"
+          " ansible_port=%s' > /tmp/hosts" % (ansible_group, ip, user, port))
+    local("ansible-playbook -i /tmp/hosts deploy/%s "
+          "--extra-vars '{\"preburn\": %s, \"full_provision\": %s}'" %
+          (playbook, preburn, full_provision))

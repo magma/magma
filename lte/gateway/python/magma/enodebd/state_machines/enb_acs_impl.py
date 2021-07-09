@@ -246,9 +246,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
                     'within %s seconds - rebooting!',
                     self.MME_DISCONNECT_ENODEB_REBOOT_TIMER,
                 )
-                metrics.STAT_ENODEB_REBOOTS.labels(
-                    cause='MME disconnect',
-                ).inc()
+                metrics.STAT_ENODEB_REBOOTS.labels(cause='MME disconnect').inc()
                 metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
                 self.mme_timer = None
                 self.reboot_asap()

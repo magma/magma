@@ -13,9 +13,8 @@ limitations under the License.
 
 import sys
 
-import tools.fab.dev_utils as dev_utils
-
 sys.path.append('../../orc8r')
+import tools.fab.dev_utils as dev_utils
 
 
 def register_vm():

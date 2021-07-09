@@ -25,7 +25,7 @@ from s1ap_utils import MagmadUtil
 class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+           stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self.dl_flow_rules = {}
 
@@ -224,13 +224,9 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
             )
             for step in range(stateof_ues_in_attachproc_before_restart[i], num_of_steps):
                 if attach_steps[step] == self.exec_sec_mode_complete_step:
-                    tId[
-                        ue_ids[i + num_attached_ues]
-                    ] = attach_steps[step](ue_ids[i + num_attached_ues])
+                    tId[ue_ids[i + num_attached_ues]] = attach_steps[step](ue_ids[i + num_attached_ues])
                 elif attach_steps[step] == self.exec_esm_inf_req_step:
-                    attach_steps[step](
-                        ue_ids[i + num_attached_ues], tId[ue_ids[i + num_attached_ues]],
-                    )
+                    attach_steps[step](ue_ids[i + num_attached_ues], tId[ue_ids[i + num_attached_ues]])
                 else:
                     attach_steps[step](ue_ids[i + num_attached_ues])
 

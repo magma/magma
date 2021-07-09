@@ -19,7 +19,7 @@ import os
 import signal
 import time
 from concurrent import futures
-from typing import Any, Dict, List, Optional
+from typing import List, Optional, Dict, Any
 
 import grpc
 import pkg_resources

@@ -16,6 +16,8 @@ import os
 import subprocess  # noqa: S404 ignore security warning about subprocess
 from typing import List
 
+from git import Repo  # GitPython
+
 MAGMA_ROOT = os.getenv('MAGMA_ROOT')
 LINT_DOCKER_PATH = os.path.join(
     MAGMA_ROOT,
@@ -65,10 +67,8 @@ def _format_diff(paths: List[str]):
         # make sure to change the corresponding github action
         _run_docker_cmd(['isort', path])
         _run_add_trailing_comma(path)
-        autopep8_checks = 'W191,W291,W292,W293,W391,E2,E3'
-        _run_docker_cmd(
-            ['autopep8', '--select', autopep8_checks, '-r', '--in-place', path],
-        )
+        autopep8_checks = 'W291,W293,W391,E2,E3'
+        _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
 
 
 def _run_add_trailing_comma(path: str):
@@ -104,12 +104,12 @@ def _run(cmd: List[str]) -> None:
 
 
 def _get_diff_against_master() -> List[str]:
-    input = "git diff --name-only --diff-filter=ACMRT master HEAD"
-    changed_files_in_commit = subprocess.run(input.split(), capture_output=True).stdout.decode().split('\n')
+    repo = Repo(MAGMA_ROOT)
+    changed_files_in_commit = repo.index.diff('master')
     changed_py_files = []
     for item in changed_files_in_commit:
-        if item.endswith('.py'):
-            changed_py_files.append(item)
+        if item.a_path.endswith('.py'):
+            changed_py_files.append(item.a_path)
     print("Changed files since master: " + str(changed_py_files))
     return changed_py_files
 
@@ -152,7 +152,7 @@ def _parse_args() -> argparse.Namespace:
         help=(
             'Run the command on all changed files against master. '
             + ' (equivalent to files given by '
-            + '"git diff --name-only --diff-filter=ACMRT master HEAD")'
+            + '"git diff --name-only --diff-filter=ACMRT  master HEAD")'
         ),
     )
 

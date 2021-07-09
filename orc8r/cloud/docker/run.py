@@ -18,6 +18,7 @@ import fileinput
 import pathlib
 import subprocess
 import sys
+
 from typing import List
 
 HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
