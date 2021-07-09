@@ -48,6 +48,12 @@ services:
   mobilityd:
     <<: *mobilitydservice
     container_name: mobilityd
+    volumes:
+      control_proxy:/etc/magma/control_proxy.yml
+      gateway.mconfig:/etc/magma/gateway.mconfig
+      magmad:/etc/magma/magmad.yml
+      control_proxy:/etc/magma/control_proxy.yml
+      control_proxy:/etc/magma/control_proxy.yml
     # environment:
     #   DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     #   DOCKER_USERNAME: ${DOCKER_USERNAME}
@@ -99,10 +105,10 @@ services:
   #   image: openvswitch
   #   container_name: ovs
 
-  # redis:
-  #   image: 'bitnami/redis:latest'
-  #   environment:
-  #     - ALLOW_EMPTY_PASSWORD=yes
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
 
   # connectiond:
   #   <<: *pyservice
@@ -304,4 +310,3 @@ services:
   #   command: >
   #       /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
   #       /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
-

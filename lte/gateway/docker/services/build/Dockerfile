@@ -14,7 +14,7 @@ RUN apt-get update \
   libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
   libsctp1 libgcrypt-dev bison libidn11-dev flex libtspi1 libtcmalloc-minimal4 \
   libgoogle-perftools4 sudo libjemalloc2 libsnappy1v5 nlohmann-json3-dev libconfig9 \
-  libconfig-dev libxml2-dev libczmq-dev
+  libconfig-dev libxml2-dev libczmq-dev 
 
 RUN gem install fpm
 
