@@ -121,14 +121,21 @@ TEST_F(LocalEnforcerTest, test_polling_pipelined) {
     insert_static_rule(1, "", "rule2");
     insert_static_rule(1, "", "rule3");
     insert_static_rule(1, "", "rule4");
-
+    
+    CreateSessionResponse response;
+    local_enforcer->init_session(
+        session_map, IMSI1, SESSION_ID_1, get_default_config(IMSI1), response);
+    local_enforcer->update_tunnel_ids(
+        session_map,
+        create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
     RuleRecordTable table;
+
     auto record_list = table.mutable_records();
     create_rule_record(
       IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
       record_list->Add());
     create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 5, 15,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 15, 35,
       record_list->Add());
     create_rule_record(
       IMSI1, test_cfg_.common_context.ue_ipv4(), "rule3", 100, 150,
@@ -139,27 +146,30 @@ TEST_F(LocalEnforcerTest, test_polling_pipelined) {
 
   auto update = SessionStore::get_default_session_update(session_map);
 
-  auto uc = get_default_update_criteria();
-  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  //auto uc = get_default_update_criteria();
+  /*session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", &uc);
   session_map[IMSI1][0]->increment_rule_stats("rule3", &uc);
-  session_map[IMSI1][0]->increment_rule_stats("rule4", &uc);
+  session_map[IMSI1][0]->increment_rule_stats("rule4", &uc);*/
   local_enforcer->aggregate_records(session_map, table, update);
 
   int cookie = 0;
   int cookie_mask = 0;
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_));
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
+      testing::_)).Times(1);
+  /*EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
+            std::bind(&LocalEnforcer::handle_pipelined_response, local_enforcer, cookie, cookie_mask)));*/
 
-  int cookie = 1;
-  int cookie_mask = 0;
+  /*cookie = 1;
+  cookie_mask = 0;
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_));
 
-  int cookie = 0;
-  int cookie_mask = 1;
+  cookie = 0;
+  cookie_mask = 1;
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_));
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_));*/
 }
 
 int main(int argc, char** argv) {

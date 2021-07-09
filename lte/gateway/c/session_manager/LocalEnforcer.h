@@ -296,7 +296,7 @@ class LocalEnforcer {
 
   void HandlePipelinedResponse(Status status, RuleRecordTable resp);
 
-  void poll_stats_enforcer();
+  void poll_stats_enforcer(int cookie, int cookie_mask);
   /**
    * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific
    * UE on pipelined. UE will be identified by pipelined using its IP
