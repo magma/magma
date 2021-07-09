@@ -579,12 +579,15 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (self._datapath == None):
 =======
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
 >>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
             return RuleRecordTable()
+=======
+>>>>>>> parent of 429004510 (Change callback and Aggregate Pipelined Records)
 =======
 >>>>>>> parent of 429004510 (Change callback and Aggregate Pipelined Records)
         parser = self._datapath.ofproto_parser
