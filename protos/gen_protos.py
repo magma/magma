@@ -68,10 +68,10 @@ def gen_bindings(
         inouts.append('--mypy_out=' + output_dir)
 
     protoc.main(
-        ('',)
-        + tuple('-I' + path for path in include_paths)
-        + tuple(inouts)
-        + tuple(f for f in protofiles),
+        ('',) +
+        tuple('-I' + path for path in include_paths) +
+        tuple(inouts) +
+        tuple(f for f in protofiles),
     )
 
 
@@ -82,8 +82,7 @@ def main():
     """
     if len(sys.argv) != 5:
         print(
-            "Usage: ./gen_protos.py <dir containing .proto's> <include paths CSV> <proto_path for imports> <output dir>",
-        )
+            "Usage: ./gen_protos.py <dir containing .proto's> <include paths CSV> <proto_path for imports> <output dir>")
         exit(1)
     input_dir = sys.argv[1]
     include_paths = sys.argv[2].split(',')

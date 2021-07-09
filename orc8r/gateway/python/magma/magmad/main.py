@@ -92,11 +92,9 @@ def main():
     grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
-    metric_scrape_targets = [
-        ScrapeTarget(t['url'], t['name'], t['interval'])
-        for t in
-        metrics_config.get('metric_scrape_targets', [])
-    ]
+    metric_scrape_targets = [ScrapeTarget(t['url'], t['name'], t['interval'])
+                             for t in
+                             metrics_config.get('metric_scrape_targets', [])]
 
     # Create local metrics collector
     metrics_collector = MetricsCollector(
@@ -289,11 +287,9 @@ def _get_upgrader_impl(service):
         factory_clsname,
     )
     factory_impl = FactoryClass()
-    assert isinstance(factory_impl, UpgraderFactory), (
-        'upgrader_factory '
-        'must be a subclass '
-        'of UpgraderFactory'
-    )
+    assert isinstance(factory_impl, UpgraderFactory), ('upgrader_factory '
+                                                       'must be a subclass '
+                                                       'of UpgraderFactory')
 
     return factory_impl.create_upgrader(service, service.loop)
 

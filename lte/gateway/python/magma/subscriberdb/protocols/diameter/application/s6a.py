@@ -209,14 +209,14 @@ class S6AApplication(abc.Application):
 
             auth_info = avp.AVP(
                 'Authentication-Info', [
-                    avp.AVP(
-                        'E-UTRAN-Vector', [
-                            avp.AVP('RAND', rand),
-                            avp.AVP('XRES', xres),
-                            avp.AVP('AUTN', autn),
-                            avp.AVP('KASME', kasme),
-                        ],
-                    ),
+                avp.AVP(
+                    'E-UTRAN-Vector', [
+                    avp.AVP('RAND', rand),
+                    avp.AVP('XRES', xres),
+                    avp.AVP('AUTN', autn),
+                    avp.AVP('KASME', kasme),
+                    ],
+                ),
                 ],
             )
 
@@ -282,14 +282,8 @@ class S6AApplication(abc.Application):
                 avp.AVP('Network-Access-Mode', 2),
                 avp.AVP(
                     'AMBR', [
-                        avp.AVP(
-                            'Max-Requested-Bandwidth-UL',
-                            profile.max_ul_bit_rate,
-                        ),
-                        avp.AVP(
-                            'Max-Requested-Bandwidth-DL',
-                            profile.max_dl_bit_rate,
-                        ),
+                        avp.AVP('Max-Requested-Bandwidth-UL', profile.max_ul_bit_rate),
+                        avp.AVP('Max-Requested-Bandwidth-DL', profile.max_dl_bit_rate),
                     ],
                 ),
                 avp.AVP(
@@ -307,12 +301,8 @@ class S6AApplication(abc.Application):
                                         avp.AVP(
                                             'Allocation-Retention-Priority', [
                                                 avp.AVP('Priority-Level', 15),
-                                                avp.AVP(
-                                                    'Pre-emption-Capability', 1,
-                                                ),
-                                                avp.AVP(
-                                                    'Pre-emption-Vulnerability', 0,
-                                                ),
+                                                avp.AVP('Pre-emption-Capability', 1),
+                                                avp.AVP('Pre-emption-Vulnerability', 0),
                                             ],
                                         ),
                                     ],

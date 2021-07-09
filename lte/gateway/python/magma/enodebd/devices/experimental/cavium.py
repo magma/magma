@@ -201,13 +201,13 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
         param_name = ParameterName.ADMIN_STATE
         # if we want the cell to be down don't force it up
         desired_admin_value = \
-            self.acs.desired_cfg.get_parameter(param_name) \
-            and self.admin_value
+                self.acs.desired_cfg.get_parameter(param_name) \
+                and self.admin_value
         admin_value = \
-            self.acs.data_model.transform_for_enb(
-                param_name,
-                desired_admin_value,
-            )
+                self.acs.data_model.transform_for_enb(
+                    param_name,
+                    desired_admin_value,
+                )
         admin_path = self.acs.data_model.get_parameter(param_name).path
         param_values = {admin_path: admin_value}
 
@@ -267,13 +267,13 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
             )
         param_name = ParameterName.ADMIN_STATE
         desired_admin_value = \
-            self.acs.desired_cfg.get_parameter(param_name) \
-            and self.admin_value
+                self.acs.desired_cfg.get_parameter(param_name) \
+                and self.admin_value
         magma_value = \
-            self.acs.data_model.transform_for_magma(
-                param_name,
-                desired_admin_value,
-            )
+                self.acs.data_model.transform_for_magma(
+                    param_name,
+                    desired_admin_value,
+                )
         self.acs.device_cfg.set_parameter(param_name, magma_value)
 
         if len(
@@ -349,8 +349,7 @@ class CaviumTrDataModel(DataModel):
 
         # Core network parameters
         ParameterName.MME_IP: TrParam(
-            FAPSERVICE_PATH + \
-            'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False,
+            FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False,
         ),
         ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.UNSIGNED_INT, False),
         ParameterName.NUM_PLMNS: TrParam(
@@ -363,10 +362,7 @@ class CaviumTrDataModel(DataModel):
             DEVICE_PATH + 'IPsec.Enable', False, TrParameterType.BOOLEAN, False,
         ),
         ParameterName.PERIODIC_INFORM_INTERVAL:
-            TrParam(
-                DEVICE_PATH + 'ManagementServer.PeriodicInformInterval',
-                False, TrParameterType.UNSIGNED_INT, False,
-            ),
+            TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False, TrParameterType.UNSIGNED_INT, False),
 
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
@@ -413,15 +409,13 @@ class CaviumTrDataModel(DataModel):
             + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.BOOLEAN, False,
         )
         PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
-            FAPSERVICE_PATH
-            + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
         )
         PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False,
         )
         PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
-            FAPSERVICE_PATH
-            + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
         )
 
     TRANSFORMS_FOR_ENB = {
@@ -470,7 +464,7 @@ class CaviumTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                and (str(x) not in excluded_params),
+                          and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )

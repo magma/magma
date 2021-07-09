@@ -22,7 +22,6 @@ from termcolor import colored
 
 class AGWHealthCLI:
     """ Command line interface for Health-Checking specific to Access Gateway"""
-
     def __init__(self):
         self._health_checker = AGWHealth()
 
@@ -33,10 +32,8 @@ class AGWHealthCLI:
         """ Access Gateway Health Status """
         print('Access Gateway health summary')
         print(str(self._health_checker.gateway_health_status()))
-        checkin, error = subprocess.Popen(
-            ['health_cli.py'],
-            stdout=subprocess.PIPE,
-        ).communicate()
+        checkin, error = subprocess.Popen(['health_cli.py'],
+                                          stdout=subprocess.PIPE).communicate()
         print(str(checkin, 'utf-8'))
 
     def allocated_ips(self):
@@ -47,12 +44,10 @@ class AGWHealthCLI:
         """ Get the subscriber table """
         print(str(self._health_checker.get_subscriber_table()))
 
-    def core_dumps(
-        self,
-        directory='/var/core',
-        start_timestamp=0,
-        end_timestamp=math.inf,
-    ):
+    def core_dumps(self,
+                   directory='/var/core',
+                   start_timestamp=0,
+                   end_timestamp=math.inf):
         """
         Get number of core dumps created during the specified time range \n
         The core dump file is expected to have the format:
@@ -66,15 +61,9 @@ class AGWHealthCLI:
         :param start_timestamp: timestamp integer from where to start counting
         :param end_timestamp: timestamp integer from where to finish counting
         """
-        print(
-            str(
-                self._health_checker.get_core_dumps(
-                    directory,
-                    start_timestamp,
-                    end_timestamp,
-                ),
-            ),
-        )
+        print(str(self._health_checker.get_core_dumps(directory,
+                                                      start_timestamp,
+                                                      end_timestamp)))
 
     def registration_success_rate(self, log_file):
         """

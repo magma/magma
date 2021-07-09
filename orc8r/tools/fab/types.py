@@ -26,10 +26,8 @@ class NetworkDNSConfig:
 
 
 class GenericNetwork:
-    def __init__(
-        self, id: str, name: str, description: str,
-        dns: NetworkDNSConfig,
-    ):
+    def __init__(self, id: str, name: str, description: str,
+                 dns: NetworkDNSConfig):
         self.id = id
         self.name = name
         self.description = description
@@ -37,13 +35,11 @@ class GenericNetwork:
 
 
 class MagmadGatewayConfigs:
-    def __init__(
-        self,
-        autoupgrade_enabled: bool,
-        autoupgrade_poll_interval: int,
-        checkin_interval: int,
-        checkin_timeout: int,
-    ):
+    def __init__(self,
+                 autoupgrade_enabled: bool,
+                 autoupgrade_poll_interval: int,
+                 checkin_interval: int,
+                 checkin_timeout: int):
         self.autoupgrade_enabled = autoupgrade_enabled
         self.autoupgrade_poll_interval = autoupgrade_poll_interval
         self.checkin_interval = checkin_interval
@@ -62,14 +58,12 @@ class GatewayDevice:
 
 
 class Gateway:
-    def __init__(
-        self,
-        id: str,
-        name: str, description: str,
-        magmad: MagmadGatewayConfigs,
-        device: GatewayDevice,
-        tier: str,
-    ):
+    def __init__(self,
+                 id: str,
+                 name: str, description: str,
+                 magmad: MagmadGatewayConfigs,
+                 device: GatewayDevice,
+                 tier: str):
         self.id = id
         self.name, self.description = name, description,
         self.magmad = magmad
@@ -84,10 +78,8 @@ class TierImage:
 
 
 class Tier:
-    def __init__(
-        self, id: str, version: str, images: List[TierImage],
-        gateways: List[str],
-    ):
+    def __init__(self, id: str, version: str, images: List[TierImage],
+                 gateways: List[str]):
         self.id = id
         self.version = version
         self.images = images
