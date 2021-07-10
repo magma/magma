@@ -2,7 +2,7 @@ CELL_ID                  1
 TAC                      1
 ENB_IP_ADDR              192.168.60.141
 MME_ID                   1
-MME_ADDR                 192.168.60.142
+MME_ADDR                 192.168.130.190
 SCTP_IP_ADDR             192.168.60.141
 ENB_NAME                 "RADISYS"
 PLMN_ID                  00101

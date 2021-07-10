@@ -2,7 +2,7 @@
   s1ap_tester_root: /home/{{ ansible_user }}/s1ap-tester
   s1ap_tester_src: /home/{{ ansible_user }}/S1APTester
   gateway_name: gateway1
-  gateway_ip: 192.168.60.142
+  gateway_ip: 192.168.130.190
   gateway_port: 8443
   swagger_spec: /home/{{ ansible_user }}/magma/orc8r/cloud/deploy/files/static/apidocs/swagger.yml
   swagger_codegen_output: /home/{{ ansible_user }}/api-bindings

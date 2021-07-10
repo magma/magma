@@ -361,7 +361,7 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList',
                 val_type='string',
-                data='"192.168.60.142"',
+                data='"192.168.130.190"',
             ),
         )
         # perf mgmt enable
@@ -398,7 +398,7 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.PerfMgmt.Config.1.URL',
                 val_type='string',
-                data='http://192.168.60.142:8081/',
+                data='http://192.168.130.190:8081/',
             ),
         )
         param_val_list.append(
@@ -547,7 +547,7 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList',
                 val_type='string',
-                data='"192.168.60.142"',
+                data='"192.168.130.190"',
             ),
         )
         if not exclude_num_plmns:
@@ -600,7 +600,7 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='Device.FAP.PerfMgmt.Config.1.URL',
                 val_type='string',
-                data='http://192.168.60.142:8081/',
+                data='http://192.168.130.190:8081/',
             ),
         )
         param_val_list.append(
@@ -748,7 +748,7 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='InternetGatewayDevice.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList',
                 val_type='string',
-                data='"192.168.60.142"',
+                data='"192.168.130.190"',
             ),
         )
         param_val_list.append(
@@ -800,7 +800,7 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='InternetGatewayDevice.FAP.PerfMgmt.Config.1.URL',
                 val_type='string',
-                data='http://192.168.60.142:8081/',
+                data='http://192.168.130.190:8081/',
             ),
         )
         param_val_list.append(

@@ -72,7 +72,7 @@ MagmaModule = namedtuple('MagmaModule', ['name', 'host_path'])
 def main() -> None:
     args = _parse_args()
     mods = _get_modules(DEPLOYMENT_TO_MODULES[args.deployment])
-
+#    print(args);print(agrs.extras)
     if not args.extras:
         _create_build_context(mods)
 

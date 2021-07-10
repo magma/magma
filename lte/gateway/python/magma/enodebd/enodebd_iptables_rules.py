@@ -35,7 +35,7 @@ IPTABLES_RULE_FMT = """sudo iptables -t nat
     --dport {port}
     -j DNAT --to-destination {private_ip}"""
 
-EXPECTED_IP4 = ('192.168.60.142', '10.0.2.1')
+EXPECTED_IP4 = ('192.168.130.190', '10.0.2.1')
 EXPECTED_MASK = '255.255.255.0'
 
 
@@ -132,7 +132,7 @@ async def set_enodebd_iptables_rule():
     enodebd_public_ip = cfg['tr069']['public_ip']
     # IPv4 only as iptables only works for IPv4. TODO: Investigate ip6tables?
     enodebd_ip = get_ip_from_if(interface, preference=IpPreference.IPV4_ONLY)
-    # Incoming data from 192.88.99.142 -> enodebd address (eg 192.168.60.142)
+    # Incoming data from 192.88.99.142 -> enodebd address (eg 192.168.130.190)
     enodebd_netmask = get_if_ip_with_netmask(
         interface,
         preference=IpPreference.IPV4_ONLY,

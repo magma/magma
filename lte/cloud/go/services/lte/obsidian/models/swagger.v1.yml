@@ -2270,6 +2270,10 @@ definitions:
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
+      mme_ip:
+        type: string
+        example: '192.168.130.116'
+        format: ipv4
 
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.

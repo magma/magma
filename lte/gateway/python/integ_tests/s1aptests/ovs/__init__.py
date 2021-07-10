@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-DEV_VM_URL = "192.168.60.142"
+DEV_VM_URL = "192.168.130.190"
 LOCALHOST = "127.0.0.1"
 OF_REST_PORT = 3333
 MAX_RETRIES = 5

@@ -71,6 +71,7 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
+        string mme_ip = 11;
     }
 
     orc8r.LogLevel log_level = 1;
