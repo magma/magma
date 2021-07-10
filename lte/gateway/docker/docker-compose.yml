@@ -18,12 +18,13 @@ x-generic-service: &service
   # volumes: *volumes_anchor
   # logging: *logging_anchor
   restart: always
-  network_mode: host
+  # network_mode: host
 
 # Generic python anchor to avoid repetition for orc8r python services
 x-agw-mobilityd-service: &mobilitydservice
   <<: *service
   image: mobilityd:latest
+
 
 
 services:
@@ -37,68 +38,41 @@ services:
   #     - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   #     - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
   #     - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-  #     - /etc/snowflake:/etc/snowflake
-  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     # - /etc/snowflake:/etc/snowflake
+  #     # - /var/run/docker.sock:/var/run/docker.sock
   #     - ./:/var/opt/magma/docker
   #   environment:
   #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
   #     DOCKER_USERNAME: ${DOCKER_USERNAME}
   #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  #   command: python3.8 -m magma.magmad.main
   mobilityd:
     <<: *mobilitydservice
     container_name: mobilityd
+    networks:
+      - agw
     volumes:
-      control_proxy:/etc/magma/control_proxy.yml
-      gateway.mconfig:/etc/magma/gateway.mconfig
-      magmad:/etc/magma/magmad.yml
-      control_proxy:/etc/magma/control_proxy.yml
-      control_proxy:/etc/magma/control_proxy.yml
+      # - example/control_proxy.yml:/etc/magma/control_proxy.yml
+      - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
+      - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
+      - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
+      - ${PWD}/example/mobilityd.yml:/etc/magma/mobilityd.yml
+      - ${PWD}/example/redis.yml:/etc/magma/redis.yml
     # environment:
     #   DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     #   DOCKER_USERNAME: ${DOCKER_USERNAME}
     #   DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3.8 -m mobilityd.main
   # directoryd:
   #   <<: *pyservice
   #   container_name: directoryd
-  #   environment:
-  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
-  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
-  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  #   command: python3.8 -m magma.directoryd.main
-  # subscriberd:
+  # subscriberdb:
   #   <<: *pyservice
-  #   container_name: subscriberd
-  #   environment:
-  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
-  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
-  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  #   command: python3.8 -m magma.subscriberd.main
+  #   container_name: subscriberdb
   # policydb:
   #   <<: *pyservice
-  #   container_name: mobilityd
-  #   environment:
-  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
-  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
-  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  #   command: python3.8 -m magma.policydb.main
-  # policydb:
-  #   <<: *pyservice
-  #   container_name: mobilityd
-  #   environment:
-  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
-  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
-  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  #   command: python3.8 -m magma.policydb.main
+  #   container_name: policydb
   # pipelined:
   #   <<: *pyservice
   #   container_name: mobilityd
-  #   environment:
-  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
-  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
-  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  #   command: python3.8 -m magma.pipelined.main
 
   # Prototype ??
   # ovs:
@@ -107,6 +81,9 @@ services:
 
   redis:
     image: 'bitnami/redis:latest'
+    container_name: redis
+    networks:
+      - agw
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
 
@@ -310,3 +287,5 @@ services:
   #   command: >
   #       /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
   #       /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+networks:
+  agw:
