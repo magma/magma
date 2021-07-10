@@ -378,6 +378,7 @@ class SqliteStore(BaseStore):
             conn.close()
 
         logging.info("update digest stored in gateway: %s", new_digest)
+        self._on_digests_ready.update_digest(new_digest)
 
     def get_current_per_sub_digests(self) -> list:
         digests = []
@@ -385,8 +386,7 @@ class SqliteStore(BaseStore):
         try:
             with conn:
                 res = conn.execute(
-                    "SELECT sid, digest FROM per_subscriber_digest "
-                    "ORDER BY sid",
+                    "SELECT sid, digest FROM per_subscriber_digest ",
                 )
 
                 for row in res:

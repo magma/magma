@@ -156,3 +156,16 @@ class OnDigestsReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_digests_ready.event.is_set(), True)
+
+    def test_digest_update(self):
+        """
+        Test if flat digest update triggers ready
+        """
+        self.assertEqual(self._store._on_digests_ready.event.is_set(), False)
+        self._store.update_digest("digest_apple")
+
+        async def defer():
+            await self._store.on_digests_ready()
+        self.loop.run_until_complete(defer())
+
+        self.assertEqual(self._store._on_digests_ready.event.is_set(), True)

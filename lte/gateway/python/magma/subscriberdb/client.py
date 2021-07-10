@@ -97,6 +97,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         subscribers_info = await self._get_all_subscribers()
         if subscribers_info is None:
             return
+
         # Process subscriber data before digest data, in case there's a gateway
         # failure between the calls
         self._process_subscribers(subscribers_info.subscribers)
@@ -164,8 +165,9 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             self._update_flat_digest(res.flat_digest)
             self._update_per_sub_digests(res.per_sub_digests)
 
-            for sid in res.to_renew:
-                subscriber_data = res.to_renew[sid]
+            # TODO(hcgatewood): switch to bulk editing subscriber data rows
+            for item in res.to_renew.items():
+                subscriber_data = item[1]
                 self._store.upsert_subscriber(subscriber_data)
             for sid in res.deleted:
                 self._store.delete_subscriber(sid)
@@ -225,11 +227,12 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             time_elapsed.total_seconds() * 1000,
         )
 
-        return CloudSubscribersInfo(
+        subscribers_info = CloudSubscribersInfo(
             subscribers=subscribers,
             flat_digest=flat_digest,
             per_sub_digests=per_sub_digests,
         )
+        return subscribers_info
 
     def _update_flat_digest(self, flat_digest: Digest) -> None:
         if Digest is None:
