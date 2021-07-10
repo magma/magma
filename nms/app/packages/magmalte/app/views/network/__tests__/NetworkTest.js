@@ -17,6 +17,8 @@ import 'jest-dom/extend-expect';
 
 import ApnContext from '../../../components/context/ApnContext';
 import EnodebContext from '../../../components/context/EnodebContext';
+import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
+import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext from '../../../components/context/GatewayContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
@@ -32,6 +34,8 @@ import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+
+import type {feg_network} from '@fbcnms/magma-api';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
@@ -679,5 +683,66 @@ describe('<NetworkDashboard />', () => {
       networkId: 'test_network',
     });
     expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('<FEGNetworkDashboard />', () => {
+  const testNetwork: feg_network = {
+    description: 'Test Network Description',
+    federation: {
+      aaa_server: {},
+      eap_aka: {},
+      gx: {},
+      gy: {},
+      health: {},
+      hss: {},
+      s6a: {},
+      served_network_ids: ['terravm2_inbound_agw_network'],
+      served_nh_ids: ['terravm2_feg_network', 'terravm3_feg_network'],
+      swx: {},
+    },
+    id: 'test_network',
+    name: 'Test Network',
+    dns: {
+      enable_caching: false,
+      local_ttl: 0,
+      records: [],
+    },
+  };
+  const Wrapper = () => {
+    const networkCtx = {
+      state: {
+        ...testNetwork,
+      },
+      updateNetworks: async _ => {},
+    };
+    return (
+      <MemoryRouter
+        initialEntries={['/nms/test_network/network']}
+        initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <FEGNetworkContext.Provider value={networkCtx}>
+              <Route
+                path="/nms/:networkId/network"
+                component={FEGNetworkDashboard}
+              />
+            </FEGNetworkContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
+  it('Verify Network Info shown correctly', async () => {
+    const {getByTestId} = render(<Wrapper />);
+    await wait();
+
+    const info = getByTestId('feg_info');
+    expect(info).toHaveTextContent('Test Network');
+    expect(info).toHaveTextContent('test_network');
+    expect(info).toHaveTextContent('Test Network Description');
+    expect(info).toHaveTextContent('terravm2_inbound_agw_network');
+    expect(info).toHaveTextContent('terravm2_feg_network');
+    expect(info).toHaveTextContent('terravm3_feg_network');
   });
 });

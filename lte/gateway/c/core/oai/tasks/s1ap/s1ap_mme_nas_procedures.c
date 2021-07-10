@@ -870,11 +870,10 @@ void s1ap_handle_conn_est_cnf(
    * At least one bearer has been established. We can now send s1ap initial
    * context setup request message to eNB.
    */
-  uint8_t* buffer_p                           = NULL;
-  uint8_t err                                 = 0;
-  uint32_t length                             = 0;
-  ue_network_capability_t uenetworkcapability = {0};
-  ue_description_t* ue_ref                    = NULL;
+  uint8_t* buffer_p        = NULL;
+  uint8_t err              = 0;
+  uint32_t length          = 0;
+  ue_description_t* ue_ref = NULL;
   S1ap_InitialContextSetupRequest_t* out;
   S1ap_InitialContextSetupRequestIEs_t* ie = NULL;
   S1ap_S1AP_PDU_t pdu                      = {0};  // yes, alloc on stack

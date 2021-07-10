@@ -14,6 +14,8 @@ limitations under the License.
 package providers
 
 import (
+	"context"
+
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/any"
@@ -27,5 +29,5 @@ type StreamProvider interface {
 	// If GetUpdates returns error == nil, updates will be sent & the stream will be closed after that
 	// If GetUpdates returns error == io.EAGAIN - the returned updates will be sent & GetUpdates will be called again
 	// on the same stream
-	GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error)
+	GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error)
 }

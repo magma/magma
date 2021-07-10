@@ -53,7 +53,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwID, err := directoryd.GetHWIDForIMSI(nid, imsi)
+		hwID, err := directoryd.GetHWIDForIMSI(ctx, nid, imsi)
 		if err == nil && len(hwID) != 0 {
 			glog.V(2).Infof("IMSI to send is %v\n", imsi)
 			return hwID, nil
@@ -69,7 +69,7 @@ func getHwIDFromTeid(ctx context.Context, teid string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwID, err := directoryd.GetHWIDForSgwCTeid(nid, teid)
+		hwID, err := directoryd.GetHWIDForSgwCTeid(ctx, nid, teid)
 		if err == nil && len(hwID) != 0 {
 			glog.V(2).Infof("TEID to send is %s", teid)
 			return hwID, nil

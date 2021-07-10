@@ -175,6 +175,7 @@ typedef enum {
   LOG_SGW_S8,
   LOG_AMF_APP,
   LOG_NAS_AMF,
+  LOG_SERVICE303,
   MAX_LOG_PROTOS,
 } log_proto_t;
 

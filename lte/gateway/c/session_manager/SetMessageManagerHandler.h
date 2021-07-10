@@ -19,6 +19,8 @@
 *****************************************************************************/
 #pragma once
 #include <functional>
+#include <string>
+#include <memory>
 
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
@@ -46,6 +48,10 @@ class SetMessageManager {
    * (SmContextVoid);" as its set-interface API, no need to send response back,
    * response is void and gRPC will take care on acknowledgement
    */
+  virtual void SetSmfNotification(
+      ServerContext* context, const SetSmNotificationContext* notif,
+      std::function<void(Status, SmContextVoid)> response_callback) = 0;
+
   virtual void SetAmfSessionContext(
       ServerContext* context, const SetSMSessionContext* request,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
@@ -58,14 +64,24 @@ class SetMessageManagerHandler : public SetMessageManager {
       SessionStore& session_store);
   ~SetMessageManagerHandler() {}
 
+  /* Paging, idle state change notifcation receiving */
+  virtual void SetSmfNotification(
+      ServerContext* context, const SetSmNotificationContext* notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
   virtual void SetAmfSessionContext(
       ServerContext* context, const SetSMSessionContext* request,
       std::function<void(Status, SmContextVoid)> response_callback);
 
- private:
-  SessionStore& session_store_;
-  std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
-  SessionIDGenerator id_gen_;
+  /* When any specific IMIS/PDU id session is in-active */
+  void pdu_session_inactive(
+      const SetSmNotificationContext& notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
+  /* When any IMSI is moved to inactive state */
+  void idle_mode_change_sessions_handle(
+      const SetSmNotificationContext& notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
 
   /*
    * Send session creation related request to the CentralSessionController.
@@ -81,7 +97,12 @@ class SetMessageManagerHandler : public SetMessageManager {
 
   /*Release request message handling*/
   void initiate_release_session(
-      SessionMap& session_map, const std::string& dnn, const std::string& imsi);
+      SessionMap& session_map, const uint32_t& pdu_id, const std::string& imsi);
+
+ private:
+  SessionStore& session_store_;
+  std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
+  SessionIDGenerator id_gen_;
 };  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

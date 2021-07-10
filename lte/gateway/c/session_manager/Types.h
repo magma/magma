@@ -99,7 +99,7 @@ enum Bucket {
   ALLOWED_FLOOR_RX    = 11,
 
   // delimiter to iterate enum
-  MAX_VALUES = 12,
+  BUCKET_ENUM_MAX_VALUE = 12,
 };
 
 enum ReAuthState {

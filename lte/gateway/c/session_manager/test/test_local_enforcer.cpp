@@ -299,6 +299,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
   create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1024, credits->Add());
+  // response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
 
   EXPECT_CALL(
       *pipelined_client,
@@ -690,16 +691,16 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
 }
 
 TEST_F(LocalEnforcerTest, test_collect_updates) {
+  insert_static_rule(1, "", "rule1");
   CreateSessionResponse response;
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 3072, response.mutable_credits()->Add());
+  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   local_enforcer->update_tunnel_ids(
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
-
-  insert_static_rule(1, "", "rule1");
 
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto update = SessionStore::get_default_session_update(session_map);
@@ -738,6 +739,56 @@ TEST_F(LocalEnforcerTest, test_collect_updates) {
           .charging_credit_map[1]
           .bucket_deltas[REPORTING_TX],
       0);
+}
+
+TEST_F(LocalEnforcerTest, test_collect_updates_with_online_avp_to_0) {
+  insert_static_rule(1, "", "rule1");
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 3072, response.mutable_credits()->Add());
+  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
+  response.clear_credits();
+  response.set_online(false);
+
+  // create session and install rules
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+
+  // there should not be credits for key 1 (in fact there is not even a key 1
+  // installed)
+  EXPECT_EQ(
+      session_map.find(IMSI1)->second[0]->get_charging_credit(1, ALLOWED_TOTAL),
+      0);
+
+  // receive a new rule update record
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1024, 2048,
+      record_list->Add());
+
+  auto update = SessionStore::get_default_session_update(session_map);
+  auto uc     = get_default_update_criteria();
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update =
+      local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+
+  // we shouldn't see any credit being reported because credit is not installed
+  EXPECT_EQ(
+      session_map.find(IMSI1)->second[0]->get_charging_credit(1, REPORTING_RX),
+      0);
+  EXPECT_EQ(
+      session_map.find(IMSI1)->second[0]->get_charging_credit(1, REPORTING_TX),
+      0);
+
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 0);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 0);
 }
 
 TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {

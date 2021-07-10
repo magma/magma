@@ -14,6 +14,7 @@ limitations under the License.
 package tests
 
 import (
+	"context"
 	"crypto/x509"
 	"io"
 	"io/ioutil"
@@ -35,6 +36,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+	context2 "golang.org/x/net/context"
 )
 
 const (
@@ -102,7 +104,7 @@ func StartMockAccessControl(t *testing.T, adminId string) string {
 	csrMsg, err := certifier_test_utils.CreateCSR(
 		time.Hour*4, adminId, adminId)
 	assert.NoError(t, err)
-	certMsg, err := certifier.SignCSR(csrMsg)
+	certMsg, err := certifier.SignCSR(context2.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign Admin's CSR")
 	// get sn from cert
 	superCert, err := x509.ParseCertificates(certMsg.CertDer)
@@ -130,7 +132,7 @@ func StartMockAccessControl(t *testing.T, adminId string) string {
 		}
 	}
 	// Add ACL for supervisor
-	assert.NoError(t, accessd.SetOperator(admin, adminACL))
+	assert.NoError(t, accessd.SetOperator(context.Background(), admin, adminACL))
 	return certSerialNum
 }
 
@@ -144,7 +146,7 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 
 	// Get ACL for supervisor & verify, it's not corrupt
 	super := identity.NewOperator(TEST_SUPER_OPERATOR_ID)
-	testSuperAcl, err := accessd.GetOperatorACL(super)
+	testSuperAcl, err := accessd.GetOperatorACL(context.Background(), super)
 	for hash, ent := range testSuperAcl {
 		if ent == nil || ent.Id == nil {
 			t.Errorf("NIL Entity @ KEY: %s", hash)
@@ -158,7 +160,7 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 	csrMsg, err := certifier_test_utils.CreateCSR(
 		time.Hour*12, TEST_OPERATOR_ID, TEST_OPERATOR_ID)
 	assert.NoError(t, err)
-	certMsg, err := certifier.SignCSR(csrMsg)
+	certMsg, err := certifier.SignCSR(context2.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
 	// get sn from cert
 	cert, err := x509.ParseCertificates(certMsg.CertDer)
@@ -174,7 +176,7 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 		{Id: writeNet, Permissions: protos.AccessControl_WRITE},
 	}
 	// Add ACL for operator
-	assert.NoError(t, accessd.SetOperator(oper, acl))
+	assert.NoError(t, accessd.SetOperator(context.Background(), oper, acl))
 
 	t.Logf(
 		"Test Operator Cert SN: %s, Test Supervisor Cert SN: %s",

@@ -262,10 +262,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             received_message_p->ittiMsg.timer_has_expired.timer_id);
         is_task_state_same = true;
         break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          mme_app_desc_p->statistic_timer_id) {
-        mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
             TIMER_HAS_EXPIRED(received_message_p).timer_id,
@@ -572,8 +568,10 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   application_mme_app_stats_msg_t stats_msg;
-  stats_msg.nb_ue_attached  = mme_app_desc_p->nb_ue_attached;
-  stats_msg.nb_ue_connected = mme_app_desc_p->nb_ue_connected;
+  stats_msg.nb_ue_attached         = mme_app_desc_p->nb_ue_attached;
+  stats_msg.nb_ue_connected        = mme_app_desc_p->nb_ue_connected;
+  stats_msg.nb_default_eps_bearers = mme_app_desc_p->nb_default_eps_bearers;
+  stats_msg.nb_s1u_bearers         = mme_app_desc_p->nb_s1u_bearers;
   return send_mme_app_stats_to_service303(
       &mme_app_task_zmq_ctx, TASK_MME_APP, &stats_msg);
 }

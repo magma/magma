@@ -115,7 +115,7 @@ func TestNHRouting(t *testing.T) {
 
 	// Add Serving FeG Host to directoryd
 	directoryd_test_init.StartTestService(t)
-	directoryd.MapHWIDToHostname(fegHwId, s6aHost)
+	directoryd.MapHWIDToHostname(context.Background(), fegHwId, s6aHost)
 	gateway_registry.SetPort(s6aAddr.Port)
 
 	// Start S6a relay Service
@@ -211,15 +211,11 @@ func TestNHRouting(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		nhNetworkID, orc8r.AccessGatewayRecordType, nhFegHwId,
-		&models.GatewayDevice{HardwareID: nhFegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), nhNetworkID, orc8r.AccessGatewayRecordType, nhFegHwId, &models.GatewayDevice{HardwareID: nhFegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	// Map NH FeG to already running test S6a proxy address
-	directoryd.MapHWIDToHostname(nhFegHwId, "localhost")
+	directoryd.MapHWIDToHostname(context.Background(), nhFegHwId, "localhost")
 
 	// Update Serving FeG Health status
 	healthctx := protos.NewGatewayIdentity(nhFegHwId, nhNetworkID, nhFegId).NewContextWithIdentity(context.Background())

@@ -3120,7 +3120,8 @@ paths:
       - $ref: '#/parameters/network_id'
       responses:
         "200":
-          description: List of all MSISDNS in the network, mapped to their subscriber ID
+          description: List of all MSISDNS in the network, mapped to their subscriber
+            ID
           schema:
             additionalProperties:
               $ref: '#/definitions/subscriber_id'
@@ -4537,7 +4538,8 @@ paths:
         name: simple_query
         required: false
         type: string
-      - description: Comma-separated list of fields to search with the simple query. Defaults to the log field.
+      - description: Comma-separated list of fields to search with the simple query.
+          Defaults to the log field.
         in: query
         name: fields
         required: false
@@ -4576,7 +4578,8 @@ paths:
         name: simple_query
         required: false
         type: string
-      - description: Comma-separated list of fields to search with the simple query. Defaults to the log field.
+      - description: Comma-separated list of fields to search with the simple query.
+          Defaults to the log field.
         in: query
         name: fields
         required: false
@@ -4591,7 +4594,8 @@ paths:
         name: size
         required: false
         type: string
-      - description: The starting offset to fetch from the search hits. This param along with size can be used for pagination.
+      - description: The starting offset to fetch from the search hits. This param
+          along with size can be used for pagination.
         in: query
         name: from
         required: false
@@ -4878,7 +4882,8 @@ paths:
       tags:
       - Alerts
     get:
-      description: If no query parameters are included, all alerting rules for the given network are returned.
+      description: If no query parameters are included, all alerting rules for the
+        given network are returned.
       parameters:
       - $ref: '#/parameters/network_id'
       - description: Name of alert to be retrieved
@@ -5112,7 +5117,8 @@ paths:
             $ref: '#/definitions/promql_return_object'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time
+        range
       tags:
       - Metrics
   /networks/{network_id}/prometheus/series:
@@ -5834,7 +5840,8 @@ paths:
             $ref: '#/definitions/promql_return_object'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time
+        range
       tags:
       - Metrics
   /tenants/{tenant_id}/metrics/api/v1/series:
@@ -5926,7 +5933,8 @@ paths:
             $ref: '#/definitions/promql_return_object'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time
+        range
       tags:
       - Metrics
   /tenants/{tenant_id}/metrics/series:
@@ -5966,12 +5974,14 @@ paths:
   /tenants/targets_metadata:
     get:
       parameters:
-      - description: Label selectors like {job = "magma_pushgateway"} . All targets are selected if left empty
+      - description: Label selectors like {job = "magma_pushgateway"} . All targets
+          are selected if left empty
         in: query
         name: match_target
         required: false
         type: string
-      - description: A metric name to retrieve metadata for. All metric metadata is retrieved if left empty
+      - description: A metric name to retrieve metadata for. All metric metadata is
+          retrieved if left empty
         in: query
         name: metric
         required: false
@@ -6976,7 +6986,8 @@ definitions:
         minLength: 1
         type: string
       release_channel:
-        description: Release channel for package repo (stretch-beta, stretch-dev, etc)
+        description: Release channel for package repo (stretch-beta, stretch-dev,
+          etc)
         example: stretch-beta
         minLength: 1
         type: string
@@ -6991,7 +7002,8 @@ definitions:
         minLength: 1
         type: string
       target_tier:
-        description: ID of upgrade tier to bump when new version is found in package repo
+        description: ID of upgrade tier to bump when new version is found in package
+          repo
         example: t2
         minLength: 1
         type: string
@@ -7990,7 +8002,8 @@ definitions:
     - config_type
     type: object
   enodeb_configuration:
-    description: Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
+    description: Configuration for an enodeB. Unfilled fields will be inherited from
+      LTE network and gateway configuration.
     minLength: 1
     properties:
       bandwidth_mhz:
@@ -8285,6 +8298,10 @@ definitions:
       description:
         type: string
         x-nullable: false
+      service_status:
+        additionalProperties:
+          $ref: '#/definitions/service_status_health'
+        type: object
       status:
         enum:
         - HEALTHY
@@ -8356,7 +8373,8 @@ definitions:
     - dns
     type: object
   feg_network_id:
-    description: Name of the federated network serving this LTE network. Blank for non federated
+    description: Name of the federated network serving this LTE network. Blank for
+      non federated
     example: feg_id_only_for_federated_network
     type: string
   flow_description:
@@ -8575,7 +8593,8 @@ definitions:
         minLength: 5
         type: string
       sgi_management_iface_static_ip:
-        description: IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
+        description: IP address for management interface on the AGW, If not specified
+          AGW uses DHCP to configure it.
         format: cidr
         maxLength: 49
         minLength: 5
@@ -9808,6 +9827,8 @@ definitions:
         $ref: '#/definitions/network_id'
       name:
         $ref: '#/definitions/network_name'
+      sentry_config:
+        $ref: '#/definitions/network_sentry_config'
       type:
         $ref: '#/definitions/network_type'
     required:
@@ -9835,7 +9856,8 @@ definitions:
       li_ues:
         $ref: '#/definitions/li_ues'
       network_services:
-        description: Configuration for network services. Services will be instantiated in the listed order.
+        description: Configuration for network services. Services will be instantiated
+          in the listed order.
         example:
         - dpi
         - policy_enforcement
@@ -9900,6 +9922,11 @@ definitions:
     properties:
       cloud_subscriberdb_enabled:
         example: false
+        type: boolean
+      congestion_control_enabled:
+        default: true
+        description: Network configuration flag for congestion control on EPC
+        example: true
         type: boolean
       default_rule_id:
         example: default_rule_1
@@ -9987,7 +10014,8 @@ definitions:
         - ip_allocation_mode
         type: object
       network_services:
-        description: Configuration for network services. Services will be instantiated in the listed order.
+        description: Configuration for network services. Services will be instantiated
+          in the listed order.
         example:
         - policy_enforcement
         items:
@@ -10675,7 +10703,8 @@ definitions:
         - VIDEO
         type: string
       assigned_subscribers:
-        description: Subscribers which have been assigned this policy not as part of a base name
+        description: Subscribers which have been assigned this policy not as part
+          of a base name
         example:
         - IMSI1234567890
         - IMSI0987654321
@@ -10930,7 +10959,8 @@ definitions:
         type: string
     type: object
   promql_metric_value:
-    description: If resultType is 'vector' value is in the result, if 'matrix', values is in the result
+    description: If resultType is 'vector' value is in the result, if 'matrix', values
+      is in the result
     properties:
       metric:
         $ref: '#/definitions/promql_metric'
@@ -11202,6 +11232,20 @@ definitions:
     items:
       type: string
     type: array
+  service_status_health:
+    description: health status of a specific
+    properties:
+      health_status:
+        enum:
+        - HEALTHY
+        - UNHEALTHY
+        type: string
+      service_state:
+        enum:
+        - AVAILABLE
+        - UNAVAILABLE
+        type: string
+    type: object
   slack_action:
     properties:
       confirm:
@@ -11402,7 +11446,8 @@ definitions:
     type: string
     x-nullable: false
   subscriber_ip_allocation:
-    description: An IP address which has been allocated for a subscriber for a specific APN
+    description: An IP address which has been allocated for a subscriber for a specific
+      APN
     properties:
       apn:
         example: oai.ipv4
@@ -11445,7 +11490,8 @@ definitions:
       format: ipv4
       minLength: 1
       type: string
-    description: Mapping of APN ID to static IP address to allocate for the subscriber at the edge
+    description: Mapping of APN ID to static IP address to allocate for the subscriber
+      at the edge
     type: object
   subscriber_status:
     description: Status of a subscriber device
@@ -11669,7 +11715,8 @@ definitions:
     description: Arbitrary untyped JSON object that represents replicated MME state
     type: object
   untyped_subscriber_state:
-    description: Arbitrary untyped JSON object that represents replicated subscriber-related state
+    description: Arbitrary untyped JSON object that represents replicated subscriber-related
+      state
     type: object
   virtual_apn_rule:
     description: Virtual APN Rule configuration

@@ -100,7 +100,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.Respo
 		return
 	}
 	// get dispatcher's http server addr
-	addr, addrErr := getDispatcherHttpServerAddr(fegHwId)
+	addr, addrErr := getDispatcherHttpServerAddr(req.Context(), fegHwId)
 	if addrErr != nil {
 		glog.Errorf(addrErr.Error())
 		http2.WriteErrResponse(responseWriter,
@@ -195,8 +195,8 @@ func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
 	return hardwareID, nil
 }
 
-func getDispatcherHttpServerAddr(hwId string) (string, error) {
-	addr, err := gateway_registry.GetServiceAddressForGateway(hwId)
+func getDispatcherHttpServerAddr(ctx context.Context, hwId string) (string, error) {
+	addr, err := gateway_registry.GetServiceAddressForGateway(ctx, hwId)
 	if err != nil {
 		return "", err
 	}
