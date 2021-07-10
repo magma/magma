@@ -39,7 +39,7 @@ def reboot(client, args):
 @grpc_wrapper
 def restart_services(client, args):
     client.RestartServices(
-        magmad_pb2.RestartServicesRequest(services=args.services)
+        magmad_pb2.RestartServicesRequest(services=args.services),
     )
 
 
@@ -52,8 +52,8 @@ def ping(client, args):
                     host_or_ip=host,
                     num_packets=args.packets,
                 ) for host in args.hosts
-            ]
-        )
+            ],
+        ),
     )
     print(response)
 
@@ -68,8 +68,8 @@ def traceroute(client, args):
                     max_hops=args.max_hops,
                     bytes_per_packet=args.bytes,
                 ) for host in args.hosts
-            ]
-        )
+            ],
+        ),
     )
     print(response)
 
@@ -84,7 +84,7 @@ def get_gateway_id(client, args):
 def generic_command(client, args):
     params = json_format.Parse(args.params, Struct())
     response = client.GenericCommand(
-        magmad_pb2.GenericCommandParams(command=args.command, params=params)
+        magmad_pb2.GenericCommandParams(command=args.command, params=params),
     )
     print(response)
 
@@ -101,7 +101,7 @@ def check_stateless(client, args):
     response = client.CheckStateless(common_pb2.Void())
     print(
         "AGW Mode:",
-        magmad_pb2.CheckStatelessResponse.AGWMode.Name(response.agw_mode)
+        magmad_pb2.CheckStatelessResponse.AGWMode.Name(response.agw_mode),
     )
 
 
@@ -114,7 +114,9 @@ def config_stateless(client, args):
         print("Disable switch")
         config_arg = magmad_pb2.ConfigureStatelessRequest.DISABLE
     client.ConfigureStateless(
-        magmad_pb2.ConfigureStatelessRequest(config_cmd=config_arg))
+        magmad_pb2.ConfigureStatelessRequest(config_cmd=config_arg),
+    )
+
 
 def create_parser():
     """
@@ -122,58 +124,97 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for Magmad',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
-    parser_start = subparsers.add_parser('start_services',
-                                         help='Start all magma services')
-    parser_stop = subparsers.add_parser('stop_services',
-                                        help='Stop all magma services')
-    parser_reboot = subparsers.add_parser('reboot',
-                                          help='Reboot the gateway device')
-    parser_restart = subparsers.add_parser('restart_services',
-                                           help='Restart specified magma services')
+    parser_start = subparsers.add_parser(
+        'start_services',
+        help='Start all magma services',
+    )
+    parser_stop = subparsers.add_parser(
+        'stop_services',
+        help='Stop all magma services',
+    )
+    parser_reboot = subparsers.add_parser(
+        'reboot',
+        help='Reboot the gateway device',
+    )
+    parser_restart = subparsers.add_parser(
+        'restart_services',
+        help='Restart specified magma services',
+    )
     parser_ping = subparsers.add_parser(
         'ping',
-        help='Ping a host from the gateway')
+        help='Ping a host from the gateway',
+    )
     parser_traceroute = subparsers.add_parser(
         'traceroute',
-        help='traceroute a host from the gateway')
-    parser_get_id = subparsers.add_parser('get_gateway_id',
-                                           help='Get gateway hardware ID')
-    parser_generic_command = subparsers.add_parser('generic_command',
-                                                   help='Execute generic command')
-    parser_tail_logs = subparsers.add_parser('tail_logs',
-                                             help='Tail logs')
-    parser_stateless_check = subparsers.add_parser('check_stateless',
-                                             help=\
-                                            'Check AGW stateless mode')
-    parser_stateless_config = subparsers.add_parser('config_stateless',
-                                             help=\
-                                            'Change AGW stateless mode')
+        help='traceroute a host from the gateway',
+    )
+    parser_get_id = subparsers.add_parser(
+        'get_gateway_id',
+        help='Get gateway hardware ID',
+    )
+    parser_generic_command = subparsers.add_parser(
+        'generic_command',
+        help='Execute generic command',
+    )
+    parser_tail_logs = subparsers.add_parser(
+        'tail_logs',
+        help='Tail logs',
+    )
+    parser_stateless_check = subparsers.add_parser(
+        'check_stateless',
+        help='Check AGW stateless mode',
+    )
+    parser_stateless_config = subparsers.add_parser(
+        'config_stateless',
+        help='Change AGW stateless mode',
+    )
 
-    parser_ping.add_argument('hosts', nargs='+', type=str,
-                             help='Hosts (URLs or IPs) to ping')
-    parser_ping.add_argument('--packets', type=int, default=4,
-                             help='Number of packets to send with each ping')
+    parser_ping.add_argument(
+        'hosts', nargs='+', type=str,
+        help='Hosts (URLs or IPs) to ping',
+    )
+    parser_ping.add_argument(
+        '--packets', type=int, default=4,
+        help='Number of packets to send with each ping',
+    )
 
-    parser_traceroute.add_argument('hosts', nargs='+', type=str,
-                                   help='Hosts (URLs or IPs) to traceroute')
-    parser_traceroute.add_argument('--max-hops', type=int, default=30,
-                                   help='Max TTL for packets, defaults to 30')
-    parser_traceroute.add_argument('--bytes', type=int, default=60,
-                                   help='Bytes per packet, defaults to 60')
-    parser_restart.add_argument('services', nargs='*', type=str,
-                                help='Services to restart')
-    parser_generic_command.add_argument('command', type=str,
-                                        help='Command name')
-    parser_generic_command.add_argument('params', type=str,
-                                        help='Params (string)')
-    parser_tail_logs.add_argument('service', type=str, nargs='?',
-                                  help='Service')
-    parser_stateless_config.add_argument('switch', type=str,
-            help='Enable/Disable')
+    parser_traceroute.add_argument(
+        'hosts', nargs='+', type=str,
+        help='Hosts (URLs or IPs) to traceroute',
+    )
+    parser_traceroute.add_argument(
+        '--max-hops', type=int, default=30,
+        help='Max TTL for packets, defaults to 30',
+    )
+    parser_traceroute.add_argument(
+        '--bytes', type=int, default=60,
+        help='Bytes per packet, defaults to 60',
+    )
+    parser_restart.add_argument(
+        'services', nargs='*', type=str,
+        help='Services to restart',
+    )
+    parser_generic_command.add_argument(
+        'command', type=str,
+        help='Command name',
+    )
+    parser_generic_command.add_argument(
+        'params', type=str,
+        help='Params (string)',
+    )
+    parser_tail_logs.add_argument(
+        'service', type=str, nargs='?',
+        help='Service',
+    )
+    parser_stateless_config.add_argument(
+        'switch', type=str,
+        help='Enable/Disable',
+    )
 
     # Add function callbacks
     parser_start.set_defaults(func=start_services)

@@ -160,8 +160,10 @@ def add_compile_row(nf_type):
     with open(os.path.join(cwd, MAGMA_COMMON_ROWS), 'r') as temp:
         rows = temp.read()
 
-    log_file_names = [(U18_BUILD_LOG_FILE, 'U18_'),
-                      (RHEL8_BUILD_LOG_FILE, 'RHEL8_')]
+    log_file_names = [
+        (U18_BUILD_LOG_FILE, 'U18_'),
+        (RHEL8_BUILD_LOG_FILE, 'RHEL8_'),
+    ]
     for log_file_name, prefix in log_file_names:
         status = False
         error_cnt = 0
@@ -233,8 +235,10 @@ def add_target_image_gen_row():
         rows = re.sub('ROW_TITLE', 'Image Creation Status', rows)
         rows = re.sub('IMAGE_KIND', 'Target Image', rows)
 
-    log_file_names = [(U18_BUILD_LOG_FILE, 'U18_'),
-                      (RHEL8_BUILD_LOG_FILE, 'RHEL8_')]
+    log_file_names = [
+        (U18_BUILD_LOG_FILE, 'U18_'),
+        (RHEL8_BUILD_LOG_FILE, 'RHEL8_'),
+    ]
     for log_file_name, prefix in log_file_names:
         status = False
         start_pattern = '[aA][sS] magma-mme$'
@@ -281,8 +285,10 @@ def add_target_image_size_row(args):
     else:
         image_tag = 'magma-mme *master .*ago *([0-9 A-Z]+)'
 
-    log_file_names = [(U18_BUILD_LOG_FILE, 'U18_'),
-                      (RHEL8_BUILD_LOG_FILE, 'RHEL8_')]
+    log_file_names = [
+        (U18_BUILD_LOG_FILE, 'U18_'),
+        (RHEL8_BUILD_LOG_FILE, 'RHEL8_'),
+    ]
     for log_file_name, prefix in log_file_names:
         status = False
         start_pattern = 'Successfully tagged magma-mme:|COMMIT magma-mme:'
@@ -349,8 +355,10 @@ def add_compilation_details_table(nf_type):
 
     table = ''
 
-    log_file_names = [(U18_BUILD_LOG_FILE, 'UBUNTU 18'),
-                      (RHEL8_BUILD_LOG_FILE, 'RHEL8')]
+    log_file_names = [
+        (U18_BUILD_LOG_FILE, 'UBUNTU 18'),
+        (RHEL8_BUILD_LOG_FILE, 'RHEL8'),
+    ]
     for log_file_name, variant in log_file_names:
         error_cnt = 0
         warning_cnt = 0
