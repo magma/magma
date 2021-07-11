@@ -80,7 +80,8 @@
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
       "logLevel": "INFO",
       "lteAuthOp": "EREREREREREREREREREREQ==",
-      "lteAuthAmf": "gAA="
+      "lteAuthAmf": "gAA=",
+      "sync_interval": 300
     },
     "dnsd": {
       "@type": "type.googleapis.com/magma.mconfig.DnsD",
