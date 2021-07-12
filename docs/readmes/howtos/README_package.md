@@ -6,8 +6,8 @@ hide_title: true
 # Packaging
 TL;DR
 -----
-1. Running `fab test package:git` on the host creates the package inside the
-gateway VM
+1. Run `fab test package` on the host to create packages inside the
+gateway VM.
 2. Commit changes to build-magma.sh and magma.lockfile.ubuntu.
 
 
@@ -29,7 +29,7 @@ you can also increment the iteration number.
 Creating a development package.
 ---------------------------
 To create an AGW package with debug compiler flags (`Debug`),
-run `fab dev package:git`
+run `fab dev package`
 
 Testing a release package before you push it.
 ---------------------------------------------

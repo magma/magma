@@ -12,10 +12,8 @@ limitations under the License.
 """
 
 import os
-import sys
 
 from setuptools import setup
-
 
 # We can use an environment variable to pass in the package version during
 # build. Since we don't distribute this on its own, we don't really care what
@@ -122,7 +120,7 @@ setup(
         'jsonpointer>=1.14',
         'ovs>=2.13',
         'prometheus-client>=0.3.1',
-        'aioeventlet==0.5.1',   # aioeventlet-build.sh
+        'aioeventlet==0.5.1',  # aioeventlet-build.sh
     ],
     extras_require={
         'dev': [

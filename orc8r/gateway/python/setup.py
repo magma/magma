@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import os
-import sys
 
 from setuptools import setup
 
