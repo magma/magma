@@ -37,12 +37,11 @@ func (rtr *Router) GetFegServiceConnection(
 	imsi string,
 	service gateway_registry.GwServiceType,
 ) (conn *grpc.ClientConn, ctx context.Context, cancel context.CancelFunc, err error) {
-
 	gwId, err := RetrieveGatewayIdentity(inCtx)
 	if err != nil {
 		return
 	}
-	fegHwId, err := FindServingFeGHwId(gwId.GetNetworkId(), imsi)
+	fegHwId, err := FindServingFeGHwId(inCtx, gwId.GetNetworkId(), imsi)
 	if err != nil {
 		return
 	}

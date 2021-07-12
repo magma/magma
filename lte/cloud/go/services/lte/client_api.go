@@ -28,13 +28,13 @@ import (
 	"github.com/golang/glog"
 )
 
-func GetEnodebState(networkID string, gatewayID string, enodebSN string) (*lte_models.EnodebState, error) {
+func GetEnodebState(ctx context.Context, networkID string, gatewayID string, enodebSN string) (*lte_models.EnodebState, error) {
 	client, err := getClient()
 	if err != nil {
 		return nil, err
 	}
 	res, err := client.GetEnodebState(
-		context.Background(),
+		ctx,
 		&protos.GetEnodebStateRequest{
 			NetworkId: networkID,
 			GatewayId: gatewayID,
@@ -55,13 +55,13 @@ func GetEnodebState(networkID string, gatewayID string, enodebSN string) (*lte_m
 	return enodebState, nil
 }
 
-func SetEnodebState(networkID string, gatewayID string, enodebSN string, serializedState []byte) error {
+func SetEnodebState(ctx context.Context, networkID string, gatewayID string, enodebSN string, serializedState []byte) error {
 	client, err := getClient()
 	if err != nil {
 		return err
 	}
 	_, err = client.SetEnodebState(
-		context.Background(),
+		ctx,
 		&protos.SetEnodebStateRequest{
 			NetworkId:       networkID,
 			GatewayId:       gatewayID,
