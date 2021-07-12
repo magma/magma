@@ -11,4 +11,6 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=pythonbuilder:latest /build /build
 COPY --from=pythonbuilder:latest /magma /magma
 
+RUN mkdir -p /var/opt/magma/
+
 ENTRYPOINT /usr/bin/env python3 -m magma.subscriberdb.main

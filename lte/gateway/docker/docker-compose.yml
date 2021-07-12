@@ -5,27 +5,32 @@ x-logging: &logging_anchor
   driver: ${LOG_DRIVER}
 
 # Standard volumes mounted
-# x-standard-volumes: &volumes_anchor
-#   - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
-#   - ${CERTS_VOLUME}:/var/opt/magma/certs
-#   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
-#   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
-#   - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
-#   - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-#   - /etc/snowflake:/etc/snowflake
+x-standard-volumes: &volumes_anchor
+  - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
+  - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
+  - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
+  # - ${PWD}/example/mobilityd.yml:/etc/magma/mobilityd.yml
+  # - ${PWD}/example/redis.yml:/etc/magma/redis.yml
+  - ${PWD}/example/control_proxy.yml:/etc/magma/control_proxy.yml
+  # - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+  # - ${CERTS_VOLUME}:/var/opt/magma/certs
+  # - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  # - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  # - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  # - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  # - /etc/snowflake:/etc/snowflake
 
 x-generic-service: &service
-  # volumes: *volumes_anchor
+  volumes: *volumes_anchor
+  networks:
+    - agw
   # logging: *logging_anchor
   restart: always
   # network_mode: host
 
-# Generic python anchor to avoid repetition for orc8r python services
-x-agw-mobilityd-service: &mobilitydservice
+# Generic python anchor to avoid repetition for agw python services
+x-agw-python-service: &pyservice
   <<: *service
-  image: mobilityd:latest
-
-
 
 services:
   # magmad:
@@ -46,30 +51,55 @@ services:
   #     DOCKER_USERNAME: ${DOCKER_USERNAME}
   #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
   mobilityd:
-    <<: *mobilitydservice
+    <<: *pyservice
+    image: mobilityd:latest
     container_name: mobilityd
-    networks:
-      - agw
     volumes:
-      # - example/control_proxy.yml:/etc/magma/control_proxy.yml
       - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
       - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
       - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
+      - ${PWD}/example/control_proxy.yml:/etc/magma/control_proxy.yml
+
       - ${PWD}/example/mobilityd.yml:/etc/magma/mobilityd.yml
       - ${PWD}/example/redis.yml:/etc/magma/redis.yml
-    # environment:
-    #   DOCKER_REGISTRY: ${DOCKER_REGISTRY}
-    #   DOCKER_USERNAME: ${DOCKER_USERNAME}
-    #   DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-  # directoryd:
-  #   <<: *pyservice
-  #   container_name: directoryd
-  # subscriberdb:
-  #   <<: *pyservice
-  #   container_name: subscriberdb
-  # policydb:
-  #   <<: *pyservice
-  #   container_name: policydb
+    depends_on:
+      - redis
+  directoryd:
+    <<: *pyservice
+    container_name: directoryd
+    image: directoryd:latest
+    volumes:
+      - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
+      - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
+      - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
+      - ${PWD}/example/control_proxy.yml:/etc/magma/control_proxy.yml
+
+      - ${PWD}/example/directoryd.yml:/etc/magma/directoryd.yml
+  subscriberdb:
+    <<: *pyservice
+    container_name: subscriberdb
+    image: subscriberdb:latest
+    volumes:
+      - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
+      - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
+      - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
+      - ${PWD}/example/control_proxy.yml:/etc/magma/control_proxy.yml
+
+      - ${PWD}/example/subscriberdb.yml:/etc/magma/subscriberdb.yml
+  policydb:
+    <<: *pyservice
+    container_name: policydb
+    image: policydb:latest
+    volumes:
+      - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
+      - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
+      - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
+      - ${PWD}/example/control_proxy.yml:/etc/magma/control_proxy.yml
+
+      - ${PWD}/example/policydb.yml:/etc/magma/policydb.yml
+      - ${PWD}/example/redis.yml:/etc/magma/redis.yml
+    depends_on:
+      - redis
   # pipelined:
   #   <<: *pyservice
   #   container_name: mobilityd
@@ -86,7 +116,6 @@ services:
       - agw
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
-
   # connectiond:
   #   <<: *pyservice
   #   container_name: connectiond
