@@ -349,7 +349,6 @@ int main(int argc, char* argv[]) {
       interval = config["poll_stats_interval"].as<uint32_t>();
     }
     periodic_stats_requester->start_loop(local_enforcer, interval);
-    periodic_stats_requester->stop();
   });
 
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler
