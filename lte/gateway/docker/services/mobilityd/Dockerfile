@@ -1,6 +1,4 @@
 FROM ubuntu:20.04 as mobilityd
-#ls /etc/magma/
-#control_proxy.yml  gateway.mconfig  magmad.yml  mobilityd.yml  service_registry.yml
 
 ENV VIRTUAL_ENV=/build
 RUN apt-get update \
