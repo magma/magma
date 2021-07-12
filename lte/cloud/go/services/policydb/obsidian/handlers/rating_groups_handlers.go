@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
@@ -65,7 +66,7 @@ func CreateRatingGroup(c echo.Context) error {
 	if err := c.Bind(group); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := group.ValidateModel(); err != nil {
+	if err := group.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -107,7 +108,7 @@ func UpdateRatingGroup(c echo.Context) error {
 	if err := c.Bind(ratingGroup); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := ratingGroup.ValidateModel(); err != nil {
+	if err := ratingGroup.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	groupID, err := swag.ConvertUint32(ratingGroupID)

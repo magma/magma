@@ -288,10 +288,12 @@ func createSubscriberHandler(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+
+	reqCtx := c.Request().Context()
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if nerr := validateSubscriberProfiles(networkID, string(payload.Lte.SubProfile)); nerr != nil {
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -313,10 +315,12 @@ func createSubscribersV2Handler(c echo.Context) error {
 	if err := c.Bind(&payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+
+	reqCtx := c.Request().Context()
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if nerr := validateSubscriberProfiles(networkID, getSubProfiles(payload)...); nerr != nil {
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, getSubProfiles(payload)...); nerr != nil {
 		return nerr
 	}
 
@@ -350,7 +354,9 @@ func updateSubscriberHandler(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+
+	reqCtx := c.Request().Context()
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if string(payload.ID) != subscriberID {
@@ -358,7 +364,7 @@ func updateSubscriberHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	if nerr := validateSubscriberProfiles(networkID, string(payload.Lte.SubProfile)); nerr != nil {
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -447,7 +453,7 @@ func createMSISDNsHandler(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -495,7 +501,9 @@ func updateSubscriberProfile(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+
+	reqCtx := c.Request().Context()
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -506,7 +514,7 @@ func updateSubscriberProfile(c echo.Context) error {
 
 	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
 	desiredCfg.Lte.SubProfile = *payload
-	if nerr := validateSubscriberProfiles(networkID, string(desiredCfg.Lte.SubProfile)); nerr != nil {
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(desiredCfg.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -592,14 +600,14 @@ func getSubProfiles(subs subscribermodels.MutableSubscribers) []string {
 	return funk.Keys(profiles).([]string)
 }
 
-func validateSubscriberProfiles(networkID string, profiles ...string) *echo.HTTPError {
+func validateSubscriberProfiles(ctx context.Context, networkID string, profiles ...string) *echo.HTTPError {
 	nonDefaultProfiles := funk.FilterString(profiles, func(s string) bool { return s != "default" })
 
 	if len(nonDefaultProfiles) == 0 {
 		return nil
 	}
 
-	networkConfig, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType, serdes.Network)
+	networkConfig, err := configurator.LoadNetworkConfig(ctx, networkID, lte.CellularNetworkConfigType, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusBadRequest)
 	}

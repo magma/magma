@@ -51,7 +51,7 @@ import (
 func TestCreateSubscriber(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -150,20 +150,16 @@ func TestCreateSubscriber(t *testing.T) {
 	assert.EqualError(t, err, "Not found")
 
 	// nonexistent sub profile should be 400
-	err = configurator.UpdateNetworkConfig(
-		"n1", lte.CellularNetworkConfigType,
-		&lteModels.NetworkCellularConfigs{
-			Epc: &lteModels.NetworkEpcConfigs{
-				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
-					"blah": {
-						MaxDlBitRate: 100,
-						MaxUlBitRate: 100,
-					},
+	err = configurator.UpdateNetworkConfig(context.Background(), "n1", lte.CellularNetworkConfigType, &lteModels.NetworkCellularConfigs{
+		Epc: &lteModels.NetworkEpcConfigs{
+			SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
+				"blah": {
+					MaxDlBitRate: 100,
+					MaxUlBitRate: 100,
 				},
 			},
 		},
-		serdes.Network,
-	)
+	}, serdes.Network)
 	assert.NoError(t, err)
 	payload = &subscriberModels.MutableSubscriber{
 		ID: "IMSI0987654321",
@@ -247,7 +243,7 @@ func TestCreateSubscribers(t *testing.T) {
 			Epc: &lteModels.NetworkEpcConfigs{SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{"present-profile": {}}},
 		},
 	}
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Configs: networkConfigs}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Configs: networkConfigs}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -368,7 +364,7 @@ func TestListSubscribers(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -606,7 +602,7 @@ func TestListSubscribersV2(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -868,7 +864,7 @@ func TestGetSubscriber(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1052,7 +1048,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1135,7 +1131,7 @@ func TestListSubscriberStates(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1252,7 +1248,7 @@ func TestGetSubscriberState(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1352,7 +1348,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	subscriberdbTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1510,7 +1506,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	subscriberdbTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1649,7 +1645,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 func TestUpdateSubscriber(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1694,20 +1690,16 @@ func TestUpdateSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err = configurator.UpdateNetworkConfig(
-		"n1", lte.CellularNetworkConfigType,
-		&lteModels.NetworkCellularConfigs{
-			Epc: &lteModels.NetworkEpcConfigs{
-				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
-					"foo": {
-						MaxUlBitRate: 100,
-						MaxDlBitRate: 100,
-					},
+	err = configurator.UpdateNetworkConfig(context.Background(), "n1", lte.CellularNetworkConfigType, &lteModels.NetworkCellularConfigs{
+		Epc: &lteModels.NetworkEpcConfigs{
+			SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
+				"foo": {
+					MaxUlBitRate: 100,
+					MaxDlBitRate: 100,
 				},
 			},
 		},
-		serdes.Network,
-	)
+	}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -1787,7 +1779,7 @@ func TestUpdateSubscriber(t *testing.T) {
 func TestDeleteSubscriber(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1846,7 +1838,7 @@ func TestDeleteSubscriber(t *testing.T) {
 func TestActivateDeactivateSubscriber(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1950,22 +1942,18 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	err = configurator.UpdateNetworkConfig(
-		"n1", lte.CellularNetworkConfigType,
-		&lteModels.NetworkCellularConfigs{
-			Epc: &lteModels.NetworkEpcConfigs{
-				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
-					"foo": {
-						MaxUlBitRate: 100,
-						MaxDlBitRate: 100,
-					},
+	err = configurator.UpdateNetworkConfig(context.Background(), "n1", lte.CellularNetworkConfigType, &lteModels.NetworkCellularConfigs{
+		Epc: &lteModels.NetworkEpcConfigs{
+			SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
+				"foo": {
+					MaxUlBitRate: 100,
+					MaxDlBitRate: 100,
 				},
 			},
 		},
-		serdes.Network,
-	)
+	}, serdes.Network)
 	assert.NoError(t, err)
 
 	//preseed 2 apns
@@ -2105,7 +2093,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 func TestSubscriberBasename(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
 		"n0",
@@ -2212,7 +2200,7 @@ func TestSubscriberBasename(t *testing.T) {
 func TestSubscriberPolicy(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
 		"n0",
@@ -2320,7 +2308,7 @@ func TestSubscriberPolicy(t *testing.T) {
 func TestAPNPolicyProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
 		"n0",
@@ -2385,7 +2373,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tests.RunUnitTest(t, e, tc)
 
 		// Configurator confirms apn_policy_profile exists
-		profiles, err := configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+		profiles, err := configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 		assert.NoError(t, err)
 		assert.Len(t, profiles, 1)
 
@@ -2406,7 +2394,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tests.RunUnitTest(t, e, tc)
 
 		// Configurator confirms apn_policy_profile still exists
-		profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+		profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 		assert.NoError(t, err)
 		assert.Len(t, profiles, 1)
 
@@ -2422,12 +2410,12 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tests.RunUnitTest(t, e, tc)
 
 		// Configurator confirms subscriber no longer exists
-		profiles, err = configurator.ListEntityKeys("n0", lte.SubscriberEntityType)
+		profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.SubscriberEntityType)
 		assert.NoError(t, err)
 		assert.Len(t, profiles, 0)
 
 		// Configurator confirms apn_policy_profile no longer exists
-		profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+		profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 		assert.NoError(t, err)
 		assert.Len(t, profiles, 0)
 
@@ -2500,7 +2488,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms policy profile exists
-	profiles, err := configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+	profiles, err := configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 	assert.NoError(t, err)
 	assert.Len(t, profiles, 1)
 
@@ -2561,7 +2549,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms policy profiles exist
-	profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+	profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 	assert.NoError(t, err)
 	assert.Len(t, profiles, 2)
 
@@ -2612,7 +2600,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms deletion
-	profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+	profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 	assert.NoError(t, err)
 	assert.Len(t, profiles, 0)
 
@@ -2704,7 +2692,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms deletion
-	profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+	profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 	assert.NoError(t, err)
 	assert.Len(t, profiles, 1)
 
@@ -2724,7 +2712,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator non-shared apn_policy_profile
-	profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+	profiles, err = configurator.ListEntityKeys(context.Background(), "n0", lte.APNPolicyProfileEntityType)
 	assert.NoError(t, err)
 	assert.Len(t, profiles, 2)
 }

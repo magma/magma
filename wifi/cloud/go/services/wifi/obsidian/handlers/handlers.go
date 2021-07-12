@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"reflect"
 	"sort"
@@ -224,7 +225,7 @@ func listMeshes(c echo.Context) error {
 		return nerr
 	}
 
-	ids, err := configurator.ListEntityKeys(nid, wifi.MeshEntityType)
+	ids, err := configurator.ListEntityKeys(c.Request().Context(), nid, wifi.MeshEntityType)
 	if err != nil {
 		if err == merrors.ErrNotFound {
 			return obsidian.HttpError(err, http.StatusNotFound)
@@ -245,7 +246,7 @@ func createMesh(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -301,7 +302,7 @@ func updateMesh(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if string(payload.ID) != mid {

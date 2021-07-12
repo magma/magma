@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -28,7 +29,7 @@ import (
 )
 
 func listNetworks(c echo.Context) error {
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(c.Request().Context())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -44,7 +45,11 @@ func registerNetwork(c echo.Context) error {
 		return nerr
 	}
 	network := payload.(*models.Network).ToConfiguratorNetwork()
-	createdNetworks, err := configurator.CreateNetworks([]configurator.Network{network}, serdes.Network)
+	createdNetworks, err := configurator.CreateNetworks(
+		c.Request().Context(),
+		[]configurator.Network{network},
+		serdes.Network,
+	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -56,7 +61,7 @@ func getNetwork(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	network, err := configurator.LoadNetwork(networkID, true, true, serdes.Network)
+	network, err := configurator.LoadNetwork(c.Request().Context(), networkID, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
@@ -73,7 +78,7 @@ func updateNetwork(c echo.Context) error {
 		return nerr
 	}
 	update := network.(*models.Network).ToUpdateCriteria()
-	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update}, serdes.Network)
+	err := configurator.UpdateNetworks(c.Request().Context(), []configurator.NetworkUpdateCriteria{update}, serdes.Network)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -85,7 +90,7 @@ func deleteNetwork(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := configurator.DeleteNetwork(networkID)
+	err := configurator.DeleteNetwork(c.Request().Context(), networkID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -103,7 +108,8 @@ func CreateDNSRecord(c echo.Context) error {
 		return nerr
 	}
 
-	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	reqCtx := c.Request().Context()
+	dnsConfig, nerr := getExistingDNSConfig(reqCtx, networkID)
 	if nerr != nil {
 		return nerr
 	}
@@ -116,7 +122,7 @@ func CreateDNSRecord(c echo.Context) error {
 	}
 
 	dnsConfig.Records = append(dnsConfig.Records, record)
-	nerr = updateDNSConfig(networkID, dnsConfig)
+	nerr = updateDNSConfig(reqCtx, networkID, dnsConfig)
 	if nerr != nil {
 		return nerr
 	}
@@ -134,7 +140,8 @@ func UpdateDNSRecord(c echo.Context) error {
 		return nerr
 	}
 
-	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	reqCtx := c.Request().Context()
+	dnsConfig, nerr := getExistingDNSConfig(reqCtx, networkID)
 	if nerr != nil {
 		return nerr
 	}
@@ -142,7 +149,7 @@ func UpdateDNSRecord(c echo.Context) error {
 	for i, existingRecord := range dnsConfig.Records {
 		if existingRecord.Domain == domain {
 			dnsConfig.Records[i] = record
-			nerr = updateDNSConfig(networkID, dnsConfig)
+			nerr = updateDNSConfig(reqCtx, networkID, dnsConfig)
 			if nerr != nil {
 				return nerr
 			}
@@ -158,7 +165,7 @@ func ReadDNSRecord(c echo.Context) error {
 		return nerr
 	}
 
-	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	dnsConfig, nerr := getExistingDNSConfig(c.Request().Context(), networkID)
 	if nerr != nil {
 		return nerr
 	}
@@ -176,7 +183,8 @@ func DeleteDNSRecord(c echo.Context) error {
 		return nerr
 	}
 
-	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	reqCtx := c.Request().Context()
+	dnsConfig, nerr := getExistingDNSConfig(reqCtx, networkID)
 	if nerr != nil {
 		return nerr
 	}
@@ -188,7 +196,7 @@ func DeleteDNSRecord(c echo.Context) error {
 			} else {
 				dnsConfig.Records = append(dnsConfig.Records[:i], dnsConfig.Records[i+1:]...)
 			}
-			nerr = updateDNSConfig(networkID, dnsConfig)
+			nerr = updateDNSConfig(reqCtx, networkID, dnsConfig)
 			if nerr != nil {
 				return nerr
 			}
@@ -198,8 +206,9 @@ func DeleteDNSRecord(c echo.Context) error {
 	return echo.NewHTTPError(http.StatusNotFound)
 }
 
-func updateDNSConfig(networkID string, dnsConfig *models.NetworkDNSConfig) *echo.HTTPError {
+func updateDNSConfig(ctx context.Context, networkID string, dnsConfig *models.NetworkDNSConfig) *echo.HTTPError {
 	err := configurator.UpdateNetworks(
+		ctx,
 		[]configurator.NetworkUpdateCriteria{
 			{
 				ID:                   networkID,
@@ -222,8 +231,8 @@ func getNetworkIDAndDomain(c echo.Context) (string, string, *echo.HTTPError) {
 	return vals[0], vals[1], nil
 }
 
-func getExistingDNSConfig(networkID string) (*models.NetworkDNSConfig, *echo.HTTPError) {
-	iDNSConfig, err := configurator.LoadNetworkConfig(networkID, orc8r.DnsdNetworkType, serdes.Network)
+func getExistingDNSConfig(ctx context.Context, networkID string) (*models.NetworkDNSConfig, *echo.HTTPError) {
+	iDNSConfig, err := configurator.LoadNetworkConfig(ctx, networkID, orc8r.DnsdNetworkType, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return nil, echo.NewHTTPError(http.StatusNotFound)
 	} else if err != nil {

@@ -187,7 +187,7 @@ func (m *Name) UnmarshalBinary(message []byte) error {
 	return err
 }
 
-func (m *Name) ValidateModel() error {
+func (m *Name) ValidateModel(context.Context) error {
 	if m.Name == "BADNAME" {
 		return fmt.Errorf("this name: %s is not allowed", m.Name)
 	}

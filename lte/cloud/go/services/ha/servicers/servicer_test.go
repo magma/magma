@@ -58,7 +58,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	testGwId2 := "g2"
 	testGwPool := "pool1"
 	enbSn := "enb1"
-	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkId}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
 	assert.NoError(t, err)
 
 	// Initialize HA network topology

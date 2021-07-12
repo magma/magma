@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/serdes"
@@ -57,7 +58,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	fact := test_utils.NewSQLBlobstore(t, "ctraced_handlers_test_blobstore")
 	blobstore := storage.NewCtracedBlobstore(fact)
 	obsidianHandlers := handlers.GetObsidianHandlers(mockGWClient, blobstore)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	listTraces := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing", obsidian.GET).HandlerFunc

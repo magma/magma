@@ -1,6 +1,7 @@
 package calculations_test
 
 import (
+	context2 "context"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
@@ -23,7 +24,7 @@ import (
 func TestUserCalculations(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n0",
@@ -91,7 +92,7 @@ func TestUserCalculations(t *testing.T) {
 func TestSiteCalculations(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntity(

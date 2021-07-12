@@ -14,6 +14,8 @@
 package models
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-multierror"
 
 	"magma/orc8r/cloud/go/obsidian/models"
@@ -28,7 +30,7 @@ const (
 	lteAuthOpcLength = 16
 )
 
-func (m *LteSubscription) ValidateModel() error {
+func (m *LteSubscription) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -47,11 +49,11 @@ func (m *LteSubscription) ValidateModel() error {
 	return nil
 }
 
-func (m *MutableSubscriber) ValidateModel() error {
+func (m *MutableSubscriber) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
-	if err := m.Lte.ValidateModel(); err != nil {
+	if err := m.Lte.ValidateModel(context.Background()); err != nil {
 		return err
 	}
 
@@ -66,23 +68,23 @@ func (m *MutableSubscriber) ValidateModel() error {
 	return nil
 }
 
-func (m MutableSubscribers) ValidateModel() error {
+func (m MutableSubscribers) ValidateModel(context.Context) error {
 	errs := &multierror.Error{}
 	for _, s := range m {
-		if err := s.ValidateModel(); err != nil {
+		if err := s.ValidateModel(context.Background()); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 	}
 	return errs.ErrorOrNil()
 }
 
-func (m *IcmpStatus) ValidateModel() error {
+func (m *IcmpStatus) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *MsisdnAssignment) ValidateModel() error {
+func (m *MsisdnAssignment) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
