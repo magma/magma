@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	context2 "context"
 	"testing"
 	"time"
 
@@ -84,10 +85,10 @@ func TestIndexerEnodebState(t *testing.T) {
 	errs, err = idx.Index(networkID, stateGw2)
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	gotA, err := lte_service.GetEnodebState(networkID, gatewayID1, enbSN)
+	gotA, err := lte_service.GetEnodebState(context2.Background(), networkID, gatewayID1, enbSN)
 	assert.NoError(t, err)
 	assert.Equal(t, enbState1, gotA)
-	gotB, err := lte_service.GetEnodebState(networkID, gatewayID2, enbSN)
+	gotB, err := lte_service.GetEnodebState(context2.Background(), networkID, gatewayID2, enbSN)
 	assert.NoError(t, err)
 	assert.Equal(t, enbState2, gotB)
 
@@ -99,7 +100,7 @@ func TestIndexerEnodebState(t *testing.T) {
 	errs, err = idx.Index(networkID, states)
 	assert.NoError(t, err)
 	assert.Error(t, errs[id3])
-	gotC, err := lte_service.GetEnodebState(networkID, gatewayID1, enbSN)
+	gotC, err := lte_service.GetEnodebState(context2.Background(), networkID, gatewayID1, enbSN)
 	assert.NoError(t, err)
 	assert.Equal(t, enbState2, gotC)
 }
