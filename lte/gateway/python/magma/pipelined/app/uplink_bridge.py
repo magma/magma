@@ -54,6 +54,7 @@ class UplinkBridgeController(MagmaController):
 
         self.config = self._get_config(kwargs['config'])
         self.logger.info("uplink bridge app config: %s", self.config)
+        self._clean_restart = kwargs['config']['clean_restart']
 
     def _get_config(self, config_dict) -> namedtuple:
 
@@ -185,8 +186,9 @@ class UplinkBridgeController(MagmaController):
         self._set_sgi_interface_ingress_flows()
 
     def cleanup_on_disconnect(self, datapath):
-        self._del_eth_port()
-        self._delete_all_flows()
+        if self._clean_restart:
+            self._del_eth_port()
+            self._delete_all_flows()
 
     def delete_all_flows(self, datapath):
         self._delete_all_flows()
