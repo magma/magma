@@ -39,13 +39,13 @@ Teids teids0;
 Teids teids1;
 Teids teids2;
 
-class LocalEnforcerTest : public ::testing::Test {
+class LocalEnforcerStatsPollerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    reporter      = std::make_shared<MockSessionReporter>();
-    pipelined_mock  = std::make_shared<MockPipelined>();
-    rule_store    = std::make_shared<StaticRuleStore>();
-    session_store = std::make_shared<SessionStore>(
+    reporter       = std::make_shared<MockSessionReporter>();
+    pipelined_mock = std::make_shared<MockPipelined>();
+    rule_store     = std::make_shared<StaticRuleStore>();
+    session_store  = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     pipelined_client     = std::make_shared<MockPipelinedClient>();
     spgw_client          = std::make_shared<MockSpgwServiceClient>();
@@ -55,12 +55,8 @@ class LocalEnforcerTest : public ::testing::Test {
     local_enforcer       = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, 0, 0, default_mconfig);
-    evb = folly::EventBaseManager::get()->getEventBase();
-    local_enforcer->attachEventBase(evb);
     session_map   = SessionMap{};
     test_cfg_     = get_default_config("");
-    default_cfg_1 = get_default_config(IMSI1);
-    default_cfg_2 = get_default_config(IMSI2);
 
     teids0.set_agw_teid(0);
     teids0.set_enb_teid(0);
@@ -68,13 +64,6 @@ class LocalEnforcerTest : public ::testing::Test {
     teids1.set_enb_teid(TEID_1_DL);
     teids2.set_agw_teid(TEID_2_UL);
     teids2.set_enb_teid(TEID_2_DL);
-  }
-
-  virtual void TearDown() { folly::EventBaseManager::get()->clearEventBase(); }
-
-  void run_evb() {
-    evb->runAfterDelay([this]() { local_enforcer->stop(); }, 100);
-    local_enforcer->start();
   }
 
   SessionConfig get_default_config(const std::string& imsi) {
@@ -97,7 +86,7 @@ class LocalEnforcerTest : public ::testing::Test {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  protected:
+ protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionStore> session_store;
@@ -109,60 +98,50 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<MockPipelined> pipelined_mock;
   SessionMap session_map;
   SessionConfig test_cfg_;
-  SessionConfig default_cfg_1;
-  SessionConfig default_cfg_2;
-  folly::EventBase* evb;
 };
 
-TEST_F(LocalEnforcerTest, test_polling_pipelined) {
-    //insert some rules to retrieve
-    insert_static_rule(1, "", "rule1");
-    insert_static_rule(1, "", "rule2");
-    insert_static_rule(1, "", "rule3");
-    insert_static_rule(1, "", "rule4");
-    
-    CreateSessionResponse response;
-    local_enforcer->init_session(
-        session_map, IMSI1, SESSION_ID_1, get_default_config(IMSI1), response);
-    local_enforcer->update_tunnel_ids(
-        session_map,
-        create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
-    RuleRecordTable table;
+TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
+  // insert some rules to retrieve
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+  insert_static_rule(1, "", "rule3");
+  insert_static_rule(1, "", "rule4");
 
-    auto record_list = table.mutable_records();
-    create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
-      record_list->Add());
-    create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 15, 35,
-      record_list->Add());
-    create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule3", 100, 150,
-      record_list->Add());
-    create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule4", 200, 300,
-      record_list->Add());
+  CreateSessionResponse response;
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, get_default_config(IMSI1), response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+  RuleRecordTable table;
+
+  auto record_list = table.mutable_records();
+  auto ue_ipv4     = test_cfg_.common_context.ue_ipv4();
+  create_rule_record(IMSI1, ue_ipv4, "rule1", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, ue_ipv4, "rule2", 15, 35, record_list->Add());
+  create_rule_record(IMSI1, ue_ipv4, "rule3", 100, 150, record_list->Add());
+  create_rule_record(IMSI1, ue_ipv4, "rule4", 200, 300, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
 
   local_enforcer->aggregate_records(session_map, table, update);
 
-  int cookie = 0;
+  int cookie      = 0;
   int cookie_mask = 0;
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
-      testing::_)).Times(1);
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
+      .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
-  cookie = 1;
+  cookie      = 1;
   cookie_mask = 0;
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
-      testing::_)).Times(1);
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
+      .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
-  cookie = 0;
+  cookie      = 0;
   cookie_mask = 1;
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
-      testing::_)).Times(1);
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
+      .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 }
 
@@ -173,4 +152,4 @@ int main(int argc, char** argv) {
   return RUN_ALL_TESTS();
 }
 
-}
+}  // namespace magma
