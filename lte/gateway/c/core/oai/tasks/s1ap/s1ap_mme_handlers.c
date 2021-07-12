@@ -2618,11 +2618,12 @@ int s1ap_mme_handle_handover_request(
   S1ap_SecurityContext_t* const security_context =
       &ie->value.choice.SecurityContext;
   security_context->nextHopChainingCount = ho_request_p->ncc;
-  security_context->nextHopParameter.buf = calloc(32, sizeof(uint8_t));
+  security_context->nextHopParameter.buf =
+      calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t));
   memcpy(
       security_context->nextHopParameter.buf, &ho_request_p->nh,
-      sizeof(uint8_t));
-  security_context->nextHopParameter.size        = 32;
+      AUTH_NEXT_HOP_SIZE);
+  security_context->nextHopParameter.size        = AUTH_NEXT_HOP_SIZE;
   security_context->nextHopParameter.bits_unused = 0;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
