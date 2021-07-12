@@ -160,6 +160,8 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   new_p->m5_ue_context_modification_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
 
+  new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
+
   return new_p;
 }
 

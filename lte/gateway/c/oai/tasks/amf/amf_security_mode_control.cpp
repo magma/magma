@@ -32,6 +32,7 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_identity.h"
 #include "conversions.h"
+#include "amf_app_timer_management.h"
 
 namespace magma5g {
 
@@ -173,10 +174,9 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     if (rc != RETURNerror) {
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: Security Mode Calling start_timer_T3560 \n");
-      smc_proc->T3560.id = start_timer(
-          &amf_app_task_zmq_ctx, SECURITY_MODE_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, security_mode_t3560_handler,
-          (void*) smc_proc->ue_id);
+      smc_proc->T3560.id = amf_app_start_timer(
+          SECURITY_MODE_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+          security_mode_t3560_handler, smc_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
           "Timer:  After starting SECURITY_MODE_TIMER timer T3560 "
@@ -189,68 +189,74 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
 
 /* Timer Expiry Handler for SECURITY COMMAND MODE Timer 3560 */
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
-  OAILOG_INFO(LOG_AMF_APP, "Timer: In security_mode_t3560_handler - T3560\n");
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
-  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-
-  if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
-    return -1;
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP,
+        "T3560: Invalid Timer Id expiration, Timer Id: %u and ue Id: %d \n",
+        timer_id, ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "Timer: Created ue_mm_context from global context - T3560\n");
-  amf_ctx = &ue_context->amf_context;
-  OAILOG_INFO(LOG_AMF_APP, "Timer: got amf ctx and calling common procedure\n");
+  ue_m5gmm_context_s* ue_amf_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_amf_context == NULL) {
+    OAILOG_INFO(
+        LOG_AMF_APP, "T3560: ue_amf_context is NULL for ue id: %d\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
+  amf_ctx = &ue_amf_context->amf_context;
+
   if (!(amf_ctx)) {
-    OAILOG_ERROR(LOG_AMF_APP, "T3560 timer expired No AMF context\n");
-    return 1;
-    // OAILOG_FUNC_OUT(LOG_AMF_APP);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "T3560: Timer expired no amf context for ue id: %d\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
 
-  OAILOG_ERROR(LOG_AMF_APP, "Timer:In Identity Expiration Handler ZMQ TIMER\n");
-
   if (smc_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3560 timer   timer id %d ue id %d\n", smc_proc->T3560.id,
-        smc_proc->ue_id);
+        LOG_AMF_APP, "T3560: Timer expired  for timer id %d ue id %d\n",
+        smc_proc->T3560.id, smc_proc->ue_id);
     smc_proc->T3560.id = -1;
-  }
-
-  /*
-   * Increment the retransmission counter
-   */
-  smc_proc->retransmission_count += 1;
-  OAILOG_ERROR(
-      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
-      smc_proc->retransmission_count);
-
-  if (smc_proc->retransmission_count < SECURITY_COUNTER_MAX) {
     /*
-     * Send identity request message to the UE
+     * Increment the retransmission counter
      */
+    smc_proc->retransmission_count += 1;
     OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Timer: timer has expired Sending Security Command Mode request "
-        "again\n");
-    amf_security_request(smc_proc);
-  } else {
-    /*
-     * Abort the smc procedure
-     */
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Timer: Maximum retires done hence Abort the smc procedure\n");
-    return -1;
-  }
+        LOG_AMF_APP, "T3560: Incrementing retransmission_count to %d\n",
+        smc_proc->retransmission_count);
 
-  return 0;
+    if (smc_proc->retransmission_count < SECURITY_COUNTER_MAX) {
+      /*
+       * Retransmission of security request message to the UE
+       */
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "T3560: timer T3560 has expired for ud id:%d, so retransmitting "
+          "Security Command Mode request\n",
+          ue_id);
+      amf_security_request(smc_proc);
+    } else {
+      /*
+       * Abort the smc procedure
+       */
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "T3560: Maximum retires: %d for T3560 done hence"
+          " Abort the security mode command procedure\n",
+          smc_proc->retransmission_count);
+      amf_proc_registration_abort(amf_ctx, ue_amf_context);
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 /*
@@ -324,6 +330,10 @@ int amf_proc_security_mode_control(
     amf_ctx->_security.vector_index = 0;
   }
 
+  if (amf_ctx->_security.eksi == KSI_NO_KEY_AVAILABLE) {
+    amf_ctx->_security.eksi = 0;
+  }
+
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->amf_ue_ngap_id;
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
@@ -376,7 +386,7 @@ int amf_proc_security_mode_control(
             LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
       } else {
-        OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s", snni);
+        OAILOG_INFO(LOG_NAS_AMF, "serving network name: %s", snni);
       }
 
       memcpy(
@@ -433,12 +443,13 @@ int amf_proc_security_mode_control(
     smc_proc->amf_com_proc.amf_proc.base_proc.fail_out      = NULL;
     smc_proc->ue_id                                         = ue_id;
     smc_proc->retransmission_count                          = 0;
-    smc_proc->ksi                                           = ksi;
+    smc_proc->ksi          = amf_ctx->_security.eksi;
     smc_proc->selected_eea = amf_ctx->_security.selected_algorithms.encryption;
-    OAILOG_DEBUG(
+    OAILOG_INFO(
         LOG_NAS_AMF,
-        "5G CN encryption algorithm selected is (%d) for ue_id (%u)\n",
-        smc_proc->selected_eea, ue_id);
+        "5G CN encryption algorithm selected is (%d) for ue_id (%u) "
+        "smc_proc->ksi=%d\n",
+        smc_proc->selected_eea, ue_id, smc_proc->ksi);
     smc_proc->selected_eia = amf_ctx->_security.selected_algorithms.integrity;
     OAILOG_DEBUG(
         LOG_NAS_AMF,
@@ -454,5 +465,4 @@ int amf_proc_security_mode_control(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 }  // namespace magma5g

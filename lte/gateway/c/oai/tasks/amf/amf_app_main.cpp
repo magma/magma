@@ -70,7 +70,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       OAILOG_DEBUG(LOG_AMF_APP, "UPLINK_NAS_MESSAGE received\n");
       amf_app_handle_uplink_nas_message(
           amf_app_desc_p, AMF_APP_UL_DATA_IND(received_message_p).nas_msg,
-          AMF_APP_UL_DATA_IND(received_message_p).ue_id);
+          AMF_APP_UL_DATA_IND(received_message_p).ue_id,
+          AMF_APP_UL_DATA_IND(received_message_p).tai);
       break;
     /* Handle PDU session Response from UE */
     case N11_CREATE_PDU_SESSION_RESPONSE:

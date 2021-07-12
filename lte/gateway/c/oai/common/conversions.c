@@ -164,6 +164,8 @@ void imsi_string_to_3gpp_imsi(const Imsi_t* Imsi, imsi_t* imsi) {
 //------------------------------------------------------------------------------
 imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi) {
   imsi64_t imsi64 = INVALID_IMSI64;
+  bool skip       = false;
+
   if (imsi) {
     imsi64 = 0;
     for (int i = 0; i < IMSI_BCD8_SIZE; i++) {
@@ -175,25 +177,23 @@ imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi) {
       d2         = d2 & 0x0f;
       if (d1 < 10) {
         imsi64 = imsi64 * 10 + d1;
+      } else {
+        skip = true;
       }
+
       if (d2 < 10) {
         imsi64 = imsi64 * 10 + d2;
+      } else {
+        skip = true;
       }
-#if 0
-      if (10 > d1) {
-        imsi64 = imsi64 * 10 + d1;
-        if (10 > d2) {
-          imsi64 = imsi64 * 10 + d2;
-        }
-	else {
-          continue;
-        }
-      }
-      else {
-        continue;
-      }
-#endif
     }
   }
+
+  // As per latest sim behavior "2224560000000010" is received
+  // This implies first 15 digits are valid and last is  not considered
+  if (skip == false) {
+    imsi64 = imsi64 / 10;
+  }
+
   return imsi64;
 }

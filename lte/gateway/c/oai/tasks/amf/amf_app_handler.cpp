@@ -401,7 +401,7 @@ imsi64_t amf_app_handle_initial_ue_message(
       OAILOG_CRITICAL(
           LOG_AMF_APP,
           "AMF_APP_INITIAL_UE_MESSAGE. AMF_UE_NGAP_ID allocation Failed.\n");
-      amf_remove_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context_p);
+      amf_remove_ue_context(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
     }
     AMF_APP_GNB_NGAP_ID_KEY(
@@ -455,12 +455,13 @@ imsi64_t amf_app_handle_initial_ue_message(
  **                                                                        **
  ***************************************************************************/
 int amf_app_handle_uplink_nas_message(
-    amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id) {
+    amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
+    const tai_t originating_tai) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   OAILOG_DEBUG(LOG_AMF_APP, " Received NAS UPLINK DATA from NGAP\n");
   if (msg) {
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap = {};
     /*
      * Notify the AMF procedure call manager that data transfer
      * indication has been received from the Access-Stratum sublayer
@@ -468,6 +469,7 @@ int amf_app_handle_uplink_nas_message(
     amf_sap.primitive                    = AMFAS_ESTABLISH_REQ;
     amf_sap.u.amf_as.u.establish.ue_id   = ue_id;
     amf_sap.u.amf_as.u.establish.nas_msg = msg;
+    amf_sap.u.amf_as.u.establish.tai     = originating_tai;
     msg                                  = NULL;
     rc                                   = amf_sap_send(&amf_sap);
   } else {
@@ -922,7 +924,8 @@ void amf_app_handle_cm_idle_on_ue_context_release(
   }
 
   // if UE on REGISTERED_IDLE, so no need to do anyting
-  if (ue_context->mm_state == REGISTERED_CONNECTED) {
+  if ((ue_context->mm_state == REGISTERED_CONNECTED) ||
+      (ue_context->mm_state == DEREGISTERED)) {
     // UE in connected state and need to check if cause is proper
     if (cm_idle_req.relCause == NGAP_RADIO_NR_GENERATED_REASON) {
       // Change the respective UE/PDU session state to idle/inactive.
