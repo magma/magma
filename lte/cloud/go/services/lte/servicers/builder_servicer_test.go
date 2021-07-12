@@ -160,6 +160,7 @@ func TestBuilder_Build(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -373,6 +374,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -651,6 +653,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -674,6 +677,84 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_Build_ConfigOverride(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	nwConfig := lte_models.NewDefaultTDDNetworkConfig()
+	// Change sync interval from the default 300
+	nwConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(120)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: nwConfig,
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+
+	gatewayConfig := newDefaultGatewayConfig()
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             gatewayConfig,
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+
+	// no override. nw-wide 120 expected
+	expected := map[string]proto.Message{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+			SyncInterval:    120,
+		},
+	}
+
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	gatewayConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(90)
+	// override. gw-specific 90 expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 90
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	nwConfig.Epc.SubscriberdbSyncInterval = 0
+	gatewayConfig.Epc.SubscriberdbSyncInterval = 0
+
+	// nw-wide and gw-specific not set. Service-level default expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 300
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	lte_test_init.StartTestServiceWithConfig(t, lte_service.Config{DefaultSubscriberdbSyncInterval: 30})
+
+	// nw-wide and gw-specific not set. Service-level default (30) too low. Enforced minimum (60) expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 60
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 }
 
 func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
@@ -799,6 +880,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -942,6 +1024,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1070,6 +1153,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1204,6 +1288,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1333,6 +1418,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
