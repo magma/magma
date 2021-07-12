@@ -24,7 +24,7 @@ extern "C" {
 #include "conversions.h"
 #include "secu_defs.h"
 
-typedef uint32_t amf_ue_ngap_id_t;
+typedef uint64_t amf_ue_ngap_id_t;
 #define QUADLET 4
 #define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
   LENGTH += QUADLET - (LENGTH % QUADLET)

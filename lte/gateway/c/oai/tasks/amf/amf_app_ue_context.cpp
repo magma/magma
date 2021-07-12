@@ -41,7 +41,7 @@ amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p) {
   amf_ue_ngap_id_t tmp = 0;
   tmp = __sync_fetch_and_add(amf_app_ue_ngap_id_generator_p, 1);
-  return tmp;
+  return tmp + 65538;
 }
 
 /****************************************************************************
