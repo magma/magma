@@ -311,6 +311,7 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
     libconfig_int internal_sampling_fwd_tbl_num = 0;
     libconfig_int uplink_port_num               = 0;
     char* multi_tunnel                          = NULL;
+    char* gtp_echo                              = NULL;
     char* uplink_mac                            = NULL;
     char* pipelined_managed_tbl0                = NULL;
     if (config_setting_lookup_string(
@@ -335,6 +336,9 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_MULTI_TUNNEL,
             (const char**) &multi_tunnel) &&
+        config_setting_lookup_string(
+            ovs_settings, SGW_CONFIG_STRING_OVS_GTP_ECHO,
+            (const char**) &gtp_echo) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED,
             (const char**) &pipelined_managed_tbl0)) {
@@ -363,6 +367,12 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         config_pP->ovs_config.multi_tunnel = true;
       }
       OAILOG_INFO(LOG_SPGW_APP, "Multi tunnel enable: %s\n", multi_tunnel);
+      if (strcasecmp(gtp_echo, "true") == 0) {
+        config_pP->ovs_config.gtp_echo = true;
+      } else {
+        config_pP->ovs_config.gtp_echo = false;
+      }
+      OAILOG_INFO(LOG_SPGW_APP, "GTP-U echo response enable: %s\n", gtp_echo);
     } else {
       Fatal("Couldn't find all ovs settings in spgw config\n");
     }

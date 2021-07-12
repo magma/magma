@@ -18,7 +18,9 @@ significant differences and many things in there you don't need to worry about.
 
 ### Build and publish images
 
-Follow the instructions at [Building Orchestrator](./deploy_build.md#build-and-publish-container-images).
+> NOTE: you can skip this step if you want to use the official container images at [artifactory.magmacore.org](https://artifactory.magmacore.org/).
+
+Follow the instructions at [Building Orchestrator](./dev_build.md#build-and-publish-container-images).
 
 In the end you should have your container images published to a registry.
 

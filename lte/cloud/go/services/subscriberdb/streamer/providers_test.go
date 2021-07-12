@@ -14,6 +14,7 @@ limitations under the License.
 package streamer_test
 
 import (
+	"context"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
@@ -162,7 +163,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err := provider.GetUpdates("hw1", nil)
+	actual, err := provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -197,7 +198,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err = provider.GetUpdates("hw1", nil)
+	actual, err = provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -238,7 +239,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err = provider.GetUpdates("hw1", nil)
+	actual, err = provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

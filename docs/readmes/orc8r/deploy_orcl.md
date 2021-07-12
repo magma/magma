@@ -1,12 +1,12 @@
 ---
 id: deploy_orcl
-title: Experimental Orc8r Deployer
+title: Install Orchestrator (Managed)
 hide_title: true
 ---
 
-# Orcl
+# Managed Orc8r Deployment via Orcl
 
-Orcl is a Orchestrator CLI. It is used for managing Orc8r deployment. It provides following subcommands.
+Orcl is the Orchestrator CLI. It is used for managing an Orc8r deployment. It provides the following subcommands
 
 - Configure
 - Certs
@@ -14,9 +14,10 @@ Orcl is a Orchestrator CLI. It is used for managing Orc8r deployment. It provide
 - Upgrade
 - Verify
 - Cleanup
-- Debug(perhaps in the future)
+- Debug (perhaps in the future)
 
 ![Orcl Big Picture](assets/orc8r/orcl.png)
+
 Orcl is packaged within orc8r_deployer. Orc8r deployer is a docker image which contains all the necessary prerequisites to deploy orc8r. The only requirements for running orc8r_deployer is that the the host machine must have [docker engine installed](https://docs.docker.com/get-docker/).
 
 ## Usage

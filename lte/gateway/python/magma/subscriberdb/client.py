@@ -142,7 +142,10 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                     self._loop,
                 )
                 subscribers.extend(res.subscribers)
-                flat_digest = res.flat_digest
+                # Cloud sends back digests during request for the first page
+                if req_page_token == "":
+                    flat_digest = res.flat_digest
+
                 req_page_token = res.next_page_token
                 found_empty_token = req_page_token == ""
 

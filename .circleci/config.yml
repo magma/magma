@@ -24,7 +24,7 @@ aliases:
   - &session_manager_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos feg/protos orc8r/protos"
   - &mme_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/core lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
   - &connection_tracker_build_verify

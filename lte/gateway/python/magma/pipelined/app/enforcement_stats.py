@@ -575,7 +575,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
         Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
-        convert to a Rule Record Table
+        convert to a Rule Record Table and remove old flows
         """
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
@@ -590,6 +590,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 return RuleRecordTable()
             else:
                 usage = self._get_usage_from_flow_stat(response.body)
+                self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
                 record_table = RuleRecordTable(
                     records=usage.values(),
                     epoch=global_epoch)

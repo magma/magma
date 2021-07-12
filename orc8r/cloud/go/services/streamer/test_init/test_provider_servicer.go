@@ -44,7 +44,7 @@ func StartNewTestProvider(t *testing.T, provider providers.StreamProvider, strea
 }
 
 func (p *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
-	updates, err := p.provider.GetUpdates(req.GatewayId, req.ExtraArgs)
+	updates, err := p.provider.GetUpdates(context.Background(), req.GatewayId, req.ExtraArgs)
 	res := &protos.DataUpdateBatch{Updates: updates}
 	return res, err
 }

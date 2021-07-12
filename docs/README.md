@@ -1,4 +1,4 @@
-# Magma documentation
+# Magma Documentation
 
 This directory contains the higher-level documentation for the Magma project.
 
@@ -67,7 +67,7 @@ Docusaurus container
 cd ${MAGMA_ROOT}/docs/docusaurus
 docker-compose down
 docker build --tag magma_docusaurus .
-docker-compose up --detach
+docker-compose -f docker-compose.yml -f docker-compose.publish.yml up --detach
 docker-compose exec docusaurus bash
 ```
 

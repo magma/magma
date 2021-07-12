@@ -169,7 +169,7 @@ func (srv *SyncRPCService) receiveFromStream(
 			return
 		} else {
 			glog.V(2).Infof("HWID %v: processing response", coordinator.GwID)
-			err := srv.processSyncRPCResp(syncRPCResp, coordinator.GwID)
+			err := srv.processSyncRPCResp(coordinator.Ctx, syncRPCResp, coordinator.GwID)
 			if err != nil {
 				coordinator.sendErr(fmt.Errorf("HWID %v: receiveFromStream: error processing stream response: %v", coordinator.GwID, err))
 				return
@@ -182,9 +182,9 @@ func (srv *SyncRPCService) receiveFromStream(
 // heartbeat or call upon the broker to send the response to the HTTP server.
 //
 // Returning err indicates to end the bidirectional stream.
-func (srv *SyncRPCService) processSyncRPCResp(resp *protos.SyncRPCResponse, hwId string) error {
+func (srv *SyncRPCService) processSyncRPCResp(ctx context.Context, resp *protos.SyncRPCResponse, hwId string) error {
 	if resp.HeartBeat {
-		err := directoryd.MapHWIDToHostname(hwId, srv.hostName)
+		err := directoryd.MapHWIDToHostname(ctx, hwId, srv.hostName)
 		if err != nil {
 			// Cannot persist <gwId, hostName> so nobody can send things to this
 			// gateway use the stream, therefore return err to end the stream.

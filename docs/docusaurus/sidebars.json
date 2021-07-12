@@ -29,13 +29,6 @@
       },
       {
         "type": "subcategory",
-        "label": "Orchestrator",
-        "ids": [
-          "howtos/thanos"
-        ]
-      },
-      {
-        "type": "subcategory",
         "label": "NMS",
         "ids": [
           "nms/overview",
@@ -49,18 +42,6 @@
           "nms/federation",
           "nms/admin",
           "nms/tips_and_tricks"
-        ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Troubleshooting",
-        "ids": [
-          "howtos/troubleshooting/agw_unable_to_checkin",
-          "howtos/troubleshooting/user_unable_to_attach",
-          "howtos/troubleshooting/update_certificates",
-          "howtos/troubleshooting/generate_admin_operator_certificates",
-          "howtos/troubleshooting/analyze_service_crashes_in_agw",
-          "howtos/troubleshooting/datapath_connectivity"
         ]
       }
     ],
@@ -96,13 +77,10 @@
         "label": "Access Gateway",
         "ids": [
           "lte/deploy_install",
-          "lte/deploy_install_ubuntu",
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
-          "lte/deploy_config_agw_ha",
-          "lte/build_install_magma_pkg_in_agw",
-          "lte/integrate_sentry"
+          "lte/build_install_magma_pkg_in_agw"
         ]
       },
       {
@@ -110,11 +88,9 @@
         "label": "Orchestrator",
         "ids": [
           "orc8r/deploy_intro",
-          "orc8r/deploy_build",
           "orc8r/deploy_install",
-          "orc8r/hold_terraform_state_on_s3",
-          "orc8r/override_values_of_terraform_files",
           "orc8r/deploy_orcl",
+          "orc8r/deploy_terraform_options",
           "orc8r/deploy_faq"
         ]
       },
@@ -122,7 +98,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "nms/deploy_config"
+          "nms/deploy_setup"
         ]
       },
       {
@@ -131,8 +107,31 @@
         "ids": [
           "feg/deploy_intro",
           "feg/deploy_build",
-          "feg/deploy_install",
-          "feg/deploy_configure"
+          "feg/deploy_install"
+        ]
+      }
+    ],
+    "Configure": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "lte/configure_agw_ha",
+          "lte/integrate_sentry"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/configure_thanos"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
+        "ids": [
+          "feg/configure_federation"
         ]
       }
     ],
@@ -141,6 +140,8 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "lte/upgrade_debian_to_ubuntu",
+          "lte/upgrade_1_6",
           "lte/upgrade_1_5",
           "lte/upgrade_1_4",
           "lte/upgrade_1_3",
@@ -163,6 +164,18 @@
       }
     ],
     "Debug": [
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "howtos/troubleshooting/agw_unable_to_checkin",
+          "howtos/troubleshooting/user_unable_to_attach",
+          "howtos/troubleshooting/update_certificates",
+          "howtos/troubleshooting/generate_admin_operator_certificates",
+          "howtos/troubleshooting/analyze_service_crashes_in_agw",
+          "howtos/troubleshooting/datapath_connectivity"
+        ]
+      },
       {
         "type": "subcategory",
         "label": "Access Gateway",
@@ -194,12 +207,24 @@
       }
     ],
     "Contribute": [
-      "contributing/contribute_onboarding",
-      "contributing/contribute_workflow",
-      "contributing/contribute_conventions",
-      "contributing/contribute_ci_checks",
-      "contributing/contribute_codeowners",
-      "contributing/contribute_id_mappings"
+      {
+        "type": "subcategory",
+        "label": "Contribute",
+        "ids": [
+          "contributing/contribute_onboarding",
+          "contributing/contribute_workflow",
+          "contributing/contribute_conventions",
+          "contributing/contribute_id_mappings",
+          "contributing/contribute_ci_checks"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Maintain",
+        "ids": [
+          "contributing/contribute_codeowners"
+        ]
+      }
     ],
     "Technical Reference": [
       {
@@ -226,6 +251,7 @@
         "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
+          "orc8r/dev_build",
           "orc8r/dev_testing",
           "orc8r/dev_minikube",
           "orc8r/dev_security",

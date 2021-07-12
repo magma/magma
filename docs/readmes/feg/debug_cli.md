@@ -1,6 +1,6 @@
 ---
 id: debug_cli
-title: Feg Cli
+title: FeG CLI
 hide_title: true
 ---
 

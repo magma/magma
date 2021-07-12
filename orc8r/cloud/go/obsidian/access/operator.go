@@ -37,7 +37,7 @@ func getOperator(req *http.Request, decorate logDecorator) (*protos.Identity, er
 		glog.V(1).Info(decorate("Missing REST client certificate"))
 		return nil, fmt.Errorf("missing client certificate")
 	}
-	certInfo, err := certifier.GetCertificateIdentity(csn)
+	certInfo, err := certifier.GetCertificateIdentity(req.Context(), csn)
 	if err != nil {
 		if _, ok := err.(errors.ClientInitError); ok {
 			glog.Error(decorate("Certificate SN '%s' lookup error '%s'", csn, err))

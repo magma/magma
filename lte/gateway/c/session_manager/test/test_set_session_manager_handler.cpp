@@ -244,7 +244,7 @@ TEST_F(SessionManagerHandlerTest, test_UpdateSessionContext) {
   SessionSearchCriteria id1_success_sid(IMSI1, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store->find_session(session_map, id1_success_sid);
   auto& session   = **session_it;
-  session->set_config(cfg);
+  session->set_config(cfg, nullptr);
   session_enforcer->add_default_rules(session, IMSI1);
   session_enforcer->m5g_update_session_context(
       session_map, IMSI1, session, update);

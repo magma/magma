@@ -292,7 +292,8 @@ class SessionState {
       const magma::lte::TgppContext& tgpp_context,
       SessionStateUpdateCriteria* session_uc);
 
-  void set_config(const SessionConfig& config);
+  void set_config(
+      const SessionConfig& config, SessionStateUpdateCriteria* session_uc);
 
   SessionConfig get_config() const { return config_; }
 

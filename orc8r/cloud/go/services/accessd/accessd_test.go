@@ -14,6 +14,7 @@ limitations under the License.
 package accessd_test
 
 import (
+	"context"
 	"testing"
 
 	"magma/orc8r/cloud/go/identity"
@@ -27,6 +28,7 @@ import (
 
 func TestAccessManager(t *testing.T) {
 	accessd_test_service.StartTestService(t)
+	ctx := context.Background()
 
 	op1 := identity.NewOperator("operator1")
 	assert.NotEmpty(t, op1.ToCommonName())
@@ -42,13 +44,13 @@ func TestAccessManager(t *testing.T) {
 		{Id: net1, Permissions: accessprotos.AccessControl_READ},
 		{Id: net2, Permissions: accessprotos.AccessControl_WRITE},
 	}
-	err := accessd.UpdateOperator(op1, entities)
+	err := accessd.UpdateOperator(ctx, op1, entities)
 	assert.Error(t, err)
 
-	err = accessd.SetOperator(op1, entities)
+	err = accessd.SetOperator(ctx, op1, entities)
 	assert.NoError(t, err)
 
-	acl, err := accessd.GetOperatorACL(op1)
+	acl, err := accessd.GetOperatorACL(ctx, op1)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, acl)
 
@@ -61,32 +63,29 @@ func TestAccessManager(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, ent.Permissions, accessprotos.AccessControl_WRITE)
 
-	assert.NoError(t, accessd.CheckReadPermission(op1, net1))
-	assert.Error(t, accessd.CheckWritePermission(op1, net1))
+	assert.NoError(t, accessd.CheckReadPermission(ctx, op1, net1))
+	assert.Error(t, accessd.CheckWritePermission(ctx, op1, net1))
 
-	assert.Error(t, accessd.CheckReadPermission(op1, net2))
-	assert.NoError(t, accessd.CheckWritePermission(op1, net2))
+	assert.Error(t, accessd.CheckReadPermission(ctx, op1, net2))
+	assert.NoError(t, accessd.CheckWritePermission(ctx, op1, net2))
 
 	net3 := (&protos.Identity{}).SetNetwork("network3")
 
 	entitiesToAdd := []*accessprotos.AccessControl_Entity{
 		{Id: net3, Permissions: accessprotos.AccessControl_READ},
 	}
-	err = accessd.UpdateOperator(op1, entitiesToAdd)
+	err = accessd.UpdateOperator(ctx, op1, entitiesToAdd)
 	assert.NoError(t, err)
 
-	assert.NoError(t, accessd.CheckReadPermission(op1, net3))
-	assert.Error(t, accessd.CheckWritePermission(op1, net3))
+	assert.NoError(t, accessd.CheckReadPermission(ctx, op1, net3))
+	assert.Error(t, accessd.CheckWritePermission(ctx, op1, net3))
 
-	err = accessd.CheckPermissions(
-		op1,
-		&accessprotos.AccessControl_Entity{Id: net1, Permissions: accessprotos.AccessControl_READ},
-		&accessprotos.AccessControl_Entity{Id: net2, Permissions: accessprotos.AccessControl_WRITE},
-		&accessprotos.AccessControl_Entity{Id: net3, Permissions: accessprotos.AccessControl_READ})
+	err = accessd.CheckPermissions(ctx, op1, &accessprotos.AccessControl_Entity{Id: net1, Permissions: accessprotos.AccessControl_READ}, &accessprotos.AccessControl_Entity{Id: net2, Permissions: accessprotos.AccessControl_WRITE}, &accessprotos.AccessControl_Entity{Id: net3, Permissions: accessprotos.AccessControl_READ})
 
 	assert.NoError(t, err)
 
 	err = accessd.CheckPermissions(
+		ctx,
 		op1,
 		&accessprotos.AccessControl_Entity{Id: net2, Permissions: accessprotos.AccessControl_READ},
 		&accessprotos.AccessControl_Entity{Id: net3, Permissions: accessprotos.AccessControl_READ})
@@ -96,36 +95,36 @@ func TestAccessManager(t *testing.T) {
 	removeNet13Ents := []*accessprotos.AccessControl_Entity{
 		{Id: net2, Permissions: accessprotos.AccessControl_WRITE},
 	}
-	err = accessd.SetOperator(op1, removeNet13Ents)
+	err = accessd.SetOperator(ctx, op1, removeNet13Ents)
 	assert.NoError(t, err)
 
-	assert.Error(t, accessd.CheckReadPermission(op1, net1))
-	assert.Error(t, accessd.CheckWritePermission(op1, net1))
+	assert.Error(t, accessd.CheckReadPermission(ctx, op1, net1))
+	assert.Error(t, accessd.CheckWritePermission(ctx, op1, net1))
 
-	assert.Error(t, accessd.CheckReadPermission(op1, net3))
-	assert.NoError(t, accessd.CheckWritePermission(op1, net2))
+	assert.Error(t, accessd.CheckReadPermission(ctx, op1, net3))
+	assert.NoError(t, accessd.CheckWritePermission(ctx, op1, net2))
 
-	perm, err := accessd.GetPermissions(op1, net1)
+	perm, err := accessd.GetPermissions(ctx, op1, net1)
 	assert.NoError(t, err)
 	assert.Equal(t, perm, accessprotos.AccessControl_NONE)
 
-	_, err = accessd.GetPermissions(op1, net3)
+	_, err = accessd.GetPermissions(ctx, op1, net3)
 	assert.NoError(t, err)
 
-	perm, err = accessd.GetPermissions(op1, net2)
+	perm, err = accessd.GetPermissions(ctx, op1, net2)
 	assert.NoError(t, err)
 	assert.Equal(t, perm, accessprotos.AccessControl_WRITE)
 
-	err = accessd.SetOperator(op2, entities)
+	err = accessd.SetOperator(ctx, op2, entities)
 	assert.NoError(t, err)
 
-	assert.NoError(t, accessd.CheckReadPermission(op2, net1))
-	assert.Error(t, accessd.CheckWritePermission(op2, net1))
+	assert.NoError(t, accessd.CheckReadPermission(ctx, op2, net1))
+	assert.Error(t, accessd.CheckWritePermission(ctx, op2, net1))
 
-	assert.Error(t, accessd.CheckReadPermission(op2, net2))
-	assert.NoError(t, accessd.CheckWritePermission(op2, net2))
+	assert.Error(t, accessd.CheckReadPermission(ctx, op2, net2))
+	assert.NoError(t, accessd.CheckWritePermission(ctx, op2, net2))
 
-	opers, err := accessd.ListOperators()
+	opers, err := accessd.ListOperators(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, opers, 2)
 	if len(opers) >= 2 {
@@ -134,43 +133,38 @@ func TestAccessManager(t *testing.T) {
 		assert.Contains(t, expected, opers[1].HashString())
 	}
 
-	err = accessd.DeleteOperator(op1)
+	err = accessd.DeleteOperator(ctx, op1)
 	assert.NoError(t, err)
-	assert.Error(t, accessd.CheckReadPermission(op1, net1))
-	assert.Error(t, accessd.CheckWritePermission(op1, net2))
-	_, err = accessd.GetPermissions(op1, net2)
+	assert.Error(t, accessd.CheckReadPermission(ctx, op1, net1))
+	assert.Error(t, accessd.CheckWritePermission(ctx, op1, net2))
+	_, err = accessd.GetPermissions(ctx, op1, net2)
 	assert.Error(t, err)
 
 	entitiesToAdd = []*accessprotos.AccessControl_Entity{ // WRITE perm for all Networks
 		{Id: identity.NewNetworkWildcard(), Permissions: accessprotos.AccessControl_WRITE},
 	}
-	err = accessd.UpdateOperator(op2, entitiesToAdd)
+	err = accessd.UpdateOperator(ctx, op2, entitiesToAdd)
 	assert.NoError(t, err)
-	assert.NoError(t, accessd.CheckReadPermission(op2, net1))
-	assert.NoError(t, accessd.CheckWritePermission(op2, net1))
-	assert.Error(t, accessd.CheckReadPermission(op2, net2))
-	assert.NoError(t, accessd.CheckWritePermission(op2, net3))
-	assert.NoError(t, accessd.CheckWritePermission(
-		op2, identity.NewNetwork("some_network")))
-	assert.Error(t, accessd.CheckReadPermission(
-		op2, identity.NewNetwork("some_network2")))
+	assert.NoError(t, accessd.CheckReadPermission(ctx, op2, net1))
+	assert.NoError(t, accessd.CheckWritePermission(ctx, op2, net1))
+	assert.Error(t, accessd.CheckReadPermission(ctx, op2, net2))
+	assert.NoError(t, accessd.CheckWritePermission(ctx, op2, net3))
+	assert.NoError(t, accessd.CheckWritePermission(ctx, op2, identity.NewNetwork("some_network")))
+	assert.Error(t, accessd.CheckReadPermission(ctx, op2, identity.NewNetwork("some_network2")))
 
-	err = accessd.CheckPermissions(
-		op2,
-		&accessprotos.AccessControl_Entity{Id: net1, Permissions: accessprotos.AccessControl_READ},
-		&accessprotos.AccessControl_Entity{Id: net2, Permissions: accessprotos.AccessControl_WRITE},
-		&accessprotos.AccessControl_Entity{Id: net3, Permissions: accessprotos.AccessControl_WRITE})
+	err = accessd.CheckPermissions(ctx, op2, &accessprotos.AccessControl_Entity{Id: net1, Permissions: accessprotos.AccessControl_READ}, &accessprotos.AccessControl_Entity{Id: net2, Permissions: accessprotos.AccessControl_WRITE}, &accessprotos.AccessControl_Entity{Id: net3, Permissions: accessprotos.AccessControl_WRITE})
 
 	assert.NoError(t, err)
 
 	err = accessd.CheckPermissions(
+		ctx,
 		op2,
 		&accessprotos.AccessControl_Entity{Id: net1, Permissions: accessprotos.AccessControl_READ},
 		&accessprotos.AccessControl_Entity{Id: net2, Permissions: accessprotos.AccessControl_READ})
 
 	assert.Error(t, err)
 
-	opers, err = accessd.ListOperators()
+	opers, err = accessd.ListOperators(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, opers, 1)
 	if len(opers) > 0 {
