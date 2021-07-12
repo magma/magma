@@ -260,8 +260,8 @@ class LocalEnforcer {
    * IMSI
    */
   void handle_cwf_roaming(
-      SessionMap& session_map, const std::string& imsi,
-      const magma::SessionConfig& config, SessionUpdate& session_update);
+      std::unique_ptr<SessionState>& session, const SessionConfig& new_config,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
@@ -293,6 +293,27 @@ class LocalEnforcer {
   bool bind_policy_to_bearer(
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
+
+  void report_session_update_event(
+      SessionMap& session_map, const UpdateRequestsBySession& updates);
+
+  void report_session_update_failure_event(
+      SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
+      const std::string& failure_reason);
+
+  /*
+   * Report flow stats from pipelined and track the usage per rule
+   */
+  void check_usage_for_reporting(
+      SessionMap& session_map, SessionUpdate& session_uc);
+
+  void handle_pipelined_response(Status status, RuleRecordTable resp);
+
+  void handle_session_update_response(
+      const UpdateSessionRequest& request,
+      std::shared_ptr<SessionMap> session_map_ptr,
+      SessionUpdate& session_update, grpc::Status status,
+      UpdateSessionResponse response);
 
   void poll_stats_enforcer();
   /**

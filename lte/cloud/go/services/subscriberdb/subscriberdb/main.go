@@ -29,6 +29,7 @@ import (
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -54,19 +55,26 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
 
-	digestStore := subscriberdb_storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	if err := digestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing digest lookup storage: %+v", err)
+		glog.Fatalf("Error initializing flat digest storage: %+v", err)
 	}
 
-	serviceConfig := subscriberdb.MustGetServiceConfig()
+	perSubDigestFact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	if err := perSubDigestFact.InitializeFactory(); err != nil {
+		glog.Fatalf("Error initializing per-sub digest storage: %+v", err)
+	}
+	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(perSubDigestFact)
+
+	var serviceConfig subscriberdb.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 

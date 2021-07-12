@@ -1,5 +1,5 @@
 ---
-id: deploy_build
+id: dev_build
 title: Build Orchestrator
 hide_title: true
 ---
@@ -52,14 +52,14 @@ First define some necessary variables
 ```bash
 export PUBLISH=${MAGMA_ROOT}/orc8r/tools/docker/publish.sh  # or add to path
 export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
-export MAGMA_TAG=1.4.0-master  # or desired tag
+export MAGMA_TAG=1.6.0-master  # or desired tag
 ```
 
-Checkout the v1.4 release branch
+Checkout the v1.6 release branch
 ```bash
 cd ${MAGMA_ROOT}
 git fetch origin
-git checkout -b v1.4 origin/v1.4
+git checkout -b v1.6 origin/v1.6
 ```
 
 Build and publish Orchestrator images
@@ -139,5 +139,5 @@ Uploaded orc8r charts successfully.
 ```
 You can add `-v` option to overwrite the versions of the chart.
 ```bash
-${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.5
+${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.6
 ```
