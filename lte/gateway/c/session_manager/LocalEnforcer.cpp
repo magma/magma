@@ -262,13 +262,13 @@ void LocalEnforcer::handle_pipelined_response(
   }
 }
 
-void LocalEnforcer::poll_stats_enforcer() {
+void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
   // we need to pass in a function pointer. Binding is required because
   // the function is part of the LocalEnforcer class and has arguments
   // so we bind to the object and the two arguments the function needs
   // which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
-      0, 0, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+      cookie, cookie_mask, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
