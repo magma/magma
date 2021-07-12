@@ -487,9 +487,8 @@ void MmeNasStateConverter::proto_to_pdn_context(
 }
 
 void MmeNasStateConverter::pdn_context_list_to_proto(
-    const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto,
-    int num_active_contexts) {
-  for (int i = 0; i < num_active_contexts; i++) {
+    const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto) {
+  for (int i = 0; i < MAX_APN_PER_UE; i++) {
     if (state_ue_context.pdn_contexts[i] != nullptr) {
       OAILOG_DEBUG(LOG_MME_APP, "Writing PDN context at index %d", i);
       oai::PdnContext* pdn_ctxt_proto = ue_context_proto->add_pdn_contexts();
@@ -564,9 +563,7 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->used_ambr, ue_context_proto->mutable_used_ambr());
   ue_context_proto->set_nb_active_pdn_contexts(
       state_ue_context->nb_active_pdn_contexts);
-  pdn_context_list_to_proto(
-      *state_ue_context, ue_context_proto,
-      state_ue_context->nb_active_pdn_contexts);
+  pdn_context_list_to_proto(*state_ue_context, ue_context_proto);
   bearer_context_list_to_proto(*state_ue_context, ue_context_proto);
   if (state_ue_context->ue_radio_capability) {
     BSTRING_TO_STRING(
