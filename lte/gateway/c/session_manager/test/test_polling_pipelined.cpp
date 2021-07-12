@@ -10,21 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <folly/io/async/EventBaseManager.h>
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <string.h>
-#include <time.h>
-
 #include <memory>
-
 #include "Consts.h"
-#include "DiameterCodes.h"
 #include "LocalEnforcer.h"
-#include "includes/MagmaService.h"
-#include "Matchers.h"
 #include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
 
@@ -55,8 +46,8 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     local_enforcer       = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, 0, 0, default_mconfig);
-    session_map   = SessionMap{};
-    test_cfg_     = get_default_config("");
+    session_map = SessionMap{};
+    test_cfg_   = get_default_config("");
 
     teids0.set_agw_teid(0);
     teids0.set_enb_teid(0);
