@@ -16,19 +16,6 @@ import sys
 
 from setuptools import setup
 
-
-def os_release():
-    release_info = {}
-    with open('/etc/os-release', 'r') as f:
-        for line in f:
-            try:
-                k, v = line.rstrip().split('=')
-                release_info[k] = v.strip('"')
-            except Exception:
-                pass
-    return release_info
-
-
 # We can use an environment variable to pass in the package version during
 # build. Since we don't distribute this on its own, we don't really care what
 # version this represents. 'None' defaults to 0.0.0.
