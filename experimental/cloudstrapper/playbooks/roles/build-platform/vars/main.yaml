@@ -42,7 +42,7 @@ pipPackages:
 k8sPackages:
   - kubectl
   - helm
-  - terraform=0.14.5
+  - terraform
 
 # terraform downgraded to work with orc8r.
 
