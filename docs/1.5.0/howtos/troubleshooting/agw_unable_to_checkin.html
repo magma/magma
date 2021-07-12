@@ -69,6 +69,7 @@
 3. -- Testing SSL --
 4. -- Creating direct cloud checkin --
 5. -- Creating<span class="hljs-built_in"> proxy </span>cloud checkin --
+Success!
 </code></pre>
 <p>If the output is not successful, the script will recommend some steps to resolve the problem. After following the steps the problem has not been resolved, follow below steps.</p>
 <ol start="2">
@@ -112,14 +113,24 @@ Note: To obtain certificate information you can use <code>openSSL x509 -in certi
 <p><code>AGW$ sudo tail -f /var/log/syslog | grep -i &quot;magmad&quot;</code></p></li>
 </ol>
 <ol start="9">
-<li>From Orchestrator, get all pods and find pod orc8r-controller-*</li>
-</ol>
-<pre><code class="hljs">kubectl -<span class="hljs-built_in">n</span> magma get pods
-kubectl -<span class="hljs-built_in">n</span> magma logs -f &lt;controller podname&gt;
+<li><p>From Orchestrator, get all pods and verify attempts from AGW are reaching Orc8r in nginx and look for any bootstrapping erors in the bootstrapper.</p>
+<ul>
+<li><p>First, you can use below command to get all pods from orc8r</p>
+<pre><code class="hljs">kubectl -n orc8r <span class="hljs-builtin-name">get</span> pods
 </code></pre>
-<p>First command will list all pods and next command can be used to check logs of a particular pod. Check if there is any problematic log for the related pod.</p>
-<ol start="10">
-<li>Try restarting magmad services.</li>
+<p>For example, boostrapper and nginx Orc8r pods should look something like below:</p>
+<pre><code class="hljs">orc8r-bootstrapper<span class="hljs-number">-775</span>b5b8f6d<span class="hljs-number">-89</span>spq              <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">37</span>d
+orc8r-bootstrapper<span class="hljs-number">-775</span>b5b8f6d-gfmrp              <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">37</span>d
+orc8r-nginx<span class="hljs-number">-5f</span>599dd8d5-rz4gm                     <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">37</span>d
+orc8r-nginx<span class="hljs-number">-5f</span>599dd8d5-sxpzf                     <span class="hljs-number">1</span>/<span class="hljs-number">1</span>     Running   <span class="hljs-number">0</span>          <span class="hljs-number">37</span>d
+</code></pre></li>
+<li><p>Next, using the pod name get the logs from the pod with below command. Check if there is any problematic log for the related pod</p>
+<pre><code class="hljs">kubectl -n <span class="hljs-keyword">orc8r </span>logs -f &lt;nginx podname&gt;
+kubectl -n <span class="hljs-keyword">orc8r </span>logs -f &lt;<span class="hljs-keyword">bootstrapper </span>podname&gt;
+</code></pre>
+<p>For example: <code>kubectl -n orc8r get logs orc8r-bootstrapper-775b5b8f6d-89spq</code></p></li>
+</ul></li>
+<li><p>Try restarting magmad services.</p></li>
 </ol>
 <pre><code class="hljs">AGW$ sudo<span class="hljs-built_in"> service </span>magma@magmad restart
 </code></pre>
