@@ -233,6 +233,7 @@ type OptConfig = {
   subframeAssignment: string,
   pci: string,
   tac: string,
+  mme_ip: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -279,6 +280,7 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
+    mme_ip: String(config.mme_ip ?? '')
   });
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -471,7 +473,15 @@ export function RanEdit(props: Props) {
                   onChange={({target}) => handleOptChange('tac', target.value)}
                 />
               </AltFormField>
-
+              <AltFormField label={'MME IP'}>
+                <OutlinedInput
+                  data-testid="mme_ip"
+                  placeholder="Enter MME IP"
+                  fullWidth={true}
+                  value={optConfig.mme_ip}
+                  onChange={({target}) => handleOptChange('mme_ip', target.value)}
+                />
+              </AltFormField>
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
                   <Select
@@ -665,6 +675,8 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     }
     response['tac'] = parseInt(optConfig.tac);
   }
-
+  if (optConfig.mme_ip !== '') {
+    response['mme_ip'] = String(optConfig.mme_ip);
+  }
   return response;
 }

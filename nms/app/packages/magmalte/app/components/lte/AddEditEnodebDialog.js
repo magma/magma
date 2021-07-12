@@ -83,6 +83,7 @@ export default function AddEditEnodebDialog(props: Props) {
   );
   const [serialId, setSerialId] = useState<string>(editingEnodeb?.serial || '');
   const [tac, setTac] = useState(String(editingEnodeb?.config.tac || ''));
+  const [mme_ip, setMmeIP] = useState(String(editingEnodeb?.config.mme_ip || '10.0.2.1'))
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
     editingEnodeb?.config.transmit_enabled ?? false,
   );
@@ -161,6 +162,9 @@ export default function AddEditEnodebDialog(props: Props) {
     }
     if (tac !== '') {
       enb.config.tac = parseInt(tac);
+    }
+    if (mme_ip !== ''){
+      enb.config.mme_ip = mme_ip;
     }
 
     try {
@@ -276,6 +280,13 @@ export default function AddEditEnodebDialog(props: Props) {
           onChange={({target}) => setEnodebId(target.value)}
           placeholder="0-1048576"
           error={!isEnodebIdValid || !isCellIdValid}
+        />
+        <TextField
+          label="MME IP"
+          className={classes.input}
+          value={mme_ip}
+          onChange={({target}) => setEnodebId(target.value)}
+          placeholder="10.0.2.1"
         />
         <TextField
           label="Cell Number"
