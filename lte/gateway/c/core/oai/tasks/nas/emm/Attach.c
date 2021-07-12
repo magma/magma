@@ -94,6 +94,7 @@
 #include "nas_proc.h"
 
 #include "AdditionalUpdateType.h"
+#include "EmmCommon.h"
 #include "EmmCause.h"
 #include "EpsNetworkFeatureSupport.h"
 #include "TrackingAreaIdentity.h"
