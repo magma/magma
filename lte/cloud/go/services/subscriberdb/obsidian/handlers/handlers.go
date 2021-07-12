@@ -155,7 +155,7 @@ func listSubscribersHandler(c echo.Context) error {
 	// First check for query params to filter by
 	reqCtx := c.Request().Context()
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -166,7 +166,7 @@ func listSubscribersHandler(c echo.Context) error {
 		return c.JSON(http.StatusOK, subs)
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
-		queryIMSIs, err := subscriberdb.GetIMSIsForIP(networkID, ip)
+		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -230,7 +230,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 
 	// First check for query params to filter by
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -241,7 +241,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 		return c.JSON(http.StatusOK, subs)
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
-		queryIMSIs, err := subscriberdb.GetIMSIsForIP(networkID, ip)
+		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -425,7 +425,7 @@ func listMSISDNsHandler(c echo.Context) error {
 		return nerr
 	}
 
-	msisdns, err := subscriberdb.ListMSISDNs(networkID)
+	msisdns, err := subscriberdb.ListMSISDNs(c.Request().Context(), networkID)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -451,7 +451,7 @@ func createMSISDNsHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := subscriberdb.SetIMSIForMSISDN(networkID, string(payload.Msisdn), string(payload.ID))
+	err := subscriberdb.SetIMSIForMSISDN(c.Request().Context(), networkID, string(payload.Msisdn), string(payload.ID))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -464,7 +464,7 @@ func getMSISDNHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	imsi, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+	imsi, err := subscriberdb.GetIMSIForMSISDN(c.Request().Context(), networkID, msisdn)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -477,7 +477,7 @@ func deleteMSISDNHandler(c echo.Context) error {
 		return nerr
 	}
 
-	err := subscriberdb.DeleteMSISDN(networkID, msisdn)
+	err := subscriberdb.DeleteMSISDN(c.Request().Context(), networkID, msisdn)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
