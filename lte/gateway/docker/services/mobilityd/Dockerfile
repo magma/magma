@@ -1,6 +1,4 @@
 FROM ubuntu:20.04 as mobilityd
-#ls /etc/magma/
-#control_proxy.yml  gateway.mconfig  magmad.yml  mobilityd.yml  service_registry.yml
 
 ENV VIRTUAL_ENV=/build
 RUN apt-get update \
@@ -12,5 +10,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY --from=pythonbuilder:latest /build /build
 COPY --from=pythonbuilder:latest /magma /magma
+
+# handle service config
 
 ENTRYPOINT /usr/bin/env python3 -m magma.mobilityd.main
