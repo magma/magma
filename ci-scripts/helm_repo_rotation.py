@@ -20,6 +20,7 @@ from artifactory import ArtifactoryPath
 
 # The number of versions kept in the helm repo
 NUMBER_OF_CHARTS = 20
+CHART_NAMES = ('cwf-orc8r', 'feg-orc8r', 'fbinternal-orc8r', 'lte-orc8r', 'orc8r', 'wifi-orc8r')
 
 
 def exit_environment_not_set(variable_name):
@@ -81,9 +82,5 @@ clean_artifacts_and_charts = list(
     map(lambda x: ['-'.join(x[0].split('-')[:-1]), x[1], x[0]], clean_artifact_map))
 
 # Make sure to only keep 20 artifacts per chart
-delete_old_artifacts(clean_artifacts_and_charts, 'cwf-orc8r')
-delete_old_artifacts(clean_artifacts_and_charts, 'feg-orc8r')
-delete_old_artifacts(clean_artifacts_and_charts, 'fbinternal-orc8r')
-delete_old_artifacts(clean_artifacts_and_charts, 'lte-orc8r')
-delete_old_artifacts(clean_artifacts_and_charts, 'orc8r')
-delete_old_artifacts(clean_artifacts_and_charts, 'wifi-orc8r')
+for chart_name in CHART_NAMES:
+    delete_old_artifacts(clean_artifacts_and_charts, chart_name)
