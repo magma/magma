@@ -1,0 +1,60 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# log_level is set in mconfig. it can be overridden here
+
+# Append GRPC content to the log
+print_grpc_payload: False
+
+# Size of subscriber pages returned from cloud
+subscriber_page_size: 3000
+
+# Interval in seconds between gateway and cloud sync
+subscriberdb_sync_interval: 180
+
+# Host address of the Diameter/S6A MME server
+host_address: 0.0.0.0 # Bind to all interfaces
+
+# Enable streaming from the cloud for subscriber updates
+enable_streaming: True
+
+# Keep subscriberdb in a file.
+# If this is omitted default path of /var/opt/magma/ will be assumed.
+db_path: /var/opt/magma/
+
+# Bucketize subscribers based on last sid_last_n digits
+sid_last_n: 2
+
+# S6A Peer Configurations
+mme_host_name: hss.magma.com
+mme_realm: magma.com
+mme_host_address: 127.0.0.1
+mme_port: 3868
+
+# Default Subscription Profile
+default_max_ul_bit_rate: 100000000  # 100 Mbps
+default_max_dl_bit_rate: 200000000  # 200 Mbps
+
+# Relay S6A via gRPC
+relay_mode: False
+# NOTE: Turning on retries can result in delayed responses, which results
+# in the MME state machine being out of sync when the attach timer expires.
+relay_retry_count: 0
+
+# Enable s6a interface over gRPC
+# shall set to false if intend to use Free-Diameter for s6a interface
+# TODO replace boolean with list of protocols: "s6a_over_grpc", "s6a_over_fd"
+s6a_over_grpc: True
+
+# Number of thread workers for the gRPC server
+grpc_workers: 10
