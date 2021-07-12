@@ -8035,6 +8035,10 @@ definitions:
         example: 44590
         format: uint32
         type: integer
+      mme_ip:
+        example: 192.168.130.116
+        format: ipv4
+        type: string
       pci:
         example: 260
         exclusiveMinimum: true
