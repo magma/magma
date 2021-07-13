@@ -394,7 +394,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
-
+			enbMconfig.MmeIp = string(cellularEnbConfig.MmeIP)
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())

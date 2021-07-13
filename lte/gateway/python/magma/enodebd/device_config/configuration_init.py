@@ -199,6 +199,8 @@ def _get_enb_config(
             tac = enb_config.tac
             bandwidth_mhz = enb_config.bandwidth_mhz
             cell_id = enb_config.cell_id
+            mme_address = enb_config.mme_ip
+            mme_port = 36412
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None
@@ -244,8 +246,8 @@ def _get_enb_config(
         bandwidth_mhz=bandwidth_mhz,
         cell_id=cell_id,
         allow_enodeb_transmit=allow_enodeb_transmit,
-        mme_address=None,
-        mme_port=None,
+        mme_address=mme_address,
+        mme_port=mme_port,
     )
     return single_enodeb_config
 
