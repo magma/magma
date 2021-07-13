@@ -26,7 +26,7 @@ UEShard::UEShard() {
   number_of_shards = 0;
 }
 
-int UEShard::add_ue(std::string imsi) {
+int UEShard::add_ue(const std::string& imsi) {
   int shard_id;
   if (shards.size() == 0) {
     shard_id = 0;
@@ -45,9 +45,9 @@ int UEShard::add_ue(std::string imsi) {
   return shard_id;
 }
 
-std::pair<int, int> UEShard::find_ue_shard(std::string imsi) {
+std::pair<int, int> UEShard::find_ue_shard(const std::string& imsi) {
   std::pair<int, int> location;
-  for (auto i = 0; i < shards.size(); i++) {
+  for (size_t i = 0; i < shards.size(); i++) {
     if (std::find(shards[i].begin(), shards[i].end(), imsi) !=
         shards[i].end()) {
       std::vector<std::string>::iterator itr =
@@ -61,7 +61,7 @@ std::pair<int, int> UEShard::find_ue_shard(std::string imsi) {
   return location;
 }
 
-void UEShard::remove_ue(std::string imsi) {
+void UEShard::remove_ue(const std::string& imsi) {
   std::pair<int, int> location = find_ue_shard(imsi);
   int shard_id                 = location.first;
   int indexOfImsi              = location.second;

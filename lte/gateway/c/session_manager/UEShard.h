@@ -24,13 +24,13 @@ class UEShard {
   UEShard();
 
   // add UE to shards based on availability
-  int add_ue(std::string imsi);
+  int add_ue(const std::string& imsi);
 
   // locate shard and index based on shard ID
-  std::pair<int, int> find_ue_shard(std::string imsi);
+  std::pair<int, int> find_ue_shard(const std::string& imsi);
 
   // remove UE from shard
-  void remove_ue(std::string imsi);
+  void remove_ue(const std::string& imsi);
 
   // compute total number of UEs in a shard
   int total_ues_for_shard(int shard_id);
