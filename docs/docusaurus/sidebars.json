@@ -222,6 +222,7 @@
         "type": "subcategory",
         "label": "Maintain",
         "ids": [
+          "contributing/contribute_proposals",
           "contributing/contribute_codeowners"
         ]
       }
