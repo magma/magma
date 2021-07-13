@@ -300,6 +300,7 @@ optional<SessionVector::iterator> SessionStore::find_session(
             break;
         }
         break;  // break IMSI_AND_TEID
+
       case IMSI_AND_PDUID:
         if ((*it)
                 ->get_config()

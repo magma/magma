@@ -290,7 +290,7 @@ sudo docker-compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -use_builtincli
 
 # use FeG s8_proxy
 sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
-# use s8_porxy that runs on the cli
+# use s8_proxy that runs on the cli
 sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -use_builtincli false -delete 3
 ```
 
