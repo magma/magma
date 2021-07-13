@@ -20,7 +20,7 @@ namespace magma {
 
 class UEShard {
  private:
-  std::unordered_map<int, std::vector<std::string>> shards;
+  std::map<int, std::vector<std::string>> shards;
   int number_of_shards;
   int max_shard_size;
 
