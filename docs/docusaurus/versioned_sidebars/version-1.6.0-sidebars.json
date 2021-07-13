@@ -220,6 +220,7 @@
         "type": "subcategory",
         "label": "Maintain",
         "ids": [
+          "version-1.6.0-contributing/contribute_proposals",
           "version-1.6.0-contributing/contribute_codeowners"
         ]
       }

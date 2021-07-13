@@ -29,6 +29,9 @@
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
       },
+      "contributing/contribute_proposals": {
+        "title": "Proposals Process"
+      },
       "contributing/contribute_workflow": {
         "title": "Development Workflow"
       },
@@ -1328,6 +1331,9 @@
       },
       "version-1.6.0/contributing/version-1.6.0-contribute_onboarding": {
         "title": "Developer Onboarding"
+      },
+      "version-1.6.0/contributing/version-1.6.0-contribute_proposals": {
+        "title": "Proposals Process"
       },
       "version-1.6.0/contributing/version-1.6.0-contribute_workflow": {
         "title": "Development Workflow"
