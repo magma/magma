@@ -254,16 +254,14 @@ export function RanEdit(props: Props) {
 
   const [error, setError] = useState('');
 
-  const [
-    unmanagedConfig,
-    setUnmanagedConfig,
-  ] = useState<unmanaged_enodeb_configuration>(
-    props.enb?.enodeb_config?.unmanaged_config || {
-      cell_id: 0,
-      ip_address: '',
-      tac: 0,
-    },
-  );
+  const [unmanagedConfig, setUnmanagedConfig] =
+    useState<unmanaged_enodeb_configuration>(
+      props.enb?.enodeb_config?.unmanaged_config || {
+        cell_id: 0,
+        ip_address: '',
+        tac: 0,
+      },
+    );
 
   const [config, setConfig] = useState<enodeb_configuration>(
     props.enb?.enodeb_config?.managed_config || DEFAULT_ENB_CONFIG.config,
@@ -480,8 +478,9 @@ export function RanEdit(props: Props) {
                   placeholder="Enter MME IP"
                   fullWidth={true}
                   value={optConfig.mme_ip}
-                  onChange={({target}) => handleOptChange('mme_ip', target.value)}
-
+                  onChange={({target}) =>
+                    handleOptChange('mme_ip', target.value)
+                  }
                 />
               </AltFormField>
 
