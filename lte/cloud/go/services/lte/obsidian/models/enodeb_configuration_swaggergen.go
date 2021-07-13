@@ -36,6 +36,9 @@ type EnodebConfiguration struct {
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
 
+	// mme ip
+	// Format: ipv4
+	MmeIP strfmt.IPv4 `json:"mme_ip,omitempty"`
 	// pci
 	// Maximum: 503
 	// Minimum: > 0
@@ -72,6 +75,9 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDeviceClass(formats); err != nil {
+		res = append(res, err)
+	}
+	if err := m.validateMmeIP(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -200,6 +206,18 @@ func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error
 	return nil
 }
 
+func (m *EnodebConfiguration) validateMmeIP(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MmeIP) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("mme_ip", "body", "ipv4", m.MmeIP.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.Pci) { // not required
