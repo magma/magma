@@ -30,7 +30,7 @@ UEShard::UEShard() {
 int UEShard::add_ue(std::string imsi) {
   int shard_id;
   if (shards.size() == 0) {
-    shard_id = 1;
+    shard_id = 0;
     shards[shard_id].push_back(imsi);
     number_of_shards++;
   } else {
@@ -69,19 +69,6 @@ void UEShard::remove_ue(std::string imsi) {
   int shard_id                 = location.first;
   int indexOfImsi              = location.second;
   shards[shard_id].erase(shards[shard_id].begin() + indexOfImsi);
-}
-
-// change shard for ue
-int UEShard::move_ue(std::string imsi, int shard_id) {
-  if (shard_id <= 0 || shard_id > number_of_shards) {
-    return 0;
-  }
-  if (total_ues_for_shard(shard_id) == MAX_SHARD_SIZE) {
-    return 0;
-  }
-  remove_ue(imsi);
-  shards[shard_id].push_back(imsi);
-  return shard_id;
 }
 
 int UEShard::total_ues_for_shard(int shard_id) {
