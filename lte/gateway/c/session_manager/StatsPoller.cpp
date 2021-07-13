@@ -22,10 +22,15 @@ namespace magma {
 void StatsPoller::start_loop(
     std::shared_ptr<magma::LocalEnforcer> local_enforcer,
     uint32_t loop_interval_seconds) {
-  while (true) {
+  is_running_ = true;
+  while (is_running_) {
     local_enforcer->poll_stats_enforcer(COOKIE, COOKIE_MASK);
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
   }
+}
+
+void StatsPoller::stop() {
+  is_running_ = false;
 }
 
 }  // namespace magma
