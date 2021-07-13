@@ -41,10 +41,11 @@ type MockPgw struct {
 }
 
 type LastValues struct {
-	LastTEIDu uint32
-	LastTEIDc uint32
-	LastQos   *protos.QosInformation
-	LastULI   *ie.UserLocationInformationFields
+	LastTEIDu          uint32
+	LastTEIDc          uint32
+	LastQos            *protos.QosInformation
+	LastULI            *ie.UserLocationInformationFields
+	LastSequenceNumber uint32
 }
 
 // CreateSessionOptions to control Create Session Response values to produce errors

@@ -18,7 +18,7 @@ jobs:
             var msg = `Thanks for opening a PR! :100: Please note that [all commits must be signed off](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines). This is enforced by the \`DCO check\`.
 
             ### Howto
-
+            - ***PR Title.*** Follow [conventional commits format](https://docs.magmacore.org/docs/next/contributing/contribute_workflow#guidelines). This is enforced by \`Semantic Pull Request\` check.
             - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.
             - ***Checks.*** All required CI checks must pass before merge.
             - ***Merge.*** Once approved and passing CI checks, use the [\`ready2merge\`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge your PR.

@@ -154,11 +154,12 @@ class SessionState {
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
 
+  /* method to set update the session current version */
   void set_current_version(
-      int new_session_version, SessionStateUpdateCriteria* session_uc);
+      uint32_t new_session_version, SessionStateUpdateCriteria* session_uc);
 
-  void insert_pdr(
-      SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc);
+  /* method to add new PDR rules to session */
+  void insert_pdr(SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc);
 
   /* method to change the PDR state */
   void set_all_pdrs(enum PdrState);
