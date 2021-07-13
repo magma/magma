@@ -76,6 +76,7 @@
 #define MME_CONFIG_STRING_MAXENB "MAXENB"
 #define MME_CONFIG_STRING_MAXUE "MAXUE"
 #define MME_CONFIG_STRING_RELATIVE_CAPACITY "RELATIVE_CAPACITY"
+#define MME_CONFIG_STRING_STATS_TIMER "STATS_REPORTING_TIMER"
 
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
 #define MME_CONFIG_STRING_ENABLE_CONVERGED_CORE "ENABLE_CONVERGED_CORE"
@@ -373,6 +374,8 @@ typedef struct mme_config_s {
   uint32_t max_ues;
 
   uint8_t relative_capacity;
+
+  uint32_t stats_timer;
 
   bstring ip_capability;
   bstring non_eps_service_control;

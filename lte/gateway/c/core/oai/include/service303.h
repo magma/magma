@@ -27,8 +27,6 @@
 
 #define NO_BOUNDARIES 0
 #define NO_LABELS 0
-#define EPC_STATS_TIMER_MSEC 60000          // In milliseconds
-#define EPC_STATS_DISPLAY_TIMER_MSEC 60000  // In milliseconds
 
 void service303_mme_app_statistics_read(
     application_mme_app_stats_msg_t* stats_msg_p);
@@ -40,6 +38,7 @@ void service303_statistics_display(void);
 typedef struct {
   bstring name;
   bstring version;
+  uint32_t display_stats_period;
 } service303_data_t;
 
 typedef enum application_health_e {
