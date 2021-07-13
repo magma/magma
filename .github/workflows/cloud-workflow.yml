@@ -166,7 +166,7 @@ jobs:
         if: github.ref == 'refs/heads/master'
         # yamllint disable rule:line-length
         run: |
-            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag '${GITHUB_SHA:0:8}' --tag-latest true --project orc8r
+            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master'
         env:
@@ -174,7 +174,7 @@ jobs:
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag '${GITHUB_SHA:0:8}' --tag-latest true --project orc8r
+            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.0.2

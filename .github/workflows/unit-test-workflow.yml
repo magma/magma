@@ -1,5 +1,5 @@
 ---
-name: Unit Test Results
+name: Cloud Unit Test Results
 on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows: ["cloud-workflow"]
@@ -8,7 +8,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   unit-test-results:
-    name: Unit Test Results
+    name: Cloud Unit Test Results
     runs-on: ubuntu-latest
     if: >
       github.event.workflow_run.conclusion != 'skipped' &&
