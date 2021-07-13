@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "lte/protos/oai/spgw_state.proto";
+import "orc8r/protos/common.proto";
 
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
@@ -22,16 +23,20 @@ service S8Proxy {
     rpc CreateSession(CreateSessionRequestPgw) returns (CreateSessionResponsePgw) {}
     rpc DeleteSession(DeleteSessionRequestPgw) returns (DeleteSessionResponsePgw) {}
     rpc SendEcho(EchoRequest) returns (EchoResponse) {}
+
+    rpc CreateBearerResponse(CreateBearerResponsePgw) returns (magma.orc8r.Void) {}
 }
 
 service S8ProxyResponder {
-    rpc CreateBearer(CreateBearerRequestPgw) returns (CreateBearerResponsePgw) {}
+    rpc CreateBearer(CreateBearerRequestPgw) returns (magma.orc8r.Void) {}
 }
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
 message CreateSessionRequestPgw {
-    string pgwAddrs = 1;        // Ip:port of pgw to send the request. If empty
-                                // s8_proxy will use value in its config
+    // Ip:port of pgw to send the request.
+    // If empty s8_proxy will use value in its config
+    string pgwAddrs = 1;
+
     string imsi = 2;
     string msisdn = 3;
     string mei = 4;
@@ -140,8 +145,10 @@ message PdnAddressAllocation{
 }
 
 message TimeZone {
-    int32 delta_seconds = 1;            // delta in seconds from UTC
-    uint32 daylight_saving_time = 2;    // Set to 0 for non daylight savings
+    // delta in seconds from UTC
+    int32 delta_seconds = 1;
+    // Set to 0 for non daylight savings
+    uint32 daylight_saving_time = 2;
 }
 
 message Fteid {
@@ -152,7 +159,8 @@ message Fteid {
 
 message CreateSessionResponsePgw {
     PDNType pdn_type = 1;
-    PdnAddressAllocation paa = 2;       // subscriber_ip
+    // subscriber_ip
+    PdnAddressAllocation paa = 2;
     uint32 apn_restriction = 3;
     uint32 c_agw_teid = 4;
     Fteid c_pgw_fteid = 5;
@@ -176,31 +184,41 @@ message DeleteSessionResponsePgw{
 }
 
 message CreateBearerRequestPgw {
-    uint32 c_agw_teid = 1;
-    uint32 linked_bearer_id = 2;
-    ProtocolConfigurationOptions protocol_configuration_options = 3;
-    BearerContext bearer_context = 4;
-    bytes indication_flag = 5;
+    string pgwAddrs = 1;
+    uint32 sequence_number = 2;
+    // control plane TEID given by AGW during CreateSession
+    uint32 c_agw_teid = 3;
+    uint32 linked_bearer_id = 4;
+    ProtocolConfigurationOptions protocol_configuration_options = 5;
+    BearerContext bearer_context = 6;
+    bytes indication_flag = 7;
     // TODO: PGW-FQ-CSID-1
 }
 
 message CreateBearerResponsePgw {
-    string pgwAddrs = 1;        // Ip:port of pgw to send the request. If empty
-                                // s8_proxy will use value in its config
-    uint32 c_pgw_teid = 2;
-    ServingNetwork serving_network = 3;
+    // same as pgwAddr as in CreateBeaererRequest.pgwAddrs
+    string pgwAddrs = 1;
+    string imsi = 2;
+    uint32 sequence_number = 3;
+    // control plane TEID given by PGW during CreateSession
+    uint32 c_pgw_teid = 4;
+    // same as in CreateBearerRequestPgw.BearerContext.user_plane_fteid
+    Fteid u_pgw_fteid = 5;
+    ServingNetwork serving_network = 6;
 
-    uint32 cause = 4;
-    BearerContext bearer_context = 5;
-    ProtocolConfigurationOptions protocol_configuration_options = 6;
-    TimeZone time_zone = 7;
-    UserLocationInformation uli = 8;
+    uint32 cause = 7;
+    BearerContext bearer_context = 8;
+    ProtocolConfigurationOptions protocol_configuration_options = 9;
+    TimeZone time_zone = 10;
+    UserLocationInformation uli = 11;
     //TODO: SGW-FQ-CSID
 }
 
 message EchoRequest{
-    string pgwAddrs = 1;        // Ip:port of pgw to send the request
-    string imsi = 2;            // needed for nh in feg
+    // Ip:port of pgw to send the request
+    string pgwAddrs = 1;
+    // needed for nh in feg
+    string imsi = 2;
 }
 
 message EchoResponse{
