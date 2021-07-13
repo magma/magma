@@ -20,6 +20,8 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
+	orc8r_protos "magma/orc8r/lib/go/protos"
+
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -27,22 +29,28 @@ import (
 type TestS8ProxyResponderServer struct {
 	protos.S8ProxyResponderServer
 	ReceivedCreateBearerRequest *protos.CreateBearerRequestPgw
-	DefaultCreateBearerRes      *protos.CreateBearerResponsePgw
 	ListAddr                    string
+	Ready                       chan struct{}
 }
 
 func NewTestS8ProxyResponderServer() *TestS8ProxyResponderServer {
-	return &TestS8ProxyResponderServer{}
+	return &TestS8ProxyResponderServer{
+		Ready: make(chan struct{}),
+	}
 }
 
 func (ts *TestS8ProxyResponderServer) CreateBearer(
-	ctx context.Context,
-	cbReq *protos.CreateBearerRequestPgw) (*protos.CreateBearerResponsePgw, error) {
+	_ context.Context,
+	cbReq *protos.CreateBearerRequestPgw) (*orc8r_protos.Void, error) {
+	defer func() {
+		// comunicate through the channel that we are done processing the call
+		ts.Ready <- struct{}{}
+	}()
 	ts.ReceivedCreateBearerRequest = cbReq
 	if cbReq == nil || cbReq.BearerContext == nil || cbReq.CAgwTeid == 0 {
 		return nil, fmt.Errorf("Create Bearer Request missing Bearer Contexct or TEID")
 	}
-	return ts.DefaultCreateBearerRes, nil
+	return &orc8r_protos.Void{}, nil
 }
 
 // StartFegRelayTestService starts a grpc test service

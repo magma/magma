@@ -21,6 +21,7 @@ import (
 	"net"
 
 	"magma/feg/cloud/go/protos"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
@@ -61,7 +62,7 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPg
 	cPgwUDPAddr *net.UDPAddr,
 	dsReqMsg message.Message) (*protos.DeleteSessionResponsePgw, error) {
 	glog.V(2).Infof("Send Delete Session Request (grpc) to %s:\n%s", cPgwUDPAddr,
-		dsReqMsg)
+		req)
 	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s",
 		cPgwUDPAddr.String(), dsReqMsg.(*message.DeleteSessionRequest).String())
 	//glog.V(4).Infof("Send Delete Session Request (gtp) to %s:\n%s",
@@ -76,4 +77,19 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPg
 	}
 	glog.V(2).Infof("Delete Session Response (grpc):\n%s", dsRes.String())
 	return dsRes, err
+}
+
+// sendAndReceiveCreateBearerResponse
+func (s *S8Proxy) sendAndReceiveCreateBearerResponse(res *protos.CreateBearerResponsePgw,
+	cPgwUDPAddr *net.UDPAddr,
+	cbResMsg message.Message) (*orc8r_protos.Void, error) {
+	glog.V(2).Infof("Send Create Bearer Response (grpc) to %s:\n%s", cPgwUDPAddr,
+		res)
+	glog.V(2).Infof("Send Create Bearer Response (gtp) to %s:\n%s",
+		cPgwUDPAddr.String(), cbResMsg.(*message.CreateBearerResponse).String())
+	err := s.gtpClient.SendMessageToWithoutIncSequence(cbResMsg, cPgwUDPAddr)
+	if err != nil {
+		return nil, fmt.Errorf("failed so send CreateBearerResponse message: %s", err)
+	}
+	return &orc8r_protos.Void{}, err
 }
