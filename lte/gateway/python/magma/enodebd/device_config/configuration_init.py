@@ -219,6 +219,8 @@ def _get_enb_config(
         tac = mconfig.tac
         bandwidth_mhz = mconfig.bandwidth_mhz
         cell_id = DEFAULT_CELL_IDENTITY
+        mme_address = None
+        mme_port = None
         if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
             earfcndl = mconfig.tdd_config.earfcndl
             subframe_assignment = mconfig.tdd_config.subframe_assignment
