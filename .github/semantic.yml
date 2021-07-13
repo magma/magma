@@ -46,7 +46,7 @@ scopes:
   - redirectd
   - redis
   - s6a_proxy
-  - s8_porxy
+  - s8_proxy
   - session_proxy
   - sessiond
   - smf
