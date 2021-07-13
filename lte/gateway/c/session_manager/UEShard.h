@@ -11,25 +11,10 @@
  * limitations under the License.
  */
 
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/util/time_util.h>
-
-#include <functional>
 #include <string>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 #include <map>
-
-#include "CreditKey.h"
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "magma_logging.h"
-#include "includes/MetricsHelpers.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "StoredState.h"
-#include "Utilities.h"
 
 namespace magma {
 
