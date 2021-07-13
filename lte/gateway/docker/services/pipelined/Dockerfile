@@ -1,12 +1,18 @@
 FROM ubuntu:20.04 as pipelined
 
-ENV DEBIAN_FRONTEND=noninteractive
-
+ENV VIRTUAL_ENV=/build
 RUN apt-get update \
-  && apt-get install -y python3-pip python3-dev git \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-venv virtualenv\
   && cd /usr/local/bin \
-  && ln -s /usr/bin/python3 python \
+  && ln -s /usr/bin/python3 python
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-COPY python/magma/pipelined /usr/lib/python3.8/
+COPY --from=pythonbuilder:latest /build /build
+COPY --from=pythonbuilder:latest /magma /magma
+COPY --from=pythonbuilder:latest /var/tmp/python3-aioeventlet* /var/tmp/
 
-ENTRYPOINT python3.8 -m pipelined.main
+RUN dpkg -i /var/tmp/python3-aioeventlet*
+
+
+ENTRYPOINT /usr/bin/env python3 -m magma.pipelined.main
