@@ -26,7 +26,6 @@ require (
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/envoyproxy/go-control-plane v0.9.4
 	github.com/fiorix/go-diameter/v4 v4.0.4
-	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
