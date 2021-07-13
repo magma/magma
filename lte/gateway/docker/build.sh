@@ -28,8 +28,9 @@ build ctraced
 build magmad
 build state
 build directoryd
+build pipelined
 
 # build redirectd
 # build monitord
-# build pipelined
+
 # build pkt_tester
