@@ -24,7 +24,7 @@ def mock_get_ip_from_if(
     _iface_name: str,
     _preference: Any = None,
 ) -> str:
-    return '192.168.130.190'
+    return '192.168.60.142'
 
 
 def mock_load_service_mconfig_as_json(_service_name: str) -> Any:

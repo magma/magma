@@ -25,7 +25,7 @@ def get_rpc_channel(service):
     Returns a RPC channel to the service in the gateway.
     """
     return create_grpc_channel(
-        os.environ.get('GATEWAY_IP', '192.168.130.190'),
+        os.environ.get('GATEWAY_IP', '192.168.60.142'),
         os.environ.get('GATEWAY_PORT', '8443'),
         '%s.local' % service,
     )

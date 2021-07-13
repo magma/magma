@@ -138,7 +138,7 @@ class GTPTrafficTest(unittest.TestCase):
         o_udp = UDP(sport=2152, dport=2152)
         i_udp = UDP(sport=1111, dport=2222)
         i_tcp = TCP(seq=1, sport=1111, dport=2222)
-        i_ip = IP(src='192.168.130.190', dst=self.EnodeB_IP)
+        i_ip = IP(src='192.168.60.142', dst=self.EnodeB_IP)
 
         arp = ARP(hwdst=self.MAC_1,hwsrc=self.MAC_2, psrc=self.Dst_nat, pdst='192.168.128.30')
         

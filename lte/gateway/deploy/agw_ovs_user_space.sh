@@ -21,7 +21,7 @@ ethtool -K gtp_br0 gso off
 ethtool -K gtp_br0 gro off
 
 ifconfig  uplink_br0 up
-ifconfig  dl_br0   192.168.130.190/24  up
+ifconfig  dl_br0   192.168.60.142/24  up
 ifconfig  gtp_br0  192.168.128.0/24   up
 ifconfig  mtr0     10.1.0.0/24        up
 ifconfig  ipfix0   1.2.3.4/24         up

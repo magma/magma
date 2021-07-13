@@ -35,7 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    magma.vm.network "private_network", ip: "192.168.130.190", nic_type: "82540EM"
+    magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
     # iperf3 trfserver routable IP.
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 

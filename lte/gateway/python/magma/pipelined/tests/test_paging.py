@@ -161,7 +161,7 @@ class PagingTest(unittest.TestCase):
         o_udp = UDP(sport=2152, dport=2152)
         i_udp = UDP(sport=1111, dport=2222)
         i_tcp = TCP(seq=1, sport=1111, dport=2222)
-        i_ip = IP(src='192.168.130.190', dst=self.EnodeB_IP)
+        i_ip = IP(src='192.168.60.142', dst=self.EnodeB_IP)
 
         gtp_packet_udp = eth / ip / o_udp / GTP_U_Header(teid=0x1, length=28,gtp_type=255) / i_ip / i_udp
         gtp_packet_tcp = eth / ip / o_udp / GTP_U_Header(teid=0x1, length=68, gtp_type=255) / i_ip / i_tcp
