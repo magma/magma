@@ -439,6 +439,7 @@ void AsyncPipelinedClient::poll_stats(
     if (!status.ok()) {
       MLOG(MERROR) << "Could not poll stats " << status.error_message();
     }
+    PrintGrpcMessage(static_cast<const google::protobuf::Message&>(table));
   });
 }
 

@@ -409,8 +409,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         record_table = RuleRecordTable(records=usage.values(),
                                        epoch=global_epoch)
         if self._print_grpc_payload:
-            record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
-                record_table.DESCRIPTOR.name, str(record_table))
+            record_msg = 'Sending RPC payload: \n{0}{{{1}}}'.format(
+                record_table.DESCRIPTOR.name, "\n"+str(record_table))
             self.logger.info(record_msg)
         future = self.sessiond.ReportRuleStats.future(
             record_table, self.SESSIOND_RPC_TIMEOUT)
