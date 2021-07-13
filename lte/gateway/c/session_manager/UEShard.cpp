@@ -26,37 +26,34 @@ UEShard::UEShard() {
   number_of_shards = 0;
 }
 
-// returns shard_id associated with UE added
 int UEShard::add_ue(std::string imsi) {
   int shard_id;
   if (shards.size() == 0) {
     shard_id = 0;
-    shards[shard_id].push_back(imsi);
+    shards.push_back({imsi});
     number_of_shards++;
   } else {
-    // iterate through all shards to find open location to put imsi
-    for (auto it = shards.begin(); it != shards.end(); it++) {
-      if (total_ues_for_shard(it->first) < MAX_SHARD_SIZE) {
-        shard_id = it->first;
-        shards[shard_id].push_back(imsi);
-        return shard_id;
+    for (auto i = 0; i < number_of_shards; i++) {
+      if (total_ues_for_shard(i) < max_shard_size) {
+        shards[i].push_back(imsi);
+        return i;
       }
     }
-    shard_id = ++number_of_shards;
-    shards[shard_id].push_back(imsi);
+    shard_id = number_of_shards++;
+    shards.push_back({imsi});
   }
   return shard_id;
 }
 
 std::pair<int, int> UEShard::find_ue_shard(std::string imsi) {
   std::pair<int, int> location;
-  for (auto it = shards.begin(); it != shards.end(); it++) {
-    if (std::find(it->second.begin(), it->second.end(), imsi) !=
-        it->second.end()) {
+  for (auto i = 0; i < shards.size(); i++) {
+    if (std::find(shards[i].begin(), shards[i].end(), imsi) !=
+        shards[i].end()) {
       std::vector<std::string>::iterator itr =
-          std::find(it->second.begin(), it->second.end(), imsi);
-      int indexOfImsi = std::distance(it->second.begin(), itr);
-      location        = std::make_pair(it->first, indexOfImsi);
+          std::find(shards[i].begin(), shards[i].end(), imsi);
+      int indexOfImsi = std::distance(shards[i].begin(), itr);
+      location        = std::make_pair(i, indexOfImsi);
       return location;
     }
   }

@@ -18,28 +18,27 @@
 
 namespace magma {
 
-//Shards represent groups of UEs placed into buckets of 
-//a certain size, to make polling more manageable
+// Shards represent groups of UEs placed into buckets of
+// a certain size, to make polling more manageable
 class UEShard {
-
   UEShard();
 
   // add UE to shards based on availability
   int add_ue(std::string imsi);
 
-  //locate shard and index based on shard ID
+  // locate shard and index based on shard ID
   std::pair<int, int> find_ue_shard(std::string imsi);
 
-  //remove UE from shard
+  // remove UE from shard
   void remove_ue(std::string imsi);
 
-  //compute total number of UEs in a shard
+  // compute total number of UEs in a shard
   int total_ues_for_shard(int shard_id);
 
-  private:
-    std::map<int, std::vector<std::string>> shards;
-    int number_of_shards;
-    int max_shard_size;
+ private:
+  std::vector<std::vector<std::string>> shards;
+  int number_of_shards;
+  int max_shard_size;
 };
 
 }  // namespace magma
