@@ -83,7 +83,7 @@ export default function AddEditEnodebDialog(props: Props) {
   );
   const [serialId, setSerialId] = useState<string>(editingEnodeb?.serial || '');
   const [tac, setTac] = useState(String(editingEnodeb?.config.tac || ''));
-  const [mme_ip, setMmeIP] = useState(String(editingEnodeb?.config.mme_ip || '10.0.2.1'))
+  const [mme_ip, setMmeIP] = useState(String(editingEnodeb?.config.mme_ip || '10.0.2.1'));
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
     editingEnodeb?.config.transmit_enabled ?? false,
   );
@@ -163,7 +163,7 @@ export default function AddEditEnodebDialog(props: Props) {
     if (tac !== '') {
       enb.config.tac = parseInt(tac);
     }
-    if (mme_ip !== ''){
+    if (mme_ip !== '') {
       enb.config.mme_ip = mme_ip;
     }
 
@@ -292,7 +292,7 @@ export default function AddEditEnodebDialog(props: Props) {
           label="MME IP"
           className={classes.input}
           value={mme_ip}
-          onChange={({target}) => setEnodebId(target.value)}
+          onChange={({target}) => setMmeIP(target.value)}
           placeholder="10.0.2.1"
         />
         <FormControl className={classes.input}>

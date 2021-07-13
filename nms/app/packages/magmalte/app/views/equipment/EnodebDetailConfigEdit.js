@@ -280,7 +280,7 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
-    mme_ip: String(config.mme_ip ?? '')
+    mme_ip: String(config.mme_ip ?? ''),
   });
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -473,6 +473,7 @@ export function RanEdit(props: Props) {
                   onChange={({target}) => handleOptChange('tac', target.value)}
                 />
               </AltFormField>
+
               <AltFormField label={'MME IP'}>
                 <OutlinedInput
                   data-testid="mme_ip"
@@ -480,8 +481,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.mme_ip}
                   onChange={({target}) => handleOptChange('mme_ip', target.value)}
+
                 />
               </AltFormField>
+
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
                   <Select
