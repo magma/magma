@@ -8608,6 +8608,8 @@ definitions:
         maxLength: 4
         minLength: 1
         type: string
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
     required:
     - ip_block
     - nat_enabled
@@ -10068,6 +10070,8 @@ definitions:
           - max_dl_bit_rate
           type: object
         type: object
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
       tac:
         example: 1
         format: uint32
@@ -11503,6 +11507,13 @@ definitions:
       icmp:
         $ref: '#/definitions/icmp_status'
     type: object
+  subscriberdb_sync_interval:
+    description: Interval in seconds between gateway requests to sync its subscriberdb
+      with the cloud.
+    example: 300
+    format: uint32
+    minimum: 60
+    type: integer
   subscription_profile:
     description: HSS Subscription Profile
     minLength: 1

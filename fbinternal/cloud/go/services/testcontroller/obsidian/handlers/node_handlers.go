@@ -64,7 +64,7 @@ func listCINodes(c echo.Context) error {
 		tag = strPtr("")
 	}
 
-	nodes, err := testcontroller.GetNodes(nil, tag)
+	nodes, err := testcontroller.GetNodes(c.Request().Context(), nil, tag)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -83,7 +83,7 @@ func getCINode(c echo.Context) error {
 		return nerr
 	}
 
-	nodes, err := testcontroller.GetNodes(idParam, nil)
+	nodes, err := testcontroller.GetNodes(c.Request().Context(), idParam, nil)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -103,7 +103,7 @@ func createCINode(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
+	err := testcontroller.CreateOrUpdateNode(c.Request().Context(), &storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -127,7 +127,7 @@ func updateCINode(c echo.Context) error {
 	if *node.ID != idParam[0] {
 		return obsidian.HttpError(errors.New("payload ID does not match path param"), http.StatusBadRequest)
 	}
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
+	err := testcontroller.CreateOrUpdateNode(c.Request().Context(), &storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -140,7 +140,7 @@ func deleteCINode(c echo.Context) error {
 		return nerr
 	}
 
-	err := testcontroller.DeleteNode(idParam[0])
+	err := testcontroller.DeleteNode(c.Request().Context(), idParam[0])
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -148,7 +148,7 @@ func deleteCINode(c echo.Context) error {
 }
 
 func leaseCINode(c echo.Context) error {
-	lease, err := testcontroller.LeaseNode(c.QueryParam(tagParamName))
+	lease, err := testcontroller.LeaseNode(c.Request().Context(), c.QueryParam(tagParamName))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -168,7 +168,7 @@ func reserveCINode(c echo.Context) error {
 		return nerr
 	}
 
-	lease, err := testcontroller.ReserveNode(idParam[0])
+	lease, err := testcontroller.ReserveNode(c.Request().Context(), idParam[0])
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -189,7 +189,7 @@ func returnManuallyReservedCINode(c echo.Context) error {
 	}
 
 	// TODO: maybe expose this constant from the storage package?
-	err := testcontroller.ReleaseNode(idParam[0], "manual")
+	err := testcontroller.ReleaseNode(c.Request().Context(), idParam[0], "manual")
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -202,7 +202,7 @@ func releaseCINode(c echo.Context) error {
 		return nerr
 	}
 	nodeID, leaseID := params[0], params[1]
-	err := testcontroller.ReleaseNode(nodeID, leaseID)
+	err := testcontroller.ReleaseNode(c.Request().Context(), nodeID, leaseID)
 	if err == nil {
 		return c.NoContent(http.StatusNoContent)
 	}
