@@ -269,8 +269,7 @@ bool SessionStateEnforcer::m5g_release_session(
   auto session_id = session->get_session_id();
   /*Irrespective of any State of Session, release and terminate*/
   SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-  MLOG(MDEBUG) << "Trying to release session with id " << session_id
-               << " from state "
+  MLOG(MDEBUG) << "Trying to release " << session_id << " from state "
                << session_fsm_state_to_str(session->get_state());
   m5g_start_session_termination(session_map, session, pdu_id, &session_uc);
   return true;
@@ -289,8 +288,8 @@ void SessionStateEnforcer::m5g_start_session_termination(
   session->set_fsm_state(RELEASE, session_uc);
   uint32_t cur_version = session->get_current_version();
   session->set_current_version(++cur_version, session_uc);
-  MLOG(MINFO) << "During release state of session changed to "
-              << session_fsm_state_to_str(session->get_state());
+  MLOG(MDEBUG) << "During release state of session changed to "
+               << session_fsm_state_to_str(session->get_state());
   handle_state_update_to_amf(
       *session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
       PDU_SESSION_STATE_NOTIFY);
@@ -298,9 +297,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* Call for all rules to be de-associated from session
    * and inform to UPF
    */
-  MLOG(MDEBUG) << "Will be removing all associated rules of session id "
-               << session->get_session_id();
-  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::REMOVE);
+  m5g_pdr_rules_change_and_update_upf(session, PdrState::REMOVE);
   if (session_map[imsi].size() == 0) {
     // delete the rules
     pdr_map_.erase(imsi);
@@ -329,9 +326,9 @@ void SessionStateEnforcer::m5g_handle_termination_on_timeout(
   auto session_update = SessionStore::get_default_session_update(session_map);
   bool marked_termination =
       session_update[imsi].find(session_id) != session_update[imsi].end();
-  MLOG(MINFO) << "Forced termination timeout! Checking if termination has to "
-              << "be forced for " << session_id << "... => "
-              << (marked_termination ? "YES" : "NO");
+  MLOG(MDEBUG) << "Forced termination timeout! Checking if termination has to "
+               << "be forced for " << session_id << "... => "
+               << (marked_termination ? "YES" : "NO");
   /* If the session doesn't exist in the session_update, then the session was
    * already released and terminated
    */
@@ -341,8 +338,8 @@ void SessionStateEnforcer::m5g_handle_termination_on_timeout(
 
     bool update_success = session_store_.update_sessions(session_update);
     if (update_success) {
-      MLOG(MINFO) << "Updated session termination of " << session_id
-                  << " in to SessionStore";
+      MLOG(MDEBUG) << "Updated session termination of " << session_id
+                   << " in to SessionStore";
     } else {
       MLOG(MERROR) << "Failed to update session termination of " << session_id
                    << " in to SessionStore";
@@ -384,15 +381,15 @@ void SessionStateEnforcer::m5g_complete_termination(
   session_uc.is_session_ended = true;
   /*Removing session from map*/
   session_map[imsi].erase(*session_it);
-  MLOG(MINFO) << session_id << " deleted from SessionMap";
+  MLOG(MDEBUG) << session_id << " deleted from SessionMap";
   /* If it is last session terminated and no session left for this IMSI
    * remove the imsi as well
    */
   if (session_map[imsi].size() == 0) {
     session_map.erase(imsi);
-    MLOG(MINFO) << "All sessions terminated for IMSI " << imsi;
+    MLOG(MDEBUG) << "All sessions terminated for IMSI " << imsi;
   }
-  MLOG(MINFO) << "Successfully terminated session " << session_id;
+  MLOG(MDEBUG) << "Successfully terminated session " << session_id;
   return;
 }
 
@@ -403,7 +400,7 @@ void SessionStateEnforcer::m5g_move_to_inactive_state(
   /* Call for all rules to be de-associated from session
    * and inform to UPF
    */
-  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::IDLE);
+  m5g_pdr_rules_change_and_update_upf(session, PdrState::IDLE);
   return;
 }
 
@@ -422,23 +419,11 @@ void SessionStateEnforcer::set_new_fsm_state_and_increment_version(
 }
 
 void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    PdrState pdrstate) {
+    const std::unique_ptr<SessionState>& session, PdrState pdrstate) {
   // update criteria status not needed
   session->set_all_pdrs(pdrstate);
   session->reset_rtx_counter();
-  m5g_send_session_request_to_upf(imsi, session);
-  return;
-}
-
-void SessionStateEnforcer::m5g_send_session_request_to_upf(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session) {
-  // Update to UPF
-  SessionState::SessionInfo sess_info;
-  session->sess_infocopy(&sess_info);
-  // Set the node Id
-  sess_info.nodeId.node_id = get_upf_node_id();
-  pipelined_client_->set_upf_session(sess_info, call_back_upf);
+  m5g_send_session_request_to_upf(session);
   return;
 }
 

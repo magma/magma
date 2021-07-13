@@ -69,7 +69,7 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := indexImpl(req.NetworkId, states)
+	stErrs, err := indexImpl(ctx, req.NetworkId, states)
 	if err != nil {
 		return nil, err
 	}
@@ -88,13 +88,13 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 	return nil, status.Errorf(codes.InvalidArgument, "unsupported from/to for CompleteReindex: %v to %v", req.FromVersion, req.ToVersion)
 }
 
-func indexImpl(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setSecondaryStates(networkID, states)
+func indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	return setSecondaryStates(ctx, networkID, states)
 }
 
 // setSecondaryState maps {sessionID -> IMSI} and {teid -> HwId}
 // Will attempt to update all secondary states, but will return error if any fails
-func setSecondaryStates(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+func setSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
 	sessionIDToIMSI := map[string]string{}
 	teidoHwId := map[string]string{}
 	stateErrors := state_types.StateErrors{}
@@ -119,11 +119,11 @@ func setSecondaryStates(networkID string, states state_types.StatesByID) (state_
 
 	multiError := multierrors.NewMulti()
 	if len(sessionIDToIMSI) != 0 {
-		err := directoryd.MapSessionIDsToIMSIs(networkID, sessionIDToIMSI)
+		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
 		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
 	}
 	if len(teidoHwId) != 0 {
-		err := directoryd.MapSgwCTeidToHWID(networkID, teidoHwId)
+		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, teidoHwId)
 		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of teid To HwID %+v", sessionIDToIMSI)
 	}
 	// multiError will only be nil if both updates succeeded

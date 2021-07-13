@@ -8,7 +8,7 @@ hide_title: true
 ## Overview
 
 Magma gateways and orc8r generate a lot of metrics which provides a great deal of visibility into gateways, base stations, subscribers, reliability, throughput etc. These metrics are regularly pushed into prometheus, which along with grafana enables us to store and query for these metrics. All the metrics are stored in prometheus for a default of [30 days.](https://github.com/magma/magma/blob/master/orc8r/cloud/helm/orc8r/charts/metrics/values.yaml#L99)
-For unlimited retention and a more scaled metrics pipeline, we also support deploying magma with [thanos.](howtos/thanos.md)
+For unlimited retention and a more scaled metrics pipeline, we also support deploying magma with [Thanos](orc8r/configure_thanos.md).
 
 ## Metrics Explorer
 

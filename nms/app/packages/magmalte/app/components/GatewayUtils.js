@@ -177,6 +177,10 @@ type GatewayStatusPayload = {
 
 const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
 
+export const HEALTHY_GATEWAY = 'Good';
+
+export const UNHEALTHY_GATEWAY = 'Bad';
+
 export default function isGatewayHealthy({status}: lte_gateway) {
   if (status != null) {
     const checkin = status.checkin_time;

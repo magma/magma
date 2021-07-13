@@ -126,7 +126,7 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 			if snlist[0] == unarylib.ORC8R_CLIENT_CERT_VALUE {
 				return newCtx, newReq, resp, nil
 			}
-			gwIdentity, certExpTime, err = findGatewayIdentity(snlist[0], ctxMetadata)
+			gwIdentity, certExpTime, err = findGatewayIdentity(ctx, snlist[0], ctxMetadata)
 			if err == nil {
 				// If a valid GW Identity is found, add it into CTX for use
 				// by the callee
@@ -185,8 +185,8 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 // If the target PRC needs Network and/or logical ID, the service should handle
 // their absence for unregistered Gateways and return an error.
 // The identity middleware only ensures that GW is who it says it is (HwID)
-func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity, int64, error) {
-	certInfo, err := getCertifierIinfo(serialNumber, md)
+func findGatewayIdentity(ctx context.Context, serialNumber string, md metadata.MD) (*protos.Identity, int64, error) {
+	certInfo, err := getCertifierIinfo(ctx, serialNumber, md)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -220,10 +220,10 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 
 // getCertifierIdentity retrieves 'raw' identity associated with the Certificate
 // SerialNumber from certifier
-func getCertifierIinfo(serialNumber string, md metadata.MD) (*certprotos.CertificateInfo, error) {
+func getCertifierIinfo(ctx context.Context, serialNumber string, md metadata.MD) (*certprotos.CertificateInfo, error) {
 	// Call Certifier & get the Identity from it
 	// & error out if SN is not found or expired
-	certInfo, err := certifier.GetCertificateIdentity(serialNumber)
+	certInfo, err := certifier.GetCertificateIdentity(ctx, serialNumber)
 	if err != nil {
 		glog.Infof("Lookup error '%s' for Cert SN: %s, metadata: %+v", err, serialNumber, md)
 		return nil, status.Error(codes.PermissionDenied, ERROR_MSG_UNKNOWN_CERT)

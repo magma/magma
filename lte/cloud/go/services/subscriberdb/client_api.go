@@ -26,7 +26,7 @@ import (
 )
 
 // ListMSISDNs returns the tracked MSISDNs, keyed by their associated IMSI.
-func ListMSISDNs(networkID string) (map[string]string, error) {
+func ListMSISDNs(ctx context.Context, networkID string) (map[string]string, error) {
 	msisdns := map[string]string{}
 
 	client, err := getClient()
@@ -35,7 +35,7 @@ func ListMSISDNs(networkID string) (map[string]string, error) {
 	}
 
 	res, err := client.GetMSISDNs(
-		context.Background(),
+		ctx,
 		&protos.GetMSISDNsRequest{
 			NetworkId: networkID,
 			Msisdns:   nil, // list all
@@ -50,14 +50,14 @@ func ListMSISDNs(networkID string) (map[string]string, error) {
 
 // GetIMSIForMSISDN returns the IMSI associated with the passed MSISDN.
 // If not found, returns ErrNotFound from magma/orc8r/lib/go/errors.
-func GetIMSIForMSISDN(networkID, msisdn string) (string, error) {
+func GetIMSIForMSISDN(ctx context.Context, networkID, msisdn string) (string, error) {
 	client, err := getClient()
 	if err != nil {
 		return "", err
 	}
 
 	res, err := client.GetMSISDNs(
-		context.Background(),
+		ctx,
 		&protos.GetMSISDNsRequest{
 			NetworkId: networkID,
 			Msisdns:   []string{msisdn},
@@ -76,14 +76,14 @@ func GetIMSIForMSISDN(networkID, msisdn string) (string, error) {
 }
 
 // SetIMSIForMSISDN maps a MSISDN to an IMSI.
-func SetIMSIForMSISDN(networkID, msisdn, imsi string) error {
+func SetIMSIForMSISDN(ctx context.Context, networkID, msisdn, imsi string) error {
 	client, err := getClient()
 	if err != nil {
 		return err
 	}
 
 	_, err = client.SetMSISDN(
-		context.Background(),
+		ctx,
 		&protos.SetMSISDNRequest{
 			NetworkId: networkID,
 			Msisdn:    msisdn,
@@ -98,14 +98,14 @@ func SetIMSIForMSISDN(networkID, msisdn, imsi string) error {
 }
 
 // DeleteMSISDN deletes a MSISDN to IMSI mapping.
-func DeleteMSISDN(networkID, msisdn string) error {
+func DeleteMSISDN(ctx context.Context, networkID, msisdn string) error {
 	client, err := getClient()
 	if err != nil {
 		return err
 	}
 
 	_, err = client.DeleteMSISDN(
-		context.Background(),
+		ctx,
 		&protos.DeleteMSISDNRequest{
 			NetworkId: networkID,
 			Msisdn:    msisdn,
@@ -119,14 +119,14 @@ func DeleteMSISDN(networkID, msisdn string) error {
 }
 
 // GetIMSIsForIP returns the IMSIs associated with the passed IP.
-func GetIMSIsForIP(networkID, ip string) ([]string, error) {
+func GetIMSIsForIP(ctx context.Context, networkID, ip string) ([]string, error) {
 	client, err := getClient()
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := client.GetIPs(
-		context.Background(),
+		ctx,
 		&protos.GetIPsRequest{
 			NetworkId: networkID,
 			Ips:       []string{ip},
@@ -147,14 +147,14 @@ func GetIMSIsForIP(networkID, ip string) ([]string, error) {
 }
 
 // SetIMSIsForIPs creates a set of IP to IMSI mappings.
-func SetIMSIsForIPs(networkID string, mappings []*protos.IPMapping) error {
+func SetIMSIsForIPs(ctx context.Context, networkID string, mappings []*protos.IPMapping) error {
 	client, err := getClient()
 	if err != nil {
 		return err
 	}
 
 	_, err = client.SetIPs(
-		context.Background(),
+		ctx,
 		&protos.SetIPsRequest{
 			NetworkId:  networkID,
 			IpMappings: mappings,

@@ -116,7 +116,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(c.Request().Context(), nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -159,7 +159,7 @@ func deleteGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := handlers.DeleteMagmadGateway(nid, gid, storage.TKs{{Type: feg.FegGatewayType, Key: gid}})
+	err := handlers.DeleteMagmadGateway(c.Request().Context(), nid, gid, storage.TKs{{Type: feg.FegGatewayType, Key: gid}})
 	if err != nil {
 		return makeErr(err)
 	}
@@ -209,6 +209,8 @@ func getClusterStatusHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+
+	reqCtx := c.Request().Context()
 	network, err := configurator.LoadNetwork(nid, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
@@ -219,7 +221,7 @@ func getClusterStatusHandler(c echo.Context) error {
 	if network.Type != feg.FederationNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, feg.FederationNetworkType))
 	}
-	activeGw, err := health.GetActiveGateway(nid)
+	activeGw, err := health.GetActiveGateway(reqCtx, nid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -234,6 +236,8 @@ func getHealthStatusHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+
+	reqCtx := c.Request().Context()
 	pid, err := configurator.GetPhysicalIDOfEntity(nid, orc8r.MagmadGatewayType, gid)
 	if err == merrors.ErrNotFound || len(pid) == 0 {
 		return c.NoContent(http.StatusNotFound)
@@ -241,15 +245,11 @@ func getHealthStatusHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	res, err := health.GetHealth(nid, gid)
+	res, err := health.GetHealth(reqCtx, nid, gid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	ret := &fegModels.FederationGatewayHealthStatus{
-		Status:      res.GetHealth().GetHealth().String(),
-		Description: res.GetHealth().GetHealthMessage(),
-	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, fegModels.ToFederationGatewayHealthStatusModel(res))
 }
 
 func makeErr(err error) *echo.HTTPError {

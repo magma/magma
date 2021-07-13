@@ -1,46 +1,46 @@
 ---
 id: deploy_install
-title: Install AGW on Debian Stretch.
+title: Install AGW
 hide_title: true
 ---
 
-For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](https://magma.github.io/magma/docs/lte/deploy_install_ubuntu)
-# Install Access Gateway on Debian Stretch (Bare Metal)
+> NOTE: Debian-based AGW deployments are no longer supported as of v1.6. If you want to install to Debian, refer to [v1.5 of the documentation](https://magma.github.io/magma/versions).
 
-### AGW deployment on Debian distribution is DEPRECATED! Release 1.5 is last release supporting debian based AGW.
+# Install Access Gateway on Ubuntu (Bare Metal)
 
 ## Prerequisites
 
 To setup a Magma Access Gateway, you will need a machine that
 satisfies the following requirements:
 
-- AGW_HOST: 64bit-X86 machine, hardware strongly recommended (not virtualized).
+- AGW_HOST: 64bit-X86 machine, baremetal strongly recommended (not virtualized).
   You will need two ethernet ports. We use enp1s0 and enp2s0 in this guide.
   They might have different names on your hardware so just replace enp1s0 and
   enp2s0 with your current interfaces name in this guideline.
   One port is for the SGi interface (default: enp1s0) and one for the S1
-  interface (default: enp2s0). Note that the `agw_install.sh` script will
+  interface (default: enp2s0). Note that the `agw_install_ubuntu.sh` script will
   rename the `enp1s0` interface to `eth0`.
 
 ## Deployment
 
-### 1. Create boot USB stick and install Debian on your AGW host
+### 1. Create boot USB stick and install Ubuntu on your AGW host
 
-- Download .iso image from [Debian mirror](https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso)
+- Download Ubuntu Server 20.04 LTS .iso image from Ubuntu website
 - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
 - Boot your AGW host from USB
   (Press F11 to select boot sequence, :warning: This might be different for
   your machine). If you see 2 options to boot from USB, select the non-UEFI
   option.
-- Select “Install” option.
-- Network missing firmeware "No"
+- Select "Install" option.
+- Network missing firmware "No"
 - Primary network interface "enp1s0"
 - Configuration.
-  * Hostname: “magma”
-  * Domain name : “”
-  * Root password: “magma”
-  * Username : “magma”
-  * Password: “magma”
+  * hostname: <choose host name>. Default is "magma". You need to select unique
+    host name in case of multiple AGW in network.
+  * Domain name : ""
+  * Root password: "magma"
+  * Username : "magma"
+  * Password: "magma"
   * Partition disk: "Use entire disk"
   * Select disk to partition: "sda"
   * Partitioning scheme: "All files in one partition"
@@ -52,10 +52,21 @@ installation process to get an IP using DHCP.
 
 *Run AGW installation*
 
+To install on server with DHCP configured SGi interface.
+
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.5.2/lte/gateway/deploy/agw_install.sh
-bash agw_install.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.6/lte/gateway/deploy/agw_install_ubuntu.sh
+bash agw_install_ubuntu.sh
+```
+
+To Install on server with statically allocated SGi interface. Fow example:
+SGi has 1.1.1.1/24 IP and upstream router IP is 1.1.1.200
+
+```bash
+su
+wget https://raw.githubusercontent.com/magma/magma/v1.6/lte/gateway/deploy/agw_install_ubuntu.sh
+bash agw_install_ubuntu.sh 1.1.1.1/24 1.1.1.200
 ```
 
 The script will run a pre-check script that will prompt you what will change
@@ -63,10 +74,8 @@ on your machine. If you're okay with those changes reply `yes` and magma will
 be installed. If `no` is replied It will stop the installation.
 
 ```bash
-  - Check if Debian is installed
-  Debian is installed
-  - Check for correct Linux Headers
-  New Linux Headers will be Installed
+  - Check if Ubuntu is installed
+  Ubuntu is installed
   - Check for magma user
   magma user is not Installed
   - Check if both interfaces are named eth0 and eth1
@@ -91,7 +100,9 @@ service magma@* status
 
 *Post Install Check*
 
-``` bash
-cd ~/magma/lte/gateway/deploy
-./agw_post_install.sh
+Make sure you have `control_proxy.yml` file in directory /var/opt/magma/configs/
+before running post install script.
+
+```bash
+bash /root/agw_post_install_ubuntu.sh
 ```

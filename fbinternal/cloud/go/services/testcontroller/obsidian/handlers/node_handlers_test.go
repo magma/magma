@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"testing"
 	"time"
 
@@ -54,9 +55,9 @@ func Test_ListCINodes(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", Tag: "foo", VpnIP: "192.168.100.1"})
+	err := testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node1", Tag: "foo", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node2", VpnIP: "10.0.2.1"})
+	err = testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node2", VpnIP: "10.0.2.1"})
 	assert.NoError(t, err)
 	tc.ExpectedResult = tests.JSONMarshaler([]*models.CiNode{
 		{
@@ -123,7 +124,7 @@ func Test_GetCINode(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
+	err := testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "GET",
@@ -178,7 +179,7 @@ func Test_CreateCINode(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetNodes(nil, nil)
+	actual, err := testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {
@@ -222,7 +223,7 @@ func Test_UpdateCINode(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetNodes(nil, nil)
+	actual, err := testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {
@@ -240,7 +241,7 @@ func Test_UpdateCINode(t *testing.T) {
 		VpnIP: ipv4("192.168.100.1"),
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = testcontroller.GetNodes(nil, nil)
+	actual, err = testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	expected["node1"].VpnIp = "192.168.100.1"
 	assert.Equal(t, expected, actual)
@@ -253,7 +254,7 @@ func Test_UpdateCINode(t *testing.T) {
 	tc.ExpectedStatus = 400
 	tc.ExpectedError = "payload ID does not match path param"
 	tests.RunUnitTest(t, e, tc)
-	actual, err = testcontroller.GetNodes(nil, nil)
+	actual, err = testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -279,10 +280,10 @@ func Test_DeleteCINode(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "10.0.2.1"})
+	err := testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node1", VpnIP: "10.0.2.1"})
 	assert.NoError(t, err)
 	tests.RunUnitTest(t, e, tc)
-	actual, err := testcontroller.GetNodes(nil, nil)
+	actual, err := testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	assert.Empty(t, actual)
 }
@@ -311,9 +312,9 @@ func Test_ReserveCINode(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
+	err := testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node2", Tag: "foo", VpnIP: "10.0.0.2"})
+	err = testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node2", Tag: "foo", VpnIP: "10.0.0.2"})
 	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "POST",
@@ -327,7 +328,7 @@ func Test_ReserveCINode(t *testing.T) {
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err := testcontroller.GetNodes(nil, strPtr(""))
+	actual, err := testcontroller.GetNodes(context2.Background(), nil, strPtr(""))
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {
@@ -364,7 +365,7 @@ func Test_ReserveCINode(t *testing.T) {
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = testcontroller.GetNodes(nil, strPtr(""))
+	actual, err = testcontroller.GetNodes(context2.Background(), nil, strPtr(""))
 	assert.NoError(t, err)
 	expected = map[string]*storage.CINode{
 		"node1": {
@@ -389,7 +390,7 @@ func Test_ReserveCINode(t *testing.T) {
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = testcontroller.GetNodes(nil, nil)
+	actual, err = testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	expected = map[string]*storage.CINode{
 		"node1": {
@@ -435,7 +436,7 @@ func Test_ReserveSpecificCINode(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
+	err := testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "POST",
@@ -451,7 +452,7 @@ func Test_ReserveSpecificCINode(t *testing.T) {
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err := testcontroller.GetNodes(nil, nil)
+	actual, err := testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {
@@ -506,9 +507,9 @@ func Test_ReleaseCINode(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
+	err := testcontroller.CreateOrUpdateNode(context2.Background(), &storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
-	actualLease, err := testcontroller.LeaseNode("")
+	actualLease, err := testcontroller.LeaseNode(context2.Background(), "")
 	assert.NoError(t, err)
 	expectedLease := &storage.NodeLease{Id: "node1", VpnIP: "192.168.100.1", LeaseID: "1"}
 	assert.Equal(t, expectedLease, actualLease)
@@ -522,7 +523,7 @@ func Test_ReleaseCINode(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetNodes(nil, nil)
+	actual, err := testcontroller.GetNodes(context2.Background(), nil, nil)
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {

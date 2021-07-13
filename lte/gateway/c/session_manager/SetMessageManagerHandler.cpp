@@ -99,8 +99,8 @@ void SetMessageManagerHandler::SetAmfSessionContext(
     // Requested message from AMF to release the session
     if (cfg.common_context.sm_session_state() == RELEASED_4) {
       if (cfg.common_context.sm_session_version() == 0) {
-        MLOG(MERROR) << "Wrong version received from AMF for " << imsi
-                     << " of PDU id:" << pdu_id;
+        MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
+                     << " but continuing release request";
         Status status(grpc::OUT_OF_RANGE, "Version number Out of Range");
         response_callback(status, SmContextVoid());
         return;
@@ -204,7 +204,7 @@ void SetMessageManagerHandler::send_create_session(
                          .teid());
       MLOG(MDEBUG) << "2nd Request of session from UE with IMSI: " << imsi
                    << " PDU id " << pdu_id;
-      session->set_config(cfg);
+      session->set_config(cfg, nullptr);
       SessionUpdate update =
           SessionStore::get_default_session_update(session_map);
       bool success = m5g_enforcer_->m5g_update_session_context(

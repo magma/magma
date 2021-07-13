@@ -9,3 +9,4 @@
     - roles/vars/defaults.yaml
     - "{{ dirLocalInventory }}/secrets.yaml"
     - roles/vars/cluster.yaml
+    - roles/vars/build.yaml

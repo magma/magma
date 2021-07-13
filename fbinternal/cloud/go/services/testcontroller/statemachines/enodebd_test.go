@@ -110,7 +110,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// Check upgrade status, gateway hasn't upgraded yet
 	// ---
 	gatewayRecord := &models2.GatewayDevice{HardwareID: "hw1", Key: &models2.ChallengeKey{KeyType: "ECHO"}}
-	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, &models2.GatewayStatus{

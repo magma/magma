@@ -38,7 +38,7 @@ func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamReq
 		return nil, fmt.Errorf("GetUpdates failed: unknown stream name provided: %s", req.GetStreamName())
 	}
 
-	update, err := streamer.GetUpdates(req.GetGatewayId(), req.GetExtraArgs())
+	update, err := streamer.GetUpdates(ctx, req.GetGatewayId(), req.GetExtraArgs())
 	if err != nil {
 		// Note: return blank err to properly receive EAGAIN from mconfig provider
 		return nil, err

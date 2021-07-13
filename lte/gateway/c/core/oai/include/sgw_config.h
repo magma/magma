@@ -59,6 +59,7 @@
 #define SGW_CONFIG_STRING_OVS_UPLINK_PORT_NUM "UPLINK_PORT_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_MAC "UPLINK_MAC"
 #define SGW_CONFIG_STRING_OVS_MULTI_TUNNEL "MULTI_TUNNEL"
+#define SGW_CONFIG_STRING_OVS_GTP_ECHO "GTP_ECHO"
 #define SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED                         \
   "PIPELINED_CONFIG_ENABLED"
 
@@ -74,6 +75,7 @@ typedef struct ovs_config_s {
   int uplink_port_num;
   bstring uplink_mac;
   bool multi_tunnel;
+  bool gtp_echo;
   bool pipelined_managed_tbl0;
 } ovs_config_t;
 

@@ -14,6 +14,7 @@ limitations under the License.
 package metrics
 
 import (
+	"context"
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -57,7 +58,7 @@ func reportGatewayStatus() error {
 		numUpGateways := 0
 		for _, gatewayEntity := range gateways {
 			gatewayID := gatewayEntity.Key
-			status, err := wrappers.GetGatewayStatus(networkID, gatewayEntity.PhysicalID)
+			status, err := wrappers.GetGatewayStatus(context.Background(), networkID, gatewayEntity.PhysicalID)
 			if err != nil {
 				if err != errors.ErrNotFound {
 					glog.Errorf("Error getting gateway state for network:%v, gateway:%v, %v", networkID, gatewayID, err)

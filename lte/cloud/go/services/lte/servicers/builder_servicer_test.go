@@ -160,6 +160,7 @@ func TestBuilder_Build(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -187,13 +188,13 @@ func TestBuilder_Build(t *testing.T) {
 	}
 
 	// Happy path
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 	// Break with non-allowed network service
 	setEPCNetworkServices([]string{"0xdeadbeef"}, &nw)
-	_, err = build_non_federated(&nw, &graph, "gw1")
+	_, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown network service name 0xdeadbeef")
 
@@ -210,7 +211,7 @@ func TestBuilder_Build(t *testing.T) {
 		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:    &lte_mconfig.PipelineD_LiUes{},
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -237,7 +238,7 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 
-	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	actual, err = buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -263,7 +264,7 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 
-	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	actual, err = buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -280,7 +281,7 @@ func TestBuilder_Build(t *testing.T) {
 			Tac: []uint32{211, 122},
 		},
 	}
-	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	actual, err = buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -373,6 +374,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -392,7 +394,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -403,7 +405,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: false,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -414,7 +416,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 		StaticIpEnabled: false,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -425,7 +427,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 		StaticIpEnabled: true,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -436,7 +438,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: true,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -449,7 +451,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		StaticIpEnabled: true,
 		MultiApnIpAlloc: true,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -478,7 +480,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 	}
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -509,7 +511,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 	}
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -541,7 +543,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 	}
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -651,6 +653,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -671,9 +674,87 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_Build_ConfigOverride(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	nwConfig := lte_models.NewDefaultTDDNetworkConfig()
+	// Change sync interval from the default 300
+	nwConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(120)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: nwConfig,
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+
+	gatewayConfig := newDefaultGatewayConfig()
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             gatewayConfig,
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+
+	// no override. nw-wide 120 expected
+	expected := map[string]proto.Message{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+			SyncInterval:    120,
+		},
+	}
+
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	gatewayConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(90)
+	// override. gw-specific 90 expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 90
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	nwConfig.Epc.SubscriberdbSyncInterval = 0
+	gatewayConfig.Epc.SubscriberdbSyncInterval = 0
+
+	// nw-wide and gw-specific not set. Service-level default expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 300
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	lte_test_init.StartTestServiceWithConfig(t, lte_service.Config{DefaultSubscriberdbSyncInterval: 30})
+
+	// nw-wide and gw-specific not set. Service-level default (30) too low. Enforced minimum (60) expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 60
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 }
 
 func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
@@ -799,6 +880,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -820,7 +902,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 	}
 
 	// Use LTE FEG NETWORK parser for this case
-	actual, err := build_lte_federated(&nw, &graph, "gw1")
+	actual, err := buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -942,6 +1024,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -962,7 +1045,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -1070,6 +1153,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1090,7 +1174,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -1204,6 +1288,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1224,7 +1309,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -1333,6 +1418,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1353,32 +1439,32 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-// build_lte_federated builds a Federated_LTE network that comes from swagger feg_lte_network model
-func build_lte_federated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+// buildLTEFederated builds a Federated_LTE network that comes from swagger feg_lte_network model
+func buildLTEFederated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	// use federated serded (this is still an LTE network)
 	networkProto, err := network.ToProto(feg_serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	return build_impl(networkProto, graph, gatewayID)
+	return buildImpl(networkProto, graph, gatewayID)
 }
 
-// build_lte_federated builds an non federated LTE network that comes from swagger lte_networl
-func build_non_federated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+// buildNonFederated builds an non federated LTE network that comes from swagger lte_networl
+func buildNonFederated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	// use NON federated serded
 	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	return build_impl(networkProto, graph, gatewayID)
+	return buildImpl(networkProto, graph, gatewayID)
 }
 
-func build_impl(networkProto *storage_configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+func buildImpl(networkProto *storage_configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err

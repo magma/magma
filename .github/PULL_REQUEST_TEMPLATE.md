@@ -1,8 +1,7 @@
 <!--
-    Tag your PR title with the components that it touches along with type of
-    change. Checkout 'contribute_commit_msg' doc for recommended git commit
-    message style.
-    E.g. "fix(orc8r): Changeset" or "feat(agw) ..."
+    Tag your PR title with the components that it touches along with
+    the type of change
+    E.g. "fix(orc8r): Fix reindexer race condition" or "feat(agw) ..."
 -->
 
 ## Summary

@@ -62,7 +62,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 }
 
 func listTestCases(c echo.Context) error {
-	tcs, err := testcontroller.GetTestCases(nil, serdes.TestController)
+	tcs, err := testcontroller.GetTestCases(c.Request().Context(), nil, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -78,7 +78,7 @@ func listTestCases(c echo.Context) error {
 func listEnodebdTestCase(c echo.Context) error {
 	// We should add some filter criteria to the RPC method but this will be
 	// low-scale enough that it won't matter
-	tcs, err := testcontroller.GetTestCases(nil, serdes.TestController)
+	tcs, err := testcontroller.GetTestCases(c.Request().Context(), nil, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -94,9 +94,9 @@ func listEnodebdTestCase(c echo.Context) error {
 	return c.JSON(http.StatusOK, ret)
 }
 
-func createEnodebdTestCase(e echo.Context) error {
+func createEnodebdTestCase(c echo.Context) error {
 	tc := &models.MutableEnodebdE2eTest{}
-	if err := e.Bind(tc); err != nil {
+	if err := c.Bind(tc); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := tc.Validate(strfmt.Default); err != nil {
@@ -108,20 +108,20 @@ func createEnodebdTestCase(e echo.Context) error {
 		enodedTestType = testcontroller.EnodedTestExcludeTraffic
 	}
 
-	err := testcontroller.CreateOrUpdateTestCase(*tc.Pk, enodedTestType, tc.Config, serdes.TestController)
+	err := testcontroller.CreateOrUpdateTestCase(c.Request().Context(), *tc.Pk, enodedTestType, tc.Config, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return e.NoContent(http.StatusCreated)
+	return c.NoContent(http.StatusCreated)
 }
 
-func getEnodebdTestCase(e echo.Context) error {
-	pk, nerr := getTestPk(e)
+func getEnodebdTestCase(c echo.Context) error {
+	pk, nerr := getTestPk(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	res, err := testcontroller.GetTestCases([]int64{pk}, serdes.TestController)
+	res, err := testcontroller.GetTestCases(c.Request().Context(), []int64{pk}, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -129,16 +129,16 @@ func getEnodebdTestCase(e echo.Context) error {
 	if !ok || (ret.TestCaseType != testcontroller.EnodedTestCaseType && ret.TestCaseType != testcontroller.EnodedTestExcludeTraffic) {
 		return echo.ErrNotFound
 	}
-	return e.JSON(http.StatusOK, unmarshalledTestCaseToEnodebdTestCase(ret))
+	return c.JSON(http.StatusOK, unmarshalledTestCaseToEnodebdTestCase(ret))
 }
 
-func updateEnodebdTestCase(e echo.Context) error {
-	pk, nerr := getTestPk(e)
+func updateEnodebdTestCase(c echo.Context) error {
+	pk, nerr := getTestPk(c)
 	if nerr != nil {
 		return nerr
 	}
 	cfg := &models.EnodebdTestConfig{}
-	if err := e.Bind(cfg); err != nil {
+	if err := c.Bind(cfg); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := cfg.Validate(strfmt.Default); err != nil {
@@ -150,11 +150,11 @@ func updateEnodebdTestCase(e echo.Context) error {
 	if !runTraffic {
 		enodedTestType = testcontroller.EnodedTestExcludeTraffic
 	}
-	err := testcontroller.CreateOrUpdateTestCase(pk, enodedTestType, cfg, serdes.TestController)
+	err := testcontroller.CreateOrUpdateTestCase(c.Request().Context(), pk, enodedTestType, cfg, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return e.NoContent(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
 func deleteEnodebdTestCase(e echo.Context) error {

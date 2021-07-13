@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -1619,7 +1620,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// Delete Jane's new IP
-	err = state.DeleteStates("n0", []stateTypes.ID{{Type: lte.MobilitydStateType, DeviceID: "IMSI1234567890.oai.ipv4"}})
+	err = state.DeleteStates(context.Background(), "n0", []stateTypes.ID{{Type: lte.MobilitydStateType, DeviceID: "IMSI1234567890.oai.ipv4"}})
 	assert.NoError(t, err)
 
 	// List one => found John (and only John -- Jane should be filtered out)

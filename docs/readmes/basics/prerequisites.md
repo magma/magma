@@ -55,8 +55,8 @@ To download Magma current version, or a specific release do the following:
 git clone https://github.com/magma/magma.git
 cd magma
 
-# in case you want to use a specific version of Magma (for example v1.5)
-git checkout v1.5
+# in case you want to use a specific version of Magma (for example v1.6)
+git checkout v1.6
 
 # to list all available releases
 git tag -l
@@ -84,12 +84,7 @@ aws configure
 Orchestrator deployment depends on the following components
 
 1. AWS account
-2. Docker image repository (e.g. Docker Hub, JFrog)
-3. Helm chart repository (e.g. JFrog, Github)*
 4. Registered domain for Orchestrator endpoints
-
-\* We describe setting up a private GitHub repository as a Helm repository in
-the [building Orchestrator](../orc8r/deploy_build.md) section.
 
 We recommend deploying the Orchestrator cloud component of Magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if

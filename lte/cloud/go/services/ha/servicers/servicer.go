@@ -90,7 +90,7 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 
 	enbSNsToOffloadState := map[uint32]lte_protos.GetEnodebOffloadStateResponse_EnodebOffloadState{}
 	for primaryGwID, enbs := range gwIDsToEnbs {
-		isCheckinValid, err := s.isGatewayCheckinValid(secondaryGw.NetworkId, primaryGwID)
+		isCheckinValid, err := s.isGatewayCheckinValid(ctx, secondaryGw.NetworkId, primaryGwID)
 		// Since a secondary gateway can serve multiple primary gateways, if
 		// we are unable to fetch checkin state for a primary, we should
 		// still continue gathering the offload state to return, rather
@@ -102,7 +102,7 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 			continue
 		}
 		for _, enb := range enbs {
-			offloadState, err := s.getOffloadStateForEnb(secondaryGw.NetworkId, primaryGwID, enb)
+			offloadState, err := s.getOffloadStateForEnb(ctx, secondaryGw.NetworkId, primaryGwID, enb)
 			// Since a secondary gateway can offload multiple ENBs, if we are
 			// unable to fetch offload state for an ENB, we should continue
 			// gathering offload state for other ENBs, rather than returning
@@ -159,12 +159,12 @@ func (s *HAServicer) getPrimaryGatewaysToEnodebs(networkID string, gatewayPoolID
 	return primaryGatewaysToEnbs, nil
 }
 
-func (s *HAServicer) isGatewayCheckinValid(networkID string, gatewayID string) (bool, error) {
+func (s *HAServicer) isGatewayCheckinValid(ctx context.Context, networkID string, gatewayID string) (bool, error) {
 	hwID, err := s.getHardwareIDFromGatewayID(networkID, gatewayID)
 	if err != nil {
 		return false, err
 	}
-	status, err := wrappers.GetGatewayStatus(networkID, hwID)
+	status, err := wrappers.GetGatewayStatus(ctx, networkID, hwID)
 	if err != nil {
 		return false, err
 	}
@@ -172,8 +172,8 @@ func (s *HAServicer) isGatewayCheckinValid(networkID string, gatewayID string) (
 	return timeSinceCheckin < validSecsSinceStateReported, nil
 }
 
-func (s *HAServicer) getOffloadStateForEnb(networkID string, primaryGwID string, enbSN string) (lte_protos.GetEnodebOffloadStateResponse_EnodebOffloadState, error) {
-	enodebState, err := lte_service.GetEnodebState(networkID, primaryGwID, enbSN)
+func (s *HAServicer) getOffloadStateForEnb(ctx context.Context, networkID string, primaryGwID string, enbSN string) (lte_protos.GetEnodebOffloadStateResponse_EnodebOffloadState, error) {
+	enodebState, err := lte_service.GetEnodebState(ctx, networkID, primaryGwID, enbSN)
 	if err != nil {
 		return lte_protos.GetEnodebOffloadStateResponse_NO_OP, err
 	}
