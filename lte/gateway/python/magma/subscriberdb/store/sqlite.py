@@ -16,6 +16,7 @@ import sqlite3
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime
+from typing import List, NamedTuple
 
 from lte.protos.subscriberdb_pb2 import (
     Digest,
@@ -26,6 +27,11 @@ from magma.subscriberdb.sid import SIDUtils
 
 from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
 from .onready import OnDataReady, OnDigestsReady
+
+
+class DigestDBInfo(NamedTuple):
+    flat_digest_db_location: str
+    per_sub_digest_db_location: str
 
 
 class SqliteStore(BaseStore):
@@ -40,13 +46,16 @@ class SqliteStore(BaseStore):
         self._sid_digits = sid_digits  # last digits to be included from subscriber id
         self._n_shards = 10**sid_digits
         self._db_locations = self._create_db_locations(db_location, self._n_shards)
-        self._digest_db_location, self._per_sub_digest_db_location = \
-            self._create_digest_db_locations(db_location)
+
+        digest_db_info = self._create_digest_db_locations(db_location)
+        self._digest_db_location = digest_db_info.flat_digest_db_location
+        self._per_sub_digest_db_location = digest_db_info.per_sub_digest_db_location
+
         self._create_store()
         self._on_ready = OnDataReady(loop=loop)
         self._on_digests_ready = OnDigestsReady(loop=loop)
 
-    def _create_db_locations(self, db_location: str, n_shards: int) -> list:
+    def _create_db_locations(self, db_location: str, n_shards: int) -> List[str]:
         # in memory if db_location is not specified
         if not db_location:
             db_location = "/var/opt/magma/"
@@ -68,7 +77,7 @@ class SqliteStore(BaseStore):
 
         return db_location_list
 
-    def _create_digest_db_locations(self, db_location: str) -> [str, str]:
+    def _create_digest_db_locations(self, db_location: str) -> DigestDBInfo:
         digest_db_location = 'file:' + db_location + \
                              'subscriber-digest.db?cache=shared'
         logging.info("digest db location: %s", digest_db_location)
@@ -80,7 +89,11 @@ class SqliteStore(BaseStore):
             per_sub_digest_db_location,
         )
 
-        return digest_db_location, per_sub_digest_db_location
+        digest_db_info = DigestDBInfo(
+            flat_digest_db_location=digest_db_location,
+            per_sub_digest_db_location=per_sub_digest_db_location,
+        )
+        return digest_db_info
 
     def _create_store(self) -> None:
         """
@@ -380,7 +393,7 @@ class SqliteStore(BaseStore):
         logging.info("update digest stored in gateway: %s", new_digest)
         self._on_digests_ready.update_digest(new_digest)
 
-    def get_current_per_sub_digests(self) -> list:
+    def get_current_per_sub_digests(self) -> List[SubscriberDigestWithID]:
         digests = []
         conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
         try:
@@ -400,7 +413,7 @@ class SqliteStore(BaseStore):
 
         return digests
 
-    def update_per_sub_digests(self, new_digests: list) -> None:
+    def update_per_sub_digests(self, new_digests: List[SubscriberDigestWithID]) -> None:
         conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
         try:
             with conn:

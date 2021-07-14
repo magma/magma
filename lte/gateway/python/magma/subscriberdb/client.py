@@ -13,7 +13,7 @@ limitations under the License.
 import asyncio
 import datetime
 import logging
-from collections import namedtuple
+from typing import List, NamedTuple, Optional
 
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
@@ -24,6 +24,7 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
+    SubscriberDigestWithID,
     SyncSubscribersRequest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
@@ -37,10 +38,11 @@ from magma.subscriberdb.metrics import (
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
 
-CloudSubscribersInfo = namedtuple(
-    'CloudSubscribersInfo',
-    ['subscribers', 'flat_digest', 'per_sub_digests'],
-)
+
+class CloudSubscribersInfo(NamedTuple):
+    subscribers: List[SubscriberData]
+    flat_digest: Optional[Digest]
+    per_sub_digests: Optional[List[SubscriberDigestWithID]]
 
 
 class SubscriberDBCloudClient(SDWatchdogTask):
@@ -174,7 +176,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
 
         return res.resync
 
-    async def _get_all_subscribers(self) -> CloudSubscribersInfo:
+    async def _get_all_subscribers(self) -> Optional[CloudSubscribersInfo]:
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
         subscribers = []
         flat_digest = None
@@ -234,17 +236,20 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         )
         return subscribers_info
 
-    def _update_flat_digest(self, flat_digest: Digest) -> None:
+    def _update_flat_digest(self, flat_digest: Optional[Digest]) -> None:
         if Digest is None:
             return
         self._store.update_digest(flat_digest.md5_base64_digest)
 
-    def _update_per_sub_digests(self, per_sub_digests: list) -> None:
+    def _update_per_sub_digests(
+            self,
+            per_sub_digests: Optional[List[SubscriberDigestWithID]],
+    ) -> None:
         if per_sub_digests is None:
             return
         self._store.update_per_sub_digests(per_sub_digests)
 
-    def _process_subscribers(self, subscribers: SubscriberData) -> None:
+    def _process_subscribers(self, subscribers: List[SubscriberData]) -> None:
         active_subscriber_ids = []
         sids = []
         for subscriber in subscribers:
