@@ -34,6 +34,9 @@ type NetworkProbeTaskDetails struct {
 	// Minimum: 0
 	Duration *int64 `json:"duration,omitempty"`
 
+	// represents the mobile operator identifier
+	OperatorID uint32 `json:"operator_id,omitempty"`
+
 	// target id
 	// Required: true
 	TargetID string `json:"target_id"`

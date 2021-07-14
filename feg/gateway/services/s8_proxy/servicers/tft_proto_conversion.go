@@ -89,7 +89,7 @@ func handlePacketFilterComponent(tftPFcomponent []*ie.TFTPFComponent) (*oaiproto
 		case ie.PFCompIPv4RemoteAddress:
 			ipv4, err := packetComponentIE.IPv4RemoteAddress()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompIPv4RemoteAddress %s", err)
 			}
 			content.Ipv4RemoteAddresses = append(content.Ipv4RemoteAddresses,
 				&oaiprotos.IpRemoteAddress{
@@ -100,7 +100,7 @@ func handlePacketFilterComponent(tftPFcomponent []*ie.TFTPFComponent) (*oaiproto
 		case ie.PFCompIPv6RemoteAddress:
 			ipv6, err := packetComponentIE.IPv6RemoteAddress()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompIPv6RemoteAddress %s", err)
 			}
 			content.Ipv6RemoteAddresses = append(content.Ipv6RemoteAddresses,
 				&oaiprotos.IpRemoteAddress{
@@ -111,25 +111,27 @@ func handlePacketFilterComponent(tftPFcomponent []*ie.TFTPFComponent) (*oaiproto
 		case ie.PFCompProtocolIdentifierNextHeader:
 			protocolId, err := packetComponentIE.ProtocolIdentifierNextHeader()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompProtocolIdentifierNextHeader %s", err)
 			}
 			content.ProtocolIdentifierNextheader = uint32(protocolId)
 		case ie.PFCompSingleLocalPort:
 			port, err := packetComponentIE.SingleLocalPort()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompSingleLocalPort %s", err)
 			}
 			content.SingleLocalPort = uint32(port)
+
 		case ie.PFCompSingleRemotePort:
 			port, err := packetComponentIE.SingleRemotePort()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompSingleRemotePort %s", err)
 			}
 			content.SingleRemotePort = uint32(port)
+
 		case ie.PFCompLocalPortRange:
 			start, end, err := packetComponentIE.LocalPortRange()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompLocalPortRange %s", err)
 			}
 			content.LocalPortRange = &oaiprotos.PortRange{
 				LowLimit:  uint32(start),
@@ -138,7 +140,7 @@ func handlePacketFilterComponent(tftPFcomponent []*ie.TFTPFComponent) (*oaiproto
 		case ie.PFCompRemotePortRange:
 			start, end, err := packetComponentIE.RemotePortRange()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompRemotePortRange %s", err)
 			}
 			content.RemotePortRange = &oaiprotos.PortRange{
 				LowLimit:  uint32(start),
@@ -147,13 +149,13 @@ func handlePacketFilterComponent(tftPFcomponent []*ie.TFTPFComponent) (*oaiproto
 		case ie.PFCompSecurityParameterIndex:
 			idx, err := packetComponentIE.SecurityParameterIndex()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompSecurityParameterIndex %s", err)
 			}
 			content.SecurityParameterIndex = idx
 		case ie.PFCompTypeOfServiceTrafficClass:
 			value, mask, err := packetComponentIE.TypeOfServiceTrafficClass()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("PFCompTypeOfServiceTrafficClass %s", err)
 			}
 			content.TypeOfServiceTrafficClass = &oaiprotos.TypeOfServiceTrafficClass{
 				Value: uint32(value),

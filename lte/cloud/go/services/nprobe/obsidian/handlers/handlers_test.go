@@ -33,6 +33,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	b64_encoded = strfmt.Base64([]byte{0x1})
+)
+
 func init() {
 	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
@@ -384,8 +388,11 @@ func TestCreateNetworkProbeDestination(t *testing.T) {
 	payload := &models.NetworkProbeDestination{
 		DestinationID: "test",
 		DestinationDetails: &models.NetworkProbeDestinationDetails{
-			DeliveryAddress: "127.0.0.1:4000",
-			DeliveryType:    "all",
+			DeliveryAddress:  "127.0.0.1:4000",
+			DeliveryType:     "all",
+			Certificate:      &b64_encoded,
+			PrivateKey:       &b64_encoded,
+			SkipVerifyServer: true,
 		},
 	}
 
@@ -551,8 +558,11 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 	payload := &models.NetworkProbeDestination{
 		DestinationID: "1111-2222-3333",
 		DestinationDetails: &models.NetworkProbeDestinationDetails{
-			DeliveryAddress: "127.0.0.1:4000",
-			DeliveryType:    "all",
+			DeliveryAddress:  "127.0.0.1:4000",
+			DeliveryType:     "all",
+			Certificate:      &b64_encoded,
+			PrivateKey:       &b64_encoded,
+			SkipVerifyServer: true,
 		},
 	}
 
@@ -624,16 +634,22 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 				Key:  "1111-2222-3333",
 				Type: lte.NetworkProbeDestinationEntityType,
 				Config: &models.NetworkProbeDestinationDetails{
-					DeliveryAddress: "127.0.0.1:4000",
-					DeliveryType:    "events_only",
+					DeliveryAddress:  "127.0.0.1:4000",
+					DeliveryType:     "events_only",
+					Certificate:      &b64_encoded,
+					PrivateKey:       &b64_encoded,
+					SkipVerifyServer: true,
 				},
 			},
 			{
 				Key:  "2222-3333-4444",
 				Type: lte.NetworkProbeDestinationEntityType,
 				Config: &models.NetworkProbeDestinationDetails{
-					DeliveryAddress: "127.0.0.1:4001",
-					DeliveryType:    "all",
+					DeliveryAddress:  "127.0.0.1:4001",
+					DeliveryType:     "all",
+					Certificate:      &b64_encoded,
+					PrivateKey:       &b64_encoded,
+					SkipVerifyServer: true,
 				},
 			},
 		},
@@ -659,8 +675,11 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 		Type:      lte.NetworkProbeDestinationEntityType,
 		Key:       "2222-3333-4444",
 		Config: &models.NetworkProbeDestinationDetails{
-			DeliveryAddress: "127.0.0.1:4001",
-			DeliveryType:    "all",
+			DeliveryAddress:  "127.0.0.1:4001",
+			DeliveryType:     "all",
+			Certificate:      &b64_encoded,
+			PrivateKey:       &b64_encoded,
+			SkipVerifyServer: true,
 		},
 		GraphID: "4",
 		Version: 0,

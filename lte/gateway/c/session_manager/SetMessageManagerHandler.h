@@ -83,6 +83,12 @@ class SetMessageManagerHandler : public SetMessageManager {
       const SetSmNotificationContext& notif,
       std::function<void(Status, SmContextVoid)> response_callback);
 
+  /* Handle service request received from AMF after paging request is sent
+   */
+  void service_handle_request_on_paging(
+      const SetSmNotificationContext& notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
   /*
    * Send session creation related request to the CentralSessionController.
    * which is policy/QoS related. On successful, creates and populate,
