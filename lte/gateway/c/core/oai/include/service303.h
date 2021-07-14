@@ -38,7 +38,7 @@ void service303_statistics_display(void);
 typedef struct {
   bstring name;
   bstring version;
-  uint32_t display_stats_period;
+  uint32_t stats_display_timer_sec;
 } service303_data_t;
 
 typedef enum application_health_e {

@@ -77,7 +77,7 @@ bool s1ap_dump_ue_hash_cb(
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
-static size_t epc_stats_timer = 60;
+static size_t epc_stats_timer_sec = 60;
 
 bool hss_associated = false;
 static int indent   = 0;
@@ -396,7 +396,7 @@ status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   s1ap_zmq_th                     = mme_config_p->s1ap_zmq_th;
 
   // Initialize global stats timer
-  epc_stats_timer = (size_t) mme_config_p->stats_timer;
+  epc_stats_timer_sec = (size_t) mme_config_p->stats_timer_sec;
 
   if (s1ap_state_init(
           mme_config_p->max_ues, mme_config_p->max_enbs,
@@ -634,6 +634,6 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
 
 static void start_stats_timer(void) {
   epc_stats_timer_id = start_timer(
-      &s1ap_task_zmq_ctx, 1000 * epc_stats_timer, TIMER_REPEAT_FOREVER,
+      &s1ap_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
       handle_stats_timer, NULL);
 }

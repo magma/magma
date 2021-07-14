@@ -113,7 +113,7 @@ static void* service303_thread(void* args) {
   init_task_context(
       TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
       &service303_message_task_zmq_ctx);
-  start_display_stats_timer((size_t) service303_data->display_stats_period);
+  start_display_stats_timer((size_t) service303_data->stats_display_timer_sec);
   zloop_start(service303_message_task_zmq_ctx.event_loop);
   service303_message_exit();
   return NULL;
@@ -160,8 +160,8 @@ static int handle_display_timer(zloop_t* loop, int id, void* arg) {
   return 0;
 }
 
-static void start_display_stats_timer(size_t display_stats_period) {
+static void start_display_stats_timer(size_t stats_display_timer_sec) {
   display_stats_timer_id = start_timer(
-      &service303_message_task_zmq_ctx, 1000 * display_stats_period,
+      &service303_message_task_zmq_ctx, 1000 * stats_display_timer_sec,
       TIMER_REPEAT_FOREVER, handle_display_timer, NULL);
 }

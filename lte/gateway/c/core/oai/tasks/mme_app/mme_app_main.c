@@ -64,7 +64,7 @@ bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
 static long epc_stats_timer_id;
-static size_t epc_stats_timer = 60;
+static size_t epc_stats_timer_sec = 60;
 
 mme_congestion_params_t mme_congestion_params;
 
@@ -555,7 +555,7 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   mme_app_init_congestion_params(mme_config_p);
 
   // Initialize global stats timer
-  epc_stats_timer = (size_t) mme_config_p->stats_timer;
+  epc_stats_timer_sec = (size_t) mme_config_p->stats_timer_sec;
 
   /*
    * Create the thread associated with MME applicative layer
@@ -582,7 +582,7 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
 
 static void start_stats_timer(void) {
   epc_stats_timer_id = start_timer(
-      &mme_app_task_zmq_ctx, 1000 * epc_stats_timer, TIMER_REPEAT_FOREVER,
+      &mme_app_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
       handle_stats_timer, NULL);
 }
 
