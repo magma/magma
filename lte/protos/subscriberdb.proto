@@ -242,7 +242,7 @@ message SyncSubscribersResponse {
   repeated SubscriberDigestWithID per_sub_digests = 3;
   // to_renew is the set of all subscriber data modified/added on the server side,
   // indexed by their IDs (IMSI).
-  map<string, SubscriberData> to_renew = 4;
+  repeated SubscriberData to_renew = 4;
   // deleted is a list of IDs for subscribers removed on the server side.
   repeated string deleted = 5;
 }
