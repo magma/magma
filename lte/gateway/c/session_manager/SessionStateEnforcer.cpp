@@ -560,7 +560,7 @@ void SessionStateEnforcer::prepare_response_to_access(
   rsp->set_always_on_pdu_session_indication(
       config.rat_specific_context.m5gsm_session_context()
           .pdu_session_req_always_on());
-  rsp->set_m5gsm_congetion_re_attempt_indicator(true);
+  rsp->set_m5g_sm_congestion_reattempt_indicator(true);
   rsp->mutable_pdu_address()->set_redirect_address_type(
       config.rat_specific_context.m5gsm_session_context()
           .pdu_address()
