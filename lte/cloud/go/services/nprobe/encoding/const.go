@@ -54,9 +54,9 @@ const (
 	WinterTime             asn1.Enumerated = 0x01
 	SummerTime             asn1.Enumerated = 0x02
 
-	// IP Address type
-	IPV4Type asn1.Enumerated = 0x00
-	IPV6Type asn1.Enumerated = 0x01
+	// IP Address type as described in 3GPP 29.274 chapter 8.14
+	IPV4Type asn1.Enumerated = 0x01
+	IPV6Type asn1.Enumerated = 0x02
 
 	PartyQualifierTarget asn1.Enumerated = 0x03 // gPRSorEPS-Target
 	RatTypeEutran        uint8           = 0x06 // Ran access type EUTRAN

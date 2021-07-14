@@ -603,8 +603,12 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 
 	for _, ent := range ents {
 		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
-		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
+		if task.TaskDetails.DeliveryType == nprobe_models.NetworkProbeTaskDetailsDeliveryTypeEventsOnly {
+			// data plane is not requested.
+			continue
+		}
 
+		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
 		switch task.TaskDetails.TargetType {
 		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImsi:
 			liUes.Imsis = append(liUes.Imsis, task.TaskDetails.TargetID)
