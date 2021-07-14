@@ -26,53 +26,27 @@ UEShard::UEShard() {
   number_of_shards = 0;
 }
 
-int UEShard::add_ue(const std::string& imsi) {
+int UEShard::add_ue() {
   int shard_id;
   if (shards.size() == 0) {
     shard_id = 0;
-    shards.push_back({imsi});
+    shards.push_back(1);
     number_of_shards++;
   } else {
     for (auto i = 0; i < number_of_shards; i++) {
-      if (total_ues_for_shard(i) < max_shard_size) {
-        shards[i].push_back(imsi);
+      if (shards[i] < max_shard_size) {
+        shards[i]++;
         return i;
       }
     }
     shard_id = number_of_shards++;
-    shards.push_back({imsi});
+    shards.push_back(1);
   }
   return shard_id;
 }
 
-std::pair<int, int> UEShard::find_ue_shard(const std::string& imsi) {
-  std::pair<int, int> location;
-  for (size_t i = 0; i < shards.size(); i++) {
-    if (std::find(shards[i].begin(), shards[i].end(), imsi) !=
-        shards[i].end()) {
-      std::vector<std::string>::iterator itr =
-          std::find(shards[i].begin(), shards[i].end(), imsi);
-      int indexOfImsi = std::distance(shards[i].begin(), itr);
-      location        = std::make_pair(i, indexOfImsi);
-      return location;
-    }
-  }
-  location = std::make_pair(0, 0);
-  return location;
-}
-
-void UEShard::remove_ue(const std::string& imsi) {
-  std::pair<int, int> location = find_ue_shard(imsi);
-  int shard_id                 = location.first;
-  int indexOfImsi              = location.second;
-  shards[shard_id].erase(shards[shard_id].begin() + indexOfImsi);
-}
-
-int UEShard::total_ues_for_shard(int shard_id) {
-  if (shard_id <= 0 || shard_id > number_of_shards) {
-    return 0;
-  }
-  return shards[shard_id].size();
+void UEShard::remove_ue(int shard_id) {
+  shards[shard_id]--;
 }
 
 }  // namespace magma
