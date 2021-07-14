@@ -190,7 +190,7 @@ jobs:
         if: success() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.0.2
         env:
-          SLACK_CHANNEL: ${SLACK_CHANNEL_ARTIFACTS}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Orchestrator images have been published*"
           SLACK_USERNAME: "Cloud workflow"
