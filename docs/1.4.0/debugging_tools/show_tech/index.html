@@ -61,7 +61,7 @@
 <pre><code class="hljs"><span class="hljs-comment"># On your GW host, run the following command as user root:</span>
 <span class="hljs-comment"># If you have git repo checked out already</span>
 <span class="hljs-variable">$ </span>cd <span class="hljs-variable">${</span>MAGMA_ROOT}/show-tech
-<span class="hljs-variable">$ </span>ansible-playbook show-tech.yml
+<span class="hljs-variable">$ </span>sudo ansible-playbook show-tech.yml
 
 <span class="hljs-comment"># In case you want to download and process latest version of this playbook from Magma's master:</span>
 <span class="hljs-variable">$ </span>ansible-pull -U <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/github.com/magma</span><span class="hljs-regexp">/magma.git show-tech/show</span>-tech.yml -d /tmp/show-tech --purge
@@ -170,7 +170,7 @@ PLAY [install pre-requisites for show-tech] <span class="hljs-strong">*****</spa
 ...
 </code></pre>
 <p>Run the show-tech playbook:</p>
-<pre><code class="hljs"><span class="hljs-variable">$</span> ansible<span class="hljs-literal">-playbook</span> <span class="hljs-built_in">show-tech</span>.yml
+<pre><code class="hljs"><span class="hljs-variable">$</span> sudo ansible<span class="hljs-literal">-playbook</span> <span class="hljs-built_in">show-tech</span>.yml
 </code></pre>
 <p>Validate the content of the package.
 commands_output.log includes all commands and their stdout/stderr</p>
