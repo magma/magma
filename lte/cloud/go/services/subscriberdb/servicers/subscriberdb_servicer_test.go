@@ -46,8 +46,9 @@ func TestListSubscribers(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
+	subProtoStore := initializeSubProtoStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore, perSubDigestStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore, perSubDigestStore, subProtoStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -329,8 +330,9 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
+	subProtoStore := initializeSubProtoStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore, perSubDigestStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore, perSubDigestStore, subProtoStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -373,10 +375,11 @@ func TestSyncSubscribers(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
+	subProtoStore := initializeSubProtoStore(t)
 
 	// Create servicer with flat digest feature flag turned on
 	configs := subscriberdb.Config{FlatDigestEnabled: true, ChangesetSizeTheshold: 100}
-	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore)
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subProtoStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -504,13 +507,14 @@ func TestSyncSubscribersResync(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
+	subProtoStore := initializeSubProtoStore(t)
 
 	// Create servicer with a small ChangesetSizeTheshold
 	configs := subscriberdb.Config{
 		FlatDigestEnabled:     true,
 		ChangesetSizeTheshold: 2,
 	}
-	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore)
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subProtoStore)
 
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -627,6 +631,13 @@ func initializePerSubDigestStore(t *testing.T) *subscriberdb_storage.PerSubDiges
 	return store
 }
 
+func initializeSubProtoStore(t *testing.T) *subscriberdb_storage.SubProtoStore {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	store := subscriberdb_storage.NewSubProtoStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, store.Initialize())
+	return store
+}
 func assertEqualPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDigestWithID, got []*lte_protos.SubscriberDigestWithID) {
 	assert.Equal(t, len(expected), len(got))
 	for ind := range expected {

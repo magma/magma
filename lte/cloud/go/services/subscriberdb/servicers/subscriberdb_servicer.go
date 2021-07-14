@@ -36,20 +36,25 @@ import (
 type subscriberdbServicer struct {
 	flatDigestEnabled     bool
 	changesetSizeTheshold int
+	useSubProtoStore      bool
 	digestStore           storage.DigestStore
 	perSubDigestStore     *storage.PerSubDigestStore
+	subProtoStore         *storage.SubProtoStore
 }
 
 func NewSubscriberdbServicer(
 	config subscriberdb.Config,
 	digestStore storage.DigestStore,
 	perSubDigestStore *storage.PerSubDigestStore,
+	subProtoStore *storage.SubProtoStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled:     config.FlatDigestEnabled,
 		changesetSizeTheshold: config.ChangesetSizeTheshold,
+		useSubProtoStore:      config.UseSubProtoStore,
 		digestStore:           digestStore,
 		perSubDigestStore:     perSubDigestStore,
+		subProtoStore:         subProtoStore,
 	}
 	return servicer
 }
@@ -103,6 +108,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if len(toRenew) > s.changesetSizeTheshold {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
+
 	sids := funk.Keys(toRenew).([]string)
 	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
 	if err != nil {

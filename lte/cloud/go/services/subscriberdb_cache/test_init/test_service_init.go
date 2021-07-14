@@ -41,10 +41,12 @@ func StartTestService(t *testing.T) {
 	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	perSubDigestStore := storage.NewPerSubDigestStore(fact)
+	subProtoStore := storage.NewSubProtoStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subProtoStore.Initialize())
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore)
+	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore, subProtoStore)
 	srv.RunTest(lis)
 }
