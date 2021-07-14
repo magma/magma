@@ -66,7 +66,12 @@
 <p>Once your PR has been approved and passed all CI checks, use the <a href="https://github.com/magma/magma/labels/ready2merge"><code>ready2merge</code></a> label to indicate the maintainers can merge it.</p>
 <h2><a class="anchor" aria-hidden="true" id="guidelines"></a><a href="#guidelines" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Guidelines</h2>
 <p><strong>Required: commits must be signed off.</strong> You must sign-off all commits on the originating branch for a PR, using <a href="https://stackoverflow.com/questions/1962094">the <code>--signoff</code> flag in Git</a>. There is a CI check that will fail if any commit in your branch has an unsigned commit.</p>
-<p><strong>Required: PR title must follow <a href="https://www.conventionalcommits.org/en/v1.0.0/#summary">conventional commits</a> format.</strong> For example, <code>fix(agw): Fix pyroute2 dependency</code>. See <a href="https://github.com/magma/magma/blob/master/.github/semantic.yml">semantic.yml</a> for the set of supported scopes.</p>
+<p><strong>Required: PR title must follow <a href="https://www.conventionalcommits.org/en/v1.0.0/#summary">conventional commits</a> format.</strong> For example, <code>fix(agw): Fix pyroute2 dependency</code>, which follows the format <code>type(scope): Title</code></p>
+<ul>
+<li><a href="https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json">Supported commit types</a>:
+<code>build</code>, <code>chore</code>, <code>ci</code>, <code>docs</code>, <code>feat</code>, <code>fix</code>, <code>perf</code>, <code>refactor</code>, <code>revert</code>, <code>style</code>, <code>test</code></li>
+<li><a href="https://github.com/magma/magma/blob/master/.github/semantic.yml">Supported scopes</a>: <code>agw</code>, <code>orc8r</code>, <code>nms</code>, <code>feg</code>, and more</li>
+</ul>
 <p><strong>Required: label backward-breaking pull requests.</strong> Use the <a href="https://github.com/magma/magma/issues?q=label%3A%22breaking+change%22+"><code>breaking change</code> label</a>. All breaking changes and their mitigation steps will be aggregated in the subsequent release notes. A breaking change fits one or more of the following criteria</p>
 <ol>
 <li>Will require a manual intervention on the next upgrade (e.g. data migration script)</li>
