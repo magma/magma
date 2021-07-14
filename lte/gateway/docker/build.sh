@@ -17,7 +17,7 @@ docker build . -f services/build/Dockerfile.python -t pythonbuilder:latest
 build (){
   docker build . -f services/$1/Dockerfile -t $1
 }
-
+#
 build mobilityd
 build enodebd
 build health
@@ -30,7 +30,13 @@ build state
 build directoryd
 build pipelined
 
-# build redirectd
-# build monitord
+cd ../../../
 
-# build pkt_tester
+docker build . -f lte/gateway/docker/mme/Dockerfile.ubuntu20.04 -t mme_builder:latest
+
+cd lte/gateway/docker
+
+docker build . -f services/build/Dockerfile.c -t cbuilder:latest
+
+build mme
+build sctpd
