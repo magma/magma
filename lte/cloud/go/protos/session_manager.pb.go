@@ -7,10 +7,10 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
@@ -2543,7 +2543,7 @@ type PolicyReAuthRequest struct {
 	RulesToInstall         []*StaticRuleInstall     `protobuf:"bytes,6,rep,name=rules_to_install,json=rulesToInstall,proto3" json:"rules_to_install,omitempty"`
 	DynamicRulesToInstall  []*DynamicRuleInstall    `protobuf:"bytes,7,rep,name=dynamic_rules_to_install,json=dynamicRulesToInstall,proto3" json:"dynamic_rules_to_install,omitempty"`
 	EventTriggers          []EventTrigger           `protobuf:"varint,8,rep,packed,name=event_triggers,json=eventTriggers,proto3,enum=magma.lte.EventTrigger" json:"event_triggers,omitempty"`
-	RevalidationTime       *timestamp.Timestamp     `protobuf:"bytes,9,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
+	RevalidationTime       *timestamppb.Timestamp   `protobuf:"bytes,9,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
 	UsageMonitoringCredits []*UsageMonitoringCredit `protobuf:"bytes,10,rep,name=usage_monitoring_credits,json=usageMonitoringCredits,proto3" json:"usage_monitoring_credits,omitempty"`
 	QosInfo                *QoSInformation          `protobuf:"bytes,11,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
 	XXX_NoUnkeyedLiteral   struct{}                 `json:"-"`
@@ -2618,7 +2618,7 @@ func (m *PolicyReAuthRequest) GetEventTriggers() []EventTrigger {
 	return nil
 }
 
-func (m *PolicyReAuthRequest) GetRevalidationTime() *timestamp.Timestamp {
+func (m *PolicyReAuthRequest) GetRevalidationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.RevalidationTime
 	}
@@ -3802,18 +3802,18 @@ type UsageMonitoringUpdateResponse struct {
 	Credit    *UsageMonitoringCredit `protobuf:"bytes,1,opt,name=credit,proto3" json:"credit,omitempty"`
 	SessionId string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	// SubscriberID/IMSI
-	Sid                   string                `protobuf:"bytes,3,opt,name=sid,proto3" json:"sid,omitempty"`
-	Success               bool                  `protobuf:"varint,4,opt,name=success,proto3" json:"success,omitempty"`
-	EventTriggers         []EventTrigger        `protobuf:"varint,5,rep,packed,name=event_triggers,json=eventTriggers,proto3,enum=magma.lte.EventTrigger" json:"event_triggers,omitempty"`
-	RevalidationTime      *timestamp.Timestamp  `protobuf:"bytes,6,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
-	ResultCode            uint32                `protobuf:"varint,7,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
-	RulesToRemove         []string              `protobuf:"bytes,8,rep,name=rules_to_remove,json=rulesToRemove,proto3" json:"rules_to_remove,omitempty"`
-	StaticRulesToInstall  []*StaticRuleInstall  `protobuf:"bytes,9,rep,name=static_rules_to_install,json=staticRulesToInstall,proto3" json:"static_rules_to_install,omitempty"`
-	DynamicRulesToInstall []*DynamicRuleInstall `protobuf:"bytes,10,rep,name=dynamic_rules_to_install,json=dynamicRulesToInstall,proto3" json:"dynamic_rules_to_install,omitempty"`
-	TgppCtx               *TgppContext          `protobuf:"bytes,11,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
-	XXX_NoUnkeyedLiteral  struct{}              `json:"-"`
-	XXX_unrecognized      []byte                `json:"-"`
-	XXX_sizecache         int32                 `json:"-"`
+	Sid                   string                 `protobuf:"bytes,3,opt,name=sid,proto3" json:"sid,omitempty"`
+	Success               bool                   `protobuf:"varint,4,opt,name=success,proto3" json:"success,omitempty"`
+	EventTriggers         []EventTrigger         `protobuf:"varint,5,rep,packed,name=event_triggers,json=eventTriggers,proto3,enum=magma.lte.EventTrigger" json:"event_triggers,omitempty"`
+	RevalidationTime      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
+	ResultCode            uint32                 `protobuf:"varint,7,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
+	RulesToRemove         []string               `protobuf:"bytes,8,rep,name=rules_to_remove,json=rulesToRemove,proto3" json:"rules_to_remove,omitempty"`
+	StaticRulesToInstall  []*StaticRuleInstall   `protobuf:"bytes,9,rep,name=static_rules_to_install,json=staticRulesToInstall,proto3" json:"static_rules_to_install,omitempty"`
+	DynamicRulesToInstall []*DynamicRuleInstall  `protobuf:"bytes,10,rep,name=dynamic_rules_to_install,json=dynamicRulesToInstall,proto3" json:"dynamic_rules_to_install,omitempty"`
+	TgppCtx               *TgppContext           `protobuf:"bytes,11,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *UsageMonitoringUpdateResponse) Reset()         { *m = UsageMonitoringUpdateResponse{} }
@@ -3876,7 +3876,7 @@ func (m *UsageMonitoringUpdateResponse) GetEventTriggers() []EventTrigger {
 	return nil
 }
 
-func (m *UsageMonitoringUpdateResponse) GetRevalidationTime() *timestamp.Timestamp {
+func (m *UsageMonitoringUpdateResponse) GetRevalidationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.RevalidationTime
 	}
@@ -4136,7 +4136,7 @@ type CreateSessionResponse struct {
 	SessionId            string                           `protobuf:"bytes,9,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	TgppCtx              *TgppContext                     `protobuf:"bytes,10,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
 	EventTriggers        []EventTrigger                   `protobuf:"varint,11,rep,packed,name=event_triggers,json=eventTriggers,proto3,enum=magma.lte.EventTrigger" json:"event_triggers,omitempty"`
-	RevalidationTime     *timestamp.Timestamp             `protobuf:"bytes,12,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
+	RevalidationTime     *timestamppb.Timestamp           `protobuf:"bytes,12,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
 	Online               bool                             `protobuf:"varint,13,opt,name=online,proto3" json:"online,omitempty"`
 	Offline              bool                             `protobuf:"varint,15,opt,name=offline,proto3" json:"offline,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
@@ -4218,7 +4218,7 @@ func (m *CreateSessionResponse) GetEventTriggers() []EventTrigger {
 	return nil
 }
 
-func (m *CreateSessionResponse) GetRevalidationTime() *timestamp.Timestamp {
+func (m *CreateSessionResponse) GetRevalidationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.RevalidationTime
 	}
@@ -4240,13 +4240,13 @@ func (m *CreateSessionResponse) GetOffline() bool {
 }
 
 type StaticRuleInstall struct {
-	RuleId         string               `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	ActivationTime *timestamp.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	RuleId         string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	ActivationTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
 	// Optional field. Set as 0 to mark as unused
-	DeactivationTime     *timestamp.Timestamp `protobuf:"bytes,3,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	DeactivationTime     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
 }
 
 func (m *StaticRuleInstall) Reset()         { *m = StaticRuleInstall{} }
@@ -4281,14 +4281,14 @@ func (m *StaticRuleInstall) GetRuleId() string {
 	return ""
 }
 
-func (m *StaticRuleInstall) GetActivationTime() *timestamp.Timestamp {
+func (m *StaticRuleInstall) GetActivationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.ActivationTime
 	}
 	return nil
 }
 
-func (m *StaticRuleInstall) GetDeactivationTime() *timestamp.Timestamp {
+func (m *StaticRuleInstall) GetDeactivationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.DeactivationTime
 	}
@@ -4296,13 +4296,13 @@ func (m *StaticRuleInstall) GetDeactivationTime() *timestamp.Timestamp {
 }
 
 type DynamicRuleInstall struct {
-	PolicyRule     *PolicyRule          `protobuf:"bytes,1,opt,name=policy_rule,json=policyRule,proto3" json:"policy_rule,omitempty"`
-	ActivationTime *timestamp.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	PolicyRule     *PolicyRule            `protobuf:"bytes,1,opt,name=policy_rule,json=policyRule,proto3" json:"policy_rule,omitempty"`
+	ActivationTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
 	// Optional field. Set as 0 to mark as unused
-	DeactivationTime     *timestamp.Timestamp `protobuf:"bytes,3,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	DeactivationTime     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
 }
 
 func (m *DynamicRuleInstall) Reset()         { *m = DynamicRuleInstall{} }
@@ -4337,14 +4337,14 @@ func (m *DynamicRuleInstall) GetPolicyRule() *PolicyRule {
 	return nil
 }
 
-func (m *DynamicRuleInstall) GetActivationTime() *timestamp.Timestamp {
+func (m *DynamicRuleInstall) GetActivationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.ActivationTime
 	}
 	return nil
 }
 
-func (m *DynamicRuleInstall) GetDeactivationTime() *timestamp.Timestamp {
+func (m *DynamicRuleInstall) GetDeactivationTime() *timestamppb.Timestamp {
 	if m != nil {
 		return m.DeactivationTime
 	}
@@ -5983,12 +5983,12 @@ type UPFAssociationState struct {
 	// Association state of the UPF
 	AssocState UPFAssociationState_AssociationState `protobuf:"varint,3,opt,name=assoc_state,json=assocState,proto3,enum=magma.lte.UPFAssociationState_AssociationState" json:"assoc_state,omitempty"`
 	// Time when UPF got started
-	RecoveryTimeStamp *timestamp.Timestamp `protobuf:"bytes,4,opt,name=recovery_time_stamp,json=recoveryTimeStamp,proto3" json:"recovery_time_stamp,omitempty"`
+	RecoveryTimeStamp *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=recovery_time_stamp,json=recoveryTimeStamp,proto3" json:"recovery_time_stamp,omitempty"`
 	// Feature set supported by UPF
 	FeatureSet *UPFFeatureSet `protobuf:"bytes,5,opt,name=feature_set,json=featureSet,proto3" json:"feature_set,omitempty"`
 	// User plane IP Resource schema
 	IpResourceSchema      []*UserPlaneIPResourceSchema `protobuf:"bytes,6,rep,name=ip_resource_schema,json=ipResourceSchema,proto3" json:"ip_resource_schema,omitempty"`
-	GracefulReleasePeriod *timestamp.Timestamp         `protobuf:"bytes,7,opt,name=graceful_release_period,json=gracefulReleasePeriod,proto3" json:"graceful_release_period,omitempty"`
+	GracefulReleasePeriod *timestamppb.Timestamp       `protobuf:"bytes,7,opt,name=graceful_release_period,json=gracefulReleasePeriod,proto3" json:"graceful_release_period,omitempty"`
 	XXX_NoUnkeyedLiteral  struct{}                     `json:"-"`
 	XXX_unrecognized      []byte                       `json:"-"`
 	XXX_sizecache         int32                        `json:"-"`
@@ -6033,7 +6033,7 @@ func (m *UPFAssociationState) GetAssocState() UPFAssociationState_AssociationSta
 	return UPFAssociationState_STARTED
 }
 
-func (m *UPFAssociationState) GetRecoveryTimeStamp() *timestamp.Timestamp {
+func (m *UPFAssociationState) GetRecoveryTimeStamp() *timestamppb.Timestamp {
 	if m != nil {
 		return m.RecoveryTimeStamp
 	}
@@ -6054,7 +6054,7 @@ func (m *UPFAssociationState) GetIpResourceSchema() []*UserPlaneIPResourceSchema
 	return nil
 }
 
-func (m *UPFAssociationState) GetGracefulReleasePeriod() *timestamp.Timestamp {
+func (m *UPFAssociationState) GetGracefulReleasePeriod() *timestamppb.Timestamp {
 	if m != nil {
 		return m.GracefulReleasePeriod
 	}

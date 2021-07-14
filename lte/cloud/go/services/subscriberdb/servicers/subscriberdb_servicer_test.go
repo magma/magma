@@ -423,15 +423,15 @@ func TestSyncSubscribers(t *testing.T) {
 	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
 	assert.NoError(t, err)
 
-	expectedToRenewData := map[string]*lte_protos.SubscriberData{
-		"IMSI00001": {
+	expectedToRenewData := []*lte_protos.SubscriberData{
+		{
 			Sid:        &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_apple",
 		},
-		"IMSI00002": {
+		{
 			Sid:        &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
@@ -476,15 +476,15 @@ func TestSyncSubscribers(t *testing.T) {
 	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
 	assert.NoError(t, err)
 
-	expectedToRenewData = map[string]*lte_protos.SubscriberData{
-		"IMSI00002": {
+	expectedToRenewData = []*lte_protos.SubscriberData{
+		{
 			Sid:        &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_banana2",
 		},
-		"IMSI00003": {
+		{
 			Sid:        &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
@@ -546,15 +546,15 @@ func TestSyncSubscribersResync(t *testing.T) {
 	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
 	assert.NoError(t, err)
 
-	expectedToRenewData := map[string]*lte_protos.SubscriberData{
-		"IMSI00001": {
+	expectedToRenewData := []*lte_protos.SubscriberData{
+		{
 			Sid:        &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_apple",
 		},
-		"IMSI00002": {
+		{
 			Sid:        &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},

@@ -110,7 +110,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	}
 
 	sids := funk.Keys(toRenew).([]string)
-	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
+	subProtosToRenew, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	res := &lte_protos.SyncSubscribersResponse{
 		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
 		PerSubDigests: cloudPerSubDigests,
-		ToRenew:       subProtosById,
+		ToRenew:       subProtosToRenew,
 		Deleted:       deleted,
 		Resync:        false,
 	}
