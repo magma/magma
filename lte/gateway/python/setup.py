@@ -133,7 +133,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             'pycryptodome>=3.9.9',
             'pyroute2==0.5.14',
             'aiohttp==3.6.2',
-            'json-pointer>=0.1.2',
+            "jsonpointer>=1.14",
             'ovs>=2.13',
             'prometheus-client>=0.3.1',
             'aioeventlet==0.5.1',   # aioeventlet-build.sh
