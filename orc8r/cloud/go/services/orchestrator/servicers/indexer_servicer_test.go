@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	"context"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -87,7 +88,7 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err := idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	imsi, err := directoryd.GetIMSIForSessionID(nid0, sid0)
+	imsi, err := directoryd.GetIMSIForSessionID(context.Background(), nid0, sid0)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi0, imsi)
 
@@ -97,7 +98,7 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
+	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi0, imsi)
 
@@ -107,7 +108,7 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
+	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
 
@@ -115,7 +116,7 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: state_types.SerializedState{SerializedReportedState: []byte("0xdeadbeef")}})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
+	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
 
@@ -125,7 +126,7 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.GatewayStateType)})
 	assert.NoError(t, err)
 	assert.Error(t, errs[id])
-	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
+	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
 
@@ -154,10 +155,10 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	hwid, err := directoryd.GetHWIDForSgwCTeid(nid0, teid0_0)
+	hwid, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0_0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
-	hwid, err = directoryd.GetHWIDForSgwCTeid(nid0, teid0_1)
+	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0_1)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
 
@@ -168,10 +169,10 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	hwid, err = directoryd.GetHWIDForSgwCTeid(nid0, teid1_0)
+	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, hwid)
-	hwid, err = directoryd.GetHWIDForSgwCTeid(nid0, teid1_1)
+	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_1)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, hwid)
 
@@ -181,7 +182,7 @@ func TestIndexerSessionID(t *testing.T) {
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.GatewayStateType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	hwid, err = directoryd.GetHWIDForSgwCTeid(nid0, teid1_1)
+	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_1)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, hwid)
 }

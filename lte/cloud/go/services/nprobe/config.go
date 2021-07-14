@@ -31,15 +31,12 @@ const (
 
 // Config represents the configuration provided to nprobe service
 type Config struct {
-	UpdateIntervalSecs  uint32 `yaml:"update_interval_secs"`
-	BackOffIntervalSecs uint32 `yaml:"backoff_interval_secs"`
-	OperatorID          uint32 `yaml:"operator_id"`
-	MaxExportRetries    uint32 `yaml:"max_export_retries"`
-
-	DeliveryFunctionAddr string `yaml:"delivery_function_address"`
-	SkipVerifyServer     bool   `yaml:"skip_verify_server"`
-	ExporterKeyFile      string `yaml:"exporter_key"`
-	ExporterCrtFile      string `yaml:"exporter_crt"`
+	// UpdateIntervalSecs sets the periodic time between runs in seconds
+	UpdateIntervalSecs uint32 `yaml:"updateIntervalSecs"`
+	// BackoffIntervalSecs sets the backoff time when remote records collector is not available
+	BackOffIntervalSecs uint32 `yaml:"backoffIntervalSecs"`
+	// MaxExportRetries sets the number of retries when exporting a record
+	MaxExportRetries uint32 `yaml:"maxExportRetries"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config

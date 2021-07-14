@@ -1,8 +1,11 @@
 ---
-id: deploy_install_ubuntu
+id: version-1.6.0-deploy_install
 title: Install AGW
 hide_title: true
+original_id: deploy_install
 ---
+
+> NOTE: Debian-based AGW deployments are no longer supported as of v1.6. If you want to install to Debian, refer to [v1.5 of the documentation](https://magma.github.io/magma/versions).
 
 # Install Access Gateway on Ubuntu (Bare Metal)
 
@@ -29,16 +32,16 @@ satisfies the following requirements:
   (Press F11 to select boot sequence, :warning: This might be different for
   your machine). If you see 2 options to boot from USB, select the non-UEFI
   option.
-- Select “Install” option.
+- Select "Install" option.
 - Network missing firmware "No"
 - Primary network interface "enp1s0"
 - Configuration.
   * hostname: <choose host name>. Default is "magma". You need to select unique
     host name in case of multiple AGW in network.
-  * Domain name : “”
-  * Root password: “magma”
-  * Username : “magma”
-  * Password: “magma”
+  * Domain name : ""
+  * Root password: "magma"
+  * Username : "magma"
+  * Password: "magma"
   * Partition disk: "Use entire disk"
   * Select disk to partition: "sda"
   * Partitioning scheme: "All files in one partition"
@@ -51,17 +54,19 @@ installation process to get an IP using DHCP.
 *Run AGW installation*
 
 To install on server with DHCP configured SGi interface.
+
 ```bash
 su
-wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.6/lte/gateway/deploy/agw_install_ubuntu.sh
 bash agw_install_ubuntu.sh
 ```
 
 To Install on server with statically allocated SGi interface. Fow example:
 SGi has 1.1.1.1/24 IP and upstream router IP is 1.1.1.200
+
 ```bash
 su
-wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.6/lte/gateway/deploy/agw_install_ubuntu.sh
 bash agw_install_ubuntu.sh 1.1.1.1/24 1.1.1.200
 ```
 

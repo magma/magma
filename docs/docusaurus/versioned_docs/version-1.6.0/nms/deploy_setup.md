@@ -1,10 +1,13 @@
 ---
-id: deploy_config
-title: Configure NMS
+id: version-1.6.0-deploy_config
+title: Set Up NMS
 hide_title: true
+original_id: deploy_config
 ---
 
-# Configure NMS
+# Set Up NMS
+
+The NMS is deployed as part of Orc8r deployment. However, first-time deployment requires some additional setup.
 
 The NMS supports multitenancy starting with v1.1.0. Tenants in the NMS are
 called "organizations". Each organization owns a subset of the networks

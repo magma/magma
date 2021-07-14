@@ -12,10 +12,15 @@ general_commands:
   - "top -b -n 1"
   - "df -kh"
 debian_commands:
-  - "dpkg -l | grep magma"
+  - "dpkg -l magma*"
+  - "dpkg -l *openvswitch*"
   - "ovs-vsctl show"
+  - "ovs-ofctl show gtp_br0"
+  - "ovs-ofctl dump-flows gtp_br0"
   - "apt show magma"
   - "service magma@* status"
+  - "service sctpd status"
+  - "service openvswitch-switch status"
   - "show_gateway_info.py"
   - "checkin_cli.py"
   - "mobility_cli.py get_subscriber_table"
@@ -23,7 +28,6 @@ debian_commands:
   - "enodebd_cli.py get_all_status"
   - "ip addr"
   - "ping google.com -I eth0 -c 5"
-  - "journalctl -u magma@*"
   - "timeout 60 sudo tcpdump -i any sctp -w {{report_dir_output.stdout}}/sctp.pcap"
   - "timeout 60 sudo tcpdump -i any port 48080 -w {{report_dir_output.stdout}}/any-48080.pcap"
 
@@ -34,10 +38,9 @@ paths_to_collect:
   - "/etc/magma/configs/*"
   - "/etc/systemd/system/*"
   - "/usr/local/bin/mme"
-  - "/var/log/syslog"
   - "/var/core/*"
-  - "/var/log/MME.*"
-  - "/var/log/enode.*"
+  - "/var/log/*"
+  - "/var/log/openvswitch/*"
 
 # core file paths for gdb execution, requires core file location and binary
 core_file_age_in_days: 3

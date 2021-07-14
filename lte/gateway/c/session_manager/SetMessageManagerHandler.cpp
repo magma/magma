@@ -99,8 +99,8 @@ void SetMessageManagerHandler::SetAmfSessionContext(
     // Requested message from AMF to release the session
     if (cfg.common_context.sm_session_state() == RELEASED_4) {
       if (cfg.common_context.sm_session_version() == 0) {
-        MLOG(MERROR) << "Wrong version received from AMF for " << imsi
-                     << " of PDU id:" << pdu_id;
+        MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
+                     << " but continuing release request";
         Status status(grpc::OUT_OF_RANGE, "Version number Out of Range");
         response_callback(status, SmContextVoid());
         return;
@@ -166,6 +166,13 @@ void SetMessageManagerHandler::SetSmfNotification(
       case UE_IDLE_MODE_NOTIFY:
         idle_mode_change_sessions_handle(noti, response_callback);
         return;
+      case UE_PAGING_NOTIFY:
+        return;
+      case UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY:
+        return;
+      case UE_SERVICE_REQUEST_ON_PAGING:
+        service_handle_request_on_paging(noti, response_callback);
+        return;
       default:
         return;
     }
@@ -204,7 +211,7 @@ void SetMessageManagerHandler::send_create_session(
                          .teid());
       MLOG(MDEBUG) << "2nd Request of session from UE with IMSI: " << imsi
                    << " PDU id " << pdu_id;
-      session->set_config(cfg);
+      session->set_config(cfg, nullptr);
       SessionUpdate update =
           SessionStore::get_default_session_update(session_map);
       bool success = m5g_enforcer_->m5g_update_session_context(
@@ -397,4 +404,55 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
   return;
 }
 
+/* This function callled when specific IMSI service
+ * request is received from AMF.
+ */
+void SetMessageManagerHandler::service_handle_request_on_paging(
+    const SetSmNotificationContext& notif,
+    std::function<void(Status, SmContextVoid)> response_callback) {
+  // extract IMSI value from proto
+  auto imsi           = notif.common_context().sid().id();
+  auto session_map    = session_store_.read_sessions({imsi});
+  int count           = 0;
+  auto session_update = SessionStore::get_default_session_update(session_map);
+  for (auto& session : session_map[imsi]) {
+    if (session->get_state() == INACTIVE) {
+      auto session_id                        = session->get_session_id();
+      SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+      m5g_enforcer_->m5g_move_to_active_state(session, notif, &session_uc);
+      bool update_success = session_store_.update_sessions(session_update);
+      if (!update_success) {
+        MLOG(MINFO) << "Operation aborted in  middle"
+                    << " session id: " << session->get_session_id() << imsi
+                    << " of imsi";
+        continue;
+      }
+      MLOG(MDEBUG) << "Successfully updated SessionStore "
+                   << " session id: " << session->get_session_id() << imsi
+                   << " of imsi";
+      count++;
+    }
+  }
+  if (!count) {
+    MLOG(MINFO) << " No Valid session found for IMSI: " << imsi;
+    Status status(grpc::NOT_FOUND, "Sesion Not found");
+    response_callback(status, SmContextVoid());
+    return;
+  }
+  bool update_success = session_store_.update_sessions(session_update);
+  if (!update_success) {
+    Status status(grpc::ABORTED, "update operation aborted in  middle");
+    response_callback(status, SmContextVoid());
+    return;
+  }
+  // Send  Paging service request response back to AMF
+  auto session = session_map[imsi].begin();
+  m5g_enforcer_->handle_state_update_to_amf(
+      **session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
+      UE_SERVICE_REQUEST_ON_PAGING);
+  MLOG(MDEBUG) << "Successfully updated SessionStore "
+               << "of subscriber :" << imsi;
+  response_callback(Status::OK, SmContextVoid());
+  return;
+}
 }  // end namespace magma

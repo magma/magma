@@ -91,7 +91,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.Respo
 	}
 	http2.LogRequestWithVerbosity(req, 4)
 	// get destination feg hwId
-	fegHwId, err := getFeGHwIdForNetwork(gw.NetworkId)
+	fegHwId, err := getFeGHwIdForNetwork(req.Context(), gw.NetworkId)
 	if err != nil {
 		glog.Errorf(err.Error())
 		http2.WriteErrResponse(responseWriter,
@@ -100,7 +100,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.Respo
 		return
 	}
 	// get dispatcher's http server addr
-	addr, addrErr := getDispatcherHttpServerAddr(fegHwId)
+	addr, addrErr := getDispatcherHttpServerAddr(req.Context(), fegHwId)
 	if addrErr != nil {
 		glog.Errorf(addrErr.Error())
 		http2.WriteErrResponse(responseWriter,
@@ -151,7 +151,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 	return newReq, nil
 }
 
-func getFeGHwIdForNetwork(agNwID string) (string, error) {
+func getFeGHwIdForNetwork(ctx context.Context, agNwID string) (string, error) {
 	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType, serdes.Network)
 	if err != nil {
 		return "", fmt.Errorf("could not load federated network configs for access network %s: %s", agNwID, err)
@@ -174,14 +174,14 @@ func getFeGHwIdForNetwork(agNwID string) (string, error) {
 	servedNetworkIDs := networkFegConfigs.ServedNetworkIds
 	for _, network := range servedNetworkIDs {
 		if agNwID == network {
-			return getActiveFeGForNetwork(*federatedConfig.FegNetworkID)
+			return getActiveFeGForNetwork(ctx, *federatedConfig.FegNetworkID)
 		}
 	}
 	return "", fmt.Errorf("federation network %s is not configured to serve network: %s", *federatedConfig.FegNetworkID, agNwID)
 }
 
-func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
-	activeGW, err := health.GetActiveGateway(fegNetworkID)
+func getActiveFeGForNetwork(ctx context.Context, fegNetworkID string) (string, error) {
+	activeGW, err := health.GetActiveGateway(ctx, fegNetworkID)
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve active FeG for network: %s; %s", fegNetworkID, err)
 	}
@@ -195,8 +195,8 @@ func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
 	return hardwareID, nil
 }
 
-func getDispatcherHttpServerAddr(hwId string) (string, error) {
-	addr, err := gateway_registry.GetServiceAddressForGateway(hwId)
+func getDispatcherHttpServerAddr(ctx context.Context, hwId string) (string, error) {
+	addr, err := gateway_registry.GetServiceAddressForGateway(ctx, hwId)
 	if err != nil {
 		return "", err
 	}

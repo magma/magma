@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "lte/protos/apn.proto";
+import "lte/protos/subscriberdb.proto";
 
 package magma.lte.subscriberdb;
 
@@ -125,4 +126,11 @@ message ApnResourceInternal {
   repeated string assoc_gateways = 2;
   // apn_resource is the original apn resource proto message.
   APNConfiguration.APNResource apn_resource = 3;
+}
+
+// SubscriberDigestWithIDs is used in per-subscriber store to serialize and deserialize
+// a list of per-sub digests.
+message SubscriberDigestWithIDs {
+  // digests is the list of per-sub digests to be (de)serialized.
+  repeated SubscriberDigestWithID digests = 1;
 }

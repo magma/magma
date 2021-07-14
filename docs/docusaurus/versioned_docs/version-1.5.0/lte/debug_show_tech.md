@@ -18,7 +18,7 @@ This feature enables an operator to capture the essential state of the gateway (
 # On your GW host, run the following command as user root:
 # If you have git repo checked out already
 $ cd ${MAGMA_ROOT}/show-tech
-$ ansible-playbook show-tech.yml
+$ sudo ansible-playbook show-tech.yml
 
 # In case you want to download and process latest version of this playbook from Magma's master:
 $ ansible-pull -U https://github.com/magma/magma.git show-tech/show-tech.yml -d /tmp/show-tech --purge
@@ -152,7 +152,7 @@ PLAY [install pre-requisites for show-tech] ************************************
 Run the show-tech playbook:
 
 ```
-$ ansible-playbook show-tech.yml
+$ sudo ansible-playbook show-tech.yml
 ```
 
 Validate the content of the package.

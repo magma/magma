@@ -14,6 +14,7 @@ limitations under the License.
 package streamer
 
 import (
+	"context"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
@@ -34,7 +35,7 @@ import (
 // SubscribersProvider provides the implementation for subscriber streaming.
 type SubscribersProvider struct{}
 
-func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	magmadGateway, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	if err != nil {
 		return nil, errors.Wrapf(err, "load magmad gateway for physical ID %s", gatewayId)

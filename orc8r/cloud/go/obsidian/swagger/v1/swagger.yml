@@ -8298,6 +8298,10 @@ definitions:
       description:
         type: string
         x-nullable: false
+      service_status:
+        additionalProperties:
+          $ref: '#/definitions/service_status_health'
+        type: object
       status:
         enum:
         - HEALTHY
@@ -8600,6 +8604,8 @@ definitions:
         maxLength: 4
         minLength: 1
         type: string
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
     required:
     - ip_block
     - nat_enabled
@@ -10060,6 +10066,8 @@ definitions:
           - max_dl_bit_rate
           type: object
         type: object
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
       tac:
         example: 1
         format: uint32
@@ -10211,6 +10219,10 @@ definitions:
     type: object
   network_probe_destination_details:
     properties:
+      certificate:
+        description: destination tls client certificate.
+        format: byte
+        type: string
       delivery_address:
         example: 127.0.0.1:4040
         type: string
@@ -10222,9 +10234,20 @@ definitions:
         example: events_only
         type: string
         x-nullable: false
+      private_key:
+        description: destination tls client private key.
+        format: byte
+        type: string
+      skip_verify_server:
+        default: false
+        description: enables exporter to skip server certs verification.
+        type: boolean
     required:
     - delivery_type
     - delivery_address
+    - certificate
+    - private_key
+    - skip_verify_server
     type: object
   network_probe_destination_id:
     example: xxxx-yyyy-zzzz
@@ -10262,6 +10285,12 @@ definitions:
         example: 300
         minimum: 0
         type: integer
+      operator_id:
+        default: 1
+        description: represents the mobile operator identifier
+        format: uint32
+        type: integer
+        x-nullable: false
       target_id:
         type: string
         x-nullable: false
@@ -11228,6 +11257,20 @@ definitions:
     items:
       type: string
     type: array
+  service_status_health:
+    description: health status of a specific
+    properties:
+      health_status:
+        enum:
+        - HEALTHY
+        - UNHEALTHY
+        type: string
+      service_state:
+        enum:
+        - AVAILABLE
+        - UNAVAILABLE
+        type: string
+    type: object
   slack_action:
     properties:
       confirm:
@@ -11481,6 +11524,13 @@ definitions:
       icmp:
         $ref: '#/definitions/icmp_status'
     type: object
+  subscriberdb_sync_interval:
+    description: Interval in seconds between gateway requests to sync its subscriberdb
+      with the cloud.
+    example: 300
+    format: uint32
+    minimum: 60
+    type: integer
   subscription_profile:
     description: HSS Subscription Profile
     minLength: 1

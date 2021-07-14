@@ -158,11 +158,7 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		federatedLteNetworkID, orc8r.AccessGatewayRecordType, agwHwId,
-		&models.GatewayDevice{HardwareID: agwHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), federatedLteNetworkID, orc8r.AccessGatewayRecordType, agwHwId, &models.GatewayDevice{HardwareID: agwHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -193,11 +189,7 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		servingFegNetworkID, orc8r.AccessGatewayRecordType, fegHwId,
-		&models.GatewayDevice{HardwareID: fegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), servingFegNetworkID, orc8r.AccessGatewayRecordType, fegHwId, &models.GatewayDevice{HardwareID: fegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	actualNHNet, err := configurator.LoadNetwork(nhNetworkID, true, true, serdes.Network)

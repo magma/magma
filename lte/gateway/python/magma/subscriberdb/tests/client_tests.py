@@ -85,7 +85,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             ListSubscribersResponse
         """
         # Add in logic to allow error handling testing
-        flat_digest = Digest(md5_base64_digest="digest_pear")
+        flat_digest = Digest(md5_base64_digest="")
         if request.page_size == 1:
             raise grpc.RpcError("Test Exception")
         if request.page_token == "":
@@ -94,6 +94,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
                 SubscriberData(sid=SubscriberID(id="IMSI111")),
                 SubscriberData(sid=SubscriberID(id="IMSI222")),
             ]
+            flat_digest = Digest(md5_base64_digest="digest_pear")
         elif request.page_token == "aaa":
             next_page_token = "bbb"  # noqa: S105
             subscribers = [
