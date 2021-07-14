@@ -73,6 +73,7 @@ PYPI_TO_DEB = {
     'msgpack-python': 'msgpack',
     'scapy-python3': 'scapy',
     'python-apt': 'apt',
+    'jsonpointer': 'json-pointer'
 }
 
 # Some packages exist in the standard Debian repos with an epoch number
