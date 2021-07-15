@@ -75,14 +75,17 @@ class RedirectTest(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         cls._tbl_num = cls.service_manager.get_table_num(
-            EnforcementController.APP_NAME)
+            EnforcementController.APP_NAME,
+        )
 
         enforcement_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.Enforcement,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.Enforcement,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
@@ -134,7 +137,7 @@ class RedirectTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.enforcement_controller._redirect_manager._dns_cache.get(
-            "about.sha.ddih.org", lambda: redirect_ips, max_age=42
+            "about.sha.ddih.org", lambda: redirect_ips, max_age=42,
         )
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
@@ -145,20 +148,20 @@ class RedirectTest(unittest.TestCase):
                 redirect=RedirectInformation(
                     support=1,
                     address_type=2,
-                    server_address="http://about.sha.ddih.org/"
-                )
+                    server_address="http://about.sha.ddih.org/",
+                ),
             ),
             version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, self.enforcement_controller, self._tbl_num,
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = TCPPacketBuilder()\
@@ -171,43 +174,61 @@ class RedirectTest(unittest.TestCase):
         # Check if these flows were added (queries should return flows)
         permit_outbound, permit_inbound = [], []
         for ip in redirect_ips:
-            permit_outbound.append(FlowQuery(
-                self._tbl_num, self.testing_controller,
-                match=flow_match_to_magma_match(
-                    FlowMatch(ip_dst=convert_ipv4_str_to_ip_proto(ip),
-                              direction=FlowMatch.UPLINK))
-            ))
-            permit_inbound.append(FlowQuery(
-                self._tbl_num, self.testing_controller,
-                match=flow_match_to_magma_match(
-                    FlowMatch(ip_src=convert_ipv4_str_to_ip_proto(ip),
-                              direction=FlowMatch.DOWNLINK))
-            ))
+            permit_outbound.append(
+                FlowQuery(
+                    self._tbl_num, self.testing_controller,
+                    match=flow_match_to_magma_match(
+                        FlowMatch(
+                            ip_dst=convert_ipv4_str_to_ip_proto(ip),
+                            direction=FlowMatch.UPLINK,
+                        ),
+                    ),
+                ),
+            )
+            permit_inbound.append(
+                FlowQuery(
+                    self._tbl_num, self.testing_controller,
+                    match=flow_match_to_magma_match(
+                        FlowMatch(
+                            ip_src=convert_ipv4_str_to_ip_proto(ip),
+                            direction=FlowMatch.DOWNLINK,
+                        ),
+                    ),
+                ),
+            )
 
         learn_action_flow = flow_match_to_magma_match(
             FlowMatch(
                 ip_proto=6, direction=FlowMatch.DOWNLINK,
                 ip_src=convert_ipv4_str_to_ip_proto(self.BRIDGE_IP_ADDRESS),
-                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip))
+                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip),
+            ),
         )
-        learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
-                                       learn_action_flow)
+        learn_action_query = FlowQuery(
+            self._tbl_num, self.testing_controller,
+            learn_action_flow,
+        )
 
         # =========================== Verification ===========================
         # 1 packet sent, permit rules installed, learn action installed. Since
         # the enforcement table is entered via the DPI table and the scratch
         # enforcement table, the number of packets handled by the table is 2.
         flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
-             FlowTest(learn_action_query, 0, flow_count=1)] +
+            [
+                FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
+                FlowTest(learn_action_query, 0, flow_count=1),
+            ] +
             [FlowTest(query, 0, flow_count=1) for query in permit_outbound] +
             [FlowTest(query, 0, flow_count=1) for query in permit_inbound],
-            lambda: wait_after_send(self.testing_controller))
+            lambda: wait_after_send(self.testing_controller),
+        )
 
         with isolator, sub_context, flow_verifier:
             pkt_sender.send(packet)
-            assert_bridge_snapshot_match(self, self.BRIDGE,
-                                         self.service_manager)
+            assert_bridge_snapshot_match(
+                self, self.BRIDGE,
+                self.service_manager,
+            )
 
         flow_verifier.verify()
 
@@ -232,20 +253,20 @@ class RedirectTest(unittest.TestCase):
                 redirect=RedirectInformation(
                     support=1,
                     address_type=0,
-                    server_address=redirect_ip
-                )
+                    server_address=redirect_ip,
+                ),
             ),
             version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, self.enforcement_controller, self._tbl_num,
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = TCPPacketBuilder()\
@@ -259,39 +280,52 @@ class RedirectTest(unittest.TestCase):
         permit_outbound = FlowQuery(
             self._tbl_num, self.testing_controller,
             match=flow_match_to_magma_match(
-                FlowMatch(ip_dst=convert_ipv4_str_to_ip_proto(redirect_ip),
-                          direction=FlowMatch.UPLINK))
+                FlowMatch(
+                    ip_dst=convert_ipv4_str_to_ip_proto(redirect_ip),
+                    direction=FlowMatch.UPLINK,
+                ),
+            ),
         )
         permit_inbound = FlowQuery(
             self._tbl_num, self.testing_controller,
             match=flow_match_to_magma_match(
-                FlowMatch(ip_src=convert_ipv4_str_to_ip_proto(redirect_ip),
-                          direction=FlowMatch.DOWNLINK))
+                FlowMatch(
+                    ip_src=convert_ipv4_str_to_ip_proto(redirect_ip),
+                    direction=FlowMatch.DOWNLINK,
+                ),
+            ),
         )
         learn_action_flow = flow_match_to_magma_match(
             FlowMatch(
                 ip_proto=6, direction=FlowMatch.DOWNLINK,
                 ip_src=convert_ipv4_str_to_ip_proto(self.BRIDGE_IP_ADDRESS),
-                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip))
+                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip),
+            ),
         )
-        learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
-                                       learn_action_flow)
+        learn_action_query = FlowQuery(
+            self._tbl_num, self.testing_controller,
+            learn_action_flow,
+        )
 
         # =========================== Verification ===========================
         # 1 packet sent, permit rules installed, learn action installed. Since
         # the enforcement table is entered via the DPI table and the scratch
         # enforcement table, the number of packets handled by the table is 2.
-        flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
-            FlowTest(permit_outbound, 0, flow_count=1),
-            FlowTest(permit_inbound, 0, flow_count=1),
-            FlowTest(learn_action_query, 0, flow_count=1)
-        ], lambda: wait_after_send(self.testing_controller))
+        flow_verifier = FlowVerifier(
+            [
+                FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
+                FlowTest(permit_outbound, 0, flow_count=1),
+                FlowTest(permit_inbound, 0, flow_count=1),
+                FlowTest(learn_action_query, 0, flow_count=1),
+            ], lambda: wait_after_send(self.testing_controller),
+        )
 
         with isolator, sub_context, flow_verifier:
             pkt_sender.send(packet)
-            assert_bridge_snapshot_match(self, self.BRIDGE,
-                                         self.service_manager)
+            assert_bridge_snapshot_match(
+                self, self.BRIDGE,
+                self.service_manager,
+            )
 
         flow_verifier.verify()
 

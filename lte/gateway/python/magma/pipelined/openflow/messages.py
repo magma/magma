@@ -58,8 +58,10 @@ def send_msg(datapath, msg, retries=3):
                 '(attempt %s/%s)', i, retries,
             )
             if i == retries - 1:    # Only propagate if all retries are up
-                logging.error('Send msg error! Type: %s, Reason: %s',
-                              type(e).__name__, e)
+                logging.error(
+                    'Send msg error! Type: %s, Reason: %s',
+                    type(e).__name__, e,
+                )
                 DP_SEND_MSG_ERROR.labels(cause=type(e).__name__).inc()
                 raise MagmaOFError(e)
             else:
@@ -72,8 +74,10 @@ class MsgReply(object):
     transaction, it is thrown when `result()` is called.
     """
 
-    def __init__(self, txn_id: Any,
-                 exception: Optional[Exception] = None) -> None:
+    def __init__(
+        self, txn_id: Any,
+        exception: Optional[Exception] = None,
+    ) -> None:
         """
         Create a reply marked by the transaction id. If an error occurs,
         include an exception
@@ -103,7 +107,7 @@ class MsgChannel(object):
     def __init__(self) -> None:
         self._queue = hub.Queue()
 
-    def get(self, timeout: int=DEFAULT_TIMEOUT_SEC) -> MsgReply:
+    def get(self, timeout: int = DEFAULT_TIMEOUT_SEC) -> MsgReply:
         try:
             return self._queue.get(block=True, timeout=timeout)
         except hub.QueueEmpty:
@@ -125,16 +129,19 @@ class MessageHub(object):
     `handle_barrier` from all ofp_event.EventOFPBarrierReply events and
     `handle_error` from all ofp_event.EventOFPErrorMsg events.
     """
+
     def __init__(self, msg_hub_logger):
         self._switches = {}
         self.logger = msg_hub_logger
 
-    def send(self,
-             msg_list: List[MsgBase],
-             datapath: Datapath,
-             txn_id: Any=None,
-             timeout: int=DEFAULT_TIMEOUT_SEC,
-             channel: Optional[MsgChannel]=None) -> MsgChannel:
+    def send(
+        self,
+        msg_list: List[MsgBase],
+        datapath: Datapath,
+        txn_id: Any = None,
+        timeout: int = DEFAULT_TIMEOUT_SEC,
+        channel: Optional[MsgChannel] = None,
+    ) -> MsgChannel:
         """
         Send a message to OVS and track the result asynchronously. Multiple
         messages can be tracked using a transaction id (txn_id).
@@ -177,10 +184,12 @@ class MessageHub(object):
         req.set_timeout(timeout, switch, barrier.xid, msg_xids)
         return channel
 
-    def filter_msgs_if_not_in_flow_list(self,
-                                        dp: Datapath,
-                                        msg_list: List[MsgBase],
-                                        flow_list):
+    def filter_msgs_if_not_in_flow_list(
+        self,
+        dp: Datapath,
+        msg_list: List[MsgBase],
+        flow_list,
+    ):
         """
         Returns a list of messages not found in the provided flow_list, also
         returns a list of remaining flows(not found in the msg_list)
@@ -256,29 +265,45 @@ class MessageHub(object):
             if type(msg.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
                 continue
             # Strip _nxm to handle nicira as eth_dst_nxm is same as eth_dst
-            reg_loads_flow = {i.dst.replace('_nxm', ''): i.value for i in flow.instructions[j].actions
-                              if type(i) == dp.ofproto_parser.NXActionRegLoad2}
-            reg_loads_msg = {i.dst.replace('_nxm', ''): i.value for i in msg.instructions[j].actions
-                             if type(i) == dp.ofproto_parser.NXActionRegLoad2}
+            reg_loads_flow = {
+                i.dst.replace('_nxm', ''): i.value for i in flow.instructions[j].actions
+                if type(i) == dp.ofproto_parser.NXActionRegLoad2
+            }
+            reg_loads_msg = {
+                i.dst.replace('_nxm', ''): i.value for i in msg.instructions[j].actions
+                if type(i) == dp.ofproto_parser.NXActionRegLoad2
+            }
 
             reg_loads_match = reg_loads_msg == reg_loads_flow
 
-            resubmits_flow = [i.table_id for i in flow.instructions[j].actions
-                              if type(i) == dp.ofproto_parser.NXActionResubmitTable]
-            resubmits_msg = [i.table_id for i in msg.instructions[j].actions
-                             if type(i) == dp.ofproto_parser.NXActionResubmitTable]
+            resubmits_flow = [
+                i.table_id for i in flow.instructions[j].actions
+                if type(i) == dp.ofproto_parser.NXActionResubmitTable
+            ]
+            resubmits_msg = [
+                i.table_id for i in msg.instructions[j].actions
+                if type(i) == dp.ofproto_parser.NXActionResubmitTable
+            ]
             resubmits_match = sorted(resubmits_flow) == sorted(resubmits_msg)
 
-            outputs_flow = [i.port for i in flow.instructions[j].actions
-                            if type(i) == dp.ofproto_parser.OFPActionOutput]
-            outputs_msg = [i.port for i in msg.instructions[j].actions
-                           if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_flow = [
+                i.port for i in flow.instructions[j].actions
+                if type(i) == dp.ofproto_parser.OFPActionOutput
+            ]
+            outputs_msg = [
+                i.port for i in msg.instructions[j].actions
+                if type(i) == dp.ofproto_parser.OFPActionOutput
+            ]
             outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
 
-        match_flow = {key: flow.match.get(key) for key in MATCH_ATTRIBUTES
-                      if key in flow.match}
-        match_msg = {key: msg.match.get(key, None) for key in MATCH_ATTRIBUTES
-                     if key in msg.match}
+        match_flow = {
+            key: flow.match.get(key) for key in MATCH_ATTRIBUTES
+            if key in flow.match
+        }
+        match_msg = {
+            key: msg.match.get(key, None) for key in MATCH_ATTRIBUTES
+            if key in msg.match
+        }
 
         def strip_common(match_dict):
             """
@@ -315,8 +340,10 @@ class MessageHub(object):
             def _handle_timeout():
                 return self._handle_timeout(switch, barrier_xid, msg_xids)
             # spawn timeout func to ensure cleanup occurs
-            self._timeout_thread = hub.spawn_after(timeout_sec,
-                                                   _handle_timeout)
+            self._timeout_thread = hub.spawn_after(
+                timeout_sec,
+                _handle_timeout,
+            )
 
         def cancel_timeout(self):
             """

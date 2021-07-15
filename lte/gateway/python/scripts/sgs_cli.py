@@ -52,7 +52,8 @@ def send_eps_detach_indication(client, args):
         imsi=args.imsi,
         mme_name=args.mme_name,
         imsi_detach_from_eps_service_type=bytes(
-            [args.imsi_detach_from_eps_service_type])
+            [args.imsi_detach_from_eps_service_type],
+        ),
     )
     print("Sending EPS Detach Indication with following fields:\n %s" % req)
     try:
@@ -81,26 +82,30 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for CSFB',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
     # Alert Ack
     alert_ack_parser = subparsers.add_parser(
-        'AA', help='Send Alert Ack to CSFB service in FeG')
+        'AA', help='Send Alert Ack to CSFB service in FeG',
+    )
     alert_ack_parser.add_argument('imsi', help='e.g.123456')
     alert_ack_parser.set_defaults(func=send_alert_ack)
 
     # Alert Reject
     alert_reject_parser = subparsers.add_parser(
-        'AR', help='Send Alert Reject to csfb in feg')
+        'AR', help='Send Alert Reject to csfb in feg',
+    )
     alert_reject_parser.add_argument('imsi', help='e.g. 123456')
     alert_reject_parser.set_defaults(func=send_alert_reject)
 
     # EPS Detach Indication
     eps_detach_indication_parser = subparsers.add_parser(
-        'EDI', help='Send EPS Detach Indication to CSFB service in FeG')
+        'EDI', help='Send EPS Detach Indication to CSFB service in FeG',
+    )
     eps_detach_indication_parser.add_argument('imsi', help='e.g. 123456')
     eps_detach_indication_parser.add_argument(
         'mme_name',
@@ -108,12 +113,14 @@ def create_parser():
     )
     eps_detach_indication_parser.add_argument(
         'imsi_detach_from_eps_service_type',
-        help='Enter either 1, 2 or 3', choices=[1, 2, 3], type=int)
+        help='Enter either 1, 2 or 3', choices=[1, 2, 3], type=int,
+    )
     eps_detach_indication_parser.set_defaults(func=send_eps_detach_indication)
 
     # IMSI Detach Indication
     imsi_detach_indication_parser = subparsers.add_parser(
-        'IDI', help='Send IMSI Detach Indication to CSFB service in FeG')
+        'IDI', help='Send IMSI Detach Indication to CSFB service in FeG',
+    )
     imsi_detach_indication_parser.add_argument('imsi', help='e.g. 123456')
     imsi_detach_indication_parser.add_argument(
         'mme_name',

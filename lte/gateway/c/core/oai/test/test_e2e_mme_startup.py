@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # For more information about the OpenAirInterface (OAI) Software Alliance:
 #      contact@openairinterface.org
 #
@@ -35,6 +35,7 @@ def test_non_blocking_mme_init():
 def main():
     """Main method for testing."""
     test_non_blocking_mme_init()
+
 
 if __name__ == '__main__':
     main()

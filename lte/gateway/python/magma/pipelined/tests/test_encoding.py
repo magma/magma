@@ -56,24 +56,30 @@ class EncodingTest(unittest.TestCase):
         self.assertEqual(mac_hash, b'v\xdf\x84\xf3#I\xb4\xd2\x10\x0c4\xaeQL`\xccDW\xec\x02\n\x9f\xa4\x1ft\x1e\x95:2\xb3-\xb1')
 
         encrypted = encrypt_str(
-            msisdn, hash, PipelineD.HEConfig.AES256_CBC_HMAC_MD5, mac_hash)
+            msisdn, hash, PipelineD.HEConfig.AES256_CBC_HMAC_MD5, mac_hash,
+        )
         decrypted_str = decrypt_str(
-            encrypted, hash, PipelineD.HEConfig.AES256_CBC_HMAC_MD5, mac_hash)
+            encrypted, hash, PipelineD.HEConfig.AES256_CBC_HMAC_MD5, mac_hash,
+        )
         self.assertEqual(decrypted_str, msisdn)
 
         encrypted = encrypt_str(
-            msisdn, hash, PipelineD.HEConfig.AES256_ECB_HMAC_MD5, mac_hash)
+            msisdn, hash, PipelineD.HEConfig.AES256_ECB_HMAC_MD5, mac_hash,
+        )
         decrypted_str = decrypt_str(
-            encrypted, hash, PipelineD.HEConfig.AES256_ECB_HMAC_MD5, mac_hash)
+            encrypted, hash, PipelineD.HEConfig.AES256_ECB_HMAC_MD5, mac_hash,
+        )
         self.assertEqual(decrypted_str, msisdn)
 
         ret = encode_str(encrypted, PipelineD.HEConfig.BASE64)
         self.assertEqual(ret, 'AcXxM8TPFg4bzzv5ya6GIimAf64whfeU+CcfBTnBNo8=')
 
         encrypted = encrypt_str(
-            msisdn, hash, PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1, mac_hash)
+            msisdn, hash, PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1, mac_hash,
+        )
         decrypted_str = decrypt_str(
-            encrypted, hash, PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1, mac_hash)
+            encrypted, hash, PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1, mac_hash,
+        )
         self.assertEqual(decrypted_str, msisdn)
 
     def test_encoding(self):
@@ -94,6 +100,7 @@ class EncodingTest(unittest.TestCase):
 
         hash = get_hash(key, PipelineD.HEConfig.SHA256)
         self.assertEqual(hash, b'\xe6\xc6?<\xa3\xa4*F\x19v%\xf5\xc6l\x89L\xb1w,TM}\xb7H \x19\xffL\x85\xb4\xac\x82')
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,70 +13,86 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, getopt, shutil
-import time, re, logging
-import os, subprocess
-import webbrowser, socket
-import threading, platform
+import getopt
+import logging
+import os
+import platform
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import threading
+import time
+import webbrowser
 
-
-#Initialize the lock
+# Initialize the lock
 lock = threading.Lock()
-#Dictionary to maintain k8s services whether they are Running or not
+# Dictionary to maintain k8s services whether they are Running or not
 k8s_obj_dict = {}
-#Build context for Docker files for AMF, SMF, UPF
+# Build context for Docker files for AMF, SMF, UPF
 BUILD_CONTEXT_PARENT_DIR = '/tmp/orc8r_docker'
 BUILD_CONTEXT_AMF = os.path.join(BUILD_CONTEXT_PARENT_DIR, 'AMF')
 BUILD_CONTEXT_SMF = os.path.join(BUILD_CONTEXT_PARENT_DIR, 'SMF')
 BUILD_CONTEXT_UPF = os.path.join(BUILD_CONTEXT_PARENT_DIR, 'UPF')
-#Get the Current Working Directory
+# Get the Current Working Directory
 CWD = os.getcwd()
-#Path for MAGMA dockerfile
+# Path for MAGMA dockerfile
 MAGMA_DOCKER = os.path.join(CWD, '../docker')
-#Path for Orc8r temperary files
+# Path for Orc8r temperary files
 ORC8R_TEMP_DIR = '/tmp/orc8r_temp'
 INFRA_SOFTWARE_VER = os.path.join(ORC8R_TEMP_DIR, 'infra_software_version.txt')
 K8S_GET_DEP = os.path.join(ORC8R_TEMP_DIR, 'k8s_get_deployment.txt')
 K8S_GET_SVC = os.path.join(ORC8R_TEMP_DIR, 'k8s_get_service.txt')
 K8S_DEL_OBJ = os.path.join(ORC8R_TEMP_DIR, 'k8s_del_objects.txt')
 
+
 class Error(Exception):
     """Base class for other exceptions"""
     pass
+
 
 class NotInstalled(Error):
     """Raised when Installation not done"""
     pass
 
+
 def Code(type1):
     switcher = {
-        'WARNING' : 93,
-        'FAIL' : 91,
-        'GREEN' : 92,
-        'BLUE' : 94,
-        'ULINE' : 4,
-        'BLD' : 1,
-        'HDR' : 95,
+        'WARNING': 93,
+        'FAIL': 91,
+        'GREEN': 92,
+        'BLUE': 94,
+        'ULINE': 4,
+        'BLD': 1,
+        'HDR': 95,
     }
     return switcher.get(type1)
 
-#Print messages with colours on console
+# Print messages with colours on console
+
+
 def myprint(type1, msg):
     code = Code(type1)
     message = '\033[%sm \n %s \n \033[0m' % (code, msg)
     print(message)
 
-#Executing shell commands via subprocess.Popen() method
+# Executing shell commands via subprocess.Popen() method
+
+
 def execute_cmd(cmd):
     process = subprocess.Popen(cmd, shell=True)
     os.waitpid(process.pid, 0)
 
-#Checking pre-requisites like kubeadm, helm should be installed before we run this script
+# Checking pre-requisites like kubeadm, helm should be installed before we run this script
+
+
 def check_pre_requisite():
-    #Setting logging basic configurations like severity level=DEBUG, timestamp, function name, line numner
+    # Setting logging basic configurations like severity level=DEBUG, timestamp, function name, line numner
     logging.basicConfig(
             format='[%(asctime)s %(levelname)s %(name)s:%(funcName)s:%(lineno)d] %(message)s',
-            level = logging.DEBUG)
+            level=logging.DEBUG,
+    )
     uname = platform.uname()
     logging.debug('Operating System : %s' % uname[0])
     logging.debug('Host name : %s' % uname[1])
@@ -123,7 +139,9 @@ def check_pre_requisite():
     myprint("BLUE", "        installing Orc8r monitoring stack")
     myprint("GREEN", "+++++++++++++++++++++++++++++++++++++++++++++++")
 
-#Creating docker images for stubbed AMF, SMF, UPF 5G core components
+# Creating docker images for stubbed AMF, SMF, UPF 5G core components
+
+
 def create_docker_images(pwd):
     myprint("BLUE", "Creating docker images for stubbed AMF, SMF, UPF core components")
     cmd = "{ sleep 0.1; echo '%s'; } | script -q -c 'sudo docker pull nginx' /dev/null" % pwd
@@ -161,13 +179,15 @@ def create_docker_images(pwd):
     os.chdir(CWD)
 
 # thread1 : Getting the status of k8s objects like deployment and updating the k8s_obj_dict dictionary
+
+
 def get_status(lock):
     while True:
         if os.path.exists(K8S_GET_DEP):
             if os.stat(K8S_GET_DEP).st_size == 0:
                 break
         for _ in k8s_obj_dict.values():
-            #Get the deployment which are not in Running state
+            # Get the deployment which are not in Running state
             cmd = "kubectl get deployment -n default | awk " + "'{{if ($2 ~ " + '!"1"' + " || $2 ~ " + '!"READY"' + ") print $1,$2};}' > " + K8S_GET_DEP
             execute_cmd(cmd)
             with open(K8S_GET_DEP) as fop1:
@@ -177,10 +197,10 @@ def get_status(lock):
                         break
                     k8s_obj_name_list1 = k8s_obj_file1_line.split(' ')
                     for key in k8s_obj_dict.keys():
-                        #Checking whether any key matches with deployment which are not in Running state
+                        # Checking whether any key matches with deployment which are not in Running state
                         if re.search(k8s_obj_name_list1[0], key):
                             myprint("WARNING", "Few k8s Objects not Running YET!! Be patient, Please wait for a while")
-                            #Get the latest status of all the deployments
+                            # Get the latest status of all the deployments
                             cmd = "kubectl get deployment -n default | awk " + "'{{if (NR != 1) print $1,$2};}' > " + K8S_GET_SVC
                             execute_cmd(cmd)
                             with open(K8S_GET_SVC) as fop2:
@@ -189,40 +209,44 @@ def get_status(lock):
                                     if not k8s_obj_file2_line:
                                         break
                                     k8s_obj_name_list2 = k8s_obj_file2_line.split(' ')
-                                    #Update the latest status of deployment into the k8s_obj_dict dictionary
+                                    # Update the latest status of deployment into the k8s_obj_dict dictionary
                                     if re.search(k8s_obj_name_list1[0], k8s_obj_name_list2[0]):
                                         lock.acquire()
                                         k8s_obj_dict[key][0] = k8s_obj_name_list2[1]
                                         lock.release()
 
 # thread2 : Getting the ports from running services and printing URL
+
+
 def get_ports(lock):
-    #Get the hostip into host_ip local variable
+    # Get the hostip into host_ip local variable
     host_ip = socket.gethostbyname(socket.gethostname())
     for key, values in k8s_obj_dict.items():
         if values[1] == 0:
             if len(values) > 2:
                 port = values[2]
                 cmd = "http://" + host_ip + ":" + port
-                print("URL for :%s -->> %s"%(key,cmd))
+                print("URL for :%s -->> %s" % (key, cmd))
                 webbrowser.open(cmd, new=2)
                 lock.acquire()
                 values[1] = 1
                 lock.release()
 
-#From the k8s services updating k8s_obj_dict dictionary and creating get_status, get_ports threads
+# From the k8s services updating k8s_obj_dict dictionary and creating get_status, get_ports threads
+
+
 def start_to_run():
     cmd = "kubectl get services -n default | awk " + "'{{if ($5 ~ " + '"TCP"' + " || $5 ~ " + '"UDP"' + ") print $1, $5};}' > " + K8S_GET_SVC
     execute_cmd(cmd)
-    #Initializing the k8s_obj_dict with default values list[0, 0] for each key:k8s_obj_name
+    # Initializing the k8s_obj_dict with default values list[0, 0] for each key:k8s_obj_name
     with open(K8S_GET_SVC) as fop:
         while True:
             k8s_obj_file_line = fop.readline()
             if not k8s_obj_file_line:
                 break
             k8s_obj_name_list = k8s_obj_file_line.split(' ')
-            k8s_obj_dict[k8s_obj_name_list[0]] =  [0, 0]
-            #Updating the k8s_obj_dict with ports as values for each key:k8s_obj_name
+            k8s_obj_dict[k8s_obj_name_list[0]] = [0, 0]
+            # Updating the k8s_obj_dict with ports as values for each key:k8s_obj_name
             ports_list = k8s_obj_name_list[1].split('/')
             if len(ports_list[0].split(':')) > 1:
                 for key in k8s_obj_dict.keys():
@@ -236,7 +260,9 @@ def start_to_run():
     t1.join()
     t2.join()
 
-#Applying all the yaml files to create all k8s objects
+# Applying all the yaml files to create all k8s objects
+
+
 def run_services():
     execute_cmd("helm repo add prometheus-community https://prometheus-community.github.io/helm-charts")
     execute_cmd("helm repo add stable https://charts.helm.sh/stable")
@@ -256,10 +282,10 @@ def run_services():
     myprint("FAIL", "change type(key) value from 'ClusterIP' to 'NodePort' and save it")
     time.sleep(3)
     execute_cmd("kubectl edit service/prometheus-default-prometh-alertmanager -n default")
-    myprint("FAIL", "change type(key) value from 'ClusterIP' to 'NodePort' and save it") 
+    myprint("FAIL", "change type(key) value from 'ClusterIP' to 'NodePort' and save it")
     time.sleep(3)
     execute_cmd("kubectl edit service/prometheus-default-grafana -n default")
-    myprint("FAIL", "change type(key) value from 'ClusterIP' to 'NodePort' and save it") 
+    myprint("FAIL", "change type(key) value from 'ClusterIP' to 'NodePort' and save it")
     time.sleep(3)
     execute_cmd("kubectl edit service/prometheus-default-prometh-prometheus -n default")
     myprint("GREEN", "+++++++++++++++++++++++++++++++++++++++++++++++")
@@ -270,9 +296,11 @@ def run_services():
     myprint("HDR", "-------------------------------------------------")
     start_to_run()
 
-#Deleting the k8s objects like pods, services, deployemnts..etc
+# Deleting the k8s objects like pods, services, deployemnts..etc
+
+
 def del_objects(file, type1):
-    k8s_obj = "kubectl get all -n default| grep %s > %s" % (type1 , file)
+    k8s_obj = "kubectl get all -n default| grep %s > %s" % (type1, file)
     execute_cmd(k8s_obj)
     with open(file) as fop:
         while True:
@@ -282,12 +310,16 @@ def del_objects(file, type1):
             k8s_obj = "kubectl delete %s -n default" % del_obj.split(' ')[0]
             execute_cmd(k8s_obj)
 
-#Delete files if exits
+# Delete files if exits
+
+
 def del_files(file):
     if os.path.exists(file):
         os.remove(file)
 
-#Un-installing all the k8s objects and deleting the temperary files in the path /tmp/Orc8r_temp/
+# Un-installing all the k8s objects and deleting the temperary files in the path /tmp/Orc8r_temp/
+
+
 def un_install(pwd):
     myprint("GREEN", "+++++++++++++++++++++++++++++++++++++++++++++++")
     myprint("BLUE", "  Uninstalling Orc8r monitoring stack ")
@@ -343,12 +375,14 @@ def un_install(pwd):
     myprint("BLUE", "  Orc8r monitoring stack Uninstalled successfully")
     myprint("GREEN", "+++++++++++++++++++++++++++++++++++++++++++++++")
 
+
 def get_help(color):
     myprint(color, './mvc1_5g_orc8r_deployment_script.py -p <sudo-password> -i')
     myprint(color, './mvc1_5g_orc8r_deployment_script.py -p <sudo-password> -u')
     myprint(color, '    (OR)   ')
     myprint(color, './mvc1_5g_orc8r_deployment_script.py --password <sudo-password> --install')
     myprint(color, './mvc1_5g_orc8r_deployment_script.py --password <sudo-password> --uninstall')
+
 
 def main(argv):
     password = ''
@@ -374,6 +408,7 @@ def main(argv):
             myprint("HDR", "-------------------------------------------------")
         elif (opt == "-u" or opt == "--uninstall"):
             un_install(password)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
