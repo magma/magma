@@ -269,6 +269,8 @@ class SessionState {
 
   void set_shard_id(int shard_id) { shard_id_ = shard_id; }
 
+  int get_shard_id() { return shard_id_; }
+
   std::string get_session_id() const { return session_id_; }
 
   uint32_t get_pdu_id() const;
