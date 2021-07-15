@@ -34,6 +34,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	// testMaxProtosLoadSize is the maxProtosLoadSize used in a test subscriberdb service.
+	testMaxProtosLoadSize = 10
+)
+
 func StartTestService(t *testing.T) {
 	// Create service
 	labels := map[string]string{
@@ -64,6 +69,7 @@ func StartTestService(t *testing.T) {
 	var serviceConfig subscriberdb.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
+	serviceConfig.MaxProtosLoadSize = testMaxProtosLoadSize
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))

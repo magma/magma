@@ -78,7 +78,7 @@ func RenewDigests(
 	perSubDigestsByNetwork := map[string][]*lte_protos.SubscriberDigestWithID{}
 	flatDigestsByNetwork := map[string]string{}
 	for _, network := range networksToRenew {
-		perSubDigests := []*lte_protos.SubscriberDigestWithID{}
+		var perSubDigests []*lte_protos.SubscriberDigestWithID
 
 		digest, prevDigest, err := updateDigestByNetwork(network, digestStore)
 		if err != nil {

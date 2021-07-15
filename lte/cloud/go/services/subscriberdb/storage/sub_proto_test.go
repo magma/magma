@@ -103,6 +103,7 @@ func TestSubProtoStore(t *testing.T) {
 		expectedNextToken = getTokenByLastIncludedEntity(t, "IMSI00010")
 		assert.Equal(t, expectedNextToken, nextToken)
 
+		// The next token should be empty when all pages have been fetched
 		finalPage, nextToken, err := s.GetPage("n0", nextToken, 3)
 		assert.NoError(t, err)
 		assert.Empty(t, nextToken)
@@ -110,7 +111,7 @@ func TestSubProtoStore(t *testing.T) {
 	})
 
 	t.Run("get by ids", func(t *testing.T) {
-		// The queried protos are ordered ascendingly by their IDs
+		// The queried protos are ordered in ascending order by their IDs
 		ids := []string{"IMSI00006", "IMSI00003", "IMSI00002", "IMSI00001", "IMSI00000"}
 		expectedSubProtos := []*lte_protos.SubscriberData{
 			subProtoFromId("IMSI00001"), subProtoFromId("IMSI00002"),
@@ -145,6 +146,7 @@ func TestSubProtoStore(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = s.CommitUpdateByNetwork("n0")
+		assert.NoError(t, err)
 		// Since the tmp table was cleared halfway through, we'll only commit subProtos2 into the actual table
 		page, nextToken, err = s.GetPage("n0", "", 3)
 		assert.NoError(t, err)
