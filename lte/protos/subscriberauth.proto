@@ -1,0 +1,87 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+//
+// This is a proxy for Diamater application S6a/S6d 3GPP 29.272
+// It is watered down for use with OpenAirInterface EPC with extensibility in mind
+//
+
+syntax = "proto3";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// ErrorCode reflects Experimental-Result values which are 3GPP failures
+// to be processed by EPC. Diameter Base Protocol errors are reflected in gRPC status code
+enum M5GErrorCode {
+    UNDEFINED                = 0;
+    // Default success code
+    MULTI_ROUND_AUTH         = 1001;
+    SUCCESS                  = 2001;
+    LIMITED_SUCCESS          = 2002;
+    COMMAND_UNSUPORTED       = 3001;
+    UNABLE_TO_DELIVER        = 3002;
+    REALM_NOT_SERVED         = 3003;
+    TOO_BUSY                 = 3004;
+    LOOP_DETECTED            = 3005;
+    REDIRECT_INDICATION      = 3006;
+    APPLICATION_UNSUPPORTED  = 3007;
+    INVALIDH_DR_BITS         = 3008;
+    INVALID_AVP_BITS         = 3009;
+    UNKNOWN_PEER             = 3010;
+    AUTHENTICATION_REJECTED  = 4001;
+    OUT_OF_SPACE             = 4002;
+    ELECTION_LOST            = 4003;
+    AUTHORIZATION_REJECTED   = 5003;
+    // Permanent Failures 7.4.3
+    USER_UNKNOWN             = 5001;
+    UNKNOWN_SESSION_ID       = 5002;
+    UNKNOWN_EPS_SUBSCRIPTION = 5420;
+    RAT_NOT_ALLOWED          = 5421;
+    ROAMING_NOT_ALLOWED      = 5004;
+    EQUIPMENT_UNKNOWN        = 5422;
+    UNKNOWN_SERVING_NODE      = 5423;
+    // Transient Failures 7.4.4
+    AUTHENTICATION_DATA_UNAVAILABLE = 4181;
+}
+
+// Authentication Information Request (Section 7.2.5)
+message M5GAuthenticationInformationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Resync related information
+    bytes resync_info = 2;
+    // Name of the serving network (snni)
+    string serving_network_name = 3;
+}
+
+// Authentication Information Answer (Section 7.2.6)
+message M5GAuthenticationInformationAnswer {
+    // 3GPP TS 29.272, 7.3.18 E-UTRAN-Vector
+    // For details about fields read 3GPP 33.401
+    message M5GAuthenticationVector {
+        bytes rand = 1;
+        bytes xres_star = 2;
+        bytes autn = 3;
+        bytes kseaf = 4;
+    }
+    // EPC error code on failure
+    M5GErrorCode error_code = 1;
+    // Authentication vectors matching the requested number
+    repeated M5GAuthenticationVector m5gauth_vectors = 2;
+}
+
+service M5GSubscriberAuthentication {
+    // Authentication-Information (Code 318)
+    rpc M5GAuthenticationInformation (M5GAuthenticationInformationRequest) returns (M5GAuthenticationInformationAnswer) {}
+}
+
