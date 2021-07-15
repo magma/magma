@@ -22,4 +22,7 @@ type Config struct {
 	// UseSubProtoStore is a feature flag for loading subscriber data from the
 	// cache store, instead of directly from configurator.
 	UseSubProtoStore bool `yaml:"useSubProtoStore"`
+	// MaxProtosLoadSize specifies the max size of cached subscriber protos that
+	// can be loaded for a page.
+	MaxProtosLoadSize uint64 `yaml:"maxProtosLoadSize"`
 }

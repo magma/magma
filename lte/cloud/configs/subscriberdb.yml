@@ -18,3 +18,6 @@ changesetSizeTheshold: 500
 # useSubProtoStore is a feature flag for loading subscriber data from the
 # cache store, instead of directly from configurator.
 useSubProtoStore: true
+# maxProtosLoadSize specifies the max size of cached subscriber protos that
+# can be loaded for a page.
+maxProtosLoadSize: 15000

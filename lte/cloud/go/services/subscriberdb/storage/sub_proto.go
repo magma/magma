@@ -77,6 +77,7 @@ func (l *SubProtoStore) Initialize() error {
 	return err
 }
 
+// InsertManyByNetwork serializes and inserts a batch of subscriber protos into the temporary table.
 func (l *SubProtoStore) InsertManyByNetwork(network string, subProtos []*lte_protos.SubscriberData) error {
 	if len(subProtos) == 0 {
 		return nil
@@ -161,6 +162,7 @@ func (l *SubProtoStore) ClearTmpTable() error {
 	return err
 }
 
+// DeleteSubProtos deletes the cached protos for a list of networks.
 func (l *SubProtoStore) DeleteSubProtos(networks []string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := l.builder.
@@ -176,20 +178,14 @@ func (l *SubProtoStore) DeleteSubProtos(networks []string) error {
 
 // GetPage gets a page of subscriber protos based on the page token and size, and also returns
 // the token for the next page.
-func (l *SubProtoStore) GetPage(network string, token string, pageSize int) ([]*lte_protos.SubscriberData, string, error) {
+func (l *SubProtoStore) GetPage(network string, token string, pageSize uint64) ([]*lte_protos.SubscriberData, string, error) {
 	lastIncludedSid := ""
 	if token != "" {
-		marshaledToken, err := base64.StdEncoding.DecodeString(token)
+		decoded, err := decodePageToken(token)
 		if err != nil {
-			return nil, "", errors.Wrapf(err, "decode page token")
+			return nil, "", err
 		}
-
-		buf := &configurator_storage.EntityPageToken{}
-		err = proto.Unmarshal(marshaledToken, buf)
-		if err != nil {
-			return nil, "", errors.Wrapf(err, "unmarshal page token")
-		}
-		lastIncludedSid = buf.LastIncludedEntity
+		lastIncludedSid = decoded.LastIncludedEntity
 	}
 
 	txFn := func(tx *sql.Tx) (interface{}, error) {
@@ -201,7 +197,7 @@ func (l *SubProtoStore) GetPage(network string, token string, pageSize int) ([]*
 				squirrel.Gt{subProtoSidCol: lastIncludedSid},
 			}).
 			OrderBy(subProtoSidCol).
-			Limit(uint64(pageSize)).
+			Limit(pageSize).
 			RunWith(tx).
 			Query()
 
@@ -223,6 +219,7 @@ func (l *SubProtoStore) GetPage(network string, token string, pageSize int) ([]*
 	return subProtos, nextPageToken, nil
 }
 
+// GetByIDs returns an ordered list of subscriber protos with matching IDs.
 func (l *SubProtoStore) GetByIDs(network string, sids []string) ([]*lte_protos.SubscriberData, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := l.builder.
@@ -276,17 +273,35 @@ func parseSubProtoRows(rows *sql.Rows) ([]*lte_protos.SubscriberData, error) {
 
 // getNextPageToken returns the next page token based on the lastIncludedEntity in the current page.
 func getNextPageToken(subProtos []*lte_protos.SubscriberData) (string, error) {
-	nextToken := ""
-	if len(subProtos) > 0 {
-		lastSubProto := subProtos[len(subProtos)-1]
-		nextTokenUnmarshaled := &configurator_storage.EntityPageToken{
-			LastIncludedEntity: lte_protos.SidString(lastSubProto.Sid),
-		}
-		nextTokenMarshaled, err := proto.Marshal(nextTokenUnmarshaled)
-		if err != nil {
-			return "", err
-		}
-		nextToken = base64.StdEncoding.EncodeToString(nextTokenMarshaled)
+	// The next token is empty if we have exhausted all protos in the db
+	if len(subProtos) == 0 {
+		return "", nil
 	}
+
+	lastSubProto := subProtos[len(subProtos)-1]
+	nextTokenUnmarshaled := &configurator_storage.EntityPageToken{
+		LastIncludedEntity: lte_protos.SidString(lastSubProto.Sid),
+	}
+	nextTokenMarshaled, err := proto.Marshal(nextTokenUnmarshaled)
+	if err != nil {
+		return "", err
+	}
+	nextToken := base64.StdEncoding.EncodeToString(nextTokenMarshaled)
+
 	return nextToken, nil
+}
+
+// decodePageToken returns the deserialized page token proto.
+func decodePageToken(token string) (*configurator_storage.EntityPageToken, error) {
+	marshaledToken, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return nil, errors.Wrapf(err, "decode page token")
+	}
+
+	buf := &configurator_storage.EntityPageToken{}
+	err = proto.Unmarshal(marshaledToken, buf)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unmarshal page token")
+	}
+	return buf, nil
 }

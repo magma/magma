@@ -325,6 +325,167 @@ func TestListSubscribers(t *testing.T) {
 	assert.Equal(t, expectedToken, res.NextPageToken)
 }
 
+func TestListSubscribersWithSubProtoStore(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	digestStore := initializeDigestStore(t)
+	perSubDigestStore := initializePerSubDigestStore(t)
+	subProtoStore := initializeSubProtoStore(t)
+
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
+		FlatDigestEnabled: true,
+		UseSubProtoStore:  true,
+		MaxProtosLoadSize: 10,
+	}, digestStore, perSubDigestStore, subProtoStore)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+
+	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
+	ctx := id.NewContextWithIdentity(context.Background())
+
+	// The subscriberdb servicer should return subscriber protos read from cache
+	expectedProtos := []*lte_protos.SubscriberData{
+		{
+			Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+			Lte: &lte_protos.LTESubscription{
+				State:   lte_protos.LTESubscription_ACTIVE,
+				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
+			SubProfile: "default",
+			Non_3Gpp: &lte_protos.Non3GPPUserProfile{
+				ApnConfig: []*lte_protos.APNConfiguration{
+					{
+						ServiceSelection: "apn1",
+						QosProfile: &lte_protos.APNConfiguration_QoSProfile{
+							ClassId:                 1,
+							PriorityLevel:           1,
+							PreemptionCapability:    true,
+							PreemptionVulnerability: true,
+						},
+						Ambr: &lte_protos.AggregatedMaximumBitrate{
+							MaxBandwidthUl: 100,
+							MaxBandwidthDl: 42,
+						},
+						AssignedStaticIp: "192.168.100.1",
+					},
+					{
+						ServiceSelection: "apn2",
+						QosProfile: &lte_protos.APNConfiguration_QoSProfile{
+							ClassId:                 2,
+							PriorityLevel:           2,
+							PreemptionCapability:    false,
+							PreemptionVulnerability: false,
+						},
+						Ambr: &lte_protos.AggregatedMaximumBitrate{
+							MaxBandwidthUl: 100,
+							MaxBandwidthDl: 42,
+						},
+					},
+				},
+			},
+		},
+		{
+			Sid:        &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
+			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
+			SubProfile: "foo",
+		},
+	}
+	err = subProtoStore.InsertManyByNetwork("n1", expectedProtos)
+	assert.NoError(t, err)
+	err = subProtoStore.CommitUpdateByNetwork("n1")
+	assert.NoError(t, err)
+
+	req := &lte_protos.ListSubscribersRequest{
+		PageSize:  2,
+		PageToken: "",
+	}
+	res, err := servicer.ListSubscribers(ctx, req)
+	token := &configurator_storage.EntityPageToken{
+		LastIncludedEntity: "IMSI00002",
+	}
+	expectedToken := serializeToken(t, token)
+	assert.NoError(t, err)
+	assert.Len(t, res.Subscribers, 2)
+	assert.True(t, proto.Equal(expectedProtos[0], res.Subscribers[0]))
+	assert.True(t, proto.Equal(expectedProtos[1], res.Subscribers[1]))
+	assert.Equal(t, expectedToken, res.NextPageToken)
+
+	// The servicer should append gateway-specific apn resources data to returned subscriber protos
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{
+		Type: lte.APNEntityType, Key: "apn1",
+		Config: &lte_models.ApnConfiguration{},
+	}, serdes.Entity)
+	assert.NoError(t, err)
+
+	var writes []configurator.EntityWriteOperation
+	writes = append(writes, configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.APNResourceEntityType,
+		Key:       "resource1",
+		Config: &lte_models.ApnResource{
+			ApnName:    "apn1",
+			GatewayIP:  "172.16.254.1",
+			GatewayMac: "00:0a:95:9d:68:16",
+			ID:         "resource1",
+			VlanID:     42,
+		},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}},
+	})
+	writes = append(writes, configurator.EntityUpdateCriteria{
+		Type:              lte.CellularGatewayEntityType,
+		Key:               gw.Key,
+		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource1"}},
+	})
+	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	assert.NoError(t, err)
+
+	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{
+		ApnName:    "apn1",
+		GatewayIp:  "172.16.254.1",
+		GatewayMac: "00:0a:95:9d:68:16",
+		VlanId:     42,
+	}
+	res, err = servicer.ListSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Len(t, res.Subscribers, 2)
+	assert.True(t, proto.Equal(expectedProtos[0], res.Subscribers[0]))
+	assert.True(t, proto.Equal(expectedProtos[1], res.Subscribers[1]))
+	assert.Equal(t, expectedToken, res.NextPageToken)
+
+	// Create 8 more subscribers in cache to test max page size
+	allProtos := []*lte_protos.SubscriberData{
+		basicSubProtoFromSid("IMSI00001", ""), basicSubProtoFromSid("IMSI00002", ""),
+		basicSubProtoFromSid("IMSI99991", ""), basicSubProtoFromSid("IMSI99992", ""),
+		basicSubProtoFromSid("IMSI99993", ""), basicSubProtoFromSid("IMSI99994", ""),
+		basicSubProtoFromSid("IMSI99995", ""), basicSubProtoFromSid("IMSI99996", ""),
+		basicSubProtoFromSid("IMSI99997", ""), basicSubProtoFromSid("IMSI99998", ""),
+	}
+	err = subProtoStore.InsertManyByNetwork("n1", allProtos)
+	assert.NoError(t, err)
+	err = subProtoStore.CommitUpdateByNetwork("n1")
+	assert.NoError(t, err)
+
+	// Ensure when page size specified is 0, max page size is returned (10/11 subs)
+	req = &lte_protos.ListSubscribersRequest{
+		PageSize:  0,
+		PageToken: "",
+	}
+	res, err = servicer.ListSubscribers(ctx, req)
+	token = &configurator_storage.EntityPageToken{
+		LastIncludedEntity: "IMSI99998",
+	}
+	expectedToken = serializeToken(t, token)
+	assert.NoError(t, err)
+	assert.Len(t, res.Subscribers, 10)
+	assert.Equal(t, expectedToken, res.NextPageToken)
+}
+
 func TestCheckSubscribersInSync(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -601,6 +762,110 @@ func TestSyncSubscribersResync(t *testing.T) {
 	assert.Empty(t, res.Deleted)
 }
 
+func TestSyncSubscribersWithSubProtoStore(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	digestStore := initializeDigestStore(t)
+	perSubDigestStore := initializePerSubDigestStore(t)
+	subProtoStore := initializeSubProtoStore(t)
+
+	// Create servicer with flat digest feature flag turned on
+	configs := subscriberdb.Config{
+		FlatDigestEnabled:     true,
+		ChangesetSizeTheshold: 100,
+		UseSubProtoStore:      true,
+	}
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subProtoStore)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
+	ctx := id.NewContextWithIdentity(context.Background())
+	err = digestStore.SetDigest("n1", "flat_digest_apple")
+	assert.NoError(t, err)
+
+	// Initially no digests
+	req := &lte_protos.SyncSubscribersRequest{
+		PerSubDigests: []*lte_protos.SubscriberDigestWithID{},
+	}
+	res, err := servicer.SyncSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, "flat_digest_apple", res.FlatDigest.GetMd5Base64Digest())
+	assert.Empty(t, res.PerSubDigests)
+	assert.Empty(t, res.Deleted)
+	assert.Empty(t, res.ToRenew)
+
+	// When cloud has updated per sub digests in cache, changeset is sent back
+	expectedToRenewData := []*lte_protos.SubscriberData{
+		basicSubProtoFromSid("IMSI00001", "profile_apple"), basicSubProtoFromSid("IMSI00002", "profile_banana"),
+	}
+	err = subProtoStore.InsertManyByNetwork("n1", expectedToRenewData)
+	assert.NoError(t, err)
+	err = subProtoStore.CommitUpdateByNetwork("n1")
+	assert.NoError(t, err)
+
+	expectedPerSubDigests := []*lte_protos.SubscriberDigestWithID{
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "digest_apple"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "digest_banana"},
+		},
+	}
+	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
+	assert.NoError(t, err)
+
+	req = &lte_protos.SyncSubscribersRequest{
+		PerSubDigests: []*lte_protos.SubscriberDigestWithID{},
+	}
+	res, err = servicer.SyncSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assertEqualPerSubDigests(t, expectedPerSubDigests, res.PerSubDigests)
+	assert.Len(t, res.ToRenew, 2)
+	assert.True(t, proto.Equal(expectedToRenewData[0], res.ToRenew[0]))
+	assert.True(t, proto.Equal(expectedToRenewData[1], res.ToRenew[1]))
+	assert.Empty(t, res.Deleted)
+	curPerSubDigests := expectedPerSubDigests
+
+	// More delete and renewal of sub protos in cache should be reflected in the response too
+	err = subProtoStore.DeleteSubProtos([]string{"n1"})
+	assert.NoError(t, err)
+	expectedToRenewData = []*lte_protos.SubscriberData{
+		basicSubProtoFromSid("IMSI00002", "profile_banana2"), basicSubProtoFromSid("IMSI00003", "profile_cherry"),
+	}
+	err = subProtoStore.InsertManyByNetwork("n1", expectedToRenewData)
+	assert.NoError(t, err)
+	err = subProtoStore.CommitUpdateByNetwork("n1")
+	assert.NoError(t, err)
+
+	expectedPerSubDigests = []*lte_protos.SubscriberDigestWithID{
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "digest_banana2"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},
+		},
+	}
+	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
+	assert.NoError(t, err)
+
+	req = &lte_protos.SyncSubscribersRequest{
+		PerSubDigests: curPerSubDigests,
+	}
+	res, err = servicer.SyncSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assertEqualPerSubDigests(t, expectedPerSubDigests, res.PerSubDigests)
+	assert.Len(t, res.ToRenew, 2)
+	assert.True(t, proto.Equal(expectedToRenewData[0], res.ToRenew[0]))
+	assert.True(t, proto.Equal(expectedToRenewData[1], res.ToRenew[1]))
+	assert.Equal(t, []string{"IMSI00001"}, res.Deleted)
+}
+
 func serializeToken(t *testing.T, token *configurator_storage.EntityPageToken) string {
 	marshalledToken, err := proto.Marshal(token)
 	assert.NoError(t, err)
@@ -644,4 +909,18 @@ func assertEqualPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDig
 		assert.Equal(t, expected[ind].Digest.GetMd5Base64Digest(), got[ind].Digest.GetMd5Base64Digest())
 		assert.Equal(t, expected[ind].Sid.Id, got[ind].Sid.Id)
 	}
+}
+
+func basicSubProtoFromSid(sid string, subProfile string) *lte_protos.SubscriberData {
+	if subProfile == "" {
+		subProfile = "foo"
+	}
+	subProto := &lte_protos.SubscriberData{
+		Sid:        lte_protos.SidFromString(sid),
+		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
+		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+		NetworkId:  &protos.NetworkID{Id: "n1"},
+		SubProfile: subProfile,
+	}
+	return subProto
 }
