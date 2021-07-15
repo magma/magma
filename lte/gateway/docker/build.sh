@@ -11,13 +11,16 @@
 # limitations under the License.
 
 set -x
-# build container for python services
-docker build . -f services/build/Dockerfile.python -t pythonbuilder:latest
 
 build (){
   docker build . -f services/$1/Dockerfile -t $1
 }
-#
+
+# build container for python services
+docker build . -f services/build/Dockerfile.python -t pythonbuilder:latest
+
+
+# python services
 build mobilityd
 build enodebd
 build health
@@ -30,13 +33,12 @@ build state
 build directoryd
 build pipelined
 
+# build container for C services
 cd ../../../
-
 docker build . -f lte/gateway/docker/mme/Dockerfile.ubuntu20.04 -t mme_builder:latest
-
 cd lte/gateway/docker
-
 docker build . -f services/build/Dockerfile.c -t cbuilder:latest
 
+# C services
 build mme
 build sctpd
