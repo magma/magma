@@ -195,4 +195,4 @@ jobs:
           SLACK_TITLE: "*Orchestrator images have been published*"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#FF0000"
+          SLACK_COLOR: "#00FF00"
