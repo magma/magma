@@ -20,7 +20,7 @@ To upgrade an existing AGW, please run the following upgrade script
 ```bash
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/release/upgrade_magma.sh
 chmod +x upgrade_magma.sh
-./upgrade_magma_sh
+./upgrade_magma.sh
 ```
 
 ### Image Version
