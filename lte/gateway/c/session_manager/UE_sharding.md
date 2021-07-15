@@ -118,28 +118,17 @@ The trickiest part of sharding is figuring out how to balance UEs appropriately,
 |	|Shard ID(max of 2 UEs per shard)	|	|	|
 |---	|---	|---	|---	|
 |Time	|1	|2	|3	|
-|
-Shard composition	|A, B	|C	|	|
-|
-Poll all	|poll	|poll	|	|
-|
-A 80%	|poll	|X	|	|
-|
-C 80%	|X	|poll	|	|
+|Shard composition	|A, B	|C	|	|
+|Poll all	|poll	|poll	|	|
+|A 80%	|poll	|X	|	|
+|C 80%	|X	|poll	|	|
 |Add D, shard composition	|A, B	|C, D	|	|
-|
-C, D 80%	|X	|poll	|	|
-|
-Add E and F: shard composition	|A, B	|C, D	|E, F	|
-|
-Poll all	|poll	|poll	|poll	|
-|
-A, C and E 80%	|poll	|poll	|poll	|
-|
-Poll all	|poll	|poll	|poll	|
-|
-A,C,E 0% but B,D, F at 80%	|poll	|poll	|poll	|
-|	|	|	|	|
+|C, D 80%	|X	|poll	|	|
+|Add E and F: shard composition	|A, B	|C, D	|E, F	|
+|Poll all	|poll	|poll	|poll	|
+|A, C and E 80%	|poll	|poll	|poll	|
+|Poll all	|poll	|poll	|poll	|
+|A,C,E 0% but B,D, F at 80%	|poll	|poll	|poll	|
 
 The problem posed with no rebalancing is posed in some of the final cases. In the perfect scenario, the only cases where polling all shards is necessary is when we specifically request to do so(“poll all”). But if we only assign UEs by filling up a shard completely before creating a new one, we will inevitably run into the issue of polling all shards, effectively polling all UEs. 
 
@@ -149,29 +138,18 @@ Here’s what polling may look like if we have an appropriate rebalancing algori
 |	|Shard ID(max of 2 UEs per shard)	|	|	|
 |---	|---	|---	|---	|
 |Time	|1	|2	|3	|
-|
-Shard composition	|A, B	|C	|	|
-|
-Poll all	|poll	|poll	|	|
-|
-A 80%	|poll	|X	|	|
-|
-C 80%	|X	|poll	|	|
+|Shard composition	|A, B	|C	|	|
+|Poll all	|poll	|poll	|	|
+|A 80%	|poll	|X	|	|
+|C 80%	|X	|poll	|	|
 |Add D, shard composition	|A, B	|C, D	|	|
-|
-C, D 80%	|X	|poll	|	|
-|
-Add E and F: shard composition	|A, B	|C, D	|E, F	|
-|
-Poll all	|poll	|poll	|poll	|
+|C, D 80%	|X	|poll	|	|
+|Add E and F: shard composition	|A, B	|C, D	|E, F	|
+|Poll all	|poll	|poll	|poll	|
 |A, C, and E hitting near 80%	|A, C	|D, E	|B, F	|
-|
-A, C and E 80%	|poll	|poll	|X	|
-|
-Poll all	|poll	|poll	|poll	|
-|
-A,C,E 0% but B,D, F at 80%	|X	|poll	|poll	|
-|	|	|	|	|
+|A, C and E 80%	|poll	|poll	|X	|
+|Poll all	|poll	|poll	|poll	|
+|A,C,E 0% but B,D, F at 80%	|X	|poll	|poll	|
 
 This is obviously fairly simplified, but the idea is as certain UEs in a shard are closer to hitting a threshold, we swap with or move them into a shard with UEs that will need to be polled soon as well. The single set of swaps when A, C, and E are hitting near 80% saves unnecessary extra shard polling, by only polling 2 shards versus 3. You can see how much can be saved at a larger scale, and we would almost never reach a case where we poll every shard.
 
