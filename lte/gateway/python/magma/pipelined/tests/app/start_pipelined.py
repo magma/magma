@@ -41,8 +41,11 @@ class TestSetup(object):
         integ_test:         bool:           set true when running tests in
                                             integ setting
     """
-    def __init__(self, apps, references, config, mconfig, loop,
-                 service_manager, integ_test=False, rpc_stubs=None):
+
+    def __init__(
+        self, apps, references, config, mconfig, loop,
+        service_manager, integ_test=False, rpc_stubs=None,
+    ):
         self.apps = apps
         self.references = references
         self.config = config
@@ -60,72 +63,73 @@ Controller = namedtuple('Controller', ['name', 'app_future'])
 
 class PipelinedController(Enum):
     InOut = Controller(
-        'magma.pipelined.app.inout', 'inout'
+        'magma.pipelined.app.inout', 'inout',
     )
     Arp = Controller(
-        'magma.pipelined.app.arp', 'arpd'
+        'magma.pipelined.app.arp', 'arpd',
     )
     IPV6RouterSolicitation = Controller(
         'magma.pipelined.app.ipv6_solicitation',
-        'ipv6_solicitation'
+        'ipv6_solicitation',
     )
     GY = Controller(
-        'magma.pipelined.app.gy', 'gy'
+        'magma.pipelined.app.gy', 'gy',
     )
     Enforcement = Controller(
-        'magma.pipelined.app.enforcement', 'enforcement'
+        'magma.pipelined.app.enforcement', 'enforcement',
     )
     Enforcement_stats = Controller(
-        'magma.pipelined.app.enforcement_stats', 'enforcement_stats'
+        'magma.pipelined.app.enforcement_stats', 'enforcement_stats',
     )
     Testing = Controller(
-        'magma.pipelined.app.testing', 'testing'
+        'magma.pipelined.app.testing', 'testing',
     )
     AccessControl = Controller(
-        'magma.pipelined.app.access_control', 'access_control'
+        'magma.pipelined.app.access_control', 'access_control',
     )
     UEMac = Controller(
-        'magma.pipelined.app.ue_mac', 'ue_mac'
+        'magma.pipelined.app.ue_mac', 'ue_mac',
     )
     TunnelLearnController = Controller(
-        'magma.pipelined.app.tunnel_learn', 'tunnel_learn'
+        'magma.pipelined.app.tunnel_learn', 'tunnel_learn',
     )
     VlanLearn = Controller(
-        'magma.pipelined.app.vlan_learn', 'vlan_learn'
+        'magma.pipelined.app.vlan_learn', 'vlan_learn',
     )
     CheckQuotaController = Controller(
-        'magma.pipelined.app.check_quota', 'check_quota'
+        'magma.pipelined.app.check_quota', 'check_quota',
     )
     IPFIX = Controller(
-        'magma.pipelined.app.ipfix', 'ipfix'
+        'magma.pipelined.app.ipfix', 'ipfix',
     )
     LIMirror = Controller(
-        'magma.pipelined.app.li_mirror', 'li_mirror'
+        'magma.pipelined.app.li_mirror', 'li_mirror',
     )
     PacketTracer = Controller(
-        'magma.pipelined.app.packet_tracer', 'packet_tracer'
+        'magma.pipelined.app.packet_tracer', 'packet_tracer',
     )
     StartupFlows = Controller(
-        'magma.pipelined.app.startup_flows', 'startup_flows'
+        'magma.pipelined.app.startup_flows', 'startup_flows',
     )
     DPI = Controller(
-        'magma.pipelined.app.dpi', 'dpi'
+        'magma.pipelined.app.dpi', 'dpi',
     )
     UplinkBridge = Controller(
-        'magma.pipelined.app.uplink_bridge', 'uplink_bridge'
+        'magma.pipelined.app.uplink_bridge', 'uplink_bridge',
     )
     Conntrack = Controller(
-        'magma.pipelined.app.conntrack', 'conntrack'
+        'magma.pipelined.app.conntrack', 'conntrack',
     )
     Classifier = Controller(
-        'magma.pipelined.app.classifier', 'classifier'
+        'magma.pipelined.app.classifier', 'classifier',
     )
     HeaderEnrichment = Controller(
-        'magma.pipelined.app.he', 'proxy'
+        'magma.pipelined.app.he', 'proxy',
     )
     NGServiceController = Controller(
-        'magma.pipelined.app.ng_services', 'ng_services'
+        'magma.pipelined.app.ng_services', 'ng_services',
     )
+
 
 def assert_pipelined_not_running():
     """
@@ -139,19 +143,19 @@ def assert_pipelined_not_running():
     """
     try:
         output = subprocess.check_output(
-            ["systemctl", "is-active", "magma@pipelined"]
+            ["systemctl", "is-active", "magma@pipelined"],
         )
     except subprocess.CalledProcessError as e:
         if "inactive" not in str(e.output, 'utf-8'):
             raise ServiceRunningError(
                 "Pipelined is running, 'systemctl is-active magma@pipelined'" +
                 "caused an error code %d, exception - %s"
-                % (e.returncode, str(e.output, 'utf-8').strip())
+                % (e.returncode, str(e.output, 'utf-8').strip()),
             )
     else:
         raise ServiceRunningError(
             "Pipelined is running, 'systemctl is-active magma@pipelined'" +
-            "output - %s" % str(output, 'utf-8').strip()
+            "output - %s" % str(output, 'utf-8').strip(),
         )
 
 
@@ -176,7 +180,8 @@ class StartThread(object):
         self.done = False
         self.event_queue = hub.Queue()
         thread = threading.Thread(
-            target=self.start_ryu_apps, args=(launch_successful_future,))
+            target=self.start_ryu_apps, args=(launch_successful_future,),
+        )
         thread.daemon = True
         thread.start()
 
@@ -220,14 +225,16 @@ class StartThread(object):
 
         logging.basicConfig(
             level=logging.INFO,
-            format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+            format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+        )
 
         services = []
         try:
             services.extend(manager.instantiate_apps(**contexts))
         except Exception as e:
             launch_successful_future.set_result(
-                "Ryu apps launch exception: {}".format(e))
+                "Ryu apps launch exception: {}".format(e),
+            )
             raise
 
         launch_successful_future.set_result("Setup successful")

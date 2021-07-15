@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # For more information about the OpenAirInterface (OAI) Software Alliance:
 #      contact@openairinterface.org
 #
@@ -65,17 +65,21 @@ class MMEAppDriver(object):
 
         """
         parser = argparse.ArgumentParser(
-            description='End-to-end test to ensure MME startup is nonblocking')
+            description='End-to-end test to ensure MME startup is nonblocking',
+        )
 
         parser.add_argument(
             '-b', '--binary', metavar='PATH', default='~/build/mme_app/mme',
-            help='The location of the mme binary to test')
+            help='The location of the mme binary to test',
+        )
         parser.add_argument(
             '-r', '--rate', metavar='SECONDS', default=1, type=int,
-            help='Sampling rate for success conditions, in seconds')
+            help='Sampling rate for success conditions, in seconds',
+        )
         parser.add_argument(
             '-t', '--timeout', metavar='SECONDS', default=30, type=int,
-            help='Maximum duration of the test before timing out, in seconds')
+            help='Maximum duration of the test before timing out, in seconds',
+        )
 
         return parser
 
@@ -94,17 +98,20 @@ class MMEAppDriver(object):
         """
         if self._failed_conditions is None:  # Empty tuple means something else
             logging.error(
-                'No results to report yet. Try calling run() first.')
+                'No results to report yet. Try calling run() first.',
+            )
             return None
 
         if self._failed_conditions:
             logging.error(
-                'Test failed after %.6f seconds!', self._elapsed_time)
+                'Test failed after %.6f seconds!', self._elapsed_time,
+            )
             for condition in self._failed_conditions:
                 logging.error('..Failed expression: \'%s\'', condition)
         else:
             logging.info(
-                'Test succeeded after %.6f seconds!', self._elapsed_time)
+                'Test succeeded after %.6f seconds!', self._elapsed_time,
+            )
 
         # Copy the tuple to avoid representation exposure
         return tuple(self._failed_conditions)
@@ -169,7 +176,8 @@ class MMEAppDriver(object):
         logging.info('Assuming that %s is the MME binary.', self._mme_bin)
         logging.info(
             'Test will run for a max of %ds, sampling every %ds.',
-            self._sampling_range.stop, self._sampling_range.step)
+            self._sampling_range.stop, self._sampling_range.step,
+        )
 
     def _setup(self):
         """Set driver instance variables.
@@ -192,7 +200,8 @@ class MMEAppDriver(object):
         self._mme_bin = os.path.normpath(os.path.expanduser(opts.binary))
         if not os.path.isfile(self._mme_bin):
             logging.error(
-                'No binary found at declared MME bin path: %s', self._mme_bin)
+                'No binary found at declared MME bin path: %s', self._mme_bin,
+            )
             sys.exit(1)
 
     def _setup_conf_and_certs(self, oai_dir):
@@ -224,18 +233,22 @@ class MMEAppDriver(object):
                     data = fin.read()
 
                 with open(fname, 'w') as fout:
-                    fout.write(data
-                               .replace('/usr/local/etc/oai', oai_dir)
-                               .replace('/var/run', oai_dir)
-                               .replace('/tmp/mme.log', self._mme_log))
+                    fout.write(
+                        data
+                        .replace('/usr/local/etc/oai', oai_dir)
+                        .replace('/var/run', oai_dir)
+                        .replace('/tmp/mme.log', self._mme_log),
+                    )
 
         self._mme_conf = os.path.join(oai_dir, 'mme.conf')
 
         # Certs setup
         fd_dir = os.path.join(oai_dir, 'freeDiameter')
         os.makedirs(fd_dir, exist_ok=True)
-        subprocess.call(('%s/config/create_certs.py' % MAGMA_ROOT,
-                         '-c', fd_dir))
+        subprocess.call((
+            '%s/config/create_certs.py' % MAGMA_ROOT,
+            '-c', fd_dir,
+        ))
 
     def _setup_oai(self, oai_dir):
         """Set up OAI conf and cert files in the specified directory.
@@ -278,4 +291,5 @@ class MMEAppDriver(object):
         self._elapsed_time = time.time() - start_time
 
         self._failed_conditions = tuple(
-            cond for cond in conditions if re.search(cond, log) is None)
+            cond for cond in conditions if re.search(cond, log) is None
+        )

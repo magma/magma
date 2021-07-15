@@ -17,25 +17,33 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsRequest,
 )
 
-FARRuleEntry =  NamedTuple(
+FARRuleEntry = NamedTuple(
                    'FARRuleEntry',
-                    [('apply_action', int),
-                     ('o_teid', int),
-                     ('gnb_ip_addr', str)])
+                    [
+                        ('apply_action', int),
+                        ('o_teid', int),
+                        ('gnb_ip_addr', str),
+                    ],
+)
 
 PDRRuleEntry = NamedTuple(
                 'PDRRuleEntry',
-                [('pdr_id', int),
-                 ('pdr_version', int),
-                 ('pdr_state', int),
-                 ('precedence', int),
-                 ('local_f_teid', int),
-                 ('ue_ip_addr', str),
-                 ('del_qos_enforce_rule', DeactivateFlowsRequest),
-                 ('add_qos_enforce_rule', ActivateFlowsRequest),
-                 ('far_action', FARRuleEntry)])
+                [
+                    ('pdr_id', int),
+                    ('pdr_version', int),
+                    ('pdr_state', int),
+                    ('precedence', int),
+                    ('local_f_teid', int),
+                    ('ue_ip_addr', str),
+                    ('del_qos_enforce_rule', DeactivateFlowsRequest),
+                    ('add_qos_enforce_rule', ActivateFlowsRequest),
+                    ('far_action', FARRuleEntry),
+                ],
+)
 
 # Create the Named tuple for the FAR entry
+
+
 def far_create_rule_entry(far_entry) -> FARRuleEntry:
     o_teid = 0
     fwd_gnb_ip_addr = None
@@ -44,12 +52,16 @@ def far_create_rule_entry(far_entry) -> FARRuleEntry:
         o_teid = far_entry.fwd_parm.outr_head_cr.o_teid
         fwd_gnb_ip_addr = far_entry.fwd_parm.outr_head_cr.gnb_ipv4_adr
 
-    far_rule = FARRuleEntry(far_entry.far_action_to_apply[0],
-                            o_teid, fwd_gnb_ip_addr)
+    far_rule = FARRuleEntry(
+        far_entry.far_action_to_apply[0],
+        o_teid, fwd_gnb_ip_addr,
+    )
 
     return far_rule
 
 # Create the Named tuple for the PDR entry
+
+
 def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     local_f_teid = 0
     ue_ip_addr = None
@@ -74,10 +86,11 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     if pdr_entry.HasField('activate_flow_req') == True:
         activate_flow_req = pdr_entry.activate_flow_req
 
-    pdr_rule = PDRRuleEntry(pdr_entry.pdr_id, pdr_entry.pdr_version,
-                            pdr_entry.pdr_state, pdr_entry.precedence,
-                            local_f_teid, ue_ip_addr,
-                            deactivate_flow_req, activate_flow_req,
-                            far_entry)
+    pdr_rule = PDRRuleEntry(
+        pdr_entry.pdr_id, pdr_entry.pdr_version,
+        pdr_entry.pdr_state, pdr_entry.precedence,
+        local_f_teid, ue_ip_addr,
+        deactivate_flow_req, activate_flow_req,
+        far_entry,
+    )
     return pdr_rule
-

@@ -51,7 +51,8 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for Service303',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
@@ -61,7 +62,8 @@ def create_parser():
 
     parser_log_level = subparsers.add_parser('log_level', help='Set log level')
     parser_log_level.add_argument(
-        'level', help='Log level', choices=LogLevel.keys())
+        'level', help='Log level', choices=LogLevel.keys(),
+    )
 
     # Add arguments
     for cmd in [parser_metrics, parser_info, parser_stop, parser_log_level]:

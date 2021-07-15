@@ -44,7 +44,8 @@ def verify_cmd(constants: dict, namespace: str) -> list:
     return AnsiblePlay(
         playbook=f"{playbook_dir}/main.yml",
         tags=['verify_sanity'],
-        extra_vars=extra_vars)
+        extra_vars=extra_vars,
+    )
 
 
 @verify.command('sanity')
@@ -65,7 +66,8 @@ def verify_sanity(ctx, namespace):
             else:
                 print_error_msg(
                     "multiple kubeconfigs found %s!!!" %
-                    repr(kubeconfigs))
+                    repr(kubeconfigs),
+                )
             return
         kubeconfig = kubeconfigs[0]
         set_kubeconfig_environ(kubeconfig)
@@ -75,7 +77,8 @@ def verify_sanity(ctx, namespace):
     while namespace not in all_namespaces:
         namespace = click.prompt(
             'Provide orc8r namespace',
-            type=click.Choice(all_namespaces))
+            type=click.Choice(all_namespaces),
+        )
 
     rc = run_playbook(verify_cmd(ctx.obj, namespace))
     if rc != 0:

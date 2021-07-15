@@ -38,7 +38,8 @@ def delete_old_artifacts(list_of_artifacts, chart_name):
     for artifact in artifacts[:-(NUMBER_OF_CHARTS + 1)]:
         artifact_path = ArtifactoryPath(
             full_artifactory_url + artifact[2],
-            auth=credentials)
+            auth=credentials,
+        )
         if artifact_path.exists():
             print("Deleting artifact " + artifact[2])
             artifact_path.unlink()
@@ -64,7 +65,8 @@ credentials = (username, password)
 full_artifactory_url = artifactory_url + helm_repo + '/'
 artifactory_path = ArtifactoryPath(
     full_artifactory_url,
-    auth=credentials)
+    auth=credentials,
+)
 artifactory_path.touch()
 
 # List from html website as GET API does not provide creation timestamp
@@ -75,11 +77,14 @@ artifact_list = re.search("<a href(.*)</pre>", str(r.content)).group(0).split('<
 artifact_list_trimmed = list(filter(lambda x: x != "", artifact_list))
 
 # Extract artifact name and date
-clean_artifact_map = map(lambda p: re.search(">(.*)</a>[ ]+(.*)  ", str(p)).group(1, 2),
-                         artifact_list_trimmed)
+clean_artifact_map = map(
+    lambda p: re.search(">(.*)</a>[ ]+(.*)  ", str(p)).group(1, 2),
+    artifact_list_trimmed,
+)
 # Extract chart name for sorting
 clean_artifacts_and_charts = list(
-    map(lambda x: ['-'.join(x[0].split('-')[:-1]), x[1], x[0]], clean_artifact_map))
+    map(lambda x: ['-'.join(x[0].split('-')[:-1]), x[1], x[0]], clean_artifact_map),
+)
 
 # Make sure to only keep 20 artifacts per chart
 for chart_name in CHART_NAMES:

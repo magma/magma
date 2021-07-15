@@ -36,12 +36,15 @@ def get_status() -> ServiceExitStatus:
     status_obj.latest_rc = 0
     status_obj.latest_service_result = \
         ServiceExitStatus.ServiceResult.Value(
-            service_result.upper().replace('-', '_'))
+            service_result.upper().replace('-', '_'),
+        )
     status_obj.latest_exit_code = \
         ServiceExitStatus.ExitCode.Value(exit_code.upper())
 
-    if (status_obj.latest_service_result
-            == ServiceExitStatus.ServiceResult.Value("EXIT_CODE")):
+    if (
+        status_obj.latest_service_result
+        == ServiceExitStatus.ServiceResult.Value("EXIT_CODE")
+    ):
         try:
             status_obj.latest_rc = int(exit_status)
         except ValueError:
@@ -52,9 +55,12 @@ def get_status() -> ServiceExitStatus:
 
 def get_service_name() -> str:
     parser = argparse.ArgumentParser(
-        description='Systemd service exit utility script')
-    parser.add_argument('service_name',
-                        help='name of the service that is exiting')
+        description='Systemd service exit utility script',
+    )
+    parser.add_argument(
+        'service_name',
+        help='name of the service that is exiting',
+    )
     args = parser.parse_args()
     return args.service_name
 

@@ -1,11 +1,10 @@
 import os
 import sys
-from typing import Dict, List, Iterator
+from typing import Dict, Iterator, List
 
 import github
+from fabric.api import env, lcd, local
 from github.PullRequest import PullRequest
-from fabric.api import lcd, local, env
-
 
 RELEASE_BRANCHES = [
     'v1.1',
@@ -17,15 +16,21 @@ RELEASE_BRANCHES = [
 ]
 
 # GITHUB_ACCESS_TOKEN
-def find_release_commits(repo_name: str = 'magma/magma',
-                         token_file: str = '~/.magma/github_access_token',
-                         lookback: str = '100'):
+
+
+def find_release_commits(
+    repo_name: str = 'magma/magma',
+    token_file: str = '~/.magma/github_access_token',
+    lookback: str = '100',
+):
     if not os.path.isfile(os.path.expanduser(token_file)):
-        print(f'Create a file `{token_file}` with a Github '
-              'access token in the contents and nothing else.\n'
-              'Create a new Personal Access Token at '
-              'https://github.com/settings/tokens and grant it all "repo" '
-              'permissions if you don\'t already have one.')
+        print(
+            f'Create a file `{token_file}` with a Github '
+            'access token in the contents and nothing else.\n'
+            'Create a new Personal Access Token at '
+            'https://github.com/settings/tokens and grant it all "repo" '
+            'permissions if you don\'t already have one.',
+        )
         sys.exit(1)
     lookback = int(lookback)
 
@@ -36,8 +41,10 @@ def find_release_commits(repo_name: str = 'magma/magma',
 
     # Query repo for all closed PR's (getting the first 100 is fine)
     print('Checking Github API for recently merged PRs...\n')
-    pulls = repo.get_pulls(state='closed', base='master', sort='created',
-                           direction='desc')
+    pulls = repo.get_pulls(
+        state='closed', base='master', sort='created',
+        direction='desc',
+    )
     pulls = pulls[:lookback]
     commits_by_release = {}     # type: Dict[str, List[PullRequest]]
     for pr in pulls:
@@ -92,22 +99,30 @@ def _pick_commits(repo: str, rel: str, pulls: Iterator[PullRequest]):
             print('')
             if not pick_status.succeeded:
                 print('')
-                print(f'Aborting the automated cherry-pick procedure '
-                      f'for branch {rel}. Perform the following steps after '
-                      f'this script finishes execution:')
+                print(
+                    f'Aborting the automated cherry-pick procedure '
+                    f'for branch {rel}. Perform the following steps after '
+                    f'this script finishes execution:',
+                )
 
                 print(f'\t1. cd .gitclone/magma')
-                print(f'\t2. Manually cherry-pick commit {sha} onto {rel} '
-                      f'and resolve conflicts:\n'
-                      f'\t\tgit status\n'
-                      f'\t\t<resolve all conflicts manually>\n'
-                      f'\t\tgit add .\n'
-                      f'\t\tgit cherry-pick --continue')
-                print(f'\t3. Push the branch upstream:\n'
-                      f'\t\tgit push origin {rel}')
-                print(f'\t4. Add the "backported-{rel}" label to '
-                      f'PR#{pr.number} at '
-                      f'https://github.com/{repo}/pull/{pr.number}')
+                print(
+                    f'\t2. Manually cherry-pick commit {sha} onto {rel} '
+                    f'and resolve conflicts:\n'
+                    f'\t\tgit status\n'
+                    f'\t\t<resolve all conflicts manually>\n'
+                    f'\t\tgit add .\n'
+                    f'\t\tgit cherry-pick --continue',
+                )
+                print(
+                    f'\t3. Push the branch upstream:\n'
+                    f'\t\tgit push origin {rel}',
+                )
+                print(
+                    f'\t4. Add the "backported-{rel}" label to '
+                    f'PR#{pr.number} at '
+                    f'https://github.com/{repo}/pull/{pr.number}',
+                )
                 print(f'\t5. Run this fab script again')
                 print('')
                 sys.exit(1)
@@ -115,5 +130,7 @@ def _pick_commits(repo: str, rel: str, pulls: Iterator[PullRequest]):
             env.warn_only = False
             local(f'git push origin {rel}')
             pr.add_to_labels(f'backported-{rel}')
-            print(f'Successfully picked PR#{pr.number} ({sha}) onto {rel} and '
-                  f'marked the PR as backported.')
+            print(
+                f'Successfully picked PR#{pr.number} ({sha}) onto {rel} and '
+                f'marked the PR as backported.',
+            )
