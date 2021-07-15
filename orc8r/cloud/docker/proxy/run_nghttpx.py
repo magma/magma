@@ -9,12 +9,12 @@
 
 import argparse
 import logging
-
-import jinja2
 import os
 import subprocess
-import yaml
 from typing import Any, Dict
+
+import jinja2
+import yaml
 
 CONFIGS_DIR = "/etc/magma/configs"
 TEMPLATES_DIR = "/etc/magma/templates"
@@ -51,12 +51,14 @@ def _generate_config(proxy_type: str, context: Dict[str, Any]) -> str:
 def _run_nghttpx(conf: str) -> None:
     """ Runs the nghttpx process given the config file """
     try:
-        subprocess.run([
-            "/usr/local/bin/nghttpx",
-            "--conf=%s" % conf,
-            "/var/opt/magma/certs/controller.key",
-            "/var/opt/magma/certs/controller.crt",
-        ], check=True)
+        subprocess.run(
+            [
+                "/usr/local/bin/nghttpx",
+                "--conf=%s" % conf,
+                "/var/opt/magma/certs/controller.key",
+                "/var/opt/magma/certs/controller.crt",
+            ], check=True,
+        )
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
 

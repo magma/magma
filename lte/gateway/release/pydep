@@ -33,7 +33,6 @@ pass as a parameter to fpm.
 """
 
 import argparse
-import apt  # type: ignore
 import contextlib
 import copy
 import functools
@@ -43,9 +42,7 @@ import json
 import logging
 import os
 import pickle
-import pkg_resources
 import re
-import requests
 import shlex
 import shutil
 import subprocess
@@ -54,10 +51,12 @@ import tarfile
 import typing
 import zipfile
 from datetime import datetime
-from functools import partial
-from functools import lru_cache
-from typing import List, Union, Tuple, Optional, Dict, Any
+from functools import lru_cache, partial
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import apt  # type: ignore
+import pkg_resources
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -91,7 +90,7 @@ def os_release():
     with open('/etc/os-release', 'r') as f:
         for line in f:
             try:
-                k,v = line.rstrip().split('=')
+                k, v = line.rstrip().split('=')
                 release_info[k] = v.strip('"')
             except Exception:
                 pass
@@ -123,7 +122,7 @@ def _md5sum(filename: str) -> str:
         return d.hexdigest()
 
 
-def _wget(url: str, dest: Optional[str]=None) -> str:
+def _wget(url: str, dest: Optional[str] = None) -> str:
     """
     It's like calling wget. Downloads file to current working directory if
     dest=None, otherwise puts it in dest (must be a directory).
@@ -146,7 +145,7 @@ def _wget(url: str, dest: Optional[str]=None) -> str:
     return local_path
 
 
-def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
+def gen_sys_package_name(py_pkgname: str, use_py2: bool = False) -> str:
     """
     Generate the system package name for a Python package. In general, this
     will be `python3-pkgname` for py3 and `python-pkgname` for py2, but some
@@ -176,8 +175,8 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
 
 @lru_cache(maxsize=128)
 def get_package(pkgname: str,
-                version: Optional[str]=None,
-                use_latest_if_needed: bool=False) -> str:
+                version: Optional[str] = None,
+                use_latest_if_needed: bool = False) -> str:
     """
     Downloads and verifies a package from PyPI into
     /tmp/pyreq-{pkgname}/{version}. If the version number is not specified, we
@@ -391,7 +390,7 @@ def get_latest_pkg_version(pkgname: str) -> Any:
 
 
 @lru_cache(maxsize=128)
-def get_latest_apt_pkg_version(pkgname: str, py2: bool=False) -> Optional[str]:
+def get_latest_apt_pkg_version(pkgname: str, py2: bool = False) -> Optional[str]:
     """
     Check what's available in our apt repo and use that if available.
     """
@@ -455,7 +454,8 @@ class Lockfile(object):
     To remove a root package or derived dependency, manually remove it from the source lockfile
     """
     _default_release = 'stretch'
-    def __init__(self, data: Optional[str]=None, reference_lockfile: Optional[Any]=None):
+
+    def __init__(self, data: Optional[str] = None, reference_lockfile: Optional[Any] = None):
         # parameter `reference_lockfile` should be an instance of `Lockfile`
         # not fully annotated due to circular dependency
         release_info = os_release()
@@ -558,12 +558,12 @@ def _cleanup(pkgname: str) -> None:
 
 
 def py_to_deb(pkgname: str,
-              pip_distributions: Dict[str, pkg_resources.Distribution]=None,
-              build_output: Optional[str]=None,
-              version: Optional[str]=None,
-              op: str="==",
-              more_args: Optional[str]=None,
-              py2: bool=False) -> int:
+              pip_distributions: Dict[str, pkg_resources.Distribution] = None,
+              build_output: Optional[str] = None,
+              version: Optional[str] = None,
+              op: str = "==",
+              more_args: Optional[str] = None,
+              py2: bool = False) -> int:
     """
     Generates a Debian package from a Python package downloaded from PyPI
     (using fpm).
@@ -683,9 +683,9 @@ def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
 
 @lru_cache(maxsize=128)
 def get_pkg_deps(pkgname: str,
-                 version: Optional[str]=None,
-                 use_latest_if_needed: bool=False,
-                 clean: bool=True) -> List[str]:
+                 version: Optional[str] = None,
+                 use_latest_if_needed: bool = False,
+                 clean: bool = True) -> List[str]:
     """
     Get the direct dependencies for a package.
 
@@ -715,8 +715,8 @@ def get_pkg_deps(pkgname: str,
 
 def _pkg_version_available(pkg: str,
                            ver: str,
-                           py2: bool=False,
-                           pypi_only: bool=False) -> bool:
+                           py2: bool = False,
+                           pypi_only: bool = False) -> bool:
     """
     Returns True if the package version is available, False otherwise.
     """
@@ -737,6 +737,7 @@ def _pkg_version_available(pkg: str,
     # if we didn't find an *equivalent* match, we return false.
     return False
 
+
 @contextlib.contextmanager
 def tmpvirtualenv():
     load_virtualenvwrapper = 'source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'
@@ -746,7 +747,7 @@ def tmpvirtualenv():
                'echo $VIRTUAL_ENV']
 
     def runcmd(cmd: Union[List[str], str],
-               capture: int=None) -> subprocess.CompletedProcess:
+               capture: int = None) -> subprocess.CompletedProcess:
         # run cmd in separate shell
         # cmd must be
         # * a single string representing a valid command
@@ -767,8 +768,8 @@ def tmpvirtualenv():
     envname = envpath.split(os.path.sep)[-1].strip()
 
     def venv(cmd: Union[List[str], str],
-             cd: Optional[str]=None,
-             capture: int=None) -> subprocess.CompletedProcess:
+             cd: Optional[str] = None,
+             capture: int = None) -> subprocess.CompletedProcess:
 
         if not active:
             raise RuntimeError('tmpvirtualenv context already destroyed')
@@ -794,10 +795,10 @@ def tmpvirtualenv():
 
 def gen_pip_distributions(
         root_requirements: List[pkg_resources.Requirement],
-        existing_versions: Optional[Dict[str, str]]=None,
-        pypi_only: bool=True,
-        py2: bool=False,
-        venv: Optional[callable]=None) -> Dict[str, pkg_resources.Distribution]:
+        existing_versions: Optional[Dict[str, str]] = None,
+        pypi_only: bool = True,
+        py2: bool = False,
+        venv: Optional[callable] = None) -> Dict[str, pkg_resources.Distribution]:
     """
     Recursively get the dependency tree for a given package.
 
@@ -841,7 +842,6 @@ def gen_pip_distributions(
     if release_info.get('VERSION_CODENAME', '') == 'stretch':
         extra_args.append('--use-feature=2020-resolver')
 
-
     # install all packages to populate pkg_resources.working_set
     venv('pip install ' + " ".join(extra_args + args))
 
@@ -860,8 +860,8 @@ def gen_pip_distributions(
 
 
 def gen_dep_sources(dep_set: Dict[str, Optional[str]],
-                    pypi_only: bool=True,
-                    py2: bool=False) -> Dict[str, str]:
+                    pypi_only: bool = True,
+                    py2: bool = False) -> Dict[str, str]:
     """
     Given a populated dep_sources, figure out where we can get
     them from. We'll actually check if the versions are satisfiable.
@@ -899,8 +899,8 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
 def lockfile(root_packages: Dict[str, Dict[str, str]],
              dep_set: Dict[str, Optional[str]],
              dep_source: Dict[str, str],
-             py2: bool=False,
-             reference_lockfile: Optional[Lockfile]=None) -> str:
+             py2: bool = False,
+             reference_lockfile: Optional[Lockfile] = None) -> str:
     """
     Based on the root packages, produces a json description of
     the actual packages we depend on.
@@ -915,11 +915,10 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
     for pkgname, pkginfo in root_packages.items():
         lf.add_root_package(pkgname, pkginfo)
 
-
     for k in sorted(dep_set.keys()):
         item = {
             "version": dep_set[k],
-            "source":  dep_source[k],
+            "source": dep_source[k],
             "root": (k in root_package_names),
             "sysdep": gen_sys_package_name(k, py2)
         }
@@ -930,7 +929,7 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
 
 def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
               dep_source: Dict[str, str],
-              build_output: Optional[str]=None) -> None:
+              build_output: Optional[str] = None) -> None:
     for p in pip_distributions:
         # contents of PIP_BLACKLIST were excluded from dep_source
         if p not in PIP_BLACKLIST and dep_source.get(p) == "pypi":

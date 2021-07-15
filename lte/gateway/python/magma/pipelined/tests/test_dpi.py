@@ -55,9 +55,11 @@ class DPITest(unittest.TestCase):
         dpi_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.DPI,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.DPI,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.DPI:
                     dpi_controller_reference,
@@ -86,8 +88,10 @@ class DPITest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
-                                          cls.DPI_IP)
+        BridgeTools.create_internal_iface(
+            cls.BRIDGE, cls.DPI_PORT,
+            cls.DPI_IP,
+        )
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.dpi_controller = dpi_controller_reference.result()
@@ -114,46 +118,53 @@ class DPITest(unittest.TestCase):
             ip_proto=FlowMatch.IPPROTO_TCP,
             ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.8'),
             ip_src=convert_ipv4_str_to_ip_proto('1.2.3.4'),
-            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK
+            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK,
         )
         flow_match2 = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_TCP,
             ip_dst=convert_ipv4_str_to_ip_proto('1.10.0.1'),
             ip_src=convert_ipv4_str_to_ip_proto('6.2.3.1'),
-            tcp_dst=111, tcp_src=222, direction=FlowMatch.UPLINK
+            tcp_dst=111, tcp_src=222, direction=FlowMatch.UPLINK,
         )
         flow_match3 = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_UDP,
             ip_dst=convert_ipv4_str_to_ip_proto('22.2.2.24'),
             ip_src=convert_ipv4_str_to_ip_proto('15.22.32.2'),
-            udp_src=111, udp_dst=222, direction=FlowMatch.UPLINK
+            udp_src=111, udp_dst=222, direction=FlowMatch.UPLINK,
         )
         flow_match_for_no_proto = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_UDP,
-            ip_dst=convert_ipv4_str_to_ip_proto('1.1.1.1')
+            ip_dst=convert_ipv4_str_to_ip_proto('1.1.1.1'),
         )
         flow_match_not_added = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_UDP,
-            ip_src=convert_ipv4_str_to_ip_proto('22.22.22.22')
+            ip_src=convert_ipv4_str_to_ip_proto('22.22.22.22'),
         )
         self.dpi_controller.add_classify_flow(
             flow_match_not_added, FlowRequest.FLOW_CREATED,
-            'nickproto', 'bestproto')
+            'nickproto', 'bestproto',
+        )
         self.dpi_controller.add_classify_flow(
             flow_match_for_no_proto, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'notanAPP', 'null')
+            'notanAPP', 'null',
+        )
         self.dpi_controller.add_classify_flow(
             flow_match1, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'base.ip.http.facebook', 'NotReal')
+            'base.ip.http.facebook', 'NotReal',
+        )
         self.dpi_controller.add_classify_flow(
             flow_match2, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'base.ip.https.google_gen.google_docs', 'MAGMA',)
+            'base.ip.https.google_gen.google_docs', 'MAGMA',
+        )
         self.dpi_controller.add_classify_flow(
             flow_match3, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'base.ip.udp.viber', 'AudioTransfer Receiving',)
+            'base.ip.udp.viber', 'AudioTransfer Receiving',
+        )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
         with snapshot_verifier:
             pass
 
@@ -168,12 +179,14 @@ class DPITest(unittest.TestCase):
             ip_proto=FlowMatch.IPPROTO_TCP,
             ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.8'),
             ip_src=convert_ipv4_str_to_ip_proto('1.2.3.4'),
-            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK
+            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK,
         )
         self.dpi_controller.remove_classify_flow(flow_match1)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
         with snapshot_verifier:
             pass
 

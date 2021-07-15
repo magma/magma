@@ -37,7 +37,8 @@ class LIMirrorController(MagmaController):
         super(LIMirrorController, self).__init__(*args, **kwargs)
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = self._service_manager.get_next_table_num(
-            self.APP_NAME)
+            self.APP_NAME,
+        )
         self._mirror_all = kwargs['config'].get('li_mirror_all', False)
         self._li_local_port = kwargs['config'].get('li_local_iface', None)
         self._li_local_port_num = BridgeTools.get_ofport(self._li_local_port)
@@ -86,26 +87,36 @@ class LIMirrorController(MagmaController):
             datapath: ryu datapath struct
         """
         parser = datapath.ofproto_parser
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        inbound_match = MagmaMatch(
+            eth_type=ether_types.ETH_TYPE_IP,
+            direction=Direction.IN,
+        )
+        outbound_match = MagmaMatch(
+            eth_type=ether_types.ETH_TYPE_IP,
+            direction=Direction.OUT,
+        )
         actions = []
         if self._mirror_all and self._li_dst_port_num:
             self.logger.warning("Mirroring all traffic to LI")
             actions = [parser.OFPActionOutput(self._li_dst_port_num)]
-        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
-                                             inbound_match, actions,
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
-        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
-                                             outbound_match, actions,
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num,
+            inbound_match, actions,
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+        )
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num,
+            outbound_match, actions,
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+        )
         if self._li_dst_port_num:
             li_match = MagmaMatch(in_port=self._li_local_port_num)
-            flows.add_output_flow(datapath, self.tbl_num, li_match, [],
-                                  output_port=self._li_dst_port_num)
+            flows.add_output_flow(
+                datapath, self.tbl_num, li_match, [],
+                output_port=self._li_dst_port_num,
+            )
 
     def _install_mirror_flows(self, imsis):
         parser = self._datapath.ofproto_parser
@@ -113,9 +124,11 @@ class LIMirrorController(MagmaController):
             self.logger.debug("Enabling LI tracking for IMSI %s", imsi)
             match = MagmaMatch(imsi=encode_imsi(imsi))
             actions = [parser.OFPActionOutput(self._li_dst_port_num)]
-            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+            flows.add_resubmit_next_service_flow(
+                self._datapath, self.tbl_num,
                 match, actions, priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self.next_table)
+                resubmit_table=self.next_table,
+            )
 
     def _remove_mirror_flows(self, imsis):
         for imsi in imsis:
@@ -129,17 +142,22 @@ class LIMirrorController(MagmaController):
         """
         while True:
             mconfg_li_imsis = load_service_mconfig(
-                'pipelined', mconfigs_pb2.PipelineD()).li_ues.imsis
-            
+                'pipelined', mconfigs_pb2.PipelineD(),
+            ).li_ues.imsis
+
             li_imsis = []
             for imsi in mconfg_li_imsis:
                 if any(i.isdigit() for i in imsi):
                     li_imsis.append(imsi)
-            imsis_to_add = [imsi for imsi in li_imsis if
-                            imsi not in self._li_imsis]
+            imsis_to_add = [
+                imsi for imsi in li_imsis if
+                imsi not in self._li_imsis
+            ]
             self._install_mirror_flows(imsis_to_add)
-            imsis_to_rm = [imsi for imsi in self._li_imsis if
-                           imsi not in li_imsis]
+            imsis_to_rm = [
+                imsi for imsi in self._li_imsis if
+                imsi not in li_imsis
+            ]
             self._remove_mirror_flows(imsis_to_rm)
             self._li_imsis = li_imsis
             hub.sleep(poll_interval)

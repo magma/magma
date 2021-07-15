@@ -52,9 +52,11 @@ class InOutTest(unittest.TestCase):
         inout_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.InOut,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.InOut,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
@@ -70,7 +72,7 @@ class InOutTest(unittest.TestCase):
                 'clean_restart': True,
                 'enable_nat': True,
                 'uplink_gw_mac': '11:22:33:44:55:66',
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
             },
             mconfig=None,
             loop=None,
@@ -116,9 +118,11 @@ class InOutTestLTE(unittest.TestCase):
         inout_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.InOut,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.InOut,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
@@ -137,7 +141,7 @@ class InOutTestLTE(unittest.TestCase):
                 'uplink_gw_mac': '11:22:33:44:55:66',
                 'mtr_ip': '1.2.3.4',
                 'ovs_mtr_port_number': 211,
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
             },
             mconfig=None,
             loop=None,
@@ -183,9 +187,11 @@ class InOutTestXWF(unittest.TestCase):
         inout_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.InOut,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.InOut,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
@@ -200,7 +206,7 @@ class InOutTestXWF(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
             },
             mconfig=None,
             loop=None,

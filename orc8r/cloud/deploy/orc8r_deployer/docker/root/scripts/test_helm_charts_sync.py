@@ -66,8 +66,10 @@ def read_tf_chart_versions(constants: dict) -> dict:
     with open(orc8r_app_tf) as f:
         # parse variables
         vars_content = f.read()
-        for m in re.finditer(version_search_re, vars_content,
-                             re.MULTILINE | re.DOTALL):
+        for m in re.finditer(
+            version_search_re, vars_content,
+            re.MULTILINE | re.DOTALL,
+        ):
             chart_name = (m.group('chart_name'))
             chart_version = (m.group('chart_version'))
             tf_chart_versions[chart_name] = chart_version
@@ -112,7 +114,8 @@ if __name__ == '__main__':
     logging.debug('Actual Chart Versions %s', repr(chart_versions))
     logging.debug(
         'Chart versions in tf variables file %s',
-        repr(tf_chart_versions))
+        repr(tf_chart_versions),
+    )
     logging.debug('Chart versions in orcl %s', repr(orcl_chart_versions))
 
     tf_charts_in_sync = True
@@ -121,13 +124,15 @@ if __name__ == '__main__':
         tf_chart_version = tf_chart_versions.get(k)
         if tf_chart_version and tf_chart_version != v:
             print(
-                f'Actual chart version for {k} = {v}, tf variables chart version is {tf_chart_version}')
+                f'Actual chart version for {k} = {v}, tf variables chart version is {tf_chart_version}',
+            )
             tf_charts_in_sync = False
 
         orcl_chart_version = orcl_chart_versions.get(k)
         if orcl_chart_version and orcl_chart_version != v:
             print(
-                f'Actual chart version for {k} = {v}, orcl variables chart version is {orcl_chart_version}')
+                f'Actual chart version for {k} = {v}, orcl variables chart version is {orcl_chart_version}',
+            )
             orcl_charts_in_sync = False
 
     assert tf_charts_in_sync and orcl_charts_in_sync

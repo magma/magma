@@ -47,4 +47,3 @@ def get_data_json(key):
 
 def get_data(json_val):
     return SubscriberRuleData(*json.loads(json_val))
-

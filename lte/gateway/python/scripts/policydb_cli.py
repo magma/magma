@@ -37,16 +37,22 @@ DEBUG_MSG = 'You may want to check that a connection can be made to ' \
 def add_rule(args):
     rule_id = args.rule_id
     policy_dict = PolicyRuleDict()
-    arg_list = {'ip_proto': args.ip_proto,
-                'ip_dst': IPAddress(version=IPAddress.IPV4,
-                                    address=args.ipv4_dst.encode('utf-8')),
-                'ip_src': IPAddress(version=IPAddress.IPV4,
-                                    address=args.ipv4_src.encode('utf-8')),
-                'tcp_dst': args.tcp_dst,
-                'tcp_src': args.tcp_src,
-                'udp_dst': args.udp_dst,
-                'udp_src': args.udp_src,
-                'direction': args.direction}
+    arg_list = {
+        'ip_proto': args.ip_proto,
+        'ip_dst': IPAddress(
+            version=IPAddress.IPV4,
+            address=args.ipv4_dst.encode('utf-8'),
+        ),
+        'ip_src': IPAddress(
+            version=IPAddress.IPV4,
+            address=args.ipv4_src.encode('utf-8'),
+        ),
+        'tcp_dst': args.tcp_dst,
+        'tcp_src': args.tcp_src,
+        'udp_dst': args.udp_dst,
+        'udp_src': args.udp_src,
+        'direction': args.direction,
+    }
     match = FlowMatch(**arg_list)
     flow = FlowDescription(match=match, action=args.action)
     rule = policy_dict.get(rule_id)
@@ -102,7 +108,8 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for policydb',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
@@ -110,40 +117,66 @@ def create_parser():
     parser_add.add_argument('rule_id', help='rule id to add')
     parser_add.add_argument('-ipd', '--ipv4_dst', help='ipv4 dst for rule')
     parser_add.add_argument('-ips', '--ipv4_src', help='ipv4 src for rule')
-    parser_add.add_argument('-p', '--ip_proto', help='ip proto for rule',
-                            type=int)
-    parser_add.add_argument('-td', '--tcp_dst', type=int,
-                            help='tcp dst for rule, set -p to IPPROTO_TCP(6)')
-    parser_add.add_argument('-ts', '--tcp_src', type=int,
-                            help='tcp src for rule, set -p to IPPROTO_TCP(6)')
-    parser_add.add_argument('-ud', '--udp_dst', type=int,
-                            help='udp dst for rule, set -p to IPPROTO_UDP(17)')
-    parser_add.add_argument('-us', '--udp_src', type=int,
-                            help='udp src for rule, set -p to IPPROTO_UDP(17)')
-    parser_add.add_argument('-d', '--direction', type=int,
-                            help='0 == UPLINK, 1 == DOWNLINK')
-    parser_add.add_argument('-a', '--action', type=int,
-                            help='0 == PERMIT, 1 == DENY')
-    parser_add.add_argument('-o', '--overwrite', action='store_true',
-                            help='overwrite existing rule')
+    parser_add.add_argument(
+        '-p', '--ip_proto', help='ip proto for rule',
+        type=int,
+    )
+    parser_add.add_argument(
+        '-td', '--tcp_dst', type=int,
+        help='tcp dst for rule, set -p to IPPROTO_TCP(6)',
+    )
+    parser_add.add_argument(
+        '-ts', '--tcp_src', type=int,
+        help='tcp src for rule, set -p to IPPROTO_TCP(6)',
+    )
+    parser_add.add_argument(
+        '-ud', '--udp_dst', type=int,
+        help='udp dst for rule, set -p to IPPROTO_UDP(17)',
+    )
+    parser_add.add_argument(
+        '-us', '--udp_src', type=int,
+        help='udp src for rule, set -p to IPPROTO_UDP(17)',
+    )
+    parser_add.add_argument(
+        '-d', '--direction', type=int,
+        help='0 == UPLINK, 1 == DOWNLINK',
+    )
+    parser_add.add_argument(
+        '-a', '--action', type=int,
+        help='0 == PERMIT, 1 == DENY',
+    )
+    parser_add.add_argument(
+        '-o', '--overwrite', action='store_true',
+        help='overwrite existing rule',
+    )
 
     parser_install = subparsers.add_parser(
-        'install_rules', help='Install static rules for a subscriber')
+        'install_rules', help='Install static rules for a subscriber',
+    )
     parser_install.add_argument('-id', help='session id')
     parser_install.add_argument('-imsi', help='subscriber IMSI')
-    parser_install.add_argument('-rules', nargs='*',
-                                help='static rules to install')
-    parser_install.add_argument('-basenames', nargs='*',
-                                help='basenames to install')
+    parser_install.add_argument(
+        '-rules', nargs='*',
+        help='static rules to install',
+    )
+    parser_install.add_argument(
+        '-basenames', nargs='*',
+        help='basenames to install',
+    )
 
     parser_uninstall = subparsers.add_parser(
-        'uninstall_rules', help='Uninstall static rules for a subscriber')
+        'uninstall_rules', help='Uninstall static rules for a subscriber',
+    )
     parser_uninstall.add_argument('-id', help='session id')
     parser_uninstall.add_argument('-imsi', help='subscriber IMSI')
-    parser_uninstall.add_argument('-rules', nargs='*',
-                                  help='static rules to uninstall')
-    parser_uninstall.add_argument('-basenames', nargs='*',
-                                  help='basenames to install')
+    parser_uninstall.add_argument(
+        '-rules', nargs='*',
+        help='static rules to uninstall',
+    )
+    parser_uninstall.add_argument(
+        '-basenames', nargs='*',
+        help='basenames to install',
+    )
 
     # Add function callbacks
     parser_add.set_defaults(func=add_rule)

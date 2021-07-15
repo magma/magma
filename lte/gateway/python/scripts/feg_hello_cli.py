@@ -34,7 +34,8 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='CLI to send echo requests to feg_echo',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     # usage: ./python/scripts/feg_echo_cli.py echo "hello world" 0
     parser.add_argument('msg', type=str, help='echo message')
     parser.add_argument('err_code', type=int, help='echo err code')

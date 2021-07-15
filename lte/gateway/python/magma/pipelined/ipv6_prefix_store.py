@@ -59,7 +59,8 @@ class PrefixDict(RedisHashDict):
         super().__init__(
             client,
             self._DICT_HASH,
-            get_json_serializer(), get_json_deserializer())
+            get_json_serializer(), get_json_deserializer(),
+        )
 
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
@@ -82,6 +83,7 @@ def get_ipv6_prefix(ipv6: str) -> str:
     """
     ipv6_block = ipaddress.ip_address(ipv6)
     interface = ipaddress.ip_address(
-        int(ipv6_block) & 0xffffffffffffffff0000000000000000)
+        int(ipv6_block) & 0xffffffffffffffff0000000000000000,
+    )
 
     return str(interface)

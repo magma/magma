@@ -27,10 +27,14 @@ def cli():
 @click.option('--template', default="", help='Location of the template file')
 @click.option('--cluster-uuid', default="", help='UUID for the test cluster')
 @click.option('--skip-certs', is_flag=True, default=False, help='skip certs')
-@click.option('--skip-precheck', is_flag=True,
-              default=False, help='skip prechecks')
-def create(template: str, cluster_uuid: str,
-           skip_certs: bool, skip_precheck: bool):
+@click.option(
+    '--skip-precheck', is_flag=True,
+    default=False, help='skip prechecks',
+)
+def create(
+    template: str, cluster_uuid: str,
+    skip_certs: bool, skip_precheck: bool,
+):
     """Create a cluster
 
     Args:
@@ -41,7 +45,8 @@ def create(template: str, cluster_uuid: str,
         template,
         cluster_uuid=cluster_uuid,
         skip_certs=skip_certs,
-        skip_precheck=skip_precheck)
+        skip_precheck=skip_precheck,
+    )
 
 
 @cli.command()
