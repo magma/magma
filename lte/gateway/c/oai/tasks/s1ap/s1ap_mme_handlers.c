@@ -1084,6 +1084,7 @@ int s1ap_mme_handle_ue_context_release_request(
   S1ap_UEContextReleaseRequest_t* container;
   S1ap_UEContextReleaseRequest_IEs_t* ie = NULL;
   ue_description_t* ue_ref_p             = NULL;
+  enb_description_t* enb_ref_p           = NULL;
   S1ap_Cause_PR cause_type;
   long cause_value;
   enum s1cause s1_release_cause   = S1AP_RADIO_EUTRAN_GENERATED_REASON;
@@ -1093,6 +1094,13 @@ int s1ap_mme_handle_ue_context_release_request(
   imsi64_t imsi64                 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
+  if ((enb_ref_p = s1ap_state_get_enb(state, assoc_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP, "Ignoring context release request from unknown assoc %u",
+        assoc_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   container =
       &pdu->choice.initiatingMessage.value.choice.UEContextReleaseRequest;
   // Log the Cause Type and Cause value
@@ -1216,19 +1224,32 @@ int s1ap_mme_handle_ue_context_release_request(
         (uint32_t) mme_ue_s1ap_id, (uint32_t) enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
-    if (ue_ref_p->enb_ue_s1ap_id == enb_ue_s1ap_id) {
+    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+    hashtable_uint64_ts_get(
+        imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+        &imsi64);
+    if (ue_ref_p->sctp_assoc_id == assoc_id &&
+        ue_ref_p->enb_ue_s1ap_id == enb_ue_s1ap_id) {
       /*
        * Both eNB UE S1AP ID and MME UE S1AP ID match.
        * Send a UE context Release Command to eNB after releasing S1-U bearer
        * tunnel mapping for all the bearers.
        */
-      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(
-          imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
-          &imsi64);
       rc = s1ap_send_mme_ue_context_release(
           state, ue_ref_p, s1_release_cause, ie->value.choice.Cause, imsi64);
 
+      OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+    } else if (
+        enb_ref_p->enb_id == ue_ref_p->s1ap_handover_state.source_enb_id &&
+        ue_ref_p->s1ap_handover_state.source_enb_ue_s1ap_id == enb_ue_s1ap_id) {
+      /*
+       * We just handed over from this eNB.
+       * Send a UE context Release Command to eNB. S1-U bearer already released
+       */
+      rc = s1ap_mme_generate_ue_context_release_command(
+          state, ue_ref_p, S1AP_RADIO_EUTRAN_GENERATED_REASON, imsi64, assoc_id,
+          ue_ref_p->s1ap_handover_state.source_sctp_stream_send, mme_ue_s1ap_id,
+          enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1339,7 +1360,7 @@ int s1ap_mme_generate_ue_context_release_command(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
-  if (ue_ref_p != NULL) {
+  if (ue_ref_p != NULL && ue_ref_p->sctp_assoc_id == assoc_id) {
     ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
     // We can safely remove UE context now, no need for timer
     s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
@@ -1546,16 +1567,28 @@ int s1ap_mme_handle_ue_context_release_complete(
         (uint32_t) mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   } else {
-    /* This is an error scenario, the S1 UE context should have been deleted
-     * when UE context release command was sent
-     */
-    OAILOG_ERROR(
-        LOG_S1AP,
-        " UE Context Release commplete: S1 context should have been cleared "
-        "for "
-        "ueid " MME_UE_S1AP_ID_FMT "\n",
-        (uint32_t) mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    if (ue_ref_p->sctp_assoc_id == assoc_id) {
+      /* This is an error scenario, the S1 UE context should have been deleted
+       * when UE context release command was sent
+       */
+      OAILOG_ERROR(
+          LOG_S1AP,
+          " UE Context Release commplete: S1 context should have been cleared "
+          "for ueid " MME_UE_S1AP_ID_FMT "\n",
+          (uint32_t) mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    } else {
+      /*
+       * UE Context Release commplete received from a different eNB. This could
+       * be coming from the source eNB after a successful handover
+       */
+      OAILOG_DEBUG(
+          LOG_S1AP,
+          " UE Context Release commplete received from a different eNB."
+          " Ignore message for ueid " MME_UE_S1AP_ID_FMT "\n",
+          (uint32_t) mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+    }
   }
 }
 
@@ -2421,12 +2454,16 @@ int s1ap_mme_handle_handover_request(
   // set the recv and send streams for UE on the target.
   stream = target_enb->next_sctp_stream;
   ue_ref_p->s1ap_handover_state.target_sctp_stream_recv = stream;
+  ue_ref_p->s1ap_handover_state.source_sctp_stream_recv =
+      ue_ref_p->sctp_stream_recv;
   target_enb->next_sctp_stream += 1;
   if (target_enb->next_sctp_stream >= target_enb->instreams) {
     target_enb->next_sctp_stream = 1;
   }
   ue_ref_p->s1ap_handover_state.target_sctp_stream_send =
       target_enb->next_sctp_stream;
+  ue_ref_p->s1ap_handover_state.source_sctp_stream_send =
+      ue_ref_p->sctp_stream_send;
 
   // Build and send PDU
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
@@ -2899,6 +2936,8 @@ int s1ap_mme_handle_handover_command(
   ue_ref_p->s1ap_handover_state.target_enb_id  = ho_command_p->target_enb_id;
   ue_ref_p->s1ap_handover_state.target_enb_ue_s1ap_id =
       ho_command_p->tgt_enb_ue_s1ap_id;
+  ue_ref_p->s1ap_handover_state.source_enb_ue_s1ap_id =
+      ue_ref_p->enb_ue_s1ap_id;
 
   OAILOG_INFO(LOG_S1AP, "Handover Command received");
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
@@ -3100,6 +3139,7 @@ int s1ap_mme_handle_handover_notify(
         src_ue_ref_p->s1ap_handover_state.target_sctp_stream_recv;
     new_ue_ref_p->sctp_stream_send =
         src_ue_ref_p->s1ap_handover_state.target_sctp_stream_send;
+    new_ue_ref_p->s1ap_handover_state = src_ue_ref_p->s1ap_handover_state;
 
     // generate a message to update bearers
     s1ap_mme_itti_s1ap_handover_notify(
