@@ -26,6 +26,7 @@ SessionStore::SessionStore(
     std::shared_ptr<magma::MeteringReporter> metering_reporter)
     : rule_store_(rule_store),
       store_client_(std::make_shared<MemoryStoreClient>(rule_store)),
+      ue_shards_(std::make_shared<UEShard>()),
       metering_reporter_(metering_reporter) {}
 
 SessionStore::SessionStore(
@@ -34,6 +35,7 @@ SessionStore::SessionStore(
     std::shared_ptr<RedisStoreClient> store_client)
     : rule_store_(rule_store),
       store_client_(store_client),
+      ue_shards_(std::make_shared<UEShard>()),
       metering_reporter_(metering_reporter) {}
 
 bool SessionStore::raw_write_sessions(SessionMap session_map) {
@@ -148,9 +150,16 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
   return session_map;
 }
 
+// maybe add shard id upon session creations!
 bool SessionStore::create_sessions(
     const std::string& subscriber_id, SessionVector sessions) {
-  auto session_map           = SessionMap{};
+  auto session_map = SessionMap{};
+  int shard_id     = ue_shards_->add_ue();
+  for (size_t i = 0; i < sessions.size(); i++) {
+    sessions[i]->set_shard_id(shard_id);
+  }
+  MLOG(MINFO) << "UE with IMSI: " << subscriber_id
+              << " and shard_id: " << shard_id;
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
   return true;

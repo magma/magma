@@ -27,6 +27,7 @@
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
+#include "UEShard.h"
 
 namespace magma {
 namespace lte {
@@ -209,6 +210,7 @@ class SessionStore {
  private:
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<StoreClient> store_client_;
+  std::shared_ptr<UEShard> ue_shards_;
   std::shared_ptr<MeteringReporter> metering_reporter_;
 };
 

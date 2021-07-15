@@ -68,6 +68,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
+  marshaled.shard_id   = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
@@ -133,6 +134,7 @@ SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
+      shard_id_(marshaled.shard_id),
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
@@ -195,6 +197,7 @@ SessionState::SessionState(
     const CreateSessionResponse& csr)
     : imsi_(imsi),
       session_id_(session_id),
+      shard_id_(0),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
