@@ -499,9 +499,12 @@ void SessionStateEnforcer::m5g_move_to_active_state(
     SetSmNotificationContext notif, SessionStateUpdateCriteria& session_uc) {
   bool gnb_teid_get = false;
   bool upf_teid_get = false;
+  uint32_t upf_teid = 0;
+  const std::string upf_ip = get_upf_n3_addr();
 
   /* Reattach or get  rules to the session */
-  update_session_rules(imsi, session, session_uc, gnb_teid_get, upf_teid_get);
+  upf_teid = 
+    update_session_rules(imsi, session, session_uc, gnb_teid_get, upf_teid_get);
   /* As we got rules again, move the state to creating */
   session->set_fsm_state(CREATING, session_uc);
   uint32_t cur_version = session->get_current_version();
@@ -509,7 +512,9 @@ void SessionStateEnforcer::m5g_move_to_active_state(
   /* Call for all rules to be associated from session
    * and inform to UPF
    */
-  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::INSTALL);
+  //m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::INSTALL);
+  prepare_response_to_access(
+          *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, upf_ip, upf_teid);
   return;
 }
 
