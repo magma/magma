@@ -767,7 +767,6 @@ amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
 int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
 int amf_send_registration_accept(amf_context_t* amf_context);
 
-int amf_send_registration_accept(amf_context_t* amf_context);
 // UE originated deregistration procedures
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
@@ -803,9 +802,7 @@ int nas5g_message_encode(
     void* security);
 
 int amf_registration_run_procedure(amf_context_t* amf_context);
-int amf_proc_registration_complete(
-    amf_ue_ngap_id_t ue_id, bstring smf_msg_p, int amf_cause,
-    const amf_nas_message_decode_status_t status);
+int amf_proc_registration_complete(amf_context_t* amf_context);
 
 // Finite state machine handlers
 int ue_state_handle_message_initial(
@@ -833,4 +830,13 @@ void delete_wrapper(void** ptr);
 void format_plmn(amf_plmn_t* plmn);
 int amf_proc_registration_abort(
     amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
+ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
+void ue_context_update_ue_id(
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t ue_id);
+ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
+    gnb_ue_ngap_id_t gnb_ue_ngap_id);
+
+void amf_ue_context_on_new_guti(
+    ue_m5gmm_context_t* const ue_context_p, const guti_m5_t* const guti_p);
+int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 }  // namespace magma5g

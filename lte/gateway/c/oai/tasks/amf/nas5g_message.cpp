@@ -594,7 +594,8 @@ int _nas5g_message_plain_encode(
     bytes = amf_msg_test.M5gNasMessageEncodeMsg(
         (AmfMsg*) &msg->amf, (uint8_t*) buffer, length);
 
-    OAILOG_INFO(LOG_AMF_APP, " nas5g messgage plain encode \n");
+    OAILOG_INFO(LOG_AMF_APP, " nas5g messgage plain encode %d \n", bytes);
+
     for (int i = 0; i < bytes; i++)
       OAILOG_INFO(LOG_AMF_APP, " buffer[%d] %2x", i, buffer[i]);
   } else {
@@ -700,9 +701,10 @@ static int _nas5g_message_decrypt(
           "type "
           "0x%02x\n",
           length, security_header_type);
-      len = sizeof(dest);
-      memset(dest, 0, len);
+
+      memset(dest, 0, length);
       memcpy(dest, src, length);
+
       DECODE_U8(dest, *(uint8_t*) (&header), size);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
       break;
@@ -735,8 +737,8 @@ static int _nas5g_message_decrypt(
             OAILOG_ERROR(
                 LOG_AMF_APP, "Unsupported Cyphering protection algorithm %d\n",
                 amf_security_context->selected_algorithms.encryption);
-            len = sizeof(dest);
-            memset(dest, 0, len);
+
+            memset(dest, 0, length);
             memcpy(dest, src, length);
             /*
              * Decode the first octet (security header type or EPS bearer
@@ -750,7 +752,11 @@ static int _nas5g_message_decrypt(
         }
       } else {
         OAILOG_ERROR(LOG_AMF_APP, "No security context\n");
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
+        memset(dest, 0, length);
+        memcpy(dest, src, length);
+
+        DECODE_U8(dest, *(uint8_t*) (&header), size);
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
       }
 
       break;

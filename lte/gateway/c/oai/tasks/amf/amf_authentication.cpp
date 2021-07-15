@@ -749,7 +749,7 @@ int amf_proc_authentication_failure(
       auth_proc->T3560.id);
   amf_app_stop_timer(auth_proc->T3560.id);
   auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
-  OAILOG_INFO(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
+  OAILOG_INFO(LOG_NAS_AMF, "Timer: After Stopping T3560 Timer\n");
 
   OAILOG_DEBUG(
       LOG_NAS_AMF, "Authentication of the UE is Failed with Error : %d",
@@ -757,13 +757,14 @@ int amf_proc_authentication_failure(
 
   switch (msg->m5gmm_cause.m5gmm_cause) {
     case AMF_CAUSE_NGKSI_ALREADY_INUSE: {
-      // select a new ngKSI and send the same EAP-request message to the UE
-      amf_ctx->_security.eksi =
-          (amf_ctx->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
-      OAILOG_INFO(
-          LOG_NGAP, "new amf_ctx->_security.eksi   = %d\n",
-          amf_ctx->_security.eksi);
-      amf_send_authentication_request(amf_ctx, auth_proc);
+      OAILOG_ERROR(LOG_NAS_AMF, "Authentication failure received with NGSKI\n");
+      nas_amf_registration_proc_t* registration_proc =
+          get_nas_specific_procedure_registration(amf_ctx);
+
+      amf_ctx->_security.eksi = auth_proc->ksi;
+
+      OAILOG_INFO(LOG_NAS_AMF, "Updated EKSI %d\n", amf_ctx->_security.eksi);
+      amf_start_registration_proc_authentication(amf_ctx, registration_proc);
       break;
     }
     case AMF_CAUSE_MAC_FAILURE: {

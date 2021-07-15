@@ -37,37 +37,25 @@ int amf_handle_service_request(
     const amf_nas_message_decode_status_t decode_status) {
   int rc                         = RETURNok;
   ue_m5gmm_context_s* ue_context = nullptr;
-  tmsi_t tmsi_rcv;
-  tmsi_t tmsi_stored;
+  bool tmsi_based_context_found  = false;
   notify_ue_event notify_ue_event_type;
+  tmsi_t tmsi_rcv;
 
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "Received TMSI in message : %02x%02x%02x%02x%02x%02x%02x%02x",
-      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
-      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[1],
-      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[2],
-      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[3]);
   memcpy(
       &tmsi_rcv, &msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi,
       sizeof(tmsi_t));
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+  ue_context = ue_context_loopkup_by_guti(tmsi_rcv);
+  if ((ue_context) && (ue_id != ue_context->amf_ue_ngap_id)) {
+    ue_context_update_ue_id(ue_context, ue_id);
   }
-  tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
-  // Check TMSI and then check MAC
-  OAILOG_INFO(
-      LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n", tmsi_stored);
-  OAILOG_INFO(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
-  if (tmsi_rcv == tmsi_stored) {
+  if (ue_context) {
     OAILOG_INFO(
         LOG_NAS_AMF,
         "TMSI matched for the UE id %d "
-        " receved TMSI %08X stored TMSI %08X \n",
-        ue_id, tmsi_rcv, tmsi_stored);
+        " received TMSI %08X\n",
+        ue_id, tmsi_rcv);
     // Calculate MAC and compare if matches send message to SMF
     if (decode_status.mac_matched) {
       OAILOG_INFO(
@@ -86,12 +74,9 @@ int amf_handle_service_request(
           ue_id);
     }
   } else {
-    OAILOG_INFO(
-        LOG_NAS_AMF,
-        "TMSI not matched for the UE id %d "
-        "and prepare for reject message ion DL"
-        " receved TMSI %08X stored TMSI %08X\n",
-        ue_id, tmsi_rcv, tmsi_stored);
+    OAILOG_INFO(LOG_NAS_AMF, "TMSI not matched for "
+		"(ue_id=" AMF_UE_NGAP_ID_FMT ")\n", ue_id);
+
     // Send prepare and send reject message.
   }
   return rc;
@@ -235,7 +220,10 @@ int amf_handle_registration_request(
 
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
+        amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
+
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+
         imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
         guti_and_amf_id.amf_guti       = amf_guti;
         guti_and_amf_id.amf_ue_ngap_id = ue_id;
@@ -312,6 +300,7 @@ int amf_handle_registration_request(
       /* Update this new GUTI in amf_context and map
        * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
        */
+      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
       imsi64_t imsi64                = ue_context->amf_context.imsi64;
@@ -324,18 +313,6 @@ int amf_handle_registration_request(
         // element found in map and update the GUTI
         found_imsi->second = guti_and_amf_id;
       }
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "In periodic registration update: New GUTI updated in "
-          "map and ue contxt, sending accept message in DL\n");
-      registration_proc =
-          (nas_amf_registration_proc_t*)
-              ue_context->amf_context.amf_procedures->amf_specific_proc;
-
-      if (registration_proc) {
-        registration_proc->T3550.id             = -1;
-        registration_proc->retransmission_count = 0;
-      }
 
       params->guti = new (guti_m5_t)();
       memcpy(
@@ -343,8 +320,6 @@ int amf_handle_registration_request(
 
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
 
-      // Call the registration accept API to send accept messaeg in DL
-      rc = amf_send_registration_accept(&ue_context->amf_context);
     } else {
       // UE context is new and/or UE identity type is not GUTI
       // add log message.
@@ -500,6 +475,7 @@ int amf_handle_identity_response(
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context) {
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
     }
   }
   /*
