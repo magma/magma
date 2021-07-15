@@ -81,7 +81,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
   itti_msg.m5gsm_congetion_re_attempt_indicator =
-      req_m5g.m5gsm_congetion_re_attempt_indicator();
+      req_m5g.m5g_sm_congestion_reattempt_indicator();
   itti_msg.pdu_address.redirect_address_type =
       (redirect_address_type_t) req_m5g.pdu_address().redirect_address_type();
   // PDU IP address coming from SMF in human-readable format has to be packed
