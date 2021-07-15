@@ -82,15 +82,23 @@ export default function PolicyRuleEditDialog(props: Props) {
   const [isNetworkWide, setIsNetworkWide] = useState<boolean>(false);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
-
   const [rule, setRule] = useState(props.rule || DEFAULT_POLICY_RULE);
 
   useEffect(() => {
     setRule(props.rule || DEFAULT_POLICY_RULE);
     setError('');
     setTabPos(0);
-    setIsNetworkWide(false);
   }, [props.open, props.rule]);
+
+  useEffect(() => {
+    if (props.rule?.id) {
+      setIsNetworkWide(
+        lteNetwork?.subscriber_config?.network_wide_rule_names?.includes(
+          props.rule?.id,
+        ) || false,
+      );
+    }
+  }, [props.rule, lteNetwork]);
 
   const tabList = [
     'Policy',
