@@ -39,11 +39,17 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     console.warn('not implemented');
     return [];
   },
-  getTroubleshootingLink: async ({alertName: _}) =>
-    Promise.resolve({
-      link: '',
-      title: 'View Troubleshooting Documentation',
-    }),
+  getTroubleshootingLink: async ({alertName}) => {
+    return fetch('/data/AlertLinks')
+      .then(result => result.json())
+      .then(result => {
+        return {
+          link: result[alertName] ?? '',
+          title: 'View Troubleshooting Documentation',
+        };
+      });
+  },
+
   // Alert Rules
   createAlertRule: async ({networkId, rule}) => {
     await MagmaV1API.postNetworksByNetworkIdPrometheusAlertConfig({
