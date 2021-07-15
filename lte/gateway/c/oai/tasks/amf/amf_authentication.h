@@ -83,4 +83,7 @@ nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
 void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc);
 
 inline void amf_ctx_clear_auth_vectors(amf_context_t* const);
+
+int amf_start_registration_proc_authentication(
+    amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 }  // namespace magma5g

@@ -40,9 +40,9 @@ extern "C" {
   LENGTH += QUADLET - (LENGTH % QUADLET)
 
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg);
+extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-amf_config_t amf_config_handler;
 
 //----------------------------------------------------------------------------
 static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
@@ -203,6 +203,20 @@ void amf_ue_context_update_coll_keys(
       ue_context_p->amf_context.m5_guti = *guti_p;
     }
   }
+}
+
+/* Insert guti into guti_ue_context_table */
+void amf_ue_context_on_new_guti(
+    ue_m5gmm_context_t* const ue_context_p, const guti_m5_t* const guti_p) {
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+
+  if (ue_context_p) {
+    amf_ue_context_update_coll_keys(
+        &amf_app_desc_p->amf_ue_contexts, ue_context_p,
+        ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
+        ue_context_p->amf_context.imsi64, ue_context_p->amf_teid_n11, guti_p);
+  }
+
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
@@ -219,9 +233,11 @@ static bool amf_app_construct_guti(
    */
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf           = 0;  // Number of configured AMF in the AMF pool
-  guti_p->m_tmsi            = s_tmsi_p->m_tmsi;
-  guti_p->guamfi.amf_set_id = s_tmsi_p->amf_pointer;
+  uint8_t num_amf            = 0;  // Number of configured AMF in the AMF pool
+  guti_p->m_tmsi             = ntohl(s_tmsi_p->m_tmsi);
+  guti_p->guamfi.amf_pointer = s_tmsi_p->amf_pointer;
+  guti_p->guamfi.amf_set_id  = s_tmsi_p->amf_set_id;
+
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
@@ -229,7 +245,8 @@ static bool amf_app_construct_guti(
       "PLMN "
       "id from AMF Conf: %u, %u \n",
       s_tmsi_p->m_tmsi, s_tmsi_p->amf_pointer);
-  amf_config_read_lock(&amf_config_handler);
+  amf_config_read_lock(&amf_config);
+
   /*
    * Check number of MMEs in the pool.
    * At present it is assumed that one AMF is supported in AMF pool but in
@@ -237,38 +254,40 @@ static bool amf_app_construct_guti(
    * using AMF code. Assumption is that within one PLMN only one pool of AMF
    * will be configured
    */
-  if (amf_config_handler.guamfi.nb > 1) {
+  if (amf_config.guamfi.nb > 1) {
     OAILOG_DEBUG(LOG_AMF_APP, "More than one AMFs are configured.");
   }
-  for (num_amf = 0; num_amf < amf_config_handler.guamfi.nb; num_amf++) {
+  for (num_amf = 0; num_amf < amf_config.guamfi.nb; num_amf++) {
     /*Verify that the AMF code within S-TMSI is same as what is configured in
      * AMF conf*/
     if ((plmn_p->mcc_digit2 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit2) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit2) &&
         (plmn_p->mcc_digit1 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit1) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit1) &&
         (plmn_p->mnc_digit3 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit3) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit3) &&
         (plmn_p->mcc_digit3 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit3) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit3) &&
         (plmn_p->mnc_digit2 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
         (plmn_p->mnc_digit1 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
         (guti_p->guamfi.amf_set_id ==
-         amf_config_handler.guamfi.guamfi[num_amf].amf_set_id)) {
+         amf_config.guamfi.guamfi[num_amf].amf_set_id)) {
       break;
     }
   }
-  if (num_amf >= amf_config_handler.guamfi.nb) {
+  if (num_amf >= amf_config.guamfi.nb) {
     OAILOG_DEBUG(LOG_AMF_APP, "No AMF serves this UE");
   } else {
-    guti_p->guamfi.plmn = amf_config_handler.guamfi.guamfi[num_amf].plmn;
-    guti_p->guamfi.amf_set_id =
-        amf_config_handler.guamfi.guamfi[num_amf].amf_set_id;
+    guti_p->guamfi.plmn = amf_config.guamfi.guamfi[num_amf].plmn;
+    guti_p->guamfi.amf_regionid =
+        amf_config.guamfi.guamfi[num_amf].amf_regionid;
+
     is_guti_valid = true;
   }
-  amf_config_unlock(&amf_config_handler);
+
+  amf_config_unlock(&amf_config);
   return is_guti_valid;
 }
 
@@ -276,17 +295,28 @@ static bool amf_app_construct_guti(
 // Get existing GUTI details
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc       = HASH_TABLE_OK;
-  uint64_t amf_ue_ngap_id64 = 0;
-  h_rc                      = obj_hashtable_uint64_ts_get(
+  hashtable_rc_t h_rc            = HASH_TABLE_OK;
+  uint64_t amf_ue_ngap_id64      = 0;
+  ue_m5gmm_context_t* ue_context = NULL;
+
+  h_rc = obj_hashtable_uint64_ts_get(
       amf_ue_context_p->guti_ue_context_htbl, (const void*) guti_p,
       sizeof(*guti_p), &amf_ue_ngap_id64);
 
   if (HASH_TABLE_OK == h_rc) {
-    //  return amf_ue_context_exists_amf_ue_ngap_id(  //TODO -  NEED-RECHECK
-    //    (amf_ue_ngap_id_t) amf_ue_ngap_id64);
+    ue_context = amf_ue_context_exists_amf_ue_ngap_id(
+        (amf_ue_ngap_id_t) amf_ue_ngap_id64);
+    if (ue_context) {
+      return ue_context;
+    }
+
   } else {
-    OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI ");
+    OAILOG_WARNING(
+        LOG_AMF_APP, "No GUTI hashtable for GUTI Hash %x", guti_p->m_tmsi);
+    ue_context = ue_context_loopkup_by_guti(guti_p->m_tmsi);
+    if (ue_context) {
+      return ue_context;
+    }
   }
 
   return NULL;
@@ -314,8 +344,9 @@ imsi64_t amf_app_handle_initial_ue_message(
   bool is_mm_ctx_new                = false;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   imsi64_t imsi64                   = INVALID_IMSI64;
-  guti_m5_t guti;
-  plmn_t plmn;
+  guti_m5_t guti                    = {0};
+  plmn_t plmn                       = {0};
+  s_tmsi_m5_t s_tmsi                = {0};
 
   if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     OAILOG_ERROR(
@@ -387,6 +418,40 @@ imsi64_t amf_app_handle_initial_ue_message(
     OAILOG_DEBUG(
         LOG_AMF_APP, "AMF_APP_INITIAL_UE_MESSAGE from NGAP,without S-TMSI. \n");
   }
+
+  /* Five_G_TMSI not configured */
+  if (ue_context_p == NULL) {
+    /* Check if Context can be found by GNB UE ID */
+    ue_context_p = ue_context_lookup_by_gnb_ue_id(initial_pP->gnb_ue_ngap_id);
+
+    /* Make sure its with same connection */
+    if (ue_context_p &&
+        (initial_pP->sctp_assoc_id != ue_context_p->sctp_assoc_id_key)) {
+      ue_context_p = NULL;
+    }
+  }
+
+  /*
+   * UE Context already present in AMF. This can happen during PERIODIC
+   * Registration. Steps for Periodic Registration:
+   *   1. Context Setup and Guti established.
+   *   2. UEContext Release Sequence
+   *   3. InitialUEContextSetup Request from GNB with type as periodic
+   *      registration
+   */
+  if (ue_context_p && ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+    /* If NGAP is not aware of ue_id or fiveGTmsi Is received
+     * send the ue_id notification.
+     */
+    if ((initial_pP->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) ||
+        (initial_pP->is_s_tmsi_valid)) {
+      /* Sync data between AMF and NGAP */
+      if (initial_pP->sctp_assoc_id == ue_context_p->sctp_assoc_id_key) {
+        notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
+      }
+    }
+  }
+
   // create a new ue context if nothing is found
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(LOG_AMF_APP, " UE context doesn't exist -> create one\n");
@@ -420,7 +485,6 @@ imsi64_t amf_app_handle_initial_ue_message(
         ue_context_p->ue_context_request);
 
     notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
-    s_tmsi_m5_t s_tmsi = {0};
     if (initial_pP->is_s_tmsi_valid) {
       s_tmsi = initial_pP->opt_s_tmsi;
     } else {
@@ -434,11 +498,13 @@ imsi64_t amf_app_handle_initial_ue_message(
         " Sending NAS Establishment Indication to NAS for ue_id = "
         "(%d)\n",
         ue_context_p->amf_ue_ngap_id);
-    nas_proc_establish_ind(
-        ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
-        initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
-        initial_pP->nas);
   }
+
+  nas_proc_establish_ind(
+      ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
+      initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
+      initial_pP->nas);
+
   return RETURNok;
 }
 
@@ -901,6 +967,7 @@ void amf_app_handle_resource_release_response(
  * */
 void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req) {
+  int rc = RETURNerror;
   OAILOG_DEBUG(
       LOG_AMF_APP, " Handling UL UE context release for CM-idle for ue id %d\n",
       cm_idle_req.amf_ue_ngap_id);
@@ -928,16 +995,15 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       (ue_context->mm_state == DEREGISTERED)) {
     // UE in connected state and need to check if cause is proper
     if (cm_idle_req.relCause == NGAP_RADIO_NR_GENERATED_REASON) {
-      // Change the respective UE/PDU session state to idle/inactive.
-      ue_context->mm_state == REGISTERED_IDLE;
-      // Handling of smf_context as vector
-      // TODO: This has been taken care in new PR
-      // with multi UE feature
-      smf_ctx                    = &ue_context->amf_context.smf_context;
-      smf_ctx->pdu_session_state = INACTIVE;
+      rc = ue_state_handle_message_initial(
+          ue_context->mm_state, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,
+          ue_context, &ue_context->amf_context);
 
-      // construct the proto structure and send message to SMF
-      amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
+      if (rc != RETURNok) {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "AMF_APP: Failed Transitioning to IDLE Mode\n");
+      }
+
       ue_context_release_command(
           ue_id, ue_context->gnb_ue_ngap_id, NGAP_NAS_NORMAL_RELEASE);
 
