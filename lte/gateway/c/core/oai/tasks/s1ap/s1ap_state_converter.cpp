@@ -61,7 +61,11 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   }
 
   keys                        = hashtable_ts_get_keys(&state->enbs);
-  uint32_t expected_enb_count = keys ? keys->num_keys : 0;
+  uint32_t expected_enb_count = 0;
+  if (keys) {
+    expected_enb_count = keys->num_keys;
+    FREE_HASHTABLE_KEY_ARRAY(keys);
+  }
   if (expected_enb_count != state->num_enbs) {
     OAILOG_ERROR(
         LOG_S1AP, "Updating num_eNBs from maintained to actual count %u->%u",
@@ -89,7 +93,11 @@ void S1apStateConverter::proto_to_state(
 
   state->num_enbs             = proto.num_enbs();
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->enbs);
-  uint32_t expected_enb_count = keys ? keys->num_keys : 0;
+  uint32_t expected_enb_count = 0;
+  if (keys) {
+    expected_enb_count = keys->num_keys;
+    FREE_HASHTABLE_KEY_ARRAY(keys);
+  }
   if (expected_enb_count != state->num_enbs) {
     OAILOG_WARNING(
         LOG_S1AP, "Updating num_eNBs from maintained to actual count %u->%u",
