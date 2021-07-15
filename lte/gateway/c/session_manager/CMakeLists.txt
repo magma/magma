@@ -175,6 +175,8 @@ add_library(SESSION_MANAGER
     OperationalStatesHandler.cpp
     OperationalStatesHandler.h
     Types.h
+    MobilitydClient.cpp
+    MobilitydClient.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

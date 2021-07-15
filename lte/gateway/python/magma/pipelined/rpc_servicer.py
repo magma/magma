@@ -808,7 +808,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 pdr_entry.far_action.o_teid,
                                                 pdr_entry.ue_ip_addr,
                                                 gnb_ip_addr,
-                                                encode_imsi(subscriber_id))
+                                                encode_imsi(subscriber_id),
+                                                True)
         return ret
 
     def _ng_qer_update(self, request:SessionSet, pdr_entry: PDRRuleEntry

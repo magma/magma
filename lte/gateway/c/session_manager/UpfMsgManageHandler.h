@@ -21,6 +21,7 @@
 #include "SessionID.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "MobilitydClient.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -68,7 +69,9 @@ class UpfMsgHandler {
 class UpfMsgManageHandler : public UpfMsgHandler {
  public:
   UpfMsgManageHandler(
-      std::shared_ptr<SessionStateEnforcer> enf, SessionStore& session_store);
+      std::shared_ptr<SessionStateEnforcer> enf,
+      std::shared_ptr<MobilitydClient> mobilityd_client,
+      SessionStore& session_store);
 
   ~UpfMsgManageHandler() {}
   /**
@@ -97,6 +100,7 @@ class UpfMsgManageHandler : public UpfMsgHandler {
  private:
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> conv_enforcer_;
+  std::shared_ptr<MobilitydClient> mobilityd_client_;
 };
 
 }  // namespace magma

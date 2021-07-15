@@ -17,6 +17,7 @@ import warnings
 import ipaddress
 import socket
 from concurrent.futures import Future
+from unittest.mock import MagicMock
 from magma.pipelined.tests.app.start_pipelined import (
     TestSetup,
     PipelinedController,
@@ -80,11 +81,14 @@ class ClassifierTest(unittest.TestCase):
                 'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'ovs_multi_tunnel': True,
+                'paging_timeout': 30,
+                'classifier_controller_id': 5,
             },
             mconfig=None,
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
+            rpc_stubs={'sessiond_setinterface': MagicMock()}
         )
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
         cls.thread = start_ryu_app_thread(test_setup)

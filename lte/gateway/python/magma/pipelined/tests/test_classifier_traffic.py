@@ -13,7 +13,7 @@ limitations under the License.
 import unittest
 import warnings
 from concurrent.futures import Future
-
+from unittest.mock import MagicMock
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -95,6 +95,8 @@ class GTPTrafficTest(unittest.TestCase):
                 'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'ovs_multi_tunnel': False,
+                'paging_timeout': 30,
+                'classifier_controller_id': 5,
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",
@@ -102,6 +104,7 @@ class GTPTrafficTest(unittest.TestCase):
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
+            rpc_stubs={'sessiond_setinterface': MagicMock()}
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
