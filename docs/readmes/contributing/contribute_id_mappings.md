@@ -4,7 +4,9 @@ title: Codeowners GitHub to Slack IDs
 hide_title: true
 ---
 
-Here are the Github to Slack ID mappings for all [Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain).
+# Magma Maintainers GitHub-to-Slack IDs
+
+Here are the GitHub-to-Slack mappings for all [Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain).
 
 Instructions on joining our Slack workspace is provided in the [Magma community page](https://www.magmacore.org/community/).
 
