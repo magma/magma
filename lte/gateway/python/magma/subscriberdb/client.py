@@ -38,11 +38,13 @@ from magma.subscriberdb.metrics import (
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
 
-
-class CloudSubscribersInfo(NamedTuple):
-    subscribers: List[SubscriberData]
-    flat_digest: Optional[Digest]
-    per_sub_digests: Optional[List[SubscriberDigestWithID]]
+CloudSubscribersInfo = NamedTuple(
+    'CloudSubscribersInfo', [
+        ('subscribers', List[SubscriberData]),
+        ('flat_digest', Optional[Digest]),
+        ('per_sub_digests', Optional[List[SubscriberDigestWithID]]),
+    ],
+)
 
 
 class SubscriberDBCloudClient(SDWatchdogTask):
@@ -173,6 +175,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 self._store.upsert_subscriber(subscriber_data)
             for sid in res.deleted:
                 self._store.delete_subscriber(sid)
+            self._detach_subscribers_by_ids(res.deleted)
 
         return res.resync
 
@@ -298,6 +301,21 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         ]
         if not deleted_sub_ids:
             return
+        self._detach_subscribers_by_ids(deleted_sub_ids)
+
+    def _detach_subscribers_by_ids(self, deleted_sub_ids: List[str]):
+        """
+        Sends grpc DeleteSubscriber request to mme to detach all subscribers
+        given as args.
+
+        Args:
+            deleted_sub_ids: a list of old subscriber ids in the store,
+                             prefixed by subscriber type
+
+        Returns:
+            None
+
+        """
         # send detach request to mme for all deleted subscribers.
         chan = ServiceRegistry.get_rpc_channel(
             's6a_service',

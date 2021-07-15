@@ -28,10 +28,12 @@ from magma.subscriberdb.sid import SIDUtils
 from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
 from .onready import OnDataReady, OnDigestsReady
 
-
-class DigestDBInfo(NamedTuple):
-    flat_digest_db_location: str
-    per_sub_digest_db_location: str
+DigestDBInfo = NamedTuple(
+    'DigestDBInfo', [
+        ('flat_digest_db_location', str),
+        ('per_sub_digest_db_location', str),
+    ],
+)
 
 
 class SqliteStore(BaseStore):
