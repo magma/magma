@@ -1,0 +1,186 @@
+---
+id: ref_magma_metrics
+title: Life of a Magma Metric
+hide_title: true
+---
+
+## Life of a Magma Metric
+
+This document will cover the life of a Magma metric as it originates at the
+access gateway (AGW), goes through the orchestrator (orc8r) to the [Prometheus
+Edge Hub](https://github.com/facebookincubator/prometheus-edge-hub), and eventually gets displayed on the NMS UI.
+
+### Phase 1: Collection and Export
+
+On the AGW, metrics are collected and exported from either Python services or
+C++ services.
+
+Every **Python** service on the access gateway defines
+[Prometheus](https://prometheus.io/) Counters, Gauges, and Histograms in a
+`metrics.py` file. The `subscriberdb` service, for example, defines the
+following Prometheus metrics in its
+[metrics.py](https://sourcegraph.com/github.com/magma/magma/-/blob/lte/gateway/python/magma/subscriberdb/metrics.py)
+file among others:
+
+```python
+SUBSCRIBER_SYNC_SUCCESS_TOTAL = Counter(
+    'subscriber_sync_success',
+    'Total number of successful subscriber'
+    'syncs with cloud',
+)
+
+SUBSCRIBER_SYNC_FAILURE_TOTAL = Counter(
+    'subscriber_sync_failure',
+    'Total number of failed subscriber'
+    'syncs with cloud',
+)
+
+```
+
+It is then up to the service to set the values of these metrics appropriately,
+i.e., take the actual measurements. `subscriberdb` increments its
+`SUBSCRIBER_SYNC_SUCCESS_TOTAL` counter in its
+[client.py](https://sourcegraph.com/github.com/magma/magma/-/blob/lte/gateway/python/magma/subscriberdb/client.py)
+file after fetching subscriber data from the cloud successfully .
+
+```python
+logging.info(
+    "Successfully fetched all subscriber "
+    "pages from the cloud!",
+)
+SUBSCRIBER_SYNC_SUCCESS_TOTAL.inc()
+```
+
+Each Python service on the AGW extends the `MagmaService` class which implements
+the Service303 interface. This interface has the
+[`GetMetrics`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/gateway/python/magma/common/service.py?L403:9)
+method which uses the
+[`metrics_export`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/gateway/python/magma/common/metrics_export.py?L22:5)
+module to get metrics from the Python Prometheus client and encode them for
+export over gRPC.
+
+```python
+for metric_family in registry.collect():
+    if metric_family.type in ('counter', 'gauge'):
+        family_proto = encode_counter_gauge(metric_family, timestamp_ms)
+    ...
+```
+
+While each service defines and sets its own metrics, it is up to the `magmad`
+service to collect metrics from all services and export them to the orc8r. When
+the `magmad` service gets started, it reads metrics configuration from
+[magmad.yml](https://sourcegraph.com/github.com/magma/magma/-/blob/feg/gateway/configs/magmad.yml).
+Then, `magmad`schedules its [`MetricsCollector`]() object to collect and upload
+metrics every `metrics_config.sync_interval` seconds. The `MetricsCollector`
+object loops over all Python services and for each, calls `GetMetrics` over gRPC
+to obtain metrics from the Python service. Then, it divides the gRPC structures
+into chunks of 1 MB or less, and uploads these chunks to the `metricsd` orc8r
+service over gRPC through the `Collect` method in `metricsd`.
+
+```python
+chan = ServiceRegistry.get_rpc_channel(
+    'metricsd',
+    ServiceRegistry.CLOUD,
+    grpc_options=self._grpc_options,
+)
+client = MetricsControllerStub(chan)
+...
+sample_chunks = self._chunk_samples(samples)
+for idx, chunk in enumerate(sample_chunks):
+    ...
+    future = client.Collect.future(
+        metrics_container,
+        self.grpc_timeout,
+    )
+```
+
+In **C++** land, each service also exposes the `GetMetrics` method that the
+`magmad` service uses to fetch collected metrics over gRPC. The
+[`MetricsSingleton`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/gateway/c/common/service303/MetricsSingleton.cpp)
+class provides helpers and wrappers around the Prometheus C++ client.
+[`service303.cpp`](https://sourcegraph.com/github.com/magma/magma/-/blob/lte/gateway/c/core/oai/tasks/service303/service303.cpp)
+further wraps `MetricsSingleton` methods to make it even more convenient for
+Magma services to set and upload Prometheus metrics.
+
+### Phase 2: Orchestrator and Prometheus Edge Hub
+
+The `metricsd` cloud service reads metric names and labels from enums defined in
+[`metricsd.proto`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/protos/metricsd.proto)
+and accepts gRPC messages accordingly. Once it has received metrics from the
+AGW, it pushes them again over gRPC to the
+[`MetricsExporter`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/cloud/go/services/metricsd/protos/exporter.proto)
+servicers in its `Collect()` method.
+
+```go
+metricsExporters, err := metricsd.GetMetricsExporters()
+...
+for _, e := range metricsExporters {
+	err := e.Submit(metricsToSubmit)
+    ...
+}
+```
+
+With default configuration, `GRPCPushExporterServicer` would be the servicer
+registered for `MetricsExporter` which is registered in the
+[`orchestrator`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/cloud/go/services/orchestrator/orchestrator/main.go?L66)
+cloud service. Finally, the `GRPCPushExporterServicer`, through its `Submit`
+method, pushes metrics over gRPC to their home on Prometheus Edge Hub.
+
+```go
+client, err := s.getClient()
+if err != nil {
+    return err
+}
+_, err = client.Collect(context.Background(), &edge_hub.MetricFamilies{Families: families})
+```
+
+The following diagram shows the call flow for the metrics pipeline on the orc8r:
+
+![Orc8r Metrics](assets/orc8r/orc8r_metrics.png)
+
+On a dev environment, the Prometheus Edge Hub is running at
+[localhost:9090](http://localhost:9090).
+
+### Phase 3: NMS and Grafana
+
+The NMS initially reads metric names, descriptions and their corresponding
+PromQL from
+[`LteMetrics.json`](https://sourcegraph.com/github.com/magma/magma/-/blob/nms/app/packages/magmalte/data/LteMetrics.json).
+Then, in [`Explorer.js`](https://sourcegraph.com/github.com/magma/magma/-/blob/nms/app/packages/magmalte/app/views/metrics/Explorer.js), it filters relevant metrics for the network in
+question using the `/networks/{network_id}/prometheus/series` orc8r Swagger
+endpoint.
+
+```javascript
+// filter only those metrics which are relevant to this network
+const metricsMap = {};
+if (metricSeries != null) {
+    metricSeries.forEach((labelSet: prometheus_labelset) => {
+      metricsMap[labelSet['__name__']] = labelSet;
+    });
+}
+```
+
+This endpoint is part of the `metricsd` orc8r service, and uses the
+[`QueryRestrictor`](https://sourcegraph.com/github.com/magma/magma/-/blob/orc8r/cloud/go/services/metricsd/prometheus/restrictor/query_restrictor.go)
+interface to ensure that only metrics with the right labels (network, gateway
+etc.) are returned.
+
+```go
+// RestrictQuery appends a label selector to each metric in a given query so
+// that only metrics with those labels are returned from the query.
+func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
+	...
+	promQuery, err := promql.ParseExpr(query)
+	...
+	promql.Inspect(promQuery, q.addRestrictorLabels())
+	return promQuery.String(), nil
+}
+
+```
+
+Finally, in the NMS dashboard > Metrics > Explorer UI, each metric gets a
+[Grafana](https://grafana.com/) `<iframe>` which connects to the Grafana Data
+Source API. In turn, the Grafana Data Source API proxies the parametrized metric
+request to the Prometheus Edge Hub and displays the retrieved metrics.
+
+![Grafana Explore UI](assets/nms/grafana_query.png)
