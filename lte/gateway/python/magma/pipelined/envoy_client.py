@@ -31,14 +31,18 @@ MSISDN_HDR = 'msisdn'
 TIMEOUT_SEC = 30
 
 
-def activate_he_urls_for_ue(ip: IPAddress, rule_id: str, urls: List[str],
-                            imsi: str, msisdn: str) -> bool:
+def activate_he_urls_for_ue(
+    ip: IPAddress, rule_id: str, urls: List[str],
+    imsi: str, msisdn: str,
+) -> bool:
     """
     Make RPC call to 'Envoy Controller' to add target URLs to envoy datapath.
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except grpc.RpcError:
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
         return False
@@ -48,17 +52,20 @@ def activate_he_urls_for_ue(ip: IPAddress, rule_id: str, urls: List[str],
         headers = [Header(name=IMSI_HDR, value=imsi)]
         if msisdn:
             headers.append(Header(name=MSISDN_HDR, value=msisdn))
-        he_info = AddUEHeaderEnrichmentRequest(ue_ip=ip,
-                                               rule_id=rule_id,
-                                               websites=urls,
-                                               headers=headers)
+        he_info = AddUEHeaderEnrichmentRequest(
+            ue_ip=ip,
+            rule_id=rule_id,
+            websites=urls,
+            headers=headers,
+        )
         ret = client.AddUEHeaderEnrichment(he_info, timeout=TIMEOUT_SEC)
         return ret.result == AddUEHeaderEnrichmentResult.SUCCESS
     except grpc.RpcError as err:
         logging.error(
             "Activate HE proxy error[%s] %s",
             err.code(),
-            err.details())
+            err.details(),
+        )
 
     return False
 
@@ -68,8 +75,10 @@ def deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str) -> bool:
     Make RPC call to 'Envoy Controller' to remove the proxy rule for the UE.
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except grpc.RpcError:
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
         return False
@@ -84,7 +93,7 @@ def deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str) -> bool:
         logging.error(
             "Deactivate HE proxy error[%s] %s",
             err.code(),
-            err.details())
+            err.details(),
+        )
 
     return False
-

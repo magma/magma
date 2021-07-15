@@ -51,12 +51,16 @@ class TcOpsCmd(TcOpsBase):
     def __init__(self):
         LOG.info("initialized")
 
-    def create_htb(self, iface: str, qid: str, max_bw: str, rate:str,
-                   parent_qid: str = None) -> int:
+    def create_htb(
+        self, iface: str, qid: str, max_bw: str, rate: str,
+        parent_qid: str = None,
+    ) -> int:
         tc_cmd = "tc class add dev {intf} parent {parent_qid} "
         tc_cmd += "classid 1:{qid} htb rate {rate} ceil {maxbw} prio 2"
-        tc_cmd = tc_cmd.format(intf=iface, parent_qid=parent_qid,
-                               qid=qid, rate=rate, maxbw=max_bw)
+        tc_cmd = tc_cmd.format(
+            intf=iface, parent_qid=parent_qid,
+            qid=qid, rate=rate, maxbw=max_bw,
+        )
 
         return run_cmd([tc_cmd], True)
 

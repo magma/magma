@@ -31,12 +31,14 @@ class NGServiceController(MagmaController):
         self.loop = kwargs['loop']
         self.config = kwargs['config']
 
-        #Get SessionD Channel
+        # Get SessionD Channel
         self.sessiond_setinterface = kwargs['rpc_stubs']['sessiond_setinterface']
 
         # Initialize ng services
-        self._ng_node_mgr = NodeStateManager(self.loop, self.sessiond_setinterface,
-                                             self.config)
+        self._ng_node_mgr = NodeStateManager(
+            self.loop, self.sessiond_setinterface,
+            self.config,
+        )
         self._ng_sess_mgr = None
 
     def initialize_on_connect(self, _):

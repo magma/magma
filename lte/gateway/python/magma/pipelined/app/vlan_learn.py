@@ -96,19 +96,19 @@ class VlanLearnController(MagmaController):
                     parser.NXFlowSpecMatch(
                         src=(IMSI_REG, 0),
                         dst=(IMSI_REG, 0),
-                        n_bits=64
+                        n_bits=64,
                     ),
                     parser.NXFlowSpecMatch(
                         src=Direction.IN,
                         dst=(DIRECTION_REG, 0),
-                        n_bits=32
+                        n_bits=32,
                     ),
                     parser.NXFlowSpecLoad(
                         src=self.LOAD_VLAN,
                         dst=(VLAN_TAG_REG, 0),
-                        n_bits=16
+                        n_bits=16,
                     ),
-                ]
+                ],
             ),
             parser.NXActionLearn(
                 table_id=self.vlan_id_scratch,
@@ -117,27 +117,27 @@ class VlanLearnController(MagmaController):
                     parser.NXFlowSpecMatch(
                         src=(IMSI_REG, 0),
                         dst=(IMSI_REG, 0),
-                        n_bits=64
+                        n_bits=64,
                     ),
                     parser.NXFlowSpecMatch(
                         src=Direction.IN,
                         dst=(DIRECTION_REG, 0),
-                        n_bits=32
+                        n_bits=32,
                     ),
                     parser.NXFlowSpecLoad(
                         src=('vlan_tci', 0),
                         dst=('vlan_tci', 0),
                         # 12 should match only vlan_vid
-                        n_bits=12
+                        n_bits=12,
                     ),
-                ]
-            )
+                ],
+            ),
         ]
 
         flows.add_resubmit_next_service_flow(
             dp, self.tbl_num, match, actions,
             priority=flows.UE_FLOW_PRIORITY,
-            resubmit_table=self.next_table
+            resubmit_table=self.next_table,
         )
 
         # For non vlan traffic
@@ -150,36 +150,37 @@ class VlanLearnController(MagmaController):
                     parser.NXFlowSpecMatch(
                         src=(IMSI_REG, 0),
                         dst=(IMSI_REG, 0),
-                        n_bits=64
+                        n_bits=64,
                     ),
                     parser.NXFlowSpecMatch(
                         src=Direction.IN,
                         dst=(DIRECTION_REG, 0),
-                        n_bits=32
+                        n_bits=32,
                     ),
                     parser.NXFlowSpecLoad(
                         src=self.PASSTHROUGH,
                         dst=(VLAN_TAG_REG, 0),
-                        n_bits=16
+                        n_bits=16,
                     ),
-                ]
+                ],
             ),
         ]
         flows.add_resubmit_next_service_flow(
             dp, self.tbl_num, match, actions,
             priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_table
+            resubmit_table=self.next_table,
         )
 
         # For downlink
         match = MagmaMatch(direction=Direction.IN)
         actions = [
             parser.NXActionResubmitTable(table_id=self.vlan_header_scratch),
-            parser.NXActionResubmitTable(table_id=self.vlan_id_scratch)]
+            parser.NXActionResubmitTable(table_id=self.vlan_id_scratch),
+        ]
         flows.add_resubmit_next_service_flow(
             dp, self.tbl_num, match, actions,
             priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_table
+            resubmit_table=self.next_table,
         )
 
     def _install_set_vlan_id_flows(self, dp):
@@ -187,14 +188,19 @@ class VlanLearnController(MagmaController):
 
         # Load VLAN header (needs to be done before settubg vlan tag)
         # Can't be done through the learn action because ryu doesn't support it
-        match = MagmaMatch(direction=Direction.IN,
-                           vlan_tag=self.LOAD_VLAN)
+        match = MagmaMatch(
+            direction=Direction.IN,
+            vlan_tag=self.LOAD_VLAN,
+        )
         actions = [
             parser.OFPActionPushVlan(ether.ETH_TYPE_8021Q),
-            parser.NXActionRegLoad2(dst=VLAN_TAG_REG,
-                                    value=0)]
+            parser.NXActionRegLoad2(
+                dst=VLAN_TAG_REG,
+                value=0,
+            ),
+        ]
         flows.add_resubmit_next_service_flow(
             dp, self.vlan_id_scratch, match, actions,
             priority=flows.UE_FLOW_PRIORITY,
-            resubmit_table=self.vlan_id_scratch
+            resubmit_table=self.vlan_id_scratch,
         )

@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 import warnings
 from concurrent.futures import Future
-from nose.tools import nottest
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import FlowRequest
@@ -33,6 +32,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
+from nose.tools import nottest
 
 
 @unittest.skip("Skipping as it currently breaks debian...")
@@ -59,20 +59,24 @@ class InternalPktIpfixExportTest(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls._static_rule_dict = {}
         cls.service_manager = create_service_manager(
-            [PipelineD.DPI], ['ue_mac', 'ipfix'])
+            [PipelineD.DPI], ['ue_mac', 'ipfix'],
+        )
         cls._tbl_num = cls.service_manager.get_table_num(
-            DPIController.APP_NAME)
+            DPIController.APP_NAME,
+        )
 
         ue_mac_controller_reference = Future()
         dpi_controller_reference = Future()
         ipfix_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.UEMac,
-                  PipelinedController.DPI,
-                  PipelinedController.IPFIX,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.UEMac,
+                PipelinedController.DPI,
+                PipelinedController.IPFIX,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
@@ -120,12 +124,14 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             mconfig=PipelineD(),
             loop=None,
             service_manager=cls.service_manager,
-            integ_test=False
+            integ_test=False,
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
-                                          cls.DPI_IP)
+        BridgeTools.create_internal_iface(
+            cls.BRIDGE, cls.DPI_PORT,
+            cls.DPI_IP,
+        )
 
         cls.thread = start_ryu_app_thread(test_setup)
 
@@ -157,17 +163,22 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             ip_proto=FlowMatch.IPPROTO_TCP,
             ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.1'),
             ip_src=convert_ipv4_str_to_ip_proto('1.2.3.0'),
-            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK
+            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK,
         )
         self.dpi_controller.add_classify_flow(
             flow_match, FlowRequest.FLOW_FINAL_CLASSIFICATION,
-            'base.ip.http.facebook', 'tbd')
-        self.ipfix_controller.add_ue_sample_flow(imsi, "magma_is_awesome_msisdn",
-            "00:11:22:33:44:55", "apn_name123456789", 145)
+            'base.ip.http.facebook', 'tbd',
+        )
+        self.ipfix_controller.add_ue_sample_flow(
+            imsi, "magma_is_awesome_msisdn",
+            "00:11:22:33:44:55", "apn_name123456789", 145,
+        )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             include_stats=False)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            include_stats=False,
+        )
 
         with snapshot_verifier:
             pass

@@ -28,8 +28,10 @@ class MeterManager(object):
         self._datapath = datapath
         self._loop = loop
         meter_config = config['qos']['ovs_meter']
-        self._start_idx, self._max_idx = (meter_config['min_idx'],
-                                          meter_config['max_idx'])
+        self._start_idx, self._max_idx = (
+            meter_config['min_idx'],
+            meter_config['max_idx'],
+        )
         self._max_rate = config["qos"]["max_rate"]
         self._id_manager = IdManager(self._start_idx, self._max_idx)
         self._qos_impl_broken = False
@@ -38,11 +40,11 @@ class MeterManager(object):
         # dump meter features and check if max_meters = 0
         self.check_broken_kernel_impl()
 
-    def setup(self,):
+    def setup(self):
         # create default meter
         pass
 
-    def destroy(self,):
+    def destroy(self):
         LOG.info("Destroying all meters")
         MeterClass.del_all_meters(self._datapath)
 
@@ -60,37 +62,43 @@ class MeterManager(object):
         return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
 
     # pylint:disable=unused-argument
-    def add_qos(self, _, qos_info: QosInfo, cleanup_rule,
-                parent=None, skip_filter=False) -> int:
+    def add_qos(
+        self, _, qos_info: QosInfo, cleanup_rule,
+        parent=None, skip_filter=False,
+    ) -> int:
         if self._qos_impl_broken:
             raise RuntimeError(BROKEN_KERN_ERROR_MSG)
 
         if parent:
-            #TODO add ovs meter logic to handle APN AMBR
+            # TODO add ovs meter logic to handle APN AMBR
             pass
 
         meter_id = self._id_manager.allocate_idx()
         rate_in_kbps = int(qos_info.mbr / 1000)
-        MeterClass.add_meter(self._datapath, meter_id, rate=rate_in_kbps,
-                             burst_size=0)
+        MeterClass.add_meter(
+            self._datapath, meter_id, rate=rate_in_kbps,
+            burst_size=0,
+        )
         LOG.debug("Adding meter_id %d", meter_id)
         return meter_id
 
     # pylint:disable=unused-argument
     def remove_qos(self, meter_id: int, d, recovery_mode=False, skip_filter=False):
-        LOG.debug("Removing meter %d d %d recovery_mode %s", meter_id,
-                  d, recovery_mode)
+        LOG.debug(
+            "Removing meter %d d %d recovery_mode %s", meter_id,
+            d, recovery_mode,
+        )
         if meter_id < self._start_idx or meter_id > (self._max_idx - 1):
             LOG.error("invalid meter_id %d, removal failed", meter_id)
             return
         MeterClass.del_meter(self._datapath, meter_id)
         self._id_manager.release_idx(meter_id)
 
-    def check_broken_kernel_impl(self, ):
+    def check_broken_kernel_impl(self):
         LOG.info("check_broken_kernel_impl")
         MeterClass.dump_meter_features(self._datapath)
 
-    def read_all_state(self, ):
+    def read_all_state(self):
         LOG.debug("read_all_state")
         MeterClass.dump_all_meters(self._datapath)
         return {}, []
@@ -115,15 +123,19 @@ class MeterManager(object):
     @staticmethod
     def dump_meter_state(meter_id):
         try:
-            output = subprocess.check_output(["ovs-ofctl", "-O", "OpenFlow15",
-                                              "meter-stats", "cwag_br0",
-                                              "meter=%s" % meter_id])
+            output = subprocess.check_output([
+                "ovs-ofctl", "-O", "OpenFlow15",
+                "meter-stats", "cwag_br0",
+                "meter=%s" % meter_id,
+            ])
             print(output.decode())
         except subprocess.CalledProcessError:
             print("Exception dumping meter state for %s", meter_id)
 
     # pylint: disable=unused-argument
-    def same_qos_config(self, d,
-                        qid1: int, qid2: int) -> bool:
+    def same_qos_config(
+        self, d,
+        qid1: int, qid2: int,
+    ) -> bool:
         # Once APN AMBR support is added, implement this methode
         return False
