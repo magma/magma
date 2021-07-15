@@ -1193,26 +1193,6 @@ jobs:
 
   ## CWF OPERATOR
 
-  cwf-operator-precommit:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "cwf/k8s"
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-          command: go mod download
-          workdir: ${MAGMA_ROOT}/cwf/k8s/cwf_operator
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
-            make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
-      - magma_slack_notify
-
   cwf-operator-build:
     machine:
       image: ubuntu-1604:201903-01
@@ -1660,14 +1640,6 @@ workflows:
             - xwfm-deploy-latest
           images: 'gateway_python|gateway_pipelined|gateway_go'
           tag-latest: true
-
-
-  cwf_operator:
-    jobs:
-      - cwf-operator-precommit
-      - cwf-operator-build:
-          requires:
-            - cwf-operator-precommit
 
   hourly_xwfm:
     triggers:
