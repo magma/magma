@@ -81,8 +81,10 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         subscribers, flat_digest = await self._get_all_subscribers()
         if subscribers is None:
             return
-        self._update_flat_digest(flat_digest)
+        # Process subscriber data before digest data, in case there's a gateway
+        # failure between the calls
         self._process_subscribers(subscribers)
+        self._update_flat_digest(flat_digest)
 
     async def _get_all_subscribers(self) -> (SubscriberData, Digest):
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
