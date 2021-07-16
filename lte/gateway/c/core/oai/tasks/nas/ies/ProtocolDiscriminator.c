@@ -26,11 +26,13 @@
 int decode_protocol_discriminator(
     ProtocolDiscriminator* protocoldiscriminator, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  return 0;
+  Fatal("TODO Implement decode_protocol_discriminator");
+  return -1;
 }
 
 int encode_protocol_discriminator(
     ProtocolDiscriminator* protocoldiscriminator, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  return 0;
+  Fatal("TODO Implement encode_protocol_discriminator");
+  return -1;
 }
