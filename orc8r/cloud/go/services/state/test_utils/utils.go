@@ -20,7 +20,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
-	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
+	"magma/orc8r/cloud/go/service/middleware/unary/test"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
@@ -67,8 +67,9 @@ func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey s
 	assert.Empty(t, res.UnreportedStates)
 }
 
+// TODO(hcgatewood): move this to orc8r/cloud/go/service/middleware/unary/test/access.go
 func GetContextWithCertificate(t *testing.T, hwID string) context.Context {
-	csn := test_utils.StartMockGwAccessControl(t, []string{hwID})
+	csn := test.StartMockGwAccessControl(t, []string{hwID})
 	return metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs(identity.CLIENT_CERT_SN_KEY, csn[0]))
