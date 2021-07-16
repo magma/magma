@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"time"
 
 	"magma/lte/cloud/go/services/subscriberdb"
 
@@ -37,9 +38,11 @@ type subscriberdbServicer struct {
 	digestsEnabled         bool
 	changesetSizeThreshold int
 	maxProtosLoadSize      uint64
+	maxResyncIntervalSecs uint64
 	digestStore            storage.DigestStore
 	perSubDigestStore      *storage.PerSubDigestStore
 	subStore               *storage.SubStore
+	lastResyncTimeStore   *storage.LastResyncTimeStore
 }
 
 func NewSubscriberdbServicer(
@@ -47,14 +50,17 @@ func NewSubscriberdbServicer(
 	digestStore storage.DigestStore,
 	perSubDigestStore *storage.PerSubDigestStore,
 	subStore *storage.SubStore,
+	lastResyncTimeStore *storage.LastResyncTimeStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		digestsEnabled:         config.DigestsEnabled,
 		changesetSizeThreshold: config.ChangesetSizeThreshold,
 		maxProtosLoadSize:      config.MaxProtosLoadSize,
+		maxResyncIntervalSecs: config.MaxResyncIntervalSecs,
 		digestStore:            digestStore,
 		perSubDigestStore:      perSubDigestStore,
 		subStore:               subStore,
+		lastResyncTimeStore:   lastResyncTimeStore,
 	}
 	return servicer
 }
@@ -75,8 +81,17 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
-	_, inSync := s.getDigestInfo(req.FlatDigest, networkID)
+	gatewayID := gateway.LogicalId
 
+	shouldResync, err := s.shouldCloudDirectedResync(networkID, gatewayID)
+	// If check last resync time fails, swallow the error and stick to the original callpath
+	if err != nil {
+		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gatewayID, networkID, err)
+	} else if shouldResync {
+		return &lte_protos.CheckSubscribersInSyncResponse{InSync: false}, nil
+	}
+
+	_, inSync := s.getDigestInfo(req.FlatDigest, networkID)
 	res := &lte_protos.CheckSubscribersInSyncResponse{InSync: inSync}
 	return res, nil
 }
@@ -97,6 +112,15 @@ func (s *subscriberdbServicer) SyncSubscribers(
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
+	shouldResync, err := s.shouldCloudDirectedResync(networkID, gatewayID)
+	// If check last resync time fails, swallow the error and stick to the original callpath
+	if err != nil {
+		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gatewayID, networkID, err)
+	} else if shouldResync {
+		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
+	}
+
 	flatDigest, err := storage.GetDigest(s.digestStore, networkID)
 	if err != nil {
 		return nil, err
@@ -146,6 +170,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
 
 	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
 	if err != nil {
@@ -174,6 +199,14 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
 		if err != nil {
 			glog.Errorf("Failed to get per-sub digests from store for network %+v: %+v", networkID, err)
+		}
+	}
+
+	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current ime
+	if nextToken == "" {
+		err := s.lastResyncTimeStore.Set(networkID, gatewayID, uint64(time.Now().Unix()))
+		if err != nil {
+			glog.Errorf("Failed to set last resync time for gateway %+v of network %+v: %+v", gatewayID, networkID, err)
 		}
 	}
 
@@ -236,6 +269,17 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 	noUpdates := digest != "" && digest == clientDigest.GetMd5Base64Digest()
 	digestProto := &lte_protos.Digest{Md5Base64Digest: digest}
 	return digestProto, noUpdates
+}
+
+// shouldCloudDirectedResync returns whether a gateway requires a orc8r-directed resync by checking its
+// last resync time.
+func (l *subscriberdbServicer) shouldCloudDirectedResync(network string, gateway string) (bool, error) {
+	lastResyncTime, err := l.lastResyncTimeStore.Get(network, gateway)
+	if err != nil {
+		return false, err
+	}
+	shouldResync := uint64(time.Now().Unix())-lastResyncTime > l.maxResyncIntervalSecs
+	return shouldResync, nil
 }
 
 func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

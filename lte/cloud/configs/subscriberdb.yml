@@ -18,3 +18,6 @@ changesetSizeThreshold: 500
 # maxProtosLoadSize specifies the max size of cached subscriber protos that
 # can be loaded for a page.
 maxProtosLoadSize: 15000
+# maxResyncIntervalSecs specifies the max time interval (secs) before a orc8r-
+# directed resync is required for an agw.
+maxResyncIntervalSecs: 86400
