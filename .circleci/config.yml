@@ -1631,6 +1631,9 @@ workflows:
           requires:
             - release-hold
             - ami-hold
+  quentintest:
+    jobs:
+      - publish-amis-to-marketplace
   feg:
     jobs:
       - feg-lint
