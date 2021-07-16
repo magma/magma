@@ -63,6 +63,10 @@ jobs:
       - name: Tag and push to Docker Registry
         if: github.ref == 'refs/heads/master'
         # yamllint disable rule:line-length
+        env:
+          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Tag and push to Jfrog Registry
