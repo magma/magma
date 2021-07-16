@@ -1,0 +1,170 @@
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+import abc
+import logging
+from socket import AF_INET, inet_ntop, ntohs
+from struct import pack
+
+import psutil
+from magma.kernsnoopd import metrics
+
+# TASK_COMM_LEN is the string length of binary names that the kernel reports.
+# Value should be the same as found in <linux/sched.h>
+TASK_COMM_LEN = 16
+
+
+class EBPFHandler(abc.ABC):
+    """
+    EBPFHandler class defines the interface for front-end programs
+    corresponding to loaded eBPF programs.
+
+    Method handle() must be implemented by a sub-class. Snooper will call the
+    handle() method of registered front-end programs periodically.
+    """
+
+    def __init__(self, service_registry):
+        self._registry = service_registry
+
+        # only the first TASK_COMM_LEN letters of the service name are relevant
+        # here as the kernel is only sending those in task->comm
+        self._services = [
+            s[:TASK_COMM_LEN] for s in service_registry.list_services()
+        ]
+
+    @abc.abstractmethod
+    def handle(self, bpf) -> None:
+        """
+        Handle() should serve as the entry point of the front-end program
+        performing tasks such as reading metrics collected from the kernel and
+        storing them into Prometheus.
+
+        Args:
+            bpf: the bcc.BPF instance that was used to load the eBPF program
+
+        Raises:
+            NotImplementedError: Implement in sub-class
+        """
+        raise NotImplementedError()
+
+
+class PacketCounter(EBPFHandler):
+    """
+    PacketCounter is the front-end program for ebpf/packet_count.bpf.c
+    """
+
+    def handle(self, bpf):
+        """
+        Handle() reads counters from the loaded packet_count program stored as
+        a dict in 'dest_counters' with key type key_t and value type counter_t
+        defined in ebpf/common.bpf.h
+
+        Args:
+            bpf: bcc.BPF object that was used to load eBPF program into kernel
+        """
+        for key, counters in bpf['dest_counters'].items():
+            d_host = inet_ntop(AF_INET, pack('I', key.daddr))
+            d_port = ntohs(key.dport)
+            service_name = None
+
+            try:
+                # TODO: destination service name inference does not work when
+                # control_proxy is enabled
+                service_name = self._get_source_service(key)
+                # get destination service from host and port
+                dest_service = self._registry.get_service_name(d_host,
+                                                               d_port)
+                _inc_service_counters(service_name, dest_service, counters)
+            except ValueError:
+                # use binary name if source service name was not inferred
+                _inc_linux_counters(service_name or key.comm.decode(),
+                                    counters)
+
+        # clear eBPF counters
+        bpf['dest_counters'].clear()
+
+    def _get_source_service(self, key) -> str:
+        """
+        _get_source_service attempts to get Magma service from command line
+        arguments of running process or binary name
+
+        Args:
+            key: struct of type key_t from which service name is inferred
+
+        Returns:
+            Magma service name inferred from key
+
+        Raises:
+            ValueError: Could not infer service name from key
+        """
+
+        try:
+            # get python service name from command line args
+            # e.g. "python3 -m magma.state.main"
+            cmdline = psutil.Process(pid=key.pid).cmdline()
+            if cmdline[2].startswith('magma.'):
+                service_name = cmdline[2].split('.')[1]
+                return service_name
+        # key.pid process has exited or was not a Python service
+        except (psutil.NoSuchProcess, IndexError):
+            binary_name = key.comm.decode()
+            if binary_name in self._services:
+                # was a non-Python service
+                return binary_name
+        raise ValueError('Could not infer service name from key %s' % key.comm)
+
+
+def _inc_service_counters(source_service, dest_service, counters) -> None:
+    """
+    _inc_service_counters increments Prometheus byte and packet counters
+    for traffic between gateway and cloud Magma services
+
+    Args:
+        source_service: traffic source service name used as label
+        dest_service: traffic destination service name used as label
+        counters: byte and packet count values for incrementing
+    """
+    logging.info(
+        f'service: {source_service} sent {counters.bytes} '
+        f'bytes to {dest_service}',
+    )
+    metrics.MAGMA_PACKETS_SENT_TOTAL.labels(
+        service_name=source_service,
+        dest_service=dest_service,
+    ).inc(counters.packets)
+    metrics.MAGMA_BYTES_SENT_TOTAL.labels(
+        service_name=source_service,
+        dest_service=dest_service,
+    ).inc(counters.bytes)
+
+
+def _inc_linux_counters(binary_name, counters) -> None:
+    """
+    _inc_linux_counters increments Prometheus byte and packet counters for
+    traffic originating from arbitrary linux binaries
+
+    Args:
+        binary_name: traffic source binary name used as label
+        counters: byte and packet count values for incrementing
+    """
+    logging.info(f'linux: {binary_name} sent {counters.bytes} bytes')
+    metrics.LINUX_PACKETS_SENT_TOTAL.labels(binary_name).inc(
+        counters.packets)
+    metrics.LINUX_BYTES_SENT_TOTAL.labels(binary_name).inc(counters.bytes)
+
+
+# ebpf_handlers provides the mapping from ebpf source files
+# (e.g. epbf/packet_count.bpf.c) to front-end program class
+ebpf_handlers = {
+    'packet_count': PacketCounter,
+}

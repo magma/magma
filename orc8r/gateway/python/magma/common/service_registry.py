@@ -79,6 +79,23 @@ class ServiceRegistry:
         return ServiceRegistry.get_registry()["services"]
 
     @staticmethod
+    def get_service_name(host, port):
+        """
+        Returns the name of service listening on the host, port pair
+
+        Args:
+            host (string): IP address or host of service
+            port (int): port on which service is listening
+        Returns:
+            service name (string) of the service
+        Raises:
+        """
+        for service, config in ServiceRegistry.get_registry()["services"].items():
+            if (config["ip_address"], config["port"]) == (host, port):
+                return service
+        raise ValueError("No service found for %s:%d" % (host, port))
+
+    @staticmethod
     def reset():
         """
         Removes all the entries in the registry

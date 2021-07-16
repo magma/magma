@@ -137,6 +137,7 @@ MAGMA_DEPS=(
     "nlohmann-json3-dev"
     "sentry-native"   # sessiond
     "td-agent-bit >= 1.7.8"
+    "bpfcc-tools" # required for kernsnoopd
     )
 
 # OAI runtime dependencies
