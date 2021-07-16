@@ -20,7 +20,7 @@
       Name: "{{ devOpsAmi }}"
       Service: DevOpsAMI
       imageName: "Magma Cloudstrapper"
-      imageVersion: "{{ buildMagmaVersion }}"
+      imageVersion: "{{ taggedVersion }}"
       imageOwner: "Magma Core Foundation"
   register: result
   failed_when:

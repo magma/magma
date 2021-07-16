@@ -20,7 +20,7 @@
       Name: "{{ buildAgwAmiName }}"
       Service: BuildAgwAMI
       imageName: "Magma Access Gateway"
-      imageVersion: "{{ buildMagmaVersion }}"
+      imageVersion: "{{ taggedVersion }}"
       imageOwner: "Magma Core Foundation"
   register: result
   failed_when:
