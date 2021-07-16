@@ -1349,6 +1349,28 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
+
+  ### Regression
+
+  teravm-regression:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - run:
+          name: run terravm test
+          no_output_timeout: 60m
+          command: |
+            cd ${MAGMA_ROOT}
+            cd ci-scripts/teravm/go/teravm_ci/
+            ./teravm_ci -key $TERAVM_REMOTE_ACCESS_KEY
+
+
+
   ### XWF
 
   xwfm-test:
@@ -1661,6 +1683,14 @@ workflows:
           images: 'gateway_python|gateway_pipelined|gateway_go'
           tag-latest: true
 
+
+  hourly_teravm_regression:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - teravm-regression
 
   cwf_operator:
     jobs:

@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime
 
 from fabric.api import cd, env, hide, local, run, settings
 from fabric.operations import put, sudo
@@ -88,8 +89,8 @@ def upgrade_and_run_3gpp_tests(
     if err:
         sys.exit(1)
 
-    fastprint("\nSleeping for 30 seconds to make sure system is read\n\n")
-    time.sleep(30)
+    fastprint("\nSleeping for 60 seconds to make sure system is read\n\n")
+    time.sleep(60)
 
     verdicts = run_3gpp_tests(setup, key_filename, custom_test_file)
 
@@ -157,9 +158,6 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
 
     fastprint("\nUpgrade teraVM AGW to %s\n" % hash)
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
-    err = _set_magma_apt_repo()
-    if err:
-        sys.exit(1)
     sudo("apt update")
     fastprint("Install version with hash %s\n" % hash)
     # Get the whole version string containing that hash and 'apt install' it
@@ -186,7 +184,6 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
             )
             fastprint(err)
             sys.exit(1)
-
 
 def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     """
@@ -245,6 +242,7 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
 
     with cd("/var/opt/magma/docker"), settings(abort_exception=FabricException):
         sudo("docker-compose down")
+        time.sleep(2)
         sudo("cp docker-compose.yml docker-compose.yml.backup")
         sudo("cp .env .env.backup")
         sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' % hash)
@@ -254,6 +252,7 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         try:
             # TODO: obtain .yml file from jfrog artifact instead of git master
             sudo("wget -O docker-compose.yml %s" % FEG_DOCKER_COMPOSE_GIT)
+            sudo("docker-compose pull")
             sudo("docker-compose up -d")
         except Exception:
             err = (
@@ -302,6 +301,11 @@ def run_3gpp_tests(
     verdicts = _parse_stats(test_output)
     fastprint("Results of test:\n")
     _prettyprint_stats(verdicts)
+    if verdicts["FAIL"]:
+        fastprint("\nThere were %s failures on TeraVM test!!. Exiting\n"
+                  % len(verdicts["FAIL"]))
+        sys.exit(1)
+    fastprint("All test passed!\n")
     return verdicts
 
 
@@ -386,9 +390,6 @@ def _get_gateway_image(hash):
 
 def _get_latest_agw_tag(setup, key_filename):
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
-    err = _set_magma_apt_repo()
-    if err:
-        sys.exit(1)
     sudo("apt update")
     tag = sudo(
             "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'",
@@ -399,12 +400,23 @@ def _get_latest_agw_tag(setup, key_filename):
 
 
 def _parse_hash_from_tag(tag):
+    if not tag:
+        fastprint("can't parse hash because tag is None\n")
+        return None
     split_tag = tag.split("-")
     if len(split_tag) != 3:
         fastprint("not valid tag %s\n" % split_tag)
         sys.exit(1)
-    fastprint("Latest hash is %s \n" % split_tag[2])
-    return split_tag[2]
+    commit_hash = split_tag[2]
+    version_date = (datetime.utcfromtimestamp(
+        int(split_tag[1]))).strftime('%Y-%m-%d %H:%M:%S %z')
+    fastprint("--------\n"
+              "Version to be used:\n"
+              "\tTag: %s\n"
+              "\tHash: %s\n"
+              "\tDate: %s\n"
+              "--------\n" % (tag, commit_hash, version_date))
+    return commit_hash
 
 
 def _fetch_image(name, image):
