@@ -1,9 +1,7 @@
 /*
  Copyright 2020 The Magma Authors.
-
  This source code is licensed under the BSD-style license found in the
  LICENSE file in the root directory of this source tree.
-
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +14,9 @@ package storage
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
+	"os"
+	"sync"
 
 	lte_protos "magma/lte/cloud/go/protos"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
@@ -30,10 +31,14 @@ import (
 const (
 	subProtoTableName    = "subscriber_protos"
 	subProtoTmpTableName = "subscriber_protos_tmp"
+	subProtoNidCol       = "network_id"
+	subProtoSidCol       = "subscriber_id"
+	subProtoProtoCol     = "subscriber_proto"
+)
 
-	subProtoNidCol   = "network_id"
-	subProtoSidCol   = "subscriber_id"
-	subProtoProtoCol = "subscriber_proto"
+var (
+	once       sync.Once
+	sqlDialect string
 )
 
 type SubProtoStore struct {
@@ -45,6 +50,20 @@ func NewSubProtoStore(db *sql.DB, builder sqorc.StatementBuilder) *SubProtoStore
 	return &SubProtoStore{db: db, builder: builder}
 }
 
+// getSqlDialect looks up the sql dialect of the current environment once and stores it
+// in memory cache for use.
+func getSqlDialect() string {
+	once.Do(func() {
+		dialect, envFound := os.LookupEnv("SQL_DIALECT")
+		// Default to postgresql
+		if !envFound {
+			sqlDialect = sqorc.PostgresDialect
+		} else {
+			sqlDialect = dialect
+		}
+	})
+	return sqlDialect
+}
 func (l *SubProtoStore) Initialize() error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := l.builder.CreateTable(subProtoTableName).
@@ -58,7 +77,6 @@ func (l *SubProtoStore) Initialize() error {
 		if err != nil {
 			return nil, errors.Wrap(err, "initialize sub proto store table")
 		}
-
 		_, err = l.builder.CreateTable(subProtoTmpTableName).
 			IfNotExists().
 			Column(subProtoNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
@@ -70,7 +88,6 @@ func (l *SubProtoStore) Initialize() error {
 		if err != nil {
 			return nil, errors.Wrap(err, "initialize sub proto store tmp table")
 		}
-
 		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
@@ -82,7 +99,6 @@ func (l *SubProtoStore) InsertManyByNetwork(network string, subProtos []*lte_pro
 	if len(subProtos) == 0 {
 		return nil
 	}
-
 	insertQuery := l.builder.
 		Insert(subProtoTmpTableName).
 		Columns(subProtoNidCol, subProtoSidCol, subProtoProtoCol)
@@ -98,7 +114,6 @@ func (l *SubProtoStore) InsertManyByNetwork(network string, subProtos []*lte_pro
 	if errs.ErrorOrNil() != nil {
 		return errs
 	}
-
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := insertQuery.RunWith(tx).Exec()
 		return nil, errors.Wrapf(err, "insert sub protos into store for network %+v", network)
@@ -120,7 +135,15 @@ func (l *SubProtoStore) CommitUpdateByNetwork(network string) error {
 		if err != nil {
 			return nil, errors.Wrapf(err, "clean up previous sub proto store table")
 		}
-
+		// the upsertColumnPrefix varies depends on the sql dialect
+		// e.g. for mariaDB, "f1=excluded.f1"; for postgres, "f1=t2.f1"
+		var upsertColumnPrefix string
+		switch getSqlDialect() {
+		case sqorc.PostgresDialect:
+			upsertColumnPrefix = "excluded"
+		case sqorc.MariaDialect:
+			upsertColumnPrefix = subProtoTmpTableName
+		}
 		_, err = l.builder.
 			Insert(subProtoTableName).
 			Select(
@@ -129,12 +152,18 @@ func (l *SubProtoStore) CommitUpdateByNetwork(network string) error {
 					From(subProtoTmpTableName).
 					Where(squirrel.Eq{subProtoNidCol: network}),
 			).
+			OnConflict(
+				[]sqorc.UpsertValue{{
+					Column: subProtoProtoCol,
+					Value:  squirrel.Expr(fmt.Sprintf("%s.%s", upsertColumnPrefix, subProtoProtoCol)),
+				}},
+				subProtoNidCol, subProtoSidCol,
+			).
 			RunWith(tx).
 			Exec()
 		if err != nil {
 			return nil, errors.Wrapf(err, "populate sub proto store table")
 		}
-
 		_, err = l.builder.
 			Delete(subProtoTmpTableName).
 			Where(squirrel.Eq{subProtoNidCol: network}).
@@ -143,7 +172,6 @@ func (l *SubProtoStore) CommitUpdateByNetwork(network string) error {
 		if err != nil {
 			return nil, errors.Wrapf(err, "clean up tmp sub proto store table")
 		}
-
 		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
@@ -187,7 +215,6 @@ func (l *SubProtoStore) GetPage(network string, token string, pageSize uint64) (
 		}
 		lastIncludedSid = decoded.LastIncludedEntity
 	}
-
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := l.builder.
 			Select(subProtoProtoCol).
@@ -200,7 +227,6 @@ func (l *SubProtoStore) GetPage(network string, token string, pageSize uint64) (
 			Limit(pageSize).
 			RunWith(tx).
 			Query()
-
 		if err != nil {
 			return nil, errors.Wrapf(err, "get page for network %+v with token %+v", network, token)
 		}
@@ -210,7 +236,6 @@ func (l *SubProtoStore) GetPage(network string, token string, pageSize uint64) (
 	if err != nil {
 		return nil, "", err
 	}
-
 	subProtos := ret.([]*lte_protos.SubscriberData)
 	nextPageToken, err := getNextPageToken(subProtos)
 	if err != nil {
@@ -237,7 +262,6 @@ func (l *SubProtoStore) GetByIDs(network string, sids []string) ([]*lte_protos.S
 		}
 		return parseSubProtoRows(rows)
 	}
-
 	ret, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	if err != nil {
 		return nil, err
@@ -256,7 +280,6 @@ func parseSubProtoRows(rows *sql.Rows) ([]*lte_protos.SubscriberData, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "get sub protos from store, SQL row scan error")
 		}
-
 		subProto := &lte_protos.SubscriberData{}
 		err = proto.Unmarshal(subProtoMarshaled, subProto)
 		if err != nil {
@@ -277,7 +300,6 @@ func getNextPageToken(subProtos []*lte_protos.SubscriberData) (string, error) {
 	if len(subProtos) == 0 {
 		return "", nil
 	}
-
 	lastSubProto := subProtos[len(subProtos)-1]
 	nextTokenUnmarshaled := &configurator_storage.EntityPageToken{
 		LastIncludedEntity: lte_protos.SidString(lastSubProto.Sid),
@@ -287,7 +309,6 @@ func getNextPageToken(subProtos []*lte_protos.SubscriberData) (string, error) {
 		return "", err
 	}
 	nextToken := base64.StdEncoding.EncodeToString(nextTokenMarshaled)
-
 	return nextToken, nil
 }
 
@@ -297,7 +318,6 @@ func decodePageToken(token string) (*configurator_storage.EntityPageToken, error
 	if err != nil {
 		return nil, errors.Wrapf(err, "decode page token")
 	}
-
 	buf := &configurator_storage.EntityPageToken{}
 	err = proto.Unmarshal(marshaledToken, buf)
 	if err != nil {
