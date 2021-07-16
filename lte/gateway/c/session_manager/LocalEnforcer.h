@@ -317,7 +317,6 @@ class LocalEnforcer {
 
   void poll_stats_enforcer(std::vector<int> shard_ids);
 
-  /* void poll_stats_enforcer(int cookie, int cookie_mask);*/
   /**
    * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific
    * UE on pipelined. UE will be identified by pipelined using its IP

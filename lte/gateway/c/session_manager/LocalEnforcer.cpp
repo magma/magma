@@ -272,16 +272,6 @@ void LocalEnforcer::poll_stats_enforcer(std::vector<int> shard_ids) {
       std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
 
-/*void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
-  // we need to pass in a function pointer. Binding is required because
-  // the function is part of the LocalEnforcer class and has arguments
-  // so we bind to the object and the two arguments the function needs
-  // which are the status and RuleRecordTable response
-  pipelined_client_->poll_stats(
-      cookie, cookie_mask,
-      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
-}*/
-
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);

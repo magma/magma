@@ -445,18 +445,6 @@ void AsyncPipelinedClient::poll_stats(
   }
 }
 
-/*
-void AsyncPipelinedClient::poll_stats(
-    int cookie, int cookie_mask,
-    std::function<void(Status, RuleRecordTable)> callback) {
-  auto req = make_stat_req(cookie, cookie_mask);
-  poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not poll stats " << status.error_message();
-    }
-  });
-}*/
-
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
