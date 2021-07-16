@@ -11,10 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-import hashlib
 import logging
 
-import snowflake
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBCloudStub
 from magma.common.grpc_client_manager import GRPCClientManager
@@ -66,9 +64,7 @@ def main():
             service_stub=SubscriberDBCloudStub,
             max_client_reuse=60,
         )
-        sync_interval = _randomize_sync_interval(
-            service.config.get('subscriberdb_sync_interval'),
-        )
+        sync_interval = service.mconfig.sync_interval
         subscriber_page_size = service.config.get('subscriber_page_size')
         subscriberdb_cloud_client = SubscriberDBCloudClient(
             service.loop,
@@ -138,19 +134,6 @@ def _get_s6a_manager(service, processor):
         service.config.get('mme_host_address'),
         service.loop,
     )
-
-
-def _randomize_sync_interval(interval: int) -> int:
-    """_randomize_sync_interval increases sync interval by random amount.
-
-    Increased sync interval ameliorates the thundering herd effect at Orc8r.
-    "Random" increase is deterministic based on the gateway's HWID.
-    """
-    h = hashlib.md5()
-    h.update(bytes(snowflake.snowflake(), 'utf8'))  # digest of hwid
-    multiplier = (hash(h.hexdigest()) % 100) / 100  # to interval [0, 1]
-    delta = multiplier * (interval / 5)  # up to 1/5 of target interval
-    return int(interval + delta)
 
 
 if __name__ == "__main__":
