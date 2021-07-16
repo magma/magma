@@ -23,6 +23,9 @@ satellite backhaul, visibility into bandwidth consumption is crucial. This
 proposal details a **design for collecting and exporting control plane network
 metrics from the access gateway to the orchestrator and NMS**.
 
+See [Life of a Magma Metric](resources/ref_magma_metrics) for context on
+existing Magma metrics pipeline.
+
 ### Goals
 
 1. On the access gateway, record byte and packet counts grouped by service,
@@ -41,6 +44,8 @@ deployment.
 1. Change collection/export methods for existing data-path metrics.
 
 ## Proposal
+
+![Network metrics path](assets/orc8r/control_network_metrics.png)
 
 To collect relevant metrics, i.e., byte and packet counters, we propose using
 an [eBPF](https://ebpf.io/what-is-ebpf/) program. eBPF is a modern Linux kernel
@@ -62,17 +67,28 @@ this service can later become a home for more observability through eBPF). Upon
 service start, `kernsnoopd` will compile the eBPF kernel instrumentation
 program and load it. It will read `sampling_period` from its configuration.
 Every `sampling_period` seconds, `kernsnoopd` will read the counters from the
-eBPF program into Prometheus Gauges and clear the eBPF counters. Every magma
-service running on the orchestrator will get a separate Prometheus Gauge by the
-name `{service}_bytes_sent` and `{service}_packets_sent`. For each Gauge,
-labels will indicate `networkID`, `gatewayID`, and `dstIP:dstPort`.
+eBPF program into Prometheus counters and clear the eBPF counters.
 
-Once Prometheus Gauge values have been set, they will follow the existing Magma
-metrics path: the `magmad` service will read the Gauges from `kernsnoopd` and
-upload them to `metricsd` at the orchestrator every `sync_interval` seconds.
-The NMS UI will then display these metrics.
+The byte and packet counts read from eBPF will be stored into Prometheus
+counters `network_bytes_sent_total` and `network_packets_sent_total`. Each
+counter will also have labels indicating `source_process`, `dest_ip` and
+`dest_port`. On the loopback interface, only the port on which `control_proxy`
+is listening for traffic will be observed. This port and and other information
+related to Magma services can be read from the
+[`ServiceRegistry`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/python/magma/common/service_registry.py).
+On other interfaces (see [Open Issues](#open-issues)), all traffic will be
+observed. `source_process` will just be the binary name (`task->comm` in the
+kernel) of the process triggering the packet transmission. In case of Python
+services, the binary name is `python3` so command line arguments (e.g.
+`magma.main.subscriberdb`) will be used to infer the service name and
+`source_process` will be set to the service name.
 
-[insert schematic]
+Once Prometheus counter values have been set, they will follow the existing
+Magma metrics path: the `magmad` service will read the counters from
+`kernsnoopd` and upload them to `metricsd` at the orchestrator every
+`sync_interval` seconds. The NMS UI will then display these metrics. The [Life
+of a Magma Metric](resources/ref_magma_metrics) document describes this path in
+detail.
 
 This design achieves [goals](#goals) #1 and #2. The choice of eBPF minimizes
 performance penalty (discussed [here](#performance)) by putting compiled code
@@ -168,6 +184,32 @@ if __name__ == "__main__":
         table.clear()
 ```
 
+### A Python-free Future
+
+If/when we move to a Python-free AGW, the design above can be modified depending
+upon which language we choose to adopt.
+
+If we choose **Go**, we do not have to change the eBPF program written in
+restricted C as Go bindings for BCC are available in the
+[`gobpf`](https://github.com/iovisor/gobpf) package. This package also provides
+low-level routines to load eBPF programs from .elf files, so we can send
+compiled programs to the AGW and remove clang as a dependency. However, programs
+would presumably have to be compiled for various kernel versions. Pre-compiling
+is not necessary though as `gobf` allows the front-end Go program to trigger
+compilation just like the Python program above does.
+
+If we choose **C/C++**, we should switch from BCC to
+[`libbpf`](https://github.com/libbpf/libbpf) as BCC does not provide C bindings
+to write simple front-end programs. `libbpf` is simpler than BCC, which means
+the API is not as convenient, but it also supports compiling both the eBPF
+program and the front-end program into a small binary and remove clang as a
+dependency on the AGW.
+
+We have tools to translate Prometheus metrics for consumption at the `magmad`
+service in the AGW for both Python and C/C++. Such tools don't exist in Go, but
+writing those tools will presumably be part of the plan to replace Python on the
+AGW with Go.
+
 ## Alternatives considered
 
 Here, we enumerate alternatives to the above design that we considered:
@@ -176,10 +218,10 @@ Here, we enumerate alternatives to the above design that we considered:
 monitoring tools based on `libpcap` such as
 [Nethogs](https://github.com/raboof/nethogs) and
 [iftop](http://www.ex-parrot.com/~pdw/iftop/). While these tools do not collect
-the exact metrics required, it should be straightforward to modify them or
-write a new tool based on `libpcap`. The larger issue is that `libpcap` will
-make one or more copies of the packet, which incurs significant overhead
-[citation needed]. Moreover, we do not see any advantages of `libpcap` over
+the exact metrics required, it should be straightforward to modify them or write
+a new tool based on `libpcap`. The larger issue is that `libpcap` will make a
+copy of the packet from `skbuff` to a shared buffer in the kernel, which incurs
+significant overhead. Moreover, we do not see any advantages of `libpcap` over
 eBPF.
 
 2. [**`nghttpx`**](https://nghttp2.org): We use `control_proxy` to proxy TLS
@@ -187,8 +229,10 @@ connections from individual services to the orchestrator. However, `nghttpx`,
 the proxy implementation we use does not collect per-process or per-destination
 byte and packet counters. `nghttpx` could probably be modified to collect these
 statistics, but that would probably be higher development effort and may yield
-worse performance. Also, it will not work if `proxy_cloud_connections` is set
-to `False` and services are connecting to the cloud directly .
+worse performance. Also, it will not work if `proxy_cloud_connections` is set to
+`False` and services are connecting to the cloud directly. Even if
+`proxy_cloud_connections` is set to `True`, `nghttpx` will not be able to
+capture general traffic outside of Magma daemons.
 
 3. [**`cilium/epbf`**](https://github.com/cilium/ebpf): This is a pure Go eBPF
 library alternative to BCC. `cilium/ebpf` has minimal external dependencies and
@@ -204,8 +248,15 @@ with, more mature, and more popular (hence more support available), and also
 allows us to use existing metrics support in Python.
 
 4. [**`iovisor/gobpf`**](https://github.com/iovisor/gobpf): These are Go
-bindings for BCC. `gobpf` would be a good choice if our metrics export system
-was in Go and not in Python.
+bindings for BCC. `gobpf` will allow us to reuse the BPF code we write for the
+Python bindings for BCC. It also contains tools for compiling that program and
+loading into the kernel from a Go binary which would contain the front-end
+program. The reason we are not picking `gobpf` is because our metrics pipeline
+has a transformation step from Prometheus metrics to gRPC structures for
+consumption by `magmad`. We already implement this transformation in Python and
+C++, but not in Go. In the future, we may implement this transformation in Go to
+move gateway services from Python/C++ to Go. If we do so, we should consider
+using `gobpf` for `kernsnoopd`.
 
 5. [**`cloudflare/ebpf_exporter`**](https://github.com/cloudflare/ebpf_exporter):
 This uses `gobpf` behind the scenes. It handles compiling and loading the
@@ -214,6 +265,10 @@ frontend program to be generated from a YAML specification. `ebpf_exporter` may
 have been a good choice if we were using standard Prometheus metrics collection
 and export methods, but we do not. Hence, we prefer an explicit Python frontend
 program.
+
+While the eBPF-based alternatives present above can be used to implement a wide
+variety of observability tasks from inside the kernel, the non-eBPF ones are not
+extendable.
 
 ## Cross-cutting concerns
 
@@ -234,7 +289,12 @@ the performance penalty will be closer to the `getpid()` benchmark from
 `ebpf_exporter` [8]: a few hundred nanoseconds per call. However, even that on
 the network path may be significant and would warrant concern if network
 utilization on our gateways is very high and if they are CPU-bottlenecked (see
-[Open Issues](#open-issues).
+[Open Issues](#open-issues)).
+It will be important to count bytes/packets only on the relevant interfaces and
+relevant ports on the loopback interface. We want to observe traffic on loopback
+as we use `control_proxy` to funnel traffic from Magma daemons, but we want to
+ignore traffic on loopback that isn't destined for `control_proxy` such as
+`redis` traffic or communication between `magmad` and other daemons.
 
 One way to slash the performance penalty is to take the instrumentation out of
 the network path. We could, for example, use the TCP tracepoint
@@ -268,10 +328,14 @@ though as our access gateways are on Ubuntu Focal with kernel version 5.8+.
 
 ### Observability and Debug
 
-The Prometheus metrics pipeline from `magmad` gateway service to the NMS UI is
-mature and well-tested. Appropriate `nosetests` will be included in the
-implementation of this proposal to support validation and debugging for
-collected network metrics.
+`kernsnoopd` will provide debug logs of collected counters for observability.
+Appropriate `nosetests` will be included in the implementation to support
+validation and debugging. Additionally, `kernsnoopd` will also provide the
+`GetMetrics` gRPC methods to expose the Prometheus metrics.
+
+From the `GetMetrics` method of `kernsnoopd`, metrics enter `magmad` and follow
+the general [metrics pipeline](resources/ref_magma_metrics) which is mature and
+well-tested.
 
 ### Security & privacy
 
@@ -289,11 +353,19 @@ read, but they will not be stored anywhere.
 ## Open issues
 
 - Is 63 MB of additional disk space required to install `bpfcc-tools` on the
-access gateway really not a problem?
-- Is network utilization on our access gateway usually close to 100%? Are our
-gateways starving for CPU?
+access gateway really not a problem? Discuss with DevOps.
+
 - We do not want to instrument the data path. Should we observe all interfaces
-on the gateway? If not, what subset should we observe?
+on the gateway? If not, what subset should we observe? This is crucial to
+reducing performance impact of the above design.
+
+- Is network utilization on our access gateway usually close to 100%? Are our
+gateways starving for CPU? We will design a lab experiment to quantify both the
+control path and data path impact of `kernsnoopd`. This experiment will measure
+AGW capacity in terms of number of UEs, varying attach/detach rates, data path
+traffic. We will also aim to compensate statistically for the jitter in AGW
+capacity measurements.
+
 
 ## References
 

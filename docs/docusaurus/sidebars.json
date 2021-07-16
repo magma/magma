@@ -287,7 +287,8 @@
       "proposals/p014_proposal_process",
       "proposals/p015_tech_debt_week",
       "proposals/p016_nms_regression_testing",
-      "proposals/p017_apn_refactoring"
+      "proposals/p017_apn_refactoring",
+      "proposals/p018_control_network_metrics"
     ],
     "FAQ": [
       "faq/faq_magma"
