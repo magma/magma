@@ -226,12 +226,15 @@ namespace (by default this is <code>orc8r</code>). Also, assumes kubeconfig is s
 correctly from above.</p>
 <p>Create the Orchestrator admin user with the <code>admin_operator</code> certificate
 created earlier</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> ORC_POD=$(kubectl --namespace orc8r get pod -l app.kubernetes.io/component=orchestrator -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
-kubectl --namespace orc8r <span class="hljs-built_in">exec</span> <span class="hljs-variable">${ORC_POD}</span> -- /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+<pre><code class="hljs css language-bash">kubectl --namespace orc8r <span class="hljs-built_in">exec</span> deploy/orc8r-orchestrator -- \
+  /var/opt/magma/bin/accessc \
+  add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem \
+  admin_operator
 </code></pre>
 <p>If you want to verify the admin user was successfully created, inspect the
 output from</p>
-<pre><code class="hljs css language-bash">$ kubectl --namespace orc8r <span class="hljs-built_in">exec</span> <span class="hljs-variable">${ORC_POD}</span> -- /var/opt/magma/bin/accessc list-certs
+<pre><code class="hljs css language-bash">$ kubectl --namespace orc8r <span class="hljs-built_in">exec</span> deploy/orc8r-orchestrator -- \
+  /var/opt/magma/bin/accessc list-certs
 
 <span class="hljs-comment"># <span class="hljs-doctag">NOTE:</span> actual values will differ</span>
 Serial Number: 83550F07322CEDCD; Identity: Id_Operator_admin_operator; Not Before: 2020-06-26 22:39:55 +0000 UTC; Not After: 2030-06-24 22:39:55 +0000 UTC
@@ -243,8 +246,8 @@ the <code>null_resource</code> to re-upload local certificates to Secrets Manage
 also need to add a new admin user with the updated <code>admin_operator</code> cert.</p>
 <h3><a class="anchor" aria-hidden="true" id="create-an-nms-admin-user"></a><a href="#create-an-nms-admin-user" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create an NMS Admin User</h3>
 <p>Create an admin user for the <code>master</code> organization on the NMS</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> NMS_POD=$(kubectl --namespace orc8r get pod -l  app.kubernetes.io/component=magmalte -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
-kubectl --namespace orc8r <span class="hljs-built_in">exec</span> -it <span class="hljs-variable">${NMS_POD}</span> -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+<pre><code class="hljs css language-bash">kubectl --namespace orc8r <span class="hljs-built_in">exec</span> -it deploy/nms-magmalte -- \
+  yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="dns-resolution"></a><a href="#dns-resolution" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>DNS Resolution</h2>
 <p>EKS has been set up with
