@@ -163,7 +163,6 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	var nextToken string
 	if s.useSubProtoStore {
 		// If request page size is 0, return max entity load size
-		// TODO(wangyyt1013): somehow incorporate this config with the configurator maxEntityLoadSize config?
 		pageSize := uint64(req.PageSize)
 		if req.PageSize == 0 {
 			pageSize = s.maxProtosLoadSize
