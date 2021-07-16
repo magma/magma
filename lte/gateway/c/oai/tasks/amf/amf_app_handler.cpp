@@ -558,6 +558,12 @@ void amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
 
+    amf_sap.u.amf_as.u.establish.pdu_sesion_status_ie =
+        (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
+    amf_sap.u.amf_as.u.establish.pdu_session_status =
+        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+    amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
+        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     amf_sap.u.amf_as.u.establish.guti.m_tmsi =
         htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
@@ -951,8 +957,8 @@ void amf_app_handle_cm_idle_on_ue_context_release(
   amf_ue_ngap_id_t ue_id;
   ue_m5gmm_context_s* ue_context = nullptr;
   smf_context_t smf_ctx;
-  ue_id = cm_idle_req.amf_ue_ngap_id;
-  notify_ue_event notify_ue_event_type;
+  ue_id                                = cm_idle_req.amf_ue_ngap_id;
+  notify_ue_event notify_ue_event_type = UE_IDLE_MODE_NOTIFY;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {

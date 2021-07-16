@@ -116,7 +116,6 @@ int amf_handle_service_request(
             notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
             // construct the proto structure and send message to SMF
             amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
-            smf_context->pdu_session_state = ACTIVE;
 #if 0
               amf_smf_create_session_on_service_req(
                  imsi, smf_context.apn,
@@ -129,7 +128,7 @@ int amf_handle_service_request(
           }
         }
       }
-
+#if 0
       if (pdu_session_status) {
         amf_sap.primitive = AMFAS_ESTABLISH_CNF;
 
@@ -143,6 +142,7 @@ int amf_handle_service_request(
             pdu_session_status;
         rc = amf_sap_send(&amf_sap);
       }
+#endif
     }
   } else {
     OAILOG_INFO(
