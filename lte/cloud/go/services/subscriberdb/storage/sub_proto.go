@@ -34,6 +34,8 @@ const (
 	subProtoNidCol       = "network_id"
 	subProtoSidCol       = "subscriber_id"
 	subProtoProtoCol     = "subscriber_proto"
+
+	postgresUpsertColumnPrefix = "excluded"
 )
 
 var (
@@ -125,22 +127,27 @@ func (l *SubProtoStore) InsertManyByNetwork(network string, subProtos []*lte_pro
 // CommitUpdateByNetwork cleans up and re-populates the subscriber proto store table with data from the temporary
 // table for a particular network, and then truncates the temporary table.
 func (l *SubProtoStore) CommitUpdateByNetwork(network string) error {
-	// TODO(wangyyt1013): optimize this for large tables
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := l.builder.
-			Delete(subProtoTableName).
-			Where(squirrel.Eq{subProtoNidCol: network}).
-			RunWith(tx).
-			Exec()
+		// HACK: hard coding sql query because there currently doesn't exist good support
+		// for this following query with squirrel
+		deleteRowsOnlyInRealTableQuery := fmt.Sprintf(
+			"DELETE FROM %s WHERE (%s = \"%s\") AND ((%s, %s) NOT IN (SELECT %s, %s FROM %s))",
+			subProtoTableName, subProtoNidCol, network,
+			subProtoNidCol, subProtoSidCol,
+			subProtoNidCol, subProtoSidCol, subProtoTmpTableName,
+		)
+		_, err := tx.Exec(deleteRowsOnlyInRealTableQuery)
 		if err != nil {
 			return nil, errors.Wrapf(err, "clean up previous sub proto store table")
 		}
-		// the upsertColumnPrefix varies depends on the sql dialect
-		// e.g. for mariaDB, "f1=excluded.f1"; for postgres, "f1=t2.f1"
+
+		// the upsertColumnPrefix is used to refer to the the table whose column value is
+		// used in the "on conflict update" operation; it depends on the sql dialect
+		// e.g. for mariaDB, "f1=t2.f1"; for postgres, "f1=excluded.f1"
 		var upsertColumnPrefix string
 		switch getSqlDialect() {
 		case sqorc.PostgresDialect:
-			upsertColumnPrefix = "excluded"
+			upsertColumnPrefix = postgresUpsertColumnPrefix
 		case sqorc.MariaDialect:
 			upsertColumnPrefix = subProtoTmpTableName
 		}
@@ -164,6 +171,7 @@ func (l *SubProtoStore) CommitUpdateByNetwork(network string) error {
 		if err != nil {
 			return nil, errors.Wrapf(err, "populate sub proto store table")
 		}
+
 		_, err = l.builder.
 			Delete(subProtoTmpTableName).
 			Where(squirrel.Eq{subProtoNidCol: network}).
