@@ -34,7 +34,7 @@ int UEShard::add_ue() {
     number_of_shards++;
   } else {
     for (auto i = 0; i < number_of_shards; i++) {
-      if (shards[i] < max_shard_size) {
+      if (shards[i] < MAX_SHARD_SIZE) {
         shards[i]++;
         return i;
       }
