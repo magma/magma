@@ -15,7 +15,6 @@
 #include <memory>
 #include <vector>
 #include "StatsPoller.h"
-#define DEFAULT_FLOW_COOKIE 0xfffffffffffffffe
 
 namespace magma {
 
@@ -23,7 +22,7 @@ void StatsPoller::start_loop(
     std::shared_ptr<magma::LocalEnforcer> local_enforcer,
     uint32_t loop_interval_seconds) {
   while (true) {
-    std::vector<int> vect{0};
+    std::vector<int> vect{};
     local_enforcer->poll_stats_enforcer(vect);
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
   }

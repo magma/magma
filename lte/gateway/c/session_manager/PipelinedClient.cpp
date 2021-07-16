@@ -435,6 +435,16 @@ void AsyncPipelinedClient::poll_stats(
     std::vector<int> shard_ids,
     std::function<void(Status, RuleRecordTable)> callback) {
   // make reqs per shard id and send API calls
+  if (shard_ids.size() == 0) {
+    // if no shards passed in, query all cookies(for now we'll use
+    // a placeholder)
+    auto req = make_stat_req(-1, 0);
+    poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
+      if (!status.ok()) {
+        MLOG(MERROR) << "Could not poll stats " << status.error_message();
+      }
+    });
+  }
   for (size_t i = 0; i < shard_ids.size(); i++) {
     auto req = make_stat_req(shard_ids[i], 0);
     poll_stats_rpc(req, [](Status status, RuleRecordTable table) {

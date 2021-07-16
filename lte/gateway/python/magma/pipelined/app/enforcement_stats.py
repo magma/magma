@@ -581,7 +581,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error("Could not initialize datapath for stats retrieval")
             return RuleRecordTable()
         parser = self._datapath.ofproto_parser
-        message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
+        if (cookie == -1):
+            message = parser.OFPFlowStatsRequest(datapath=self._datapath)
+        else:
+            message = parser.OFPFlowStatsRequest(datapath=self._datapath, 
+            cookie = cookie, cookie_mask = cookie_mask)
         try:
             response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
                     reply_multi=False)

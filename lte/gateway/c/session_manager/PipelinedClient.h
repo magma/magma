@@ -293,13 +293,13 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       FlowResponse resp);
 
   /**
-  * @brief Retrieves relevant records from Pipelined stats enforcements table
-  * based on shard id
-  *
-  * @param shard id matches shard that UE is contained in. This maps to a cookie
-  * in pipelined
-  * */
-  
+   * @brief Retrieves relevant records from Pipelined stats enforcements table
+   * based on shard id
+   *
+   * @param shard id matches shard that UE is contained in. This maps to a
+   * cookie in pipelined
+   * */
+
   void poll_stats(
       std::vector<int> shard_ids,
       std::function<void(Status, RuleRecordTable)> callback);
