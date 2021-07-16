@@ -1464,15 +1464,15 @@ jobs:
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION=""1.7.0-${CIRCLE_SHA1:0:8}"" >> $BASH_ENV
+              echo export VERSION="1.7.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
               echo export PACKAGE_VERSION="ci" >> $BASH_ENV
-              echo export PACKAGE_REPO_HOST="artifactory.magmacore.org/artifactory/debian-test" >> $BASH_ENV
+              echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian-test" >> $BASH_ENV
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
               echo export VERSION="1.7.0" >> $BASH_ENV
-              echo export PACKAGE_REPO_HOST="artifactory.magmacore.org/artifactory/debian" >> $BASH_ENV
+              echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian" >> $BASH_ENV
             fi
             echo export GIT_REF="${CIRCLE_SHA1}" >> $BASH_ENV
       - run:
