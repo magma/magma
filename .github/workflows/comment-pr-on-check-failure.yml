@@ -5,6 +5,7 @@ on:  # yamllint disable-line rule:truthy
     workflows:
       - DCO check
       - Python Format Check
+      - Semantic PR
     types:
       - completed
 
@@ -35,34 +36,32 @@ jobs:
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
       - run: unzip pr.zip
-      - name: DCO comment on PR
+      - name: DCO comment message
         if: ${{ github.event.workflow.name == 'DCO check' }}
-        uses: actions/github-script@v3
-        with:
-          script: |
-            var fs = require('fs');
-            var issue_number = Number(fs.readFileSync('./NR'));
-            var msg = `Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
-            ### Howto
-            - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
-            - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
-            - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357/git-sign-off-previous-commits)
-            - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)`
-            github.issues.createComment({
-              issue_number: issue_number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: msg,
-            })
-      - name: Python format comment on PR
+        run: |
+          echo "MSG=Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
+          ### Howto
+          - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
+          - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357/git-sign-off-previous-commits)
+          - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)" >> $GITHUB_ENV
+      - name: Python format comment message
         if: ${{ github.event.workflow.name == 'Python Format Check' }}
+        run: |
+          echo "MSG=Oops! Looks like you failed the \`Python Format Check\`.
+          Instructions on running the formatter locally are provided [here](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit)." >> $GITHUB_ENV
+      - name: Semantic PR comment message
+        if: ${{ github.event.workflow.name == 'Semantic PR' }}
+        run: |
+          echo "MSG=Oops! Looks like you failed the \`Semantic PR check\`.
+          Instructions on formatting your PR title [here](https://www.conventionalcommits.org/en/v1.0.0/#summary)." >> $GITHUB_ENV
+      - name: Comment on PR
         uses: actions/github-script@v3
         with:
           script: |
             var fs = require('fs');
             var issue_number = Number(fs.readFileSync('./NR'));
-            var msg = `Oops! Looks like you failed the \`Python Format Check\`.
-                        Instructions on running the formatter locally are provided [here](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit).`
+            const msg = process.env.MSG
 
             github.issues.createComment({
               issue_number: issue_number,
