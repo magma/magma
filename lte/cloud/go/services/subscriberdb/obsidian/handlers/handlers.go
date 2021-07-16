@@ -743,6 +743,7 @@ func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscr
 		return obsidian.HttpError(errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates), http.StatusBadRequest)
 	}
 
+	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
 	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
 	found, _, err := configurator.LoadSerializedEntities(networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
 	if err != nil {

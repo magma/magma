@@ -18,8 +18,6 @@ import (
 
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	platform_service "magma/orc8r/lib/go/service"
-
-	"google.golang.org/grpc"
 )
 
 // NewTestService returns a new gRPC orchestrator service without
@@ -29,7 +27,7 @@ func NewTestService(t *testing.T, moduleName string, serviceType string) (*platf
 	if t == nil {
 		panic("for tests only")
 	}
-	return platform_service.NewServiceWithOptions(moduleName, serviceType, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+	return platform_service.NewServiceWithOptions(moduleName, serviceType, unary.GetInterceptorOpt())
 }
 
 // NewTestOrchestratorService returns a new gRPC orchestrator service without
@@ -39,7 +37,7 @@ func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType str
 	if t == nil {
 		panic("for tests only")
 	}
-	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceType, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceType, unary.GetInterceptorOpt())
 	if err != nil {
 		return nil, err
 	}

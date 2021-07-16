@@ -85,6 +85,7 @@ func init() {
 // SetIdentityFromContext will bypass the Identity checks for local callers
 // (other services on the cloud) and allowlisted RPCs (methods in
 // identityDecoratorBypassList)
+// TODO(hcgatewood): refactor this to clean up the convoluted logic
 func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.UnaryServerInfo) (newCtx context.Context, newReq interface{}, resp interface{}, err error) {
 	// There are 5 possible outcomes:
 	// 1. !ok -> type assertion: mdIncomingKey{} is present, but it's not of MD type

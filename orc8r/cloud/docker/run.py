@@ -54,6 +54,9 @@ def main() -> None:
     pathlib.Path(HOST_BUILD_CTX).mkdir(parents=True, exist_ok=True)
 
     cmd = ['docker-compose', 'up', '-d']
+    if args.down:
+        cmd = ['docker-compose', 'down']
+
     print("Running '%s'..." % ' '.join(cmd))
     try:
         subprocess.run(cmd, check=True)
@@ -115,6 +118,13 @@ def _parse_args() -> argparse.Namespace:
         '--thanos',
         action='store_true',
         help='Include docker-compose.thanos.yml',
+    )
+
+    # Other actions
+    parser.add_argument(
+        '--down', '-d',
+        action='store_true',
+        help='Stop running containers',
     )
 
     args = parser.parse_args()
