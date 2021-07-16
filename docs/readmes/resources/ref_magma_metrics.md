@@ -6,7 +6,7 @@ hide_title: true
 
 # Life of a Magma Metric
 
-A metric in a Magma deployment may originate at the access gateway (AGW), other gateways such as FeG, at the orchestrator (Orc8r), or at other targets such as Postgres. In this document, we focus on the life of a metric that originates at the AGW, goes through the Orc8r to [Prometheus](https://prometheus.io/), and eventually gets displayed on the NMS UI.
+A metric in Magma deployments may originate at gateways (AGW, FeG, etc.), Orc8r, or other targets (Postgres, AWS, etc.). In this document, we focus on the life of a metric that originates at the AGW, travels through the Orc8r to [Prometheus](https://prometheus.io/), and is eventually displayed on the NMS UI.
 
 ![Orc8r Metrics](assets/orc8r/orc8r_metrics.png)
 
@@ -55,7 +55,7 @@ def get_metrics(registry=REGISTRY, verbose=False):
     # ...
 ```
 
-While each service defines and sets its own metrics, it is up to the _magmad_ service to collect metrics from all services and export them to the Orc8r. When the _magmad_ service gets started, it reads metrics configuration from [magmad.yml](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/feg/gateway/configs/magmad.yml). Then, _magmad_schedules its [`MetricsCollector`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/python/magma/magmad/metrics_collector.py) object to collect and upload metrics every `metrics_config.sync_interval` seconds. The `MetricsCollector` object loops over all Python services and for each, calls `GetMetrics` over gRPC to obtain metrics from the Python service. Then, it divides the gRPC structures into chunks of 1 MB or less, and uploads these chunks to the _metricsd_ Orc8r service over gRPC through the `Collect` method in _metricsd_.
+While each service defines and sets its own metrics, it is up to the _magmad_ service to collect metrics from all services and export them to the Orc8r. When the _magmad_ service gets started, it reads metrics configuration from [magmad.yml](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/feg/gateway/configs/magmad.yml). Then, _magmad_ schedules its [`MetricsCollector`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/python/magma/magmad/metrics_collector.py) object to collect and upload metrics every `metrics_config.sync_interval` seconds. The `MetricsCollector` object loops over all Python services and for each, calls `GetMetrics` over gRPC to obtain metrics from the Python service. Then, it divides the gRPC structures into chunks of 1 MB or less, and uploads these chunks to the _metricsd_ Orc8r service over gRPC through the `Collect` method in _metricsd_.
 
 ```python
 # metrics_collector.py
@@ -118,7 +118,7 @@ func (s *GRPCPushExporterServicer) pushFamilies(families []*io_prometheus_client
 }
 ```
 
-[Prometheus Edge Hub](https://github.com/facebookincubator/prometheus-edge-hub) is a Facebook project that replaces the Prometheus Pushgateway. Orc8r's Prometheus service scrapes and drains the Edge Hub so metrics finally arrive at their home in the Prometheus server. On a dev environment, the Prometheus server runs at [localhost:9090](http://localhost:9090).
+[Prometheus Edge Hub](https://github.com/facebookincubator/prometheus-edge-hub) is a Facebook project that replaces the Prometheus Pushgateway. Orc8r's Prometheus service [scrapes](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/cloud/helm/orc8r/charts/metrics/templates/prometheus.deployment.yaml#L160-L168) and drains the Edge Hub so metrics finally arrive at their home in the Prometheus server. [On a dev environment](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/cloud/docker/docker-compose.metrics.yml?L14-24), the Prometheus server runs at [localhost:9090](http://localhost:9090).
 
 ## Phase 3: NMS and Grafana
 
@@ -156,6 +156,6 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 }
 ```
 
-Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parametrized metric request to Prometheus and displays the retrieved metrics.
+Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parameterized metric request to Prometheus and displays the retrieved metrics.
 
 ![Grafana Explore UI](assets/nms/grafana_query.png)
