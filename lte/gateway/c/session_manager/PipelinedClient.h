@@ -210,7 +210,7 @@ class PipelinedClient {
   virtual uint32_t get_current_teid() = 0;
 
   virtual void poll_stats(
-      int cookie, int cookie_mask,
+      std::vector<int> shard_ids,
       std::function<void(Status, RuleRecordTable)> callback) = 0;
 };
 
@@ -292,15 +292,18 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const magma::UEMacFlowRequest req, const int retries, Status status,
       FlowResponse resp);
 
-  /**
-   * @brief Retrieves relevant records from Pipelined stats enforcements table
-   * based on cookie and cookie mask
-   *
-   * @param cookie require matching entries to contain the cookie value
-   * @param cookie_mask mask that restricts the cookie bits that must match
-   */
+  /*
+     * @brief Retrieves relevant records from Pipelined stats enforcements table
+     * based on cookie and cookie mask
+     *
+     * @param cookie require matching entries to contain the cookie value
+     * @param cookie_mask mask that restricts the cookie bits that must match
+
   void poll_stats(
       int cookie, int cookie_mask,
+      std::function<void(Status, RuleRecordTable)> callback);*/
+  void poll_stats(
+      std::vector<int> shard_ids,
       std::function<void(Status, RuleRecordTable)> callback);
 
   uint32_t get_next_teid();

@@ -167,9 +167,9 @@ class MockPipelinedClient : public PipelinedClient {
           std::function<void(Status status, UPFSessionContextState)> callback));
   MOCK_METHOD0(get_next_teid, uint32_t());
   MOCK_METHOD0(get_current_teid, uint32_t());
-  MOCK_METHOD3(
+  MOCK_METHOD2(
       poll_stats, void(
-                      int cookie, int cookie_mask,
+                      std::vector<int> shard_ids,
                       std::function<void(Status, RuleRecordTable)> callback));
 };
 

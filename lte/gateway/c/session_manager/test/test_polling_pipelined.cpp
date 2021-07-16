@@ -14,6 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <memory>
 #include "Consts.h"
+#include <vector>
 #include "LocalEnforcer.h"
 #include "ProtobufCreators.h"
 #include "SessiondMocks.h"
@@ -117,23 +118,13 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
 
   local_enforcer->aggregate_records(session_map, table, update);
 
-  int cookie      = 0;
-  int cookie_mask = 0;
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
-      .Times(1);
-  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
+  std::vector<int> shard_ids{0};
+  EXPECT_CALL(*pipelined_client, poll_stats(shard_ids, testing::_)).Times(1);
+  local_enforcer->poll_stats_enforcer(shard_ids);
 
-  cookie      = 1;
-  cookie_mask = 0;
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
-      .Times(1);
-  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
-
-  cookie      = 0;
-  cookie_mask = 1;
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
-      .Times(1);
-  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
+  std::vector<int> shard_ids2{1};
+  EXPECT_CALL(*pipelined_client, poll_stats(shard_ids2, testing::_)).Times(1);
+  local_enforcer->poll_stats_enforcer(shard_ids2);
 }
 
 int main(int argc, char** argv) {

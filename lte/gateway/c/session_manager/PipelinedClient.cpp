@@ -432,6 +432,21 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
 }
 
 void AsyncPipelinedClient::poll_stats(
+    std::vector<int> shard_ids,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  // make reqs per shard id and send API calls
+  for (size_t i = 0; i < shard_ids.size(); i++) {
+    auto req = make_stat_req(shard_ids[i], 0);
+    poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
+      if (!status.ok()) {
+        MLOG(MERROR) << "Could not poll stats " << status.error_message();
+      }
+    });
+  }
+}
+
+/*
+void AsyncPipelinedClient::poll_stats(
     int cookie, int cookie_mask,
     std::function<void(Status, RuleRecordTable)> callback) {
   auto req = make_stat_req(cookie, cookie_mask);
@@ -440,7 +455,7 @@ void AsyncPipelinedClient::poll_stats(
       MLOG(MERROR) << "Could not poll stats " << status.error_message();
     }
   });
-}
+}*/
 
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
