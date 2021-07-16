@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
 import subprocess
 from collections import namedtuple
 
@@ -22,7 +21,6 @@ from magma.pipelined.openflow import flows
 from ryu.lib import hub
 
 UPLINK_OVS_BRIDGE_NAME = 'uplink_br0'
-
 
 class UplinkBridgeController(MagmaController):
     """
@@ -281,9 +279,6 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (ovs_add_port, ex))
 
         self.logger.info("Add uplink port: %s", ovs_add_port)
-        # sometimes the mac address changes after port addition, so restart the service.
-        self.logger.info('OVS uplink bridge reconfigured, restarting to get new config')
-        os._exit(0)  # pylint: disable=protected-access
 
     def _del_eth_port(self):
         if BridgeTools.port_is_in_bridge(
