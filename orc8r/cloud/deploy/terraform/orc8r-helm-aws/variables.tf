@@ -203,7 +203,7 @@ variable "wifi_orc8r_chart_version" {
 variable "orc8r_tag" {
   description = "Image tag for Orchestrator components."
   type        = string
-  default     = "latest"
+  default     = "1.6.0"
 }
 
 variable "magma_uuid" {

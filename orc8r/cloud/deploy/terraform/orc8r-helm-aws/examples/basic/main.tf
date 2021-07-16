@@ -64,19 +64,15 @@ module "orc8r-app" {
   orc8r_db_user    = module.orc8r.orc8r_db_user
   orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
-  # Note that this can be any container registry provider -- the example below
-  # provides the URL format for Docker Hub, where the user and pass are your
-  # Docker Hub username and access token, respectively
+  # Note that this can be any container registry provider
   docker_registry = "https://docker.artifactory.magmacore.org/artifactory/docker"
-  # docker_user     = "MY_USERNAME"
-  # docker_pass     = "MY_PASSWORD"
+  docker_user     = ""
+  docker_pass     = ""
 
-  # Note that this can be any Helm chart repo provider -- the example below
-  # provides the URL format for using a raw GitHub repo, where the user and
-  # pass are your GitHub username and access token, respectively
-  helm_repo = "https://docker.artifactory.magmacore.org/artifactory/helm-prod"
-  # helm_user       = "MY_USERNAME"
-  # helm_pass       = "MY_PASSWORD"
+  # Note that this can be any Helm chart repo provider
+  helm_repo       = "https://docker.artifactory.magmacore.org/artifactory/helm"
+  helm_user       = ""
+  helm_pass       = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
 
   efs_file_system_id       = module.orc8r.efs_file_system_id
