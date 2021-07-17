@@ -79,7 +79,7 @@ message Regional_subscription {
 
 // ue_mm_context_t
 message UeContext {
-  string msisdn = 1;
+  bytes msisdn = 1;
   uint32 rel_cause = 2; //enum s1cause
   uint32 mm_state = 3; // mm_state_t
   uint32 ecm_state = 4; // ecm_state_t
