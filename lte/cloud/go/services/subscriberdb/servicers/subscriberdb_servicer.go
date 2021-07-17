@@ -36,20 +36,27 @@ import (
 type subscriberdbServicer struct {
 	flatDigestEnabled     bool
 	changesetSizeTheshold int
+	useSubProtoStore      bool
+	maxProtosLoadSize     uint64
 	digestStore           storage.DigestStore
 	perSubDigestStore     *storage.PerSubDigestStore
+	subProtoStore         *storage.SubProtoStore
 }
 
 func NewSubscriberdbServicer(
 	config subscriberdb.Config,
 	digestStore storage.DigestStore,
 	perSubDigestStore *storage.PerSubDigestStore,
+	subProtoStore *storage.SubProtoStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled:     config.FlatDigestEnabled,
 		changesetSizeTheshold: config.ChangesetSizeTheshold,
+		useSubProtoStore:      config.UseSubProtoStore,
+		maxProtosLoadSize:     config.MaxProtosLoadSize,
 		digestStore:           digestStore,
 		perSubDigestStore:     perSubDigestStore,
+		subProtoStore:         subProtoStore,
 	}
 	return servicer
 }
@@ -103,16 +110,28 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if len(toRenew) > s.changesetSizeTheshold {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
+
 	sids := funk.Keys(toRenew).([]string)
-	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
-	if err != nil {
-		return nil, err
+	var subProtosToRenew []*lte_protos.SubscriberData
+	if s.useSubProtoStore {
+		subProtosToRenew, err = s.subProtoStore.GetByIDs(networkID, sids)
+		if err != nil {
+			return nil, err
+		}
+		// Since the cached sub protos don't contain gateway-specific apn resources data, need to
+		// append that to each sub proto in this handler
+		subProtosToRenew = appendApnResourcesToSubProtos(subProtosToRenew, apnResourcesByAPN)
+	} else {
+		subProtosToRenew, err = subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	res := &lte_protos.SyncSubscribersResponse{
 		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
 		PerSubDigests: cloudPerSubDigests,
-		ToRenew:       subProtosById,
+		ToRenew:       subProtosToRenew,
 		Deleted:       deleted,
 		Resync:        false,
 	}
@@ -139,9 +158,25 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	if err != nil {
 		return nil, err
 	}
-	subProtos, nextToken, err := subscriberdb.LoadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
-	if err != nil {
-		return nil, err
+
+	var subProtos []*lte_protos.SubscriberData
+	var nextToken string
+	if s.useSubProtoStore {
+		// If request page size is 0, return max entity load size
+		pageSize := uint64(req.PageSize)
+		if req.PageSize == 0 {
+			pageSize = s.maxProtosLoadSize
+		}
+		subProtos, nextToken, err = s.subProtoStore.GetPage(networkID, req.PageToken, pageSize)
+		if err != nil {
+			return nil, err
+		}
+		subProtos = appendApnResourcesToSubProtos(subProtos, apnResourcesByAPN)
+	} else {
+		subProtos, nextToken, err = subscriberdb.LoadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	flatDigest := &lte_protos.Digest{Md5Base64Digest: ""}
@@ -206,4 +241,27 @@ func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfi
 	}
 
 	return apnsByName, apnResources, nil
+}
+
+// appendApnResourcesToSubProtos adds the gateway-specific apn resources data to subscriber protos before
+// returning to AGWs.
+func appendApnResourcesToSubProtos(subProtos []*lte_protos.SubscriberData, apnResources lte_models.ApnResources) []*lte_protos.SubscriberData {
+	for i := range subProtos {
+		subProto := subProtos[i]
+		if subProto.GetNon_3Gpp() == nil || subProto.Non_3Gpp.GetApnConfig() == nil {
+			continue
+		}
+
+		for j := range subProto.Non_3Gpp.ApnConfig {
+			apnKey := subProto.Non_3Gpp.ApnConfig[j].ServiceSelection
+			var apnResource *lte_protos.APNConfiguration_APNResource
+
+			if apnResourceModel, ok := apnResources[apnKey]; ok {
+				apnResource = apnResourceModel.ToProto()
+			}
+			subProto.Non_3Gpp.ApnConfig[j].Resource = apnResource
+		}
+		subProtos[i] = subProto
+	}
+	return subProtos
 }

@@ -19,4 +19,10 @@ type Config struct {
 	// ChangesetSizeTheshold specifies the max size of the cloud-agw changeset
 	// past which a resync signal will be sent back to the agw.
 	ChangesetSizeTheshold int `yaml:"changesetSizeTheshold"`
+	// UseSubProtoStore is a feature flag for loading subscriber data from the
+	// cache store, instead of directly from configurator.
+	UseSubProtoStore bool `yaml:"useSubProtoStore"`
+	// MaxProtosLoadSize specifies the max size of cached subscriber protos that
+	// can be loaded for a page.
+	MaxProtosLoadSize uint64 `yaml:"maxProtosLoadSize"`
 }

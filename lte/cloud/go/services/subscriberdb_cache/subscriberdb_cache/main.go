@@ -47,10 +47,15 @@ func main() {
 	}
 	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(fact)
 
+	subProtoStore := subscriberdb_storage.NewSubProtoStore(db, sqorc.GetSqlBuilder())
+	if err := subProtoStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing subscriber proto storage: %+v", err)
+	}
+
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore)
+	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore, subProtoStore)
 
 	err = srv.Run()
 	if err != nil {
