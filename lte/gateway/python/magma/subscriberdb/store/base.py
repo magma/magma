@@ -109,6 +109,17 @@ class BaseStore(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def upsert_subscriber(self, subscriber_data):
+        """
+        Check if the given subscriber exists in store. If so, update subscriber
+        data; otherwise, add subscriber.
+
+        Args:
+            subscriber_data: the data of the subscriber to be upserted.
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     async def on_ready(self):
         """
         Awaitable interface to block until datastore is
