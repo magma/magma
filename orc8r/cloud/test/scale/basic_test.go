@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package scale_test
+package scale
 
 import (
 	"bytes"
@@ -27,13 +27,14 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/a_p_ns"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/lte_gateways"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/lte_networks"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/subscribers"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/upgrades"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/models"
+	"magma/orc8r/cloud/api/v1/go/client"
+	"magma/orc8r/cloud/api/v1/go/client/a_p_ns"
+	"magma/orc8r/cloud/api/v1/go/client/lte_gateways"
+	"magma/orc8r/cloud/api/v1/go/client/lte_networks"
+	"magma/orc8r/cloud/api/v1/go/client/subscribers"
+	"magma/orc8r/cloud/api/v1/go/client/upgrades"
+	"magma/orc8r/cloud/api/v1/go/models"
+
 	"magma/orc8r/cloud/test/testlib"
 
 	oclient "github.com/go-openapi/runtime/client"
