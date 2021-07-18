@@ -2062,7 +2062,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
    * Parse the configuration file using libconfig
    */
   if (!config_pP->config_file) {
-    config_pP->config_file = bfromcstr("/usr/local/etc/oai/mme.conf");
+    config_pP->config_file = bfromcstr("/var/opt/magma/tmp/mme.conf");
   }
   if (mme_config_parse_file(config_pP) != 0) {
     return -1;
