@@ -315,6 +315,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   config_setting_t* sub2setting = NULL;
   config_setting_t* sub3setting = NULL;
   int aint                      = 0;
+  double adouble                = 0.0;
   int i = 0, n = 0, stop_index = 0, num = 0;
   const char* astring  = NULL;
   const char* tac      = NULL;
@@ -1529,6 +1530,29 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    // Parsing Sentry Config
+    setting =
+        config_setting_get_member(setting_mme, MME_CONFIG_STRING_SENTRY_CONFIG);
+    memset(&config_pP->sentry_config, 0, sizeof(sentry_config_t));
+    config_pP->sentry_config.url_native = bfromcstr("");
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_SENTRY_CONFIG \n");
+    if (setting != NULL) {
+      if ((config_setting_lookup_float(
+              setting, MME_CONFIG_STRING_SAMPLE_RATE, &adouble))) {
+        config_pP->sentry_config.sample_rate = (float) adouble;
+      }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_UPLOAD_MME_LOG,
+              (const char**) &astring))) {
+        config_pP->sentry_config.upload_mme_log = parse_bool(astring);
+      }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_URL_NATIVE,
+              (const char**) &astring))) {
+        bassigncstr(config_pP->sentry_config.url_native, astring);
+      }
+    }
+
     // SGS TIMERS
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGS_CONFIG);
@@ -1750,6 +1774,17 @@ void mme_config_display(mme_config_t* config_pP) {
         LOG_CONFIG, "  Address : Unknown address family %d\n",
         config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr);
   }
+
+  OAILOG_INFO(LOG_CONFIG, "- Sentry:\n");
+  OAILOG_INFO(
+      LOG_CONFIG, "    sample rate ......: %f\n",
+      config_pP->sentry_config.sample_rate);
+  OAILOG_INFO(
+      LOG_CONFIG, "    upload MME log ...: %d\n",
+      config_pP->sentry_config.upload_mme_log);
+  OAILOG_INFO(
+      LOG_CONFIG, "    URL native .......: %s\n",
+      bdata(config_pP->sentry_config.url_native));
 
   OAILOG_INFO(LOG_CONFIG, "- ITTI:\n");
   OAILOG_INFO(
