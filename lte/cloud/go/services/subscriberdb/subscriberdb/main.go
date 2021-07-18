@@ -66,8 +66,8 @@ func main() {
 	}
 	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(perSubDigestFact)
 
-	subProtoStore := subscriberdb_storage.NewSubProtoStore(db, sqorc.GetSqlBuilder())
-	if err := subProtoStore.Initialize(); err != nil {
+	subStore := subscriberdb_storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	if err := subStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing subscriber proto storage: %+v", err)
 	}
 
@@ -79,7 +79,7 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subProtoStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 

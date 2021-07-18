@@ -29,9 +29,9 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MonitorDigests(config Config, digestStore storage.DigestStore, perSubDigestStore *storage.PerSubDigestStore, subProtoStore *storage.SubProtoStore) {
+func MonitorDigests(config Config, digestStore storage.DigestStore, perSubDigestStore *storage.PerSubDigestStore, subStore *storage.SubStore) {
 	for {
-		flatDigestsByNetworks, perSubDigestsByNetworks, err := RenewDigests(config, digestStore, perSubDigestStore, subProtoStore)
+		flatDigestsByNetworks, perSubDigestsByNetworks, err := RenewDigests(config, digestStore, perSubDigestStore, subStore)
 		if err != nil {
 			glog.Errorf("Error monitoring digests: %+v", err)
 		}
@@ -54,7 +54,7 @@ func RenewDigests(
 	config Config,
 	digestStore storage.DigestStore,
 	perSubDigestStore *storage.PerSubDigestStore,
-	subProtoStore *storage.SubProtoStore,
+	subStore *storage.SubStore,
 ) (map[string]string, map[string][]*lte_protos.SubscriberDigestWithID, error) {
 	networksToRenew, networksToRemove, err := getNetworksToUpdate(digestStore, config.UpdateIntervalSecs)
 	if err != nil {
@@ -69,7 +69,7 @@ func RenewDigests(
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "remove per sub digests of invalid networks")
 	}
-	err = subProtoStore.DeleteSubProtos(networksToRemove)
+	err = subStore.DeleteSubscribersForNetworks(networksToRemove)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "remove sub protos of invalid networks")
 	}
@@ -78,39 +78,53 @@ func RenewDigests(
 	perSubDigestsByNetwork := map[string][]*lte_protos.SubscriberDigestWithID{}
 	flatDigestsByNetwork := map[string]string{}
 	for _, network := range networksToRenew {
-		var perSubDigests []*lte_protos.SubscriberDigestWithID
-
-		digest, prevDigest, err := updateDigestByNetwork(network, digestStore)
+		digest, perSubDigests, err := renewDigestsForNetwork(network, digestStore, perSubDigestStore, subStore)
 		if err != nil {
 			multierror.Append(errs, err)
-			goto updateSubProtos
 		}
 		flatDigestsByNetwork[network] = digest
-
-		perSubDigests, err = updatePerSubDigestsByNetwork(network, perSubDigestStore)
-		if err != nil {
-			multierror.Append(errs, err)
-			goto updateSubProtos
-		}
 		perSubDigestsByNetwork[network] = perSubDigests
-
-		// If all digest-related operations succeeded, and the generated digest is the same as
-		// the previous digest, then no need to update the subscriber proto cache
-		if prevDigest == digest {
-			continue
-		}
-
-	updateSubProtos:
-		err = updateSubProtosByNetwork(network, subProtoStore)
-		if err != nil {
-			multierror.Append(errs, errors.Wrapf(err, "update subscriber protos for network %+v", network))
-		}
-		// TODO(wangyyt1013): add logs for updated sub protos
 	}
+
 	return flatDigestsByNetwork, perSubDigestsByNetwork, errs.ErrorOrNil()
 }
 
-func updatePerSubDigestsByNetwork(network string, perSubDigestStore *storage.PerSubDigestStore) ([]*lte_protos.SubscriberDigestWithID, error) {
+// renewDigestsForNetwork updates the digest stores and subscriber proto cache for a given network.
+func renewDigestsForNetwork(
+	network string,
+	digestStore storage.DigestStore,
+	perSubDigestStore *storage.PerSubDigestStore,
+	subStore *storage.SubStore,
+) (string, []*lte_protos.SubscriberDigestWithID, error) {
+	errs := &multierror.Error{}
+	digest, prevDigest, err := updateDigest(network, digestStore)
+	if err != nil {
+		multierror.Append(errs, err)
+	}
+
+	var perSubDigests []*lte_protos.SubscriberDigestWithID
+	if errs.ErrorOrNil() == nil {
+		perSubDigests, err = updatePerSubDigests(network, perSubDigestStore)
+		if err != nil {
+			multierror.Append(errs, err)
+		}
+	}
+
+	// If all digest-related operations succeeded, and the generated digest is the same as
+	// the previous digest, then no need to update the subscriber proto cache
+	if errs.ErrorOrNil() == nil && prevDigest == digest {
+		return digest, perSubDigests, nil
+	}
+
+	err = updateSubscribers(network, subStore)
+	if err != nil {
+		multierror.Append(errs, errors.Wrapf(err, "update subscriber protos for network %+v", network))
+	}
+	// TODO(wangyyt1013): add logs for updated sub protos
+	return digest, perSubDigests, errs.ErrorOrNil()
+}
+
+func updatePerSubDigests(network string, perSubDigestStore *storage.PerSubDigestStore) ([]*lte_protos.SubscriberDigestWithID, error) {
 	// The per-sub digests in store are updated en masse (collectively serialized into one blob per network);
 	// this update takes place along with every flat digest update for consistency.
 	// If an error occurs during this step, the overall last_updated_at timestamp for the network will
@@ -126,7 +140,7 @@ func updatePerSubDigestsByNetwork(network string, perSubDigestStore *storage.Per
 	return perSubDigests, nil
 }
 
-func updateDigestByNetwork(network string, digestStore storage.DigestStore) (string, string, error) {
+func updateDigest(network string, digestStore storage.DigestStore) (string, string, error) {
 	digest, err := subscriberdb.GetDigest(network)
 	if err != nil {
 		return "", "", errors.Wrapf(err, "generate flat digest")
@@ -142,13 +156,13 @@ func updateDigestByNetwork(network string, digestStore storage.DigestStore) (str
 	return digest, prevDigest, nil
 }
 
-func updateSubProtosByNetwork(network string, subProtoStore *storage.SubProtoStore) error {
+func updateSubscribers(network string, subStore *storage.SubStore) error {
 	apnsByName, err := subscriberdb.LoadApnsByName(network)
 	if err != nil {
 		return err
 	}
 	// Ensure the temporary table is empty for use
-	err = subProtoStore.ClearTmpTable()
+	err = subStore.InitiateUpdate()
 	if err != nil {
 		return err
 	}
@@ -161,14 +175,14 @@ func updateSubProtosByNetwork(network string, subProtoStore *storage.SubProtoSto
 			return err
 		}
 
-		err = subProtoStore.InsertManyByNetwork(network, subProtos)
+		err = subStore.InsertMany(network, subProtos)
 		if err != nil {
 			return err
 		}
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 	}
-	return subProtoStore.CommitUpdateByNetwork(network)
+	return subStore.ApplyUpdate(network)
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.

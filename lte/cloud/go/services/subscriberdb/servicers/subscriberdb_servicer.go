@@ -34,29 +34,27 @@ import (
 )
 
 type subscriberdbServicer struct {
-	flatDigestEnabled     bool
-	changesetSizeTheshold int
-	useSubProtoStore      bool
-	maxProtosLoadSize     uint64
-	digestStore           storage.DigestStore
-	perSubDigestStore     *storage.PerSubDigestStore
-	subProtoStore         *storage.SubProtoStore
+	flatDigestEnabled      bool
+	changesetSizeThreshold int
+	maxProtosLoadSize      uint64
+	digestStore            storage.DigestStore
+	perSubDigestStore      *storage.PerSubDigestStore
+	subStore               *storage.SubStore
 }
 
 func NewSubscriberdbServicer(
 	config subscriberdb.Config,
 	digestStore storage.DigestStore,
 	perSubDigestStore *storage.PerSubDigestStore,
-	subProtoStore *storage.SubProtoStore,
+	subStore *storage.SubStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
-		flatDigestEnabled:     config.FlatDigestEnabled,
-		changesetSizeTheshold: config.ChangesetSizeTheshold,
-		useSubProtoStore:      config.UseSubProtoStore,
-		maxProtosLoadSize:     config.MaxProtosLoadSize,
-		digestStore:           digestStore,
-		perSubDigestStore:     perSubDigestStore,
-		subProtoStore:         subProtoStore,
+		flatDigestEnabled:      config.FlatDigestEnabled,
+		changesetSizeThreshold: config.ChangesetSizeThreshold,
+		maxProtosLoadSize:      config.MaxProtosLoadSize,
+		digestStore:            digestStore,
+		perSubDigestStore:      perSubDigestStore,
+		subStore:               subStore,
 	}
 	return servicer
 }
@@ -65,6 +63,10 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 	ctx context.Context,
 	req *lte_protos.CheckSubscribersInSyncRequest,
 ) (*lte_protos.CheckSubscribersInSyncResponse, error) {
+	if !s.flatDigestEnabled {
+		return &lte_protos.CheckSubscribersInSyncResponse{InSync: false}, nil
+	}
+
 	gateway := protos.GetClientGateway(ctx)
 	if gateway == nil {
 		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
@@ -83,6 +85,10 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	ctx context.Context,
 	req *lte_protos.SyncSubscribersRequest,
 ) (*lte_protos.SyncSubscribersResponse, error) {
+	if !s.flatDigestEnabled {
+		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
+	}
+
 	gateway := protos.GetClientGateway(ctx)
 	if gateway == nil {
 		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
@@ -91,7 +97,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
-	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
+	_, apnResourcesByAPN, err := loadAPNs(gateway)
 	if err != nil {
 		return nil, err
 	}
@@ -107,26 +113,18 @@ func (s *subscriberdbServicer) SyncSubscribers(
 		return nil, err
 	}
 	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientPerSubDigests, cloudPerSubDigests)
-	if len(toRenew) > s.changesetSizeTheshold {
+	if len(toRenew) > s.changesetSizeThreshold || len(toRenew) > int(s.maxProtosLoadSize) {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
 
 	sids := funk.Keys(toRenew).([]string)
-	var subProtosToRenew []*lte_protos.SubscriberData
-	if s.useSubProtoStore {
-		subProtosToRenew, err = s.subProtoStore.GetByIDs(networkID, sids)
-		if err != nil {
-			return nil, err
-		}
-		// Since the cached sub protos don't contain gateway-specific apn resources data, need to
-		// append that to each sub proto in this handler
-		subProtosToRenew = appendApnResourcesToSubProtos(subProtosToRenew, apnResourcesByAPN)
-	} else {
-		subProtosToRenew, err = subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
-		if err != nil {
-			return nil, err
-		}
+	subProtosToRenew, err := s.subStore.GetSubscribers(networkID, sids)
+	if err != nil {
+		return nil, err
 	}
+	// Since the cached sub protos don't contain gateway-specific apn resources data, need to
+	// append that to each sub proto in this handler
+	subProtosToRenew = appendApnResourcesToSubProtos(subProtosToRenew, apnResourcesByAPN)
 
 	res := &lte_protos.SyncSubscribersResponse{
 		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
@@ -161,13 +159,13 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 
 	var subProtos []*lte_protos.SubscriberData
 	var nextToken string
-	if s.useSubProtoStore {
+	if s.flatDigestEnabled {
 		// If request page size is 0, return max entity load size
 		pageSize := uint64(req.PageSize)
 		if req.PageSize == 0 {
 			pageSize = s.maxProtosLoadSize
 		}
-		subProtos, nextToken, err = s.subProtoStore.GetPage(networkID, req.PageToken, pageSize)
+		subProtos, nextToken, err = s.subStore.GetSubscribersPage(networkID, req.PageToken, pageSize)
 		if err != nil {
 			return nil, err
 		}
@@ -182,7 +180,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	flatDigest := &lte_protos.Digest{Md5Base64Digest: ""}
 	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
 	// The digests are sent back during the request for the first page of subscriber data
-	if req.PageToken == "" {
+	if req.PageToken == "" && s.flatDigestEnabled {
 		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
 		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
 		if err != nil {
@@ -202,11 +200,6 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 // getDigestInfo returns the correctly formatted Digest and NoUpdates values
 // according to the client digest.
 func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, networkID string) (*lte_protos.Digest, bool) {
-	// The flat digest functionality is currently placed behind a feature flag
-	if !s.flatDigestEnabled {
-		return &lte_protos.Digest{Md5Base64Digest: ""}, false
-	}
-
 	digest, err := storage.GetDigest(s.digestStore, networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {

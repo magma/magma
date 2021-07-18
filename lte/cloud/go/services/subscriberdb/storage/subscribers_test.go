@@ -26,14 +26,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSubProtoStore(t *testing.T) {
+func TestSubStore(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	s := storage.NewSubProtoStore(db, sqorc.GetSqlBuilder())
+	s := storage.NewSubStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, s.Initialize())
 
 	t.Run("initially empty", func(t *testing.T) {
-		page, nextToken, err := s.GetPage("n0", "", 3)
+		page, nextToken, err := s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		assert.Empty(t, page)
 		assert.Empty(t, nextToken)
@@ -59,55 +59,49 @@ func TestSubProtoStore(t *testing.T) {
 	}
 
 	t.Run("insert into tmp table", func(t *testing.T) {
-		err = s.InsertManyByNetwork("n0", subProtos1)
+		err = s.InsertMany("n0", subProtos1)
 		assert.NoError(t, err)
-		err = s.InsertManyByNetwork("n0", subProtos2)
+		err = s.InsertMany("n0", subProtos2)
 		assert.NoError(t, err)
-		err = s.InsertManyByNetwork("n0", subProtos3)
+		err = s.InsertMany("n0", subProtos3)
 		assert.NoError(t, err)
-		err = s.InsertManyByNetwork("n0", subProtos4)
+		err = s.InsertMany("n0", subProtos4)
 		assert.NoError(t, err)
 
 		// The actual sub protos table should still be empty
-		page, nextToken, err := s.GetPage("n0", "", 3)
+		page, nextToken, err := s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		assert.Empty(t, page)
 		assert.Empty(t, nextToken)
 	})
 
 	t.Run("commit update and get by pages", func(t *testing.T) {
-		err = s.CommitUpdateByNetwork("n0")
+		err = s.ApplyUpdate("n0")
 		assert.NoError(t, err)
 
-		page1, nextToken, err := s.GetPage("n0", "", 3)
+		page1, nextToken, err := s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		assertEqualSubProtos(t, subProtos1, page1)
 		expectedNextToken := getTokenByLastIncludedEntity(t, "IMSI00003")
 		assert.Equal(t, expectedNextToken, nextToken)
 
-		page2, nextToken, err := s.GetPage("n0", nextToken, 3)
+		page2, nextToken, err := s.GetSubscribersPage("n0", nextToken, 3)
 		assert.NoError(t, err)
 		assertEqualSubProtos(t, subProtos2, page2)
 		expectedNextToken = getTokenByLastIncludedEntity(t, "IMSI00006")
 		assert.Equal(t, expectedNextToken, nextToken)
 
-		page3, nextToken, err := s.GetPage("n0", nextToken, 3)
+		page3, nextToken, err := s.GetSubscribersPage("n0", nextToken, 3)
 		assert.NoError(t, err)
 		assertEqualSubProtos(t, subProtos3, page3)
 		expectedNextToken = getTokenByLastIncludedEntity(t, "IMSI00009")
 		assert.Equal(t, expectedNextToken, nextToken)
 
-		page4, nextToken, err := s.GetPage("n0", nextToken, 3)
+		// If all pages have been fetched, the nextToken should be empty
+		page4, nextToken, err := s.GetSubscribersPage("n0", nextToken, 3)
 		assert.NoError(t, err)
 		assertEqualSubProtos(t, subProtos4, page4)
-		expectedNextToken = getTokenByLastIncludedEntity(t, "IMSI00010")
-		assert.Equal(t, expectedNextToken, nextToken)
-
-		// The next token should be empty when all pages have been fetched
-		finalPage, nextToken, err := s.GetPage("n0", nextToken, 3)
-		assert.NoError(t, err)
 		assert.Empty(t, nextToken)
-		assert.Empty(t, finalPage)
 	})
 
 	t.Run("get by ids", func(t *testing.T) {
@@ -118,43 +112,44 @@ func TestSubProtoStore(t *testing.T) {
 			subProtoFromId("IMSI00003"), subProtoFromId("IMSI00006"),
 		}
 
-		subProtos, err := s.GetByIDs("n0", ids)
+		subProtos, err := s.GetSubscribers("n0", ids)
 		assert.NoError(t, err)
 		assertEqualSubProtos(t, expectedSubProtos, subProtos)
 
 		// If no matching subscribers exist in store, return an empty array
 		ids = []string{"IMSI99991", "IMSI99992", "IMSI99993"}
-		subProtos, err = s.GetByIDs("n0", ids)
+		subProtos, err = s.GetSubscribers("n0", ids)
 		assert.NoError(t, err)
 		assert.Empty(t, subProtos)
 	})
 
-	t.Run("clear tmp table", func(t *testing.T) {
-		// After the last CommitUpdate, the tmp table should currently be empty
-		err := s.CommitUpdateByNetwork("n0")
+	t.Run("initate update", func(t *testing.T) {
+		// After the last ApplyUpdate, the tmp table should currently be empty
+		err := s.ApplyUpdate("n0")
 		assert.NoError(t, err)
-		page, nextToken, err := s.GetPage("n0", "", 3)
+		page, nextToken, err := s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		assert.Empty(t, nextToken)
 		assert.Empty(t, page)
 
-		err = s.InsertManyByNetwork("n0", subProtos1)
+		err = s.InsertMany("n0", subProtos1)
 		assert.NoError(t, err)
-		err = s.ClearTmpTable()
+		err = s.InitiateUpdate()
 		assert.NoError(t, err)
-		err = s.InsertManyByNetwork("n0", subProtos2)
+		err = s.InsertMany("n0", subProtos2)
 		assert.NoError(t, err)
 
-		err = s.CommitUpdateByNetwork("n0")
+		err = s.ApplyUpdate("n0")
 		assert.NoError(t, err)
-		// Since the tmp table was cleared halfway through, we'll only commit subProtos2 into the actual table
-		page, nextToken, err = s.GetPage("n0", "", 3)
+		// Since the tmp table was cleared by InitiateUpdate halfway through, we'll only
+		// commit subProtos2 into the actual table
+		page, nextToken, err = s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		assertEqualSubProtos(t, subProtos2, page)
 		expectedNextToken := getTokenByLastIncludedEntity(t, "IMSI00006")
 		assert.Equal(t, expectedNextToken, nextToken)
 
-		page, nextToken, err = s.GetPage("n0", nextToken, 3)
+		page, nextToken, err = s.GetSubscribersPage("n0", nextToken, 3)
 		assert.NoError(t, err)
 		assert.NoError(t, err)
 		assert.Empty(t, nextToken)
@@ -162,38 +157,38 @@ func TestSubProtoStore(t *testing.T) {
 	})
 
 	t.Run("multiple network insert and get", func(t *testing.T) {
-		err = s.ClearTmpTable()
+		err = s.InitiateUpdate()
 		assert.NoError(t, err)
-		err = s.CommitUpdateByNetwork("n0")
-		assert.NoError(t, err)
-
-		err = s.InsertManyByNetwork("n0", subProtos1)
-		assert.NoError(t, err)
-		err = s.InsertManyByNetwork("n1", subProtos2)
-		assert.NoError(t, err)
-		err = s.InsertManyByNetwork("n2", subProtos3)
+		err = s.ApplyUpdate("n0")
 		assert.NoError(t, err)
 
-		err = s.CommitUpdateByNetwork("n0")
+		err = s.InsertMany("n0", subProtos1)
 		assert.NoError(t, err)
-		err = s.CommitUpdateByNetwork("n1")
+		err = s.InsertMany("n1", subProtos2)
 		assert.NoError(t, err)
-		err = s.CommitUpdateByNetwork("n2")
+		err = s.InsertMany("n2", subProtos3)
 		assert.NoError(t, err)
 
-		page1, nextToken1, err := s.GetPage("n0", "", 3)
+		err = s.ApplyUpdate("n0")
+		assert.NoError(t, err)
+		err = s.ApplyUpdate("n1")
+		assert.NoError(t, err)
+		err = s.ApplyUpdate("n2")
+		assert.NoError(t, err)
+
+		page1, nextToken1, err := s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		expectedNextToken1 := getTokenByLastIncludedEntity(t, "IMSI00003")
 		assert.Equal(t, expectedNextToken1, nextToken1)
 		assertEqualSubProtos(t, subProtos1, page1)
 
-		page2, nextToken2, err := s.GetPage("n1", "", 3)
+		page2, nextToken2, err := s.GetSubscribersPage("n1", "", 3)
 		assert.NoError(t, err)
 		expectedNextToken2 := getTokenByLastIncludedEntity(t, "IMSI00006")
 		assert.Equal(t, expectedNextToken2, nextToken2)
 		assertEqualSubProtos(t, subProtos2, page2)
 
-		page3, nextToken3, err := s.GetPage("n2", "", 3)
+		page3, nextToken3, err := s.GetSubscribersPage("n2", "", 3)
 		assert.NoError(t, err)
 		expectedNextToken3 := getTokenByLastIncludedEntity(t, "IMSI00009")
 		assert.Equal(t, expectedNextToken3, nextToken3)
@@ -201,20 +196,20 @@ func TestSubProtoStore(t *testing.T) {
 	})
 
 	t.Run("delete sub protos", func(t *testing.T) {
-		err = s.DeleteSubProtos([]string{"n0", "n1", "n2"})
+		err = s.DeleteSubscribersForNetworks([]string{"n0", "n1", "n2"})
 		assert.NoError(t, err)
 
-		page, nextToken, err := s.GetPage("n0", "", 3)
-		assert.NoError(t, err)
-		assert.Empty(t, page)
-		assert.Empty(t, nextToken)
-
-		page, nextToken, err = s.GetPage("n1", "", 3)
+		page, nextToken, err := s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
 		assert.Empty(t, page)
 		assert.Empty(t, nextToken)
 
-		page, nextToken, err = s.GetPage("n2", "", 3)
+		page, nextToken, err = s.GetSubscribersPage("n1", "", 3)
+		assert.NoError(t, err)
+		assert.Empty(t, page)
+		assert.Empty(t, nextToken)
+
+		page, nextToken, err = s.GetSubscribersPage("n2", "", 3)
 		assert.NoError(t, err)
 		assert.Empty(t, page)
 		assert.Empty(t, nextToken)

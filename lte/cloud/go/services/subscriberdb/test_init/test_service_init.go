@@ -35,7 +35,8 @@ import (
 )
 
 const (
-	// testMaxProtosLoadSize is the maxProtosLoadSize used in a test subscriberdb service.
+	// testMaxProtosLoadSize is the maxProtosLoadSize used in a test
+	// subscriberdb service.
 	testMaxProtosLoadSize = 10
 )
 
@@ -62,8 +63,8 @@ func StartTestService(t *testing.T) {
 	perSubDigestFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, perSubDigestFact.InitializeFactory())
 	perSubDigestStore := storage.NewPerSubDigestStore(perSubDigestFact)
-	subProtoStore := storage.NewSubProtoStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, subProtoStore.Initialize())
+	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subStore.Initialize())
 
 	// Load service configs
 	var serviceConfig subscriberdb.Config
@@ -74,7 +75,7 @@ func StartTestService(t *testing.T) {
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subProtoStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subStore))
 
 	// Run service
 	go srv.RunTest(lis)
