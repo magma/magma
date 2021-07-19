@@ -719,6 +719,7 @@ class Classifier(MagmaController):
             session_state == PdrState.Value('INSTALL')
             or session_state == UESessionState.ACTIVE
         ):
+            self.remove_paging_flow(ue_ip_addr)
             self.add_tunnel_flows(
                 precedence, local_f_teid,
                 o_teid, ue_ip_addr,
