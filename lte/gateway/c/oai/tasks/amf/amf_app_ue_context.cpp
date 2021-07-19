@@ -227,6 +227,8 @@ smf_context_t* amf_insert_smf_context(
   std::vector<smf_context_t>::iterator i;
   int j = 0;
 
+  memset(&smf_context, 0, sizeof(smf_context_t));
+
   for (i = ue_context->amf_context.smf_ctxt_vector.begin();
        i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
     OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx j%d", j);
