@@ -14,25 +14,39 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <algorithm>
 #include <map>
+
+#include "ShardTracker.h"
+#define MAX_SHARD_SIZE 100
 
 namespace magma {
 
-// Shards represent groups of UEs placed into buckets of
-// a certain size, to make polling more manageable
-class UEShard {
-  UEShard();
+ShardTracker::ShardTracker() {
+  number_of_shards = 0;
+}
 
-  // add UE to shards based on availability
-  int add_ue();
+int ShardTracker::add_ue() {
+  int shard_id;
+  if (shards.size() == 0) {
+    shard_id = 0;
+    shards.push_back(1);
+    number_of_shards++;
+  } else {
+    for (auto i = 0; i < number_of_shards; i++) {
+      if (shards[i] < MAX_SHARD_SIZE) {
+        shards[i]++;
+        return i;
+      }
+    }
+    shard_id = number_of_shards++;
+    shards.push_back(1);
+  }
+  return shard_id;
+}
 
-  // remove UE from shard
-  void remove_ue(int shard_id);
-
- private:
-  std::vector<int> shards;
-  int max_shard_size;
-  int number_of_shards;
-};
+void ShardTracker::remove_ue(int shard_id) {
+  shards[shard_id]--;
+}
 
 }  // namespace magma

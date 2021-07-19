@@ -152,8 +152,8 @@ add_library(SESSION_MANAGER
     CreditKey.h
     StatsPoller.cpp
     StatsPoller.h
-    UEShard.cpp
-    UEShard.h
+    ShardTracker.cpp
+    ShardTracker.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.cpp
