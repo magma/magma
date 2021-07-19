@@ -1153,9 +1153,3 @@ service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
-
-// SET API for procedures request from AMF to SMF
-service AmfPduSessionSmContext {
- rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
- rpc SetSmfNotification (SetSmNotificationContext) returns (SmContextVoid);
-}

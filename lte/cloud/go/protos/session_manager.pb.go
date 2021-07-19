@@ -8067,107 +8067,108 @@ var _AmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
 	Metadata: "lte/protos/session_manager.proto",
 }
 
+// SmfPduSessionSmContextClient is the client API for SmfPduSessionSmContext service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type AmfPduSessionSmContextClient interface {
-	SetAmfSessionContext(ctx context.Context, in *SetSMSessionContext, opts ...grpc.CallOption) (*SmContextVoid, error)
-	SetSmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error)
+type SmfPduSessionSmContextClient interface {
+	SetAmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error)
+	SetSmfSessionContext(ctx context.Context, in *SetSMSessionContextAccess, opts ...grpc.CallOption) (*SmContextVoid, error)
 }
 
-type amfPduSessionSmContextClient struct {
+type smfPduSessionSmContextClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAmfPduSessionSmContextClient(cc grpc.ClientConnInterface) AmfPduSessionSmContextClient {
-	return &amfPduSessionSmContextClient{cc}
+func NewSmfPduSessionSmContextClient(cc grpc.ClientConnInterface) SmfPduSessionSmContextClient {
+	return &smfPduSessionSmContextClient{cc}
 }
 
-func (c *amfPduSessionSmContextClient) SetAmfSessionContext(ctx context.Context, in *SetSMSessionContext, opts ...grpc.CallOption) (*SmContextVoid, error) {
+func (c *smfPduSessionSmContextClient) SetAmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error) {
 	out := new(SmContextVoid)
-	err := c.cc.Invoke(ctx, "/magma.lte.AmfPduSessionSmContext/SetAmfSessionContext", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.lte.SmfPduSessionSmContext/SetAmfNotification", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *amfPduSessionSmContextClient) SetSmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error) {
+func (c *smfPduSessionSmContextClient) SetSmfSessionContext(ctx context.Context, in *SetSMSessionContextAccess, opts ...grpc.CallOption) (*SmContextVoid, error) {
 	out := new(SmContextVoid)
-	err := c.cc.Invoke(ctx, "/magma.lte.AmfPduSessionSmContext/SetSmfNotification", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.lte.SmfPduSessionSmContext/SetSmfSessionContext", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AmfPduSessionSmContextServer is the server API for AmfPduSessionSmContext service.
-type AmfPduSessionSmContextServer interface {
-	SetAmfSessionContext(context.Context, *SetSMSessionContext) (*SmContextVoid, error)
-	SetSmfNotification(context.Context, *SetSmNotificationContext) (*SmContextVoid, error)
+// SmfPduSessionSmContextServer is the server API for SmfPduSessionSmContext service.
+type SmfPduSessionSmContextServer interface {
+	SetAmfNotification(context.Context, *SetSmNotificationContext) (*SmContextVoid, error)
+	SetSmfSessionContext(context.Context, *SetSMSessionContextAccess) (*SmContextVoid, error)
 }
 
-// UnimplementedAmfPduSessionSmContextServer can be embedded to have forward compatible implementations.
-type UnimplementedAmfPduSessionSmContextServer struct {
+// UnimplementedSmfPduSessionSmContextServer can be embedded to have forward compatible implementations.
+type UnimplementedSmfPduSessionSmContextServer struct {
 }
 
-func (*UnimplementedAmfPduSessionSmContextServer) SetAmfSessionContext(ctx context.Context, req *SetSMSessionContext) (*SmContextVoid, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetAmfSessionContext not implemented")
+func (*UnimplementedSmfPduSessionSmContextServer) SetAmfNotification(ctx context.Context, req *SetSmNotificationContext) (*SmContextVoid, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAmfNotification not implemented")
 }
-func (*UnimplementedAmfPduSessionSmContextServer) SetSmfNotification(ctx context.Context, req *SetSmNotificationContext) (*SmContextVoid, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetSmfNotification not implemented")
-}
-
-func RegisterAmfPduSessionSmContextServer(s *grpc.Server, srv AmfPduSessionSmContextServer) {
-	s.RegisterService(&_AmfPduSessionSmContext_serviceDesc, srv)
+func (*UnimplementedSmfPduSessionSmContextServer) SetSmfSessionContext(ctx context.Context, req *SetSMSessionContextAccess) (*SmContextVoid, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSmfSessionContext not implemented")
 }
 
-func _AmfPduSessionSmContext_SetAmfSessionContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetSMSessionContext)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AmfPduSessionSmContextServer).SetAmfSessionContext(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.AmfPduSessionSmContext/SetAmfSessionContext",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AmfPduSessionSmContextServer).SetAmfSessionContext(ctx, req.(*SetSMSessionContext))
-	}
-	return interceptor(ctx, in, info, handler)
+func RegisterSmfPduSessionSmContextServer(s *grpc.Server, srv SmfPduSessionSmContextServer) {
+	s.RegisterService(&_SmfPduSessionSmContext_serviceDesc, srv)
 }
 
-func _AmfPduSessionSmContext_SetSmfNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SmfPduSessionSmContext_SetAmfNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetSmNotificationContext)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AmfPduSessionSmContextServer).SetSmfNotification(ctx, in)
+		return srv.(SmfPduSessionSmContextServer).SetAmfNotification(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.lte.AmfPduSessionSmContext/SetSmfNotification",
+		FullMethod: "/magma.lte.SmfPduSessionSmContext/SetAmfNotification",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AmfPduSessionSmContextServer).SetSmfNotification(ctx, req.(*SetSmNotificationContext))
+		return srv.(SmfPduSessionSmContextServer).SetAmfNotification(ctx, req.(*SetSmNotificationContext))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _AmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.lte.AmfPduSessionSmContext",
-	HandlerType: (*AmfPduSessionSmContextServer)(nil),
+func _SmfPduSessionSmContext_SetSmfSessionContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSMSessionContextAccess)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmfPduSessionSmContextServer).SetSmfSessionContext(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SmfPduSessionSmContext/SetSmfSessionContext",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmfPduSessionSmContextServer).SetSmfSessionContext(ctx, req.(*SetSMSessionContextAccess))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _SmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.SmfPduSessionSmContext",
+	HandlerType: (*SmfPduSessionSmContextServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SetAmfSessionContext",
-			Handler:    _AmfPduSessionSmContext_SetAmfSessionContext_Handler,
+			MethodName: "SetAmfNotification",
+			Handler:    _SmfPduSessionSmContext_SetAmfNotification_Handler,
 		},
 		{
-			MethodName: "SetSmfNotification",
-			Handler:    _AmfPduSessionSmContext_SetSmfNotification_Handler,
+			MethodName: "SetSmfSessionContext",
+			Handler:    _SmfPduSessionSmContext_SetSmfSessionContext_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
