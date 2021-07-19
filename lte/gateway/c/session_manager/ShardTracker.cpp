@@ -22,31 +22,36 @@
 
 namespace magma {
 
-ShardTracker::ShardTracker() {
-  number_of_shards = 0;
-}
+ShardTracker::ShardTracker() : number_of_shards_(0) {}
 
 int ShardTracker::add_ue() {
   int shard_id;
-  if (shards.size() == 0) {
+  //If we have no shards, we add an entry for the shard representing
+  //of 1 representing a single UE at the new shard*/
+  if (shards_.size() == 0) {
     shard_id = 0;
-    shards.push_back(1);
-    number_of_shards++;
+    shards_.push_back(1);
+    number_of_shards_++;
   } else {
-    for (auto i = 0; i < number_of_shards; i++) {
-      if (shards[i] < MAX_SHARD_SIZE) {
-        shards[i]++;
+    //We iterate through all existing shards, if all are full
+    //we create a new shard with quantity 1, otherwise we increment
+    //the quantity of UEs in the latest shard
+    for (auto i = 0; i < number_of_shards_; i++) {
+      if (shards_[i] < MAX_SHARD_SIZE) {
+        shards_[i]++;
         return i;
       }
     }
-    shard_id = number_of_shards++;
-    shards.push_back(1);
+    shard_id = number_of_shards_++;
+    shards_.push_back(1);
   }
   return shard_id;
 }
 
 void ShardTracker::remove_ue(int shard_id) {
-  shards[shard_id]--;
+  //Since we only keep global state of all UEs, we just
+  //need to decrement the number of UEs at a particular id
+  shards_[shard_id]--;
 }
 
 }  // namespace magma
