@@ -12,8 +12,6 @@
  */
 #pragma once
 
-#include <cpp_redis/cpp_redis>
-
 namespace magma {
 
 enum ObjectMapResult {
