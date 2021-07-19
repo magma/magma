@@ -38,7 +38,7 @@ type subscriberdbServicer struct {
 	digestsEnabled         bool
 	changesetSizeThreshold int
 	maxProtosLoadSize      uint64
-	maxResyncIntervalSecs uint64
+	resyncIntervalSecs uint64
 	digestStore            storage.DigestStore
 	perSubDigestStore      *storage.PerSubDigestStore
 	subStore               *storage.SubStore
@@ -56,7 +56,7 @@ func NewSubscriberdbServicer(
 		digestsEnabled:         config.DigestsEnabled,
 		changesetSizeThreshold: config.ChangesetSizeThreshold,
 		maxProtosLoadSize:      config.MaxProtosLoadSize,
-		maxResyncIntervalSecs: config.MaxResyncIntervalSecs,
+		resyncIntervalSecs: config.ResyncIntervalSecs,
 		digestStore:            digestStore,
 		perSubDigestStore:      perSubDigestStore,
 		subStore:               subStore,
@@ -80,14 +80,10 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 	if !gateway.Registered() {
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
+
 	networkID := gateway.NetworkId
 	gatewayID := gateway.LogicalId
-
-	shouldResync, err := s.shouldCloudDirectedResync(networkID, gatewayID)
-	// If check last resync time fails, swallow the error and stick to the original callpath
-	if err != nil {
-		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gatewayID, networkID, err)
-	} else if shouldResync {
+	if s.shouldCloudDirectedResync(networkID, gatewayID) {
 		return &lte_protos.CheckSubscribersInSyncResponse{InSync: false}, nil
 	}
 
@@ -111,13 +107,10 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if !gateway.Registered() {
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
+
 	networkID := gateway.NetworkId
 	gatewayID := gateway.LogicalId
-	shouldResync, err := s.shouldCloudDirectedResync(networkID, gatewayID)
-	// If check last resync time fails, swallow the error and stick to the original callpath
-	if err != nil {
-		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gatewayID, networkID, err)
-	} else if shouldResync {
+	if s.shouldCloudDirectedResync(networkID, gatewayID) {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
 
@@ -202,7 +195,9 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		}
 	}
 
-	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current ime
+	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current time
+	// NOTE: Since the resync is orc8r-directed, and orc8r doesn't track the request status on the AGW side,
+	// orc8r takes the AGW request for the last page as an approximate indication of the completion of a resync
 	if nextToken == "" {
 		err := s.lastResyncTimeStore.Set(networkID, gatewayID, uint64(time.Now().Unix()))
 		if err != nil {
@@ -273,13 +268,15 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 
 // shouldCloudDirectedResync returns whether a gateway requires a orc8r-directed resync by checking its
 // last resync time.
-func (l *subscriberdbServicer) shouldCloudDirectedResync(network string, gateway string) (bool, error) {
+func (l *subscriberdbServicer) shouldCloudDirectedResync(network string, gateway string) bool {
 	lastResyncTime, err := l.lastResyncTimeStore.Get(network, gateway)
+	// If check last resync time in store fails, swallow the error and stick to the original callpath
 	if err != nil {
-		return false, err
+		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gateway, network, err)
+		return false
 	}
-	shouldResync := uint64(time.Now().Unix())-lastResyncTime > l.maxResyncIntervalSecs
-	return shouldResync, nil
+	shouldResync := uint64(time.Now().Unix())-lastResyncTime > l.resyncIntervalSecs
+	return shouldResync
 }
 
 func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

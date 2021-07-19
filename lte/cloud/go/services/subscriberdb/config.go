@@ -22,7 +22,7 @@ type Config struct {
 	// MaxProtosLoadSize specifies the max size of cached subscriber protos that
 	// can be loaded for a page.
 	MaxProtosLoadSize uint64 `yaml:"maxProtosLoadSize"`
-	// MaxResyncIntervalSecs specifies the max time interval (secs) before a orc8r-
-	// directed resync is required for an agw.
-	MaxResyncIntervalSecs uint64 `yaml:"maxResyncIntervalSecs"`
+	// ResyncIntervalSecs specifies the max time interval (secs) before an orc8r-
+	// directed resync is required for an AGW.
+	ResyncIntervalSecs uint64 `yaml:"resyncIntervalSecs"`
 }
