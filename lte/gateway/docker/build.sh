@@ -42,3 +42,4 @@ docker build . -f services/build/Dockerfile.c -t cbuilder:latest
 # C services
 build mme
 build sctpd
+build sessiond
