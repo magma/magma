@@ -102,3 +102,25 @@ class StatsManagerTest(TestCase):
         self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][1], {'enodeb': '1234'})
         self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][2], 1000)
         self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][2], 500)
+
+    def test_clear_stats(self):
+        """
+        Check that stats of PMPM_FILE_TO_METRIC_MAP is cleared successfully
+        """
+        # Example performance metrics structure, sent by eNodeB
+        pm_file_example = pkg_resources.resource_string(
+            __name__,
+            'pm_file_example.xml',
+        )
+
+        root = ElementTree.fromstring(pm_file_example)
+        self.mgr._parse_pm_xml('1234', root)
+
+        # Check that metrics were correctly populated
+        rrc_estab_attempts = metrics.STAT_RRC_ESTAB_ATT.collect()
+        self.assertEqual(rrc_estab_attempts[0].samples[0][2], 123)
+
+        self.mgr._clear_stats()
+        rrc_estab_attempts = metrics.STAT_RRC_ESTAB_ATT.collect()
+        # After clearing stats collection of metric should report 0
+        self.assertEqual(rrc_estab_attempts[0].samples[0][2], 0)
