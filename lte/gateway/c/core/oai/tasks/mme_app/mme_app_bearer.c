@@ -881,8 +881,9 @@ void mme_app_handle_delete_session_rsp(
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
       "Received S11_DELETE_SESSION_RESPONSE from S+P-GW with teid " TEID_FMT
-      ", for ue id " MME_UE_S1AP_ID_FMT "\n ",
-      delete_sess_resp_pP->teid, ue_context_p->mme_ue_s1ap_id);
+      ", for ue id: " MME_UE_S1AP_ID_FMT ", lbi: %u\n ",
+      delete_sess_resp_pP->teid, ue_context_p->mme_ue_s1ap_id,
+      delete_sess_resp_pP->lbi);
 
   if (delete_sess_resp_pP->cause.cause_value != REQUEST_ACCEPTED) {
     OAILOG_WARNING_UE(
