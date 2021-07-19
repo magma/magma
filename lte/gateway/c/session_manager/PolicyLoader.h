@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>                      // for uint32_t
-#include <atomic>                        // for atomic
-#include <functional>                    // for function
-#include <vector>                        // for vector
-#include "lte/protos/subscriberdb.pb.h"  // for lte
+#include <stdint.h>                  // for uint32_t
+#include <atomic>                    // for atomic
+#include <functional>                // for function
+#include <vector>                    // for vector
+#include "lte/protos/policydb.pb.h"  // for lte
 namespace magma {
 namespace lte {
 class PolicyRule;

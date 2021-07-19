@@ -68,9 +68,6 @@ include_directories(${MAGMA_COMMON_INCL_DIR})
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
-add_subdirectory(datastore)
-add_subdirectory(policydb)
-
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
 create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
@@ -79,11 +76,11 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS directoryd)
+set(SMGR_ORC8R_CPP_PROTOS directoryd redis)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager
+set(SMGR_LTE_CPP_PROTOS apn policydb mobilityd subscriberdb session_manager
   pipelined spgw_service abort_session mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -185,6 +182,13 @@ add_library(SESSION_MANAGER
     SentryWrappers.h
     MobilitydClient.cpp
     MobilitydClient.h
+    ObjectMap.h
+    PolicyLoader.cpp
+    PolicyLoader.h
+    ObjectMap.h
+    RedisMap.hpp
+    Serializers.cpp
+    Serializers.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
@@ -203,8 +207,7 @@ set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_
 endif()
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG POLICYDB EVENTD
-  DATASTORE
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG EVENTD
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie
   )
