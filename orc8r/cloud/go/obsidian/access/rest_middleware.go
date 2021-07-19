@@ -60,7 +60,7 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			for _, id := range ids {
 				ents = append(ents, &accessprotos.AccessControl_Entity{Id: id, Permissions: perms})
 			}
-			err = accessd.CheckPermissions(operator, ents...)
+			err = accessd.CheckPermissions(c.Request().Context(), operator, ents...)
 			if err != nil {
 				return transformErr(decorate, err, http.StatusForbidden, "access denied (%s)", err)
 			}

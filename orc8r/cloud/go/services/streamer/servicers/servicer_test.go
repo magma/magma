@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	context2 "context"
 	"errors"
 	"testing"
 
@@ -29,16 +30,11 @@ import (
 )
 
 type mockStreamProvider struct {
-	name   string
 	retVal []*protos.DataUpdate
 	retErr error
 }
 
-func (m *mockStreamProvider) GetStreamName() string {
-	return m.name
-}
-
-func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context2.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	return m.retVal, m.retErr
 }
 
@@ -52,7 +48,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 		{Key: "a", Value: []byte("123")},
 		{Key: "b", Value: []byte("456")},
 	}
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "mock1", retVal: expected})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{retVal: expected}, "mock1")
 
 	streamerClient, err := grpcClient.GetUpdates(
 		context.Background(),
@@ -70,7 +66,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 	}
 
 	// Error in provider
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "mock2", retVal: nil, retErr: errors.New("MOCK")})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{retVal: nil, retErr: errors.New("MOCK")}, "mock2")
 	streamerClient, err = grpcClient.GetUpdates(
 		context.Background(),
 		&protos.StreamRequest{GatewayId: "hwId", StreamName: "mock2"},

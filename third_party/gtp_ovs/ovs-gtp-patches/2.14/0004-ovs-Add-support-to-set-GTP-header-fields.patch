@@ -1,7 +1,7 @@
-From ff384089a8c19feb63873534c9a13df92131b117 Mon Sep 17 00:00:00 2001
+From a8c20610f041c87448d2d1d721ccf4c507a17099 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 00:58:18 -0800
-Subject: [PATCH 04/14] ovs: Add support to set GTP header fields.
+Subject: [PATCH 04/19] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
@@ -9,20 +9,20 @@ echo or end marker type msgs ovs GTP-U.
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- datapath/flow_netlink.c                        |  54 +++++++++-
- datapath/linux/compat/gtp.c                    | 137 ++++++++++++++++---------
- datapath/linux/compat/include/linux/gtp.h      |   9 ++
- datapath/linux/compat/include/net/ip_tunnels.h |   8 +-
- datapath/vport.c                               |   1 +
- include/openvswitch/meta-flow.h                |   6 +-
- lib/dpif-netlink.c                             |   3 +-
- lib/meta-flow.xml                              |  11 ++
- lib/netdev-native-tnl.c                        |  18 ++--
- lib/odp-util.c                                 |  60 ++++++++---
- lib/packets.h                                  |  21 +++-
- tests/odp.at                                   |   1 +
- tests/ofproto.at                               |   2 +-
- tests/tunnel.at                                |  26 +++++
+ datapath/flow_netlink.c                       |  54 ++++++-
+ datapath/linux/compat/gtp.c                   | 137 ++++++++++++------
+ datapath/linux/compat/include/linux/gtp.h     |   9 ++
+ .../linux/compat/include/net/ip_tunnels.h     |   8 +-
+ datapath/vport.c                              |   1 +
+ include/openvswitch/meta-flow.h               |   6 +-
+ lib/dpif-netlink.c                            |   3 +-
+ lib/meta-flow.xml                             |  11 ++
+ lib/netdev-native-tnl.c                       |  18 +--
+ lib/odp-util.c                                |  60 ++++++--
+ lib/packets.h                                 |  21 ++-
+ tests/odp.at                                  |   1 +
+ tests/ofproto.at                              |   2 +-
+ tests/tunnel.at                               |  26 ++++
  14 files changed, 275 insertions(+), 82 deletions(-)
 
 diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
@@ -456,7 +456,7 @@ index 1c5a4930a..a59c0f9bf 100644
       * OXM: NXOXM_ET_GTPU_MSGTYPE(16) since v2.13.
       */
 diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
-index 2f881e4fa..bb290a626 100644
+index ef7ffe506..cd98a6980 100644
 --- a/lib/dpif-netlink.c
 +++ b/lib/dpif-netlink.c
 @@ -2520,8 +2520,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,
@@ -545,10 +545,10 @@ index 50f95e637..ea0896456 100644
      }
      ovs_mutex_unlock(&dev->mutex);
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index d65ebb541..99bc25a0e 100644
+index e1199d1da..43f81876d 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
-@@ -764,7 +764,7 @@ format_odp_tnl_push_header(struct ds *ds, struct ovs_action_push_tnl *data)
+@@ -765,7 +765,7 @@ format_odp_tnl_push_header(struct ds *ds, struct ovs_action_push_tnl *data)
  
          ds_put_format(ds, "gtpu(flags=0x%"PRIx8
                            ",msgtype=%"PRIu8",teid=0x%"PRIx32")",
@@ -557,7 +557,7 @@ index d65ebb541..99bc25a0e 100644
                        ntohl(get_16aligned_be32(&gtph->teid)));
      }
  
-@@ -1757,8 +1757,8 @@ ovs_parse_tnl_push(const char *s, struct ovs_action_push_tnl *data)
+@@ -1758,8 +1758,8 @@ ovs_parse_tnl_push(const char *s, struct ovs_action_push_tnl *data)
                  &gtpu_flags, &gtpu_msgtype, &teid)) {
          struct gtpuhdr *gtph = (struct gtpuhdr *) (udp + 1);
  
@@ -568,7 +568,7 @@ index d65ebb541..99bc25a0e 100644
          put_16aligned_be32(&gtph->teid, htonl(teid));
          tnl_type = OVS_VPORT_TYPE_GTPU;
          header_len = sizeof *eth + ip_len +
-@@ -2447,6 +2447,11 @@ parse_odp_action__(struct parse_odp_context *context, const char *s,
+@@ -2448,6 +2448,11 @@ parse_odp_action__(struct parse_odp_context *context, const char *s,
          return 8;
      }
  
@@ -580,7 +580,7 @@ index d65ebb541..99bc25a0e 100644
      {
          unsigned long long int meter_id;
          int n = -1;
-@@ -3083,8 +3088,12 @@ odp_tun_key_from_attr__(const struct nlattr *attr, bool is_mask,
+@@ -3084,8 +3089,12 @@ odp_tun_key_from_attr__(const struct nlattr *attr, bool is_mask,
          case OVS_TUNNEL_KEY_ATTR_GTPU_OPTS: {
              const struct gtpu_metadata *opts = nl_attr_get(a);
  
@@ -595,7 +595,7 @@ index d65ebb541..99bc25a0e 100644
              break;
          }
  
-@@ -3207,7 +3216,8 @@ tun_key_to_attr(struct ofpbuf *a, const struct flow_tnl *tun_key,
+@@ -3208,7 +3217,8 @@ tun_key_to_attr(struct ofpbuf *a, const struct flow_tnl *tun_key,
  
          opts.flags = tun_key->gtpu_flags;
          opts.msgtype = tun_key->gtpu_msgtype;
@@ -605,7 +605,7 @@ index d65ebb541..99bc25a0e 100644
                            &opts, sizeof(opts));
      }
      nl_msg_end_nested(a, tun_key_ofs);
-@@ -3468,8 +3478,8 @@ format_ipv6_label(struct ds *ds, const char *name, ovs_be32 key,
+@@ -3469,8 +3479,8 @@ format_ipv6_label(struct ds *ds, const char *name, ovs_be32 key,
  }
  
  static void
@@ -616,7 +616,7 @@ index d65ebb541..99bc25a0e 100644
  {
      bool mask_empty = mask && !*mask;
  
-@@ -3480,11 +3490,20 @@ format_u8x(struct ds *ds, const char *name, uint8_t key,
+@@ -3481,10 +3491,19 @@ format_u8x(struct ds *ds, const char *name, uint8_t key,
          if (!mask_full) { /* Partially masked. */
              ds_put_format(ds, "/%#"PRIx8, *mask);
          }
@@ -627,18 +627,17 @@ index d65ebb541..99bc25a0e 100644
      }
  }
  
- static void
++static void
 +format_u8x(struct ds *ds, const char *name, uint8_t key,
 +           const uint8_t *mask, bool verbose)
 +{
 +    format_u8x___(ds, name, key, mask, verbose, true);
 +}
 +
-+static void
+ static void
  format_u8u(struct ds *ds, const char *name, uint8_t key,
             const uint8_t *mask, bool verbose)
- {
-@@ -3708,18 +3727,29 @@ format_odp_tun_erspan_opt(const struct nlattr *attr,
+@@ -3709,18 +3728,29 @@ format_odp_tun_erspan_opt(const struct nlattr *attr,
  
  static void
  format_odp_tun_gtpu_opt(const struct nlattr *attr,
@@ -772,5 +771,5 @@ index 3dfd9675d..bf18a5e4c 100644
 +OVS_VSWITCHD_STOP
 +AT_CLEANUP
 -- 
-2.13.5
+2.17.1
 

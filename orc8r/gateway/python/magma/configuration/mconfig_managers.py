@@ -81,7 +81,10 @@ class MconfigManager(Generic[T]):
         pass
 
     @abc.abstractmethod
-    def load_service_mconfig(self, service_name: str, mconfig_struct: Any) -> Any:
+    def load_service_mconfig(
+        self, service_name: str,
+        mconfig_struct: Any,
+    ) -> Any:
         """
         Load a specific service's managed configuration.
 
@@ -114,8 +117,10 @@ class MconfigManager(Generic[T]):
         pass
 
     @abc.abstractmethod
-    def deserialize_mconfig(self, serialized_value: str,
-                            allow_unknown_fields: bool = True) -> T:
+    def deserialize_mconfig(
+        self, serialized_value: str,
+        allow_unknown_fields: bool = True,
+    ) -> T:
         """
         Deserialize the given string to the managed mconfig.
 
@@ -154,7 +159,10 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         except (OSError, json.JSONDecodeError, json_format.ParseError) as e:
             raise LoadConfigError('Error loading mconfig') from e
 
-    def load_service_mconfig(self, service_name: str, mconfig_struct: Any) -> Any:
+    def load_service_mconfig(
+        self, service_name: str,
+        mconfig_struct: Any,
+    ) -> Any:
         mconfig = self.load_mconfig()
         if service_name not in mconfig.configs_by_key:
             raise LoadConfigError(
@@ -181,9 +189,10 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         mconfig = self.load_mconfig()
         return mconfig.metadata
 
-    def deserialize_mconfig(self, serialized_value: str,
-                            allow_unknown_fields: bool = True,
-                            ) -> GatewayConfigs:
+    def deserialize_mconfig(
+        self, serialized_value: str,
+        allow_unknown_fields: bool = True,
+    ) -> GatewayConfigs:
         # First parse as JSON in case there are types unrecognized by
         # protobuf symbol database
         json_mconfig = json.loads(serialized_value)

@@ -50,17 +50,24 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
     def setUp(self):
         # Create sqlite3 database for testing
         self._tmpfile = tempfile.TemporaryDirectory()
-        store = SqliteStore(self._tmpfile.name +'/')
+        store = SqliteStore(self._tmpfile.name + '/')
         self._streamer_callback = \
             SubscriberDBStreamerCallback(store, loop=asyncio.new_event_loop())
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
-        ServiceRegistry._PROXY_CONFIG = {'local_port': 1234,
-                                         'cloud_address': '',
-                                         'proxy_cloud_connections': False}
-        ServiceRegistry._REGISTRY = {"services": {"s6a_service":
-                                                  {"ip_address": "0.0.0.0",
-                                                   "port": 2345}}
-                                     }
+        ServiceRegistry._PROXY_CONFIG = {
+            'local_port': 1234,
+            'cloud_address': '',
+            'proxy_cloud_connections': False,
+        }
+        ServiceRegistry._REGISTRY = {
+            "services": {
+                "s6a_service":
+                {
+                    "ip_address": "0.0.0.0",
+                    "port": 2345,
+                },
+            },
+        }
 
     def tearDown(self):
         self._tmpfile.cleanup()
@@ -78,19 +85,24 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
         # Call with no samples
         old_sub_ids = ["IMSI202", "IMSI101"]
         new_sub_ids = ["IMSI101", "IMSI202"]
-        self._streamer_callback.detach_deleted_subscribers(old_sub_ids,
-                                                           new_sub_ids)
+        self._streamer_callback.detach_deleted_subscribers(
+            old_sub_ids,
+            new_sub_ids,
+        )
         s6a_service_mock_stub.DeleteSubscriber.future.assert_not_called()
         self._streamer_callback._loop.stop()
 
         # Call with one subscriber id deleted
         old_sub_ids = ["IMSI202", "IMSI101", "IMSI303"]
         new_sub_ids = ["IMSI202"]
-        self._streamer_callback.detach_deleted_subscribers(old_sub_ids,
-                                                           new_sub_ids)
+        self._streamer_callback.detach_deleted_subscribers(
+            old_sub_ids,
+            new_sub_ids,
+        )
 
         mock.DeleteSubscriber.future.assert_called_once_with(
-            DeleteSubscriberRequest(imsi_list=["101", "303"]))
+            DeleteSubscriberRequest(imsi_list=["101", "303"]),
+        )
 
 
 if __name__ == "__main__":

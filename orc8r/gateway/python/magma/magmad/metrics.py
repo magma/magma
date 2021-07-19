@@ -23,44 +23,68 @@ from prometheus_client import Counter, Gauge
 
 POLL_INTERVAL_SECONDS = 10
 
-MAGMAD_PING_STATS = Gauge('magmad_ping_rtt_ms',
-                          'Gateway ping metrics',
-                          ['host', 'metric'])
-CPU_PERCENT = Gauge('cpu_percent',
-                    'System-wide CPU utilization as a percentage over 1 sec')
-SWAP_MEMORY_PERCENT = Gauge('swap_memory_percent', 'Percent of memory that can'
-                            ' be assigned to processes')
-VIRTUAL_MEMORY_PERCENT = Gauge('virtual_memory_percent',
-                               'Percent of memory that can be assigned to '
-                               'processes without the system going into swap')
+MAGMAD_PING_STATS = Gauge(
+    'magmad_ping_rtt_ms',
+    'Gateway ping metrics',
+    ['host', 'metric'],
+)
+CPU_PERCENT = Gauge(
+    'cpu_percent',
+    'System-wide CPU utilization as a percentage over 1 sec',
+)
+SWAP_MEMORY_PERCENT = Gauge(
+    'swap_memory_percent', 'Percent of memory that can'
+    ' be assigned to processes',
+)
+VIRTUAL_MEMORY_PERCENT = Gauge(
+    'virtual_memory_percent',
+    'Percent of memory that can be assigned to '
+    'processes without the system going into swap',
+)
 MEM_TOTAL = Gauge('mem_total', 'memory total')
 MEM_AVAILABLE = Gauge('mem_available', 'memory available')
 MEM_USED = Gauge('mem_used', 'memory used')
 MEM_FREE = Gauge('mem_free', 'memory free')
-DISK_PERCENT = Gauge('disk_percent',
-                     'Percent of disk space used for the '
-                     'volume mounted at root')
+DISK_PERCENT = Gauge(
+    'disk_percent',
+    'Percent of disk space used for the '
+    'volume mounted at root',
+)
 BYTES_SENT = Gauge('bytes_sent', 'System-wide network I/O bytes sent')
-BYTES_RECEIVED = Gauge('bytes_received',
-                       'System-wide network I/O bytes received')
-TEMPERATURE = Gauge('temperature', 'Temperature readings from system sensors',
-                    ['sensor'])
-CHECKIN_STATUS = Gauge('checkin_status',
-                       '1 for checkin success, and 0 for failure')
-BOOTSTRAP_EXCEPTION = Counter('bootstrap_exception',
-                              'Count for exceptions raised by bootstrapper',
-                              ['cause'])
-UNEXPECTED_SERVICE_RESTARTS = Counter('unexpected_service_restarts',
-                                      'Count of unexpected restarts',
-                                      ['service_name'])
-UNATTENDED_UPGRADE_STATUS = Gauge('unattended_upgrade_status',
-                                  'Unattended Upgrade update status'
-                                  '1 for active, 0 for inactive')
+BYTES_RECEIVED = Gauge(
+    'bytes_received',
+    'System-wide network I/O bytes received',
+)
+TEMPERATURE = Gauge(
+    'temperature', 'Temperature readings from system sensors',
+    ['sensor'],
+)
+CHECKIN_STATUS = Gauge(
+    'checkin_status',
+    '1 for checkin success, and 0 for failure',
+)
+BOOTSTRAP_EXCEPTION = Counter(
+    'bootstrap_exception',
+    'Count for exceptions raised by bootstrapper',
+    ['cause'],
+)
+UNEXPECTED_SERVICE_RESTARTS = Counter(
+    'unexpected_service_restarts',
+    'Count of unexpected restarts',
+    ['service_name'],
+)
+UNATTENDED_UPGRADE_STATUS = Gauge(
+    'unattended_upgrade_status',
+    'Unattended Upgrade update status'
+    '1 for active, 0 for inactive',
+)
 
 
-SERVICE_RESTART_STATUS = Counter('service_restart_status',
-                                 'Count of service restarts',
-                                 ['service_name', 'status'])
+SERVICE_RESTART_STATUS = Counter(
+    'service_restart_status',
+    'Count of service restarts',
+    ['service_name', 'status'],
+)
 
 
 def _get_ping_params(config):
@@ -70,10 +94,22 @@ def _get_ping_params(config):
             ping.PingCommandParams(
                 host,
                 config['ping_config']['num_packets'],
-                config['ping_config']['timeout_secs']
+                config['ping_config']['timeout_secs'],
             ) for host in config['ping_config']['hosts']
         ]
     return ping_params
+
+
+def _counter_set(counter: Counter, val: float):
+    """Set the counter to a particular value
+
+    Args:
+        counter (Counter): Counter instance
+        val (float): Value for the counter to be set
+    """
+    # pylint: disable=protected-access
+    prev = counter._value.get()
+    counter.inc(val - prev)
 
 
 @asyncio.coroutine
@@ -104,12 +140,18 @@ def _collect_service_restart_stats():
         logging.error("Could not fetch service status: %s", e)
         return
     for service_name, status in service_dict.items():
-        SERVICE_RESTART_STATUS.labels(service_name=service_name,
-                                      status="Failure").set(
-            status.num_fail_exits)
-        SERVICE_RESTART_STATUS.labels(service_name=service_name,
-                                      status="Success").set(
-            status.num_clean_exits)
+        _counter_set(
+            SERVICE_RESTART_STATUS.labels(
+                service_name=service_name,
+                status="Failure",
+            ), status.num_fail_exits,
+        )
+        _counter_set(
+            SERVICE_RESTART_STATUS.labels(
+                service_name=service_name,
+                status="Success",
+            ), status.num_clean_exits,
+        )
 
 
 @asyncio.coroutine
@@ -137,7 +179,8 @@ def _collect_load_metrics():
         for sensor, values in psutil.sensors_temperatures().items():
             for idx, value in enumerate(values):
                 TEMPERATURE.labels(
-                    sensor='%s_%d' % (sensor, idx)).set(value.current)
+                    sensor='%s_%d' % (sensor, idx),
+                ).set(value.current)
     except OSError as ex:
         logging.warning("sensors_temperatures error: %s", ex)
 
@@ -154,15 +197,19 @@ def _collect_ping_metrics(ping_params, loop=None):
             ('packets_sent', (ping_stats.packets_transmitted, 'inc')),
             (
                 'packets_lost',
-                (ping_stats.packets_transmitted - ping_stats.packets_received,
-                 'inc')
+                (
+                    ping_stats.packets_transmitted - ping_stats.packets_received,
+                    'inc',
+                ),
             ),
         ])
 
     for param, result in zip(ping_params, ping_results_list):
         if result.error:
-            logging.debug('Failed to ping %s with error: %s',
-                          param.host_or_ip, result.error)
+            logging.debug(
+                'Failed to ping %s with error: %s',
+                param.host_or_ip, result.error,
+            )
         else:
             host = param.host_or_ip
             metrics = extract_metrics(result.stats)
@@ -172,12 +219,13 @@ def _collect_ping_metrics(ping_params, loop=None):
 
             logging.debug(
                 'Pinged %s with %d packet(s). Average RTT ms: %s',
-                result.host_or_ip, result.num_packets, result.stats.rtt_avg)
+                result.host_or_ip, result.num_packets, result.stats.rtt_avg,
+            )
     return ping_results_list
 
 
 @asyncio.coroutine
-def monitor_unattended_upgrade_status(loop):
+def monitor_unattended_upgrade_status():
     """
     Call to poll the unattended upgrade status and set the corresponding metric
     """
@@ -194,4 +242,4 @@ def monitor_unattended_upgrade_status(loop):
                         break
         logging.debug('Unattended upgrade status is %d', status)
         UNATTENDED_UPGRADE_STATUS.set(status)
-        yield from asyncio.sleep(POLL_INTERVAL_SECONDS, loop=loop)
+        yield from asyncio.sleep(POLL_INTERVAL_SECONDS)

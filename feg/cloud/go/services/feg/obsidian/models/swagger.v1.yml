@@ -879,6 +879,11 @@ definitions:
         pattern: '[^\:]+(:[0-9]{1,5})?'
         example: "foo.bar.com:5555"
         x-nullable: false
+      apn_operator_suffix:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: ".operator.com"
+        x-nullable: false
 
   gx:
     type: object
@@ -1561,11 +1566,30 @@ definitions:
         type: string
         x-nullable: false
         enum:
-          - "HEALTHY"
-          - "UNHEALTHY"
+        - "HEALTHY"
+        - "UNHEALTHY"
       description:
         type: string
         x-nullable: false
+      service_status:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/service_status_health'
+
+  service_status_health:
+    description: health status of a specific
+    type: object
+    properties:
+      service_state:
+        type: string
+        enum:
+        - "AVAILABLE"
+        - "UNAVAILABLE"
+      health_status:
+        type: string
+        enum:
+        - "HEALTHY"
+        - "UNHEALTHY"
 
   federated_mode_map:
     description: Mapping for PLMN, imsi ranges, vs its gateway mode

@@ -24,6 +24,7 @@ class MockLocalSessionManagerStub:
     """
     This Mock LocalSessionManagerStub will always respond with a Void
     """
+
     def __init__(self):
         pass
 
@@ -36,12 +37,13 @@ class MockSessionProxyResponderStub1:
     This Mock SessionProxyResponderStub will always respond with a success to
     a received RAR
     """
+
     def __init__(self):
         pass
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('UPDATE_INITIATED')
+            result=ReAuthResult.Value('UPDATE_INITIATED'),
         )
 
 
@@ -50,12 +52,13 @@ class MockSessionProxyResponderStub2:
     This Mock SessionProxyResponderStub will always respond with a failure to
     a received RAR
     """
+
     def __init__(self):
         pass
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('OTHER_FAILURE')
+            result=ReAuthResult.Value('OTHER_FAILURE'),
         )
 
 
@@ -63,6 +66,7 @@ class MockSessionProxyResponderStub3:
     """
     This Mock SessionProxyResponderStub will always fail to install rule p2
     """
+
     def __init__(self):
         pass
 

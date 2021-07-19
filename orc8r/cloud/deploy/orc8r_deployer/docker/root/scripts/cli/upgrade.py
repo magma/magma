@@ -13,14 +13,9 @@ limitations under the License.
 import sys
 
 import click
-
-from .common import (
-    print_error_msg,
-    print_success_msg,
-    print_warning_msg,
-    run_command,
-    run_playbook,
-)
+from cli.style import print_error_msg, print_success_msg, print_warning_msg
+from utils.ansiblelib import AnsiblePlay, run_playbook
+from utils.common import execute_command
 
 
 @click.group(invoke_without_command=True)
@@ -32,7 +27,7 @@ def upgrade(ctx):
     tf_cmds = [
         ["terraform", "init", "--upgrade"],
         ["terraform", "refresh"],
-        ["terraform", "apply", "-auto-approve"]
+        ["terraform", "apply", "-auto-approve"],
     ]
 
     if ctx.invoked_subcommand is None:
@@ -44,30 +39,40 @@ def upgrade(ctx):
         click.echo(
             "Following commands will be run during upgrade\n%s" % (
                 "\n".join((map(" ".join, tf_cmds)))
-            ))
+            ),
+        )
         for cmd in tf_cmds:
-            if click.confirm('Do you want to continue with %s?' %
-                             " ".join(cmd)):
-                rc = run_command(cmd)
+            if click.confirm(
+                'Do you want to continue with %s?' %
+                " ".join(cmd),
+            ):
+                rc = execute_command(cmd)
                 if rc != 0:
                     print_error_msg("Upgrade Failed!!!")
                     return
+
+
+def precheck_cmd(constants: dict) -> list:
+    """Get the arg list to run prechecks
+
+    Args:
+        constants ([dict]): config dict
+    """
+    playbook_dir = constants["playbooks"]
+    return AnsiblePlay(
+        playbook=f"{playbook_dir}/main.yml",
+        tags=['upgrade_precheck'],
+        extra_vars=constants,
+    )
 
 
 @upgrade.command()
 @click.pass_context
 def precheck(ctx):
     """
-    Precheck runs various checks to ensure successful upgrade
+    Performs various checks to ensure successful upgrade
     """
-    rc = run_playbook([
-        "ansible-playbook",
-        "-v",
-        "-e",
-        "@/root/config.yml",
-        "-t",
-        "upgrade_precheck",
-        "%s/main.yml" % ctx.obj["playbooks"]])
+    rc = run_playbook(precheck_cmd(ctx.obj))
     if rc != 0:
         print_error_msg("Upgrade prechecks failed!!!")
         sys.exit(1)

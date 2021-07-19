@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 
 namespace magma {
 
@@ -222,22 +222,6 @@ bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_charging_key_.get_rule_definitions_for_key(
       charging_key, rules_out);
-  return success;
-}
-
-bool PolicyRuleBiMap::get_rule_ids_for_monitoring_key(
-    const std::string& monitoring_key, std::vector<std::string>& rules_out) {
-  std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success =
-      rules_by_monitoring_key_.get_rule_ids_for_key(monitoring_key, rules_out);
-  return success;
-}
-
-bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
-    const std::string& monitoring_key, std::vector<PolicyRule>& rules_out) {
-  std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success = rules_by_monitoring_key_.get_rule_definitions_for_key(
-      monitoring_key, rules_out);
   return success;
 }
 

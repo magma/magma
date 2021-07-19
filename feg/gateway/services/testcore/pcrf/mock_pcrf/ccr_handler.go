@@ -19,6 +19,7 @@ import (
 	"reflect"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 
@@ -41,6 +42,8 @@ type ccrMessage struct {
 	UsageMonitors    []*usageMonitorRequestAVP `avp:"Usage-Monitoring-Information"`
 	CalledStationId  string                    `avp:"Called-Station-Id"`
 	EventTrigger     datatype.Enumerated       `avp:"Event-Trigger"`
+	Online           int32                     `avp:"Online"`
+	Offline          int32                     `avp:"Offline"`
 }
 
 type subscriptionIDDiam struct {
@@ -64,6 +67,7 @@ type usedServiceUnitAVP struct {
 func getCCRHandler(srv *PCRFServer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
+		glog.V(2).Infof("Received Gx CCR message\n%s\n", m)
 		srv.lastDiamMessageReceived = m
 		var ccr ccrMessage
 		if err := m.Unmarshal(&ccr); err != nil {
@@ -140,12 +144,17 @@ func sendAnswer(
 	a.NewAVP(avp.DestinationHost, avp.Mbit, 0, ccr.OriginHost)
 	a.NewAVP(avp.CCRequestType, avp.Mbit, 0, ccr.RequestType)
 	a.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, ccr.RequestNumber)
+	if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTInit {
+		a.NewAVP(avp.Online, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(1))
+		a.NewAVP(avp.Offline, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0))
+	}
 	for _, avp := range additionalAVPs {
 		a.InsertAVP(avp)
 	}
 	// SessionID must be the first AVP
 	a.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, ccr.SessionID))
 
+	glog.V(2).Infof("Sending Gx CCA message\n%s\n", a)
 	_, err := a.WriteTo(conn)
 	if err != nil {
 		glog.V(2).Infof("Failed to write message to %s: %s\n%s\n",

@@ -23,6 +23,9 @@ type FederationGatewayHealthStatus struct {
 	// Required: true
 	Description string `json:"description"`
 
+	// service status
+	ServiceStatus map[string]ServiceStatusHealth `json:"service_status,omitempty"`
+
 	// status
 	// Required: true
 	// Enum: [HEALTHY UNHEALTHY]
@@ -34,6 +37,10 @@ func (m *FederationGatewayHealthStatus) Validate(formats strfmt.Registry) error 
 	var res []error
 
 	if err := m.validateDescription(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServiceStatus(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -51,6 +58,28 @@ func (m *FederationGatewayHealthStatus) validateDescription(formats strfmt.Regis
 
 	if err := validate.RequiredString("description", "body", string(m.Description)); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *FederationGatewayHealthStatus) validateServiceStatus(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ServiceStatus) { // not required
+		return nil
+	}
+
+	for k := range m.ServiceStatus {
+
+		if err := validate.Required("service_status"+"."+k, "body", m.ServiceStatus[k]); err != nil {
+			return err
+		}
+		if val, ok := m.ServiceStatus[k]; ok {
+			if err := val.Validate(formats); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	return nil

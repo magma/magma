@@ -183,6 +183,10 @@ MATCHER_P6(
         return false;
       } else if (info.ambr->max_bandwidth_dl() != qos_info.apn_ambr_dl()) {
         return false;
+      } else if (
+          static_cast<int>(info.ambr->br_unit()) !=
+          static_cast<int>(qos_info.br_unit())) {
+        return false;
       }
     }
   }

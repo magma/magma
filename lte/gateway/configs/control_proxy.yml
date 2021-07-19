@@ -47,4 +47,6 @@ sentry_url_python: ""
 sentry_url_native: ""
 # If set, /var/log/mme.log will be uploaded along MME crashreports
 sentry_upload_mme_log: false
+# Rate at which we want to sample Python error events
+# Should be a number between 0 (0% of errors sent) and 1 (100% of errors sent)
 sentry_sample_rate: 1.0

@@ -130,7 +130,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     make install && \
     ldconfig -v && \
     cd / && \
-    wget --progress=dot:giga http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget --progress=dot:giga https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
@@ -284,7 +284,7 @@ RUN /tmp/third_party/build/bin/libfluid_build.sh && \
      rm -rf /tmp/*
 
 ##### FreeDiameter
-COPY lte/gateway/c/oai/patches/ /tmp/
+COPY lte/gateway/c/core/oai/patches/ /tmp/
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < /tmp/0001-opencoord.org.freeDiameter.patch && \

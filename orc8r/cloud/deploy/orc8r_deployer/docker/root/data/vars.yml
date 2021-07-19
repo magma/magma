@@ -74,6 +74,42 @@ infra:
     Required: false
     ConfigApps:
       - tf
+  enable_aws_db_notifications:
+    Description: Flag to indicate if AWS DB notifications are enabled
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_backup_retention:
+    Description: DB Retention policy in days
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_backup_window:
+    Description: DB backwindow in HHMM-HHMM format
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_sns_name:
+    Description: Name for orc8r orc8r_sns_name
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_event_subscription:
+    Description: Name for orc8r db event subscriber
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_sns_email:
+    Description: Email for notifications
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
   vpc_cidr:
     Description: CIDR block for the VPC.
     Type: string
@@ -127,6 +163,19 @@ infra:
       Worker group configuration for Thanos. Default consists of 1 group
       consisting of 1 m5d.xlarge for thanos.
     Type: any
+    Required: false
+    ConfigApps:
+      - tf
+  magma_uuid:
+    Default: "default"
+    Description: "UUID to identify Orc8r deployment"
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  global_tags:
+    Description: n/a
+    Type: map
     Required: false
     ConfigApps:
       - tf
@@ -239,12 +288,6 @@ platform:
     Required: false
     ConfigApps:
       - tf
-  global_tags:
-    Description: n/a
-    Type: map
-    Required: false
-    ConfigApps:
-      - tf
   orc8r_db_engine_version:
     Default: 9.6.15
     Description: Postgres engine version for Orchestrator DB.
@@ -260,6 +303,7 @@ platform:
     ConfigApps:
       - tf
   orc8r_db_instance_class:
+    Default: "db.m4.large"
     Description: RDS instance Type for Orchestrator DB.
     Type: string
     Required: false
@@ -312,21 +356,24 @@ service:
     ConfigApps:
       - tf
   docker_pass:
+    Default: ""
     Description: Docker registry password.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   docker_registry:
+    Default: "docker.artifactory.magmacore.org"
     Description: Docker registry to pull Orchestrator containers from.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   docker_user:
+    Default: ""
     Description: Docker username to login to registry with.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   efs_file_system_id:
@@ -359,6 +406,12 @@ service:
     Required: false
     ConfigApps:
       - tf
+  elasticsearch_disk_threshold:
+    Description: Size threshold in GB.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
   existing_tiller_service_account_name:
     Description: Name of existing Tiller service account to use for Helm.
     Type: string
@@ -384,7 +437,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.3
+    Default: 0.2.4
   helm_deployment_name:
     Description: Name for the Helm release.
     Type: string
@@ -392,21 +445,24 @@ service:
     ConfigApps:
       - tf
   helm_pass:
+    Default: ""
     Description: Helm repository password.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   helm_repo:
+    Default: "https://artifactory.magmacore.org/artifactory/helm/"
     Description: Helm repository URL for Orchestrator charts.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   helm_user:
+    Default: ""
     Description: Helm username to login to repository with.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   install_tiller:
@@ -421,7 +477,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.4
+    Default: 0.2.5
   monitoring_kubernetes_namespace:
     Description: K8s namespace to install Orchestrator monitoring components into.
     Type: string
@@ -434,7 +490,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 1.5.21
+    Default: 1.5.23
   orc8r_controller_replicas:
     Description: Replica count for Orchestrator controller pods.
     Type: number
@@ -472,6 +528,7 @@ service:
     ConfigApps:
       - tf
   orc8r_tag:
+    Default: "1.5.0"
     Description: Image tag for Orchestrator components.
     Type: string
     Required: true
@@ -620,6 +677,13 @@ service:
     ConfigApps:
       - tf
   thanos_enabled:
+    Description: Deploy thanos components and object storage
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  cloudwatch_exporter_enabled:
     Description: Deploy thanos components and object storage
     Type: bool
     Default: false

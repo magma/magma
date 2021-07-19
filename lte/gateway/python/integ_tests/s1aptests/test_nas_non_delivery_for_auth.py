@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -47,7 +46,7 @@ class TestNasNonDeliveryAuthReq(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request for ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         """ The purpose of UE_SET_NAS_NON_DELIVERY command is to prepare
@@ -63,13 +62,13 @@ class TestNasNonDeliveryAuthReq(unittest.TestCase):
         nas_non_del.causeVal = 3
         print("Sending Set Nas Non Del to enb for ue-id ", nas_non_del.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del
+            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del,
         )
 
         """ Waiting for UE Context Release from MME """
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("Received UE_CTX_REL_IND")
         # Reset the nas non delivery flag
@@ -82,7 +81,7 @@ class TestNasNonDeliveryAuthReq(unittest.TestCase):
         nas_non_del.causeVal = 3
         print("Sending Reset Nas Non Del ind to enbapp")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del
+            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del,
         )
 
 

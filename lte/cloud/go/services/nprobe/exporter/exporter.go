@@ -15,8 +15,12 @@ package exporter
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"sync"
+
+	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 
 	"github.com/gogf/gf/net/gtcp"
 	"github.com/golang/glog"
@@ -30,9 +34,9 @@ type RecordExporter struct {
 	mutex      sync.Mutex
 }
 
-// NewTlsConfig creates a new TLS config from the client certificates
-func NewTlsConfig(crtFile, keyFile string, skipVerify bool) (*tls.Config, error) {
-	cert, err := tls.LoadX509KeyPair(crtFile, keyFile)
+// newTlsConfig creates a new TLS config from the client certificates
+func newTlsConfig(crtFile, keyFile []byte, skipVerify bool) (*tls.Config, error) {
+	cert, err := tls.X509KeyPair(crtFile, keyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -43,19 +47,40 @@ func NewTlsConfig(crtFile, keyFile string, skipVerify bool) (*tls.Config, error)
 }
 
 // NewRecordExporter creates a new tls exporter and attempt to establish a connection at start
-func NewRecordExporter(remoteAddr string, tlsConfig *tls.Config) *RecordExporter {
+func NewRecordExporter(destination *models.NetworkProbeDestination) (*RecordExporter, error) {
+	details := destination.DestinationDetails
+	if details.Certificate == nil || details.PrivateKey == nil {
+		return nil, fmt.Errorf("Certificates not provided for destination %v", destination.DestinationID)
+	}
+
+	certPem, err := base64.StdEncoding.DecodeString(details.Certificate.String())
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse certificate for destination %v", destination.DestinationID)
+	}
+
+	keyPem, err := base64.StdEncoding.DecodeString(details.PrivateKey.String())
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse private key for destination %v", destination.DestinationID)
+	}
+
+	tlsConfig, err := newTlsConfig(certPem, keyPem, details.SkipVerifyServer)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to to create new TlsConfig %v", err)
+	}
+
 	client := &RecordExporter{
 		tlsConfig:  tlsConfig,
-		remoteAddr: remoteAddr,
+		remoteAddr: details.DeliveryAddress,
 	}
 	conn, err := client.getTlsConnection() // attempt to establish connection at start
 	if err != nil {
 		glog.Errorf(
 			"Failed to establish new TLS connection from to '%s'; error: %v, will retry later.",
-			remoteAddr, err)
+			details.DeliveryAddress, err)
+		return nil, err
 	}
 	client.conn = conn
-	return client
+	return client, nil
 }
 
 // SendMessageWithRetries writes data to remote address with a retry counter

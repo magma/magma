@@ -11,29 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
-import time
-
 import abc
 import base64
-import grpc
+import logging
 import subprocess
+import time
 
-from orc8r.protos.common_pb2 import Void
+import grpc
+from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
     SubscriberData,
-    SubscriberState,
     SubscriberID,
+    SubscriberState,
     SubscriberUpdate,
 )
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
-
-from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 
 KEY = '000102030405060708090A0B0C0D0E0F'
-#OP='11111111111111111111111111111111' -> OPc='24c05f7c2f2b368de10f252f25f6cfc2'
+# OP='11111111111111111111111111111111' -> OPc='24c05f7c2f2b368de10f252f25f6cfc2'
 OPC = '24c05f7c2f2b368de10f252f25f6cfc2'
 RETRY_COUNT = 4
 RETRY_INTERVAL = 1  # seconds
@@ -99,7 +97,8 @@ class SubscriberDbGrpc(SubscriberDbClient):
         """ Init the gRPC stub.  """
         self._added_sids = set()
         self._subscriber_stub = SubscriberDBStub(
-            get_rpc_channel("subscriberdb"))
+            get_rpc_channel("subscriberdb"),
+        )
 
     @staticmethod
     def _try_to_call(grpc_call):
@@ -114,8 +113,10 @@ class SubscriberDbGrpc(SubscriberDbClient):
                     logging.warning("Subscriberdb unavailable, retrying...")
                     time.sleep(RETRY_INTERVAL * (2 ** i))
                     continue
-                logging.error("Subscriberdb grpc call failed with error : %s",
-                              error)
+                logging.error(
+                    "Subscriberdb grpc call failed with error : %s",
+                    error,
+                )
                 raise
 
     @staticmethod
@@ -178,7 +179,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         self._added_sids.add(sid)
         sub_data = self._get_subscriberdb_data(sid)
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.AddSubscriber(sub_data)
+            lambda: self._subscriber_stub.AddSubscriber(sub_data),
         )
         self._check_invariants()
 
@@ -187,11 +188,13 @@ class SubscriberDbGrpc(SubscriberDbClient):
         self._added_sids.discard(sid)
         sid_pb = SubscriberID(id=sid[4:])
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.DeleteSubscriber(sid_pb))
+            lambda: self._subscriber_stub.DeleteSubscriber(sid_pb),
+        )
 
     def list_subscriber_sids(self):
         sids_pb = SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.ListSubscribers(Void()).sids)
+            lambda: self._subscriber_stub.ListSubscribers(Void()).sids,
+        )
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
 
@@ -201,7 +204,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         fields = update_sub.mask.paths
         fields.append('non_3gpp')
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.UpdateSubscriber(update_sub)
+            lambda: self._subscriber_stub.UpdateSubscriber(update_sub),
         )
 
     def clean_up(self):
@@ -214,6 +217,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
     def wait_for_changes(self):
         # On gateway, changes propagate immediately
         return
+
 
 class SubscriberDbCassandra(SubscriberDbClient):
     """
@@ -230,7 +234,7 @@ class SubscriberDbCassandra(SubscriberDbClient):
         print("*********Init SubscriberDbCassandra***********")
         add_mme_cmd = "$HOME/openair-cn/scripts/data_provisioning_mme --id 3 "\
             "--mme-identity " + self.MME_IDENTITY + " --realm magma.com "\
-            "--ue-reachability 1 -C "+ self.CASSANDRA_SERVER_IP
+            "--ue-reachability 1 -C " + self.CASSANDRA_SERVER_IP
         self._run_remote_cmd(add_mme_cmd)
 
     def _run_remote_cmd(self, cmd_str):
@@ -238,10 +242,13 @@ class SubscriberDbCassandra(SubscriberDbClient):
             "-o StrictHostKeyChecking=no"
         ssh_cmd = "ssh -i {id_file} {args} {user}@{host} {cmd}".format(
             id_file=self.IDENTITY_FILE, args=ssh_args, user=self.HSS_USER,
-            host=self.HSS_IP, cmd=cmd_str)
-        output, error = subprocess.Popen(ssh_cmd, shell=True,
+            host=self.HSS_IP, cmd=cmd_str,
+        )
+        output, error = subprocess.Popen(
+            ssh_cmd, shell=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE).communicate()
+            stderr=subprocess.PIPE,
+        ).communicate()
         print("Output: ", output)
         print("Error: ", error)
         return output, error
@@ -252,8 +259,8 @@ class SubscriberDbCassandra(SubscriberDbClient):
         # Insert into users
         add_usr_cmd = "$HOME/openair-cn/scripts/data_provisioning_users "\
             "--apn oai.ipv4 --apn2 internet --key " + KEY + \
-            " --imsi-first " + sid + " --mme-identity "+ self.MME_IDENTITY +\
-            " --no-of-users 1 --realm magma.com --opc "+ OPC + \
+            " --imsi-first " + sid + " --mme-identity " + self.MME_IDENTITY +\
+            " --no-of-users 1 --realm magma.com --opc " + OPC + \
             " --cassandra-cluster " + self.CASSANDRA_SERVER_IP
         self._run_remote_cmd(add_usr_cmd)
 

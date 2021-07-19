@@ -25,7 +25,7 @@ type EpsIRIContent IRIParameter
 
 type IRIParameter struct {
 	Hi2epsDomainID        asn1.ObjectIdentifier `asn1:"tag:0"`
-	LawInterceptID        []byte                `asn1:"optional,tag:1"`
+	LawInterceptID        []byte                `asn1:"tag:1"`
 	TimeStamp             Timestamp             `asn1:"tag:3"`
 	Initiator             asn1.Enumerated       `asn1:"tag:4"`
 	PartyInformation      []PartyInformation    `asn1:"set,optional,tag:9"`
@@ -50,9 +50,9 @@ type PartyInformation struct {
 }
 
 type PartyIdentity struct {
-	IMEI   []byte `asn1:"optional,tag:1"`
-	IMSI   []byte `asn1:"optional,tag:3"`
-	MSISDN []byte `asn1:"optional,tag:6"`
+	IMEI   []byte `asn1:"optional,omitempty,tag:1"`
+	IMSI   []byte `asn1:"optional,omitempty,tag:3"`
+	MSISDN []byte `asn1:"optional,omitempty,tag:6"`
 }
 
 type NetworkIdentifier struct {
@@ -78,15 +78,15 @@ type EPSLocation struct {
 }
 
 type EPSSpecificParameters struct {
-	PDNAddressAllocation   []byte          `asn1:"optional,tag:1"`
-	APN                    []byte          `asn1:"optional,tag:2"`
-	EPSBearerIdentity      []byte          `asn1:"optional,tag:5"`
-	DetachType             []byte          `asn1:"optional,tag:6"`
-	RATType                []byte          `asn1:"optional,tag:7"`
-	FailedBearerActReason  []byte          `asn1:"optional,tag:8"`
-	EPSBearerQoS           []byte          `asn1:"optional,tag:9"`
+	PDNAddressAllocation   []byte          `asn1:"optional,omitempty,tag:1"`
+	APN                    []byte          `asn1:"optional,omitempty,tag:2"`
+	EPSBearerIdentity      []byte          `asn1:"optional,omitempty,tag:5"`
+	DetachType             []byte          `asn1:"optional,omitempty,tag:6"`
+	RATType                []byte          `asn1:"optional,omitempty,tag:7"`
+	FailedBearerActReason  []byte          `asn1:"optional,omitempty,tag:8"`
+	EPSBearerQoS           []byte          `asn1:"optional,omitempty,tag:9"`
 	BearerActivationType   asn1.Enumerated `asn1:"optional,tag:10"`
-	ApnAmbr                []byte          `asn1:"optional,tag:11"`
+	ApnAmbr                []byte          `asn1:"optional,omitempty,tag:11"`
 	BearerDeactivationType asn1.Enumerated `asn1:"optional,tag:21"`
 	EPSLocationOfTheTarget EPSLocation     `asn1:"optional,tag:23"`
 }

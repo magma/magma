@@ -130,6 +130,7 @@ message AttachRequestIes {
   NasMsgDecodeStatus decode_status = 16;
   MobileStaClassmark2 classmark2 = 17;
   VoicePreference voice_preference = 18;
+  UeAdditionalSecurityCapability ue_additional_security_capability = 19;
 }
 
 // nas_emm_attach_proc_t
@@ -334,6 +335,12 @@ message UeNetworkCapability {
   uint32 length = 33;
 }
 
+// ue_additional_security_capability_t
+message UeAdditionalSecurityCapability {
+  uint32 ea = 1;
+  uint32 ia = 2;
+}
+
 // bearer_qos_t
 message BearerQos {
   uint32 pci = 1;
@@ -388,7 +395,9 @@ message EsmContext {
   EsmProcData esm_proc_data = 5;
 
   Timer t3489 = 199;
-  bool is_standalone = 200;
+  bool is_standalone = 200 [deprecated=true];
+  bool is_pdn_disconnect = 201;
+  int32 pending_standalone = 202;
 }
 
 // esm_ebr_context_t
@@ -463,5 +472,6 @@ message EmmContext {
   UeNetworkCapability ue_network_capability = 65;
   NwDetachData nw_detach_data = 66;
   NewAttachInfo new_attach_info = 67;
+  UeAdditionalSecurityCapability ue_additional_security_capability = 68;
   // TODO: add remaining emm_context elements
   }

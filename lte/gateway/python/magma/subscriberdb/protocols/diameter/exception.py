@@ -11,9 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 class CodecException(Exception):
     """Exception used for decoding Diameter messages"""
     pass
+
 
 class TooShortException(Exception):
     """Exception used when we try to decode a payload but it is TooShortException

@@ -17,6 +17,10 @@ import (
 // swagger:model s8
 type S8 struct {
 
+	// apn operator suffix
+	// Pattern: [^\:]+(:[0-9]{1,5})?
+	ApnOperatorSuffix string `json:"apn_operator_suffix,omitempty"`
+
 	// local address
 	// Pattern: [^\:]+(:[0-9]{1,5})?
 	LocalAddress string `json:"local_address,omitempty"`
@@ -30,6 +34,10 @@ type S8 struct {
 func (m *S8) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateApnOperatorSuffix(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateLocalAddress(formats); err != nil {
 		res = append(res, err)
 	}
@@ -41,6 +49,19 @@ func (m *S8) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *S8) validateApnOperatorSuffix(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ApnOperatorSuffix) { // not required
+		return nil
+	}
+
+	if err := validate.Pattern("apn_operator_suffix", "body", string(m.ApnOperatorSuffix), `[^\:]+(:[0-9]{1,5})?`); err != nil {
+		return err
+	}
+
 	return nil
 }
 

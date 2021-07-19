@@ -16,6 +16,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
+import "lte/protos/apn.proto";
 import "google/protobuf/timestamp.proto";
 
 package magma.lte;
@@ -37,6 +38,8 @@ message RuleRecord {
   uint64 rule_version = 9;
   // Uplink TEID
   uint32 teid = 10;
+  //Indicates that the report is final and the flow will be deleted
+  bool final_record = 11;
 }
 
 message RuleRecordTable {
@@ -50,9 +53,9 @@ message RuleRecordTable {
 ///////////////////
 enum RATType {
   // Maps to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
-  TGPP_LTE = 0;  
+  TGPP_LTE = 0;
   // Maps to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
-  TGPP_WLAN = 1; 
+  TGPP_WLAN = 1;
   TGPP_NR = 2;
 }
 
@@ -88,19 +91,43 @@ message RatSpecificContext {
   }
 }
 
+message TeidSet {
+  // Obsolete to be cleared once AMF code clean up happens
+  uint32 teid = 1;
+  string end_ipv4_addr = 2;
+  uint32 teid_value = 3;
+  string end_ipv4_addr_string = 4;
+}
+
+enum NotifyUeEvents {
+   // AMF <=> SMF
+   PDU_SESSION_INACTIVE_NOTIFY = 0;
+   // AMF <=> SMF
+   UE_IDLE_MODE_NOTIFY = 1;
+   // SMF  => AMF
+   UE_PAGING_NOTIFY = 2;
+   // AMF  => SMF
+   UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY = 3;
+   // SMF => AMF
+   PDU_SESSION_STATE_NOTIFY = 4;
+   // AMF -> SMF && SMF -> AMF response
+   UE_SERVICE_REQUEST_ON_PAGING = 5;
+}
+
 message RatSpecificNotification {
-  // One byte
-  bytes pdu_session_id = 1;
+  uint32 pdu_session_id = 1;
   RequestType request_type = 2;
   AccessType access_type = 3;
   PduSessionType pdu_session_type = 4;
   M5GSMCapability m5g_sm_capability = 5;
   M5GSMCause m5gsm_cause = 6;
+  //Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 7;
 }
 
 message SetSmNotificationContext {
   // Common message for 4g, 5g and WiFi.
-  CommonSessionContext common_context = 1;                       
+  CommonSessionContext common_context = 1;
   RatSpecificNotification rat_specific_notification = 2;
 }
 
@@ -137,7 +164,7 @@ message LocalEndSessionResponse {
 
 message UpdateTunnelIdsRequest {
   SubscriberID sid = 1;
-  // default bearerID 
+  // default bearerID
   uint32 bearer_id = 2;
   // TEID for default bearerID
   uint32 enb_teid = 3;
@@ -339,7 +366,7 @@ service LocalSessionManager {
 
   // A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
-  
+
   // A set interface of subscribers -> currently active rules
   rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 
@@ -499,7 +526,7 @@ message UsageMonitoringCredit {
     // no need to monitor any more  `AVP: Usage-Monitor-Support`
     DISABLE = 1;
     // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` TODO: not implemented on sessiond
-    FORCE = 2; 
+    FORCE = 2;
   }
   Action action = 1;
   bytes monitoring_key = 2;
@@ -553,6 +580,13 @@ message QosInformationRequest {
   uint32 preemption_capability = 4;
   uint32 preemption_vulnerability = 5;
   uint32 qos_class_id = 6;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
 }
 
 // TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
@@ -580,6 +614,8 @@ message CreateSessionResponse {
   TgppContext tgpp_ctx = 10;
   repeated EventTrigger event_triggers = 11;
   google.protobuf.Timestamp revalidation_time = 12;
+  bool online = 13;
+  bool offline = 15;
 }
 
 message StaticRuleInstall {
@@ -653,7 +689,7 @@ message NodeID {
   string node_id = 2;
 }
 
-//PduSessionType
+// PduSessionType
 enum PduSessionType {
    IPV4 = 0;
    IPV6 = 1;
@@ -662,18 +698,18 @@ enum PduSessionType {
 }
 
 
-//SscMode
+// SscMode
 enum SscMode {
    SSC_MODE_1 = 0;
    SSC_MODE_2 = 1;
    SSC_MODE_3 = 2;
 }
-//M5GSMCapability
+// M5GSMCapability
 message M5GSMCapability {
    bool reflective_qos = 1;
    bool multi_homed_ipv6_pdu_session = 2;
 }
-//M5GSMCause
+// M5GSMCause
 enum M5GSMCause {
      OPERATOR_DETERMINED_BARRING = 0;                              //actual value 8
      INSUFFICIENT_RESOURCES = 1;                                   //actual value 26
@@ -715,7 +751,7 @@ enum M5GSMCause {
      PTI_ALREADY_IN_USE = 38;                                      //actual value 111
      OPERATION_SUCCESS = 40;//Response other than failure
 }
-//RequestType
+// RequestType
 enum RequestType {
    INITIAL_REQUEST = 0;
    EXISTING_PDU_SESSION = 1;
@@ -723,22 +759,22 @@ enum RequestType {
    EXISTING_EMERGENCY_PDU_SESSION = 3;
    MODIFICATION_REQUEST = 4;
 }
-//AccessType
+// AccessType
 enum AccessType {
   M_3GPP_ACCESS_3GPP = 0;
   NON_3GPP_ACCESS = 1;
 }
-//DnnSelectionMode
+// DnnSelectionMode
 enum DnnSelectionMode {
     VERIFIED = 0;
     UE_DNN_NOT_VERIFIED = 1;
     NW_DNN_NOT_VERIFIED = 2;
 }
 
-//RatType
-//Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
+// RatType
+// Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
 
-//RequestedQosRules and AuthorizedQosRules
+// RequestedQosRules and AuthorizedQosRules
 message QosRules {
    uint32 qos_rule_identifier = 1;
    bool dqr = 2;
@@ -749,6 +785,38 @@ message QosRules {
    uint32 qos_flow_identifier = 7;
 }
 
+enum prem_capab {
+  SHALL_NOT_TRIGGER_PRE_EMPTION = 0;
+  MAY_TRIGGER_PRE_EMPTION = 1;
+}
+enum  prem_vuner {
+  NOT_PREMTABLE = 0;
+  PRE_EMPTABLE = 1;
+}
+
+message allocation_and_retention_prio {
+   uint32       prio_level = 1;
+   prem_capab   pre_emtion_cap = 2;
+   prem_vuner   pre_emtion_vul = 3;
+}
+
+message qos_characteristics {
+   uint32 fiveQi = 1;
+}
+
+message flow_level_params {
+    qos_characteristics qos_chars = 1;
+    allocation_and_retention_prio alloc_reten_prio = 2;
+}
+message qos_flow {
+   uint32  qos_flow_ident = 1;
+   flow_level_params  param = 2;
+}
+message  qos_flow_request_list {
+   qos_flow flow  = 1;
+}
+
+
 message LadnServiceArea {
    string dnn_value = 1;
    repeated TrackingAreaIdentityList identity_list = 2;
@@ -756,9 +824,12 @@ message LadnServiceArea {
 message TrackingAreaIdentityList {
    repeated TypeOfList type_of_list = 1;
    repeated int32 number_of_elements = 2;
+   // 3 bytes
    string MCC=3;
+   // 3 bytes
    string MNC=4;
-   string TAC= 5;          // tac is havaing length 8 bytes,MCC is 3 bytes, MNC is 3 bytes
+   // 8 bytes
+   string TAC= 5;          
 }
 enum TypeOfList  {
    LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES = 0;
@@ -780,90 +851,134 @@ enum SMSessionFSMState {
 }
 
 
-//PDU session Establishment from AMF to SMF
-//SET MESSSAGE
+// PDU session Establishment from AMF to SMF
+// SET MESSSAGE
 message M5GSMSessionContext {
-  bytes pdu_session_id = 1;   //One byte
-  RequestType rquest_type = 2;        //Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
-  RedirectServer pdu_address = 3; //IP address. Imported from session_manager.proto file
+  uint32 pdu_session_id = 1;
+ // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial request, existing pdusession etc...
+  RequestType request_type = 2;
+  // IP address. Imported from session_manager.proto file
+  RedirectServer pdu_address = 3;
   priorityaccess priority_access = 4;
-  AccessType access_type = 5;     //Define enum TS-29.571 - section 5.4.3
-  string imei = 8; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
-  string gpsi = 9; //Lenght is 10 bytes + 2 bytes country code generic public subscription id.
-  string user_location_info = 10; //up to 6 byte. TS-23.003 - 28.15.3
-  string pcf_id = 11; //length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
-  //Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
-  repeated LadnServiceArea ladn_service_area = 12; //Length is 10 bytes, like PLMN
-  bool pdu_session_status_notification_sub = 13;   //Subscription For PDU Session Status Notification true or false
-  DnnSelectionMode dnn_selection_mode = 14;       // TS-29-502 - 6.1.6.3.10
-  string trace_requirment = 15;                   // TS-29.571 5.6.
-  bytes integrity_protection_max_data_rate = 16;  //Length is 3 bytes, TS-24.501 9.11.4.7
-  PduSessionType pdu_session_type = 17;
-  SscMode ssc_mode = 18;
-  M5GSMCapability m5g_sm_capability = 19;  // max size go up to 15 bytes. TLV and 9.11.4.1.
-  uint32 max_pkt_filter_supported = 20;    //Maximum no. of supported packet filters
-  bool pdu_session_req_always_on = 21;     //Always-on PDU session requested TS-24.501 9.11.4.4
-  string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
-  M5GSMCause m5gsm_cause = 23;
-  QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  // Define enum TS-29.571 - section 5.4.3
+  AccessType access_type = 5;
+  // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
+  string imei = 6;
+  // Length is 10 bytes + 2 bytes country code generic public subscription id.
+  string gpsi = 7; 
+  // up to 6 byte. TS-23.003 - 28.15.3
+  string user_location_info = 8;
+  // length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
+  string pcf_id = 9;
+  // Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
+  repeated LadnServiceArea ladn_service_area = 10; 
+  // Subscription For PDU Session Status Notification true or false
+  bool pdu_session_status_notification_sub = 11;
+  // TS-29-502 - 6.1.6.3.10 
+  DnnSelectionMode dnn_selection_mode = 12;
+  // TS-29.571 5.6.
+  string trace_requirement = 13;
+  // Length is 3 bytes, TS-24.501 9.11.4.7
+  bytes integrity_protection_max_data_rate = 14;
+  PduSessionType pdu_session_type = 15;
+  SscMode ssc_mode = 16;
+  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  M5GSMCapability m5g_sm_capability = 17;  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  // Maximum no. of supported packet filters
+  uint32 max_pkt_filter_supported = 18;
+  // Always-on PDU session requested TS-24.501 9.11.4.4
+  bool pdu_session_req_always_on = 19;
+  // SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
+  string sm_pdu_dn_req = 20; 
+  M5GSMCause m5gsm_cause = 21;
+  // TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  QosRules requested_qos_rules = 22;
+  TeidSet gnode_endpoint = 23;
+  TeidSet upf_endpoint = 24;
+  // Procedure transaction identity
+  bytes procedure_trans_identity = 25;
 }
 
 message SetSMSessionContext {
-  CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
+  // Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;
   RatSpecificContext   rat_specific_context = 2;
 }
 
-//TODO This supposed to be empty message and the element will be removed later
+// TODO This supposed to be empty message and the element will be removed later
 message SmContextVoid {
   string output = 1;
 }
 
-//SET API for 3 procedures request from AMF to SMF
-        service AmfPduSessionSmContext {
-                rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
-        }
 
-////////// SET MESSAGE PROTO DEFINATION OF SMF TO AMF ON RESPONSE /////////////
 
-//4G response message has not been refactored yet. Hence only considering M5G.
+// SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE 
+
+// 4G response message has not been refactored yet. Hence only considering M5G.
 message RatSpecificContextAccess {
-  //oneof context {//TODO need to be implemented after 4G refactored
-    //LTESessionContextAccess lte_context = 1;
+  // oneof context {//TODO need to be implemented after 4G refactored
+    // LTESessionContextAccess lte_context = 1;
     M5GSMSessionContextAccess m5g_session_context_rsp = 2;
   //}
 }
 
-//AuthorizedQosRules
-//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
-//where each QoS rule is a set of parameters.
-//a) for classification and marking of uplink user traffic; and
-//b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
-//As the UE needs to be aware of a QoS flow which the network is to use for a particular downlink user traffic
-//e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
-//description provided by the UE in an IMS session.
+// AuthorizedQosRules
+// The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
+// where each QoS rule is a set of parameters.
+// a) for classification and marking of uplink user traffic; and
+// b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
+// As the UE needs to be aware of a QoS flow which the network is to use for a particular downlink user traffic
+// e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
+// description provided by the UE in an IMS session.
+
+message AmbrUnit {
+  enum AmbrUnitType {
+   Kbps_0 = 0;
+   Kbps_1 = 1;
+   Kbps_4 = 2;
+   Kbps_16 = 3;
+   Kbps_64 = 4;
+  }
+  AmbrUnitType ambr_unit_type = 1;
+}
 
 message M5GSMSessionContextAccess{
-    //One byte, received from UE. For 5G pdu_session_id.
-    bytes pdu_session_id = 1;
-    //selected PDU session TS-24501 - 9.11.4.11
+    // received from UE. For 5G pdu_session_id.
+    uint32 pdu_session_id = 1;
+    // selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
-    //selected session and service continuty mode TS-24501 - 9.11.4.16
+    // selected session and service continuty mode TS-24501 - 9.11.4.16
     SscMode selected_ssc_mode = 3;
-    //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
+    // TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
     repeated QosRules authorized_qos_rules = 4;
-    //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
+    // TS-24501 - 9.11.4.14 PDU session  Bit Rate imported from subscriberdb.proto
+
+    // TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
     AggregatedMaximumBitrate session_ambr = 5;
-    M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
-    //PDU session is requested to be established as always-on PDU session.
-    bool always_on_pdu_session_indication = 7;
-    SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
-    bool M5gsm_congetion_re_attempt_indicator = 9;
-    //IP address. Imported from session_manager.proto file.
-    RedirectServer pdu_address = 12;
+    AmbrUnit downlink_unit_type = 6;
+    // Only to use lower 2 bytes (16 bit values)
+    uint32   downlink_units = 7;   
+    AmbrUnit uplink_unit_type = 8;
+    // Only to use lower 2 bytes (16 bit values) 
+    uint32   uplink_units = 9;   
+    // TS-24501 - 9.11.4.2
+    M5GSMCause M5gsm_cause = 10; 
+    // PDU session is requested to be established as always-on PDU session.
+    bool always_on_pdu_session_indication = 11;
+    // Indicates SSC mode.
+    SscMode allowed_ssc_mode = 12; 
+    bool M5G_sm_congestion_reattempt_indicator = 13;
+    // IP address. Imported from session_manager.proto file.
+    RedirectServer pdu_address = 14;
+    TeidSet upf_endpoint = 15;
+    // Procedure transaction identity One byte TS-24501 9.6
+    bytes procedure_trans_identity = 16;    
+    FlowQos  qos =17;
 }
 
 message SetSMSessionContextAccess {
-  CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
+  // Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;
   RatSpecificContextAccess   rat_specific_context = 2;
 }
 
@@ -883,15 +998,15 @@ message UPFNodeState {
     }
 }
 
-//15.8 (Sec 8.2.82 User Plane IP Resource Information)
+// 15.8 (Sec 8.2.82 User Plane IP Resource Information)
 message UserPlaneIPResourceSchema {
     string ipv4_address = 1;
     string ipv6_address = 2;
     uint32 teid_range_indication = 3;
     uint32 teid_range = 4;
     string assoc_network_instance = 5;
-
-    enum InterfaceValue {    // 15.8 (Sec 8.2.2) Source Interface
+    // 15.8 (Sec 8.2.2) Source Interface
+    enum InterfaceValue {    
        ACCESS = 0;
        CORE = 1;
        LAN  = 2;
@@ -916,7 +1031,7 @@ message UPFAssociationState {
      RELEASE=4;
   }
 
-  //Association state of the UPF
+  // Association state of the UPF
   AssociationState assoc_state = 3;
 
   // Time when UPF got started
@@ -935,37 +1050,54 @@ message UPFAssociationState {
 
 message UPFFeatureSet {
   // 15.8 (Sec 8.2.25) :  UP Function Features
-  bool downlink_data_buffering_cp = 1;   // Downlink Data Buffering in CP function supported in UPF
+  // Downlink Data Buffering in CP function supported in UPF
+  bool downlink_data_buffering_cp = 1;   
+  // Buffering parameter, Downlink DataNotification Delay supported by UPF
   bool downlink_data_notification_delay = 2;
-                                           // Buffering parameter, Downlink DataNotification Delay supported by UPF
-  bool dl_buffering_duration = 3;        // Buffering parameter, DL Buffering Duration is supported by UPF
-  bool traffic_steering = 4;             // Traffic Steering is supported by the UPF
-  bool f_teid = 5;                       // F-TEID allocation/release in the UP function is supported by UPF
-  bool pfd_management = 6;               // PFD Management is supported by UPF
-  bool header_enrichment_uplink = 7;     // Header enrichment of Uplink Traffic is supported by UPF
+  // Buffering parameter, DL Buffering Duration is supported by UPF  
+  bool dl_buffering_duration = 3;        
+  // Traffic Steering is supported by the UPF
+  bool traffic_steering = 4;             
+  // F-TEID allocation/release in the UP function is supported by UPF
+  bool f_teid = 5;                       
+  // PFD Management is supported by UPF
+  bool pfd_management = 6;               
+  // Header enrichment of Uplink Traffic is supported by UPF
+  bool header_enrichment_uplink = 7;     
+  // Traffic Redirection Enforcement in the UP function is supported in UPF
   bool traffic_redirection_enforcement = 8;
-                                         // Traffic Redirection Enforcement in the UP function is supported in UPF
-  bool end_of_marker_packet = 9;         // Sending End of Marker packets supported by the UPF
-  bool pdi_optimization_signalling = 10; // Support PDI optimized signalling in UPF
-  bool ul_dl_buffering_control = 11;     // Support of UL/DL Buffering Control
-  bool quota_application_to_apply = 12;  // The UPF supports being provisioned with the Quota Action to apply
-  bool trace = 13;                       // The UPF supports Trace
-  bool frame_routing = 14;               // UPF supports Framed Routing
+  // Sending End of Marker packets supported by the UPF
+  bool end_of_marker_packet = 9;         
+  // Support PDI optimized signaling in UPF
+  bool pdi_optimization_signaling = 10; 
+  // Support of UL/DL Buffering Control
+  bool ul_dl_buffering_control = 11;     
+  // The UPF supports being provisioned with the Quota Action to apply
+  bool quota_application_to_apply = 12;  
+  // The UPF supports Trace
+  bool trace = 13;                       
+  // UPF supports Framed Routing
+  bool frame_routing = 14;               
   bool pfd_contents = 15;
 }
 
 
-//15.8 (Sec 7.4.5.1) : PFCP Node Report Request
+// 15.8 (Sec 7.4.5.1) : PFCP Node Report Request
 message UPFNodeReport {
-    uint32 state_version = 2;                                        // Version of the report
-    LoadControlInformation load_control_info = 3;                    // Load Control Information
-    OverloadControlInformation overload_control_info = 4;            // OverLoad Control Information
+    // Version of the report
+    uint32 state_version = 2;                                        
+    // Load Control Information
+    LoadControlInformation load_control_info = 3;                    
+    // OverLoad Control Information
+    OverloadControlInformation overload_control_info = 4;            
 }
 
 // 15.8 (Table 7.5.3.3-1) : Load Control Information
 message LoadControlInformation {
-   uint32 load_control_seq_number = 1;   // Sec 6.2.3.3.2.1
-   uint32 load_metric = 2;               // Sec 6.2.3.3.2.2
+   // Sec 6.2.3.3.2.1
+   uint32 load_control_seq_number = 1;   
+   // Sec 6.2.3.3.2.2
+   uint32 load_metric = 2;               
 }
 
 // 15.8 (Sec 8.2.35) : Timer
@@ -984,9 +1116,12 @@ message OverloadControlInformation {
 
 // Current Session snapshot in UPF.
 message UPFSessionState {
-  string subscriber_id = 1;       // Subscriber ID
-  uint32 session_version = 2;      // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
-  uint32 local_f_teid = 3;        // Local TEID to uniquely identify the session
+  // Subscriber ID
+  string subscriber_id = 1;       
+  // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
+  uint32 session_version = 2;      
+  // Local TEID to uniquely identify the session
+  uint32 local_f_teid = 3;        
 }
 
 // Perodic Session snapshot information from UPF to SMF
@@ -1000,19 +1135,24 @@ message UPFPagingInfo {
   string ue_ip_addr = 2;
 }
 
-//Set Interface from Pipelined
+// Set Interface from Pipelined
 service SetInterfaceForUserPlane {
-    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
-    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
-    rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
+    rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
+    rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 
-// RPC service and method
+// SET API for 3 procedures request from AMF to SMF
+service AmfPduSessionSmContext {
+  // PDU session related configuration from amf to smf
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  // PDU session related notification from amf to smf
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid); 
+}
+
+// RPC service and method from SMF to AMF
 service SmfPduSessionSmContext {
- rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    //SMF to AMF
+ rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
 
-service AmfSmfSmNotification {
- rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);    //AMF to SMF
-}

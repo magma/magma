@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -49,24 +50,26 @@ func deleteCmd(cmd *commands.Command, args []string) int {
 		f.Usage()
 		log.Fatalf("A single Operator Id must be specified.")
 	}
+
+	ctx := context.Background()
 	// Create Operator Identity for the oid
 	operator := identity.NewOperator(oid)
 	fmt.Printf("Removing Operator: %s (%s)\n", oid, operator.HashString())
-	certSNs, err := certifier.FindCertificates(operator)
+	certSNs, err := certifier.FindCertificates(ctx, operator)
 	if err != nil {
 		log.Printf("Error %s getting certificates for %s", err, oid)
 	} else {
 		fmt.Printf(
 			"%d certificates associated with %s found\n", len(certSNs), oid)
 		for _, csn := range certSNs {
-			err = certifier.RevokeCertificateSN(csn)
+			err = certifier.RevokeCertificateSN(ctx, csn)
 			if err != nil {
 				log.Printf(
 					"Error %s deleting certificate SN:%s for %s", err, csn, oid)
 			}
 		}
 	}
-	err = accessd.DeleteOperator(operator)
+	err = accessd.DeleteOperator(ctx, operator)
 	if err != nil {
 		log.Printf("Error while removing Operator %s: %s", oid, err)
 	}

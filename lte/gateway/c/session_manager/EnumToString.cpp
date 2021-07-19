@@ -97,6 +97,8 @@ std::string session_fsm_state_to_str(SessionFsmState state) {
       return "SESSION_CREATING";
     case CREATED:
       return "SESSION_CREATED";
+    case INACTIVE:
+      return "SESSION_INACTIVE";
     default:
       return "INVALID SESSION FSM STATE";
   }

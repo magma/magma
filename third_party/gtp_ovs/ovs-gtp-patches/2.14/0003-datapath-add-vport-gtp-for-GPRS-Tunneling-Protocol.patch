@@ -1,7 +1,7 @@
-From f30ddbf373f84aca77a967469b8f8311cd40e677 Mon Sep 17 00:00:00 2001
+From 1d32fe6cc56137fd6b032940e6033a997d9545f5 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 00:55:30 -0800
-Subject: [PATCH 03/14] datapath: add vport-gtp for GPRS Tunneling Protocol
+Subject: [PATCH 03/19] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
@@ -10,23 +10,23 @@ tested with ubuntu kernel 5.6.19-050619-generic.
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- acinclude.m4                                   |    4 +
- datapath/Modules.mk                            |    2 +
- datapath/linux/Modules.mk                      |    3 +
- datapath/linux/compat/gtp.c                    | 1797 ++++++++++++++++++++++++
- datapath/linux/compat/include/linux/gtp.h      |   10 +
- datapath/linux/compat/include/linux/if_link.h  |   16 +
- datapath/linux/compat/include/net/dst_cache.h  |    1 -
- datapath/linux/compat/include/net/gtp.h        |   24 +
- datapath/linux/compat/include/net/udp_tunnel.h |    2 +-
- datapath/linux/compat/nf_conntrack_reasm.c     |    1 +
- datapath/linux/compat/udp_tunnel.c             |    2 +-
- datapath/vport-gtp.c                           |  147 ++
- datapath/vport.c                               |    8 +-
- tests/automake.mk                              |    2 +-
- tests/system-common-macros.at                  |    7 +
- tests/system-layer3-tunnels.at                 |   53 +
- tests/tunnel.at                                |   28 +
+ acinclude.m4                                  |    4 +
+ datapath/Modules.mk                           |    2 +
+ datapath/linux/Modules.mk                     |    3 +
+ datapath/linux/compat/gtp.c                   | 1797 +++++++++++++++++
+ datapath/linux/compat/include/linux/gtp.h     |   10 +
+ datapath/linux/compat/include/linux/if_link.h |   16 +
+ datapath/linux/compat/include/net/dst_cache.h |    1 -
+ datapath/linux/compat/include/net/gtp.h       |   24 +
+ .../linux/compat/include/net/udp_tunnel.h     |    2 +-
+ datapath/linux/compat/nf_conntrack_reasm.c    |    1 +
+ datapath/linux/compat/udp_tunnel.c            |    2 +-
+ datapath/vport-gtp.c                          |  147 ++
+ datapath/vport.c                              |    8 +-
+ tests/automake.mk                             |    2 +-
+ tests/system-common-macros.at                 |    7 +
+ tests/system-layer3-tunnels.at                |   53 +
+ tests/tunnel.at                               |   28 +
  17 files changed, 2102 insertions(+), 5 deletions(-)
  create mode 100644 datapath/linux/compat/gtp.c
  create mode 100644 datapath/linux/compat/include/linux/gtp.h
@@ -34,10 +34,10 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  create mode 100644 datapath/vport-gtp.c
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 857067a88..0a6b66a04 100644
+index 49ad9e8d0..d14cde02b 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -637,6 +637,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -647,6 +647,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
  
    OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [IFLA_GENEVE_TOS])
    OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [rtnl_link_stats64])
@@ -46,7 +46,7 @@ index 857067a88..0a6b66a04 100644
    OVS_GREP_IFELSE([$KSRC/include/linux/if_link.h], [rtnl_link_stats64])
    OVS_GREP_IFELSE([$KSRC/include/linux/if_vlan.h], [vlan_set_encap_proto])
    OVS_GREP_IFELSE([$KSRC/include/linux/if_vlan.h], [vlan_hwaccel_push_inside])
-@@ -671,6 +673,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -681,6 +683,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
                    [OVS_DEFINE([HAVE_INET_FRAGS_LAST_IN])])
    OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frag_evicting])
    OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frag_evictor])
@@ -54,7 +54,7 @@ index 857067a88..0a6b66a04 100644
    OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
                          [frags_work])
    OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
-@@ -971,6 +974,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -981,6 +984,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
                    [OVS_DEFINE([HAVE_NET_NAME_UNKNOWN])])
  
    OVS_GREP_IFELSE([$KSRC/include/net/sock.h], [sk_no_check_tx])
@@ -2226,10 +2226,10 @@ index f929282dc..dfb6dcca4 100644
  		gre_exit();
  		ipgre_fini();
 diff --git a/tests/automake.mk b/tests/automake.mk
-index 677b99a6b..f0bb79966 100644
+index fc80e027d..498d016e0 100644
 --- a/tests/automake.mk
 +++ b/tests/automake.mk
-@@ -334,7 +334,7 @@ check-kernel: all
+@@ -335,7 +335,7 @@ check-kernel: all
  # Testing the out of tree Kernel module
  check-kmod: all
  	$(MAKE) modules_install
@@ -2239,10 +2239,10 @@ index 677b99a6b..f0bb79966 100644
  
  check-system-userspace: all
 diff --git a/tests/system-common-macros.at b/tests/system-common-macros.at
-index 68c8774d1..3643cc18d 100644
+index 9d5e24a29..490c59e04 100644
 --- a/tests/system-common-macros.at
 +++ b/tests/system-common-macros.at
-@@ -317,6 +317,13 @@ m4_define([OVS_CHECK_GENEVE_UDP6ZEROCSUM],
+@@ -323,6 +323,13 @@ m4_define([OVS_CHECK_GENEVE_UDP6ZEROCSUM],
      [AT_SKIP_IF([! ip link add foo type geneve help 2>&1 | grep udp6zerocsum >/dev/null])
       OVS_CHECK_FIREWALL()])
  
@@ -2362,5 +2362,5 @@ index e104b5c8c..3dfd9675d 100644
 +OVS_VSWITCHD_STOP
 +AT_CLEANUP
 -- 
-2.13.5
+2.17.1
 

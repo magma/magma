@@ -59,6 +59,12 @@ services:
         /magma/v1/lte/:network_id/subscribers,
         /magma/v1/lte/:network_id/subscribers_v2,
 
+  subscriberdb_cache:
+    host: "localhost"
+    port: 9089
+    echo_port: 10087
+    proxy_type: "clientcert"
+
   policydb:
     host: "localhost"
     port: 9085
@@ -95,5 +101,4 @@ services:
       orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
-        /magma/v1/lte/:network_id/network_probe/tasks,
-        /magma/v1/lte/:network_id/network_probe/destinations,
+        /magma/v1/lte/:network_id/network_probe,

@@ -167,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.21"
+  default     = "1.5.23"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -185,13 +185,13 @@ variable "fbinternal_orc8r_chart_version" {
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.3"
+  default     = "0.2.4"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.4"
+  default     = "0.2.5"
 }
 
 variable "wifi_orc8r_chart_version" {
@@ -203,7 +203,13 @@ variable "wifi_orc8r_chart_version" {
 variable "orc8r_tag" {
   description = "Image tag for Orchestrator components."
   type        = string
-  default     = ""
+  default     = "1.6.0"
+}
+
+variable "magma_uuid" {
+  description = "UUID to identify Orc8r deployment"
+  type        = string
+  default     = "default"
 }
 
 ##############################################################################
@@ -240,6 +246,12 @@ variable "elasticsearch_endpoint" {
   description = "Endpoint of the Elasticsearch datasink for aggregated logs and events."
   type        = string
   default     = null
+}
+
+variable "elasticsearch_disk_threshold" {
+  description = "Size threshold in GB."
+  type        = number
+  default     = 10
 }
 
 variable "elasticsearch_retention_days" {
@@ -295,16 +307,19 @@ variable "orc8r_db_pass" {
 variable "docker_registry" {
   description = "Docker registry to pull Orchestrator containers from."
   type        = string
+  default     = "docker.artifactory.magmacore.org"
 }
 
 variable "docker_user" {
   description = "Docker username to login to registry with."
   type        = string
+  default     = ""
 }
 
 variable "docker_pass" {
   description = "Docker registry password."
   type        = string
+  default     = ""
 }
 
 variable "seed_certs_dir" {
@@ -315,16 +330,19 @@ variable "seed_certs_dir" {
 variable "helm_repo" {
   description = "Helm repository URL for Orchestrator charts."
   type        = string
+  default     = "https://artifactory.magmacore.org/artifactory/helm/"
 }
 
 variable "helm_user" {
   description = "Helm username to login to repository with."
   type        = string
+  default     = ""
 }
 
 variable "helm_pass" {
   description = "Helm repository password."
   type        = string
+  default     = ""
 }
 
 ##############################################################################
@@ -389,27 +407,27 @@ variable "analytics_metrics_prefix" {
 
 variable "analytics_app_secret" {
   description = "App secret for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 
 variable "analytics_app_id" {
   description = "App ID for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_metric_export_url" {
   description = "Metric Export URL"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_category_name" {
   description = "Category under which the exported metrics will be placed under"
-  type = string
-  default = "magma"
+  type        = string
+  default     = "magma"
 }
 
 
@@ -427,4 +445,10 @@ variable "alertmanager_configurer_version" {
   description = "Image version for alertmanager configurer."
   type        = string
   default     = "1.0.4"
+}
+
+variable "cloudwatch_exporter_enabled" {
+  description = "Enable cloudwatch exporter"
+  default     = false
+  type        = bool
 }

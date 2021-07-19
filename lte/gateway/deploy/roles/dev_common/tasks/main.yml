@@ -30,14 +30,12 @@
   become: yes
   with_items:
     - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
-  when: preburn
 
 - name: Restart service ssh
   become: yes
   service:
     name: ssh
     state: restarted
-  when: preburn
 
 - name: Install ansible community collection
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
@@ -140,6 +138,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
+      - apt-transport-https
   retries: 5
   when: preburn
 
@@ -266,6 +265,36 @@
       - libprotobuf-lite17
       - libprotoc17
       - libssl-dev
+
+###############################################
+# Download and build libprotobuf-mutator
+###############################################
+
+- name: Clone libprotobuf-mutator repo
+  become: yes
+  git:
+    repo: 'https://github.com/google/libprotobuf-mutator'
+    dest: "{{ tmp_libprotobuf_mutator_dir }}"
+    version: v1.0
+    force: yes
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Create a build directory for libprotobuf-mutator
+  file:
+    path: "{{ tmp_libprotobuf_mutator_dir }}/build"
+    state: directory
+  when: preburn and ansible_distribution == "Ubuntu"
+
+# Fails build unless we add -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON
+#  to download and build updated proto lib.
+- name: Build libprotobuf-mutator
+  become: yes
+  shell: |
+    cd {{ tmp_libprotobuf_mutator_dir }}/build && \
+    cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON && \
+    ninja && \
+    ninja install
+  when: preburn and ansible_distribution == "Ubuntu"
 
 ###############################################
 # Download and build sentry-native
@@ -397,9 +426,10 @@
     systemctl enable networking
     apt-get --assume-yes purge nplan netplan.i
   when: preburn
+  ignore_errors: true
 
 - name: Copy Resolve file.
   copy:
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: ansible_distribution == "Ubuntu"

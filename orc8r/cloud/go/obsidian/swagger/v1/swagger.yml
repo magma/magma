@@ -3120,7 +3120,8 @@ paths:
       - $ref: '#/parameters/network_id'
       responses:
         "200":
-          description: List of all MSISDNS in the network, mapped to their subscriber ID
+          description: List of all MSISDNS in the network, mapped to their subscriber
+            ID
           schema:
             additionalProperties:
               $ref: '#/definitions/subscriber_id'
@@ -4537,7 +4538,8 @@ paths:
         name: simple_query
         required: false
         type: string
-      - description: Comma-separated list of fields to search with the simple query. Defaults to the log field.
+      - description: Comma-separated list of fields to search with the simple query.
+          Defaults to the log field.
         in: query
         name: fields
         required: false
@@ -4576,7 +4578,8 @@ paths:
         name: simple_query
         required: false
         type: string
-      - description: Comma-separated list of fields to search with the simple query. Defaults to the log field.
+      - description: Comma-separated list of fields to search with the simple query.
+          Defaults to the log field.
         in: query
         name: fields
         required: false
@@ -4591,7 +4594,8 @@ paths:
         name: size
         required: false
         type: string
-      - description: The starting offset to fetch from the search hits. This param along with size can be used for pagination.
+      - description: The starting offset to fetch from the search hits. This param
+          along with size can be used for pagination.
         in: query
         name: from
         required: false
@@ -4878,7 +4882,8 @@ paths:
       tags:
       - Alerts
     get:
-      description: If no query parameters are included, all alerting rules for the given network are returned.
+      description: If no query parameters are included, all alerting rules for the
+        given network are returned.
       parameters:
       - $ref: '#/parameters/network_id'
       - description: Name of alert to be retrieved
@@ -5112,7 +5117,8 @@ paths:
             $ref: '#/definitions/promql_return_object'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time
+        range
       tags:
       - Metrics
   /networks/{network_id}/prometheus/series:
@@ -5229,6 +5235,36 @@ paths:
       summary: Modify a rating group
       tags:
       - Rating Groups
+  /networks/{network_id}/sentry:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Network-wide Sentry.io configuration
+          schema:
+            $ref: '#/definitions/network_sentry_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get the Sentry.io configuration for network
+      tags:
+      - Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: network_sentry_config
+        required: true
+        schema:
+          $ref: '#/definitions/network_sentry_config'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update the Sentry.io configuration for network
+      tags:
+      - Networks
   /networks/{network_id}/tiers:
     get:
       parameters:
@@ -5804,7 +5840,8 @@ paths:
             $ref: '#/definitions/promql_return_object'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time
+        range
       tags:
       - Metrics
   /tenants/{tenant_id}/metrics/api/v1/series:
@@ -5896,7 +5933,8 @@ paths:
             $ref: '#/definitions/promql_return_object'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time
+        range
       tags:
       - Metrics
   /tenants/{tenant_id}/metrics/series:
@@ -5936,12 +5974,14 @@ paths:
   /tenants/targets_metadata:
     get:
       parameters:
-      - description: Label selectors like {job = "magma_pushgateway"} . All targets are selected if left empty
+      - description: Label selectors like {job = "magma_pushgateway"} . All targets
+          are selected if left empty
         in: query
         name: match_target
         required: false
         type: string
-      - description: A metric name to retrieve metadata for. All metric metadata is retrieved if left empty
+      - description: A metric name to retrieve metadata for. All metric metadata is
+          retrieved if left empty
         in: query
         name: metric
         required: false
@@ -6946,7 +6986,8 @@ definitions:
         minLength: 1
         type: string
       release_channel:
-        description: Release channel for package repo (stretch-beta, stretch-dev, etc)
+        description: Release channel for package repo (stretch-beta, stretch-dev,
+          etc)
         example: stretch-beta
         minLength: 1
         type: string
@@ -6961,7 +7002,8 @@ definitions:
         minLength: 1
         type: string
       target_tier:
-        description: ID of upgrade tier to bump when new version is found in package repo
+        description: ID of upgrade tier to bump when new version is found in package
+          repo
         example: t2
         minLength: 1
         type: string
@@ -7324,7 +7366,7 @@ definitions:
         default: 1
         example: 1
         format: uint32
-        maximum: 255
+        maximum: 65535
         minimum: 0
         type: integer
         x-nullable: false
@@ -7960,7 +8002,8 @@ definitions:
     - config_type
     type: object
   enodeb_configuration:
-    description: Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
+    description: Configuration for an enodeB. Unfilled fields will be inherited from
+      LTE network and gateway configuration.
     minLength: 1
     properties:
       bandwidth_mhz:
@@ -8255,6 +8298,10 @@ definitions:
       description:
         type: string
         x-nullable: false
+      service_status:
+        additionalProperties:
+          $ref: '#/definitions/service_status_health'
+        type: object
       status:
         enum:
         - HEALTHY
@@ -8326,7 +8373,8 @@ definitions:
     - dns
     type: object
   feg_network_id:
-    description: Name of the federated network serving this LTE network. Blank for non federated
+    description: Name of the federated network serving this LTE network. Blank for
+      non federated
     example: feg_id_only_for_federated_network
     type: string
   flow_description:
@@ -8483,6 +8531,11 @@ definitions:
   gateway_epc_configs:
     description: EPC configuration for an LTE gateway
     properties:
+      congestion_control_enabled:
+        default: true
+        description: Flag to enable or disable congestion control on MME
+        example: true
+        type: boolean
       dns_primary:
         example: 8.8.8.8
         maxLength: 45
@@ -8540,7 +8593,8 @@ definitions:
         minLength: 5
         type: string
       sgi_management_iface_static_ip:
-        description: IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
+        description: IP address for management interface on the AGW, If not specified
+          AGW uses DHCP to configure it.
         format: cidr
         maxLength: 49
         minLength: 5
@@ -8550,6 +8604,8 @@ definitions:
         maxLength: 4
         minLength: 1
         type: string
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
     required:
     - ip_block
     - nat_enabled
@@ -9773,6 +9829,8 @@ definitions:
         $ref: '#/definitions/network_id'
       name:
         $ref: '#/definitions/network_name'
+      sentry_config:
+        $ref: '#/definitions/network_sentry_config'
       type:
         $ref: '#/definitions/network_type'
     required:
@@ -9800,7 +9858,8 @@ definitions:
       li_ues:
         $ref: '#/definitions/li_ues'
       network_services:
-        description: Configuration for network services. Services will be instantiated in the listed order.
+        description: Configuration for network services. Services will be instantiated
+          in the listed order.
         example:
         - dpi
         - policy_enforcement
@@ -9865,6 +9924,11 @@ definitions:
     properties:
       cloud_subscriberdb_enabled:
         example: false
+        type: boolean
+      congestion_control_enabled:
+        default: true
+        description: Network configuration flag for congestion control on EPC
+        example: true
         type: boolean
       default_rule_id:
         example: default_rule_1
@@ -9952,7 +10016,8 @@ definitions:
         - ip_allocation_mode
         type: object
       network_services:
-        description: Configuration for network services. Services will be instantiated in the listed order.
+        description: Configuration for network services. Services will be instantiated
+          in the listed order.
         example:
         - policy_enforcement
         items:
@@ -10001,6 +10066,8 @@ definitions:
           - max_dl_bit_rate
           type: object
         type: object
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
       tac:
         example: 1
         format: uint32
@@ -10152,6 +10219,10 @@ definitions:
     type: object
   network_probe_destination_details:
     properties:
+      certificate:
+        description: destination tls client certificate.
+        format: byte
+        type: string
       delivery_address:
         example: 127.0.0.1:4040
         type: string
@@ -10163,9 +10234,20 @@ definitions:
         example: events_only
         type: string
         x-nullable: false
+      private_key:
+        description: destination tls client private key.
+        format: byte
+        type: string
+      skip_verify_server:
+        default: false
+        description: enables exporter to skip server certs verification.
+        type: boolean
     required:
     - delivery_type
     - delivery_address
+    - certificate
+    - private_key
+    - skip_verify_server
     type: object
   network_probe_destination_id:
     example: xxxx-yyyy-zzzz
@@ -10195,12 +10277,20 @@ definitions:
         example: events_only
         type: string
         x-nullable: false
+      domain_id:
+        type: string
       duration:
         default: 0
         description: the duration in seconds after which the task will expire.
         example: 300
         minimum: 0
         type: integer
+      operator_id:
+        default: 1
+        description: represents the mobile operator identifier
+        format: uint32
+        type: integer
+        x-nullable: false
       target_id:
         type: string
         x-nullable: false
@@ -10287,6 +10377,31 @@ definitions:
         x-go-custom-tag: magma_alt_name:"NetworkRANConfigTDDConfig"
     required:
     - bandwidth_mhz
+    type: object
+  network_sentry_config:
+    description: Sentry.io configuration
+    properties:
+      sample_rate:
+        example: 0.5
+        format: float
+        maximum: 1
+        minimum: 0
+        type: number
+      upload_mme_log:
+        example: false
+        type: boolean
+      url_native:
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+        format: uri
+        minLength: 0
+        type: string
+        x-nullable: false
+      url_python:
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+        format: uri
+        minLength: 0
+        type: string
+        x-nullable: false
     type: object
   network_subscriber_config:
     description: Network-wide Subscriber Configuration
@@ -10613,7 +10728,8 @@ definitions:
         - VIDEO
         type: string
       assigned_subscribers:
-        description: Subscribers which have been assigned this policy not as part of a base name
+        description: Subscribers which have been assigned this policy not as part
+          of a base name
         example:
         - IMSI1234567890
         - IMSI0987654321
@@ -10650,6 +10766,9 @@ definitions:
         type: integer
       redirect:
         $ref: '#/definitions/redirect_information'
+      service_identifier:
+        format: uint32
+        type: integer
       tracking_type:
         enum:
         - ONLY_OCS
@@ -10719,6 +10838,9 @@ definitions:
         type: integer
       redirect:
         $ref: '#/definitions/redirect_information'
+      service_identifier:
+        format: uint32
+        type: integer
       tracking_type:
         enum:
         - ONLY_OCS
@@ -10862,7 +10984,8 @@ definitions:
         type: string
     type: object
   promql_metric_value:
-    description: If resultType is 'vector' value is in the result, if 'matrix', values is in the result
+    description: If resultType is 'vector' value is in the result, if 'matrix', values
+      is in the result
     properties:
       metric:
         $ref: '#/definitions/promql_metric'
@@ -11094,6 +11217,11 @@ definitions:
   s8:
     description: s8 configuration
     properties:
+      apn_operator_suffix:
+        example: .operator.com
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        type: string
+        x-nullable: false
       local_address:
         example: foo.bar.com:5555
         pattern: '[^\:]+(:[0-9]{1,5})?'
@@ -11129,6 +11257,20 @@ definitions:
     items:
       type: string
     type: array
+  service_status_health:
+    description: health status of a specific
+    properties:
+      health_status:
+        enum:
+        - HEALTHY
+        - UNHEALTHY
+        type: string
+      service_state:
+        enum:
+        - AVAILABLE
+        - UNAVAILABLE
+        type: string
+    type: object
   slack_action:
     properties:
       confirm:
@@ -11329,7 +11471,8 @@ definitions:
     type: string
     x-nullable: false
   subscriber_ip_allocation:
-    description: An IP address which has been allocated for a subscriber for a specific APN
+    description: An IP address which has been allocated for a subscriber for a specific
+      APN
     properties:
       apn:
         example: oai.ipv4
@@ -11372,7 +11515,8 @@ definitions:
       format: ipv4
       minLength: 1
       type: string
-    description: Mapping of APN ID to static IP address to allocate for the subscriber at the edge
+    description: Mapping of APN ID to static IP address to allocate for the subscriber
+      at the edge
     type: object
   subscriber_status:
     description: Status of a subscriber device
@@ -11380,6 +11524,13 @@ definitions:
       icmp:
         $ref: '#/definitions/icmp_status'
     type: object
+  subscriberdb_sync_interval:
+    description: Interval in seconds between gateway requests to sync its subscriberdb
+      with the cloud.
+    example: 300
+    format: uint32
+    minimum: 60
+    type: integer
   subscription_profile:
     description: HSS Subscription Profile
     minLength: 1
@@ -11596,7 +11747,8 @@ definitions:
     description: Arbitrary untyped JSON object that represents replicated MME state
     type: object
   untyped_subscriber_state:
-    description: Arbitrary untyped JSON object that represents replicated subscriber-related state
+    description: Arbitrary untyped JSON object that represents replicated subscriber-related
+      state
     type: object
   virtual_apn_rule:
     description: Virtual APN Rule configuration

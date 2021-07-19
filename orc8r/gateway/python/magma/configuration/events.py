@@ -23,7 +23,7 @@ def deleted_stored_mconfig():
             event_type="deleted_stored_mconfig",
             tag=snowflake.snowflake(),
             value="{}",
-        )
+        ),
     )
 
 
@@ -34,5 +34,5 @@ def updated_stored_mconfig():
             event_type="updated_stored_mconfig",
             tag=snowflake.snowflake(),
             value="{}",
-        )
+        ),
     )

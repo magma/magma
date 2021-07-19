@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
 
 import s1ap_types
-import time
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
@@ -22,7 +22,7 @@ from s1ap_utils import MagmadUtil
 class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self.gateway_services = self._s1ap_wrapper.get_gateway_services_util()
 
@@ -46,7 +46,7 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
 
         req = self._s1ap_wrapper.ue_req
         print(
-            "************************* Running attach setup timer expiry test"
+            "************************* Running attach setup timer expiry test",
         )
 
         attach_req = s1ap_types.ueAttachRequest_t()
@@ -59,11 +59,11 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
@@ -72,26 +72,26 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
         print(
@@ -107,10 +107,10 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         response = self._s1ap_wrapper.s1_util.get_response()
 
         while response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND:
-            print (
+            print(
                     "Received Attach Accept retransmission from before restart",
-                    "Ignoring..."
-                  )
+                    "Ignoring...",
+            )
             response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
@@ -149,13 +149,13 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
         detach_accept.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept
+            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept,
         )
 
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("****** Received Ue context release command *********")
 

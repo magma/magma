@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/apn.proto";
 import "google/protobuf/field_mask.proto";
 
 package magma.lte;
@@ -102,50 +103,9 @@ enum AccessNetworkIdentifier {
   ETHERNET = 3;
 }
 
-message APNConfiguration {
-  // APN identifier
-  uint32 context_id = 1;
-  // Contains either the APN Name or wildcard "*"
-  string service_selection = 2;
-  // APN QoS profile
-  QoSProfile qos_profile = 3;
-  // APN authorized bitrate
-  AggregatedMaximumBitrate ambr = 4;
-
-  enum PDNType {
-    IPV4 = 0;
-    IPV6 = 1;
-    IPV4V6 = 2;
-    IPV4_OR_IPV6 = 3;
-  }
-  PDNType pdn = 5;
-
-  // Optional static IP to allocate for this subscriber on this APN
-  string assigned_static_ip = 6;
-
-  // For details about values see 29.212
-  message QoSProfile {
-    int32 class_id = 1;
-    uint32 priority_level = 2;
-    bool preemption_capability = 3;
-    bool preemption_vulnerability = 4;
-  }
-
-  message APNResource {
-    string apn_name = 1;
-    string gateway_ip = 2;
-    string gateway_mac = 3;
-    uint32 vlan_id = 4;
-  }
-  // resource is gateway-specific guidance for serving the APN
-  APNResource resource = 7;
-}
-
-message AggregatedMaximumBitrate {
-  // Maximum uplink bitrate
-  uint32 max_bandwidth_ul = 1;
-  // Maximum downlink bitrate
-  uint32 max_bandwidth_dl = 2;
+message SubscriberAPNConfig {
+  uint32 apn_id = 1;
+  string assigned_static_ip = 2;
 }
 
 message Non3GPPUserProfile {
@@ -174,6 +134,9 @@ message Non3GPPUserProfile {
   repeated APNConfiguration apn_config = 5;
 
   AccessNetworkIdentifier access_net_id = 6;
+
+  // subscriber specific APN config
+  repeated SubscriberAPNConfig subscriber_apn_config = 7;
 }
 
 // --------------------------------------------------------------------------
@@ -241,8 +204,47 @@ service SubscriberDB {
 // SubscriberDB cloud service definition.
 // --------------------------------------------------------------------------
 service SubscriberDBCloud {
+  // CheckSubscribersInSync checks whether the client subscribers flat digest
+  // is up-to-date.
+  rpc CheckSubscribersInSync (CheckSubscribersInSyncRequest) returns (CheckSubscribersInSyncResponse) {}
+  // SyncSubscribers returns the changeset of subscribers between client and
+  // cloud if the set is small; if the set is large, returns signal to resync.
+  rpc SyncSubscribers (SyncSubscribersRequest) returns (SyncSubscribersResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+}
+
+message CheckSubscribersInSyncRequest {
+  // flat_digest is the deterministic digest of the full set of subscriber
+  // objects stored on the client side.
+  Digest flat_digest = 1;
+}
+
+message CheckSubscribersInSyncResponse {
+  // in_sync is true if client's existing subscribers match those on the server.
+  bool in_sync = 1;
+}
+
+message SyncSubscribersRequest {
+  // per_sub_digest is a list of digests for each client-side subscriber, ordered
+  // by their IDs (IMSI).
+  repeated SubscriberDigestWithID per_sub_digests = 1;
+}
+
+message SyncSubscribersResponse {
+  // resync is true if the client-server data difference is too big and an
+  // overall resync is needed. If true, all subscriber changesets will be empty.
+  bool resync = 1;
+  // flat_digest is the deterministic digest of all server-side subscribers.
+  Digest flat_digest = 2;
+  // per_sub_digests is a list of digests for each server-side subscriber, ordered
+  // by their IDs (IMSI).
+  repeated SubscriberDigestWithID per_sub_digests = 3;
+  // to_renew is the set of all subscriber data modified/added on the server side,
+  // indexed by their IDs (IMSI).
+  map<string, SubscriberData> to_renew = 4;
+  // deleted is a list of IDs for subscribers removed on the server side.
+  repeated string deleted = 5;
 }
 
 message ListSubscribersRequest {
@@ -257,4 +259,22 @@ message ListSubscribersResponse {
   // next_page_token is a serialized entity page token for subsequent paginated
   // loads.
   string next_page_token = 2;
+  // flat_digest is the server-defined, deterministic digest of the full set of
+  // returned subscriber objects.
+  Digest flat_digest = 3;
+  // per_sub_digests is a set of per-subscriber digests, ordered by their
+  // subscriber IDs.
+  repeated SubscriberDigestWithID per_sub_digests = 4;
+}
+
+message SubscriberDigestWithID {
+  // id is the id of the subscriber.
+  SubscriberID sid = 1;
+  // digest is the deterministic digest of the single subscriber data object.
+  Digest digest = 2;
+}
+
+message Digest {
+  // md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
+  string md5_base64_digest = 1;
 }

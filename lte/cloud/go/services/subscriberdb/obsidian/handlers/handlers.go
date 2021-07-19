@@ -14,10 +14,13 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"magma/orc8r/cloud/go/serde"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
@@ -150,24 +153,25 @@ func listSubscribersHandler(c echo.Context) error {
 	}
 
 	// First check for query params to filter by
+	reqCtx := c.Request().Context()
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
 		if err != nil {
 			return makeErr(err)
 		}
-		subs, err := loadSubscribers(networkID, acceptAll, queryIMSI)
+		subs, err := loadSubscribers(reqCtx, networkID, acceptAll, queryIMSI)
 		if err != nil {
 			return makeErr(err)
 		}
 		return c.JSON(http.StatusOK, subs)
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
-		queryIMSIs, err := subscriberdb.GetIMSIsForIP(networkID, ip)
+		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
 		if err != nil {
 			return makeErr(err)
 		}
 		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
-		subs, err := loadSubscribers(networkID, filter, queryIMSIs...)
+		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -175,7 +179,7 @@ func listSubscribersHandler(c echo.Context) error {
 	}
 
 	// No pagination is used for the v1 endpoint, so load the max page size
-	subs, _, err := loadSubscriberPage(networkID, 0, "")
+	subs, _, err := loadSubscriberPage(reqCtx, networkID, 0, "")
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -222,26 +226,27 @@ func listSubscribersV2Handler(c echo.Context) error {
 		}
 	}
 	pageToken := c.QueryParam(ParamPageToken)
+	reqCtx := c.Request().Context()
 
 	// First check for query params to filter by
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
 		if err != nil {
 			return makeErr(err)
 		}
-		subs, err := loadSubscribers(networkID, acceptAll, queryIMSI)
+		subs, err := loadSubscribers(reqCtx, networkID, acceptAll, queryIMSI)
 		if err != nil {
 			return makeErr(err)
 		}
 		return c.JSON(http.StatusOK, subs)
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
-		queryIMSIs, err := subscriberdb.GetIMSIsForIP(networkID, ip)
+		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
 		if err != nil {
 			return makeErr(err)
 		}
 		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
-		subs, err := loadSubscribers(networkID, filter, queryIMSIs...)
+		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -250,7 +255,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 
 	// List subscribers for a given page. If no page is specified, the max
 	// size will be returned.
-	subs, nextPageToken, err := loadSubscriberPage(networkID, uint32(pageSize), pageToken)
+	subs, nextPageToken, err := loadSubscriberPage(reqCtx, networkID, uint32(pageSize), pageToken)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -328,7 +333,7 @@ func getSubscriberHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	subs, err := loadSubscriber(networkID, subscriberID)
+	subs, err := loadSubscriber(c.Request().Context(), networkID, subscriberID)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -386,7 +391,7 @@ func listSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	statesBySID, err := loadAllStatesForIMSIs(networkID, []string{})
+	statesBySID, err := loadAllStatesForIMSIs(c.Request().Context(), networkID, []string{})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -405,7 +410,7 @@ func getSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	states, err := state.SearchStates(networkID, allSubscriberStateTypes, nil, &subscriberID, serdes.State)
+	states, err := getStatesForIMSIs(c.Request().Context(), networkID, allSubscriberStateTypes, subscriberID, serdes.State)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -420,7 +425,7 @@ func listMSISDNsHandler(c echo.Context) error {
 		return nerr
 	}
 
-	msisdns, err := subscriberdb.ListMSISDNs(networkID)
+	msisdns, err := subscriberdb.ListMSISDNs(c.Request().Context(), networkID)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -446,7 +451,7 @@ func createMSISDNsHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := subscriberdb.SetIMSIForMSISDN(networkID, string(payload.Msisdn), string(payload.ID))
+	err := subscriberdb.SetIMSIForMSISDN(c.Request().Context(), networkID, string(payload.Msisdn), string(payload.ID))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -459,7 +464,7 @@ func getMSISDNHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	imsi, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+	imsi, err := subscriberdb.GetIMSIForMSISDN(c.Request().Context(), networkID, msisdn)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -472,7 +477,7 @@ func deleteMSISDNHandler(c echo.Context) error {
 		return nerr
 	}
 
-	err := subscriberdb.DeleteMSISDN(networkID, msisdn)
+	err := subscriberdb.DeleteMSISDN(c.Request().Context(), networkID, msisdn)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -538,6 +543,31 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 	}
 }
 
+func getStatesForIMSIs(ctx context.Context, networkID string, typeFilter []string, keyPrefix string, serdes serde.Registry) (state_types.StatesByID, error) {
+	states, err := state.SearchStates(ctx, networkID, typeFilter, nil, &keyPrefix, serdes)
+	if err != nil {
+		return nil, err
+	}
+	// Returned states contain matches by prefix, so filter out non-exact matches
+	for stateID := range states {
+		imsi := stateID.DeviceID
+		if stateID.Type == lte.MobilitydStateType {
+			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != mobilitydStateExpectedMatchCount {
+				glog.Infof("state device ID '%s' with type '%s' did not match IMSI-prefixed regex", stateID.DeviceID, stateID.Type)
+				continue
+			}
+			imsi = matches[1]
+		}
+
+		if imsi != keyPrefix {
+			delete(states, stateID)
+		}
+	}
+
+	return states, nil
+}
+
 func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
 	vals, err := obsidian.GetParamValues(c, "network_id", "subscriber_id")
 	if err != nil {
@@ -592,7 +622,7 @@ func validateSubscriberProfiles(networkID string, profiles ...string) *echo.HTTP
 	return nil
 }
 
-func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error) {
+func loadSubscriber(ctx context.Context, networkID, key string) (*subscribermodels.Subscriber, error) {
 	loadCriteria := getSubscriberLoadCriteria(0, "")
 	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, loadCriteria, serdes.Entity)
 	if err != nil {
@@ -620,7 +650,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 		return nil, err
 	}
 
-	states, err := state.SearchStates(networkID, allSubscriberStateTypes, nil, &key, serdes.State)
+	states, err := getStatesForIMSIs(ctx, networkID, allSubscriberStateTypes, key, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -630,10 +660,10 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 	return sub, nil
 }
 
-func loadSubscribers(networkID string, includeSub subscriberFilter, keys ...string) (map[string]*subscribermodels.Subscriber, error) {
+func loadSubscribers(ctx context.Context, networkID string, includeSub subscriberFilter, keys ...string) (map[string]*subscribermodels.Subscriber, error) {
 	subs := map[string]*subscribermodels.Subscriber{}
 	for _, key := range keys {
-		sub, err := loadSubscriber(networkID, key)
+		sub, err := loadSubscriber(ctx, networkID, key)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error loading subscriber %s", key)
 		}
@@ -644,7 +674,7 @@ func loadSubscribers(networkID string, includeSub subscriberFilter, keys ...stri
 	return subs, nil
 }
 
-func loadSubscriberPage(networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.Subscriber, string, error) {
+func loadSubscriberPage(ctx context.Context, networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.Subscriber, string, error) {
 	mutableSubs, nextPageToken, err := loadMutableSubscriberPage(networkID, pageSize, pageToken)
 	if err != nil {
 		return nil, "", err
@@ -653,7 +683,7 @@ func loadSubscriberPage(networkID string, pageSize uint32, pageToken string) (ma
 	for imsi := range mutableSubs {
 		imsis = append(imsis, imsi)
 	}
-	states, err := loadAllStatesForIMSIs(networkID, imsis)
+	states, err := loadAllStatesForIMSIs(ctx, networkID, imsis)
 	if err != nil {
 		return nil, "", err
 	}
@@ -713,6 +743,7 @@ func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscr
 		return obsidian.HttpError(errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates), http.StatusBadRequest)
 	}
 
+	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
 	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
 	found, _, err := configurator.LoadSerializedEntities(networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
 	if err != nil {
@@ -839,17 +870,33 @@ func deleteSubscriber(networkID, key string) error {
 	return nil
 }
 
-func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
-	imsiKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
+// loadAllStatesForIMSIs loads all states whose IMSI prefix is contained in the
+// IMSI array passed in as argument. If passed IMSIs is nil,
+// loads states for all IMSIs in the network.
+func loadAllStatesForIMSIs(ctx context.Context, networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
+	requestedIMSIs := map[string]struct{}{}
+	for _, v := range imsis {
+		requestedIMSIs[v] = struct{}{}
+	}
+
+	shouldLoadState := func(imsi string) bool {
+		if len(requestedIMSIs) == 0 {
+			// load all states regardless of their IMSIs if requested IMSIs is nil,
+			return true
+		}
+		_, ok := requestedIMSIs[imsi]
+		return ok
+	}
+
+	imsiKeyStates, err := state.SearchStates(ctx, networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
 	if err != nil {
 		return nil, err
 	}
-	imsiCompositeKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByCompositeKey, nil, nil, serdes.State)
+	imsiCompositeKeyStates, err := state.SearchStates(ctx, networkID, subscriberStateTypesKeyedByCompositeKey, nil, nil, serdes.State)
 	if err != nil {
 		return nil, err
 	}
 	states := mergeStates(imsiKeyStates, imsiCompositeKeyStates)
-
 	// Each entry in this map contains all the states that the SID cares about.
 	// The DeviceID fields of the state IDs in the nested maps do not have to
 	// match the SID, as in the case of mobilityd state for example.
@@ -860,6 +907,9 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
 			if len(matches) != mobilitydStateExpectedMatchCount {
 				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
+				continue
+			}
+			if !shouldLoadState(matches[1]) {
 				continue
 			}
 			sidKey = matches[1]

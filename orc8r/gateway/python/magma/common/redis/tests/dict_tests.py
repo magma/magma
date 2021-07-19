@@ -34,11 +34,14 @@ class RedisDictTests(TestCase):
             client,
             "unittest",
             get_proto_serializer(),
-            get_proto_deserializer(LogVerbosity))
+            get_proto_deserializer(LogVerbosity),
+        )
 
-        serde = RedisSerde('log_verbosity',
-                           get_proto_serializer(),
-                           get_proto_deserializer(LogVerbosity))
+        serde = RedisSerde(
+            'log_verbosity',
+            get_proto_serializer(),
+            get_proto_deserializer(LogVerbosity),
+        )
         self._flat_dict = RedisFlatDict(client, serde)
 
     def test_hash_insert(self):
@@ -99,12 +102,18 @@ class RedisDictTests(TestCase):
 
     def test_flat_bad_key(self):
         expected = LogVerbosity(verbosity=2)
-        self.assertRaises(ValueError, self._flat_dict.__setitem__,
-                          'bad:key', expected)
-        self.assertRaises(ValueError, self._flat_dict.__getitem__,
-                          'bad:key')
-        self.assertRaises(ValueError, self._flat_dict.__delitem__,
-                          'bad:key')
+        self.assertRaises(
+            ValueError, self._flat_dict.__setitem__,
+            'bad:key', expected,
+        )
+        self.assertRaises(
+            ValueError, self._flat_dict.__getitem__,
+            'bad:key',
+        )
+        self.assertRaises(
+            ValueError, self._flat_dict.__delitem__,
+            'bad:key',
+        )
 
     def test_flat_delete(self):
         expected = LogVerbosity(verbosity=2)
@@ -114,8 +123,10 @@ class RedisDictTests(TestCase):
         self.assertEqual(expected, actual)
 
         del self._flat_dict['key3']
-        self.assertRaises(KeyError, self._flat_dict.__getitem__,
-                          'key3')
+        self.assertRaises(
+            KeyError, self._flat_dict.__getitem__,
+            'key3',
+        )
         self.assertEqual(None, self._flat_dict.get('key3'))
 
     def test_flat_clear(self):

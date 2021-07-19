@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import time
 
 
 class TestDataFlowAfterServiceRequest(unittest.TestCase):
@@ -82,11 +82,11 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
                 gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
             )
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req
+                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
             )
 
         for req in reqs:
@@ -102,11 +102,11 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
             req.ueMtmsi.pres = False
             req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
         with test:

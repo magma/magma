@@ -39,6 +39,7 @@ import type {
   lte_network,
   mutable_call_trace,
   mutable_subscriber,
+  mutable_subscribers,
   network_id,
   network_ran_configs,
   network_type,
@@ -271,7 +272,7 @@ export function SubscriberContextProvider(props: Props) {
         gwSubscriberMap: getGatewaySubscriberMap(sessionState),
         setState: (
           key: subscriber_id,
-          value?: mutable_subscriber,
+          value?: mutable_subscriber | mutable_subscribers,
           newState?,
           newSessionState?,
         ) =>

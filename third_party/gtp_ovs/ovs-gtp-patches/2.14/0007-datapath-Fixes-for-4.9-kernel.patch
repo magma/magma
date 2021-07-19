@@ -1,7 +1,7 @@
-From ca88f58b1ae945019039802e8576f882a83d3c94 Mon Sep 17 00:00:00 2001
+From 4cbbdb641c49affd80aa38d6bfbe6a5e54e395aa Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Tue, 7 Jul 2020 01:46:36 +0000
-Subject: [PATCH 07/14] datapath: Fixes for 4.9 kernel
+Subject: [PATCH 07/19] datapath: Fixes for 4.9 kernel
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
@@ -25,7 +25,7 @@ index a0dcc2667..66bd252ea 100644
  
  #define skb_is_encapsulated ovs_skb_is_encapsulated
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 5587d6cde..57f39e3ad 100644
+index 2abb817f7..b8925d237 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
 @@ -157,6 +157,7 @@ AT_CLEANUP
@@ -45,7 +45,7 @@ index 5587d6cde..57f39e3ad 100644
  NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
  NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
  NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])
-@@ -378,7 +381,7 @@ AT_CLEANUP
+@@ -390,7 +393,7 @@ AT_CLEANUP
  AT_SETUP([layer3 - GTP end marker test])
  OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
  OVS_CHECK_GTP_L3()
@@ -54,7 +54,7 @@ index 5587d6cde..57f39e3ad 100644
  ADD_BR([br-underlay])
  
  ADD_NAMESPACES(at_ns0)
-@@ -395,6 +398,8 @@ dnl linux device inside the namespace.
+@@ -407,6 +410,8 @@ dnl linux device inside the namespace.
  ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24], [options:key=flow])
  AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
  NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
@@ -64,5 +64,5 @@ index 5587d6cde..57f39e3ad 100644
  NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
  NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])
 -- 
-2.13.5
+2.17.1
 

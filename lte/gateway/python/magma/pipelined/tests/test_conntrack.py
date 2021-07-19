@@ -61,17 +61,22 @@ class ConntrackTest(unittest.TestCase):
         """
         super(ConntrackTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([],
-            ['ue_mac', 'conntrack'])
+        cls.service_manager = create_service_manager(
+            [],
+            ['ue_mac', 'conntrack'],
+        )
         cls._tbl_num = cls.service_manager.get_table_num(
-            ConntrackController.APP_NAME)
+            ConntrackController.APP_NAME,
+        )
 
         conntrack_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.Conntrack,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.Conntrack,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.Conntrack:
                     conntrack_controller_reference,
@@ -92,8 +97,11 @@ class ConntrackTest(unittest.TestCase):
                 'clean_restart': True,
                 'access_control': {
                     'ip_blocklist': [
-                    ]
-                }
+                    ],
+                },
+                'conntrackd': {
+                    'zone': 897,
+                },
             },
             mconfig=PipelineD(
                 allowed_gre_peers=[],
@@ -121,9 +129,11 @@ class ConntrackTest(unittest.TestCase):
         Test that conntrack rules are properly setup
         Verifies that 3 new connections are detected (2 tcp, 1 udp)
         """
-        sub_ip = '145.254.160.237' # extracted from pcap don't change
-        sub = SubContextConfig('IMSI001010000000013', sub_ip,
-                               default_ambr_config, self._tbl_num)
+        sub_ip = '145.254.160.237'  # extracted from pcap don't change
+        sub = SubContextConfig(
+            'IMSI001010000000013', sub_ip,
+            default_ambr_config, self._tbl_num,
+        )
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -131,9 +141,11 @@ class ConntrackTest(unittest.TestCase):
         )
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             include_stats=False)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            include_stats=False,
+        )
 
         current_path = \
             str(pathlib.Path(__file__).parent.absolute())

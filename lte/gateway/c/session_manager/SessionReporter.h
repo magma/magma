@@ -19,7 +19,7 @@
 #include <functional>
 #include <memory>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 
 namespace magma {
 using namespace lte;

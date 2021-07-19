@@ -27,9 +27,9 @@ from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.he import PROXY_PORT_NAME
-from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
+from magma.pipelined.datapath_setup import tune_datapath
 from magma.pipelined.gtp_stats_collector import (
     MIN_OVSDB_DUMP_POLLING_INTERVAL,
     GTPStatsCollector,
@@ -96,10 +96,8 @@ def main():
     )
     if 'virtual_mac' not in service.config:
         if service.config['dp_router_enabled']:
-            up_bridge_name = service.config.get(
-                'uplink_bridge', UPLINK_OVS_BRIDGE_NAME,
-            )
-            mac_addr = get_if_hwaddr(up_bridge_name)
+            up_iface_name = service.config.get('nat_iface', None)
+            mac_addr = get_if_hwaddr(up_iface_name)
         else:
             mac_addr = get_if_hwaddr(service.config.get('bridge_name'))
 
@@ -121,6 +119,9 @@ def main():
     he_enabled = service.config.get('he_enabled', he_enabled_flag)
     service.config['he_enabled'] = he_enabled
 
+    # tune datapath according to config
+    tune_datapath(service.config)
+
     # monitoring related configuration
     mtr_interface = service.config.get('mtr_interface', None)
     if mtr_interface:
@@ -139,11 +140,14 @@ def main():
 
     # TODO fix this hack for XWF
     if enable_nat is True or service.config.get('setup_type') == 'XWF':
+        ip_table_rule = 'POSTROUTING -o %s -j MASQUERADE' % service.config['nat_iface']
+        check_and_add = 'iptables -t nat -C %s || iptables -t nat -A %s' % \
+                (ip_table_rule, ip_table_rule)
+        logging.debug("check_and_add: %s", check_and_add)
         call_process(
-            'iptables -t nat -A POSTROUTING -o %s -j MASQUERADE'
-            % service.config['nat_iface'],
-            callback,
-            service.loop,
+            check_and_add,
+                callback,
+                service.loop,
         )
 
     service.loop.create_task(

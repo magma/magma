@@ -6,12 +6,12 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 
 
 class TestIPv4v6SecondaryPdnMultiUE(unittest.TestCase):
@@ -50,7 +50,7 @@ class TestIPv4v6SecondaryPdnMultiUE(unittest.TestCase):
             apn_list = [ims_apn]
 
             self._s1ap_wrapper.configAPN(
-                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
             )
             print(
                 "*********************** Running End to End attach for UE id ",
@@ -85,12 +85,12 @@ class TestIPv4v6SecondaryPdnMultiUE(unittest.TestCase):
             pdn_type = 3
             # Send PDN Connectivity Request
             self._s1ap_wrapper.sendPdnConnectivityReq(
-                ue_id, apn, pdn_type=pdn_type
+                ue_id, apn, pdn_type=pdn_type,
             )
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
@@ -104,22 +104,22 @@ class TestIPv4v6SecondaryPdnMultiUE(unittest.TestCase):
             print(
                 "********************** Added default bearer for apn-%s,"
                 " bearer id-%d, pdn type-%d"
-                % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type,)
+                % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type),
             )
 
             # Receive Router Advertisement message
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
             )
             routerAdv = response.cast(s1ap_types.ueRouterAdv_t)
             print(
                 "******************* Received Router Advertisement for APN-%s"
-                " and, bearer id-%d" % (apn, routerAdv.bearerId)
+                " and, bearer id-%d" % (apn, routerAdv.bearerId),
             )
 
             ipv6_addr = "".join([chr(i) for i in routerAdv.ipv6Addr]).rstrip(
-                "\x00"
+                "\x00",
             )
             print("******* UE IPv6 address: ", ipv6_addr)
             sec_ip_ipv6.append(ipaddress.ip_address(ipv6_addr))
@@ -139,7 +139,7 @@ class TestIPv4v6SecondaryPdnMultiUE(unittest.TestCase):
             }
             # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
         print("***** Sleeping for 5 seconds")
@@ -152,7 +152,7 @@ class TestIPv4v6SecondaryPdnMultiUE(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+                ue, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
             )
 
 

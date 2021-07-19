@@ -13,7 +13,6 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include <memory>
@@ -33,10 +32,9 @@ namespace lte {
 using std::experimental::optional;
 
 // Value int represents the request numbers needed for requests to PCRF
-typedef std::set<std::string> SessionRead;
-typedef std::unordered_map<
-    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
-    SessionUpdate;
+using SessionRead   = std::set<std::string>;
+using SessionUpdate = std::unordered_map<
+    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>;
 
 enum SessionSearchCriteriaType {
   IMSI_AND_APN             = 0,
@@ -45,6 +43,7 @@ enum SessionSearchCriteriaType {
   IMSI_AND_UE_IPV4_OR_IPV6 = 3,
   IMSI_AND_BEARER          = 4,
   IMSI_AND_TEID            = 5,
+  IMSI_AND_PDUID           = 6,
 };
 
 struct SessionSearchCriteria {

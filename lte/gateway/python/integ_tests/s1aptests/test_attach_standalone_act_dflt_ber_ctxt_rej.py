@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 
+import ipaddress
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import time
-import ipaddress
 
 
 class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "************************* Running End to End attach for UE id ",
@@ -86,7 +86,7 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
         )
 
         print(
-            "Sent STANDALONE_ACTV_DEFAULT_EPS_BEARER_CNTXT_REJECT indication"
+            "Sent STANDALONE_ACTV_DEFAULT_EPS_BEARER_CNTXT_REJECT indication",
         )
         print("Sleeping for 5 seconds")
         time.sleep(5)
@@ -97,14 +97,14 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
         print(
             "************************* Sending Activate default EPS bearer "
             "context reject for UE id %d and bearer %d"
-            % (req.ue_id, act_def_bearer_req.m.pdnInfo.epsBearerId)
+            % (req.ue_id, act_def_bearer_req.m.pdnInfo.epsBearerId),
         )
 
         print("Sleeping for 5 seconds")
@@ -121,7 +121,7 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
         }
 
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print("Sleeping for 5 seconds")

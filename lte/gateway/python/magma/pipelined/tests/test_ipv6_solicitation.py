@@ -62,9 +62,11 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
     OTHER_IP = '1.2.3.4'
 
     @classmethod
-    @unittest.mock.patch('netifaces.ifaddresses', return_value=[
-        [{'addr': '00:11:22:33:44:55'}],
-        [{'addr': 'fe80::706e:85ff:fe67:14f%testing_br'}]]
+    @unittest.mock.patch(
+        'netifaces.ifaddresses', return_value=[
+            [{'addr': '00:11:22:33:44:55'}],
+            [{'addr': 'fe80::706e:85ff:fe67:14f%testing_br'}],
+        ],
     )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     @unittest.mock.patch('netifaces.AF_INET6', 1)
@@ -78,8 +80,10 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         """
         super(IPV6RouterSolicitationTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([],
-            ['ipv6_solicitation'])
+        cls.service_manager = create_service_manager(
+            [],
+            ['ipv6_solicitation'],
+        )
         cls._tbl_num = cls.service_manager.get_table_num(IPV6SolicitationController.APP_NAME)
 
         ipv6_controller_reference = Future()
@@ -88,7 +92,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
             apps=[
                 PipelinedController.IPV6RouterSolicitation,
                 PipelinedController.Testing,
-                PipelinedController.StartupFlows
+                PipelinedController.StartupFlows,
             ],
             references={
                 PipelinedController.IPV6RouterSolicitation:
@@ -140,18 +144,22 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         Verify that a UPLINK->UE arp request is properly matched
         """
         ll_addr = get_if_hwaddr('testing_br')
-        
+
         pkt_sender = ScapyPacketInjector(self.IFACE)
 
         pkt_rs = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)
-        pkt_rs /= IPv6(src='fe80:24c3:d0ff:fef3:9d21:4407:d337:1928',
-                       dst='ff02::2')
+        pkt_rs /= IPv6(
+            src='fe80:24c3:d0ff:fef3:9d21:4407:d337:1928',
+            dst='ff02::2',
+        )
         pkt_rs /= ICMPv6ND_RS()
         pkt_rs /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
 
         pkt_ns = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)
-        pkt_ns /= IPv6(src='fe80::9d21:4407:d337:1928',
-                       dst='ff02::2')
+        pkt_ns /= IPv6(
+            src='fe80::9d21:4407:d337:1928',
+            dst='ff02::2',
+        )
         pkt_ns /= ICMPv6ND_NS(tgt='abcd:87:3::')
         pkt_ns /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
 
@@ -159,7 +167,8 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         interface = get_ipv6_interface_id(ipv6_addr)
         prefix = get_ipv6_prefix(ipv6_addr)
         self.service_manager.interface_to_prefix_mapper.save_prefix(
-            interface, prefix)
+            interface, prefix,
+        )
 
         ulink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
             .set_eth_match(eth_dst=self.OTHER_MAC, eth_src=self.UE_MAC) \
@@ -167,8 +176,10 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(ulink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(pkt_rs)

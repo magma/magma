@@ -18,10 +18,12 @@
 
   vars:
     magma_root: /home/{{ ansible_user }}/magma
-    preburn: true
+    preburn: false
     full_provision: true
 
   roles:
+    # Putting it first as we need sftp enabled
+    - role: focal_hacks
     # This role is commented out for now because as it turns out, it's very
     # difficult to install Debian on a box without also installing packages
     # from an upstream mirror. Even if we pin a snapshot to before the 4.9.0-11
@@ -37,16 +39,15 @@
         config_dir: "lte/gateway/configs"
     - role: dev_common
       vars:
-        c_build: /home/{{ ansible_user }}/build/c/
-        oai_build: "{{ c_build }}/oai"
+        c_build: /home/{{ ansible_user }}/build/c
+        oai_build: "{{ c_build }}/core/oai"
         go_build: /home/{{ ansible_user }}/go/bin/
     - role: magma
       vars:
-        c_build: /home/{{ ansible_user }}/build/c/
-        oai_build: "{{ c_build }}/oai"
+        c_build: /home/{{ ansible_user }}/build/c
+        oai_build: "{{ c_build }}/core/oai"
         go_build: /home/{{ ansible_user }}/go/bin/
         magma_repo: /home/{{ ansible_user }}/magma-packages
         magma_deps: /home/{{ ansible_user }}/magma-deps
     - role: fluent_bit
     - role: pyvenv
-    - role: focal_hacks

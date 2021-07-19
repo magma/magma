@@ -59,7 +59,8 @@ class TunnelDict(RedisHashDict):
         super().__init__(
             client,
             self._DICT_HASH,
-            get_json_serializer(), get_json_deserializer())
+            get_json_serializer(), get_json_deserializer(),
+        )
 
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""

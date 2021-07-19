@@ -1,0 +1,7 @@
+---
+
+- name: remove sns topic
+  sns_topic:
+    name: "{{ orc8rSnsTopic }}"
+    state: absent
+  tags: snstopic

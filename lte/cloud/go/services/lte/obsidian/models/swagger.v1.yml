@@ -1749,9 +1749,16 @@ definitions:
       gx_gy_relay_enabled:
         type: boolean
         example: false
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
+      congestion_control_enabled:
+        description: Network configuration flag for congestion control on EPC
+        type: boolean
+        example: true
+        default: true
       network_services:
         description: Configuration for network services. Services will be instantiated in the listed order.
         type: array
@@ -2013,6 +2020,13 @@ definitions:
         description: IP address of gateway for management interface on the AGW
         minLength: 5
         maxLength: 49
+      congestion_control_enabled:
+        description: Flag to enable or disable congestion control on MME
+        type: boolean
+        example: true
+        default: true
+      subscriberdb_sync_interval:
+        $ref: '#/definitions/subscriberdb_sync_interval'
 
 
   gateway_non_eps_configs:
@@ -2141,6 +2155,13 @@ definitions:
           - 'BASE64'
           - 'HEX2BIN'
         example: 'BASE64'
+
+  subscriberdb_sync_interval:
+    description: Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
+    type: integer
+    format: uint32
+    minimum: 60
+    example: 300
 
   enodeb_serials:
     type: array
@@ -2502,7 +2523,7 @@ definitions:
         type: integer
         format: uint32
         minimum: 0
-        maximum: 255
+        maximum: 65535
         example: 1
         default: 1
 

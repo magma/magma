@@ -60,6 +60,14 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			fmt.Println("Missing IE (IMSI) on Create Session Request that PGW received")
 			return &gtpv2.RequiredIEMissingError{Type: ie.IMSI}
 		}
+		if uliIE := csReqFromSGW.ULI; uliIE != nil {
+			mPgw.LastULI, err = uliIE.UserLocationInformation()
+			if err != nil {
+				return err
+			}
+		} else {
+			return &gtpv2.RequiredIEMissingError{Type: ie.UserLocationInformation}
+		}
 		if msisdnIE := csReqFromSGW.MSISDN; msisdnIE != nil {
 			session.MSISDN, err = msisdnIE.MSISDN()
 			if err != nil {

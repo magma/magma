@@ -23,6 +23,9 @@ type NetworkEpcConfigs struct {
 	// cloud subscriberdb enabled
 	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled,omitempty"`
 
+	// Network configuration flag for congestion control on EPC
+	CongestionControlEnabled *bool `json:"congestion_control_enabled,omitempty"`
+
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
@@ -73,6 +76,9 @@ type NetworkEpcConfigs struct {
 
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
+
+	// subscriberdb sync interval
+	SubscriberdbSyncInterval SubscriberdbSyncInterval `json:"subscriberdb_sync_interval,omitempty"`
 
 	// tac
 	// Required: true
@@ -130,6 +136,10 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSubProfiles(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubscriberdbSyncInterval(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -359,6 +369,22 @@ func (m *NetworkEpcConfigs) validateSubProfiles(formats strfmt.Registry) error {
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateSubscriberdbSyncInterval(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SubscriberdbSyncInterval) { // not required
+		return nil
+	}
+
+	if err := m.SubscriberdbSyncInterval.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("subscriberdb_sync_interval")
+		}
+		return err
 	}
 
 	return nil

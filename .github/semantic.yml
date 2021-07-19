@@ -1,0 +1,67 @@
+# Ref: https://github.com/zeke/semantic-pull-requests#configuration
+
+# Always validate the PR title, and ignore the commits
+titleOnly: true
+
+# Always validate all commits, and ignore the PR title
+commitsOnly: false
+
+# Always validate the PR title AND all the commits
+titleAndCommits: false
+
+# Require at least one commit to be valid
+# this is only relevant when using commitsOnly: true or titleAndCommits: true,
+# which validate all commits by default
+anyCommit: false
+
+scopes:
+  - aaa_server
+  - agw
+  - amf
+  - ci
+  - cloud
+  - control_proxy
+  - csfb
+  - ctraced
+  - cwg
+  - directoryd
+  - eap
+  - eap_aka
+  - eap_sim
+  - enodebd
+  - envoy_controller
+  - eventd
+  - feg
+  - feg_hello
+  - health
+  - magmad
+  - mme
+  - mobilityd
+  - monitord
+  - nms
+  - orc8r
+  - pipelined
+  - policydb
+  - radiusd
+  - redirectd
+  - redis
+  - s6a_proxy
+  - s8_proxy
+  - session_proxy
+  - sessiond
+  - smf
+  - smsd
+  - state
+  - subscriberdb
+  - swx_proxy
+  - td-agent-bit
+  - upf
+  - xwf
+
+# Allow use of Merge commits (eg on github: "Merge branch 'master' into feature/ride-unicorns")
+# this is only relevant when using commitsOnly: true (or titleAndCommits: true)
+allowMergeCommits: true
+
+# Allow use of Revert commits (eg on github: "Revert "feat: ride unicorns"")
+# this is only relevant when using commitsOnly: true (or titleAndCommits: true)
+allowRevertCommits: true

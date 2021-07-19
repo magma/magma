@@ -1,7 +1,7 @@
-From a2116901673d283795a430721a6aa914991a7a9f Mon Sep 17 00:00:00 2001
+From 5488098e2722da39fd48890598480050c0e1e9ec Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 02:45:36 +0000
-Subject: [PATCH 05/14] OVS: gtp echo handling
+Subject: [PATCH 05/19] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
@@ -9,24 +9,23 @@ testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a0
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- include/openvswitch/packets.h  |  16 +++
- lib/bfd.c                      |  81 ++++++++++--
+ include/openvswitch/packets.h  |  16 ++
+ lib/bfd.c                      |  81 ++++++++--
  lib/bfd.h                      |   4 +-
- lib/netdev-provider.h          |   8 ++
- lib/netdev-vport-private.h     |   1 +
- lib/netdev-vport.c             | 267 +++++++++++++++++++++++++++++++++++++++-
- lib/netdev.c                   |  38 ++++++
- lib/netdev.h                   |  11 ++
+ lib/netdev-provider.h          |   8 +
+ lib/netdev-vport.c             | 179 ++++++++++++++++++++-
+ lib/netdev.c                   |  38 +++++
+ lib/netdev.h                   |  16 ++
  ofproto/ofproto-dpif-monitor.c |  13 +-
- ofproto/ofproto-dpif-xlate.c   |  35 ++++--
+ ofproto/ofproto-dpif-xlate.c   |  35 ++--
  ofproto/ofproto-dpif-xlate.h   |   2 +
- ofproto/ofproto-dpif.c         |  17 +++
+ ofproto/ofproto-dpif.c         |  17 ++
  ofproto/ofproto-dpif.h         |   2 +
  tests/automake.mk              |   3 +
  tests/system-common-macros.at  |  19 +++
- tests/system-layer3-tunnels.at | 273 +++++++++++++++++++++++++++++++++--------
- tests/test-gtp.c               | 111 +++++++++++++++++
- 17 files changed, 818 insertions(+), 83 deletions(-)
+ tests/system-layer3-tunnels.at | 285 +++++++++++++++++++++++++++------
+ tests/test-gtp.c               | 111 +++++++++++++
+ 16 files changed, 746 insertions(+), 83 deletions(-)
  create mode 100644 tests/test-gtp.c
 
 diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
@@ -274,20 +273,8 @@ index 73dce2fca..d6adcedc8 100644
  };
  
  int netdev_register_provider(const struct netdev_class *);
-diff --git a/lib/netdev-vport-private.h b/lib/netdev-vport-private.h
-index d89a28c66..3c82d5837 100644
---- a/lib/netdev-vport-private.h
-+++ b/lib/netdev-vport-private.h
-@@ -40,6 +40,7 @@ struct netdev_vport {
- 
-     /* Patch Ports. */
-     char *peer;
-+    struct hmap keep_alives;
- };
- 
- int netdev_vport_construct(struct netdev *);
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 0f3d587e0..1db1b7c0d 100644
+index 0f3d587e0..6f5c30e9a 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -29,6 +29,7 @@
@@ -306,15 +293,7 @@ index 0f3d587e0..1db1b7c0d 100644
  #include "openvswitch/dynamic-string.h"
  #include "ovs-router.h"
  #include "packets.h"
-@@ -198,6 +200,7 @@ netdev_vport_construct(struct netdev *netdev_)
- 
-     ovs_mutex_init(&dev->mutex);
-     eth_addr_random(&dev->etheraddr);
-+    hmap_init(&dev->keep_alives);
- 
-     if (name && dpif_port && (strlen(name) > strlen(dpif_port) + 1) &&
-         (!strncmp(name, dpif_port, strlen(dpif_port)))) {
-@@ -573,7 +576,8 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+@@ -573,7 +575,8 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
      int err;
  
      has_csum = strstr(type, "gre") || strstr(type, "geneve") ||
@@ -324,47 +303,20 @@ index 0f3d587e0..1db1b7c0d 100644
      has_seq = strstr(type, "gre");
      memset(&tnl_cfg, 0, sizeof tnl_cfg);
  
-@@ -1129,6 +1133,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
+@@ -1129,6 +1132,172 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
  
  
  #ifdef __linux__
 +
-+struct keep_alive_info {
-+    struct hmap_node hmap_node;
-+    ovs_be32 ip_src;
-+    __u8 flags;
-+    int seq;
-+    bool csum;
-+    long long int timestamp;
-+    bool need_to_send;
-+    long rx_cnt;
-+    long tx_cnt;
-+};
-+
-+int keep_alive_info_max = 1000;
-+
-+// TODO implement LRU cache to avoid manual purge
-+//
 +static void
 +gtp_get_remote_info(struct netdev_vport *dev, struct ds *ds)
 +{
-+    struct keep_alive_info *kai;
++    struct netdev_tunnel_config *cfg = &dev->tnl_cfg;
 +
-+    HMAP_FOR_EACH(kai, hmap_node, &dev->keep_alives) {
++    if (cfg->gtp_timestamp) {
 +        ds_put_format(ds, "\t%s: RX: %ld TX: %ld remote ip: "IP_FMT", seq %d, pending send %d\n",
-+                      xastrftime_msec("%H:%M:%S.###", kai->timestamp, true), kai->rx_cnt, kai->tx_cnt,
-+                      IP_ARGS(kai->ip_src), kai->seq, (int)kai->need_to_send );
-+    }
-+}
-+
-+static void
-+gtp_del_remote_end_points_info(struct netdev_vport *dev)
-+{
-+    struct keep_alive_info *kai, *next;
-+
-+    HMAP_FOR_EACH_SAFE(kai, next, hmap_node, &dev->keep_alives) {
-+        hmap_remove(&dev->keep_alives, &kai->hmap_node);
-+        free(kai);
++                      xastrftime_msec("%H:%M:%S.###", cfg->gtp_timestamp, true), cfg->gtp_rx_cnt, cfg->gtp_tx_cnt,
++                      IP_ARGS(in6_addr_get_mapped_ipv4(&cfg->ipv6_dst)), cfg->gtp_seq, (int)cfg->gtp_need_to_send);
 +    }
 +}
 +
@@ -390,31 +342,14 @@ index 0f3d587e0..1db1b7c0d 100644
 +    VLOG_DBG("gtp flags %x msg_type %d dev->tnl_cfg.dst_port %d == (%d, %d) flow "IP_FMT" cfg "IP_FMT,
 +            flow->tunnel.gtpu_flags, flow->tunnel.gtpu_msgtype, dev->tnl_cfg.dst_port,
 +            flow->tunnel.tp_src, flow->tunnel.tp_dst,
-+            IP_ARGS(flow->tunnel.ip_dst), IP_ARGS(in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_src)));
++            IP_ARGS(flow->tunnel.ip_src), IP_ARGS(in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_dst)));
 +
 +    *res = (flow->tunnel.gtpu_msgtype == 1) &&                  // echo request msg type
 +           (flow->tunnel.gtpu_flags == 0x32) &&              // needs seq in packet.
-+           (flow->tunnel.ip_dst == in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_src)) &&
++           (flow->tunnel.ip_src == in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_dst)) &&
 +           (flow->tunnel.tp_src == dev->tnl_cfg.dst_port) &&
 +           (flow->tunnel.tp_dst == dev->tnl_cfg.dst_port);
 +    return 0;
-+}
-+
-+static struct keep_alive_info *
-+gtp_get_keep_alive_info(struct netdev *netdev, ovs_be32 ip_src)
-+{
-+    struct netdev_vport *dev = netdev_vport_cast(netdev);
-+    struct keep_alive_info *kai;
-+
-+    HMAP_FOR_EACH_WITH_HASH(kai, hmap_node, hash_2words(ip_src, 0), &dev->keep_alives) {
-+        if (kai->ip_src == ip_src) {
-+            return kai;
-+        }
-+    }
-+    kai = xzalloc(sizeof *kai);
-+    kai->ip_src = ip_src;
-+    hmap_insert(&dev->keep_alives, &kai->hmap_node, hash_2words(ip_src, 0));
-+    return kai;
 +}
 +
 +static int
@@ -422,7 +357,7 @@ index 0f3d587e0..1db1b7c0d 100644
 +                           const struct dp_packet *p)
 +{
 +    struct netdev_vport *dev = netdev_vport_cast(netdev);
-+    struct keep_alive_info *kai;
++    struct netdev_tunnel_config *cfg = &dev->tnl_cfg;
 +    bool is_keep_alive;
 +
 +    ovs_mutex_lock(&dev->mutex);
@@ -432,22 +367,18 @@ index 0f3d587e0..1db1b7c0d 100644
 +    if (is_keep_alive) {
 +        struct gtp1_cntr_echo_req_header *hdr;
 +
-+        kai = gtp_get_keep_alive_info(netdev, flow->tunnel.ip_src);
-+
 +        if (dp_packet_size(p) >= sizeof(struct gtp1_cntr_echo_req_header) &&
 +            dp_packet_data(p) != NULL &&
 +            flow->tunnel.gtpu_flags & GTP_FLAGS_SEQ) {
 +            hdr = dp_packet_data(p);
-+            kai->seq = ntohs(hdr->seq);
-+            VLOG_DBG("got seq %d", kai->seq);
++            cfg->gtp_seq = ntohs(hdr->seq);
++            VLOG_DBG("got seq %d", cfg->gtp_seq);
 +        } else {
-+            kai->seq++;
++            cfg->gtp_seq++;
 +        }
-+        kai->timestamp = time_wall_msec();
-+        kai->need_to_send = true;
-+        kai->flags = flow->tunnel.gtpu_flags;
-+        kai->csum = !!(flow->tunnel.flags & FLOW_TNL_F_CSUM);
-+        kai->rx_cnt++;
++        cfg->gtp_timestamp = time_wall_msec();
++        cfg->gtp_need_to_send = true;
++        cfg->gtp_rx_cnt++;
 +    }
 +    ovs_mutex_unlock(&dev->mutex);
 +
@@ -459,59 +390,50 @@ index 0f3d587e0..1db1b7c0d 100644
 +                         struct ofpbuf *ofpacts, bool *more_pkts)
 +{
 +    struct netdev_vport *dev = netdev_vport_cast(netdev);
-+    struct keep_alive_info *kai, *found = NULL;
++    struct netdev_tunnel_config *cfg;
 +    struct gtp1_cntr_echo_rsp_header *hdr;
-+    bool plus_one = false;
-+    ovs_be32 ip_src_flow;
++    ovs_be32 ip_src_flow, ip_dst_flow;
 +    __u8 ttl;
 +    __u8 tos;
 +    __u8 gtpu_msgtype;
 +    __u8 gtpu_flags;
 +
 +    ovs_mutex_lock(&dev->mutex);
-+    ip_src_flow = dev->tnl_cfg.ip_src_flow;
-+
-+    HMAP_FOR_EACH(kai, hmap_node, &dev->keep_alives) {
-+        if (kai->need_to_send) {
-+                if (found == NULL) {
-+                    kai->need_to_send = false;
-+                    found = kai;
-+                } if (plus_one == false) {
-+                    plus_one = true;
-+                    break;
-+                } else {
-+                    break;
-+                }
-+        }
-+    }
-+
-+    if (!found) {
++    cfg = &dev->tnl_cfg;
++    if (!cfg->gtp_need_to_send) {
 +        ovs_mutex_unlock(&dev->mutex);
 +        return ENOENT;
 +    }
-+    *more_pkts = plus_one;
++    *more_pkts = false;
++
++    ip_src_flow = in6_addr_get_mapped_ipv4(&cfg->ipv6_src);
++    ip_dst_flow = in6_addr_get_mapped_ipv4(&cfg->ipv6_dst);
++
 +
 +    ttl = MAXTTL;
 +    tos = IPTOS_PREC_INTERNETCONTROL;
 +    gtpu_msgtype = 2;
-+    gtpu_flags = found->flags;
++    gtpu_flags = 0x32;
 +
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_SRC), &ip_src_flow, &ip_src_flow);
-+    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_DST), &found->ip_src, &found->ip_src);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_DST), &ip_dst_flow, &ip_dst_flow);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_TOS), &tos, &tos);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_TTL), &ttl, &ttl);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTPU_FLAGS), &gtpu_flags, &gtpu_flags);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTPU_MSGTYPE), &gtpu_msgtype, &gtpu_msgtype);
 +
-+    if (found->csum || 1) {
-+        __be16 csum = htons(FLOW_TNL_F_CSUM);
-+        ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_FLAGS), &csum, &csum);
-+    }
++    __be16 csum = htons(FLOW_TNL_F_CSUM);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_FLAGS), &csum, &csum);
++   
 +    hdr = dp_packet_put_zeros(p, sizeof *hdr);
-+    hdr->seq = htons(found->seq);
++    hdr->seq = htons(cfg->gtp_seq);
 +    hdr->recovery.type = 14;  //htons(0x0E00); // this is added for backward compatibility only.
 +    hdr->recovery.value = 0;
-+    found->tx_cnt++;
++    cfg->gtp_tx_cnt++;
++    cfg->gtp_need_to_send = false;
++    VLOG_DBG("gtp-echo xmit flags %x msg_type %d dev->tnl_cfg.dst_port %d src "IP_FMT" dst "IP_FMT,
++            gtpu_flags, gtpu_msgtype, dev->tnl_cfg.dst_port, IP_ARGS(ip_src_flow), IP_ARGS(ip_dst_flow));
++
 +    ovs_mutex_unlock(&dev->mutex);
 +    return 0;
 +}
@@ -550,38 +472,11 @@ index 0f3d587e0..1db1b7c0d 100644
 +    ds_destroy(&ds);
 +}
 +
-+static void
-+netdev_gtp_echo_remote_end_points_purge(struct unixctl_conn *conn, int argc OVS_UNUSED,
-+                             const char *argv[] OVS_UNUSED, void *aux OVS_UNUSED)
-+{
-+    struct ds ds = DS_EMPTY_INITIALIZER;
-+    struct netdev **vports;
-+    size_t i, n_vports;
-+
-+    int rec = 0;
-+
-+    vports = netdev_get_vports(&n_vports);
-+    for (i = 0; i < n_vports; i++) {
-+        struct netdev *netdev_ = vports[i];
-+        struct netdev_vport *netdev = netdev_vport_cast(netdev_);
-+
-+        ovs_mutex_lock(&netdev->mutex);
-+        gtp_del_remote_end_points_info(netdev);
-+        ovs_mutex_unlock(&netdev->mutex);
-+
-+        netdev_close(netdev_);
-+        rec++;
-+    }
-+    free(vports);
-+    unixctl_command_reply(conn, "Done");
-+    ds_destroy(&ds);
-+}
-+
 +
  static int
  netdev_vport_get_ifindex(const struct netdev *netdev_)
  {
-@@ -1254,6 +1508,11 @@ netdev_vport_tunnel_register(void)
+@@ -1254,6 +1423,11 @@ netdev_vport_tunnel_register(void)
                .build_header = netdev_gtpu_build_header,
                .push_header = netdev_gtpu_push_header,
                .pop_header = netdev_gtpu_pop_header,
@@ -593,15 +488,12 @@ index 0f3d587e0..1db1b7c0d 100644
            },
            {{NULL, NULL, 0, 0}}
          },
-@@ -1272,6 +1531,12 @@ netdev_vport_tunnel_register(void)
+@@ -1272,6 +1446,9 @@ netdev_vport_tunnel_register(void)
          unixctl_command_register("tnl/egress_port_range", "min max", 0, 2,
                                   netdev_tnl_egress_port_range, NULL);
  
 +        unixctl_command_register("tnl/gtp_echo_remote_end_points", "", 0, 0,
 +                                 netdev_gtp_echo_remote_end_points, NULL);
-+
-+        unixctl_command_register("tnl/gtp_echo_remote_end_points_purge", "", 0, 0,
-+                                 netdev_gtp_echo_remote_end_points_purge, NULL);
 +
          ovsthread_once_done(&once);
      }
@@ -653,10 +545,22 @@ index 91e91955c..1bc5abfc8 100644
 +    return EOPNOTSUPP;
 +}
 diff --git a/lib/netdev.h b/lib/netdev.h
-index 4877df5ff..de532a9dc 100644
+index 4877df5ff..633ac88f1 100644
 --- a/lib/netdev.h
 +++ b/lib/netdev.h
-@@ -329,6 +329,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
+@@ -142,6 +142,11 @@ struct netdev_tunnel_config {
+     bool erspan_hwid_flow;
+ 
+     bool gtp_random_src_port;
++    int gtp_seq;
++    long long int gtp_timestamp;
++    bool gtp_need_to_send;
++    long gtp_rx_cnt;
++    long gtp_tx_cnt;
+ };
+ 
+ void netdev_run(void);
+@@ -329,6 +334,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
                              unsigned int *queue_id, struct smap *details);
  int netdev_queue_dump_done(struct netdev_queue_dump *);
  
@@ -785,7 +689,7 @@ index 3426a27b2..5d1bd84d5 100644
  void xlate_mac_learning_update(const struct ofproto_dpif *ofproto,
                                 ofp_port_t in_port, struct eth_addr dl_src,
 diff --git a/ofproto/ofproto-dpif.c b/ofproto/ofproto-dpif.c
-index 4f0638f23..7c6c1ea77 100644
+index 0f8ae8a73..a8a49adf0 100644
 --- a/ofproto/ofproto-dpif.c
 +++ b/ofproto/ofproto-dpif.c
 @@ -5265,6 +5265,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,
@@ -826,10 +730,10 @@ index 1f5794f03..c57ec5a35 100644
      struct ofproto_dpif *, const struct ofputil_flow_mod *,
      struct ofproto_flow_mod *);
 diff --git a/tests/automake.mk b/tests/automake.mk
-index f0bb79966..a7588cee0 100644
+index 498d016e0..5138f91a2 100644
 --- a/tests/automake.mk
 +++ b/tests/automake.mk
-@@ -502,6 +502,9 @@ tests_test_strtok_r_SOURCES = tests/test-strtok_r.c
+@@ -503,6 +503,9 @@ tests_test_strtok_r_SOURCES = tests/test-strtok_r.c
  noinst_PROGRAMS += tests/test-type-props
  tests_test_type_props_SOURCES = tests/test-type-props.c
  
@@ -840,7 +744,7 @@ index f0bb79966..a7588cee0 100644
  CHECK_PYFILES = \
  	tests/appctl.py \
 diff --git a/tests/system-common-macros.at b/tests/system-common-macros.at
-index 3643cc18d..e33bb62c9 100644
+index 490c59e04..bc94680f0 100644
 --- a/tests/system-common-macros.at
 +++ b/tests/system-common-macros.at
 @@ -160,6 +160,25 @@ m4_define([ADD_CVLAN],
@@ -870,7 +774,7 @@ index 3643cc18d..e33bb62c9 100644
  #                [tunnel-args])
  #
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 141a7afb4..4bbb2198e 100644
+index 141a7afb4..b50984e37 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
 @@ -49,58 +49,6 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
@@ -932,7 +836,7 @@ index 141a7afb4..4bbb2198e 100644
  AT_SETUP([layer3 - ping over GRE])
  OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
  OVS_CHECK_GRE_L3()
-@@ -205,3 +153,224 @@ AT_CHECK([tail -1 stdout], [0],
+@@ -205,3 +153,236 @@ AT_CHECK([tail -1 stdout], [0],
  
  OVS_VSWITCHD_STOP
  AT_CLEANUP
@@ -1108,7 +1012,9 @@ index 141a7afb4..4bbb2198e 100644
 +dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 +dnl linux device inside the namespace.
 +
-+ADD_OVS_TUNNEL_NO_REMOTE([gtpu], [br0], [at_gtp0], [10.1.1.2/24], [options:local_ip=172.31.1.100])
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp1], [172.31.1.2], [10.1.2.2/24])
++
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +
 +NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
@@ -1116,6 +1022,7 @@ index 141a7afb4..4bbb2198e 100644
 +
 +AT_CHECK([ovs-vsctl set interface at_gtp0 bfd:min_tx=500 bfd:min_rx=500])
 +AT_CHECK([ovs-vsctl set interface at_gtp0 bfd:enable=true])
++AT_CHECK([ovs-vsctl set interface at_gtp1 bfd:enable=false])
 +
 +AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
 +
@@ -1124,6 +1031,7 @@ index 141a7afb4..4bbb2198e 100644
 +
 +AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points], [0], [dnl
 +Tunnel port: at_gtp0
++Tunnel port: at_gtp1
 +])  
 +
 +NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000010000ff0003000a01], [0], [ignore])
@@ -1131,6 +1039,7 @@ index 141a7afb4..4bbb2198e 100644
 +AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
 +Tunnel port: at_gtp0
 +RX: 1 TX: 1 remote ip: 172.31.1.1, seq 1, pending send 0
++Tunnel port: at_gtp1
 +])  
 +
 +NS_CHECK_EXEC([at_ns1], [test-gtp 172.31.1.100 3201000a0000000000030000ff0003000a01], [0], [ignore])
@@ -1138,22 +1047,29 @@ index 141a7afb4..4bbb2198e 100644
 +AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
 +Tunnel port: at_gtp0
 +RX: 1 TX: 1 remote ip: 172.31.1.1, seq 1, pending send 0
++Tunnel port: at_gtp1
++])  
++
++AT_CHECK([ovs-vsctl set interface at_gtp1 bfd:min_tx=500 bfd:min_rx=500])
++AT_CHECK([ovs-vsctl set interface at_gtp1 bfd:enable=true])
++
++NS_CHECK_EXEC([at_ns1], [test-gtp 172.31.1.100 3201000a0000000000030000ff0003000a01], [0], [ignore])
++sleep 2
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++Tunnel port: at_gtp1
 +RX: 1 TX: 1 remote ip: 172.31.1.2, seq 3, pending send 0
 +])  
 +
-+AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points_purge], [0], [dnl
-+Done
-+])
-+AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
-+Tunnel port: at_gtp0
-+])  
 +
 +NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000040000ff0003000a01], [0], [ignore])
 +sleep 2
 +AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
 +Tunnel port: at_gtp0
 +RX: 1 TX: 1 remote ip: 172.31.1.1, seq 4, pending send 0
-+])
++Tunnel port: at_gtp1
++RX: 1 TX: 1 remote ip: 172.31.1.2, seq 3, pending send 0
++])  
 +
 +OVS_TRAFFIC_VSWITCHD_STOP
 +AT_CLEANUP
@@ -1275,5 +1191,5 @@ index 000000000..aede93daf
 +    return 0;
 +}
 -- 
-2.13.5
+2.17.1
 

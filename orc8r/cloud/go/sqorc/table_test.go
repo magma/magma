@@ -104,7 +104,7 @@ func TestColumnBuilder_ToSql_Errors(t *testing.T) {
 		Name("foo").
 		Type(ColumnTypeBytes + 100).
 		ToSql()
-	assert.EqualError(t, err, "column type 102 not recognized")
+	assert.EqualError(t, err, "column type 103 not recognized")
 
 	_, err = columnBuilder(postgresColumnTypeMap).
 		Name("foo").

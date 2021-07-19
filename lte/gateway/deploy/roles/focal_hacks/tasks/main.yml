@@ -17,4 +17,3 @@
     path: /usr/include/json.hpp
     state: link
     src: /usr/include/nlohmann/json.hpp
-

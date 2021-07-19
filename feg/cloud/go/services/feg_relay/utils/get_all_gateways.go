@@ -15,6 +15,7 @@ limitations under the License.
 package utils
 
 import (
+	"context"
 	"fmt"
 
 	"magma/feg/cloud/go/feg"
@@ -30,7 +31,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -67,7 +67,7 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 			continue
 		}
 		for _, gatewayEntity := range gateways {
-			record, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID, serdes.Device)
+			record, err := device.GetDevice(ctx, networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID, serdes.Device)
 			if err != nil {
 				glog.Errorf("Find Gateway Record Error: %v for Gateway %s:%s", err, networkID, gatewayEntity.Key)
 				continue

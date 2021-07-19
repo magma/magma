@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from lte.protos.policydb_pb2 import FlowMatch
 
@@ -160,11 +160,11 @@ class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         # Verify if paging flow rules are created
@@ -175,7 +175,7 @@ class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
         time.sleep(5)
         print(
             "************* Adding dedicated bearer to magma.ipv4"
-            " PDN in idle mode"
+            " PDN in idle mode",
         )
         print(
             "************* Sending RAR for IMSI",
@@ -190,14 +190,14 @@ class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
         )
 
         print("*********** Received Paging for UE id ", ue_id)
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
         )
 
         print("*********** Received second Paging for UE id ", ue_id)
@@ -213,7 +213,7 @@ class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
         )
 
 

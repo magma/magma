@@ -397,7 +397,6 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 		}
 		avpGroup = append(
 			avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
-
 	}
 
 	if serviceIdentifier >= 0 {

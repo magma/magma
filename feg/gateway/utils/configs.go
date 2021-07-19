@@ -106,13 +106,14 @@ func getUint64FlagValue(flagName string) (uint64, error) {
 
 // getFlagValue returns the value of the flagValue if it exists, or an empty string if not
 func getFlagValue(flagName string) string {
+	var res string
 	if len(flagName) > 0 {
-		f := flag.Lookup(flagName)
-		if f != nil && len(f.Value.String()) != 0 {
-			res := f.Value.String()
-			glog.V(1).Infof("Using runtime flag: %s => %s", flagName, res)
-			return res
-		}
+		flag.Visit(func(f *flag.Flag) {
+			if f.Name == flagName {
+				res = f.Value.String()
+				glog.V(1).Infof("Using runtime flag: %s => %s", flagName, res)
+			}
+		})
 	}
-	return ""
+	return res
 }

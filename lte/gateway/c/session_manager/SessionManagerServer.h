@@ -21,6 +21,7 @@
 #include "LocalSessionManagerHandler.h"
 #include "SessionProxyResponderHandler.h"
 #include "SetMessageManagerHandler.h"
+#include "UpfMsgManageHandler.h"
 
 using grpc::ServerCompletionQueue;
 using grpc::ServerContext;
@@ -106,6 +107,21 @@ class AmfPduSessionSmContextAsyncService final
   std::unique_ptr<SetMessageManager> handler_;
 };
 
+/* UpfContextAsysnService  Set RPC service object for 5G */
+class SetInterfaceForUserPlaneAsyncService final
+    : public AsyncService,
+      public SetInterfaceForUserPlane::AsyncService {
+ public:
+  SetInterfaceForUserPlaneAsyncService(
+      std::unique_ptr<ServerCompletionQueue> cq,
+      std::unique_ptr<UpfMsgManageHandler> handler);
+
+ protected:
+  void init_call_data();
+
+ private:
+  std::unique_ptr<UpfMsgManageHandler> handler_;
+};
 /**
  * SessionProxyResponderAsyncService handles gRPC calls to SessionProxyResponder
  * through a completion queue where requests are processed and returned async
@@ -263,6 +279,64 @@ class SetAmfSessionContextCallData : public AsyncGRPCRequest<
 
  private:
   SetMessageManager& handler_;
+};
+
+/*
+ *  Class to handle SetUPFNodeStateCallData
+ */
+class SetUPFNodeStateCallData
+    : public AsyncGRPCRequest<
+          SetInterfaceForUserPlane::AsyncService, UPFNodeState, SmContextVoid> {
+ public:
+  SetUPFNodeStateCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetUPFNodeState(
+        &ctx_, &request_, &responder_, cq_, cq_, reinterpret_cast<void*>(this));
+  }
+
+ protected:
+  void clone() override {
+    new SetUPFNodeStateCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetUPFNodeState(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
+};
+
+/*
+ *  Class to handle SetUPFSessionConfig
+ */
+class SetUPFSessionsConfigCallData : public AsyncGRPCRequest<
+                                         SetInterfaceForUserPlane::AsyncService,
+                                         UPFSessionConfigState, SmContextVoid> {
+ public:
+  SetUPFSessionsConfigCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetUPFSessionsConfig(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SetUPFSessionsConfigCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetUPFSessionsConfig(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
 };
 
 /**
@@ -483,6 +557,35 @@ class PolicyReAuthCallData : public AsyncGRPCRequest<
 
  private:
   SessionProxyResponderHandler& handler_;
+};
+
+/*
+ *  Class to handle SendPagingReqestCallData
+ */
+class SendPagingRequestCallData : public AsyncGRPCRequest<
+                                      SetInterfaceForUserPlane::AsyncService,
+                                      UPFPagingInfo, SmContextVoid> {
+ public:
+  SendPagingRequestCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSendPagingRequest(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SendPagingRequestCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SendPagingRequest(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
 };
 
 }  // namespace magma

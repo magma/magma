@@ -13,6 +13,7 @@ limitations under the License.
 
 import asyncio
 import logging
+import os
 import pathlib
 
 from magma.common.service import MagmaService
@@ -53,11 +54,15 @@ class DockerUpgrader(Upgrader2):
         current_version = version_info[0].current_version
         tgt_version = self.service.mconfig.package_version
         if tgt_version is None or tgt_version == "":
-            logging.warning('magmad package_version not found, '
-                            'using current tag: %s as target tag.',
-                            current_version)
-            return UpgradeIntent(stable=VersionT(current_version),
-                                 canary=VersionT(""))
+            logging.warning(
+                'magmad package_version not found, '
+                'using current tag: %s as target tag.',
+                current_version,
+            )
+            return UpgradeIntent(
+                stable=VersionT(current_version),
+                canary=VersionT(""),
+            )
 
         return UpgradeIntent(stable=VersionT(tgt_version), canary=VersionT(""))
 
@@ -77,25 +82,33 @@ class DockerUpgrader(Upgrader2):
         )
 
     async def prepare_upgrade(
-        self, version: VersionT, path_to_image: pathlib.Path
+        self, version: VersionT, path_to_image: pathlib.Path,
     ) -> None:
         """Install the new docker-compose file"""
         gw_module = self.service.config["upgrader_factory"]\
             .get("gateway_module")
 
         # Update any mounted static configs
-        await run_command("cp -TR {}/magma/{}/gateway/configs /etc/magma".
-                          format(MAGMA_GITHUB_PATH, gw_module),
-                          shell=True, check=True)
+        await run_command(
+            "cp -TR {}/magma/{}/gateway/configs /etc/magma".
+            format(MAGMA_GITHUB_PATH, gw_module),
+            shell=True, check=True,
+        )
         # Update any mounted template configs
-        await run_command("cp -TR {}/magma/orc8r/gateway/configs/templates "
-                          "/etc/magma/templates".format(MAGMA_GITHUB_PATH),
-                          shell=True, check=True)
+        await run_command(
+            "cp -TR {}/magma/orc8r/gateway/configs/templates "
+            "/etc/magma/templates".format(MAGMA_GITHUB_PATH),
+            shell=True, check=True,
+        )
         # Copy updated docker-compose
-        await run_command("cp {}/magma/{}/gateway/docker/docker-compose.yml "
-                          "/var/opt/magma/docker".format(MAGMA_GITHUB_PATH,
-                                                         gw_module),
-                          shell=True, check=True)
+        await run_command(
+            "cp {}/magma/{}/gateway/docker/docker-compose.yml "
+            "/var/opt/magma/docker".format(
+                MAGMA_GITHUB_PATH,
+                gw_module,
+            ),
+            shell=True, check=True,
+        )
 
     async def upgrade(
             self, version: VersionT, path_to_image: pathlib.Path,
@@ -116,7 +129,7 @@ class DockerUpgrader(Upgrader2):
 
     async def _do_docker_upgrade(self) -> None:
         upgrade_intent, version_info = await asyncio.gather(
-            self.get_upgrade_intent(), self.get_versions()
+            self.get_upgrade_intent(), self.get_versions(),
         )
         current_version = version_info.current_version
         target_image = upgrade_intent.stable
@@ -140,16 +153,20 @@ class DockerUpgrader(Upgrader2):
 
             # As a last step, update the IMAGE_VERSION in .env
             sed_args = "sed -i s/IMAGE_VERSION={}/IMAGE_VERSION={}/g " \
-                       "var/opt/magma/docker/.env".format(current_version,
-                                                          target_image)
-            logging.info("Successfully downloaded version %s! Awaiting docker "
-                         "container recreation...", target_image)
+                       "var/opt/magma/docker/.env".format(
+                           current_version,
+                           target_image,
+                       )
+            logging.info(
+                "Successfully downloaded version %s! Awaiting docker "
+                "container recreation...", target_image,
+            )
             await run_command(sed_args, shell=True, check=True)
         else:
             logging.info(
                 'Service is currently on image tag %s, '
                 'ignoring upgrade to tag %s, since they\'re equal.',
-                current_version, target_image
+                current_version, target_image,
             )
 
 
@@ -160,25 +177,34 @@ async def download_update(
     """
     Download the images for the given tag and clones the github repo.
     """
-    await run_command("rm -rf {}".format(MAGMA_GITHUB_PATH), shell=True,
-                      check=True)
-    await run_command("mkdir -p {}".format(MAGMA_GITHUB_PATH), shell=True,
-                      check=True)
+    await run_command(
+        "rm -rf {}".format(MAGMA_GITHUB_PATH), shell=True,
+        check=True,
+    )
+    await run_command(
+        "mkdir -p {}".format(MAGMA_GITHUB_PATH), shell=True,
+        check=True,
+    )
 
     control_proxy_config = load_service_config('control_proxy')
-    await run_command("cp {} /usr/local/share/ca-certificates/rootCA.crt".
-                      format(control_proxy_config['rootca_cert']), shell=True,
-                      check=True)
+    await run_command(
+        "cp {} /usr/local/share/ca-certificates/rootCA.crt".
+        format(control_proxy_config['rootca_cert']), shell=True,
+        check=True,
+    )
     await run_command("update-ca-certificates", shell=True, check=True)
 
     if use_proxy:
         git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
             control_proxy_config['bootstrap_address'],
             control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,
-            MAGMA_GITHUB_URL)
+            MAGMA_GITHUB_URL,
+        )
     else:
-        git_clone_cmd = "git -C {} clone {}".format(MAGMA_GITHUB_PATH,
-                                                    MAGMA_GITHUB_URL)
+        git_clone_cmd = "git -C {} clone {}".format(
+            MAGMA_GITHUB_PATH,
+            MAGMA_GITHUB_URL,
+        )
 
     await run_command(git_clone_cmd, shell=True, check=True)
 
@@ -186,9 +212,10 @@ async def download_update(
         MAGMA_GITHUB_PATH, target_version,
     )
     await run_command(git_checkout_cmd, shell=True, check=True)
-    docker_login_cmd = "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD " \
-                       "$DOCKER_REGISTRY"
-    await run_command(docker_login_cmd, shell=True, check=True)
+    if os.getenv("DOCKER_USERNAME"):
+        docker_login_cmd = "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD " \
+                           "$DOCKER_REGISTRY"
+        await run_command(docker_login_cmd, shell=True, check=True)
     docker_pull_cmd = "IMAGE_VERSION={} docker-compose --project-directory " \
                       "/var/opt/magma/docker -f " \
                       "/var/opt/magma/docker/docker-compose.yml pull -q".\

@@ -19,15 +19,13 @@ import (
 	"net"
 	"time"
 
+	orc8r_protos "magma/orc8r/lib/go/protos"
+
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 )
-
-type echoResponse struct {
-	error
-}
 
 type S8Proxy struct {
 	config    *S8ProxyConfig
@@ -35,9 +33,10 @@ type S8Proxy struct {
 }
 
 type S8ProxyConfig struct {
-	GtpTimeout time.Duration
-	ClientAddr string
-	ServerAddr *net.UDPAddr
+	GtpTimeout        time.Duration
+	ClientAddr        string
+	ServerAddr        *net.UDPAddr
+	ApnOperatorSuffix string
 }
 
 // NewS8Proxy creates an s8 proxy, but does not checks the PGW is alive
@@ -88,7 +87,7 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 		return nil, err
 	}
 	// build csReq IE message
-	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
+	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, s.config.ApnOperatorSuffix, req)
 	if err != nil {
 		err = fmt.Errorf("Create Session failed to build IEs for IMSI %s: %s", req.Imsi, err)
 		glog.Error(err)
@@ -146,6 +145,29 @@ func (s *S8Proxy) SendEcho(_ context.Context, req *protos.EchoRequest) (*protos.
 		return nil, err
 	}
 	return &protos.EchoResponse{}, nil
+}
+
+func (s *S8Proxy) CreateBearerResponse(_ context.Context, res *protos.CreateBearerResponsePgw) (*orc8r_protos.Void, error) {
+	cPgwUDPAddr := ParseAddress(res.PgwAddrs)
+	if cPgwUDPAddr == nil {
+		err := fmt.Errorf("CreateBearerResponse to %s failed: couldnt paarse address", res.PgwAddrs)
+		glog.Error(err)
+		return nil, err
+	}
+
+	cbResMsg, err := buildCreateBearerResMsg(res)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.sendAndReceiveCreateBearerResponse(res, cPgwUDPAddr, cbResMsg)
+	if err != nil {
+		err = fmt.Errorf("Create Bearer Response failed for IMSI %s:, %s", res.Imsi, err)
+		glog.Error(err)
+		return nil, err
+	}
+
+	return &orc8r_protos.Void{}, nil
 }
 
 // configOrRequestedPgwAddress returns an UDPAddrs if the passed string corresponds to a valid ip,

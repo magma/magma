@@ -14,21 +14,21 @@ limitations under the License.
 import copy
 import ctypes
 import ipaddress
-import iperf3
 import os
-import pyroute2
-import socket
-import threading
 import shlex
+import socket
 import subprocess
+import threading
 
+import iperf3
+import pyroute2
 import s1ap_types
 from util.traffic_messages import (
-    TrafficTestInstance,
+    TrafficMessage,
     TrafficRequest,
     TrafficRequestType,
     TrafficResponseType,
-    TrafficMessage,
+    TrafficTestInstance,
 )
 
 # Tests shouldn't take longer than a few minutes
@@ -127,7 +127,7 @@ class TrafficUtil(object):
         """ Update downlink route in TRF server """
         ret_code = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
-            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2"
+            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
         )
         if ret_code != 0:
             return False
@@ -235,11 +235,11 @@ class TrafficUtil(object):
         # eviction scheme
         raise MemoryError(
             "Reached limit on number of configurable tests: %d"
-            % s1ap_types.MAX_TEST_CFG
+            % s1ap_types.MAX_TEST_CFG,
         )
 
     def generate_traffic_test(
-        self, ips, is_uplink=False, duration=120, is_udp=False
+        self, ips, is_uplink=False, duration=120, is_udp=False,
     ):
         """ Creates a TrafficTest object for the given UE IPs and test type
 
@@ -338,9 +338,11 @@ class TrafficTest(object):
 
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
-            ifname=TrafficTest._net_iface)[0]
+            ifname=TrafficTest._net_iface,
+        )[0]
         TrafficTest._iproute.addr(
-            'add', index=net_iface_index, label=net_alias, address=ip.exploded)
+            'add', index=net_iface_index, label=net_alias, address=ip.exploded,
+        )
 
         return net_alias
 
@@ -389,10 +391,13 @@ class TrafficTest(object):
 
             # Flush all the addresses left by previous failed tests
             net_iface_index = TrafficTest._iproute.link_lookup(
-                ifname=TrafficTest._net_iface)[0]
+                ifname=TrafficTest._net_iface,
+            )[0]
             for instance in instances:
-                TrafficTest._iproute.flush_addr(index=net_iface_index,
-                                                address=instance.ip.exploded)
+                TrafficTest._iproute.flush_addr(
+                    index=net_iface_index,
+                    address=instance.ip.exploded,
+                )
 
             # Set up network ifaces and get UL port assignments for DL
             aliases = ()
@@ -404,7 +409,8 @@ class TrafficTest(object):
 
             # Create and send TEST message
             msg = TrafficRequest(
-                TrafficRequestType.TEST, payload=instances)
+                TrafficRequestType.TEST, payload=instances,
+            )
             msg.send(sc_out)
 
             # Receive SERVER message and update test instances
@@ -423,16 +429,21 @@ class TrafficTest(object):
 
                 # Add ip network route
                 net_iface_index = TrafficTest._iproute.link_lookup(
-                    ifname=TrafficTest._net_iface)[0]
+                    ifname=TrafficTest._net_iface,
+                )[0]
                 server_instance_network = \
                     TrafficTest._network_from_ip(server_instance.ip, 8)
                 TrafficTest._iproute.route(
                     'replace', dst=server_instance_network.exploded,
-                    iif=net_iface_index, oif=net_iface_index, scope='link')
+                    iif=net_iface_index, oif=net_iface_index, scope='link',
+                )
 
                 # Add arp table entry
-                os.system('/usr/sbin/arp -s %s %s' % (
-                    server_instance.ip.exploded, server_instance.mac))
+                os.system(
+                    '/usr/sbin/arp -s %s %s' % (
+                    server_instance.ip.exploded, server_instance.mac,
+                    ),
+                )
 
                 if instance.is_uplink:
                     # Port should be the port of the remote for uplink
@@ -440,11 +451,13 @@ class TrafficTest(object):
                 else:
                     args[i] = self._run_test(
                         test_ids[i], server_instance.ip, instance.ip,
-                        instance.port)
+                        instance.port,
+                    )
 
             # Send START for the given r_id
             msg = TrafficRequest(
-                TrafficRequestType.START, identifier=r_id)
+                TrafficRequestType.START, identifier=r_id,
+            )
             msg.send(sc_out)
 
             # Wait for STARTED response
@@ -458,7 +471,8 @@ class TrafficTest(object):
                 if instance.is_uplink:
                     args[i] = self._run_test(
                         test_ids[i], server_instances[i].ip, instance.ip,
-                        server_instances[i].port)
+                        server_instances[i].port,
+                    )
 
             # Wait for RESULTS message
             msg = TrafficMessage.recv(sc_in)
@@ -472,13 +486,16 @@ class TrafficTest(object):
 
             # Close out network ifaces
             net_iface_index = TrafficTest._iproute.link_lookup(
-                ifname=TrafficTest._net_iface)[0]
+                ifname=TrafficTest._net_iface,
+            )[0]
             # For some reason the first call to flush this address flushes all
             # the addresses brought up during testing. But subsequent flushes
             # do nothing if the address doesn't exist
             for instance in instances:
-                TrafficTest._iproute.flush_addr(index=net_iface_index,
-                                                address=instance.ip.exploded)
+                TrafficTest._iproute.flush_addr(
+                    index=net_iface_index,
+                    address=instance.ip.exploded,
+                )
             # Do socket cleanup
             sc_in.close()
             sc_out.close()
@@ -508,8 +525,10 @@ class TrafficTest(object):
         Returns the raw arguments passed into the trfgen binary, for the caller
             to keep track of and avoid garbage collection
         '''
-        args = (test_id, host_ip.exploded.encode(), ue_ip.exploded.encode(),
-                str(port).encode())
+        args = (
+            test_id, host_ip.exploded.encode(), ue_ip.exploded.encode(),
+            str(port).encode(),
+        )
         self._runner(*args)
         return args
 
@@ -564,12 +583,14 @@ class TrafficTest(object):
             if not isinstance(self.results, tuple):
                 raise RuntimeError(
                     'Cached results object is not a tuple : {}'.format(
-                        self.results),
+                        self.results,
+                    ),
                 )
             for result in self.results:
                 if not isinstance(result, iperf3.TestResult):
                     raise RuntimeError(
-                        'Cached results are not iperf3.TestResult objects')
+                        'Cached results are not iperf3.TestResult objects',
+                    )
                 if result.error:
                     # iPerf dumps out-of-order packet information on stderr,
                     # ignore these while verifying the test results

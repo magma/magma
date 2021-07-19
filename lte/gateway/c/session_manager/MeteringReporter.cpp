@@ -13,9 +13,9 @@
 
 #include <string>
 
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "MeteringReporter.h"
-#include "MetricsHelpers.h"
+#include "includes/MetricsHelpers.h"
 
 using magma::service303::increment_counter;
 

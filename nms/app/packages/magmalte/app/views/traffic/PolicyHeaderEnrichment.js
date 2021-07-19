@@ -73,7 +73,7 @@ export default function PolicyHeaderEnrichmentEdit(props: Props) {
           <ListItem dense disableGutters />
           <OutlinedInput
             data-testid="newUrl"
-            placeholder="E.g. http://example.com/"
+            placeholder="E.g. example.com/"
             value={newUrl}
             onChange={({target}) => {
               setNewUrl(target.value);

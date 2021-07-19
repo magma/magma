@@ -143,8 +143,8 @@ variable "elasticsearch_domain_configuration" {
 variable "docker_registry" {
   description = "URL to your Docker registry"
   type        = string
+  default     = "https://docker.artifactory.magmacore.org/artifactory/docker"
 }
-
 variable "docker_user" {
   description = "Username for your Docker registry"
   type        = string
@@ -152,12 +152,13 @@ variable "docker_user" {
 
 variable "docker_pass" {
   description = "Password for your Docker user"
-  type        = string
+  type = string
 }
 
 variable "helm_repo" {
   description = "URL to your Helm repo. Don't forget the protocol prefix (e.g. https://)"
   type        = string
+  default     = "https://docker.artifactory.magmacore.org/artifactory/helm-prod"
 }
 
 variable "helm_user" {
@@ -167,7 +168,7 @@ variable "helm_user" {
 
 variable "helm_pass" {
   description = "Password for your Helm user"
-  type        = string
+  type = string
 }
 
 variable "seed_certs_dir" {
@@ -183,7 +184,7 @@ variable "new_deployment_name" {
 variable "orc8r_chart_version" {
   description = "Chart version for the Helm deployment"
   type        = string
-  default     = "1.4.21"
+  default     = "1.5.21"
 }
 
 variable "orc8r_container_tag" {

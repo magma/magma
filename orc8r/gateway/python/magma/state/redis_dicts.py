@@ -50,21 +50,29 @@ def get_proto_redis_dicts(config):
                          'redis_key' not in proto_cfg or \
                          'state_scope' not in proto_cfg
         if is_invalid_cfg:
-            logging.warning("Invalid proto config found in state_protos "
-                            "configuration: %s", proto_cfg)
+            logging.warning(
+                "Invalid proto config found in state_protos "
+                "configuration: %s", proto_cfg,
+            )
             continue
         try:
             proto_module = importlib.import_module(proto_cfg['proto_file'])
             msg = getattr(proto_module, proto_cfg['proto_msg'])
             redis_key = proto_cfg['redis_key']
-            logging.info('Initializing RedisSerde for proto state %s',
-                         proto_cfg['redis_key'])
-            serde = RedisSerde(redis_key,
-                               get_proto_serializer(),
-                               get_proto_deserializer(msg))
-            redis_dict = StateDict(serde,
-                                   proto_cfg['state_scope'],
-                                   PROTO_FORMAT)
+            logging.info(
+                'Initializing RedisSerde for proto state %s',
+                proto_cfg['redis_key'],
+            )
+            serde = RedisSerde(
+                redis_key,
+                get_proto_serializer(),
+                get_proto_deserializer(msg),
+            )
+            redis_dict = StateDict(
+                serde,
+                proto_cfg['state_scope'],
+                PROTO_FORMAT,
+            )
             redis_dicts.append(redis_dict)
 
         except (ImportError, AttributeError) as err:
@@ -80,19 +88,27 @@ def get_json_redis_dicts(config):
         is_invalid_cfg = 'redis_key' not in json_cfg or \
                          'state_scope' not in json_cfg
         if is_invalid_cfg:
-            logging.warning("Invalid json state config found in json_state"
-                            "configuration: %s", json_cfg)
+            logging.warning(
+                "Invalid json state config found in json_state"
+                "configuration: %s", json_cfg,
+            )
             continue
 
-        logging.info('Initializing RedisSerde for json state %s',
-                     json_cfg['redis_key'])
+        logging.info(
+            'Initializing RedisSerde for json state %s',
+            json_cfg['redis_key'],
+        )
         redis_key = json_cfg['redis_key']
-        serde = RedisSerde(redis_key,
-                           get_json_serializer(),
-                           get_json_deserializer())
-        redis_dict = StateDict(serde,
-                               json_cfg['state_scope'],
-                               JSON_FORMAT)
+        serde = RedisSerde(
+            redis_key,
+            get_json_serializer(),
+            get_json_deserializer(),
+        )
+        redis_dict = StateDict(
+            serde,
+            json_cfg['state_scope'],
+            JSON_FORMAT,
+        )
         redis_dicts.append(redis_dict)
 
     return redis_dicts

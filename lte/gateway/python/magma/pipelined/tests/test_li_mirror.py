@@ -58,10 +58,12 @@ class LIMirrorTest(unittest.TestCase):
         li_mirror_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.InOut,
-                  PipelinedController.LIMirror,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.InOut,
+                PipelinedController.LIMirror,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
@@ -82,7 +84,7 @@ class LIMirrorTest(unittest.TestCase):
                 'li_mirror_all': True,
                 'li_local_iface': cls.LI_LOCAL_IFACE,
                 'li_dst_iface': cls.LI_DST_IFACE,
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
             },
             mconfig=None,
             loop=None,
@@ -91,10 +93,14 @@ class LIMirrorTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.create_internal_iface(cls.BRIDGE, cls.LI_LOCAL_IFACE,
-                                          cls.LI_LOCAL_IP)
-        BridgeTools.create_internal_iface(cls.BRIDGE, cls.LI_DST_IFACE,
-                                          cls.LI_DST_IP)
+        BridgeTools.create_internal_iface(
+            cls.BRIDGE, cls.LI_LOCAL_IFACE,
+            cls.LI_LOCAL_IP,
+        )
+        BridgeTools.create_internal_iface(
+            cls.BRIDGE, cls.LI_DST_IFACE,
+            cls.LI_DST_IP,
+        )
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.inout_controller = inout_controller_reference.result()

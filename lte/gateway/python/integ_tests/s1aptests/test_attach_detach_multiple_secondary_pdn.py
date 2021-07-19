@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
@@ -60,7 +60,7 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         apn_list = [ims, internet]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "*********************** Running End to End attach for UE id ",
@@ -86,7 +86,7 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
@@ -113,7 +113,7 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
                 pdn_disconnect_req.epsBearerId,
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+                s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req,
             )
 
             # Receive UE_DEACTIVATE_BER_REQ
@@ -125,11 +125,11 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
 
             print(
                 "******************* Received deactivate eps bearer context"
-                " request"
+                " request",
             )
             # Send DeactDedicatedBearerAccept
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                ue_id, bearer_ids[i]
+                ue_id, bearer_ids[i],
             )
 
         print(
@@ -139,7 +139,7 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

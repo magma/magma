@@ -35,66 +35,66 @@ func getNodeClient() (protos.NodeLeasorClient, error) {
 	return protos.NewNodeLeasorClient(conn), nil
 }
 
-func GetNodes(ids []string, tag *string) (map[string]*storage.CINode, error) {
+func GetNodes(ctx context.Context, ids []string, tag *string) (map[string]*storage.CINode, error) {
 	client, err := getNodeClient()
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.GetNodes(context.Background(), &protos.GetNodesRequest{Ids: ids, Tag: asStringValue(tag)})
+	res, err := client.GetNodes(ctx, &protos.GetNodesRequest{Ids: ids, Tag: asStringValue(tag)})
 	if err != nil {
 		return nil, err
 	}
 	return res.Nodes, nil
 }
 
-func CreateOrUpdateNode(node *storage.MutableCINode) error {
+func CreateOrUpdateNode(ctx context.Context, node *storage.MutableCINode) error {
 	client, err := getNodeClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.CreateOrUpdateNode(context.Background(), &protos.CreateOrUpdateNodeRequest{Node: node})
+	_, err = client.CreateOrUpdateNode(ctx, &protos.CreateOrUpdateNodeRequest{Node: node})
 	return err
 }
 
-func DeleteNode(id string) error {
+func DeleteNode(ctx context.Context, id string) error {
 	client, err := getNodeClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.DeleteNode(context.Background(), &protos.DeleteNodeRequest{Id: id})
+	_, err = client.DeleteNode(ctx, &protos.DeleteNodeRequest{Id: id})
 	return err
 }
 
-func ReserveNode(id string) (*storage.NodeLease, error) {
+func ReserveNode(ctx context.Context, id string) (*storage.NodeLease, error) {
 	client, err := getNodeClient()
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.ReserveNode(context.Background(), &protos.ReserveNodeRequest{Id: id})
+	res, err := client.ReserveNode(ctx, &protos.ReserveNodeRequest{Id: id})
 	if err != nil {
 		return nil, err
 	}
 	return res.Lease, nil
 }
 
-func LeaseNode(tag string) (*storage.NodeLease, error) {
+func LeaseNode(ctx context.Context, tag string) (*storage.NodeLease, error) {
 	client, err := getNodeClient()
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.LeaseNode(context.Background(), &protos.LeaseNodeRequest{Tag: tag})
+	res, err := client.LeaseNode(ctx, &protos.LeaseNodeRequest{Tag: tag})
 	if err != nil {
 		return nil, err
 	}
 	return res.Lease, nil
 }
 
-func ReleaseNode(id string, leaseID string) error {
+func ReleaseNode(ctx context.Context, id string, leaseID string) error {
 	client, err := getNodeClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.ReleaseNode(context.Background(), &protos.ReleaseNodeRequest{NodeID: id, LeaseID: leaseID})
+	_, err = client.ReleaseNode(ctx, &protos.ReleaseNodeRequest{NodeID: id, LeaseID: leaseID})
 	return err
 }
 

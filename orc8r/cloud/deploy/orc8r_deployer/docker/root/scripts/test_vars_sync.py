@@ -56,7 +56,7 @@ def parse_tf(constants: dict) -> set:
     # parse input variables
     orc8r_var_fn_list = [
         f'{tf_root}/orc8r-aws/variables.tf',
-        f'{tf_root}/orc8r-helm-aws/variables.tf'
+        f'{tf_root}/orc8r-helm-aws/variables.tf',
     ]
     var_search_re = re.compile(r'variable\s\"(?P<variable_name>\w+?)\"\s\{')
     actual_vars = set()

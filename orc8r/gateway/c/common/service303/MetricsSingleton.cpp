@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "MetricsSingleton.h"
+#include "includes/MetricsSingleton.h"
 #include <vector>               // for vector
 #include "counter.h"            // for Counter
 #include "counter_builder.h"    // for BuildCounter, CounterBuilder
@@ -69,6 +69,13 @@ void MetricsSingleton::IncrementCounter(
   counters_.Get(name, labels).Increment(increment);
 }
 
+void MetricsSingleton::RemoveGauge(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  gauges_.Remove(name, labels);
+}
+
 void MetricsSingleton::IncrementGauge(
     const char* name, double increment, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
@@ -88,6 +95,13 @@ void MetricsSingleton::SetGauge(
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
   gauges_.Get(name, labels).Set(value);
+}
+
+double MetricsSingleton::GetGauge(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  return gauges_.Get(name, labels).Value();
 }
 
 void MetricsSingleton::ObserveHistogram(

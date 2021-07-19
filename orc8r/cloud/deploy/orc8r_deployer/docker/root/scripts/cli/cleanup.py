@@ -10,19 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import json
 import os
 import sys
+from pathlib import Path
+from shutil import copyfile
 
 import click
 from boto3 import Session
-from cli.common import (
-    print_error_msg,
-    print_success_msg,
-    run_command,
-    run_playbook,
-)
 from cli.configlib import get_input
+from cli.style import print_error_msg
+from utils.ansiblelib import AnsiblePlay, run_playbook
+from utils.common import execute_command
 
 
 def setup_aws_environ():
@@ -45,35 +43,132 @@ orcl configure set -k region -v <region>
     os.environ["AWS_REGION"] = session.region_name
 
 
+def tf_state_fn(tf_dir):
+    return f'{tf_dir}/terraform.tfstate'
+
+
+def tf_backup_fn(tf_dir):
+    return f'{tf_dir}/terraform.tfstate.golden'
+
+
+def tf_destroy(
+    constants: dict, warn: bool = True,
+    max_retries: int = 2,
+) -> int:
+    """Run through terraform cleanup
+
+    Args:
+        constants (dict): Config definitions
+        warn (bool): require user confirmation. Defaults to True.
+        max_retries (int): Number of times to retry in case of a failure.
+    Returns:
+        int: Return code
+    """
+    if warn and not click.confirm(
+            'Do you want to continue with cleanup?', abort=True,
+    ):
+        return 0
+
+    # backup existing terraform state
+    project_dir = constants['project_dir']
+    try:
+        copyfile(tf_state_fn(project_dir), tf_backup_fn(project_dir))
+    except OSError:
+        print_error_msg('Unable to backup terraform state')
+        return 1
+
+    tf_destroy_cmds = ["terraform", "destroy", "-auto-approve"]
+    cmd = " ".join(tf_destroy_cmds)
+    for i in range(max_retries):
+        click.echo(f"Running {cmd}, iteration {i}")
+        rc = execute_command(tf_destroy_cmds, cwd=project_dir)
+        if rc == 0:
+            break
+        print_error_msg("Destroy Failed!!!")
+        if i == (max_retries - 1):
+            print_error_msg(
+                "Max retries exceeded!!! Attempt cleaning up using"
+                " 'orcl cleanup raw' subcommand",
+            )
+            return 1
+    return 0
+
+
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cleanup(ctx):
     """
     Removes resources deployed for orc8r
     """
-    tf_destroy = ["terraform", "destroy", "-auto-approve"]
-
     if ctx.invoked_subcommand is None:
-        cmd = " ".join(tf_destroy)
-        click.echo(f"Following commands will be run during cleanup\n{cmd}")
-        click.confirm('Do you want to continue with cleanup?', abort=True)
-        click.echo(f"Running {cmd}")
-        rc = run_command(tf_destroy)
+        tf_destroy(ctx.obj)
+
+
+def cleanup_cmd(constants: dict, dryrun: bool = False) -> list:
+    """Get the arg list to run cleanup resources
+
+    Args:
+        constants (dict): config dict
+        dryrun (bool): flag to indicate dryrun. Defaults to False.
+
+    Returns:
+        list: command list
+    """
+    playbook_dir = constants["playbooks"]
+    return AnsiblePlay(
+        playbook=f"{playbook_dir}/cleanup.yml",
+        tags=['cleanup_dryrun'] if dryrun else ['cleanup'],
+        extra_vars=constants,
+    )
+
+
+def raw_cleanup(
+        constants: dict,
+        override_dict: dict = None,
+        dryrun: bool = False,
+        max_retries: int = 2,
+):
+    """Perform raw cleanup of resources using internal commands
+
+    Args:
+        constants (dict): config dict
+        overrides (dict): overide dict
+        dryrun (bool): flag to indicate dryrun. Defaults to False.
+        max_retries (int): maximum number of retries
+    Returns:
+        list: command list
+    """
+    if not override_dict and not constants.get('cleanup_state'):
+        backup_fn = tf_backup_fn(constants['project_dir'])
+        if Path(backup_fn).exists():
+            constants['cleanup_state'] = backup_fn
+    if override_dict:
+        constants.update(override_dict)
+
+    # sometimes cleanups might not fully happen due to timing related
+    # resource dependencies. Run it few times to eliminate all resources
+    # completely
+    for i in range(max_retries):
+        rc = run_playbook(cleanup_cmd(constants, dryrun))
         if rc != 0:
-            print_error_msg("Destroy Failed!!! Attempt cleaning up individual"
-                            "resources using 'orcl cleanup raw' subcommand")
-            return
+            print_error_msg("Failed cleaning up resources!!!")
 
 
 @cleanup.command()
 @click.pass_context
-@click.option('--dryrun', default=False, is_flag=True, help='Show resources '
-              'to be cleaned up during raw cleanup')
-@click.option('--state', help='Provide state file containing resource '
-              'information e.g. terraform.tfstate or '
-              'terraform.tfstate.backup')
-@click.option('--override', default=False, is_flag=True, help='Provide values'
-              'to cleanup the orc8r deployment')
+@click.option(
+    '--dryrun', default=False, is_flag=True, help='Show resources '
+    'to be cleaned up during raw cleanup',
+)
+@click.option(
+    '--state', help='Provide state file containing resource '
+    'information e.g. terraform.tfstate or '
+    'terraform.tfstate.backup',
+)
+@click.option(
+    '--override', default=False, is_flag=True, help='Provide values'
+    'to cleanup the orc8r deployment',
+)
 def raw(ctx, dryrun, state, override):
     """
     Individually cleans up resources deployed for orc8r
@@ -83,50 +178,41 @@ def raw(ctx, dryrun, state, override):
     state: location of the terraform state file
     override: override any state information with custom values
     """
-    if not dryrun:
-        click.confirm(click.style('This is irreversable!! Do you want to '
-                      'continue with cleanup?', fg='red'), abort=True)
-    if state:
-        ctx.obj['cleanup_state'] = state
-
     # Few boto dependent modules in ansible require these values to be
     # setup as environment variables. Hence setting these up.
     setup_aws_environ()
 
-    default_values = {
-        'orc8r_namespace': 'orc8r',
-        'orc8r_secrets': 'orc8r-secrets',
-        'orc8r_es_domain': 'orc8r-es',
-        'orc8r_cluster_name': 'orc8r',
-        'orc8r_db_id': 'orc8rdb',
-        'orc8r_db_subnet': 'orc8r_vpc',
-        'vpc_name': 'orc8r_vpc',
-        'region_name': os.environ["AWS_REGION"],
-        'efs_fs_targets': '',
-        'efs_mount_targets': '',
-        'domain_name': '',
-    }
+    if not dryrun:
+        click.confirm(
+            click.style(
+                'This is irreversable!! Do you want to '
+                'continue with cleanup?', fg='red',
+            ), abort=True,
+        )
+    if state:
+        ctx.obj['cleanup_state'] = state
+
+    override_dict = None
     if override:
-        for k, v in default_values.items():
+        override_dict = {
+            'orc8r_namespace': 'orc8r',
+            'orc8r_secrets': 'orc8r-secrets',
+            'orc8r_es_domain': 'orc8r-es',
+            'orc8r_cluster_name': 'orc8r',
+            'orc8r_db_id': 'orc8rdb',
+            'orc8r_db_subnet': 'orc8r_vpc',
+            'vpc_name': 'orc8r_vpc',
+            'region_name': os.environ["AWS_REGION"],
+            'efs_fs_targets': '',
+            'efs_mount_targets': '',
+            'domain_name': '',
+        }
+        for k, v in override_dict.items():
             inp = get_input(k, v)
             inp_entries = inp.split(',')
             if len(inp_entries) > 1:
                 # mainly relevant for passing in list of mount and fs targets
-                ctx.obj[k] = inp_entries
+                override_dict[k] = inp_entries
             else:
-                ctx.obj[k] = inp_entries[0]
-
-    extra_vars = json.dumps(ctx.obj)
-    cleanup_playbook = "%s/cleanup.yml" % ctx.obj["playbooks"]
-    playbook_args = ["ansible-playbook", "-v", "-e", extra_vars]
-
-    if dryrun:
-        tag_args = ["-t", "cleanup_dryrun"]
-    else:
-        tag_args = ["-t", "cleanup"]
-
-    rc = run_playbook(playbook_args + tag_args + [cleanup_playbook])
-    if rc != 0:
-        print_error_msg("Failed cleaning up resources!!!")
-        sys.exit(1)
-    print_success_msg("Successfully cleaned up underlying resources")
+                override_dict[k] = inp_entries[0]
+    raw_cleanup(ctx.obj, override_dict, dryrun)

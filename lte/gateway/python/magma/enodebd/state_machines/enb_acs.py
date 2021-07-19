@@ -89,8 +89,10 @@ class EnodebAcsStateMachine(ABC):
             params = self.desired_cfg.get_parameter_names_for_object(obj_name)
             for name in params:
                 val1 = self.device_cfg.get_parameter_for_object(name, obj_name)
-                val2 = self.desired_cfg.get_parameter_for_object(name,
-                                                                 obj_name)
+                val2 = self.desired_cfg.get_parameter_for_object(
+                    name,
+                    obj_name,
+                )
                 type_ = self.data_model.get_parameter(name).type
                 if not are_tr069_params_equal(val1, val2, type_):
                     return False

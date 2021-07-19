@@ -15,11 +15,13 @@ from typing import Any, Dict, List
 
 import requests
 import swagger_client
+from integ_tests.cloud.fixtures import (
+    DEFAULT_GATEWAY_CELLULAR_CONFIG,
+    DEFAULT_GATEWAY_CONFIG,
+    DEFAULT_NETWORK_CELLULAR_CONFIG,
+    DEFAULT_NETWORK_DNSD_CONFIG,
+)
 from swagger_client.rest import ApiException
-
-from integ_tests.cloud.fixtures import DEFAULT_GATEWAY_CELLULAR_CONFIG, \
-    DEFAULT_GATEWAY_CONFIG, DEFAULT_NETWORK_CELLULAR_CONFIG, \
-    DEFAULT_NETWORK_DNSD_CONFIG
 
 TEST_CLOUD_HOSTNAME = 'controller.magma.test'
 TEST_CLOUD_PORT = '9443'
@@ -31,13 +33,16 @@ class CloudManager(object):
     Manager for magma cloud
     """
 
-    def __init__(self, hostname=TEST_CLOUD_HOSTNAME, port=TEST_CLOUD_PORT,
-                 ssl_ca_cert=CERT_DIR + '/rootCA.pem',
-                 cert_file=CERT_DIR + '/admin_operator.pem',
-                 key_file=CERT_DIR + '/admin_operator.key.pem'):
+    def __init__(
+        self, hostname=TEST_CLOUD_HOSTNAME, port=TEST_CLOUD_PORT,
+        ssl_ca_cert=CERT_DIR + '/rootCA.pem',
+        cert_file=CERT_DIR + '/admin_operator.pem',
+        key_file=CERT_DIR + '/admin_operator.key.pem',
+    ):
         self._hostname = hostname
         self._host = 'https://{hostname}:{port}/magma'.format(
-            hostname=hostname, port=port)
+            hostname=hostname, port=port,
+        )
         self._managed_networks = []     # type: List[str]
 
         self._ssl_ca = ssl_ca_cert
@@ -78,8 +83,10 @@ class CloudManager(object):
             return
 
         network_record = swagger_client.NetworkRecord(name='integ_net_name')
-        self.networks_api.networks_post(network_record,
-                                        requested_id=network_id)
+        self.networks_api.networks_post(
+            network_record,
+            requested_id=network_id,
+        )
 
         self.networks_api.networks_network_id_configs_cellular_post(
             network_id,
@@ -95,8 +102,10 @@ class CloudManager(object):
         if not tier_exists:
             self.tiers_api.networks_network_id_tiers_post(
                 network_id,
-                swagger_client.Tier(id='default',
-                                    name='default', version='0.0.0-0'),
+                swagger_client.Tier(
+                    id='default',
+                    name='default', version='0.0.0-0',
+                ),
             )
 
     def register_gateway(self, network_id, gateway_id, gateway_hw_id):
@@ -172,8 +181,10 @@ class CloudManager(object):
         DNS = 1
         CELLULAR = 2
 
-    def update_network_configs(self, network_id: str,
-                               configs_by_type: Dict[NetworkConfigType, Any]):
+    def update_network_configs(
+        self, network_id: str,
+        configs_by_type: Dict[NetworkConfigType, Any],
+    ):
         """
         Update multiple configs for a network.
 
@@ -188,8 +199,10 @@ class CloudManager(object):
         MAGMAD = 1
         CELLULAR = 2
 
-    def update_gateway_configs(self, network_id: str, gateway_id: str,
-                               configs_by_type: Dict[GatewayConfigType, Any]):
+    def update_gateway_configs(
+        self, network_id: str, gateway_id: str,
+        configs_by_type: Dict[GatewayConfigType, Any],
+    ):
         """
         Update multiple configs for a gateway.
 
@@ -201,8 +214,10 @@ class CloudManager(object):
         for t, value in configs_by_type.items():
             self.update_gateway_config(network_id, gateway_id, t, value)
 
-    def update_network_config(self, network_id: str,
-                              config_type: NetworkConfigType, value: Any):
+    def update_network_config(
+        self, network_id: str,
+        config_type: NetworkConfigType, value: Any,
+    ):
         """
         Update a config for a network.
 
@@ -226,8 +241,10 @@ class CloudManager(object):
                 ),
             )
 
-    def update_gateway_config(self, network_id: str, gateway_id: str,
-                              config_type: GatewayConfigType, value: Any):
+    def update_gateway_config(
+        self, network_id: str, gateway_id: str,
+        config_type: GatewayConfigType, value: Any,
+    ):
         """
         Update a config for a gateway.
 
@@ -262,7 +279,7 @@ class CloudManager(object):
         )
         resp = requests.delete(
             request_url, cert=(self._ssl_cert, self._ssl_key),
-            verify=self._ssl_ca, params={'mode': 'force'}
+            verify=self._ssl_ca, params={'mode': 'force'},
         )
         resp.raise_for_status()
 

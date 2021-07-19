@@ -11,14 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, SpgwUtil
 
 
 class TestAttachASR(unittest.TestCase):
@@ -81,19 +80,14 @@ class TestAttachASR(unittest.TestCase):
         detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
         detach_accept.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept
+            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept,
         )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
 
-        print("Checking that uplink/downlink flows were deleted")
-        flows = get_flows(
-            datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
-        )
-        self.assertEqual(
-            len(flows), 2, "There should only be 2 default table 0 flows"
-        )
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":

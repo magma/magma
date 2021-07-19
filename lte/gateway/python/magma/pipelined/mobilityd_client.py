@@ -28,8 +28,10 @@ def get_mobilityd_gw_info() -> List[GWInfo]:
     Make RPC call to 'GetGatewayInfo' method of local mobilityD service
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
         return GWInfo()
@@ -41,7 +43,8 @@ def get_mobilityd_gw_info() -> List[GWInfo]:
         logging.error(
             "ListGatewayInfo error[%s] %s",
             err.code(),
-            err.details())
+            err.details(),
+        )
         return []
 
 
@@ -50,8 +53,10 @@ def set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
     Make RPC call to 'SetGatewayInfo' method of local mobilityD service
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
         return
@@ -64,7 +69,8 @@ def set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
         logging.error(
             "SetGatewayInfo error[%s] %s",
             err.code(),
-            err.details())
+            err.details(),
+        )
 
 
 def mobilityd_list_ip_blocks():
@@ -72,8 +78,10 @@ def mobilityd_list_ip_blocks():
     Make RPC call to query all ip-blocks.
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
         return
@@ -86,4 +94,5 @@ def mobilityd_list_ip_blocks():
         logging.error(
             "List IpBlock error[%s] %s",
             err.code(),
-            err.details())
+            err.details(),
+        )

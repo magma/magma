@@ -42,7 +42,7 @@ pipPackages:
 k8sPackages:
   - kubectl
   - helm
-  - terraform=0.14.5
+  - terraform
 
 # terraform downgraded to work with orc8r.
 
@@ -50,7 +50,7 @@ usrName: ubuntu
 usrHome: "{{ dirHome }}"
 binPyenv: "{{ dirHome }}/pyenv.run"
 pyenvVersion: 3.7.3
-magmaRootDir: "{{ dirLocalInventory }}/magma"
+magmaRootDir: "{{ dirHome }}/magma"
 magmaBuildDir: "{{ magmaRootDir }}/orc8r/cloud/docker"
 magmaNmsDir: "{{ magmaRootDir }}/nms/app/packages/magmalte"
 magmaPublishTag: latest

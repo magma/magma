@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway, promql_return_object} from '@fbcnms/magma-api';
 
 import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';
@@ -27,14 +27,17 @@ import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const getLatency = (resp, fn) => {
+export function getLatency(
+  resp: ?promql_return_object,
+  fn: (...args: Array<number>) => number,
+) {
   const respArr = resp?.data?.result
     ?.map(item => {
       return parseFloat(item?.value?.[1]);
     })
     .filter(Boolean);
   return respArr && respArr.length ? fn(...respArr).toFixed(2) : 0;
-};
+}
 
 export default function EquipmentGatewayKPIs() {
   const {match} = useRouter();

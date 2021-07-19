@@ -49,7 +49,7 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 		test_utils.TestFegHwId1,
 		test_utils.TestFegLogicalId1,
 	)
-	active, err := health.GetActiveGateway(test_utils.TestFegNetwork)
+	active, err := health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegNetwork, active)
 
@@ -62,7 +62,7 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err := health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err := health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats)
@@ -73,7 +73,7 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, unhealthyRequest.HealthStats)
@@ -106,7 +106,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err := health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err := health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats)
@@ -127,7 +127,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_DOWN, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, healthyRequest.HealthStats)
@@ -140,7 +140,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_DOWN, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId2, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, unhealthyRequest.HealthStats)
@@ -152,7 +152,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId2, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, healthyRequest.HealthStats)
@@ -162,7 +162,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId2, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, unhealthyRequest.HealthStats)
@@ -174,7 +174,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats)
@@ -186,7 +186,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_DOWN, res.Action)
 
-	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
+	activeID, err = health.GetActiveGateway(context.Background(), test_utils.TestFegNetwork)
 	assert.NoError(t, err)
 	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
 	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, unhealthyRequest.HealthStats)
@@ -204,7 +204,7 @@ func updateHealth(t *testing.T, req *protos.HealthRequest) (*protos.HealthRespon
 }
 
 func checkHealthData(t *testing.T, networkID, gatewayID string, expected *protos.HealthStats) {
-	actual, err := health.GetHealth(networkID, gatewayID)
+	actual, err := health.GetHealth(context.Background(), networkID, gatewayID)
 	assert.NoError(t, err)
 	// Let's just set time to 0 for comparison - we should inject a time
 	// provider dependency into the servicer

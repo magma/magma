@@ -15,7 +15,6 @@ package types
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -25,6 +24,7 @@ import (
 )
 
 const RecordKeySessionID = "session_id"
+const RecordKeySpgCTeid = "sgw_c_teid"
 
 type DirectoryRecord struct {
 	LocationHistory []string `json:"location_history"`
@@ -59,7 +59,7 @@ func (m *DirectoryRecord) UnmarshalBinary(b []byte) error {
 // If no session ID is found, returns empty string.
 func (m *DirectoryRecord) GetSessionID() (string, error) {
 	if m.Identifiers == nil {
-		return "", errors.New("directory record's identifiers is nil")
+		return "", fmt.Errorf("directory record's identifiers is nil")
 	}
 
 	sid, ok := m.Identifiers[RecordKeySessionID]
@@ -74,7 +74,41 @@ func (m *DirectoryRecord) GetSessionID() (string, error) {
 
 	glog.V(2).Infof("Full session ID: %s", sid)
 	strippedSid := stripIMSIFromSessionID(sidStr)
+	if strippedSid == "" {
+		return "", fmt.Errorf("empty session id for record %+v", m)
+	}
 	return strippedSid, nil
+}
+
+// GetCurrentLocation returns LocalHistory if exists, otherwise returns error
+func (m *DirectoryRecord) GetCurrentLocation() (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("directory record is nil. Cant find LocalHistory")
+	}
+	if len(m.LocationHistory) == 0 {
+		return "", fmt.Errorf("empty LocationHistory")
+	}
+	return m.LocationHistory[0], nil
+}
+
+// GetSgwCTeids returns the S8Teids stored in the directory record.
+func (m *DirectoryRecord) GetSgwCTeids() ([]string, error) {
+	if m.Identifiers == nil {
+		return nil, fmt.Errorf("directory record's identifiers is nil")
+	}
+
+	storedTeids, ok := m.Identifiers[RecordKeySpgCTeid]
+	if !ok {
+		return []string{}, nil
+	}
+
+	teidsStr, ok := storedTeids.(string)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert session ID value to string: %v", storedTeids)
+	}
+
+	glog.V(2).Infof("S8 Teids: %s", teidsStr)
+	return parseSgwCTeids(teidsStr), nil
 }
 
 // stripIMSIFromSessionID removes an IMSI prefix from the session ID.
@@ -86,4 +120,14 @@ func stripIMSIFromSessionID(sessionID string) string {
 		return strings.Split(sessionID, "-")[1]
 	}
 	return sessionID
+}
+
+// parseSgwCTeids converts comma separated string into a slice
+func parseSgwCTeids(teidsStr string) []string {
+	teids := []string{}
+	splitTeids := strings.Split(teidsStr, ",")
+	for _, teid := range splitTeids {
+		teids = append(teids, strings.TrimSpace(teid))
+	}
+	return teids
 }

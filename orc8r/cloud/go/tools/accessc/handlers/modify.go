@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -58,6 +59,9 @@ func modify(cmd *commands.Command, args []string) int {
 		f.Usage()
 		log.Fatalf("A single Operator Id must be specified.")
 	}
+
+	ctx := context.Background()
+
 	// Find Operator Identity for the oid
 	operator := identity.NewOperator(oid)
 	cn := operator.ToCommonName()
@@ -65,11 +69,11 @@ func modify(cmd *commands.Command, args []string) int {
 		log.Fatalf("Invalid common name for %s", oid)
 	}
 	opname := operator.HashString()
-	aclMap, err := accessd.GetOperatorACL(operator)
+	aclMap, err := accessd.GetOperatorACL(ctx, operator)
 	if err != nil {
 		log.Fatalf("Operator %s does not exist. Error: %v", opname, err)
 	}
-	certSNs, err := certifier.FindCertificates(operator)
+	certSNs, err := certifier.FindCertificates(ctx, operator)
 	if err != nil {
 		log.Printf("Error %s getting certificates for %s\n", err, opname)
 		certSNs = []string{}
@@ -91,7 +95,7 @@ func modify(cmd *commands.Command, args []string) int {
 			ent.Permissions.ToString(),
 			ent.Permissions)
 	}
-	err = accessd.SetOperator(operator, acl)
+	err = accessd.SetOperator(ctx, operator, acl)
 	if err != nil {
 		log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 	}

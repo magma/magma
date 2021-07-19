@@ -1,7 +1,7 @@
-From 4c116172e0059872ddecafda61ce3c2ee95d6ce3 Mon Sep 17 00:00:00 2001
+From c9d807443db2087baae9a36ad3cc58960818de43 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 28 Jun 2020 21:49:40 +0000
-Subject: [PATCH 01/14] of-match: expand NXM_NX_TUN_FLAGS to include all tunnel
+Subject: [PATCH 01/19] of-match: expand NXM_NX_TUN_FLAGS to include all tunnel
  flags
 
 This allows OVS flows to match tunnel key and df flags. maching on
@@ -12,13 +12,13 @@ flags.
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
  include/openvswitch/meta-flow.h |  2 +-
- include/openvswitch/packets.h   |  4 +---
+ include/openvswitch/packets.h   |  4 +--
  lib/netdev-vport.c              |  1 +
  lib/netdev.h                    |  1 +
- ofproto/tunnel.c                | 12 +++++++++++
+ ofproto/tunnel.c                | 12 +++++++++
  tests/tunnel-push-pop-ipv6.at   |  2 +-
  tests/tunnel-push-pop.at        |  2 +-
- tests/tunnel.at                 | 48 +++++++++++++++++++++++++++++++++++++++++
+ tests/tunnel.at                 | 48 +++++++++++++++++++++++++++++++++
  8 files changed, 66 insertions(+), 6 deletions(-)
 
 diff --git a/include/openvswitch/meta-flow.h b/include/openvswitch/meta-flow.h
@@ -186,5 +186,5 @@ index b8ae7caa9..e104b5c8c 100644
 +OVS_VSWITCHD_STOP
 +AT_CLEANUP
 -- 
-2.13.5
+2.17.1
 

@@ -1,56 +1,66 @@
-.circleci/ @magma/approvers-ci
-circleci/ @magma/approvers-ci
+# approvers-ci
+/.circleci/ @magma/approvers-ci
+/circleci/ @magma/approvers-ci
+/ci-scripts/ @magma/approvers-ci
+/.github/workflows/ @magma/approvers-ci
+/third_party/build/ @magma/approvers-ci
+/orc8r/tools/packer/ @magma/approvers-ci
+/orc8r/cloud/deploy/bare-metal/ @magma/approvers-ci
+/orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-ci
+/lte/gateway/docker @magma/approvers-ci
+/lte/gateway/release @magma/approvers-ci
+/lte/gateway/Vagrantfile @magma/approvers-ci
+/cwf/gateway/Vagrantfile @magma/approvers-ci
 
-ci-scripts/ @magma/approvers-ci
-
+# approvers-orc8r
 */cloud/ @magma/approvers-orc8r
-.golangci.yml @magma/approvers-orc8r
+/.golangci.yml @magma/approvers-orc8r
+/orc8r/ @magma/approvers-orc8r
 
-orc8r/ @magma/approvers-orc8r
-orc8r/tools/packer/ @magma/approvers-ci
-orc8r/cloud/deploy/bare-metal/ @magma/approvers-ci
-orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-ci
+# approvers-nms
+/nms/ @magma/approvers-nms
 
-orc8r/gateway/c/ @magma/approvers-agw-c
+# approvers-feg
+/feg/ @magma/approvers-feg
 
-feg/ @magma/approvers-feg
+# approvers-cwf
+/cwf/ @magma/approvers-cwf
 
-cwf/ @magma/approvers-cwf
-cwf/gateway/Vagrantfile @magma/approvers-ci
+# approvers-openwrt
+/openwrt/ @magma/approvers-openwrt
 
-openwrt/ @magma/approvers-openwrt
+# approvers-agw / approvers-agw-python / approvers-agw-c
+/lte/gateway @magma/approvers-agw
+/lte/protos @magma/approvers-agw
+/lte/gateway/python @magma/approvers-agw-python
+/lte/gateway/c @magma/approvers-agw-c
+/orc8r/gateway/c/ @magma/approvers-agw-c
 
-# More specific mappings for lte/gateway will override this top-level one
-lte/gateway @magma/approvers-agw
-lte/gateway/python @magma/approvers-agw-python
-lte/gateway/c @magma/approvers-agw-c
-
-lte/gateway/c/session_manager @magma/approvers-agw-sessiond
-lte/gateway/c/oai @magma/approvers-agw-mme
-lte/gateway/c/sctpd @magma/approvers-agw-mme
-lte/gateway/c/connection_tracker @koolzz
-lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
-lte/gateway/python/integ_tests @magma/approvers-agw-integtests
-
-lte/gateway/docker @magma/approvers-ci
-lte/gateway/release @magma/approvers-ci
-lte/gateway/Vagrantfile @magma/approvers-ci
-
-**/*.pb.go @magma/repo-magma-maintain
-**/*_swaggergen.go @magma/repo-magma-maintain
-orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @magma/repo-magma-maintain
-orc8r/cloud/go/obsidian/swagger/v1/client/ @magma/repo-magma-maintain
-orc8r/cloud/go/obsidian/swagger/v1/models/ @magma/repo-magma-maintain
-**/go.mod @magma/repo-magma-maintain
-**/go.sum @magma/repo-magma-maintain
+# approvers-agw-<subsection>
+/lte/gateway/c/session_manager @magma/approvers-agw-sessiond
+/lte/gateway/c/core/oai @magma/approvers-agw-mme
+/lte/gateway/c/sctpd @magma/approvers-agw-mme
+/lte/gateway/c/connection_tracker @koolzz @magma/approvers-agw-c
+/lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
+/lte/gateway/python/integ_tests @magma/approvers-agw-integtests
 
 # XWF Magma integrations
-xwf/ @magma/approvers-xwf
-feg/radius @magma/approvers-xwf @magma/approvers-cwf
+/xwf/ @magma/approvers-xwf
+/feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
-nms/ @magma/approvers-nms
+# approvers-showtech
+/show-tech/ @magma/approvers-showtech
 
-docs/ @magma/approvers-docs
-docs/readmes/proposals @electronjoe
+/docs/ @magma/approvers-docs
+/docs/readmes/proposals @electronjoe
 
-CODEOWNERS @amarpad @electronjoe
+/CODEOWNERS @amarpad @electronjoe @hcgatewood
+
+# Paths excluded from code ownership
+**/go.mod @ghost
+**/go.sum @ghost
+**/*.pb.go @ghost
+**/*_swaggergen.go @ghost
+/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @ghost
+/orc8r/cloud/go/obsidian/swagger/v1/client/ @ghost
+/orc8r/cloud/go/obsidian/swagger/v1/models/ @ghost

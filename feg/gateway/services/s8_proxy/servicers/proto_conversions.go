@@ -12,7 +12,11 @@ limitations under the License.
 package servicers
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"net"
+	"strconv"
 
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2"
@@ -82,49 +86,13 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 
 	// TODO: handle more than one bearer
 	if brCtxIE := csResGtp.BearerContextsCreated; brCtxIE != nil {
-		bearerCtx := &protos.BearerContext{}
-		for _, childIE := range brCtxIE.ChildIEs {
-			switch childIE.Type {
-			case ie.Cause:
-				cause, err := childIE.Cause()
-				if err != nil {
-					return nil, err
-				}
-				if cause != gtpv2.CauseRequestAccepted {
-					csRes.GtpError = &protos.GtpError{
-						Cause: uint32(cause),
-						Msg:   "Bearer could not be created",
-					}
-					// error is in GtpError
-					return csRes, nil
-				}
-			case ie.EPSBearerID:
-				ebi, err := childIE.EPSBearerID()
-				if err != nil {
-					return nil, err
-				}
-				bearerCtx.Id = uint32(ebi)
-			case ie.FullyQualifiedTEID:
-				uFteid, _, err := handleFTEID(childIE)
-				if err != nil {
-					return nil, err
-				}
-				bearerCtx.UserPlaneFteid = uFteid
-			case ie.ChargingID:
-				bearerCtx.ChargingId, err = childIE.ChargingID()
-				if err != nil {
-					return nil, err
-				}
-
-			case ie.BearerQoS:
-				// save for testing purposes
-				bearerCtx.Qos, err = handleQOStoProto(childIE)
-				if err != nil {
-					return nil, err
-				}
-			}
+		csRes.BearerContext, csRes.GtpError, err = handleBearerCtx(brCtxIE)
+		if err != nil {
+			return nil, err
 		}
-		csRes.BearerContext = bearerCtx
+		if csRes.GtpError != nil {
+			return csRes, nil
+		}
 	} else {
 		csRes.GtpError = errorIeMissing(ie.BearerContext)
 		// error is in GtpError
@@ -159,6 +127,48 @@ func parseDeleteSessionResponse(msg message.Message) (
 		return dsRes, nil
 	}
 	return dsRes, nil
+}
+
+func parseCreateBearerRequest(msg message.Message, senderAddr net.Addr) (*protos.CreateBearerRequestPgw, *protos.GtpError, error) {
+	cbReqGtp := msg.(*message.CreateBearerRequest)
+	glog.V(2).Infof("Received Create Bearer Request (gtp):\n%s", cbReqGtp.String())
+	cbReq := &protos.CreateBearerRequestPgw{}
+	cbReq.PgwAddrs = senderAddr.String()
+
+	// cgw control plane teid
+	if !cbReqGtp.HasTEID() {
+		return nil, errorIeMissing(ie.FullyQualifiedTEID), nil
+	}
+	cbReq.CAgwTeid = cbReqGtp.TEID()
+
+	if linkedEBI := cbReqGtp.LinkedEBI; linkedEBI != nil {
+		cbReq.LinkedBearerId = uint32(linkedEBI.MustEPSBearerID())
+	} else {
+		return nil, errorIeMissing(ie.EPSBearerID), nil
+	}
+
+	// TODO: handle more than one bearer
+	if brCtxIE := cbReqGtp.BearerContexts; brCtxIE != nil {
+		bearerContext, gtpError, err := handleBearerCtx(brCtxIE)
+		if err != nil || gtpError != nil {
+			return nil, gtpError, err
+		}
+		cbReq.BearerContext = bearerContext
+	} else {
+		return nil, errorIeMissing(ie.BearerContext), nil
+	}
+
+	// Protocol Configuration Options (PCO) optional
+	if pgwPcoIE := cbReqGtp.PCO; pgwPcoIE != nil {
+		pco, err := handlePCO(pgwPcoIE)
+		if err != nil {
+			err = fmt.Errorf("Couldn't get Protocol Configuration Options: %s ", err)
+			return nil, nil, err
+		}
+		cbReq.ProtocolConfigurationOptions = pco
+	}
+
+	return cbReq, nil, nil
 }
 
 func handleCause(causeIE *ie.IE, msg message.Message) (*protos.GtpError, error) {
@@ -294,6 +304,64 @@ func handleQOStoProto(qosIE *ie.IE) (*protos.QosInformation, error) {
 	return qos, nil
 }
 
+func handleBearerCtx(brCtxIE *ie.IE) (*protos.BearerContext, *protos.GtpError, error) {
+	bearerCtx := &protos.BearerContext{}
+	for _, childIE := range brCtxIE.ChildIEs {
+		switch childIE.Type {
+		case ie.Cause:
+			cause, err := childIE.Cause()
+			if err != nil {
+				return nil, nil, err
+			}
+			if cause != gtpv2.CauseRequestAccepted {
+				gtpError := &protos.GtpError{
+					Cause: uint32(cause),
+					Msg:   "Bearer could not be created",
+				}
+				// error is in GtpError
+				return bearerCtx, gtpError, nil
+			}
+
+		case ie.EPSBearerID:
+			ebi, err := childIE.EPSBearerID()
+			if err != nil {
+				return nil, nil, err
+			}
+			bearerCtx.Id = uint32(ebi)
+
+		case ie.FullyQualifiedTEID:
+			userPlaneFteid, _, err := handleFTEID(childIE)
+			if err != nil {
+				return nil, nil, err
+			}
+			bearerCtx.UserPlaneFteid = userPlaneFteid
+
+		case ie.ChargingID:
+			chargingId, err := childIE.ChargingID()
+			if err != nil {
+				return nil, nil, err
+			}
+			bearerCtx.ChargingId = chargingId
+
+		case ie.BearerQoS:
+			// save for testing purposes
+			qos, err := handleQOStoProto(childIE)
+			if err != nil {
+				return nil, nil, err
+			}
+			bearerCtx.Qos = qos
+
+		case ie.BearerTFT:
+			bearerTFT, err := handleTFT(childIE)
+			if err != nil {
+				return nil, nil, err
+			}
+			bearerCtx.Tft = bearerTFT
+		}
+	}
+	return bearerCtx, nil, nil
+}
+
 func handlePCO(pcoIE *ie.IE) (*protos.ProtocolConfigurationOptions, error) {
 	pgwPcoField, err := pcoIE.ProtocolConfigurationOptions()
 	if err != nil {
@@ -320,4 +388,21 @@ func errorIeMissing(missingIE uint8) *protos.GtpError {
 		Cause: uint32(gtpv2.CauseMandatoryIEMissing),
 		Msg:   errMsg.Error(),
 	}
+}
+
+func ip2Long(ip string) uint32 {
+	var long uint32
+	addrs := net.ParseIP(ip).To4()
+
+	binary.Read(bytes.NewBuffer(addrs), binary.BigEndian, &long)
+	return long
+}
+
+func uintToIP4(ipInt int64) string {
+	// need to do two bit shifting and “0xff” masking
+	b0 := strconv.FormatInt((ipInt>>24)&0xff, 10)
+	b1 := strconv.FormatInt((ipInt>>16)&0xff, 10)
+	b2 := strconv.FormatInt((ipInt>>8)&0xff, 10)
+	b3 := strconv.FormatInt((ipInt & 0xff), 10)
+	return b0 + "." + b1 + "." + b2 + "." + b3
 }

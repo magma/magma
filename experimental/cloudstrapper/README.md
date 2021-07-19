@@ -16,7 +16,7 @@
      - Both values are specified in the defaults.yaml vars file and embedded in hosts.
      - [Optional] To generate keys through a playbook, see section 1 below.
 
-     Users who already have preferred keys to be used across their EC2 instances can use them in this environment by setting the keyBoot (for Cloudstrapper) and keyHost (for all other entities created) in defaults.yaml. If such keys do not exist or if the users prefer unique keys for the Cloudstrapper and other AWS artifacts, the aws-prerequisites playbook below will generate the keys.
+     Note: Users who already have preferred keys to be used across their EC2 instances can use them in this environment by setting the keyBoot (for Cloudstrapper) and keyHost (for all other entities created) in defaults.yaml. If such keys do not exist or if the users prefer unique keys for the Cloudstrapper and other AWS artifacts, the aws-prerequisites playbook below will generate the keys.
 
    - Create inventory directory on localhost to save keys, secrets etc. This directory will be referred to as WORK_DIR and used as dirInventory in commands.
      Ex: mkdir ~/magma-experimental
@@ -45,10 +45,9 @@
   - Create security group on the default VPC
   - Create default bucket for shared storage.
   - Create default CloudFormation stack for all essential components
-  If the keys, security groups and the default bucket exist, this playbook can be skipped.
+  Note: If the keys, security groups and the default bucket exist, this playbook can be skipped.
 
   Before running the playbook, validate the following variables in defaults.yaml and cluster.yaml in VARS_DIR
-
   - defaults.yaml
     - secgroupDefault indicates name of the default SecurityGroup that would be created and used across all EC2 instances created (including Cloudstrapper and all the AGW instances)
     - bucketDefault indicates the name of the default S3 bucket used to persist information
@@ -60,13 +59,9 @@
   - cluster.yaml
     - awsAgwRegion indicates which region would be used to create these artifacts
 
-    Run the following commands
+  - Run the following commands
     ```
     ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=<directory>" [ --tags keyCreate, essentialsCreate ]
-    ```
-  - Example:
-    ```
-    ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental" --tags keyCreate,essentialsCreate
     ```
   - Result: Created a CloudFormation stack with common security group, S3 storage, keys optionally created and .pem files stored in WORK_DIR
 
@@ -93,28 +88,17 @@
     ansible-playbook devops-provision.yaml -e "dirLocalInventory=<directory>"
     ```
     - Example:
-    ```
-    ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental"
-    ```
     - Result: Base instance for Devops provisioned
 
  - devops-configure: Install ansible, golang, packages, local working directory and latest github sources
      ```
      ansible-playbook devops-configure.yaml -i <dynamic inventory file> -e "devops=tag_Name_<devOpsCloudstrapper>" -e "dirLocalInventory=<inventory folder>" -u ubuntu --skip-tags buildMagma,pubMagma,pubHelm,keyManager
      ```
-     Example:
-     ```
-     ansible-playbook devops-configure.yaml -i ~/magma-experimental/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirLocalInventory=~/magma-experimental/" -u ubuntu --skip-tags buildMagma,pubMagma,pubHelm,keyManager
-     ```
    - Result: Base instance configured using packages and latest Magma source
 
  - devops-init: Snapshot instance
     ```
     ansible-playbook devops-init.yaml  -e "dirLocalInventory=<directory>"
-    ```
-    Example:
-    ```
-    ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files"
     ```
   - Result: DevOps AMI created with name set in devOpsAmi
 
@@ -123,18 +107,13 @@
   - Launch from instance using Bootkey, Ubuntu 20.04 and default security group
     - (or) run cloudstrapper-provision
     ```
-    ansible-playbook cloudstrapper-provision.yaml  -e "dirLocalInventory=~/magma-experimental/"
+    ansible-playbook cloudstrapper-provision.yaml  -e "dirLocalInventory=<directory>"
     ```
   - Result: Cloudstraper node with code package running now, ordered from Marketplace (or based on devOpsAmi for custom builds)
   - Copy keyHost to Cloudstrapper manually or through the playbook to use since that is the seed key for all AWS artifacts created by the Cloudstrapper
   ```
   ansible-playbook devops-configure.yaml -i <Inventory Dir> -e "devops=tag_Name_<primaryCloudstrapper> " -e "dirLocalInventory=<Local Dir>" -u ubuntu -tags keyManager
   ```
-  Example:
-  ```
-  ansible-playbook devops-configure.yaml -i ~/magma-experimental/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaCstrap" -e "dirLocalInventory=~/magma-experimental/" -u ubuntu -tags keyManager
-  ```
-
   - Login to Cloustrapper node via SSH to start Build, Control Plane and Data Plane rollouts
 
   - Locate WORK_DIR/magma/experimental/cloudstrapper/playbooks/vars/secrets.yaml file and fill out Secrets
@@ -171,13 +150,8 @@
     dynamic inventory. The build node was provisioned with the tag Name:buildOrc8r in this example.
 
     ```
-    ansible-playbook build-configure.yaml -i <inventory file> -e "buildnode=tag_Name_<buildTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=<inventory folder absolute path>" -e "buildDir=dirLocalInventory" -u ubuntu
+    ansible-playbook build-configure.yaml -i <inventory file> -e "buildnode=tag_Name_<buildTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=<inventory folder absolute path>" -u ubuntu
     ```
-    Example:
-    ```
-    ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildOrc8r" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=/home/ubuntu/magma-experimental" -e "buildDir=magma-experimental" -u ubuntu
-    ```
-
   - Result: Build instance created, images and helm charts published.
 
 ## 4. Control Plane/Cloud Services
@@ -191,8 +165,8 @@
     across re-installs, make changes to the main.tf.j2 Jinja2 template file directly so that the custom
     configuration be used across every terraform init.
 
-  - Clone the latest magma source to a local directory named 'source'
-  - Requires: secrets.yaml in the dirInventory folder. Use the sample file in roles/vars/secrets.yaml
+  - Clone the latest magma source (master branch) to a local directory named 'source'
+  - Requires: secrets.yaml in the dirLocalInventory folder. Use the sample file in roles/vars/secrets.yaml
   - Before beginning Deployment process, check variables to ensure deployment is customized.
     cluster.yaml :
       - orc8rClusterName: Locally identifiable cluster name
@@ -203,7 +177,7 @@
       - awsOrc8rRegion: Region where Orc8r would run
   - Orchestrator : Deploy orchestrator
   ```
-    ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ] -e 'dirLocalInventory=<Dir>
+    ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ] -e 'dirLocalInventory=<Dir> -e 'varBuildType=community/custom' -e 'varFirstInstall=true/false'
   ```
 
   Note: When using a stable build or a standard environment or a repeat install, the 'deploy-orc8r' tag does not have to be skipped. However, for first time installs skipping helps in identifying unknown issues to make sure the new build works as expected. Additionally, if there are any custom configuration requirements (such as modifying instance sizes or running multiple clusters within the same account requiring deploy_elasticsearch_service_linked_role to be set to False by default, skipping the deployment and making changes to main.tf is recommended.
@@ -247,29 +221,20 @@
 
     agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
-    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags createNet,createGw,inventory
-    ```
-    Example:
-    ```
-    ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwA" -e "dirLocalInventory=~/magma-experimental/ --tags createNet,createGw,inventory
-    ```
 
-  - A site needs to be added only once. After a site is up, multiple gatways can be individually provisioned by skipping the createNet and inventory tags as laid out below
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>"[ --tags createNet,createBridge,createGw,cleanupBridge,cleanupNet ]
+    ```
+    - A site needs to be added only once. After a site is up, multiple gatways can be individually provisioned by skipping the createNet tag as laid out below
 
     ```
-    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags createGw
-    ```
-
-    Example:
-    ```
-    ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwB" -e "dirLocalInventory=~/magma-experimental" --tags createGw
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags infra,createGw --skip-tags createNet,createBridge,cleanupBridge,cleanupNet
     ```
 
   - After the gateway has been provisioned, configure the gateway to attach it to an Orchestrator instance. The orchstrator information is picked up from 'cluster.yaml' file
 
     agw-configure: configures the AGW to include controller information Command:
     ```
-    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu
+    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> -e sshKey=<PATH-TO-PUBLIC-KEY-TO-ADD>]
     ```
 
     Example:
@@ -288,56 +253,57 @@
       - buildUbuntuAmi: AMI ID of Base Ubuntu 20.04 image
       - buildAgwAmiName: Name of the AGW AMI created, used to label the AMI
       - buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance for configuration
+      - buildAgwVersion: Version of AGW to be built
+      - buildAgwPackage: Specific package version
 
     - defaults.yaml:
-      - keyHost: Name of *.pem file available from <dirInenvtory>, such as ~/magma-experimental/. AWS will use this value as the key associated with all AGW instances
-      - secGroupDefault: Name of the default security group to be used for the AGW instance
 
-  - Provision the underlying infrastructure for DevOps
+      - keyHost: Name of *.pem file available from <dirInenvtory>, such as ~/magma-experimental/. AWS will use this - value as the key associated with all AGW instances
+
+  - Run the following commands
 
     - agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
-    ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags createNet,createGw,inventory
+
+    ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags infra,inventory --skip-tags createBridge,cleanupBridge,cleanupNet
     ```
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
-    ```
-    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -u ubuntu
-    ```
-    Example:
-    ```
-    ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "dirLocalInventory=~/magma-experimental" -e "aminode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+        - Add ```--skip-tag clearSSHKeys``` if you want to keep ssh keys on the instance
     ```
 
-  - ami-init: Snapshot the AMI instance
+    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+
+    ```
+    - ami-init: Snapshot the AMI instance
     ```
     ansible-playbook ami-init.yaml -e "dirLocalInventory=<Local Inventory Dir>"
     ```
 
   - Result: AGW AMI created and ready to be used for AGW in-region or Snowcone deployments.
 
+- If you would like to further customize the image with orc8r information and keys for test framework or to ship in a device, run agw-configure and do another ami-init with a different buildAgwAmiName variable.
+
 ## 6. Test Framework
 
   CloudStrapper's test framework allows the user to deploy an all-region version Magma with Orchestrator running in a given region and a cluster of AGWs running in another. Configure number of instances and UUIDs from the local variables file available from vars/main.yaml
 
-- To create the Jump node for cluster:
-  ```
-    - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of site>" --tags clusterGateway
-  ```
-  - Example:
-  ```
-    - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=~/magma-experimental" -e "idSite=MenloPark" --tags clusterGateway
-  ```
+  For a multi-node cluster, pre-configure the AMI to embed keys and control_proxy information. This can be done by following Sec 5.1 to build an AGW node, configure that instance using agw-configure and then taking a snapshot via ami-init. Alternatively, individual AGWs can also be configured using the clusterConfigure option.
 
-  - To start a cluster:
+- Create the network and Bridge node for cluster:
+  ```
+    - ansible-playbook agw-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of site>" --tags createNet,createBridge
+  ```
+- To start a cluster:
   ```
     - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of site>" --tags clusterStart
   ```
-  - Example:
+- To configure a cluster:
   ```
-    - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=~/magma-experimental" -e "idSite=MenloPark" --tags clusterStart
+    - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of site>" --tags clusterConfigure
   ```
-  - To destroy a cluster:
+
+- To destroy a cluster:
   ```
     - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of Site> --tags clusterCleanup
   ```
@@ -346,19 +312,16 @@
     - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=~/magma-experimental" -e "idSite=MenloPark" --tags clusterCleanup
   ```
 
-  Login to the Jump node to configure gateways and direct gateways
-
-  The Jump node requires a copy of the rootCA.pem to configure all gateways with it. However, rootCA.pem is typically available in the instance that deployed the Orchestrator. You can deploy the orchestrator from the Jump node or copy the rootCA.key to the local machine.
-
-  - To configure a cluster:
+  Create a SSH configuration to the gateways through the jump node
   ```
-    - ansible-playbook cluster-configure.yaml -i <InventoryDir> -e "dirLocalInventory=<Local Dir>" -e "agws=tag_Name_Uuid=<Cluster UUID> "idSite=<Name of Site>" --tags clusterConfigure
+  - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "agws=tag_Name_<ump_node_name>" -e "idSite=<Name of the Site>" --tags clusterJump
   ```
+
   - Example:
   ```
-    - ansible-playbook cluster-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "agws=tag_Name_Uuid=testclusteruuid "idSite=MenloPark" --tags clusterConfigure
-
+  - ansible-playbook cluster-provision.yaml -i /root/project/common_instance_aws_ec2.yaml -e "dirLocalInventory=/root/project" -e "agws=tag_Name_TestFrameworkGateway" -e "idSite=TestCluster" --tags clusterJump
   ```
+
 ## 7. Cleanup
 
   Cleanup deletes all Control and Dataplane components created in the regions. Cleanup can be used to remove all components in one stroke (orchestrator and gateways) or delete individual elements within each layer (database, secrets in orchestrator, any given number of gateways).
@@ -367,12 +330,12 @@
 
   tunables:
     - cluster.yaml:
-        - awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
-        - orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
+      - awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
+      - orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
 
-  - ansible-playbook -e "dirLocalInventory=<Local Dir>" cleanup.yaml  [ --tags *various* ]
+  - ansible-playbook -e "dirLocalInventory=<Local Dir>" -e "{"deleteStacks": [stackName1, stackName2]}" cleanup.yaml  [ --tags *various* ]
 
-  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc
+  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r,keys
 
 ## Known Issues, Best Practices & Expected Behavior
 

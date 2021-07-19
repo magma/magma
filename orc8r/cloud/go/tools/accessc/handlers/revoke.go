@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -48,7 +49,7 @@ func revoke(cmd *commands.Command, args []string) int {
 	}
 	fmt.Printf("Revoking Certificate Serial Number: %s\n", csn)
 
-	err := certifier.RevokeCertificateSN(csn)
+	err := certifier.RevokeCertificateSN(context.Background(), csn)
 	if err != nil {
 		log.Fatalf("Error %s revoking certificate %s", csn, err)
 	}

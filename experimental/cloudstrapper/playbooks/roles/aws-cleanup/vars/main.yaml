@@ -41,10 +41,8 @@ orc8rVpc: "{{ orc8rTfVpc }}"
 orc8rIgw: "{{ orc8rTfVpc }}"
 orc8rRdsSubnetGroup: "{{ orc8rTfVpc }}"
 orc8rEksCluster: "{{ orc8rTfVpc }}"
-
-orc8rSgs:
-  - "{{ orc8rTfVpc }}-eks_cluster_sg"
-  - "{{ orc8rTfVpc }}-eks_worker_sg"
+orc8rDbNotifs: "{{ orc8rTfRdsNotifs }}"
+orc8rSnsTopic: "{{ orc8rTfSnsTopic }}"
 
 orc8rDomainRecords:
   - api
@@ -52,3 +50,5 @@ orc8rDomainRecords:
   - controller
   - fluentd
   - nms
+
+varDefaultSleep: 5

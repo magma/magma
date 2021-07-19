@@ -63,20 +63,12 @@ func NewIndexerServicer() protos.IndexerServer {
 	return &indexerServicer{}
 }
 
-func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetIndexerInfoRequest) (*protos.GetIndexerInfoResponse, error) {
-	res := &protos.GetIndexerInfoResponse{
-		Version:    uint32(indexerVersion),
-		StateTypes: indexerTypes,
-	}
-	return res, nil
-}
-
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
 	states, err := state_types.MakeStatesByID(req.States, serdes.State)
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := indexImpl(req.NetworkId, states)
+	stErrs, err := indexImpl(ctx, req.NetworkId, states)
 	if err != nil {
 		return nil, err
 	}
@@ -95,12 +87,12 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 	return nil, status.Errorf(codes.InvalidArgument, "unsupported from/to for CompleteReindex: %v to %v", req.FromVersion, req.ToVersion)
 }
 
-func indexImpl(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setIPMappings(networkID, states)
+func indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	return setIPMappings(ctx, networkID, states)
 }
 
 // setIPMappings maps {IP -> IMSI}.
-func setIPMappings(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+func setIPMappings(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
 	var ipMappings []*subscriberdb_protos.IPMapping
 	stateErrors := state_types.StateErrors{}
 	for id, st := range states {
@@ -126,7 +118,7 @@ func setIPMappings(networkID string, states state_types.StatesByID) (state_types
 		return stateErrors, nil
 	}
 
-	err := subscriberdb.SetIMSIsForIPs(networkID, ipMappings)
+	err := subscriberdb.SetIMSIsForIPs(ctx, networkID, ipMappings)
 	if err != nil {
 		return stateErrors, errors.Wrapf(err, "update directoryd mapping of session IDs to IMSIs %+v", ipMappings)
 	}
