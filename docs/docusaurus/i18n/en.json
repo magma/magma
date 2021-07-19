@@ -439,6 +439,9 @@
       "proposals/p017_apn_refactoring": {
         "title": "APN Refactoring Proposal"
       },
+      "proposals/p018_control_network_metrics": {
+        "title": "Export Control Path Network Metrics"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
