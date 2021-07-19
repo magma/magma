@@ -1,0 +1,33 @@
+---
+magmaVersion: "{{ awsAgwVersion }}"
+magma_pkgrepo_dist: "focal-{{ buildAgwPackage }}"
+magmaRepo: https://github.com/magma/magma.git
+agwUsr: ubuntu
+usrHome: "/home/{{ agwUsr }}"
+magmaHome: "{{ usrHome }}/magma"
+deployPath: "{{ magmaHome }}/lte/gateway/deploy/"
+urlAgw: https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
+pathAgw: "/root/agw_install_ubuntu.sh"
+defaultPassword: magma
+pkgGateway:
+  - sudo
+  - curl
+  - make
+  - zip
+  - rsync
+  - virtualenv
+  - git
+  - software-properties-common
+  - python3-pip
+  - python-dev
+  - ansible
+  - dnsutils
+  - ifupdown
+  - resolvconf
+REPO_PROTO: http
+REPO_DIST: stretch-stable
+REPO_COMPONENT: main
+PACKAGE_LOCATION: /tmp
+MAGMA_ROOT: "{{ magmaHome }}"
+OUTPUT_DIR: /tmp
+DEPLOY_PATH: "{{ magmaHome }}/lte/gateway/deploy"

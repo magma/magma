@@ -39,11 +39,11 @@ type IPLookup interface {
 }
 
 const (
-	tableName = "subscriberdb_ip_to_imsi"
+	ipLookupTableName = "subscriberdb_ip_to_imsi"
 
-	nidCol  = "network_id"
-	ipCol   = "ip"
-	imsiCol = "imsi_and_apn"
+	ipLookupNidCol  = "network_id"
+	ipLookupIpCol   = "ip"
+	ipLookupImsiCol = "imsi_and_apn"
 )
 
 type ipLookup struct {
@@ -57,13 +57,13 @@ func NewIPLookup(db *sql.DB, builder sqorc.StatementBuilder) IPLookup {
 
 func (l *ipLookup) Initialize() error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := l.builder.CreateTable(tableName).
+		_, err := l.builder.CreateTable(ipLookupTableName).
 			IfNotExists().
-			Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			Column(ipCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			Column(imsiCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			PrimaryKey(nidCol, ipCol, imsiCol).
-			Unique(nidCol, imsiCol).
+			Column(ipLookupNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			Column(ipLookupIpCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			Column(ipLookupImsiCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			PrimaryKey(ipLookupNidCol, ipLookupIpCol, ipLookupImsiCol).
+			Unique(ipLookupNidCol, ipLookupImsiCol).
 			RunWith(tx).
 			Exec()
 		return nil, errors.Wrap(err, "initialize IP lookup table")
@@ -75,9 +75,9 @@ func (l *ipLookup) Initialize() error {
 func (l *ipLookup) GetIPs(networkID string, ips []string) ([]*protos.IPMapping, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := l.builder.
-			Select(ipCol, imsiCol).
-			From(tableName).
-			Where(squirrel.Eq{nidCol: networkID, ipCol: ips}).
+			Select(ipLookupIpCol, ipLookupImsiCol).
+			From(ipLookupTableName).
+			Where(squirrel.Eq{ipLookupNidCol: networkID, ipLookupIpCol: ips}).
 			RunWith(tx).
 			Query()
 		if err != nil {
@@ -122,12 +122,12 @@ func (l *ipLookup) SetIPs(networkID string, mappings []*protos.IPMapping) error 
 
 		for _, m := range mappings {
 			_, err := l.builder.
-				Insert(tableName).
-				Columns(nidCol, ipCol, imsiCol).
+				Insert(ipLookupTableName).
+				Columns(ipLookupNidCol, ipLookupIpCol, ipLookupImsiCol).
 				Values(networkID, m.Ip, fmt.Sprintf("%s.%s", m.Imsi, m.Apn)).
 				OnConflict(
-					[]sqorc.UpsertValue{{Column: ipCol, Value: m.Ip}},
-					nidCol, imsiCol,
+					[]sqorc.UpsertValue{{Column: ipLookupIpCol, Value: m.Ip}},
+					ipLookupNidCol, ipLookupImsiCol,
 				).
 				RunWith(sc).
 				Exec()

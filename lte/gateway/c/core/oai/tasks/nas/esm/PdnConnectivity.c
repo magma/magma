@@ -116,7 +116,7 @@ proc_tid_t pdn_connectivity_delete(
  **      Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_connectivity_request(
+status_code_e esm_proc_pdn_connectivity_request(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier,
     const esm_proc_pdn_request_t request_type, const_bstring const apn,
@@ -204,7 +204,7 @@ int esm_proc_pdn_connectivity_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_connectivity_reject(
+status_code_e esm_proc_pdn_connectivity_reject(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -262,7 +262,7 @@ int esm_proc_pdn_connectivity_reject(
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_connectivity_failure(
+status_code_e esm_proc_pdn_connectivity_failure(
     emm_context_t* emm_context, pdn_cid_t pdn_cid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   proc_tid_t pti = ESM_PT_UNASSIGNED;
@@ -403,10 +403,10 @@ static int pdn_connectivity_create(
             break;
           // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_AND_v6 \n");
             break;
           case IPv4_OR_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_OR_v6 \n");
             break;
           default:;
         }
@@ -467,10 +467,10 @@ static int pdn_connectivity_create(
                 "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
           case IPv4_AND_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_AND_v6 \n");
             break;
           case IPv4_OR_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_OR_v6 \n");
             break;
           default:;
         }
@@ -549,9 +549,6 @@ proc_tid_t pdn_connectivity_delete(
         "ESM-PROC  - PDN connection %d released for ue id " MME_UE_S1AP_ID_FMT
         "\n",
         pdn_cid, ue_mm_context->mme_ue_s1ap_id);
-  }
-  if (ue_mm_context->nb_active_pdn_contexts > 0) {
-    ue_mm_context->nb_active_pdn_contexts -= 1;
   }
   // Return the procedure transaction identity
   return (pti);

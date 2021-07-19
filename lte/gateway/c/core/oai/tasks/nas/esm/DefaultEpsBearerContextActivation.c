@@ -95,7 +95,7 @@ static int default_eps_bearer_activate_in_bearer_setup_req(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context(
+status_code_e esm_proc_default_eps_bearer_context(
     emm_context_t* emm_context, const proc_tid_t pti, pdn_cid_t pid, ebi_t* ebi,
     const qci_t qci, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -176,7 +176,7 @@ int esm_proc_default_eps_bearer_context(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_request(
+status_code_e esm_proc_default_eps_bearer_context_request(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -254,7 +254,7 @@ int esm_proc_default_eps_bearer_context_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_accept(
+status_code_e esm_proc_default_eps_bearer_context_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -316,7 +316,7 @@ int esm_proc_default_eps_bearer_context_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_reject(
+status_code_e esm_proc_default_eps_bearer_context_reject(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -363,7 +363,10 @@ int esm_proc_default_eps_bearer_context_reject(
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
     // Send delete session req to spgw
-    mme_app_send_delete_session_request(ue_context_p, ebi, pid);
+    // Embedded SPGW has no gtpv2c tunnel, can safely set to true
+    bool no_delete_gtpv2c_tunnel = true;
+    mme_app_send_delete_session_request(
+        ue_context_p, ebi, pid, no_delete_gtpv2c_tunnel);
     /* Set ue_rej_act_def_ber_req flag in order to delete the PDN session
      * after receiving delete session rsp from spgw
      */
@@ -399,7 +402,7 @@ int esm_proc_default_eps_bearer_context_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_failure(
+status_code_e esm_proc_default_eps_bearer_context_failure(
     emm_context_t* emm_context, pdn_cid_t* const pid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
@@ -512,7 +515,8 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
           emm_context);
       bearer_context_t* bc =
           mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
-      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone &&
+      if (((emm_context_t*) esm_ebr_timer_data->ctx)
+              ->esm_ctx.pending_standalone &&
           (!(bc->enb_fteid_s1u.teid))) {
         default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
@@ -529,6 +533,11 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
       pdn_cid_t pid = MAX_APN_PER_UE;
       int bidx      = BEARERS_PER_UE;
 
+      if (((emm_context_t*) esm_ebr_timer_data->ctx)
+              ->esm_ctx.pending_standalone > 0) {
+        ((emm_context_t*) esm_ebr_timer_data->ctx)
+            ->esm_ctx.pending_standalone -= 1;
+      }
       /*
        * Release the default EPS bearer context and enter state INACTIVE
        */

@@ -1,0 +1,35 @@
+---
+- name: Create magma group
+  group:
+    name: magma
+    state: present
+
+- name: Add magma group to passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%magma'
+    line: '%magma ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Add magma user to wheel group
+  user:
+    name=magma
+    groups=magma
+    append=yes
+    state=present
+    createhome=yes
+
+- name: download github repo
+  git:
+    repo: "{{ magmaRepo }}"
+    dest: "{{ usrHome }}/magma"
+    version: "{{ buildAgwVersion }}"
+
+- name: copy inventory file
+  copy:
+    src: roles/magma-agw/files/inventory
+    dest: "{{ usrHome }}/inventory"
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'

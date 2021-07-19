@@ -68,7 +68,8 @@ def gen_traffic_handler(args):
 def main():
     parser = argparse.ArgumentParser(
         description='Traffic CLI that generates traffic to an endpoint',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')

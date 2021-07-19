@@ -14,6 +14,7 @@ options:
 --deploy-dir  deployment dir containing configs and secrets (mandatory)
 --root-dir    magma root directory
 --build       build the deployer container
+--build-testframework build the deployer container with go library and other testframework utilities
 --test        'check_all' or any specific test function[run_unit_tests,check_helmcharts_insync, check_tfvars_insync ]
 example: ./run_deployer.bash --deploy-dir ~/orc8r_15_deployment"
 }
@@ -21,7 +22,7 @@ example: ./run_deployer.bash --deploy-dir ~/orc8r_15_deployment"
 run_unit_tests()
 {
     echo "Running orcl container unit tests"
-    docker run -it \
+    docker run -i \
         --entrypoint /root/scripts/cli/configlib_test.py \
         -v "${DEPLOY_WORKDIR}":/root/project \
         -v "${MAGMA_ROOT}":/root/magma \
@@ -32,7 +33,7 @@ run_unit_tests()
 check_helmcharts_insync()
 {
     echo "Checking if helm charts are in sync"
-    docker run -it \
+    docker run -i \
         --entrypoint /root/scripts/test_helm_charts_sync.py \
         -v "${DEPLOY_WORKDIR}":/root/project \
         -v "${MAGMA_ROOT}":/root/magma \
@@ -43,7 +44,7 @@ check_helmcharts_insync()
 check_tfvars_insync()
 {
     echo "Checking tf vars are in sync"
-    docker run -it \
+    docker run -i \
         --entrypoint /root/scripts/test_vars_sync.py \
         -v "${DEPLOY_WORKDIR}":/root/project \
         -v "${MAGMA_ROOT}":/root/magma \
@@ -63,6 +64,7 @@ if (( $# < 2 )); then
 fi
 
 DOCKER_BUILD=false
+DOCKER_BUILD_TESTFRAMEWORK=false
 DEPLOY_WORKDIR=
 MAGMA_ROOT=
 TEST_TO_RUN=
@@ -80,6 +82,9 @@ while [ -n "${1-}" ]; do
     --build)
         DOCKER_BUILD=true
         ;;
+    --build-testframework)
+        DOCKER_BUILD_TESTFRAMEWORK=true
+        ;;        
     --test)
         TEST_TO_RUN="$2"
         shift
@@ -111,6 +116,10 @@ fi
 
 if $DOCKER_BUILD; then
     docker build -t orc8r_deployer:latest .
+fi
+
+if $DOCKER_BUILD_TESTFRAMEWORK; then
+    docker build  --build-arg ENV=testframework -t orc8r_deployer:latest .
 fi
 
 if declare -F "$TEST_TO_RUN"; then

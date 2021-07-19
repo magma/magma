@@ -53,7 +53,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwID, err := directoryd.GetHWIDForIMSI(nid, imsi)
+		hwID, err := directoryd.GetHWIDForIMSI(ctx, nid, imsi)
 		if err == nil && len(hwID) != 0 {
 			glog.V(2).Infof("IMSI to send is %v\n", imsi)
 			return hwID, nil
@@ -69,11 +69,12 @@ func getHwIDFromTeid(ctx context.Context, teid string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwID, err := directoryd.GetHWIDForSgwCTeid(nid, teid)
+		hwID, err := directoryd.GetHWIDForSgwCTeid(ctx, nid, teid)
 		if err == nil && len(hwID) != 0 {
-			glog.V(2).Infof("TEID to send is %s\n", teid)
+			glog.V(2).Infof("TEID to send is %s", teid)
 			return hwID, nil
 		}
+		glog.V(2).Infof("hwid for teid %s not found at network %s: %s", teid, nid, err)
 	}
 	return "", fmt.Errorf("could not find gateway location for teid: %s", teid)
 }
@@ -127,6 +128,8 @@ func getAllGWSGSServiceConnCtx(ctx context.Context) ([]*grpc.ClientConn, []conte
 	return connList, ctxList, nil
 }
 
+// getFegServedIds returns ServedNetworkIds of the given FeG networkId and appends to the list all ServedNetworkIds of
+// the network's Neutral Host Network if any
 func getFegServedIds(networkId string) ([]string, error) {
 	if len(networkId) == 0 {
 		return []string{}, fmt.Errorf("Empty networkID provided.")
@@ -139,7 +142,31 @@ func getFegServedIds(networkId string) ([]string, error) {
 	if !ok || networkFegConfigs == nil {
 		return []string{}, fmt.Errorf("invalid federation network config found for network: %s", networkId)
 	}
-	return networkFegConfigs.ServedNetworkIds, nil
+	// getFegServedIds will always return ServedNetworkIds of the given FeG networkId, but if the given FeG Network
+	// is also serving Neutral Host Network, getFegServedIds would append all ServedNetworkIds of this
+	// Neutral Host Network to the result
+	if len(networkFegConfigs.ServedNhIds) == 0 {
+		return networkFegConfigs.ServedNetworkIds, nil
+	}
+	// If this is a NH FeG Network, add served networks from ServedNhIds FeG networks
+	nids := networkFegConfigs.ServedNetworkIds // prepend 'local' ServedNhIds to the combined result
+	glog.V(2).Infof("getFegServedIds: nonempty Served NH Networks list for network: %s", networkId)
+	for _, nhNetworkId := range networkFegConfigs.ServedNhIds {
+		if len(nhNetworkId) > 0 {
+			nhFegCfg, err := configurator.LoadNetworkConfig(nhNetworkId, feg.FegNetworkType, serdes.Network)
+			if err != nil || nhFegCfg == nil {
+				glog.Errorf("unable to retrieve config for NH federation network '%s': %v", nhNetworkId, err)
+				continue
+			}
+			nhNetworkFegConfigs, ok := nhFegCfg.(*models.NetworkFederationConfigs)
+			if !ok || nhNetworkFegConfigs == nil {
+				glog.Errorf("invalid FeG network config found for NH network '%s': %T", nhNetworkId, nhFegCfg)
+				continue
+			}
+			nids = append(nids, nhNetworkFegConfigs.ServedNetworkIds...)
+		}
+	}
+	return nids, nil
 }
 
 func validateFegContext(ctx context.Context) error {

@@ -36,6 +36,10 @@ func (m *NetworkFeatures) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *NetworkSentryConfig) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m NetworkDNSRecords) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

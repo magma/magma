@@ -21,6 +21,7 @@ import subprocess
 from collections import namedtuple
 
 from google.protobuf import json_format
+from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
@@ -29,7 +30,6 @@ from lte.protos.pipelined_pb2 import (
     VersionedPolicyID,
 )
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
-from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.subscriberdb.sid import SIDUtils

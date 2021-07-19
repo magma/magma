@@ -78,44 +78,63 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='CLI for S6A proxy to contact HSS',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
     # Add AIR subcommand
     # usage: ./python/scripts/s6a_service_cli.py AIR user123
-    parser_air = subparsers.add_parser('AIR',
-                                       help='Authentication Information'
-                                            'Request')
+    parser_air = subparsers.add_parser(
+        'AIR',
+        help='Authentication Information'
+             'Request',
+    )
     parser_air.add_argument('user_name', help='subscriber identifier')
-    parser_air.add_argument('visited_plmn', help='visited site identifier',
-                            default=b'\x02\xf8\x59', nargs='?')
-    parser_air.add_argument('num_requested_eutran_vectors',
-                            help='number of vectors to request in response',
-                            default=1, nargs='?')
-    parser_air.add_argument('immediate_response_preferred',
-                            help='indicates to the HSS the values are'
-                                 'requested for immediate attach',
-                            default=False, nargs='?')
-    parser_air.add_argument('resync_info',
-                            help='concatenation of RAND and AUTS in the case'
-                                 'of a resync attach case',
-                            default=b'\x00' * RESYNC_INFO_BYTES, nargs='?')
+    parser_air.add_argument(
+        'visited_plmn', help='visited site identifier',
+        default=b'\x02\xf8\x59', nargs='?',
+    )
+    parser_air.add_argument(
+        'num_requested_eutran_vectors',
+        help='number of vectors to request in response',
+        default=1, nargs='?',
+    )
+    parser_air.add_argument(
+        'immediate_response_preferred',
+        help='indicates to the HSS the values are'
+             'requested for immediate attach',
+        default=False, nargs='?',
+    )
+    parser_air.add_argument(
+        'resync_info',
+        help='concatenation of RAND and AUTS in the case'
+             'of a resync attach case',
+        default=b'\x00' * RESYNC_INFO_BYTES, nargs='?',
+    )
     parser_air.set_defaults(func=send_air)
 
     # Add ULR subcommand
     # usage: ./python/scripts/s6a_service_cli.py ULR user123
-    parser_ulr = subparsers.add_parser('ULR',
-                                       help='Update Location Request')
+    parser_ulr = subparsers.add_parser(
+        'ULR',
+        help='Update Location Request',
+    )
     parser_ulr.add_argument('user_name', help='subscriber identifier')
-    parser_ulr.add_argument('visited_plmn', help='visited site identifier',
-                            default=b'\x02\xf8\x59', nargs='?')
-    parser_ulr.add_argument('skip_subscriber_data',
-                            help='Skip subscription data in response',
-                            default=False, nargs='?')
-    parser_ulr.add_argument('initial_attach',
-                            help='Send Cancel Location to other EPCs serving '
-                                 'the UE',
-                            default=False, nargs='?')
+    parser_ulr.add_argument(
+        'visited_plmn', help='visited site identifier',
+        default=b'\x02\xf8\x59', nargs='?',
+    )
+    parser_ulr.add_argument(
+        'skip_subscriber_data',
+        help='Skip subscription data in response',
+        default=False, nargs='?',
+    )
+    parser_ulr.add_argument(
+        'initial_attach',
+        help='Send Cancel Location to other EPCs serving '
+             'the UE',
+        default=False, nargs='?',
+    )
     parser_ulr.set_defaults(func=send_ulr)
 
     return parser

@@ -105,15 +105,17 @@ class HeaderEnrichmentController(MagmaController):
 
     UplinkConfig = namedtuple(
         'heConfig',
-        ['he_proxy_port',
-         'he_enabled',
-         'encryption_enabled',
-         'encryption_algorithm',
-         'encryption_key',
-         'hash_function',
-         'encoding_type',
-         'uplink_port',
-         'gtp_port'],
+        [
+            'he_proxy_port',
+            'he_enabled',
+            'encryption_enabled',
+            'encryption_algorithm',
+            'encryption_key',
+            'hash_function',
+            'encoding_type',
+            'uplink_port',
+            'gtp_port',
+        ],
     )
 
     def __init__(self, *args, **kwargs):
@@ -159,7 +161,8 @@ class HeaderEnrichmentController(MagmaController):
             hash_function=hash_function,
             encoding_type=encoding_type,
             encryption_key=encryption_key,
-            uplink_port=uplink_port)
+            uplink_port=uplink_port,
+        )
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
@@ -180,13 +183,17 @@ class HeaderEnrichmentController(MagmaController):
 
     def _install_default_flows(self, dp):
         match = MagmaMatch(in_port=self.config.he_proxy_port)
-        flows.add_drop_flow(dp, self.tbl_num, match,
-                            priority=flows.MINIMUM_PRIORITY + 1)
+        flows.add_drop_flow(
+            dp, self.tbl_num, match,
+            priority=flows.MINIMUM_PRIORITY + 1,
+        )
         match = MagmaMatch()
-        flows.add_resubmit_next_service_flow(dp, self.tbl_num, match,
-                                             [],
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(
+            dp, self.tbl_num, match,
+            [],
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+        )
 
     def encrypt_header(self, header_value):
         """
@@ -194,8 +201,10 @@ class HeaderEnrichmentController(MagmaController):
         configuration
         """
         hash_hex = get_hash(self.config.encryption_key, self.config.hash_function)
-        encrypted = encrypt_str(header_value, hash_hex,
-                                self.config.encryption_algorithm)
+        encrypted = encrypt_str(
+            header_value, hash_hex,
+            self.config.encryption_algorithm,
+        )
         ret = encode_str(encrypted, self.config.encoding_type)
 
         return ret
@@ -210,10 +219,12 @@ class HeaderEnrichmentController(MagmaController):
 
         return activate_he_urls_for_ue(ip_addr, rule_id, urls, imsi, msisdn_str)
 
-    def get_subscriber_he_flows(self, rule_id: str, direction: Direction,
-                                ue_addr: str, uplink_tunnel: int, ip_dst: str,
-                                rule_num: int, urls: List[str], imsi: str,
-                                msisdn: bytes):
+    def get_subscriber_he_flows(
+        self, rule_id: str, direction: Direction,
+        ue_addr: str, uplink_tunnel: int, ip_dst: str,
+        rule_num: int, urls: List[str], imsi: str,
+        msisdn: bytes,
+    ):
         """
         Add flow to steer traffic to and from proxy port.
         Args:
@@ -249,121 +260,163 @@ class HeaderEnrichmentController(MagmaController):
             logging.error("Missing dst ip, ignoring HE rule.")
             return []
 
-        logging.info("Add HE: ue_addr %s, rule_id: %s, uplink_tunnel %s, ip_dst %s, rule_num %s "
-                     "urls %s, imsi %s, msisdn %s", ue_addr, rule_id, uplink_tunnel, ip_dst,
-                     str(rule_num), str(urls), imsi, str(msisdn))
+        logging.info(
+            "Add HE: ue_addr %s, rule_id: %s, uplink_tunnel %s, ip_dst %s, rule_num %s "
+            "urls %s, imsi %s, msisdn %s", ue_addr, rule_id, uplink_tunnel, ip_dst,
+            str(rule_num), str(urls), imsi, str(msisdn),
+        )
 
         success = self._set_he_target_urls(ue_addr, rule_id, urls, imsi, msisdn)
         if not success:
             return []
         msgs = []
         # 1.a. Going to UE: from uplink send to proxy
-        match = MagmaMatch(in_port=self.config.uplink_port,
-                           eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_src=ip_dst,
-                           ipv4_dst=ue_addr,
-                           ip_proto=IPPROTO_TCP,
-                           tcp_src=HTTP_PORT,
-                           proxy_tag=0)
-        actions = [load_direction(parser, Direction.IN),
-                   load_passthrough(parser),
-                   set_proxy_tag(parser)]
+        match = MagmaMatch(
+            in_port=self.config.uplink_port,
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_src=ip_dst,
+            ipv4_dst=ue_addr,
+            ip_proto=IPPROTO_TCP,
+            tcp_src=HTTP_PORT,
+            proxy_tag=0,
+        )
+        actions = [
+            load_direction(parser, Direction.IN),
+            load_passthrough(parser),
+            set_proxy_tag(parser),
+        ]
         msgs.append(
-            flows.get_add_resubmit_current_service_flow_msg(dp, self.tbl_num,
-                                                            match, cookie=rule_num,
-                                                            actions=actions,
-                                                            priority=flows.DEFAULT_PRIORITY,
-                                                            resubmit_table=self.next_table))
+            flows.get_add_resubmit_current_service_flow_msg(
+                dp, self.tbl_num,
+                match, cookie=rule_num,
+                actions=actions,
+                priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table,
+            ),
+        )
         # 1.b. Going to UE: from proxy send to UE
-        match = MagmaMatch(in_port=self.config.he_proxy_port,
-                           eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_src=ip_dst,
-                           ipv4_dst=ue_addr,
-                           ip_proto=IPPROTO_TCP,
-                           tcp_src=HTTP_PORT)
-        actions = [set_in_port(parser, self.config.uplink_port),
-                   set_proxy_tag(parser)]
+        match = MagmaMatch(
+            in_port=self.config.he_proxy_port,
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_src=ip_dst,
+            ipv4_dst=ue_addr,
+            ip_proto=IPPROTO_TCP,
+            tcp_src=HTTP_PORT,
+        )
+        actions = [
+            set_in_port(parser, self.config.uplink_port),
+            set_proxy_tag(parser),
+        ]
         msgs.append(
-            flows.get_add_resubmit_current_service_flow_msg(dp, self.tbl_num,
-                                                            match, cookie=rule_num,
-                                                            actions=actions,
-                                                            priority=flows.DEFAULT_PRIORITY,
-                                                            resubmit_table=0))
+            flows.get_add_resubmit_current_service_flow_msg(
+                dp, self.tbl_num,
+                match, cookie=rule_num,
+                actions=actions,
+                priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=0,
+            ),
+        )
 
         # 1.c. continue (1.b) Going to UE: from proxy send to UE
-        match = MagmaMatch(in_port=self.config.uplink_port,
-                           eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_src=ip_dst,
-                           ipv4_dst=ue_addr,
-                           ip_proto=IPPROTO_TCP,
-                           tcp_src=HTTP_PORT,
-                           proxy_tag=PROXY_TAG_TO_PROXY)
+        match = MagmaMatch(
+            in_port=self.config.uplink_port,
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_src=ip_dst,
+            ipv4_dst=ue_addr,
+            ip_proto=IPPROTO_TCP,
+            tcp_src=HTTP_PORT,
+            proxy_tag=PROXY_TAG_TO_PROXY,
+        )
         actions = [set_proxy_tag(parser, 0)]
         msgs.append(
-            flows.get_add_resubmit_current_service_flow_msg(dp, self.tbl_num,
-                                                            match, cookie=rule_num,
-                                                            actions=actions,
-                                                            priority=flows.DEFAULT_PRIORITY,
-                                                            resubmit_table=self.next_table))
+            flows.get_add_resubmit_current_service_flow_msg(
+                dp, self.tbl_num,
+                match, cookie=rule_num,
+                actions=actions,
+                priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table,
+            ),
+        )
 
         # 2.a. To internet from proxy port, send to uplink
-        match = MagmaMatch(in_port=self.config.he_proxy_port,
-                           eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_src=ue_addr,
-                           ipv4_dst=ip_dst,
-                           ip_proto=IPPROTO_TCP,
-                           tcp_dst=HTTP_PORT,
-                           proxy_tag=0)
-        actions = [set_in_port(parser, self.config.gtp_port),
-                   set_tun_id(parser, tunnel_id),
-                   set_proxy_tag(parser),
-                   load_imsi(parser, imsi)]
+        match = MagmaMatch(
+            in_port=self.config.he_proxy_port,
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_src=ue_addr,
+            ipv4_dst=ip_dst,
+            ip_proto=IPPROTO_TCP,
+            tcp_dst=HTTP_PORT,
+            proxy_tag=0,
+        )
+        actions = [
+            set_in_port(parser, self.config.gtp_port),
+            set_tun_id(parser, tunnel_id),
+            set_proxy_tag(parser),
+            load_imsi(parser, imsi),
+        ]
         msgs.append(
-            flows.get_add_resubmit_current_service_flow_msg(dp, self.tbl_num,
-                                                            match,
-                                                            cookie=rule_num,
-                                                            actions=actions,
-                                                            priority=flows.MEDIUM_PRIORITY,
-                                                            resubmit_table=0))
+            flows.get_add_resubmit_current_service_flow_msg(
+                dp, self.tbl_num,
+                match,
+                cookie=rule_num,
+                actions=actions,
+                priority=flows.MEDIUM_PRIORITY,
+                resubmit_table=0,
+            ),
+        )
 
         # 2.b. Continue from 2.a -> To internet from proxy port, send to uplink
-        match = MagmaMatch(in_port=self.config.gtp_port,
-                           eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_src=ue_addr,
-                           ipv4_dst=ip_dst,
-                           ip_proto=IPPROTO_TCP,
-                           tcp_dst=HTTP_PORT,
-                           proxy_tag=PROXY_TAG_TO_PROXY)
+        match = MagmaMatch(
+            in_port=self.config.gtp_port,
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_src=ue_addr,
+            ipv4_dst=ip_dst,
+            ip_proto=IPPROTO_TCP,
+            tcp_dst=HTTP_PORT,
+            proxy_tag=PROXY_TAG_TO_PROXY,
+        )
         actions = [set_proxy_tag(parser, 0)]
         msgs.append(
-            flows.get_add_resubmit_current_service_flow_msg(dp, self.tbl_num,
-                                                            match,
-                                                            cookie=rule_num,
-                                                            actions=actions,
-                                                            priority=flows.DEFAULT_PRIORITY,
-                                                            resubmit_table=self.next_table))
+            flows.get_add_resubmit_current_service_flow_msg(
+                dp, self.tbl_num,
+                match,
+                cookie=rule_num,
+                actions=actions,
+                priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table,
+            ),
+        )
 
         # 2.c. To internet from ue send to proxy, this is coming from HE port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_src=ue_addr,
-                           ipv4_dst=ip_dst,
-                           ip_proto=IPPROTO_TCP,
-                           tcp_dst=HTTP_PORT,
-                           proxy_tag=0)
-        actions = [load_direction(parser, Direction.OUT),
-                   load_passthrough(parser),
-                   set_proxy_tag(parser)]
+        match = MagmaMatch(
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_src=ue_addr,
+            ipv4_dst=ip_dst,
+            ip_proto=IPPROTO_TCP,
+            tcp_dst=HTTP_PORT,
+            proxy_tag=0,
+        )
+        actions = [
+            load_direction(parser, Direction.OUT),
+            load_passthrough(parser),
+            set_proxy_tag(parser),
+        ]
         msgs.append(
-            flows.get_add_resubmit_current_service_flow_msg(dp, self.tbl_num,
-                                                            match, cookie=rule_num,
-                                                            actions=actions,
-                                                            priority=flows.DEFAULT_PRIORITY,
-                                                            resubmit_table=self.next_table))
+            flows.get_add_resubmit_current_service_flow_msg(
+                dp, self.tbl_num,
+                match, cookie=rule_num,
+                actions=actions,
+                priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table,
+            ),
+        )
         self._ue_rule_counter.inc(ue_addr)
         return msgs
 
-    def remove_subscriber_he_flows(self, ue_addr: IPAddress, rule_id: str = "",
-                                   rule_num: int = -1):
+    def remove_subscriber_he_flows(
+        self, ue_addr: IPAddress, rule_id: str = "",
+        rule_num: int = -1,
+    ):
         """
         Remove proxy flows of give policy rule of the subscriber.
         Args:
@@ -375,23 +428,31 @@ class HeaderEnrichmentController(MagmaController):
 
         if self._ue_rule_counter.get(ue_ip_str) == 0:
             return
-        logging.info("Del HE rule: ue-ip: %s rule_id: %s rule %d",
-                     ue_addr, rule_id, rule_num)
+        logging.info(
+            "Del HE rule: ue-ip: %s rule_id: %s rule %d",
+            ue_addr, rule_id, rule_num,
+        )
 
         if rule_num == -1:
             ip_match_in = get_ue_ip_match_args(ue_addr, Direction.IN)
-            match_in = MagmaMatch(eth_type=get_eth_type(ue_addr),
-                                  **ip_match_in)
+            match_in = MagmaMatch(
+                eth_type=get_eth_type(ue_addr),
+                **ip_match_in,
+            )
             flows.delete_flow(self._datapath, self.tbl_num, match_in)
 
             ip_match_out = get_ue_ip_match_args(ue_addr, Direction.OUT)
-            match_out = MagmaMatch(eth_type=get_eth_type(ue_addr),
-                                   **ip_match_out)
+            match_out = MagmaMatch(
+                eth_type=get_eth_type(ue_addr),
+                **ip_match_out,
+            )
             flows.delete_flow(self._datapath, self.tbl_num, match_out)
         else:
             match = MagmaMatch()
-            flows.delete_flow(self._datapath, self.tbl_num, match,
-                              cookie=rule_num, cookie_mask=flows.OVS_COOKIE_MATCH_ALL)
+            flows.delete_flow(
+                self._datapath, self.tbl_num, match,
+                cookie=rule_num, cookie_mask=flows.OVS_COOKIE_MATCH_ALL,
+            )
 
         success = deactivate_he_urls_for_ue(ue_addr, rule_id)
         logging.debug("Del HE proxy: %s", success)

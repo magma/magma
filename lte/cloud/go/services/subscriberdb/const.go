@@ -14,9 +14,15 @@
 package subscriberdb
 
 const (
-	ServiceName = "SUBSCRIBERDB"
+	ServiceName = "subscriberdb"
 
 	EntityType = "subscriber"
 
-	LookupTableBlobstore = "subscriber_lookup_blobstore"
+	LookupTableBlobstore       = "subscriber_lookup_blobstore"
+	PerSubDigestTableBlobstore = "per_sub_digest_blobstore"
+
+	// MinimumSyncInterval is the the minimum interval in seconds between
+	// gateway requests to sync its subscriberdb with the cloud.
+	// orc8r should never send a value lower than MinimumSyncInterval.
+	MinimumSyncInterval = 60
 )

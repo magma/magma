@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "UpfMsgManageHandler.h"
+#include "SessionStateEnforcer.h"
 #include "includes/MagmaService.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
@@ -31,6 +32,7 @@
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSIOND_VERSION "1.0"
+#define session_max_rtx_count 3
 
 using ::testing::Test;
 
@@ -42,22 +44,24 @@ class SetUPFNodeState : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
+    std::unordered_multimap<std::string, uint32_t> pdr_map;
     auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
     amf_srv_client        = std::make_shared<magma::AsyncAmfServiceClient>();
 
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-    mconfig.set_relay_enabled(false);
     auto config =
         magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
     magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
 
     session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
-        config["session_force_termination_timeout_ms"].as<int32_t>());
+        rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
+        mconfig, config["session_force_termination_timeout_ms"].as<int32_t>(),
+        session_max_rtx_count);
 
     set_interface_for_up_mock =
         std::make_shared<MockSetInterfaceForUserPlane>();
+    sess_config = std::make_shared<UPFSessionConfigState>();
   }
   virtual void TearDown() {}
 
@@ -68,6 +72,7 @@ class SetUPFNodeState : public ::testing::Test {
   std::shared_ptr<SessionStateEnforcer> session_enforcer;
   std::shared_ptr<AsyncAmfServiceClient> amf_srv_client;
   std::shared_ptr<MockSetInterfaceForUserPlane> set_interface_for_up_mock;
+  std::shared_ptr<UPFSessionConfigState> sess_config;
 };  // End of class
 
 // Testing the functionality of SetUPFNodeState
@@ -88,6 +93,51 @@ TEST_F(SetUPFNodeState, test_upf_node_state) {
 
   // Validate the functionality of UPF N3 interface address
   EXPECT_TRUE(upf_n3_addr == ipv4_addr);
+}
+
+// Testing the functionality of SetUPFSessionConfig
+TEST_F(SetUPFNodeState, test_upf_session_config) {
+  // Validate SetUPFSessionConfig
+  ON_CALL(*set_interface_for_up_mock, SetUPFSessionConfig(_, _, _))
+      .WillByDefault(Return(Status::OK));
+
+  auto& ses_config = *sess_config;
+  int32_t count    = 0;
+  for (auto& upf_session : ses_config.upf_session_state()) {
+    // Deleting the IMSI prefix from imsi
+    std::string imsi_upf = upf_session.subscriber_id();
+    std::string imsi     = imsi_upf.substr(4, imsi_upf.length() - 4);
+    uint32_t version     = upf_session.session_version();
+    uint32_t teid        = upf_session.local_f_teid();
+    auto session_map     = session_store->read_sessions({imsi});
+    /* Search with session search criteria of IMSI and session_id and
+     * find  respective sesion to operate
+     */
+    SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
+    auto session_it = session_store->find_session(session_map, criteria);
+    // If session not found with SearchCriteria continue with next imsi
+    if (!session_it) {
+      // Validating session not found with SearchCriteria
+      EXPECT_FALSE(session_it);
+      continue;
+    }
+    auto& session    = **session_it;
+    auto cur_version = session->get_current_version();
+
+    /* Validating UPF verions of session imsi of teid received version
+     * with SMF latest version
+     */
+    EXPECT_LE(version, cur_version);
+
+    // Sending the session request to UPF
+    session_enforcer->m5g_send_session_request_to_upf(session);
+
+    // Validating count increment
+    auto inc = count++;
+    EXPECT_EQ(count, inc + 1);
+  }
+  // Validating UPF periodic report config missmatch session
+  EXPECT_EQ(ses_config.upf_session_state_size(), count);
 }
 
 int main(int argc, char** argv) {

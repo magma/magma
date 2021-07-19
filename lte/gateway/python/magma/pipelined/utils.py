@@ -42,7 +42,7 @@ class Utils:
     ovs = None
 
     @classmethod
-    def get_of_priority(cls, precedence:int):
+    def get_of_priority(cls, precedence: int):
         """
         Lower the precedence higher the importance of the flow in 3GPP.
         Higher the priority higher the importance of the flow in openflow.
@@ -57,7 +57,8 @@ class Utils:
         if precedence >= cls.APP_PRIORITY_RANGE:
             logging.warning(
                 "Flow precedence is higher than OF range using min priority %d",
-                cls.MIN_PROGRAMMED_PRIORITY)
+                cls.MIN_PROGRAMMED_PRIORITY,
+            )
             return cls.MIN_PROGRAMMED_PRIORITY
         return cls.MAX_PROGRAMMED_PRIORITY - precedence
 
@@ -66,19 +67,21 @@ class Utils:
         dpid = datapath.id
         ovsdb_addr = 'tcp:%s:%d' % (datapath.address[0], cls.OVSDB_PORT)
 
-        if (cls.ovs is not None
-                and cls.ovs.datapath_id == dpid
-                and cls.ovs.vsctl.remote == ovsdb_addr):
+        if (
+            cls.ovs is not None
+            and cls.ovs.datapath_id == dpid
+            and cls.ovs.vsctl.remote == ovsdb_addr
+        ):
             return cls.ovs
 
         try:
             cls.ovs = bridge.OVSBridge(
                 CONF=cls.CONF,
                 datapath_id=dpid,
-                ovsdb_addr=ovsdb_addr)
+                ovsdb_addr=ovsdb_addr,
+            )
             cls.ovs.init()
         except (ValueError, KeyError) as e:
             logging.warning('Cannot initiate OVSDB connection: %s', e)
             return None
         return cls.ovs
-

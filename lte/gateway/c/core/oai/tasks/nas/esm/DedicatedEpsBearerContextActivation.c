@@ -98,7 +98,7 @@ static void erab_setup_rsp_tmr_exp_ded_bearer_handler(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_dedicated_eps_bearer_context(
+status_code_e esm_proc_dedicated_eps_bearer_context(
     emm_context_t* emm_context, const proc_tid_t pti, pdn_cid_t pid, ebi_t* ebi,
     ebi_t* default_ebi, const qci_t qci, const bitrate_t gbr_dl,
     const bitrate_t gbr_ul, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
@@ -179,7 +179,7 @@ int esm_proc_dedicated_eps_bearer_context(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_dedicated_eps_bearer_context_request(
+status_code_e esm_proc_dedicated_eps_bearer_context_request(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -243,7 +243,7 @@ int esm_proc_dedicated_eps_bearer_context_request(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_dedicated_eps_bearer_context_accept(
+status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc                        = RETURNerror;
@@ -332,7 +332,7 @@ int esm_proc_dedicated_eps_bearer_context_accept(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_dedicated_eps_bearer_context_reject(
+status_code_e esm_proc_dedicated_eps_bearer_context_reject(
     emm_context_t* emm_context, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;

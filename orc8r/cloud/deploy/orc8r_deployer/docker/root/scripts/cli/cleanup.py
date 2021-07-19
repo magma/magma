@@ -51,8 +51,10 @@ def tf_backup_fn(tf_dir):
     return f'{tf_dir}/terraform.tfstate.golden'
 
 
-def tf_destroy(constants: dict, warn: bool = True,
-               max_retries: int = 3) -> int:
+def tf_destroy(
+    constants: dict, warn: bool = True,
+    max_retries: int = 2,
+) -> int:
     """Run through terraform cleanup
 
     Args:
@@ -63,7 +65,8 @@ def tf_destroy(constants: dict, warn: bool = True,
         int: Return code
     """
     if warn and not click.confirm(
-            'Do you want to continue with cleanup?', abort=True):
+            'Do you want to continue with cleanup?', abort=True,
+    ):
         return 0
 
     # backup existing terraform state
@@ -83,8 +86,10 @@ def tf_destroy(constants: dict, warn: bool = True,
             break
         print_error_msg("Destroy Failed!!!")
         if i == (max_retries - 1):
-            print_error_msg("Max retries exceeded!!! Attempt cleaning up using"
-                            " 'orcl cleanup raw' subcommand")
+            print_error_msg(
+                "Max retries exceeded!!! Attempt cleaning up using"
+                " 'orcl cleanup raw' subcommand",
+            )
             return 1
     return 0
 
@@ -113,14 +118,16 @@ def cleanup_cmd(constants: dict, dryrun: bool = False) -> list:
     return AnsiblePlay(
         playbook=f"{playbook_dir}/cleanup.yml",
         tags=['cleanup_dryrun'] if dryrun else ['cleanup'],
-        extra_vars=constants)
+        extra_vars=constants,
+    )
 
 
 def raw_cleanup(
         constants: dict,
         override_dict: dict = None,
         dryrun: bool = False,
-        max_retries: int = 3):
+        max_retries: int = 2,
+):
     """Perform raw cleanup of resources using internal commands
 
     Args:
@@ -149,13 +156,19 @@ def raw_cleanup(
 
 @cleanup.command()
 @click.pass_context
-@click.option('--dryrun', default=False, is_flag=True, help='Show resources '
-              'to be cleaned up during raw cleanup')
-@click.option('--state', help='Provide state file containing resource '
-              'information e.g. terraform.tfstate or '
-              'terraform.tfstate.backup')
-@click.option('--override', default=False, is_flag=True, help='Provide values'
-              'to cleanup the orc8r deployment')
+@click.option(
+    '--dryrun', default=False, is_flag=True, help='Show resources '
+    'to be cleaned up during raw cleanup',
+)
+@click.option(
+    '--state', help='Provide state file containing resource '
+    'information e.g. terraform.tfstate or '
+    'terraform.tfstate.backup',
+)
+@click.option(
+    '--override', default=False, is_flag=True, help='Provide values'
+    'to cleanup the orc8r deployment',
+)
 def raw(ctx, dryrun, state, override):
     """
     Individually cleans up resources deployed for orc8r
@@ -170,8 +183,12 @@ def raw(ctx, dryrun, state, override):
     setup_aws_environ()
 
     if not dryrun:
-        click.confirm(click.style('This is irreversable!! Do you want to '
-                      'continue with cleanup?', fg='red'), abort=True)
+        click.confirm(
+            click.style(
+                'This is irreversable!! Do you want to '
+                'continue with cleanup?', fg='red',
+            ), abort=True,
+        )
     if state:
         ctx.obj['cleanup_state'] = state
 

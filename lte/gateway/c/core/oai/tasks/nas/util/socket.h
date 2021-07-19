@@ -34,6 +34,7 @@ Description Implements TCP socket handlers
 #ifndef FILE_SOCKET_SEEN
 #define FILE_SOCKET_SEEN
 
+#include "common_defs.h"
 #include <sys/types.h>
 
 /****************************************************************************/
@@ -60,7 +61,7 @@ typedef struct socket_id_s socket_id_t;
 /****************************************************************************/
 
 void* socket_udp_open(int type, const char* host, const char* port);
-int socket_get_fd(const void* id);
+status_code_e socket_get_fd(const void* id);
 
 ssize_t socket_recv(void* id, char* buffer, size_t length);
 ssize_t socket_send(const void* id, const char* buffer, size_t length);

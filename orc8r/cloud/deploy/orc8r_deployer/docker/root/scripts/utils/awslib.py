@@ -72,16 +72,18 @@ def get_gateways(gateway_prefix: str = "agw"):
     client = boto3.client('ec2')
     gateways = []
     try:
-        instance_info = client.describe_instances(Filters=[
-            {
-                'Name': 'tag:Name',
-                'Values': [f'{gateway_prefix}*']
-            },
-            {
-                'Name': 'instance-state-name',
-                'Values': ['running']
-            }
-        ])
+        instance_info = client.describe_instances(
+            Filters=[
+                {
+                    'Name': 'tag:Name',
+                    'Values': [f'{gateway_prefix}*'],
+                },
+                {
+                    'Name': 'instance-state-name',
+                    'Values': ['running'],
+                },
+            ],
+        )
         for reservation in instance_info["Reservations"]:
             gateway_id = ""
             hostname = ""
@@ -102,16 +104,18 @@ def get_bastion_ip(gateway_prefix: str = "agw"):
     client = boto3.client('ec2')
     gateways = []
     try:
-        instance_info = client.describe_instances(Filters=[
-            {
-                'Name': 'tag:Name',
-                'Values': ['*Bridge']
-            },
-            {
-                'Name': 'instance-state-name',
-                'Values': ['running']
-            }
-        ])
+        instance_info = client.describe_instances(
+            Filters=[
+                {
+                    'Name': 'tag:Name',
+                    'Values': ['*Bridge'],
+                },
+                {
+                    'Name': 'instance-state-name',
+                    'Values': ['running'],
+                },
+            ],
+        )
         for reservation in instance_info["Reservations"]:
             for instance in reservation["Instances"]:
                 return instance['PublicIpAddress']
@@ -134,7 +138,7 @@ def verify_resources_exist(uuid: str = None):
             'Values': [uuid],
         }]
     resources = client.get_resources(
-        TagFilters=tag_filters
+        TagFilters=tag_filters,
     )
     for resource in resources['ResourceTagMappingList']:
         print(resource["ResourceARN"])

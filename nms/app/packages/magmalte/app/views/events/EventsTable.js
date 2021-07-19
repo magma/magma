@@ -87,6 +87,12 @@ type EventRowType = {
   tag: string,
 };
 
+export const EVENT_STREAM = {
+  NETWORK: 'NETWORK',
+  GATEWAY: 'GATEWAY',
+  SUBSCRIBER: 'SUBSCRIBER',
+};
+
 type EventDescriptionProps = {
   rowData: EventRowType,
 };

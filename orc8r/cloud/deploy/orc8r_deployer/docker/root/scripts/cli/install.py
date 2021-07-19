@@ -25,8 +25,10 @@ from utils.ansiblelib import AnsiblePlay, run_playbook
 from utils.common import execute_command
 
 
-def tf_install(constants: dict, warn: bool = True,
-               max_retries: int = 3) -> int:
+def tf_install(
+    constants: dict, warn: bool = True,
+    max_retries: int = 2,
+) -> int:
     """Run through terraform installation
 
     Args:
@@ -44,7 +46,8 @@ def tf_install(constants: dict, warn: bool = True,
         "terraform",
         "apply",
         "-target=module.orc8r-app.null_resource.orc8r_seed_secrets",
-        "-auto-approve"]
+        "-auto-approve",
+    ]
     tf_orc8r_app = ["terraform", "apply", "-auto-approve"]
 
     for tf_cmd in [tf_init, tf_orc8r, tf_secrets, tf_orc8r_app]:
@@ -66,17 +69,20 @@ def tf_install(constants: dict, warn: bool = True,
         # set the kubectl after bringing up the infra
         if tf_cmd in (tf_orc8r, tf_orc8r_app):
             kubeconfigs = glob.glob(
-                constants['project_dir'] + "/kubeconfig_*")
+                constants['project_dir'] + "/kubeconfig_*",
+            )
             if len(kubeconfigs) != 1:
                 print_error_msg(
                     "zero or multiple kubeconfigs found %s!!!" %
-                    repr(kubeconfigs))
+                    repr(kubeconfigs),
+                )
                 return
             kubeconfig = kubeconfigs[0]
             os.environ['KUBECONFIG'] = kubeconfig
             print_info_msg(
                 'For accessing kubernetes cluster, set'
-                f' `export KUBECONFIG={kubeconfig}`')
+                f' `export KUBECONFIG={kubeconfig}`',
+            )
 
         print_success_msg(f"Command {cmd} ran successfully")
     else:
@@ -96,7 +102,7 @@ def install(ctx):
         else:
             print_warning_msg(f"Skipping installation prechecks")
 
-    tf_install(ctx.obj)
+        tf_install(ctx.obj)
 
 
 def precheck_cmd(constants: dict) -> list:
@@ -109,7 +115,8 @@ def precheck_cmd(constants: dict) -> list:
     return AnsiblePlay(
         playbook=f"{playbook_dir}/main.yml",
         tags=['install_precheck'],
-        extra_vars=constants)
+        extra_vars=constants,
+    )
 
 
 @install.command()

@@ -23,7 +23,7 @@
 #include "includes/MagmaService.h"
 #include "includes/MConfigLoader.h"
 #include "OperationalStatesHandler.h"
-#include "includes/PolicyLoader.h"
+#include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
 #include "SentryWrappers.h"
@@ -32,6 +32,7 @@
 #include "SessionManagerServer.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "StatsPoller.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -41,6 +42,8 @@
 #define MAX_USAGE_REPORTING_THRESHOLD 1.0
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
+#define DEFAULT_SESSION_MAX_RTX_COUNT 3
+#define DEFAULT_POLL_INTERVAL_TIME 5
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -49,7 +52,6 @@ extern "C" void __gcov_flush(void);
 static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-  mconfig.set_relay_enabled(false);
   mconfig.set_gx_gy_relay_enabled(false);
   auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
   wallet_config->set_terminate_on_exhaust(false);
@@ -202,13 +204,25 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
 
-  initialize_sentry();
+  if ((config["print_grpc_payload"].IsDefined())) {
+    set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
+  }
 
-  bool converged_access = false;
+  initialize_sentry(mconfig.sentry_config());
+
+  bool converged_access          = false;
+  uint32_t session_max_rtx_count = 0;
   // Check converged sessiond is enabled or not
   if ((config["converged_access"].IsDefined()) &&
       (config["converged_access"].as<bool>())) {
     converged_access = true;
+  }
+  if (config["session_rtx_count"].IsDefined()) {
+    session_max_rtx_count = config["session_rtx_count"].as<long>();
+  } else {
+    MLOG(MWARNING)
+        << "session_rtx_count is not defined in conf,set default value";
+    session_max_rtx_count = DEFAULT_SESSION_MAX_RTX_COUNT;
   }
   MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
@@ -246,6 +260,12 @@ int main(int argc, char* argv[]) {
     eventd_client.rpc_response_loop();
   });
 
+  auto mobilityd_client = std::make_shared<magma::AsyncMobilitydClient>();
+  std::thread mobilityd_response_handling_thread([&]() {
+    MLOG(MINFO) << "Started MobilityD response thread";
+    mobilityd_client->rpc_response_loop();
+  });
+
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
   std::shared_ptr<magma::AsyncAmfServiceClient> amf_srv_client;
@@ -277,11 +297,8 @@ int main(int argc, char* argv[]) {
 
   // Setup SessionReporter which talks to the policy component
   // (FeG+PCRF/PolicyDB).
-  bool gx_gy_relay_enabled = mconfig.relay_enabled();
-  if (!gx_gy_relay_enabled) {
-    gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
-  }
-  auto reporter = std::make_shared<magma::SessionReporterImpl>(
+  bool gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
+  auto reporter            = std::make_shared<magma::SessionReporterImpl>(
       evb, get_controller_channel(config, gx_gy_relay_enabled));
   std::thread policy_response_handler([&]() {
     MLOG(MINFO) << "Started reporter thread";
@@ -321,6 +338,24 @@ int main(int argc, char* argv[]) {
     }
   });
 
+  // Start off a thread to periodically poll stats from Pipelined
+  // every fixed interval of time
+  std::thread periodic_stats_requester_thread;
+  uint32_t interval;
+  if (config["enable_pull_stats"].IsDefined() &&
+      config["enable_pull_stats"].as<bool>()) {
+    auto periodic_stats_requester   = std::make_shared<magma::StatsPoller>();
+    periodic_stats_requester_thread = std::thread([&]() {
+      // random value assigned for interval period, the value will be loaded
+      // from a config field later
+      interval = DEFAULT_POLL_INTERVAL_TIME;
+      if (config["poll_stats_interval"].IsDefined()) {
+        interval = config["poll_stats_interval"].as<uint32_t>();
+      }
+      periodic_stats_requester->start_loop(local_enforcer, interval);
+    });
+  }
+
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler
   // and the SessionProxyHandler (RARs)
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
@@ -357,9 +392,11 @@ int main(int argc, char* argv[]) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
     extern std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
+    std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
-        config["session_force_termination_timeout_ms"].as<long>());
+        rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
+        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
+        session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
@@ -376,7 +413,7 @@ int main(int argc, char* argv[]) {
     // 5G related upf  async service framework creation
     auto conv_upf_message_handler =
         std::make_unique<magma::UpfMsgManageHandler>(
-            conv_session_enforcer, *session_store);
+            conv_session_enforcer, mobilityd_client, *session_store);
     // 5G  upf converged service to handler set message from UPF
     conv_upf_message_service = new magma::SetInterfaceForUserPlaneAsyncService(
         server.GetNewCompletionQueue(), std::move(conv_upf_message_handler));
@@ -452,6 +489,9 @@ int main(int argc, char* argv[]) {
 
   // Clean up threads & resources
   policy_response_handler.join();
+  if (periodic_stats_requester_thread.joinable()) {
+    periodic_stats_requester_thread.join();
+  }
   local_thread.join();
   proxy_thread.join();
   pipelined_response_handling_thread.join();
@@ -470,6 +510,7 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     free(conv_upf_message_service);
   }
+  mobilityd_response_handling_thread.join();
   delete session_store;
 
   shutdown_sentry();

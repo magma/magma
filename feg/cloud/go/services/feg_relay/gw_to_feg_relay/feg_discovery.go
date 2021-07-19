@@ -53,7 +53,7 @@ func RetrieveGatewayIdentity(inCtx context.Context) (*protos.Identity_Gateway, e
 // 5) if not Neutral Host or user PLMN ID doesn't match any configured NH route - FindServingFeGHwId finds the serving
 //    FeG ID of the serving FeG Network
 // Returns serving Federation Gateway ID or error
-func FindServingFeGHwId(agNwID, imsi string) (string, error) {
+func FindServingFeGHwId(ctx context.Context, agNwID, imsi string) (string, error) {
 	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType, serdes.Network)
 	if err != nil {
 		return "", status.Errorf(
@@ -86,7 +86,7 @@ func FindServingFeGHwId(agNwID, imsi string) (string, error) {
 			if len(networkFegConfigs.NhRoutes) > 0 && len(imsi) >= MinPlmnIdLen {
 				// findServingNHFeg returns serving NH FeG Hardware ID if found or an empty string
 				// given NH Routing map, calling NH network ID and user IMSI
-				nhFegHwId := findServingNHFeg(networkFegConfigs.NhRoutes, servingFegNetwork, imsi)
+				nhFegHwId := findServingNHFeg(ctx, networkFegConfigs.NhRoutes, servingFegNetwork, imsi)
 				if len(nhFegHwId) > 0 {
 					// Return here only if NH FeG was successfully found
 					// in all other cases - fail back to the legacy logic and try to relay the request to the
@@ -104,7 +104,7 @@ func FindServingFeGHwId(agNwID, imsi string) (string, error) {
 					glog.Infof("no valid IMSI (%s) for Gateway Network: %s", imsi, agNwID)
 				}
 			}
-			return getActiveFeGForNetwork(servingFegNetwork)
+			return getActiveFeGForNetwork(ctx, servingFegNetwork)
 		}
 	}
 	return "", status.Errorf(
@@ -114,7 +114,7 @@ func FindServingFeGHwId(agNwID, imsi string) (string, error) {
 
 // findServingNHFeg returns serving NH FeG Hardware ID if found or an empty string given NH Routing map,
 // calling NH network ID and user IMSI
-func findServingNHFeg(routes models.NhRoutes, nhNetworkId, imsi string) string {
+func findServingNHFeg(ctx context.Context, routes models.NhRoutes, nhNetworkId, imsi string) string {
 	var (
 		servingFegNetworkId string
 		found               bool
@@ -146,7 +146,7 @@ func findServingNHFeg(routes models.NhRoutes, nhNetworkId, imsi string) string {
 	}
 	for _, network := range networkFegConfigs.ServedNhIds {
 		if nhNetworkId == network {
-			fegHwId, err := getActiveFeGForNetwork(servingFegNetworkId)
+			fegHwId, err := getActiveFeGForNetwork(ctx, servingFegNetworkId)
 			if err != nil {
 				glog.Errorf(
 					"failed to find active FeG in '%s' NH network for IMSI: %s: %v", servingFegNetworkId, imsi, err)

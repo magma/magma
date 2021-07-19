@@ -36,7 +36,8 @@ Description
 #ifndef FILE_EMM_CN_SEEN
 #define FILE_EMM_CN_SEEN
 
+#include "common_defs.h"
 #include "emm_cnDef.h"
-int emm_cn_send(const emm_cn_t* msg);
+status_code_e emm_cn_send(const emm_cn_t* msg);
 
 #endif /* FILE_EMM_CN_SEEN */

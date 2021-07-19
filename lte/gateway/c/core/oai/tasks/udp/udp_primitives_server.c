@@ -146,8 +146,8 @@ static void udp_server_receive_and_process(
       udp_data_ind_t* udp_data_ind_p;
       AssertFatal(
           sizeof(udp_sock_pP->buffer) >= bytes_received, "UDP BUFFER OVERFLOW");
-      message_p = itti_alloc_new_message(TASK_UDP, UDP_DATA_IND);
-      DevAssert(message_p != NULL);
+      message_p =
+          DEPRECATEDitti_alloc_new_message_fatal(TASK_UDP, UDP_DATA_IND);
       udp_data_ind_p = &message_p->ittiMsg.udp_data_ind;
       memcpy(udp_data_ind_p->msgBuf, udp_sock_pP->buffer, bytes_received);
 
@@ -491,7 +491,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     default: {
       OAILOG_DEBUG(
-          LOG_UDP, "Unkwnon message ID %d:%s\n",
+          LOG_UDP, "Unknown message ID %d:%s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }

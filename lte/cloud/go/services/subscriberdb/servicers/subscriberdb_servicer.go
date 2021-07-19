@@ -15,9 +15,12 @@ package servicers
 
 import (
 	"context"
-	"sort"
 
+	"magma/lte/cloud/go/services/subscriberdb"
+
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -25,17 +28,95 @@ import (
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
 )
 
-type subscriberdbServicer struct{}
+type subscriberdbServicer struct {
+	flatDigestEnabled     bool
+	changesetSizeTheshold int
+	digestStore           storage.DigestStore
+	perSubDigestStore     *storage.PerSubDigestStore
+}
 
-const defaultSubProfile = "default"
+func NewSubscriberdbServicer(
+	config subscriberdb.Config,
+	digestStore storage.DigestStore,
+	perSubDigestStore *storage.PerSubDigestStore,
+) lte_protos.SubscriberDBCloudServer {
+	servicer := &subscriberdbServicer{
+		flatDigestEnabled:     config.FlatDigestEnabled,
+		changesetSizeTheshold: config.ChangesetSizeTheshold,
+		digestStore:           digestStore,
+		perSubDigestStore:     perSubDigestStore,
+	}
+	return servicer
+}
 
-func NewSubscriberdbServicer() lte_protos.SubscriberDBCloudServer {
-	return &subscriberdbServicer{}
+func (s *subscriberdbServicer) CheckSubscribersInSync(
+	ctx context.Context,
+	req *lte_protos.CheckSubscribersInSyncRequest,
+) (*lte_protos.CheckSubscribersInSyncResponse, error) {
+	gateway := protos.GetClientGateway(ctx)
+	if gateway == nil {
+		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
+	}
+	if !gateway.Registered() {
+		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
+	}
+	networkID := gateway.NetworkId
+	_, inSync := s.getDigestInfo(req.FlatDigest, networkID)
+
+	res := &lte_protos.CheckSubscribersInSyncResponse{InSync: inSync}
+	return res, nil
+}
+
+func (s *subscriberdbServicer) SyncSubscribers(
+	ctx context.Context,
+	req *lte_protos.SyncSubscribersRequest,
+) (*lte_protos.SyncSubscribersResponse, error) {
+	gateway := protos.GetClientGateway(ctx)
+	if gateway == nil {
+		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
+	}
+	if !gateway.Registered() {
+		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
+	}
+	networkID := gateway.NetworkId
+	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
+	if err != nil {
+		return nil, err
+	}
+
+	flatDigest, err := storage.GetDigest(s.digestStore, networkID)
+	if err != nil {
+		return nil, err
+	}
+
+	clientPerSubDigests := req.PerSubDigests
+	cloudPerSubDigests, err := s.perSubDigestStore.GetDigest(networkID)
+	if err != nil {
+		return nil, err
+	}
+	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientPerSubDigests, cloudPerSubDigests)
+	if len(toRenew) > s.changesetSizeTheshold {
+		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
+	}
+	sids := funk.Keys(toRenew).([]string)
+	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &lte_protos.SyncSubscribersResponse{
+		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
+		PerSubDigests: cloudPerSubDigests,
+		ToRenew:       subProtosById,
+		Deleted:       deleted,
+		Resync:        false,
+	}
+	return res, nil
 }
 
 // ListSubscribers returns a page of subscribers and a token to be used on
@@ -53,141 +134,76 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
-	gatewayID := gateway.LogicalId
-	lc := configurator.EntityLoadCriteria{
-		PageSize:           req.PageSize,
-		PageToken:          req.PageToken,
-		LoadConfig:         true,
-		LoadAssocsToThis:   true,
-		LoadAssocsFromThis: true,
-	}
-	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(
-		networkID, lte.SubscriberEntityType, lc, serdes.Entity,
-	)
+
+	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
 	if err != nil {
-		return nil, errors.Wrapf(err, "load subscribers in network of gateway %s", networkID)
+		return nil, err
 	}
+	subProtos, nextToken, err := subscriberdb.LoadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
+	if err != nil {
+		return nil, err
+	}
+
+	flatDigest := &lte_protos.Digest{Md5Base64Digest: ""}
+	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
+	// The digests are sent back during the request for the first page of subscriber data
+	if req.PageToken == "" {
+		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
+		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
+		if err != nil {
+			glog.Errorf("Failed to get per-sub digests from store for network %+v: %+v", networkID, err)
+		}
+	}
+
+	listRes := &lte_protos.ListSubscribersResponse{
+		Subscribers:   subProtos,
+		NextPageToken: nextToken,
+		FlatDigest:    flatDigest,
+		PerSubDigests: perSubDigests,
+	}
+	return listRes, nil
+}
+
+// getDigestInfo returns the correctly formatted Digest and NoUpdates values
+// according to the client digest.
+func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, networkID string) (*lte_protos.Digest, bool) {
+	// The flat digest functionality is currently placed behind a feature flag
+	if !s.flatDigestEnabled {
+		return &lte_protos.Digest{Md5Base64Digest: ""}, false
+	}
+
+	digest, err := storage.GetDigest(s.digestStore, networkID)
+	// If digest generation fails, the error is swallowed to not affect the main functionality
+	if err != nil {
+		glog.Errorf("Generating digest for network %s failed: %+v", networkID, err)
+		return &lte_protos.Digest{Md5Base64Digest: ""}, false
+	}
+
+	noUpdates := digest != "" && digest == clientDigest.GetMd5Base64Digest()
+	digestProto := &lte_protos.Digest{Md5Base64Digest: digest}
+	return digestProto, noUpdates
+}
+
+func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
+	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
 	lteGateway, err := configurator.LoadEntity(
 		networkID, lte.CellularGatewayEntityType, gatewayID,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "load cellular gateway for gateway %s", gatewayID)
-	}
-	apnsByName, apnResourcesByAPN, err := loadAPNs(lteGateway)
-	if err != nil {
-		return nil, err
+		return nil, nil, errors.Wrapf(err, "load cellular gateway for gateway %s", gatewayID)
 	}
 
-	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
-	for _, sub := range subEnts {
-		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
-		if err != nil {
-			return nil, err
-		}
-		subProto.NetworkId = &protos.NetworkID{Id: networkID}
-		subProtos = append(subProtos, subProto)
-	}
-	listRes := &lte_protos.ListSubscribersResponse{
-		Subscribers:   subProtos,
-		NextPageToken: nextToken,
-	}
-	return listRes, nil
-}
-
-func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
-	apns, _, err := configurator.LoadAllEntitiesOfType(
-		gateway.NetworkID, lte.APNEntityType,
-		configurator.EntityLoadCriteria{LoadConfig: true},
-		serdes.Entity,
-	)
+	apnsByName, err := subscriberdb.LoadApnsByName(networkID)
 	if err != nil {
 		return nil, nil, err
 	}
-	apnsByName := map[string]*lte_models.ApnConfiguration{}
-	for _, ent := range apns {
-		apnsByName[ent.Key] = ent.Config.(*lte_models.ApnConfiguration)
-	}
-
-	apnResources, err := lte_models.LoadAPNResources(gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	apnResources, err := lte_models.LoadAPNResources(networkID, lteGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return apnsByName, apnResources, nil
-}
-
-func convertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[string]*lte_models.ApnConfiguration, apnResources lte_models.ApnResources) (*lte_protos.SubscriberData, error) {
-	subData := &lte_protos.SubscriberData{}
-	t, err := lte_protos.SidProto(ent.Key)
-	if err != nil {
-		return nil, err
-	}
-
-	subData.Sid = t
-	if ent.Config == nil {
-		return subData, nil
-	}
-
-	cfg := ent.Config.(*models.SubscriberConfig)
-	subData.Lte = &lte_protos.LTESubscription{
-		State:    lte_protos.LTESubscription_LTESubscriptionState(lte_protos.LTESubscription_LTESubscriptionState_value[cfg.Lte.State]),
-		AuthAlgo: lte_protos.LTESubscription_LTEAuthAlgo(lte_protos.LTESubscription_LTEAuthAlgo_value[cfg.Lte.AuthAlgo]),
-		AuthKey:  cfg.Lte.AuthKey,
-		AuthOpc:  cfg.Lte.AuthOpc,
-	}
-
-	if cfg.Lte.SubProfile != "" {
-		subData.SubProfile = string(cfg.Lte.SubProfile)
-	} else {
-		subData.SubProfile = defaultSubProfile
-	}
-
-	for _, assoc := range ent.ParentAssociations {
-		if assoc.Type == lte.BaseNameEntityType {
-			subData.Lte.AssignedBaseNames = append(subData.Lte.AssignedBaseNames, assoc.Key)
-		} else if assoc.Type == lte.PolicyRuleEntityType {
-			subData.Lte.AssignedPolicies = append(subData.Lte.AssignedPolicies, assoc.Key)
-		}
-	}
-
-	// Construct the non-3gpp profile
-	non3gpp := &lte_protos.Non3GPPUserProfile{
-		ApnConfig: make([]*lte_protos.APNConfiguration, 0, len(ent.Associations)),
-	}
-	for _, assoc := range ent.Associations {
-		apnConfig, apnFound := apnConfigs[assoc.Key]
-		if !apnFound {
-			continue
-		}
-		var apnResource *lte_protos.APNConfiguration_APNResource
-		if apnResourceModel, ok := apnResources[assoc.Key]; ok {
-			apnResource = apnResourceModel.ToProto()
-		}
-		apnProto := &lte_protos.APNConfiguration{
-			ServiceSelection: assoc.Key,
-			Ambr: &lte_protos.AggregatedMaximumBitrate{
-				MaxBandwidthUl: *(apnConfig.Ambr.MaxBandwidthUl),
-				MaxBandwidthDl: *(apnConfig.Ambr.MaxBandwidthDl),
-			},
-			QosProfile: &lte_protos.APNConfiguration_QoSProfile{
-				ClassId:                 *(apnConfig.QosProfile.ClassID),
-				PriorityLevel:           *(apnConfig.QosProfile.PriorityLevel),
-				PreemptionCapability:    *(apnConfig.QosProfile.PreemptionCapability),
-				PreemptionVulnerability: *(apnConfig.QosProfile.PreemptionVulnerability),
-			},
-			Resource: apnResource,
-		}
-		if staticIP, found := cfg.StaticIps[assoc.Key]; found {
-			apnProto.AssignedStaticIp = string(staticIP)
-		}
-		non3gpp.ApnConfig = append(non3gpp.ApnConfig, apnProto)
-	}
-	sort.Slice(non3gpp.ApnConfig, func(i, j int) bool {
-		return non3gpp.ApnConfig[i].ServiceSelection < non3gpp.ApnConfig[j].ServiceSelection
-	})
-	subData.Non_3Gpp = non3gpp
-
-	return subData, nil
 }

@@ -226,7 +226,7 @@ func reportEnodebState(t *testing.T, networkID string, gatewayID string, enodebS
 	req.TimeReported = uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.State)
 	assert.NoError(t, err)
-	err = lte_service.SetEnodebState(networkID, gatewayID, enodebSerial, serializedEnodebState)
+	err = lte_service.SetEnodebState(context.Background(), networkID, gatewayID, enodebSerial, serializedEnodebState)
 	assert.NoError(t, err)
 }
 

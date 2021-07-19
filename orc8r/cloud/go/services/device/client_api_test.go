@@ -14,6 +14,7 @@
 package device_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -67,7 +68,7 @@ func TestDeviceService(t *testing.T) {
 	updateDevicesAssertNoError(t, networkID, bundle1)
 
 	// Test deletion
-	err := device.DeleteDevices(networkID, []storage.TypeAndKey{{Type: bundle1.deviceType, Key: bundle1.deviceKey}})
+	err := device.DeleteDevices(context.Background(), networkID, []storage.TypeAndKey{{Type: bundle1.deviceType, Key: bundle1.deviceKey}})
 	assert.NoError(t, err)
 	assertDevicesNotRegistered(t, bundle1)
 	assertDevicesAreRegistered(t, bundle2)
@@ -75,7 +76,7 @@ func TestDeviceService(t *testing.T) {
 
 func assertDevicesAreRegistered(t *testing.T, bundles ...idAndInfo) {
 	for _, bundle := range bundles {
-		actualInfo, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey, serdes)
+		actualInfo, err := device.GetDevice(context.Background(), networkID, bundle.deviceType, bundle.deviceKey, serdes)
 		assert.NoError(t, err)
 		assert.Equal(t, bundle.info, actualInfo)
 	}
@@ -83,26 +84,26 @@ func assertDevicesAreRegistered(t *testing.T, bundles ...idAndInfo) {
 
 func assertDevicesNotRegistered(t *testing.T, bundles ...idAndInfo) {
 	for _, bundle := range bundles {
-		_, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey, serdes)
+		_, err := device.GetDevice(context.Background(), networkID, bundle.deviceType, bundle.deviceKey, serdes)
 		assert.Error(t, err)
-		exists, err := device.DoesDeviceExist(networkID, bundle.deviceType, bundle.deviceKey)
+		exists, err := device.DoesDeviceExist(context.Background(), networkID, bundle.deviceType, bundle.deviceKey)
 		assert.NoError(t, err)
 		assert.False(t, exists)
 	}
 }
 
 func registerDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
+	err := device.RegisterDevice(context.Background(), networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
 	assert.NoError(t, err)
 }
 
 func registerDevicesAssertError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
+	err := device.RegisterDevice(context.Background(), networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
 	assert.Error(t, err)
 }
 
 func updateDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.UpdateDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
+	err := device.UpdateDevice(context.Background(), networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
 	assert.NoError(t, err)
 }
 

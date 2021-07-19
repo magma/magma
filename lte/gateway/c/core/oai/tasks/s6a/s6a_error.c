@@ -34,7 +34,7 @@
 
 struct avp;
 
-int s6a_parse_experimental_result(
+status_code_e s6a_parse_experimental_result(
     struct avp* avp, s6a_experimental_result_t* ptr) {
   struct avp_hdr* hdr;
   struct avp* child_avp = NULL;

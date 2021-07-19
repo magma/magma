@@ -190,7 +190,7 @@ int decode_identity_type_2_ie(
       buffer, IDENTITY_TYPE_2_IE_MAX_LENGTH, len);
 
   if (is_ie_present) {
-    AssertFatal(0, "No IEI for Identity type 2");
+    Fatal("No IEI for Identity type 2");
     CHECK_IEI_DECODER((*buffer & 0xf0), 0);
   }
 
@@ -212,7 +212,7 @@ int encode_identity_type_2_ie(
       buffer, IDENTITY_TYPE_2_IE_MAX_LENGTH, len);
   *(buffer + encoded) = 0x00;
   if (is_ie_present) {
-    AssertFatal(0, "No IEI for Identity type 2");
+    Fatal("No IEI for Identity type 2");
     *(buffer + encoded) |= (0 & 0xf0);
   }
   *(buffer + encoded) |= (*identitytype2 & 0x7);

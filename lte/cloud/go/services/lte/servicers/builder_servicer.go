@@ -16,6 +16,7 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"sort"
 
 	feg "magma/feg/cloud/go/feg"
@@ -24,11 +25,14 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
+	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
@@ -41,10 +45,14 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-type builderServicer struct{}
+type builderServicer struct {
+	defaultSubscriberdbSyncInterval uint32
+}
 
-func NewBuilderServicer() builder_protos.MconfigBuilderServer {
-	return &builderServicer{}
+func NewBuilderServicer(config lte_service.Config) builder_protos.MconfigBuilderServer {
+	return &builderServicer{
+		defaultSubscriberdbSyncInterval: config.DefaultSubscriberdbSyncInterval,
+	}
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
@@ -113,6 +121,10 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	if err != nil {
 		return nil, err
 	}
+	congestionControlEnabled := nwEpc.CongestionControlEnabled
+	if gwEpc.CongestionControlEnabled != nil {
+		congestionControlEnabled = gwEpc.CongestionControlEnabled
+	}
 
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
@@ -164,6 +176,8 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
+			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
+			SentryConfig:             getNetworkSentryConfig(&network),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -183,6 +197,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
+			SyncInterval:    s.getRandomizedSyncInterval(cellGW.Key, nwEpc, gwEpc),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -193,6 +208,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			SentryConfig: getNetworkSentryConfig(&network),
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 		"liagentd": &lte_mconfig.LIAgentD{
@@ -588,8 +604,12 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 
 	for _, ent := range ents {
 		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
-		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
+		if task.TaskDetails.DeliveryType == nprobe_models.NetworkProbeTaskDetailsDeliveryTypeEventsOnly {
+			// data plane is not requested.
+			continue
+		}
 
+		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
 		switch task.TaskDetails.TargetType {
 		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImsi:
 			liUes.Imsis = append(liUes.Imsis, task.TaskDetails.TargetID)
@@ -600,4 +620,59 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 		}
 	}
 	return npTasks, liUes
+}
+
+func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryConfig {
+	iSentryConfig, found := network.Configs[orc8r.NetworkSentryConfig]
+	if !found || iSentryConfig == nil {
+		return nil
+	}
+	sentryConfig, ok := iSentryConfig.(*models.NetworkSentryConfig)
+	if !ok {
+		return nil
+	}
+	return &lte_mconfig.SentryConfig{
+		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog: sentryConfig.UploadMmeLog,
+		UrlNative:    string(sentryConfig.URLNative),
+		UrlPython:    string(sentryConfig.URLPython),
+	}
+}
+
+// getSyncInterval takes network-wide subscriberdb sync interval in seconds and overrides it if also set for gateway.
+// If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/lte.yml
+func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	// minSyncInterval enforces a minimum sync interval to prevent too many
+	// sync requests if operator sets the default in lte.yml to lower than 60
+	const minSyncInterval = 60
+	gwSyncInterval := uint32(gwEpc.SubscriberdbSyncInterval)
+	nwSyncInterval := uint32(nwEpc.SubscriberdbSyncInterval)
+
+	if gwSyncInterval >= minSyncInterval {
+		return gwSyncInterval
+	}
+	if nwSyncInterval >= minSyncInterval {
+		return nwSyncInterval
+	}
+	if s.defaultSubscriberdbSyncInterval >= minSyncInterval {
+		return s.defaultSubscriberdbSyncInterval
+	}
+	return minSyncInterval
+}
+
+// getRandomizedSyncInterval returns the interval received from getSyncInterval as seconds and increases it by a random
+// delta in the range [0, getSyncInterval() / 5.0]. Increased sync interval ameliorates the thundering herd effect at
+// the orc8r. Delta is deterministic based on gwKey
+func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
+
+	// FNV-1 is a non-cryptographic hash function that is fast and very simple to implement
+	h := fnv.New32a()
+	_, err := h.Write([]byte(gwKey))
+	if err != nil {
+		return syncInterval
+	}
+	multiplier := float32(h.Sum32()%100) / 100.0
+	delta := multiplier * (float32(syncInterval) / 5.0)
+	return syncInterval + uint32(delta)
 }

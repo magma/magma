@@ -14,6 +14,7 @@ limitations under the License.
 package main
 
 import (
+	context2 "context"
 	"flag"
 	"fmt"
 	"os"
@@ -77,7 +78,7 @@ func handleCommands(cmd string) error {
 }
 
 func getHealth(networkID string, gatewayID string) error {
-	healthStats, err := health.GetHealth(networkID, gatewayID)
+	healthStats, err := health.GetHealth(context2.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -103,7 +104,7 @@ func getHealth(networkID string, gatewayID string) error {
 }
 
 func getActiveGateway(networkID string) error {
-	activeID, err := health.GetActiveGateway(networkID)
+	activeID, err := health.GetActiveGateway(context2.Background(), networkID)
 	if err != nil {
 		return err
 	}

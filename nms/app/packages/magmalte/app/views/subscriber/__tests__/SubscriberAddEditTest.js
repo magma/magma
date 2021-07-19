@@ -426,10 +426,12 @@ describe('<AddSubscriberButton />', () => {
 
     // Save subscriber
     fireEvent.click(getByTestId('saveSubscriber'));
-    expect(MagmaAPIBindings.postLteByNetworkIdSubscribers).toHaveBeenCalledWith(
-      {
-        networkId: 'test',
-        subscriber: {
+    expect(
+      MagmaAPIBindings.postLteByNetworkIdSubscribersV2,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      subscribers: [
+        {
           active_apns: undefined,
           active_policies: undefined,
           id: 'IMSI00000000001004',
@@ -442,8 +444,8 @@ describe('<AddSubscriberButton />', () => {
           },
           name: 'IMSI00000000001004',
         },
-      },
-    );
+      ],
+    });
   });
 
   it('Verify Subscriber edit', async () => {

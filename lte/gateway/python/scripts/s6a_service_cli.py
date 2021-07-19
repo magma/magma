@@ -34,15 +34,20 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for S6A Service',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
-    parser_delete_subscriber = subparsers.add_parser('delete',
-                                                     help='Delete Subscriber')
+    parser_delete_subscriber = subparsers.add_parser(
+        'delete',
+        help='Delete Subscriber',
+    )
     # usage: ./python/scripts/s6a_service_cli.py delete IMSI12345 IMSI23456 IMSI34567
-    parser_delete_subscriber.add_argument('imsi_list', nargs='+',
-                                          help='imsis to delete')
+    parser_delete_subscriber.add_argument(
+        'imsi_list', nargs='+',
+        help='imsis to delete',
+    )
 
     # Add function callbacks
     parser_delete_subscriber.set_defaults(func=delete_subscriber)

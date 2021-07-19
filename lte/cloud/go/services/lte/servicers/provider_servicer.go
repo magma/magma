@@ -50,7 +50,7 @@ func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamReq
 		return nil, fmt.Errorf("GetUpdates failed: unknown stream name provided: %s", req.GetStreamName())
 	}
 
-	updates, err := streamer.GetUpdates(req.GetGatewayId(), req.GetExtraArgs())
+	updates, err := streamer.GetUpdates(ctx, req.GetGatewayId(), req.GetExtraArgs())
 	if err != nil {
 		return &protos.DataUpdateBatch{}, err
 	}

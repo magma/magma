@@ -109,7 +109,7 @@ prometheus:
 
   image:
     repository: docker.io/prom/prometheus
-    tag: v2.20.1
+    tag: v2.27.1
     pullPolicy: IfNotPresent
 
   resources: {}

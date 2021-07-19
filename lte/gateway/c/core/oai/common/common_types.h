@@ -49,6 +49,8 @@
 #include "security_types.h"
 #include "common_dim.h"
 #include "3gpp_24.008.h"
+#include "TrackingAreaIdentity.h"
+#include "common_defs.h"
 
 //------------------------------------------------------------------------------
 typedef uint16_t sctp_stream_id_t;
@@ -67,13 +69,10 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 //------------------------------------------------------------------------------
 // UE S1AP IDs
-
 #define INVALID_ENB_UE_S1AP_ID_KEY 0xFFFFFFFFFFFFFFFF
 #define ENB_UE_S1AP_ID_MASK 0x00FFFFFF
-#define ENB_UE_S1AP_ID_FMT "0x%06" PRIX32
-
-#define MME_UE_S1AP_ID_FMT "0x%08" PRIX32
-
+#define ENB_UE_S1AP_ID_FMT "%u"
+#define MME_UE_S1AP_ID_FMT "%u"
 #define COMP_S1AP_ID_FMT "0x%016" PRIX64
 
 /* INVALID_MME_UE_S1AP_ID
@@ -86,12 +85,10 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 // UE NGAP IDs
 #define INVALID_AMF_UE_NGAP_ID 0x0
-
 #define INVALID_GNB_UE_NGAP_ID_KEY 0xFFFFFFFFFFFFFFFF
 #define GNB_UE_NGAP_ID_MASK 0x00FFFFFF
-#define GNB_UE_NGAP_ID_FMT "0x%06" PRIX32
-
-#define AMF_UE_NGAP_ID_FMT "0x%08" PRIX32
+#define GNB_UE_NGAP_ID_FMT "%u"
+#define AMF_UE_NGAP_ID_FMT "%u"
 
 /* INVALID_AMF_UE_NGAP_ID
  * Any value between 0..2^32-1, is allowed/valid as per 3GPP spec 36.413.
@@ -109,7 +106,7 @@ typedef uint64_t enb_s1ap_id_key_t;
 //------------------------------------------------------------------------------
 // TEIDs
 typedef uint32_t teid_t;
-#define TEID_FMT "0x%" PRIX32
+#define TEID_FMT "%u"
 #define TEID_SCAN_FMT SCNx32
 typedef teid_t s11_teid_t;
 typedef teid_t s1u_teid_t;
@@ -202,6 +199,7 @@ typedef struct supported_features_s {
   bool external_identifier : 1;
 #define FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT (1U)
   bool nr_as_secondary_rat : 1;
+  bool regional_subscription : 1;
 } supported_features_t;
 
 typedef uint64_t bitrate_t;
@@ -278,6 +276,12 @@ typedef struct {
 } ip_address_t;
 
 struct fteid_s;
+
+typedef struct {
+#define ZONE_CODE_LEN 2
+  uint8_t zone_code[ZONE_CODE_LEN];
+} regional_subscription_t;
+
 bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid);
 void get_fteid_ip_address(
     const struct fteid_s* const fteid, ip_address_t* const ip_address);
@@ -391,6 +395,9 @@ typedef struct {
   apn_config_profile_t apn_config_profile;
   rau_tau_timer_t rau_tau_timer;
   charging_characteristics_t default_charging_characteristics;
+#define MAX_REGIONAL_SUB 10
+  uint8_t num_zcs;
+  regional_subscription_t reg_sub[MAX_REGIONAL_SUB];
 } subscription_data_t;
 
 typedef struct authentication_info_s {
@@ -437,5 +444,11 @@ typedef enum {
 #include "nas/commonDef.h"
 
 struct fteid_s;
+
+typedef struct tac_list_per_sac_s {
+  uint8_t num_tac_entries;
+#define MAX_TACS_PER_SAC 10
+  tac_t tacs[MAX_TACS_PER_SAC];
+} tac_list_per_sac_t;
 
 #endif /* FILE_COMMON_TYPES_SEEN */

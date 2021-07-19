@@ -1,0 +1,198 @@
+---
+name: cloud-workflow
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+    paths:
+      - 'cwf/cloud/**'
+      - 'fbinternal/cloud/**'
+      - 'feg/cloud/**'
+      - 'lte/cloud/**'
+      - 'orc8r/cloud/**'
+      - 'orc8r/lib/**'
+      - 'wifi/cloud/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'cwf/cloud/**'
+      - 'fbinternal/cloud/**'
+      - 'feg/cloud/**'
+      - 'lte/cloud/**'
+      - 'orc8r/cloud/**'
+      - 'orc8r/lib/**'
+      - 'wifi/cloud/**'
+jobs:
+  # Fail if checked-in generated code doesn't match output from
+  # generation command.
+  insync-checkin:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run build.py
+        run: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --generate
+            sudo chown -R $USER $MAGMA_ROOT/*
+            git add .
+            git status
+            git diff-index --quiet HEAD
+      - name: Notify failure to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action insync-checkin failed"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+  # Fail if terraform variables, helm charts and orcl is out of sync
+  # Ensure all Helm chart values are in-sync across Orc8r deployment mechanisms
+  deploy-sync-checkin:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run build.py
+        run: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
+            ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
+      - name: Notify failure to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action deploy-sync-checkin failed"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+  # Fail if code doesn't pass formatting requirements.
+  # Upload test coverage statistics.
+  cloud-lint:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Lint cloud Go code
+        run: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --lint
+      - name: Generate test coverage
+        run: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --coverage
+      - uses: codecov/codecov-action@v1
+        with:
+          files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
+          flags: cloud_lint
+      - name: Notify failure to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-lint failed"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+  cloud-test:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run tests cloud Go
+        run: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --tests --up
+            ls ${MAGMA_ROOT}/orc8r/cloud/test-results
+        timeout-minutes: 15
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
+      - name: Notify failure to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+  orc8r-build:
+    runs-on: ubuntu-latest
+    needs:
+      - insync-checkin
+      - deploy-sync-checkin
+      - cloud-lint
+      - cloud-test
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run apt-get update
+        run: sudo apt-get update
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run build.py
+        run: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --all --nocache --parallel
+      - name: Tag and push to Docker Registry
+        if: github.ref == 'refs/heads/master'
+        # yamllint disable rule:line-length
+        run: |
+            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
+      - name: Tag and push to Jfrog Registry
+        if: github.ref == 'refs/heads/master'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+        run: |
+            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
+      - name: Notify failure to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        # yamllint enable
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action orc8r-build failed"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+      # Notify ci channel when push succeeds
+      - name: Notify success to Slack
+        if: success() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*Orchestrator images have been published*"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"

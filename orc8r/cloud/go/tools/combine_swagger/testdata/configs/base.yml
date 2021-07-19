@@ -2,10 +2,10 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/base/models
+  go-package: magma/orc8r/cloud/go/tools/combine_swagger/testdata/base/models
   dependencies: []
   temp-gen-filename: base-swagger.yml
-  output-dir: orc8r/cloud/go/tools/swaggergen/testdata/base
+  output-dir: base
   types:
     - go-struct-name: BarDef
       filename: bar_def_swaggergen.actual

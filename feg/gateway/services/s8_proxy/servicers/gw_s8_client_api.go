@@ -20,6 +20,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -29,7 +30,7 @@ import (
 
 // GWS8ProxyCreateBearerRequest forwards Create Session Request to FegRelay and
 // FegRelay then to AGW
-func GWS8ProxyCreateBearerRequest(in *protos.CreateBearerRequestPgw) (*protos.CreateBearerResponsePgw, error) {
+func GWS8ProxyCreateBearerRequest(in *protos.CreateBearerRequestPgw) (*orc8r_protos.Void, error) {
 	conn, err := getCloudConn()
 	if err != nil {
 		return nil, err

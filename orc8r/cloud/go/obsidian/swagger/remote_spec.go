@@ -16,6 +16,7 @@ package swagger
 import (
 	"context"
 	"strings"
+	"time"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	merrors "magma/orc8r/lib/go/errors"
@@ -73,8 +74,12 @@ func (s *RemoteSpec) GetService() string {
 	return s.service
 }
 
+// Shorten timeout so that the caller doesn't time out (60s) if individual
+// services time out.
+const specClientDefaultTimeout = 5 * time.Second
+
 func (s *RemoteSpec) getClient() (protos.SwaggerSpecClient, error) {
-	conn, err := registry.GetConnection(s.service)
+	conn, err := registry.GetConnectionWithTimeout(s.service, specClientDefaultTimeout)
 	if err != nil {
 		initErr := merrors.NewInitError(err, s.service)
 		glog.Error(initErr)

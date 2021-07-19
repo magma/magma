@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 
+#include "common_defs.h"
 #include "NwTypes.h"
 #include "NwGtpv2c.h"
 #include "3gpp_23.003.h"
@@ -125,7 +126,7 @@ nw_rc_t gtpv2c_target_identification_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_target_identification_ie_set(
+status_code_e gtpv2c_target_identification_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const target_identification_t* target_identification);
 

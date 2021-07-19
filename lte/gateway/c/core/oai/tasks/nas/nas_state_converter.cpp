@@ -405,7 +405,8 @@ void NasStateConverter::esm_context_to_proto(
     oai::EsmContext* esm_context_proto) {
   esm_context_proto->set_n_active_ebrs(state_esm_context->n_active_ebrs);
   esm_context_proto->set_is_emergency(state_esm_context->is_emergency);
-  esm_context_proto->set_is_standalone(state_esm_context->is_standalone);
+  esm_context_proto->set_pending_standalone(
+      state_esm_context->pending_standalone);
   esm_context_proto->set_is_pdn_disconnect(
       state_esm_context->is_pdn_disconnect);
   if (state_esm_context->esm_proc_data) {
@@ -422,7 +423,8 @@ void NasStateConverter::proto_to_esm_context(
   state_esm_context->n_active_ebrs     = esm_context_proto.n_active_ebrs();
   state_esm_context->is_emergency      = esm_context_proto.is_emergency();
   state_esm_context->is_pdn_disconnect = esm_context_proto.is_pdn_disconnect();
-  state_esm_context->is_standalone     = esm_context_proto.is_standalone();
+  state_esm_context->pending_standalone =
+      esm_context_proto.pending_standalone();
   if (esm_context_proto.has_esm_proc_data()) {
     state_esm_context->esm_proc_data =
         (esm_proc_data_t*) calloc(1, sizeof(*state_esm_context->esm_proc_data));
@@ -594,6 +596,28 @@ void NasStateConverter::proto_to_voice_preference(
   // TODO
 }
 
+void NasStateConverter::ue_additional_security_capability_to_proto(
+    const ue_additional_security_capability_t*
+        state_ue_additional_security_capability,
+    oai::UeAdditionalSecurityCapability*
+        ue_additional_security_capability_proto) {
+  ue_additional_security_capability_proto->set_ea(
+      state_ue_additional_security_capability->_5g_ea);
+  ue_additional_security_capability_proto->set_ia(
+      state_ue_additional_security_capability->_5g_ia);
+}
+
+void NasStateConverter::proto_to_ue_additional_security_capability(
+    const oai::UeAdditionalSecurityCapability&
+        ue_additional_security_capability_proto,
+    ue_additional_security_capability_t*
+        state_ue_additional_security_capability) {
+  state_ue_additional_security_capability->_5g_ea =
+      ue_additional_security_capability_proto.ea();
+  state_ue_additional_security_capability->_5g_ia =
+      ue_additional_security_capability_proto.ia();
+}
+
 void NasStateConverter::nas_message_decode_status_to_proto(
     const nas_message_decode_status_t* state_nas_message_decode_status,
     oai::NasMsgDecodeStatus* nas_msg_decode_status_proto) {
@@ -687,6 +711,11 @@ void NasStateConverter::emm_attach_request_ies_to_proto(
   voice_preference_to_proto(
       state_emm_attach_request_ies->voicedomainpreferenceandueusagesetting,
       attach_request_ies_proto->mutable_voice_preference());
+  if (state_emm_attach_request_ies->ueadditionalsecuritycapability) {
+    ue_additional_security_capability_to_proto(
+        state_emm_attach_request_ies->ueadditionalsecuritycapability,
+        attach_request_ies_proto->mutable_ue_additional_security_capability());
+  }
 }
 
 void NasStateConverter::proto_to_emm_attach_request_ies(
@@ -759,6 +788,14 @@ void NasStateConverter::proto_to_emm_attach_request_ies(
   proto_to_voice_preference(
       attach_request_ies_proto.voice_preference(),
       state_emm_attach_request_ies->voicedomainpreferenceandueusagesetting);
+  if (attach_request_ies_proto.has_ue_additional_security_capability()) {
+    state_emm_attach_request_ies->ueadditionalsecuritycapability =
+        (ue_additional_security_capability_t*) calloc(
+            1, sizeof(ue_additional_security_capability_t));
+    proto_to_ue_additional_security_capability(
+        attach_request_ies_proto.ue_additional_security_capability(),
+        state_emm_attach_request_ies->ueadditionalsecuritycapability);
+  }
 }
 
 void NasStateConverter::nas_attach_proc_to_proto(
@@ -1700,6 +1737,9 @@ void NasStateConverter::emm_context_to_proto(
   ue_network_capability_to_proto(
       &state_emm_context->_ue_network_capability,
       emm_context_proto->mutable_ue_network_capability());
+  ue_additional_security_capability_to_proto(
+      &state_emm_context->ue_additional_security_capability,
+      emm_context_proto->mutable_ue_additional_security_capability());
   if (state_emm_context->t3422_arg) {
     nw_detach_data_to_proto(
         (nw_detach_data_t*) state_emm_context->t3422_arg,
@@ -1785,6 +1825,9 @@ void NasStateConverter::proto_to_emm_context(
   proto_to_ue_network_capability(
       emm_context_proto.ue_network_capability(),
       &state_emm_context->_ue_network_capability);
+  proto_to_ue_additional_security_capability(
+      emm_context_proto.ue_additional_security_capability(),
+      &state_emm_context->ue_additional_security_capability);
 
   state_emm_context->T3422.id  = NAS_TIMER_INACTIVE_ID;
   state_emm_context->T3422.sec = T3422_DEFAULT_VALUE;

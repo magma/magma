@@ -7,6 +7,13 @@ hide_title: true
 Current testing workflow for VM-only S1AP integration tests. We cover
 gateway-only tests and some general notes.
 
+CRITICAL NOTE: S1AP integration tests are supposed to be run in a headless mode,
+i.e., AGW should not be connected to Orc8r. This is quite critical as S1AP tester
+makes local configurations to Magma AGW in accordance with the testing scenario (e.g.,
+subscriber, APN, policy rules, etc.). If an Orc8r is connected, these configurations
+would be overwritten periodically and also lead to restart of services, both of which will
+interfere with the test scenario.
+
 TODO: Update this document once integration tests with cloud are also supported
 
 Our VM-only tests use 3 Vagrant-managed VMs hosted on the local device (laptop):
@@ -44,7 +51,9 @@ either individual tests or the full suite of tests. A safe, non-flaky test to
 run is `s1aptests/test_attach_detach.py`.
 
 * Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
-* All tests: `make integ_test`
+* All Sanity tests: `make integ_test`
+* All Non-Sanity tests: `make nonsanity`
+* Minimal set of tests to be executed before committing changes to magma repository: `make precommit`
 
 **Note**: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.

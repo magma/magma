@@ -12,6 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import argparse
+
 import requests
 import urllib3
 
@@ -22,6 +23,7 @@ admin_cert = (
 
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def cloud_get(url: str):
     resp = requests.get(url, verify=False, cert=admin_cert)
@@ -63,10 +65,10 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--url", dest="url", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address",
     )
     parser.add_argument(
-        "--partner", dest="partner", action="store", help="Partner Short Name"
+        "--partner", dest="partner", action="store", help="Partner Short Name",
     )
     return parser
 
@@ -80,6 +82,7 @@ def main():
 
     partner = args.partner.strip()
     deregister_all_gateways(args.url, partner)
+
 
 if __name__ == "__main__":
     main()

@@ -124,7 +124,7 @@ nw_rc_t gtpv2c_node_type_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_node_type_ie_set(
+status_code_e gtpv2c_node_type_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const node_type_t* node_type) {
   nw_rc_t rc;
   uint8_t value;
@@ -176,7 +176,7 @@ nw_rc_t gtpv2c_pdn_type_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_pdn_type_ie_set(
+status_code_e gtpv2c_pdn_type_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const pdn_type_t* pdn_type) {
   nw_rc_t rc;
   uint8_t value;
@@ -255,7 +255,7 @@ nw_rc_t gtpv2c_rat_type_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_rat_type_ie_set(
+status_code_e gtpv2c_rat_type_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const rat_type_t* rat_type) {
   nw_rc_t rc;
   uint8_t value;
@@ -343,7 +343,7 @@ nw_rc_t gtpv2c_pti_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_to_create_ie_set(
+status_code_e gtpv2c_bearer_context_to_create_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const bearer_to_create_t* bearer_to_create) {
   nw_rc_t rc;
 
@@ -467,7 +467,8 @@ nw_rc_t gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_created_t* bearer_context) {
   nw_rc_t rc;
@@ -509,7 +510,7 @@ int gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_within_create_bearer_response_ie_set(
+status_code_e gtpv2c_bearer_context_within_create_bearer_response_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_within_create_bearer_response_t* bearer_context) {
   nw_rc_t rc;
@@ -754,7 +755,8 @@ nw_rc_t gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_updated_t* bearer_context) {
   nw_rc_t rc;
@@ -783,7 +785,7 @@ int gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_within_update_bearer_response_ie_set(
+status_code_e gtpv2c_bearer_context_within_update_bearer_response_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_within_update_bearer_response_t* bearer_context) {
   nw_rc_t rc;
@@ -943,7 +945,7 @@ nw_rc_t gtpv2c_failed_bearer_contexts_within_delete_bearer_request_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set(
+status_code_e gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_removed_t* bearer_context) {
   nw_rc_t rc;
@@ -966,7 +968,7 @@ int gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set(
   return RETURNok;
 }
 //------------------------------------------------------------------------------
-int gtpv2c_ebis_within_delete_bearer_request_ie_set(
+status_code_e gtpv2c_ebis_within_delete_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const ebis_to_be_deleted_t* ebis_tbd) {
   int rc = RETURNok;
   DevAssert(ebis_tbd);
@@ -997,7 +999,7 @@ nw_rc_t gtpv2c_ebis_to_be_deleted_within_delete_bearer_request_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_within_delete_bearer_response_ie_set(
+status_code_e gtpv2c_bearer_context_within_delete_bearer_response_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_within_delete_bearer_response_t* bearer_context) {
   nw_rc_t rc;
@@ -1081,7 +1083,7 @@ nw_rc_t gtpv2c_bearer_context_within_delete_bearer_response_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_ebi_only_ie_set(
+status_code_e gtpv2c_bearer_context_ebi_only_ie_set(
     nw_gtpv2c_msg_handle_t* const msg, const ebi_t ebi) {
   nw_rc_t rc;
 
@@ -1100,7 +1102,8 @@ int gtpv2c_bearer_context_ebi_only_ie_set(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_modified_t* bearer_context) {
   nw_rc_t rc;
@@ -1174,7 +1177,8 @@ gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_removed_t* bearer_context) {
   nw_rc_t rc;
@@ -1350,7 +1354,7 @@ nw_rc_t gtpv2c_bearer_context_marked_for_removal_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_context_marked_for_removal_ie_set(
+status_code_e gtpv2c_bearer_context_marked_for_removal_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_marked_for_removal_t* const bearer) {
   nw_rc_t rc;
@@ -1388,7 +1392,7 @@ nw_rc_t gtpv2c_apn_restriction_ie_get(
    by any already active bearer context. If there are no already active bearer
    contexts, this value is set to the least restrictive type.
 */
-int gtpv2c_apn_restriction_ie_set(
+status_code_e gtpv2c_apn_restriction_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const uint8_t apn_restriction) {
   nw_rc_t rc;
 
@@ -1431,7 +1435,7 @@ nw_rc_t gtpv2c_serving_network_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_serving_network_ie_set(
+status_code_e gtpv2c_serving_network_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const ServingNetwork_t* serving_network) {
   nw_rc_t rc;
   uint8_t value[3];
@@ -1477,7 +1481,7 @@ nw_rc_t gtpv2c_pco_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_pco_ie_set(
+status_code_e gtpv2c_pco_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const protocol_configuration_options_t* pco) {
   uint8_t temp[PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH];
   uint8_t offset = 0;
@@ -1531,7 +1535,7 @@ nw_rc_t gtpv2c_apn_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn) {
+status_code_e gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn) {
   nw_rc_t rc;
   uint8_t* value;
   uint8_t apn_length;
@@ -1566,7 +1570,7 @@ int gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn) {
   return RETURNok;
 }
 
-int gtpv2c_apn_plmn_ie_set(
+status_code_e gtpv2c_apn_plmn_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const char* apn,
     const ServingNetwork_t* serving_network) {
   nw_rc_t rc;
@@ -1611,7 +1615,7 @@ int gtpv2c_apn_plmn_ie_set(
   return RETURNok;
 }
 
-int gtpv2c_uli_ie_set(nw_gtpv2c_msg_handle_t* msg, const Uli_t* uli) {
+status_code_e gtpv2c_uli_ie_set(nw_gtpv2c_msg_handle_t* msg, const Uli_t* uli) {
   nw_rc_t rc;
   uint8_t value[22];
   uint8_t* current = NULL;
@@ -1696,7 +1700,7 @@ nw_rc_t gtpv2c_ip_address_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_ip_address_ie_set(
+status_code_e gtpv2c_ip_address_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const gtp_ip_address_t* ip_address) {
   return RETURNok;
 }
@@ -1719,7 +1723,7 @@ nw_rc_t gtpv2c_delay_value_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_delay_value_ie_set(
+status_code_e gtpv2c_delay_value_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const DelayValue_t* delay_value) {
   uint8_t value;
   nw_rc_t rc;
@@ -1754,7 +1758,7 @@ nw_rc_t gtpv2c_ue_time_zone_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_ue_time_zone_ie_set(
+status_code_e gtpv2c_ue_time_zone_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const UETimeZone_t* ue_time_zone) {
   uint8_t value[2];
   nw_rc_t rc;
@@ -1786,7 +1790,7 @@ nw_rc_t gtpv2c_bearer_flags_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_flags_ie_set(
+status_code_e gtpv2c_bearer_flags_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const bearer_flags_t* bearer_flags) {
   nw_rc_t rc;
   uint8_t value;
@@ -1846,7 +1850,7 @@ nw_rc_t gtpv2c_indication_flags_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_indication_flags_ie_set(
+status_code_e gtpv2c_indication_flags_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const indication_flags_t* indication_flags) {
   nw_rc_t rc;
   uint8_t value[3];

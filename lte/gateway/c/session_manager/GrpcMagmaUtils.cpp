@@ -24,7 +24,21 @@
 
 #define MAGMA_PRINT_GRPC_PAYLOAD "MAGMA_PRINT_GRPC_PAYLOAD"
 
-std::string grpcLoginLevel = get_env_var(MAGMA_PRINT_GRPC_PAYLOAD);
+bool grpcLoggingEnabled = false;
+
+// set_grpc_logging_level will only change the level in case
+// MAGMA_PRINT_GRPC_PAYLOAD envar is not set
+void set_grpc_logging_level(bool enable) {
+  std::string val = get_env_var(MAGMA_PRINT_GRPC_PAYLOAD);
+  if (val == "") {
+    grpcLoggingEnabled = enable;
+  } else if (val == "1") {
+    grpcLoggingEnabled = true;
+  } else {
+    grpcLoggingEnabled = false;
+  }
+  MLOG(MINFO) << "print_grpc_payload set at: " << grpcLoggingEnabled;
+}
 
 std::string get_env_var(std::string const& key) {
   MLOG(MINFO) << "Checking env var " << key;
@@ -38,7 +52,7 @@ std::string get_env_var(std::string const& key) {
 }
 
 void PrintGrpcMessage(const google::protobuf::Message& msg) {
-  if (grpcLoginLevel == "1") {
+  if (grpcLoggingEnabled) {
     // Lazy log strategy
     const google::protobuf::Descriptor* desc = msg.GetDescriptor();
     MLOG(MINFO) << "\n"

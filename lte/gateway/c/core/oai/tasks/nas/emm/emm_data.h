@@ -36,6 +36,7 @@ Description Defines internal private data handled by EPS Mobility
 #define FILE_EMM_DATA_SEEN
 
 #include <sys/types.h>
+#include "common_defs.h"
 #include "queue.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
@@ -118,6 +119,11 @@ typedef struct emm_security_context_s {
 struct emm_common_data_s;
 
 typedef enum { SUCCESS, FAILURE } sgs_loc_updt_status_t;
+typedef enum {
+  NEW_EMM_CONTEXT_NOT_CREATED,
+  NEW_EMM_CONTEXT_CREATED,
+  UNKNOWN_GUTI
+} emm_context_state_t;
 
 typedef struct csfb_params_s {
 #define MOBILE_IDENTITY (1 << 0)
@@ -203,6 +209,7 @@ typedef struct emm_context_s {
 #define EMM_CTXT_MEMBER_PENDING_DRX_PARAMETER ((uint32_t) 1 << 13)
 #define EMM_CTXT_MEMBER_EPS_BEARER_CONTEXT_STATUS ((uint32_t) 1 << 14)
 #define EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2 ((uint32_t) 1 << 15)
+#define EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY ((uint32_t) 1 << 16)
 
 #define EMM_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t) 1 << 26)
   //#define           EMM_CTXT_MEMBER_AUTH_VECTOR1                 ((uint32_t)1
@@ -245,7 +252,7 @@ typedef struct emm_context_s {
   ksi_t ksi;            /*key set identifier  */
   ue_network_capability_t _ue_network_capability;
   ms_network_capability_t _ms_network_capability;
-  nr_ue_security_capability_t _nr_ue_security_capability;
+  ue_additional_security_capability_t ue_additional_security_capability;
   drx_parameter_t _drx_parameter;
 
   int remaining_vectors;                       // remaining unused vectors
@@ -323,6 +330,9 @@ typedef struct emm_context_s {
 #define IS_EMM_CTXT_PRESENT_MS_NETWORK_CAPABILITY(eMmCtXtPtR)                  \
   (!!((eMmCtXtPtR)->member_present_mask &                                      \
       EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE))
+#define IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY(eMmCtXtPtR)      \
+  (!!((eMmCtXtPtR)->member_present_mask &                                      \
+      EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY))
 
 #define IS_EMM_CTXT_PRESENT_AUTH_VECTOR(eMmCtXtPtR, KsI)                       \
   (!!((eMmCtXtPtR)->member_present_mask &                                      \
@@ -372,6 +382,7 @@ typedef struct emm_context_s {
   bool nw_init_bearer_deactv;
   new_attach_info_t* new_attach_info;
   bool initiate_identity_after_smc;
+  emm_context_state_t emm_context_state;
 } emm_context_t;
 
 /*
@@ -520,6 +531,12 @@ void emm_ctx_set_drx_parameter(emm_context_t* const ctxt, drx_parameter_t* drx)
 void emm_ctx_set_valid_drx_parameter(
     emm_context_t* const ctxt, drx_parameter_t* drx) __attribute__((nonnull));
 
+void emm_ctx_clear_ue_additional_security_capability(emm_context_t* const ctxt)
+    __attribute__((nonnull));
+void emm_ctx_set_ue_additional_security_capability(
+    emm_context_t* const ctxt, ue_additional_security_capability_t* drx)
+    __attribute__((nonnull));
+
 void free_emm_ctx_memory(
     emm_context_t* const ctxt, const mme_ue_s1ap_id_t ue_id);
 
@@ -530,8 +547,8 @@ struct emm_context_s* emm_context_get_by_imsi(
 struct emm_context_s* emm_context_get_by_guti(
     emm_data_t* emm_data, guti_t* guti);
 
-int emm_context_upsert_imsi(emm_data_t* emm_data, struct emm_context_s* elm)
-    __attribute__((nonnull));
+status_code_e emm_context_upsert_imsi(
+    emm_data_t* emm_data, struct emm_context_s* elm) __attribute__((nonnull));
 
 void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,

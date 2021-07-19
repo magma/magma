@@ -150,7 +150,7 @@
     dynamic inventory. The build node was provisioned with the tag Name:buildOrc8r in this example.
 
     ```
-    ansible-playbook build-configure.yaml -i <inventory file> -e "buildnode=tag_Name_<buildTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=<inventory folder absolute path>" -e "buildDir=dirLocalInventory" -u ubuntu
+    ansible-playbook build-configure.yaml -i <inventory file> -e "buildnode=tag_Name_<buildTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=<inventory folder absolute path>" -u ubuntu
     ```
   - Result: Build instance created, images and helm charts published.
 
@@ -253,6 +253,8 @@
       - buildUbuntuAmi: AMI ID of Base Ubuntu 20.04 image
       - buildAgwAmiName: Name of the AGW AMI created, used to label the AMI
       - buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance for configuration
+      - buildAgwVersion: Version of AGW to be built
+      - buildAgwPackage: Specific package version
 
     - defaults.yaml:
 

@@ -50,7 +50,7 @@
  * Function that adds predefined PCC rules to PGW struct,
  * it returns an error or success code after adding rules.
  */
-int pgw_pcef_emulation_init(
+status_code_e pgw_pcef_emulation_init(
     spgw_state_t* state_p, const pgw_config_t* const pgw_config_p) {
   int rc             = RETURNok;
   hashtable_rc_t hrc = HASH_TABLE_OK;
@@ -468,7 +468,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
   }
   if (TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG &
       packetfiltercontents->flags) {
-    AssertFatal(0, "TODO");  // we have time
+    Fatal("TODO Implement pgw_pcef_emulation_packet_filter_2_iptable_string");
   }
   if (TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG &
       packetfiltercontents->flags) {
@@ -491,7 +491,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
   }
   if (TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG &
       packetfiltercontents->flags) {
-    AssertFatal(0, "TODO LOCAL_PORT_RANGE");
+    Fatal("TODO LOCAL_PORT_RANGE");
   }
   if (TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG &
       packetfiltercontents->flags) {
@@ -508,7 +508,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
   }
   if (TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG &
       packetfiltercontents->flags) {
-    AssertFatal(0, "TODO REMOTE_PORT_RANGE");
+    Fatal("TODO REMOTE_PORT_RANGE");
   }
   if (TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG &
       packetfiltercontents->flags) {
@@ -524,13 +524,13 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
         packetfiltercontents->typdeofservice_trafficclass.value);
   }
   if (TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG & packetfiltercontents->flags) {
-    AssertFatal(0, "TODO");  // we have time
+    Fatal("TODO Implement pgw_pcef_emulation_packet_filter_2_iptable_string");
   }
   return bstr;
 }
 
 //------------------------------------------------------------------------------
-int pgw_pcef_get_sdf_parameters(
+status_code_e pgw_pcef_get_sdf_parameters(
     spgw_state_t* state_p, const sdf_id_t sdf_id,
     bearer_qos_t* const bearer_qos, packet_filter_t* const packet_filter,
     uint8_t* const num_pf) {

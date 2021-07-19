@@ -136,7 +136,7 @@ struct emm_common_data_s* emm_common_data_context_get(
  **      Others:    _emm_common_data                           **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_initialize(
+status_code_e emm_proc_common_initialize(
     mme_ue_s1ap_id_t ue_id, emm_common_success_callback_t _success,
     emm_common_reject_callback_t _reject,
     emm_common_failure_callback_t _failure,
@@ -197,7 +197,7 @@ int emm_proc_common_initialize(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
   emm_common_success_callback_t emm_callback = {0};
   int rc                                     = RETURNerror;
 
@@ -233,7 +233,7 @@ int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
   int rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -252,7 +252,7 @@ int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
   int rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -289,7 +289,8 @@ int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_ll_failure(
+    emm_common_data_t* emm_common_data_ctx) {
   emm_common_ll_failure_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -328,7 +329,8 @@ int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_non_delivered(
+    emm_common_data_t* emm_common_data_ctx) {
   emm_common_non_delivered_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -366,7 +368,7 @@ int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
   emm_common_abort_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -485,5 +487,16 @@ void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id) {
   if (emm_common_data_ctx && emm_common_data_ctx->args) {
     free_wrapper(&emm_common_data_ctx->args);
   }
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+}
+
+void create_new_attach_info(
+    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  emm_context_p->new_attach_info = calloc(1, sizeof(new_attach_info_t));
+  emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
+  emm_context_p->new_attach_info->ies            = ies;
+  emm_context_p->new_attach_info->is_mm_ctx_new  = is_mm_ctx_new;
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }

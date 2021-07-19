@@ -19,8 +19,8 @@ def check_quota_response(**kwargs):
     return jsonify({
         'version': 1,
         'payload': {
-            'emptyWallet': not response
-        }
+            'emptyWallet': not response,
+        },
     })
 
 
@@ -29,11 +29,11 @@ def setup_flask_server(json_response):
 
     app.add_url_rule(
         '/', 'index', check_quota_response,
-        defaults={'response': json_response}
+        defaults={'response': json_response},
     )
     app.add_url_rule(
         '/<path:dummy>', 'index', check_quota_response,
-        defaults={'response': json_response}
+        defaults={'response': json_response},
     )
     return app
 

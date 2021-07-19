@@ -102,6 +102,8 @@ spec:
           args: ['--config.file=/prometheus/prometheus.yml',
                  '--storage.tsdb.path=/data',
                  '--web.enable-lifecycle',
+                 '--web.enable-admin-api',
+                 "--storage.tsdb.no-lockfile",
                  {{ if .Values.thanos.enabled }}
                  '--storage.tsdb.min-block-duration=2h',
                  '--storage.tsdb.max-block-duration=2h',

@@ -14,13 +14,14 @@ limitations under the License.
 package diameter
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
+	"github.com/golang/glog"
 )
 
 // ConnectionManager holds a map of connections keyed by the server ip/protocol
@@ -45,10 +46,15 @@ func (cm *ConnectionManager) GetConnection(client *sm.Client, server *DiameterSe
 		return conn, nil
 	}
 	cm.rwl.RUnlock()
+
+	glog.V(2).Infof("ConnectionManager: no cached connection for %+v", server)
+
 	cm.rwl.Lock()
 	defer cm.rwl.Unlock()
 	if cm.disabled {
-		return nil, errors.New("ConnectionManager: Connection Creation Is Disabled")
+		err := fmt.Errorf("cannot create connection for %+v, ConnectionManager is disabled", server)
+		glog.Error(err)
+		return nil, err
 	}
 	conn, ok = cm.connMap[server.DiameterServerConnConfig]
 	if ok && conn != nil { // check again, another thread may have added a connection between RUnlock() & Lock()
@@ -56,6 +62,8 @@ func (cm *ConnectionManager) GetConnection(client *sm.Client, server *DiameterSe
 	}
 	conn = newConnection(client, server)
 	cm.connMap[server.DiameterServerConnConfig] = conn
+	glog.V(2).Infof("ConnectionManager: created connection for %+v", server)
+
 	return conn, nil
 }
 
@@ -64,11 +72,16 @@ func (cm *ConnectionManager) GetConnection(client *sm.Client, server *DiameterSe
 // If a connection already exists for the provided server config, update the
 // connection manager with the new connection. This is threadsafe
 func (cm *ConnectionManager) AddExistingConnection(conn diam.Conn, client *sm.Client, server *DiameterServerConfig) error {
+	glog.V(2).Infof("ConnectionManager: adding existing connection for %+v", server)
 	cm.rwl.Lock()
 	defer cm.rwl.Unlock()
 	meta, ok := smpeer.FromContext(conn.Context())
 	if !ok {
-		return errors.New("ConnectionManager: Cannot add existing connection - could not fetch connection context")
+		err := fmt.Errorf(
+			"ConnectionManager: cannot add existing connection for %+v, failed to fetch connection context",
+			server)
+		glog.Error(err)
+		return err
 	}
 	diameterConnection := &Connection{
 		server:   server,
@@ -89,6 +102,7 @@ func (cm *ConnectionManager) CleanupAllConnections() {
 
 // DisableFor - cleans up all existing connections & disables new connection creations for given duration
 func (cm *ConnectionManager) DisableFor(period time.Duration) {
+	glog.V(2).Infof("ConnectionManager: disabling connections for %s", period.String())
 	cm.rwl.Lock()
 	defer cm.rwl.Unlock()
 	cm.disabled = true
@@ -98,12 +112,45 @@ func (cm *ConnectionManager) DisableFor(period time.Duration) {
 
 // Enable - enables new connection creations
 func (cm *ConnectionManager) Enable() {
+	glog.V(2).Info("ConnectionManager: enabling connections")
 	cm.rwl.Lock()
 	defer cm.rwl.Unlock()
 	cm.disabled = false
 }
 
+// Find returns connection object matching given diameter connection or nil if not found
+func (cm *ConnectionManager) Find(dc diam.Conn) *Connection {
+	if cm == nil || dc == nil {
+		return nil
+	}
+	cm.rwl.RLock()
+	defer cm.rwl.RUnlock()
+	for _, conn := range cm.connMap {
+		if conn != nil {
+			if conn.conn == dc {
+				return conn
+			}
+			glog.V(2).Infof("connection mismatch: %+v (%T) != %+v (%T)", conn.conn, conn.conn, dc, dc)
+		}
+	}
+	glog.V(2).Infof("failed to find a match for diam.Conn: '%s' %s->%s",
+		dc.RemoteAddr().Network(), dc.LocalAddr().String(), dc.RemoteAddr().String())
+	return nil
+}
+
+// FindConnection returns an existing connection or returns nil if not found
+func (cm *ConnectionManager) FindConnection(server *DiameterServerConfig) *Connection {
+	cm.rwl.RLock()
+	defer cm.rwl.RUnlock()
+	conn, ok := cm.connMap[server.DiameterServerConnConfig]
+	if ok {
+		return conn
+	}
+	return nil
+}
+
 func (cm *ConnectionManager) cleanupConnections() {
+	glog.V(2).Info("ConnectionManager: removing all existing connections")
 	for _, c := range cm.connMap {
 		if c != nil {
 			c.cleanupConnection()

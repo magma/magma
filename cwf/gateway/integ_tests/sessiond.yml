@@ -12,12 +12,14 @@
 # limitations under the License.
 
 log_level: DEBUG
+print_grpc_payload: false
+
 rule_update_inteval_sec: 1
 
 # Session manager will report the usage when the usage is greater than
 # usage_reporting_threshold * available quota since last update
 # In this way, session manager will report the usage before the subscriber
-# completely uses up the quota. 
+# completely uses up the quota.
 usage_reporting_threshold: 0.8
 
 # Set to true to terminate service when the quota of a session is exhausted.
@@ -46,3 +48,10 @@ default_requested_units: 200000
 # set to true if subscriber information export over IPFIX needs to be enabled
 # in order to enable ipfix, make sure to add ipfix as a static service in pipelined.yml
 enable_ipfix: true
+
+# set to a certain interval measured in seconds for which sessiond should poll pipelined
+# for relevant stats
+poll_stats_interval: 5
+
+# set to true to enable pull model for stats(polling pipelined from sessiond)
+enable_pull_stats: false

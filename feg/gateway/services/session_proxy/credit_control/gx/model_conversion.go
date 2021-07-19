@@ -73,6 +73,8 @@ func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 		FlowList:      rd.GetFlowList(),
 		Qos:           rd.Qos.ToProto(),
 		TrackingType:  rd.GetTrackingType(),
+		Offline:       Int32ToBoolean(rd.Offline),
+		Online:        Int32ToBoolean(rd.Online),
 	}
 }
 
@@ -349,4 +351,9 @@ func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
 	default:
 		return credit_control.IPCAN_Non3GPP
 	}
+}
+
+//Int32ToBoolean converts int32 to true if diffent than 0
+func Int32ToBoolean(val int32) bool {
+	return val != 0
 }

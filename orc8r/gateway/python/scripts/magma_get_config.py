@@ -19,19 +19,23 @@ import sys
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        "Get magma managed configs for the specified service. (mconfig)")
+        "Get magma managed configs for the specified service. (mconfig)",
+    )
     parser.add_argument(
         "-s", "--service",
         required=True,
-        help="Magma service name")
+        help="Magma service name",
+    )
     parser.add_argument(
         "-v", "--variable",
         help="Config variable name. "
-             "If not specified, then JSON dump all configs for this service.")
+             "If not specified, then JSON dump all configs for this service.",
+    )
     parser.add_argument(
         "-t", "--test", action="store_true",
         help="Do a truthy test on v. "
-             "If True then return code is 0, otherwise return code is 2")
+             "If True then return code is 0, otherwise return code is 2",
+    )
     return parser
 
 
@@ -47,7 +51,8 @@ def main():
     # set up logging
     logging.basicConfig(
         level=logging.INFO,
-        format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+        format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+    )
 
     mconfig_json = load_service_mconfig_as_json(args.service)
 

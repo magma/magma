@@ -18,10 +18,12 @@
 
   vars:
     magma_root: /home/{{ ansible_user }}/magma
-    preburn: true
+    preburn: false
     full_provision: true
 
   roles:
+    # Putting it first as we need sftp enabled
+    - role: focal_hacks
     # This role is commented out for now because as it turns out, it's very
     # difficult to install Debian on a box without also installing packages
     # from an upstream mirror. Even if we pin a snapshot to before the 4.9.0-11
@@ -49,4 +51,3 @@
         magma_deps: /home/{{ ansible_user }}/magma-deps
     - role: fluent_bit
     - role: pyvenv
-    - role: focal_hacks

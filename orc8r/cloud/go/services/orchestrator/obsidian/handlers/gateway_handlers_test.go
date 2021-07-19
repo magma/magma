@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	"context"
 	"crypto/x509"
 	"testing"
 	"time"
@@ -86,14 +87,13 @@ func TestListGateways(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	gatewayRecord := &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}
-	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
 
 	expectedState := models.NewDefaultGatewayStatus("hw1")
 	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	expectedResult = map[string]models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
@@ -163,7 +163,7 @@ func TestCreateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "foo-bar-baz-123-42", serdes.Device)
+	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "foo-bar-baz-123-42", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -186,14 +186,10 @@ func TestCreateGateway(t *testing.T) {
 	assert.Equal(t, payload.Device, actualDevice)
 
 	// test registering gateway with existing device
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hello-world-42",
-		&models.GatewayDevice{
-			HardwareID: "hello-world-42",
-			Key:        &models.ChallengeKey{KeyType: "ECHO"},
-		},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hello-world-42", &models.GatewayDevice{
+		HardwareID: "hello-world-42",
+		Key:        &models.ChallengeKey{KeyType: "ECHO"},
+	}, serdes.Device)
 	assert.NoError(t, err)
 
 	privateKey, err := key.GenerateKey("P256", 0)
@@ -234,7 +230,7 @@ func TestCreateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hello-world-42", serdes.Device)
+	actualDevice, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hello-world-42", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts = configurator.NetworkEntities{
@@ -362,11 +358,7 @@ func TestGetGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
@@ -395,7 +387,6 @@ func TestGetGateway(t *testing.T) {
 		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
 	expected.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expected.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	tc := tests.Test{
 		Method:         "GET",
@@ -474,11 +465,7 @@ func TestUpdateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -535,7 +522,7 @@ func TestUpdateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -615,11 +602,7 @@ func TestDeleteGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -649,7 +632,7 @@ func TestDeleteGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	_, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.EqualError(t, err, "Not found")
 
 	expectedEnts := configurator.NetworkEntities{
@@ -693,11 +676,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
@@ -738,7 +717,6 @@ func TestGetPartialReadHandlers(t *testing.T) {
 
 	expectedState := models.NewDefaultGatewayStatus("hw1")
 	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	// happy path state
 	tc = tests.Test{
@@ -1058,11 +1036,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1140,7 +1114,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	device, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
+	device, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
 	assert.NoError(t, err)
 	assert.Equal(t, &models.GatewayDevice{HardwareID: "hw2", Key: &models.ChallengeKey{KeyType: "ECHO"}}, device)
 

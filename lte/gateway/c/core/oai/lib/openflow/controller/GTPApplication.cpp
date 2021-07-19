@@ -414,7 +414,7 @@ void GTPApplication::add_tunnel_flow_action(
 
   // Finally, send flow mod
   messenger.send_of_msg(downlink_fm, connection);
-  OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "%s flow added\n", flow_type);
+  OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "%s flow added\n", flow_type.c_str());
 }
 
 void GTPApplication::add_downlink_tunnel_flow_action(

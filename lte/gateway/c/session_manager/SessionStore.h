@@ -13,7 +13,6 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include <memory>
@@ -44,6 +43,7 @@ enum SessionSearchCriteriaType {
   IMSI_AND_UE_IPV4_OR_IPV6 = 3,
   IMSI_AND_BEARER          = 4,
   IMSI_AND_TEID            = 5,
+  IMSI_AND_PDUID           = 6,
 };
 
 struct SessionSearchCriteria {

@@ -16,8 +16,8 @@ import logging
 import unittest
 from typing import Optional
 
+from lte.protos.apn_pb2 import APNConfiguration
 from lte.protos.subscriberdb_pb2 import (
-    APNConfiguration,
     LTESubscription,
     Non3GPPUserProfile,
     SubscriberData,

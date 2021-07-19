@@ -18,58 +18,64 @@ set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+# MUST be done before call to 'project'
+get_cmake_property(vars CACHE_VARIABLES)
+foreach (var ${vars})
+  get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
+  # message("${var} = [${${var}}]  --  ${currentHelpString}")
+  if ("${currentHelpString}" MATCHES
+      "No help, variable specified on the command line." OR
+      "${currentHelpString}" STREQUAL "")
+    list(APPEND CL_ARGS "-D${var}=${${var}}")
+  endif ()
+endforeach ()
+
+list(APPEND CL_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+
 ExternalProject_Add(MagmaLogging
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/logging
-        BINARY_DIR ${CMAKE_BINARY_DIR}/logging
-        INSTALL_COMMAND "")
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/logging
+    BINARY_DIR ${CMAKE_BINARY_DIR}/logging
+    INSTALL_COMMAND ""
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(AsyncGrpc
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/async_grpc
-        BINARY_DIR ${CMAKE_BINARY_DIR}/async_grpc
-        INSTALL_COMMAND ""
-        DEPENDS MagmaLogging)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/async_grpc
+    BINARY_DIR ${CMAKE_BINARY_DIR}/async_grpc
+    INSTALL_COMMAND ""
+    DEPENDS MagmaLogging
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(MagmaConfig
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/config
-        BINARY_DIR ${CMAKE_BINARY_DIR}/config
-        INSTALL_COMMAND ""
-        DEPENDS MagmaLogging)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/config
+    BINARY_DIR ${CMAKE_BINARY_DIR}/config
+    BUILD_ALWAYS 1
+    INSTALL_COMMAND ""
+    DEPENDS MagmaLogging
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(ServiceRegistry
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/service_registry
-        BINARY_DIR ${CMAKE_BINARY_DIR}/service_registry
-        INSTALL_COMMAND ""
-        DEPENDS MagmaConfig)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/service_registry
+    BINARY_DIR ${CMAKE_BINARY_DIR}/service_registry
+    BUILD_ALWAYS 1
+    INSTALL_COMMAND ""
+    DEPENDS MagmaConfig
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(Service303
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/service303
-        BINARY_DIR ${CMAKE_BINARY_DIR}/service303
-        INSTALL_COMMAND ""
-        DEPENDS ServiceRegistry
-        DEPENDS MagmaConfig
-        DEPENDS MagmaLogging)
-
-ExternalProject_Add(Datastore
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/datastore
-        BINARY_DIR ${CMAKE_BINARY_DIR}/datastore
-        INSTALL_COMMAND ""
-        DEPENDS MagmaLogging)
-
-ExternalProject_Add(PolicyDb
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/policydb
-        BINARY_DIR ${CMAKE_BINARY_DIR}/policydb
-        INSTALL_COMMAND ""
-        DEPENDS Datastore
-        DEPENDS MagmaLogging)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/service303
+    BINARY_DIR ${CMAKE_BINARY_DIR}/service303
+    BUILD_ALWAYS 1
+    INSTALL_COMMAND ""
+    DEPENDS ServiceRegistry
+    DEPENDS MagmaConfig
+    DEPENDS MagmaLogging
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(Eventd
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/eventd
-        BINARY_DIR ${CMAKE_BINARY_DIR}/eventd
-        INSTALL_COMMAND ""
-        DEPENDS AsyncGrpc
-        DEPENDS ServiceRegistry)
-
-if (BUILD_TESTS)
-  ENABLE_TESTING()
-  ADD_SUBDIRECTORY(test)
-endif (BUILD_TESTS)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/eventd
+    BINARY_DIR ${CMAKE_BINARY_DIR}/eventd
+    BUILD_ALWAYS 1
+    INSTALL_COMMAND ""
+    DEPENDS AsyncGrpc
+    DEPENDS ServiceRegistry
+    CMAKE_ARGS ${CL_ARGS})

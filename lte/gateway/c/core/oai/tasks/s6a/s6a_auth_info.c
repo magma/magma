@@ -195,7 +195,7 @@ static inline int s6a_parse_authentication_info_avp(
   return RETURNok;
 }
 
-int s6a_aia_cb(
+status_code_e s6a_aia_cb(
     struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
     enum disp_action* act) {
   struct msg* ans                          = NULL;
@@ -213,7 +213,8 @@ int s6a_aia_cb(
    */
   CHECK_FCT(fd_msg_answ_getq(ans, &qry));
   DevAssert(qry);
-  message_p           = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_AUTH_INFO_ANS);
   s6a_auth_info_ans_p = &message_p->ittiMsg.s6a_auth_info_ans;
   OAILOG_DEBUG(
       LOG_S6A, "Received S6A Authentication Information Answer (AIA)\n");
@@ -300,7 +301,7 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
+status_code_e s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
   struct avp* avp;
   struct msg* msg;
   struct session* sess;

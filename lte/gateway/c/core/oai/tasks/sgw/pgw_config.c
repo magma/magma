@@ -65,7 +65,7 @@ void pgw_config_init(pgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-int pgw_config_process(pgw_config_t* config_pP) {
+status_code_e pgw_config_process(pgw_config_t* config_pP) {
 #if (!EMBEDDED_SGW)
   async_system_command(
       TASK_ASYNC_SYSTEM, PGW_ABORT_ON_ERROR, "iptables -t mangle -F OUTPUT");
@@ -206,7 +206,7 @@ int pgw_config_process(pgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-int pgw_config_parse_file(pgw_config_t* config_pP) {
+status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
   config_t cfg                  = {0};
   config_setting_t* setting_pgw = NULL;
   config_setting_t* subsetting  = NULL;
@@ -244,14 +244,14 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
           LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
           config_error_line(&cfg), config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          1 == 0, "Failed to parse SP-GW configuration file %s!\n",
+      Fatal(
+          "Failed to parse SP-GW configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     OAILOG_ERROR(LOG_SPGW_APP, "No SP-GW configuration file provided!\n");
     config_destroy(&cfg);
-    AssertFatal(0, "No SP-GW configuration file provided!\n");
+    Fatal("No SP-GW configuration file provided!\n");
   }
 
   OAILOG_INFO(

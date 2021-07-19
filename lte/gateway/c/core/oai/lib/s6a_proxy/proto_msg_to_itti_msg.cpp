@@ -134,14 +134,45 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     itti_msg->subscription_data.access_mode = NAM_ONLY_PACKET;
   }
 
+  // Regional subscription zone codes
+  itti_msg->subscription_data.num_zcs =
+      ((msg.regional_subscription_zone_code_size() > MAX_REGIONAL_SUB) ?
+           MAX_REGIONAL_SUB :
+           (msg.regional_subscription_zone_code_size()));
+  uint8_t reg_sub_idx = 0;
+  for (uint8_t itr = 0; itr < itti_msg->subscription_data.num_zcs; itr++) {
+    auto regional_subscription_zone_code =
+        msg.regional_subscription_zone_code(itr);
+    // Copy only if the zonecode is 2 octets
+    if (regional_subscription_zone_code.length() == ZONE_CODE_LEN) {
+      memcpy(
+          itti_msg->subscription_data.reg_sub[reg_sub_idx].zone_code,
+          regional_subscription_zone_code.c_str(), ZONE_CODE_LEN);
+      ++reg_sub_idx;
+    } else {
+      std::cout << "[WARNING] Invalid zonecode length received, ignoring"
+                << regional_subscription_zone_code.length() << std::endl;
+    }
+  }
+  itti_msg->subscription_data.num_zcs = reg_sub_idx;
+
 #define SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL 10
   itti_msg->subscription_data.rau_tau_timer =
       SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL;
 
   // apn configuration
-  itti_msg->subscription_data.apn_config_profile.nb_apns = msg.apn_size();
-  uint8_t idx                                            = 0;
-  while (idx < msg.apn_size() && idx < MAX_APN_PER_UE) {
+  uint8_t nb_apns = 0;
+  if (msg.apn_size() > MAX_APN_PER_UE) {
+    std::cout << "[WARNING] The number of APNs configured in subscriber data ("
+              << msg.apn_size() << ") is larger than MME limit of "
+              << MAX_APN_PER_UE << ". Truncating the list to this MME limit."
+              << std::endl;
+    nb_apns = MAX_APN_PER_UE;
+  } else {
+    nb_apns = msg.apn_size();
+  }
+  itti_msg->subscription_data.apn_config_profile.nb_apns = nb_apns;
+  for (uint8_t idx = 0; idx < nb_apns; ++idx) {
     auto apn                                 = msg.apn(idx);
     struct apn_configuration_s* itti_msg_apn = &(
         itti_msg->subscription_data.apn_config_profile.apn_configuration[idx]);
@@ -179,8 +210,8 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     itti_msg_apn->ambr.br_ul   = apn.ambr().max_bandwidth_ul();
     itti_msg_apn->ambr.br_dl   = apn.ambr().max_bandwidth_dl();
     itti_msg_apn->ambr.br_unit = (apn_ambr_bitrate_unit_t) apn.ambr().unit();
-    ++idx;
   }
+
   return;
 }
 

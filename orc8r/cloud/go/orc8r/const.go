@@ -25,6 +25,7 @@ const (
 	GatewayStateType        = "gw_state"
 	DirectoryRecordType     = "directory_record"
 	StringMapSerdeType      = "string_map"
+	NetworkSentryConfig     = "sentry_config"
 
 	DnsdNetworkType = "dnsd_network"
 

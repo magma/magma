@@ -1,7 +1,7 @@
-From 26867647007d94a8ebadda08b4a6f5f699ab1849 Mon Sep 17 00:00:00 2001
+From c9d807443db2087baae9a36ad3cc58960818de43 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 28 Jun 2020 21:49:40 +0000
-Subject: [PATCH 01/18] of-match: expand NXM_NX_TUN_FLAGS to include all tunnel
+Subject: [PATCH 01/19] of-match: expand NXM_NX_TUN_FLAGS to include all tunnel
  flags
 
 This allows OVS flows to match tunnel key and df flags. maching on

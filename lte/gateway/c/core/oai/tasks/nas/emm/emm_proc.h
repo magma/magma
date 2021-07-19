@@ -35,6 +35,8 @@ Description Defines the EPS Mobility Management procedures executed at
 #ifndef FILE_EMM_PROC_SEEN
 #define FILE_EMM_PROC_SEEN
 
+#include "common_defs.h"
+
 #include "nas/commonDef.h"
 #include "bstrlib.h"
 
@@ -115,6 +117,7 @@ typedef struct emm_attach_request_ies_s {
       mob_st_clsMark2; /* Mobile station classmark2 provided by the UE */
   voice_domain_preference_and_ue_usage_setting_t*
       voicedomainpreferenceandueusagesetting;
+  ue_additional_security_capability_t* ueadditionalsecuritycapability;
 } emm_attach_request_ies_t;
 
 typedef struct emm_detach_request_ies_s {
@@ -169,7 +172,8 @@ typedef struct emm_tau_request_ies_s {
  *              EMM status procedure
  *---------------------------------------------------------------------------
  */
-int emm_proc_status_ind(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
+status_code_e emm_proc_status_ind(
+    mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
 int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
 
 /*
@@ -192,16 +196,17 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
 
 void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
 
-int emm_proc_attach_request(
+status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool ctx_is_new,
     emm_attach_request_ies_t* const params);
 
-int _emm_attach_reject(
+status_code_e _emm_attach_reject(
     emm_context_t* emm_context, struct nas_base_proc_s* nas_base_proc);
 
-int emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
+status_code_e emm_proc_attach_reject(
+    mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
 
-int emm_proc_attach_complete(
+status_code_e emm_proc_attach_complete(
     mme_ue_s1ap_id_t ue_id, const_bstring esm_msg_pP, int emm_cause,
     const nas_message_decode_status_t status);
 
@@ -209,16 +214,17 @@ void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc);
 
 void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
 
-int emm_proc_tracking_area_update_request(
-    const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause);
+status_code_e emm_proc_tracking_area_update_request(
+    const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
+    tac_t tac);
 
-int emm_proc_tracking_area_update_reject(
+status_code_e emm_proc_tracking_area_update_reject(
     const mme_ue_s1ap_id_t ue_id, const int emm_cause);
 
-int emm_proc_service_reject(
+status_code_e emm_proc_service_reject(
     const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause);
 
-int emm_proc_extended_service_request(
+status_code_e emm_proc_extended_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg);
 
 /*
@@ -227,15 +233,16 @@ int emm_proc_extended_service_request(
  * --------------------------------------------------------------------------
  */
 
-int emm_proc_detach(mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type);
-int emm_proc_sgs_detach_request(
+status_code_e emm_proc_detach(
+    mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type);
+status_code_e emm_proc_sgs_detach_request(
     mme_ue_s1ap_id_t ue_id, emm_proc_sgs_detach_type_t type);
-int emm_proc_nw_initiated_detach_request(
+status_code_e emm_proc_nw_initiated_detach_request(
     mme_ue_s1ap_id_t ue_id, uint8_t detach_type);
 void free_emm_detach_request_ies(emm_detach_request_ies_t** const ies);
-int emm_proc_detach_request(
+status_code_e emm_proc_detach_request(
     mme_ue_s1ap_id_t ue_id, emm_detach_request_ies_t* params);
-int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id);
+status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id);
 /*
  * --------------------------------------------------------------------------
  *              Identification procedure
@@ -243,10 +250,10 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id);
  */
 struct emm_context_s;
 
-int emm_proc_identification(
+status_code_e emm_proc_identification(
     struct emm_context_s* const emm_context, nas_emm_proc_t* const emm_proc,
     const identity_type2_t type, success_cb_t success, failure_cb_t failure);
-int emm_proc_identification_complete(
+status_code_e emm_proc_identification_complete(
     const mme_ue_s1ap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsi);
 
@@ -256,25 +263,25 @@ int emm_proc_identification_complete(
  * --------------------------------------------------------------------------
  */
 
-int emm_proc_authentication_ksi(
+status_code_e emm_proc_authentication_ksi(
     struct emm_context_s* emm_context,
     nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
     const uint8_t* const rand, const uint8_t* const autn, success_cb_t success,
     failure_cb_t failure);
 
-int emm_proc_authentication(
+status_code_e emm_proc_authentication(
     struct emm_context_s* emm_context,
     nas_emm_specific_proc_t* const emm_specific_proc, success_cb_t success,
     failure_cb_t failure);
 
-int emm_proc_authentication_failure(
+status_code_e emm_proc_authentication_failure(
     mme_ue_s1ap_id_t ue_id, int emm_cause, const_bstring auts);
 
-int emm_proc_authentication_complete(
+status_code_e emm_proc_authentication_complete(
     mme_ue_s1ap_id_t ue_id, authentication_response_msg* msg, int emm_cause,
     const_bstring const res);
 
-int emm_attach_security(struct emm_context_s* emm_context);
+status_code_e emm_attach_security(struct emm_context_s* emm_context);
 
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
 void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
@@ -285,21 +292,22 @@ void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
  * --------------------------------------------------------------------------
  */
 
-int emm_proc_security_mode_control(
+status_code_e emm_proc_security_mode_control(
     struct emm_context_s* emm_context,
     nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
     success_cb_t success, failure_cb_t failure);
-int emm_proc_security_mode_complete(
+status_code_e emm_proc_security_mode_complete(
     mme_ue_s1ap_id_t ue_id, const imeisv_mobile_identity_t* const imeisv);
-int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id);
-int emm_proc_emm_informtion(ue_mm_context_t* emm_ctx);
+status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id);
+status_code_e emm_proc_emm_informtion(ue_mm_context_t* emm_ctx);
 
 void _clear_emm_ctxt(emm_context_t* emm_ctx);
 
-int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id);
-int emm_send_service_reject_in_dl_nas(
+status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id);
+status_code_e emm_send_service_reject_in_dl_nas(
     const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause);
-int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg);
+status_code_e emm_proc_uplink_nas_transport(
+    mme_ue_s1ap_id_t ue_id, bstring nas_msg);
 
 void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);

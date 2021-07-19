@@ -115,7 +115,7 @@ def main():
         print('1. -- Testing TCP connection to %s:%d -- ' % (host, port))
         stage = 'tcp'
         loop.run_until_complete(
-            create_tcp_connection(host, port, loop)
+            create_tcp_connection(host, port, loop),
         )
 
         print('2. -- Testing Certificate -- ')
@@ -125,7 +125,7 @@ def main():
         print('3. -- Testing SSL -- ')
         stage = 'ssl'
         loop.run_until_complete(
-            create_ssl_connection(host, port, certfile, keyfile, loop)
+            create_ssl_connection(host, port, certfile, keyfile, loop),
         )
 
         print('4. -- Creating direct cloud checkin -- ')
@@ -149,7 +149,7 @@ def main():
             Suggestions
             -----------
             {}
-            """
+            """,
         )
         print(msg.format(e, err_suggestions[stage]))
         sys.exit(1)
@@ -185,7 +185,7 @@ async def test_checkin(proxy_cloud_connections=True):
         State(
             type="string_map",
             deviceID=snowflake.snowflake(),
-            value=value.encode('utf-8')
+            value=value.encode('utf-8'),
         ),
     ]
     request = ReportStatesRequest(states=states)

@@ -162,7 +162,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     default: {
       OAILOG_DEBUG(
-          LOG_SGS, "Unkwnon message ID %d:%s\n",
+          LOG_SGS, "Unknown message ID %d:%s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
@@ -185,7 +185,7 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-int sgs_init(const mme_config_t* mme_config_p) {
+status_code_e sgs_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_SGS, "Initializing SGS task interface\n");
 
   if (itti_create_task(TASK_SGS, &sgs_thread, NULL) < 0) {

@@ -1,0 +1,65 @@
+---
+name: "Check dependencies of helm charts"
+
+on: [pull_request]  # yamllint disable-line rule:truthy
+jobs:
+  check_helm_chart_dependencies:
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-latest
+    name: Check dependency of helm chart ${{ matrix.charts[0] }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check Orc8r
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check cwf-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r//Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r//Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check lte-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check feg-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check fbinternal-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check wifi-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi

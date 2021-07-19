@@ -61,7 +61,7 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_reset_indication(
+status_code_e mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -90,7 +90,7 @@ int mme_app_handle_sgsap_reset_indication(
  **          unused_param_pP: Unused param list                            **
  **          unused_result_pP: Unused result                               **
  ** Outputs:                                                               **
- **          Return:    RETURNok, RETURNerror                              **
+ **          Return:    true, false                                        **
  **                                                                        **
  ***************************************************************************/
 bool mme_app_handle_reset_indication(
@@ -104,20 +104,20 @@ bool mme_app_handle_reset_indication(
       (struct ue_mm_context_s*) ue_context_pP;
   if (ue_context_p == NULL) {
     OAILOG_WARNING(LOG_MME_APP, "UE context not found \n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     OAILOG_ERROR(
         LOG_MME_APP, "UE is not registered for ue_id:" MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
         "SGS context not created for ue_id:" MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
 
   ue_context_p->sgs_context->sgsap_msg = NULL; /* sgs message */
@@ -131,7 +131,7 @@ bool mme_app_handle_reset_indication(
         LOG_MME_APP, "Failed  to execute SGS State machine for ue_id :%u \n",
         ue_context_p->mme_ue_s1ap_id);
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
 /****************************************************************************
@@ -147,7 +147,7 @@ bool mme_app_handle_reset_indication(
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (fsm_evt == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid SGS FSM Event object received\n");

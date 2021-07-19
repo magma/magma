@@ -28,7 +28,7 @@ import (
 	"magma/feg/cloud/go/services/basic_acct/tests"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/service/middleware/unary"
-	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
+	"magma/orc8r/cloud/go/service/middleware/unary/test"
 )
 
 func TestAugmentedNetworkAccounting(t *testing.T) {
@@ -106,7 +106,7 @@ func TestAugmentedNetworkAccounting(t *testing.T) {
 }
 
 func getIncomingContextWithCertificate(t *testing.T, hwID string) context.Context {
-	csn := test_utils.StartMockGwAccessControl(t, []string{hwID})
+	csn := test.StartMockGwAccessControl(t, []string{hwID})
 	return metadata.NewIncomingContext(context.Background(), metadata.Pairs(identity.CLIENT_CERT_SN_KEY, csn[0]))
 }
 

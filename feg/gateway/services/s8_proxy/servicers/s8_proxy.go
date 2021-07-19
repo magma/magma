@@ -19,6 +19,8 @@ import (
 	"net"
 	"time"
 
+	orc8r_protos "magma/orc8r/lib/go/protos"
+
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
@@ -143,6 +145,29 @@ func (s *S8Proxy) SendEcho(_ context.Context, req *protos.EchoRequest) (*protos.
 		return nil, err
 	}
 	return &protos.EchoResponse{}, nil
+}
+
+func (s *S8Proxy) CreateBearerResponse(_ context.Context, res *protos.CreateBearerResponsePgw) (*orc8r_protos.Void, error) {
+	cPgwUDPAddr := ParseAddress(res.PgwAddrs)
+	if cPgwUDPAddr == nil {
+		err := fmt.Errorf("CreateBearerResponse to %s failed: couldnt paarse address", res.PgwAddrs)
+		glog.Error(err)
+		return nil, err
+	}
+
+	cbResMsg, err := buildCreateBearerResMsg(res)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.sendAndReceiveCreateBearerResponse(res, cPgwUDPAddr, cbResMsg)
+	if err != nil {
+		err = fmt.Errorf("Create Bearer Response failed for IMSI %s:, %s", res.Imsi, err)
+		glog.Error(err)
+		return nil, err
+	}
+
+	return &orc8r_protos.Void{}, nil
 }
 
 // configOrRequestedPgwAddress returns an UDPAddrs if the passed string corresponds to a valid ip,

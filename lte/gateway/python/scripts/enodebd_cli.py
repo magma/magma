@@ -71,6 +71,7 @@ def reboot_enodeb(client, args):
     req.device_serial = args.device_serial
     client.Reboot(req)
 
+
 @grpc_wrapper
 def reboot_all_enodeb(client, args):
     client.RebootAll(Void())
@@ -93,16 +94,26 @@ def get_status(client, args):
     meta = status.meta
     print_status_param(meta, 'n_enodeb_connected', '# of eNodeB connected')
     print_status_param(meta, 'all_enodeb_configured', 'All eNodeB configured')
-    print_status_param(meta, 'all_enodeb_opstate_enabled',
-                       'All eNB Opstate enabled')
-    print_status_param(meta, 'all_enodeb_rf_tx_configured',
-                       'All eNB RF TX configured to desired state')
-    print_status_param(meta, 'any_enodeb_gps_connected',
-                       'Any eNB GPS connected')
-    print_status_param(meta, 'all_enodeb_ptp_connected',
-                       'All eNB PTP connected')
-    print_status_param(meta, 'all_enodeb_mme_connected',
-                       'All eNB MME connected')
+    print_status_param(
+        meta, 'all_enodeb_opstate_enabled',
+        'All eNB Opstate enabled',
+    )
+    print_status_param(
+        meta, 'all_enodeb_rf_tx_configured',
+        'All eNB RF TX configured to desired state',
+    )
+    print_status_param(
+        meta, 'any_enodeb_gps_connected',
+        'Any eNB GPS connected',
+    )
+    print_status_param(
+        meta, 'all_enodeb_ptp_connected',
+        'All eNB PTP connected',
+    )
+    print_status_param(
+        meta, 'all_enodeb_mme_connected',
+        'All eNB MME connected',
+    )
     print_status_param(meta, 'gateway_gps_longitude', 'Gateway GPS Longitude')
     print_status_param(meta, 'gateway_gps_latitude', 'Gateway GPS Latitude')
 
@@ -130,8 +141,10 @@ def get_all_status(client, args):
     status_list = status.enb_status_list
     if len(status_list) == 0:
         print('No status information to report.')
-        print('Either there are no connected eNodeB devices, '
-              'or no TR-069 messages have been received yet.')
+        print(
+            'Either there are no connected eNodeB devices, '
+            'or no TR-069 messages have been received yet.',
+        )
     else:
         for enb_status in status_list:
             print_enb_status(enb_status)
@@ -158,8 +171,10 @@ def get_enb_status(client, args):
 
 def _print_prop_status_line(header: str, value: int) -> None:
     """ Argument 'value' should be a StatusProperty enum """
-    _print_str_status_line(header,
-                           SingleEnodebStatus.StatusProperty.Name(value))
+    _print_str_status_line(
+        header,
+        SingleEnodebStatus.StatusProperty.Name(value),
+    )
 
 
 def _print_str_status_line(header: str, value: str) -> None:
@@ -181,55 +196,74 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for Enodebd',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
     parser_get_parameter = subparsers.add_parser(
-        'get_parameter', help='Send GetParameterValues message')
+        'get_parameter', help='Send GetParameterValues message',
+    )
     parser_get_parameter.add_argument(
-        'device_serial', help='eNodeB Serial ID')
+        'device_serial', help='eNodeB Serial ID',
+    )
     parser_get_parameter.add_argument(
-        'parameter_name', help='Parameter Name')
+        'parameter_name', help='Parameter Name',
+    )
 
     parser_set_parameter = subparsers.add_parser(
-        'set_parameter', help='Send SetParameterValues message')
+        'set_parameter', help='Send SetParameterValues message',
+    )
     parser_set_parameter.add_argument(
-        'device_serial', help='eNodeB Serial ID')
+        'device_serial', help='eNodeB Serial ID',
+    )
     parser_set_parameter.add_argument(
-        'parameter_name', help='Parameter Name')
+        'parameter_name', help='Parameter Name',
+    )
     parser_set_parameter.add_argument(
-        'value', help='Parameter Value')
+        'value', help='Parameter Value',
+    )
     parser_set_parameter.add_argument(
         'data_type', help='Parameter Data Type',
-        choices=['int', 'bool', 'string'])
+        choices=['int', 'bool', 'string'],
+    )
     parser_set_parameter.add_argument(
-        '--parameter_key', default='', help='Parameter Key')
+        '--parameter_key', default='', help='Parameter Key',
+    )
 
     parser_config_enodeb = subparsers.add_parser(
-        'config_enodeb', help='Configure eNodeB')
+        'config_enodeb', help='Configure eNodeB',
+    )
     parser_config_enodeb.add_argument(
-        'device_serial', help='eNodeB Serial ID')
+        'device_serial', help='eNodeB Serial ID',
+    )
 
     parser_reboot_enodeb = subparsers.add_parser(
-        'reboot_enodeb', help='Reboot eNodeB')
+        'reboot_enodeb', help='Reboot eNodeB',
+    )
     parser_reboot_enodeb.add_argument(
-        'device_serial', help='eNodeB Serial ID')
+        'device_serial', help='eNodeB Serial ID',
+    )
 
     parser_reboot_all_enodeb = subparsers.add_parser(
-        'reboot_all_enodeb', help='Reboot all eNodeB')
+        'reboot_all_enodeb', help='Reboot all eNodeB',
+    )
 
     parser_get_status = subparsers.add_parser(
-        'get_status', help='Get enodebd status')
+        'get_status', help='Get enodebd status',
+    )
 
     parser_get_all_status = subparsers.add_parser(
-        'get_all_status', help='Get all attached eNodeB status')
+        'get_all_status', help='Get all attached eNodeB status',
+    )
 
     parser_get_enb_status = subparsers.add_parser(
-        'get_enb_status', help='Get eNodeB status')
+        'get_enb_status', help='Get eNodeB status',
+    )
     parser_get_enb_status.add_argument(
-        'device_serial', help='eNodeB Serial ID')
+        'device_serial', help='eNodeB Serial ID',
+    )
 
     # Add function callbacks
     parser_get_parameter.set_defaults(func=get_parameter)
@@ -254,6 +288,7 @@ def main():
 
     # Execute the subcommand function
     args.func(args, EnodebdStub, 'enodebd')
+
 
 if __name__ == "__main__":
     main()

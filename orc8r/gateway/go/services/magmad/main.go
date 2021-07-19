@@ -30,6 +30,7 @@ import (
 	"magma/gateway/services/magmad/service_manager"
 	"magma/gateway/services/magmad/status"
 	sync_rpc "magma/gateway/services/sync_rpc/service"
+	"magma/orc8r/lib/go/build_info"
 	"magma/orc8r/lib/go/profile"
 )
 
@@ -44,7 +45,7 @@ Examples:
 
     $> %s
 
-    The command will run magmad service which will periodically 
+    The command will run magmad service which will periodically
     check and update the gateway certificats and cloud managed GW configs
 
   2. Show the gateway information needed for the gateway registration and exit:
@@ -80,6 +81,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Print(info)
+		fmt.Print(build_info.String())
 		os.Exit(0)
 	}
 

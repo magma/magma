@@ -118,7 +118,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     default: {
       OAILOG_DEBUG(
-          LOG_S6A, "Unkwnon message ID %d: %s\n",
+          LOG_S6A, "Unknown message ID %d: %s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
@@ -147,7 +147,7 @@ static void* s6a_thread(void* args) {
 }
 
 //------------------------------------------------------------------------------
-int s6a_init(const mme_config_t* mme_config_p) {
+status_code_e s6a_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface\n");
 
   if (itti_create_task(

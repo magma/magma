@@ -16,7 +16,7 @@ awsBootKey: "{{ keyBoot }}"
 awsHostKey: "{{ keyHost }}"
 awsAgwRegion: us-west-2
 awsOrc8rRegion: us-west-2
-awsAgwAz: us-west-2a
+awsAgwAz: "{{ awsAgwRegion }}a"
 awsAgwVersion: v1.5
 
 awsAgwAmi: ami-06447b6fef489a898
@@ -33,6 +33,8 @@ orc8rTfSecrets: orc8r-secrets
 orc8rTfVpc: orc8r
 orc8rTfCluster: orc8r
 orc8rTfEs: orc8r-es
+orc8rTfRdsNotifs: orc8r-rds-events
+orc8rTfSnsTopic: orc8r-sns
 
 #------------------
 #Cluster-specific Variables ends

@@ -66,7 +66,7 @@ extern "C" {
                  ->memMgr.memAlloc(                                            \
                      ((nw_gtpv2c_stack_t*) (_stack))->memMgr.hMemMgr, _size,   \
                      __FILE__, __LINE__);                                      \
-      AssertFatal(0, "Do not use this Mem manager");                           \
+      Fatal("Do not use this Mem manager");                                    \
     } else {                                                                   \
       _mem = (_type) malloc(_size);                                            \
     }                                                                          \
@@ -80,7 +80,7 @@ extern "C" {
           ->memMgr.memFree(                                                    \
               ((nw_gtpv2c_stack_t*) (_stack))->memMgr.hMemMgr, _mem, __FILE__, \
               __LINE__);                                                       \
-      AssertFatal(0, "Do not use this Mem manager");                           \
+      Fatal("Do not use this Mem manager");                                    \
     } else {                                                                   \
       free((void*) _mem);                                                      \
     }                                                                          \
@@ -190,6 +190,7 @@ typedef struct nw_gtpv2c_trxn_s {
   nw_gtpv2c_msg_t* pMsg;
   bool pt_trx; /**< Make the transaction passthrough, such that the message is
                   forwarded, if no msg is appended to the trx. */
+  proc_context_t proc_context;
 
   nw_gtpv2c_stack_t* pStack;
   nw_gtpv2c_timer_handle_t hRspTmr;  /**< Handle to reponse timer            */

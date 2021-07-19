@@ -128,10 +128,10 @@ cp -r $(REPORT_DIR) $(MAGMA_ROOT)
 @echo "Reports in magma/reports/.../index.html"
 endef
 
-# run_ctest BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
+# run_ctest BUILD_DIRECTORY, TEST_BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
 define run_ctest
-$(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
-cd $(1) && ctest --output-on-failure
+$(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
+cd $(2) && ctest --output-on-failure
 endef
 
 format_common:
@@ -148,7 +148,7 @@ build_python: stop ## Build Python environment
 build_common: format_common ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-build_oai: format_oai ## Build OAI
+build_oai: format_core ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS))
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
@@ -178,16 +178,16 @@ clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning st
 		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
 		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
-build_sctpd: format_sctpd build_common ## Build SCTPD
+build_sctpd: format_sctpd
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
-build_li_agent: format_li_agent build_common ## Build li agent
+build_li_agent: format_li_agent ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
-build_connection_tracker: format_connection_tracker build_common ## Build connection tracker
+build_connection_tracker: format_connection_tracker
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
@@ -205,29 +205,40 @@ test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
 
-test_common: build_common ## Run all tests in magma_common
-	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+test_sctpd: ## Run all OAI-specific tests
+	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
+
+test_common: ## Run all tests in magma_common
+	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
+	# Run the common lib tests that exist
+	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
+	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
+	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
+
+test_li_agent:
+	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
+
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
-	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
 
 coverage_oai: test_oai
 	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info.raw
-	lcov -r /tmp/coverage_oai.info.raw "/*/test/*" -o /tmp/coverage_oai.info
+	lcov -r /tmp/coverage_oai.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_oai.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 coverage_sctpd: test_sctpd
 	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_sctpd.info.raw
-	lcov -r /tmp/coverage_sctpd.info.raw "/*/test/*" -o /tmp/coverage_sctpd.info
+	lcov -r /tmp/coverage_sctpd.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_sctpd.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 coverage_session_manager: test_session_manager
 	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_session_manager.info.raw
-	lcov -r /tmp/coverage_session_manager.info.raw "/*/test/*" -o /tmp/coverage_session_manager.info
+	lcov -r /tmp/coverage_session_manager.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_session_manager.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 # format and test c/session_manager
@@ -280,7 +291,8 @@ clang_tidy_oai_upload: clang_tidy_oai
 
 ## Generate complete code structural information prior to any test execution
 base_coverage: build_oai build_sctpd build_session_manager build_connection_tracker
-	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info
+	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info.raw
+	lcov -r /tmp/coverage_initialize.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_initialize.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 # Combine results of sub-coverages

@@ -25,13 +25,13 @@ func getVPNServiceClient() (fbprotos.VPNServiceClient, error) {
 }
 
 // Get the VPN CA certificate
-func GetVPNCA() (cert []byte, err error) {
+func GetVPNCA(ctx context.Context) (cert []byte, err error) {
 	client, err := getVPNServiceClient()
 	if err != nil {
 		return nil, err
 	}
 
-	caMsg, err := client.GetCA(context.Background(), &protos.Void{})
+	caMsg, err := client.GetCA(ctx, &protos.Void{})
 	if err != nil {
 		glog.Errorf("Failed to get VPN CA: %s", err)
 		return nil, err
@@ -42,14 +42,14 @@ func GetVPNCA() (cert []byte, err error) {
 
 // Return a certificate signed by the VPN CA, with serial number.
 // CSR is in ASN.1 DER encoding.
-func RequestSignedCert(csr []byte) (sn string, cert []byte, err error) {
+func RequestSignedCert(ctx context.Context, csr []byte) (sn string, cert []byte, err error) {
 	client, err := getVPNServiceClient()
 	if err != nil {
 		return "", nil, err
 	}
 
 	req := &fbprotos.VPNCertRequest{Request: csr}
-	certMsg, err := client.RequestCert(context.Background(), req)
+	certMsg, err := client.RequestCert(ctx, req)
 	if err != nil {
 		glog.Errorf("Failed to retrieve signed VPN cert: %s", err)
 		return "", nil, err

@@ -13,13 +13,9 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/dynamic.h>
-#include <folly/Format.h>
-#include <folly/json.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -99,7 +95,7 @@ enum Bucket {
   ALLOWED_FLOOR_RX    = 11,
 
   // delimiter to iterate enum
-  MAX_VALUES = 12,
+  BUCKET_ENUM_MAX_VALUE = 12,
 };
 
 enum ReAuthState {

@@ -79,7 +79,7 @@ void s6a_peer_connected_cb(struct peer_info* info, void* arg) {
 #endif
 }
 
-int s6a_fd_new_peer(void) {
+status_code_e s6a_fd_new_peer(void) {
   int ret = 0;
 #if FD_CONF_FILE_NO_CONNECT_PEERS_CONFIGURED
   struct peer_info info = {0};
@@ -174,9 +174,11 @@ int s6a_fd_new_peer(void) {
  */
 void send_activate_messages(void) {
   MessageDef* message_p;
-  message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, ACTIVATE_MESSAGE);
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
 
-  message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, ACTIVATE_MESSAGE);
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_S1AP, message_p);
 }

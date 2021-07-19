@@ -68,7 +68,7 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_status_ind(
+status_code_e esm_proc_status_ind(
     emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
     esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -147,7 +147,7 @@ int esm_proc_status_ind(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_status(
+status_code_e esm_proc_status(
     const bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
     STOLEN_REF bstring* msg, const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);

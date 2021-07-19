@@ -454,7 +454,6 @@ void create_granted_units(
 magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-  mconfig.set_relay_enabled(false);
   mconfig.set_gx_gy_relay_enabled(false);
   auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
   wallet_config->set_terminate_on_exhaust(false);

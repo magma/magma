@@ -456,6 +456,8 @@ typedef struct ue_mm_context_s {
   ambr_t used_ambr;
   subscriber_status_t subscriber_status;
   network_access_mode_t network_access_mode;
+  uint8_t num_reg_sub;
+  regional_subscription_t reg_sub[MAX_REGIONAL_SUB];
 
   bool path_switch_req;
   bool erab_mod_ind;
@@ -602,7 +604,7 @@ void mme_app_free_bearer_context(bearer_context_t** bc);
 
 void mme_app_send_delete_session_request(
     struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
-    const pdn_cid_t cid);
+    const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
     const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);

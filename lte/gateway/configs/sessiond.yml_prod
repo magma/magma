@@ -12,6 +12,8 @@
 # limitations under the License.
 
 log_level: INFO
+print_grpc_payload: false
+
 rule_update_inteval_sec: 15
 
 # Session manager will report the usage when the usage is greater than
@@ -46,3 +48,10 @@ default_requested_units: 200000
 # set to true if subscriber information export over IPFIX needs to be enabled
 # in order to enable ipfix, make sure to add ipfix as a static service in pipelined.yml
 enable_ipfix: false
+
+# set to a certain interval measured in seconds for which sessiond should poll pipelined
+# for relevant stats
+poll_stats_interval: 5
+
+# set to true to enable pull model for stats(polling pipelined from sessiond)
+enable_pull_stats: false

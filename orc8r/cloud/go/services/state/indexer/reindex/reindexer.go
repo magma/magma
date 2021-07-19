@@ -282,7 +282,7 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 		}
 
 		// Convert IDs to states -- silently ignore not-found (stale) state IDs
-		statesByID, err := state.GetSerializedStates(b.networkID, ids)
+		statesByID, err := state.GetSerializedStates(ctx, b.networkID, ids)
 		if err != nil {
 			err = errors.Wrap(err, "get states")
 			return wrap(err, ErrDefault, id)

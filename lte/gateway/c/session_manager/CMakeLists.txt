@@ -59,8 +59,6 @@ include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
 include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
-include_directories(${MAGMA_LIB_DIR}/datastore)
-include_directories(${MAGMA_LIB_DIR}/policydb)
 include_directories(${MAGMA_LIB_DIR}/eventd)
 
 # TODO: Temp workaround until packages are imported by these cmakefile
@@ -78,12 +76,12 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS common directoryd)
+set(SMGR_ORC8R_CPP_PROTOS directoryd redis)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb policydb
-  pipelined spgw_service mconfig/mconfigs)
+set(SMGR_LTE_CPP_PROTOS apn policydb mobilityd subscriberdb session_manager
+  pipelined spgw_service abort_session mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -95,7 +93,7 @@ set(SMGR_ORC8R_GRPC_PROTOS directoryd)
 generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_GRPC_PROTOS session_manager pipelined spgw_service)
+set(SMGR_GRPC_PROTOS abort_session session_manager pipelined spgw_service mobilityd)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -103,14 +101,12 @@ set(SMGR_CWF_GRPC_PROTOS accounting)
 generate_grpc_protos("${SMGR_CWF_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
-message("Proto_srcs are ${PROTO_SRCS}")
+message("SessionManager proto_srcs are ${PROTO_SRCS}")
 
 link_directories(
   ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
-  ${MAGMA_LIB_DIR}/datastore
-  ${MAGMA_LIB_DIR}/policydb
   ${MAGMA_LIB_DIR}/eventd
   ${MAGMA_LIB_DIR}/service_registry)
 
@@ -151,6 +147,8 @@ add_library(SESSION_MANAGER
     DiameterCodes.cpp
     DiameterCodes.h
     CreditKey.h
+    StatsPoller.cpp
+    StatsPoller.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.cpp
@@ -182,6 +180,15 @@ add_library(SESSION_MANAGER
     Types.h
     SentryWrappers.cpp
     SentryWrappers.h
+    MobilitydClient.cpp
+    MobilitydClient.h
+    ObjectMap.h
+    PolicyLoader.cpp
+    PolicyLoader.h
+    ObjectMap.h
+    RedisMap.hpp
+    Serializers.cpp
+    Serializers.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
@@ -200,8 +207,7 @@ set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_
 endif()
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG POLICYDB EVENTD
-  DATASTORE
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG EVENTD
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie
   )

@@ -33,7 +33,7 @@
 #include "conversions.h"
 
 //------------------------------------------------------------------------------
-int select_pdn_type(
+status_code_e select_pdn_type(
     struct apn_configuration_s* apn_config,
     esm_proc_pdn_type_t ue_selected_pdn_type, esm_cause_t* esm_cause) {
   /* Overwrite apn_config->pdn_type based on the PDN type sent by UE and the PDN

@@ -30,14 +30,16 @@ MME :
     EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC            = "no";    # DO NOT CHANGE
     EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST             = "no";    # DO NOT CHANGE
 
-    # Display statistics about whole system (expressed in seconds)
-    MME_STATISTIC_TIMER                       = 10;
+    # Report/Display MME statistics (expressed in seconds)
+    STATS_TIMER_SEC                    = 60;
 
     USE_STATELESS = "{{ use_stateless }}";
     USE_HA = "{{ use_ha }}";
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
     ENABLE_CONVERGED_CORE = "{{ enable_converged_core }}";
 
+    # Congestion control configuration parameters
+    CONGESTION_CONTROL_ENABLED = "{{ congestion_control_enabled }}";
     # Congestion control thresholds (expressed in microseconds)
     S1AP_ZMQ_TH = {{ s1ap_zmq_th_us }};
     MME_APP_ZMQ_CONGEST_TH = {{ mme_app_zmq_congest_th_us }};
@@ -310,5 +312,14 @@ MME :
           APN         = "{{ fed_map.apn }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
+   );
+
+   SRVC_AREA_CODE_2_TACS_MAP = (
+     {% for sac2tac in service_area_map -%}
+     {
+       SAC = {{sac2tac.sac}}
+       TACS_PER_SAC = {{sac2tac.tac}}
+     }{% if not loop.last %},{% endif %}
+     {% endfor %}
    );
 };

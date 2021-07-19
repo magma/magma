@@ -75,12 +75,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       MessageDef* msg;
 
       if (received_message_p->ittiMsg.sctpInit.ppid == S1AP) {
-        msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
+        msg = DEPRECATEDitti_alloc_new_message_fatal(
+            TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
         SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
         send_msg_to_task(&sctp_task_zmq_ctx, TASK_MME_APP, msg);
 
       } else if (received_message_p->ittiMsg.sctpInit.ppid == NGAP) {
-        msg = itti_alloc_new_message(TASK_NGAP, SCTP_AMF_SERVER_INITIALIZED);
+        msg = DEPRECATEDitti_alloc_new_message_fatal(
+            TASK_NGAP, SCTP_AMF_SERVER_INITIALIZED);
         SCTP_AMF_SERVER_INITIALIZED(msg).successful = true;
         send_msg_to_task(&sctp_task_zmq_ctx, TASK_AMF_APP, msg);
       } else {
@@ -117,7 +119,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     default: {
       OAILOG_DEBUG(
-          LOG_SCTP, "Unkwnon message ID %d:%s\n",
+          LOG_SCTP, "Unknown message ID %d:%s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }

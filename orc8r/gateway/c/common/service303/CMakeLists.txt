@@ -55,6 +55,11 @@ target_link_libraries(SERVICE303_LIB PRIVATE
     )
 target_link_libraries(SERVICE303_LIB PRIVATE MAGMA_LOGGING)
 
+if (BUILD_TESTS)
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(test)
+endif (BUILD_TESTS)
+
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET SERVICE303_LIB POST_BUILD
