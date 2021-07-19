@@ -27,7 +27,7 @@
 #include "StoredState.h"
 #include "math.h"
 #include <sstream>
-#include <time.h> 
+#include <time.h>
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;
@@ -634,48 +634,51 @@ TEST_F(SessionStoreTest, test_get_session) {
 }
 
 TEST_F(SessionStoreTest, test_sharding_of_sessions) {
-  //create 501 UEs and check whether they are sharded in to
-  //six, add random amounts of sessions between 1 and 4
+  // create 501 UEs and check whether they are sharded in to
+  // six, add random amounts of sessions between 1 and 4
   srand(time(NULL));
-  for (int i = 1; i <= 501; i++){
-    //construct random IMSIs
+  for (int i = 1; i <= 501; i++) {
+    // construct random IMSIs
     std::stringstream imsiStream;
-    imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0') << std::to_string(i);
+    imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
+               << std::to_string(i);
     std::string imsi_id = imsiStream.str();
     imsiStream.clear();
-    //generate random amount of sessions for each IMSI between 1 and 5
+    // generate random amount of sessions for each IMSI between 1 and 5
     int session_count = rand() % 5 + 1;
     std::cout << "The session size is: " << session_count << "\n";
     auto sessions = SessionVector{};
     EXPECT_EQ(sessions.size(), 0);
-    for (int i = 1; i <= session_count; i++){
-       std::stringstream sessionStream;
-       sessionStream << imsi_id << "-" << std::to_string(i + 1);
-       std::string session_id = sessionStream.str();
-       sessionStream.clear();
-       auto session = get_session(imsi_id, session_id);
-       sessions.push_back(std::move(session));
-       EXPECT_EQ(sessions.size(), i);
+    for (int i = 1; i <= session_count; i++) {
+      std::stringstream sessionStream;
+      sessionStream << imsi_id << "-" << std::to_string(i + 1);
+      std::string session_id = sessionStream.str();
+      sessionStream.clear();
+      auto session = get_session(imsi_id, session_id);
+      sessions.push_back(std::move(session));
+      EXPECT_EQ(sessions.size(), i);
     }
     EXPECT_EQ(sessions.size(), session_count);
     session_store->create_sessions(imsi_id, std::move(sessions));
     sessions.clear();
   }
-  //check shards for all 501 UEs to make share there are 6, all sessions should
-  //have the same shard id per IMSI
-  
-  for (int i = 1; i <= 501; i++){
-     //check the sessions to make sure they have the right shard id and all the same
-     std::stringstream imsiStream;
-     imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0') << std::to_string(i);
-     std::string imsi_id = imsiStream.str();
-     imsiStream.clear();
-     SessionRead read_req = {};
-     read_req.insert(imsi_id);
-     auto session_map = session_store->read_sessions(read_req);
-     for (size_t j = 0; j < session_map[imsi_id].size(); j++){
-        EXPECT_EQ(session_map[imsi_id][j]->get_shard_id(), (i - 1) / 100);
-     }
+  // check shards for all 501 UEs to make share there are 6, all sessions should
+  // have the same shard id per IMSI
+
+  for (int i = 1; i <= 501; i++) {
+    // check the sessions to make sure they have the right shard id and all the
+    // same
+    std::stringstream imsiStream;
+    imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
+               << std::to_string(i);
+    std::string imsi_id = imsiStream.str();
+    imsiStream.clear();
+    SessionRead read_req = {};
+    read_req.insert(imsi_id);
+    auto session_map = session_store->read_sessions(read_req);
+    for (size_t j = 0; j < session_map[imsi_id].size(); j++) {
+      EXPECT_EQ(session_map[imsi_id][j]->get_shard_id(), (i - 1) / 100);
+    }
   }
 }
 
