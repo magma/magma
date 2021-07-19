@@ -16,12 +16,24 @@ import sqlite3
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime
+from typing import List, NamedTuple
 
-from lte.protos.subscriberdb_pb2 import SubscriberData
+from lte.protos.subscriberdb_pb2 import (
+    Digest,
+    SubscriberData,
+    SubscriberDigestWithID,
+)
 from magma.subscriberdb.sid import SIDUtils
 
 from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
-from .onready import OnDataReady
+from .onready import OnDataReady, OnDigestsReady
+
+DigestDBInfo = NamedTuple(
+    'DigestDBInfo', [
+        ('flat_digest_db_location', str),
+        ('per_sub_digest_db_location', str),
+    ],
+)
 
 
 class SqliteStore(BaseStore):
@@ -35,13 +47,17 @@ class SqliteStore(BaseStore):
     def __init__(self, db_location, loop=None, sid_digits=2):
         self._sid_digits = sid_digits  # last digits to be included from subscriber id
         self._n_shards = 10**sid_digits
-        self._db_locations, self._digest_db_location = \
-            self._create_db_locations(db_location, self._n_shards)
+        self._db_locations = self._create_db_locations(db_location, self._n_shards)
+
+        digest_db_info = self._create_digest_db_locations(db_location)
+        self._digest_db_location = digest_db_info.flat_digest_db_location
+        self._per_sub_digest_db_location = digest_db_info.per_sub_digest_db_location
+
         self._create_store()
         self._on_ready = OnDataReady(loop=loop)
+        self._on_digests_ready = OnDigestsReady(loop=loop)
 
-    def _create_db_locations(self, db_location: str, n_shards: int) \
-            -> [list, str]:
+    def _create_db_locations(self, db_location: str, n_shards: int) -> List[str]:
         # in memory if db_location is not specified
         if not db_location:
             db_location = "/var/opt/magma/"
@@ -61,11 +77,25 @@ class SqliteStore(BaseStore):
             )
             logging.info("db location: %s", db_location_list[shard])
 
+        return db_location_list
+
+    def _create_digest_db_locations(self, db_location: str) -> DigestDBInfo:
         digest_db_location = 'file:' + db_location + \
                              'subscriber-digest.db?cache=shared'
         logging.info("digest db location: %s", digest_db_location)
 
-        return db_location_list, digest_db_location
+        per_sub_digest_db_location = 'file:' + db_location + \
+                                     'per-subscriber-digest.db?cache=shared'
+        logging.info(
+            "per-sub digest db location: %s",
+            per_sub_digest_db_location,
+        )
+
+        digest_db_info = DigestDBInfo(
+            flat_digest_db_location=digest_db_location,
+            per_sub_digest_db_location=per_sub_digest_db_location,
+        )
+        return digest_db_info
 
     def _create_store(self) -> None:
         """
@@ -89,6 +119,16 @@ class SqliteStore(BaseStore):
                 conn.execute(
                     "CREATE TABLE IF NOT EXISTS subscriber_digest"
                     "(digest string PRIMARY KEY, updated_at timestamp)",
+                )
+        finally:
+            conn.close()
+
+        conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
+        try:
+            with conn:
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS per_subscriber_digest"
+                    "(sid string PRIMARY KEY, digest string)",
                 )
         finally:
             conn.close()
@@ -146,7 +186,37 @@ class SqliteStore(BaseStore):
         finally:
             conn.close()
 
-    def delete_subscriber(self, subscriber_id):
+    def upsert_subscriber(self, subscriber_data: SubscriberData) -> None:
+        """
+        Check if the given subscriber exists in store. If so, update subscriber
+        data; otherwise, add subscriber.
+        """
+        sid = SIDUtils.to_str(subscriber_data.sid)
+        data_str = subscriber_data.SerializeToString()
+        db_location = self._db_locations[self._sid2bucket(sid)]
+        conn = sqlite3.connect(db_location, uri=True)
+        try:
+            with conn:
+                res = conn.execute(
+                    "SELECT subscriber_id FROM subscriberdb WHERE "
+                    "subscriber_id = ?", (sid,),
+                )
+                row = res.fetchone()
+                if row is None:
+                    conn.execute(
+                        "INSERT INTO subscriberdb(subscriber_id, data) "
+                        "VALUES (?, ?)", (sid, data_str),
+                    )
+                else:
+                    conn.execute(
+                        "UPDATE subscriberdb SET data = ? "
+                        "WHERE subscriber_id = ?", (data_str, sid),
+                    )
+        finally:
+            conn.close()
+        self._on_ready.upsert_subscriber(subscriber_data)
+
+    def delete_subscriber(self, subscriber_id) -> None:
         """
         Delete a subscriber, if present.
         """
@@ -160,6 +230,7 @@ class SqliteStore(BaseStore):
                 )
         finally:
             conn.close()
+        self._on_ready.delete_subscriber(subscriber_id)
 
     def delete_all_subscribers(self):
         """
@@ -292,7 +363,8 @@ class SqliteStore(BaseStore):
         try:
             with conn:
                 res = conn.execute(
-                    "SELECT digest, updated_at FROM subscriber_digest",
+                    "SELECT digest, updated_at FROM subscriber_digest "
+                    "ORDER BY updated_at DESC",
                 )
                 row = res.fetchone()
                 if not row:
@@ -321,9 +393,51 @@ class SqliteStore(BaseStore):
             conn.close()
 
         logging.info("update digest stored in gateway: %s", new_digest)
+        self._on_digests_ready.update_digest(new_digest)
+
+    def get_current_per_sub_digests(self) -> List[SubscriberDigestWithID]:
+        digests = []
+        conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
+        try:
+            with conn:
+                res = conn.execute(
+                    "SELECT sid, digest FROM per_subscriber_digest ",
+                )
+
+                for row in res:
+                    digest = SubscriberDigestWithID(
+                        sid=SIDUtils.to_pb(row[0]),
+                        digest=Digest(md5_base64_digest=row[1]),
+                    )
+                    digests.append(digest)
+        finally:
+            conn.close()
+
+        return digests
+
+    def update_per_sub_digests(self, new_digests: List[SubscriberDigestWithID]) -> None:
+        conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
+        try:
+            with conn:
+                conn.execute(
+                    "DELETE FROM per_subscriber_digest",
+                )
+                for digest_by_id in new_digests:
+                    sid = SIDUtils.to_str(digest_by_id.sid)
+                    digest = digest_by_id.digest.md5_base64_digest
+                    conn.execute(
+                        "INSERT INTO per_subscriber_digest(sid, digest)"
+                        "VALUES (?, ?)", (sid, digest),
+                    )
+        finally:
+            conn.close()
+        self._on_digests_ready.update_per_sub_digests(new_digests)
 
     async def on_ready(self):
         return await self._on_ready.event.wait()
+
+    async def on_digests_ready(self):
+        return await self._on_digests_ready.event.wait()
 
     def _update_apn(self, apn_config, apn_data):
         """
