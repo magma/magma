@@ -158,8 +158,6 @@ bool SessionStore::create_sessions(
   for (size_t i = 0; i < sessions.size(); i++) {
     sessions[i]->set_shard_id(shard_id);
   }
-  MLOG(MINFO) << "UE with IMSI: " << subscriber_id
-              << " and shard_id: " << shard_id;
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
   return true;

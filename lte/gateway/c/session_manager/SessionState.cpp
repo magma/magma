@@ -68,7 +68,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
-  marshaled.shard_id   = shard_id_;
+  marshaled.shard_id   = get_shard_id();
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
@@ -1026,6 +1026,7 @@ bool SessionState::is_5g_session() const {
 SessionState::SessionInfo SessionState::get_session_info() {
   SessionState::SessionInfo info;
   info.imsi      = get_imsi();
+  info.shard_id  = get_shard_id();
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
   info.teids     = config_.common_context.teids();

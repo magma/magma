@@ -48,6 +48,11 @@ class ServiceAction {
     return *this;
   }
 
+  ServiceAction& set_shard_id(int shard_id) {
+    shard_id_ = shard_id;
+    return *this;
+  }
+
   ServiceAction& set_session_id(const std::string& session_id) {
     session_id_ = std::make_unique<std::string>(session_id);
     return *this;
@@ -121,6 +126,7 @@ class ServiceAction {
  private:
   ServiceActionType action_type_;
   std::unique_ptr<std::string> imsi_;
+  int shard_id_;
   std::unique_ptr<std::string> session_id_;
   std::unique_ptr<std::string> ip_addr_;
   std::unique_ptr<std::string> ipv6_addr_;
