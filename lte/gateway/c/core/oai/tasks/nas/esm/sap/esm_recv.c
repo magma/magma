@@ -530,8 +530,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
       "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
       ue_mm_context_p->mme_ue_s1ap_id, pid, msg->linkedepsbeareridentity);
   mme_app_send_delete_session_request(
-      ue_mm_context_p, msg->linkedepsbeareridentity, pid,
-      no_delete_tunnel);
+      ue_mm_context_p, msg->linkedepsbeareridentity, pid, no_delete_tunnel);
 
   /*
    * Return the ESM cause value

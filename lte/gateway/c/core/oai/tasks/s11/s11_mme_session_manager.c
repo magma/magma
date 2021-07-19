@@ -367,7 +367,7 @@ status_code_e s11_mme_handle_delete_session_response(
       TASK_S11, S11_DELETE_SESSION_RESPONSE);
   resp_p = &message_p->ittiMsg.s11_delete_session_response;
 
-  // procedure data
+  // procedure lbi data
   resp_p->lbi = pUlpApi->proc_context.ebi;
 
   resp_p->teid           = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);

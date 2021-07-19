@@ -85,7 +85,7 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).teid =
       ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
   S11_DELETE_SESSION_REQUEST(message_p).noDelete = no_delete_tunnel;
-  S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi;  // default bearer
+  S11_DELETE_SESSION_REQUEST(message_p).lbi      = ebi;  // default bearer
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_addr =
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family =
@@ -203,7 +203,7 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
     }
   } else {
     // delete gtpv2c tunnel on last PDN
-    bool no_delete = false;
+    bool no_delete       = false;
     pdn_cid_t cid_delete = 0;
     for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
       if (ue_context_p->pdn_contexts[i]) {
