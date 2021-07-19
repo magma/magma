@@ -363,7 +363,9 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
     // Send delete session req to spgw
-    mme_app_send_delete_session_request(ue_context_p, ebi, pid, false);
+    // Embedded SPGW has no gtpv2c tunnel, can safely set to false
+    bool delete_gtpv2c_tunnel    = false;
+    mme_app_send_delete_session_request(ue_context_p, ebi, pid, delete_gtpv2c_tunnel);
     /* Set ue_rej_act_def_ber_req flag in order to delete the PDN session
      * after receiving delete session rsp from spgw
      */

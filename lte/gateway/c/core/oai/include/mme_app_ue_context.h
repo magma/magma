@@ -604,7 +604,7 @@ void mme_app_free_bearer_context(bearer_context_t** bc);
 
 void mme_app_send_delete_session_request(
     struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
-    const pdn_cid_t cid, const bool no_delete_tunnel);
+    const pdn_cid_t cid, const bool delete_gtpv2c_tunnel);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
     const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
