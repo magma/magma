@@ -64,16 +64,15 @@ module "orc8r-app" {
   orc8r_db_user    = module.orc8r.orc8r_db_user
   orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
-  # If you want to use your own container images or Helm charts, override the
-  # following relevant variables. These examples assume DockerHub for the
-  # container image registry and a GitHub repo for the charts repo.
-  # docker_registry = "registry.hub.docker.com/MY_USERNAME"
-  # docker_user     = "MY_USERNAME"
-  # docker_pass     = "MY_PASSWORD"
-  # helm_repo       = "https://raw.githubusercontent.com/MY_USERNAME/MY_REPONAME/master/"
-  # helm_user       = "MY_USERNAME"
-  # helm_pass       = "MY_PASSWORD"
+  # Note that this can be any container registry provider
+  docker_registry = "https://docker.artifactory.magmacore.org/artifactory/docker"
+  docker_user     = ""
+  docker_pass     = ""
 
+  # Note that this can be any Helm chart repo provider
+  helm_repo       = "https://docker.artifactory.magmacore.org/artifactory/helm"
+  helm_user       = ""
+  helm_pass       = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
 
   efs_file_system_id       = module.orc8r.efs_file_system_id
