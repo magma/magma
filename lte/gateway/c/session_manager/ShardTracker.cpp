@@ -29,7 +29,7 @@ int ShardTracker::add_ue() {
     // Iterate through all existing shards, if all are full
     // create a new shard with quantity 1, otherwise increment
     // the quantity of UEs in the latest shard
-    for (auto i = 0; i < ue_count_per_shard_.size(); i++) {
+    for (size_t i = 0; i < ue_count_per_shard_.size(); i++) {
       if (ue_count_per_shard_[i] < max_shard_size_) {
         ue_count_per_shard_[i]++;
         return i;
