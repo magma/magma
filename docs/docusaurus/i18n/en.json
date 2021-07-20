@@ -250,6 +250,9 @@
       "nms/dev_spacing": {
         "title": "Spacing Guidelines"
       },
+      "nms/dev_testing": {
+        "title": "Test NMS"
+      },
       "nms/dev_themes": {
         "title": "Themes"
       },
@@ -439,6 +442,9 @@
       "proposals/p017_apn_refactoring": {
         "title": "APN Refactoring Proposal"
       },
+      "proposals/p018_control_network_metrics": {
+        "title": "Export Control Path Network Metrics"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
@@ -447,6 +453,9 @@
       },
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
+      },
+      "resources/ref_magma_metrics": {
+        "title": "Life of a Magma Metric"
       },
       "resources/ref_pcap": {
         "title": "PCAP Collection"
