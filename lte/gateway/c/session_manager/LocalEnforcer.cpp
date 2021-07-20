@@ -72,6 +72,7 @@ LocalEnforcer::LocalEnforcer(
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
       session_store_(session_store),
+      shards_(std::make_shared<UEShard>()),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
@@ -1049,6 +1050,15 @@ bool LocalEnforcer::update_tunnel_ids(
   for (const auto& monitor : csr.usage_monitors()) {
     auto uc = get_default_update_criteria();
     session->receive_monitor(monitor, nullptr);
+  }
+
+  // iterate through sessions in session map and update shard ids
+  SessionMap::iterator iter;
+  for (iter = session_map.begin(); iter != session_map.end(); iter++) {
+    int shard_id = shards_->add_ue();
+    for (size_t i = 0; i < iter->second.size(); i++) {
+      iter->second[i]->set_shard_id(shard_id);
+    }
   }
 
   handle_session_activate_rule_updates(

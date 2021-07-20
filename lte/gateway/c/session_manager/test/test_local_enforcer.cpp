@@ -3561,6 +3561,56 @@ TEST_F(LocalEnforcerTest, test_receiving_stats_for_subset_of_rules) {
   EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule2"));
 }
 
+TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
+  // create 501 UEs and check whether they are sharded in to
+  // six, add random amounts of sessions between 1 and 4
+  srand(time(NULL));
+  CreateSessionResponse response;
+  for (int i = 1; i <= 501; i++) {
+    // construct random IMSIs
+    std::stringstream imsiStream;
+    imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
+               << std::to_string(i);
+    std::string imsi_id = imsiStream.str();
+    imsiStream.clear();
+    // generate random amount of sessions for each IMSI between 1 and 5
+    int session_count = rand() % 5 + 1;
+    auto sessions     = SessionVector{};
+    EXPECT_EQ(session_map[imsi_id].size(), 0);
+    for (int i = 1; i <= session_count; i++) {
+      std::stringstream sessionStream;
+      sessionStream << imsi_id << "-" << std::to_string(i + 1);
+      std::string session_id = sessionStream.str();
+      sessionStream.clear();
+      local_enforcer->init_session(
+          session_map, imsi_id, session_id, test_cfg_, response);
+      local_enforcer->update_tunnel_ids(
+          session_map, create_update_tunnel_ids_request(imsi_id, 0, teids0));
+      EXPECT_EQ(session_map[imsi_id].size(), i);
+    }
+    EXPECT_EQ(session_map[imsi_id].size(), session_count);
+    session_store->create_sessions(imsi_id, std::move(sessions));
+    sessions.clear();
+  }
+
+  // check shards for all 501 UEs to make share there are 6, all sessions should
+  // have the same shard id per IMSI
+  for (int i = 1; i <= 501; i++) {
+    // check the sessions to make sure they have the right shard id and all the
+    std::stringstream imsiStream;
+    imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
+               << std::to_string(i);
+    std::string imsi_id = imsiStream.str();
+    imsiStream.clear();
+    SessionRead read_req = {};
+    read_req.insert(imsi_id);
+    auto session_map = session_store->read_sessions(read_req);
+    for (size_t j = 0; j < session_map[imsi_id].size(); j++) {
+      EXPECT_EQ(session_map[imsi_id][j]->get_shard_id(), (i - 1) / 100);
+    }
+  }
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;

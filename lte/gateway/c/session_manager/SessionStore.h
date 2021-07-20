@@ -27,7 +27,6 @@
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
-#include "UEShard.h"
 
 namespace magma {
 namespace lte {
@@ -71,9 +70,9 @@ struct SessionSearchCriteria {
  * SessionStore acts as a broker to storage of sessiond state.
  *
  * This allows sessiond to service gRPC requests in a stateless manner.
- * Instead of keeping state in memory, sessiond uses the request parameters and
- * fetches state through SessionStore, handles the request, then writes back
- * to SessionStore, and responds to the gRPC request.
+ * Instead of keeping state in memory, sessiond uses the request parameters
+ * and fetches state through SessionStore, handles the request, then writes
+ * back to SessionStore, and responds to the gRPC request.
  *
  * SessionStore is intended to be a thread-safe singleton. Each gRPC request
  * should make a single read from SessionStore, and make a single write after
@@ -94,8 +93,8 @@ class SessionStore {
       std::shared_ptr<RedisStoreClient> store_client);
 
   /**
-   * @brief Return a boolean to indicate whether the storage client is ready to
-   * accept requests
+   * @brief Return a boolean to indicate whether the storage client is ready
+   * to accept requests
    */
   bool is_ready() { return store_client_->is_ready(); };
 
@@ -111,8 +110,8 @@ class SessionStore {
    * Read the last written values for the requested sessions through the
    * storage interface.
    * @param req
-   * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * @return Last written values for requested sessions. Returns an empty
+   * vector for subscribers that do not have active sessions.
    */
   SessionMap read_sessions(const SessionRead& req);
 
@@ -159,8 +158,8 @@ class SessionStore {
    * NOTE: Here, it is expected that the caller will use one additional
    *       request_number for each session.
    * @param req
-   * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * @return Last written values for requested sessions. Returns an empty
+   * vector for subscribers that do not have active sessions.
    */
   SessionMap read_sessions_for_deletion(const SessionRead& req);
 
@@ -175,9 +174,9 @@ class SessionStore {
 
   /**
    * Attempt to update sessions with update criteria. If any update to any of
-   * the sessions is invalid, the whole update request is assumed to be invalid,
-   * and nothing in storage will be overwritten.
-   * NOTE: Will not update request_number. Use sync_request_numbers.
+   * the sessions is invalid, the whole update request is assumed to be
+   * invalid, and nothing in storage will be overwritten. NOTE: Will not
+   * update request_number. Use sync_request_numbers.
    * @param update_criteria
    * @return true if successful, otherwise the update to storage is discarded.
    */
@@ -186,8 +185,8 @@ class SessionStore {
   /**
    * @param session_map
    * @param id
-   * @return If the session that meets the criteria is found, then it returns an
-   * optional of the iterator. Otherwise, it returns an empty value.
+   * @return If the session that meets the criteria is found, then it returns
+   * an optional of the iterator. Otherwise, it returns an empty value.
    *
    * Usage Example
    * SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID,
@@ -202,15 +201,15 @@ class SessionStore {
 
   // TODO move this logic outside of this class into MeteringReporter
   /**
-   * This function loops through all sessions and propagates the total usage to
-   * metering_reporter
+   * This function loops through all sessions and propagates the total usage
+   * to metering_reporter
    */
   void initialize_metering_counter();
 
  private:
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<StoreClient> store_client_;
-  std::shared_ptr<UEShard> ue_shards_;
+  // std::shared_ptr<UEShard> ue_shards_;
   std::shared_ptr<MeteringReporter> metering_reporter_;
 };
 
