@@ -409,8 +409,7 @@ void SessionStateEnforcer::m5g_move_to_inactive_state(
 void SessionStateEnforcer::m5g_move_to_active_state(
     std::unique_ptr<SessionState>& session, SetSmNotificationContext notif,
     SessionStateUpdateCriteria* session_uc) {
-  const std::string upf_ip = get_upf_n3_addr();
-  /* Reattach or get  rules to the session */
+  /* Reattach or get rules to the session */
   uint32_t upf_teid = update_session_rules(session, false, false, session_uc);
   /* As we got rules again, move the state to creating */
   session->set_fsm_state(CREATING, session_uc);
@@ -420,7 +419,8 @@ void SessionStateEnforcer::m5g_move_to_active_state(
    * be used by GnodeB
    */
   prepare_response_to_access(
-      *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, upf_ip, upf_teid);
+      *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, get_upf_n3_addr(),
+      upf_teid);
 }
 
 void SessionStateEnforcer::set_new_fsm_state_and_increment_version(

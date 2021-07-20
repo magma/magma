@@ -910,6 +910,8 @@ message SmContextVoid {
   string output = 1;
 }
 
+
+
 // SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE 
 
 // 4G response message has not been refactored yet. Hence only considering M5G.
@@ -1153,3 +1155,4 @@ service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
+

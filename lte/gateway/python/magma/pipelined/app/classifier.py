@@ -642,14 +642,15 @@ class Classifier(MagmaController):
             ),
         ]
 
-        flows.add_output_flow(
-            self._datapath, self.tbl_num,
-            match=match, actions=actions,
-            priority=Utils.PAGING_RULE_PRIORITY,
-            cookie=local_f_teid,
-            output_port=ofproto.OFPP_CONTROLLER,
-            max_len=ofproto.OFPCML_NO_BUFFER,
-        )
+        if local_f_teid:
+            flows.add_output_flow(
+                self._datapath, self.tbl_num,
+                match=match, actions=actions,
+                priority=Utils.PAGING_RULE_PRIORITY,
+                cookie=local_f_teid,
+                output_port=ofproto.OFPP_CONTROLLER,
+                max_len=ofproto.OFPCML_NO_BUFFER,
+            )
         return True
 
     def remove_paging_flow(self, ue_ip_addr: IPAddress):
