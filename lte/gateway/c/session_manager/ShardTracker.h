@@ -27,7 +27,8 @@ class ShardTracker {
    * add UE to shards based on availability
    * @return index(shard id) where UE was placed
    */
-  // TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation (GH8167)
+  // TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation
+  // (GH8167)
   int add_ue();
 
   /**
@@ -37,13 +38,13 @@ class ShardTracker {
   void remove_ue(int shard_id);
 
  private:
-  //a vector of quantities, where the indices represent
-  //the shard id and the values represent the number of
-  //UEs held in each shard
+  // a vector of quantities, where the indices represent
+  // the shard id and the values represent the number of
+  // UEs held in each shard
   std::vector<uint16_t> shards_;
-  //largest number of UEs that can fill a shard
+  // largest number of UEs that can fill a shard
   uint16_t max_shard_size_;
-  //the number of shards we currently have
+  // the number of shards we currently have
   uint16_t number_of_shards_;
 };
 
