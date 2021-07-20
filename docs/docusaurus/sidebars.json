@@ -270,6 +270,13 @@
           "nms/dev_themes",
           "nms/dev_components"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
+        "ids": [
+          "feg/dev_testing"
+        ]
       }
     ],
     "Proposals": [

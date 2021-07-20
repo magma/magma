@@ -29,7 +29,7 @@ Merge blocking CI checks are listed below.
 | cwf-operator-build     | Validate CWF deployer builds                  | approvers-cwf          | TODO                                                                         |
 | cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
 | eslint                 | Ensure NMS changes satisfy eslint             | approvers-nms          | TODO                                                                         |
-| feg-precommit          | Run FeG unit tests                            | approvers-feg          | TODO                                                                         |
+| feg-precommit          | Run FeG unit tests                            | approvers-feg          | [FeG tests](../feg/dev_testing)                                                                         |
 | insync-checkin         | Ensure generated files are committed          | any maintainer         | [Orc8r tests](../orc8r/dev_testing)                                                                         |
 | lte-test               | Run AGW Python unit tests                     | approvers-agw          | [AGW tests](../lte/dev_unit_testing)                                         |
 | feg-build              | Validate FeG builds                           | approvers-feg          | [FeG build](../feg/deploy_build)                                             |
