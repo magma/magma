@@ -43,7 +43,7 @@
 
 #define AMFC (1)
 #define AMFGID (1)
-#define AMFPOINTER (1)
+#define AMFPOINTER (0)
 #define PLMN_MCC (208)
 #define PLMN_MNC (34)
 #define PLMN_MNC_LEN (2)
