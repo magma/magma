@@ -27,7 +27,7 @@ class ShardTracker {
    * add UE to shards based on availability
    * @return index(shard id) where UE was placed
    */
-  // TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation (GHXXXX)
+  // TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation (GH8167)
   int add_ue();
 
   /**
