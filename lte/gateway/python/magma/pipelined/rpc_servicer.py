@@ -280,7 +280,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         CWF won't have an ip_addr passed
         """
-        logging.info(request)
         ret = ActivateFlowsResult()
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
