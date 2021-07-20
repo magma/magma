@@ -409,21 +409,13 @@ void SessionStateEnforcer::m5g_move_to_inactive_state(
 void SessionStateEnforcer::m5g_move_to_active_state(
     std::unique_ptr<SessionState>& session, SetSmNotificationContext notif,
     SessionStateUpdateCriteria* session_uc) {
-  bool get_gnb_teid        = false;
-  bool get_upf_teid        = false;
-  uint32_t upf_teid        = 0;
   const std::string upf_ip = get_upf_n3_addr();
   /* Reattach or get  rules to the session */
-  upf_teid =
-      update_session_rules(session, get_gnb_teid, get_upf_teid, session_uc);
+  uint32_t upf_teid = update_session_rules(session, false, false, session_uc);
   /* As we got rules again, move the state to creating */
   session->set_fsm_state(CREATING, session_uc);
   uint32_t cur_version = session->get_current_version();
   session->set_current_version(++cur_version, session_uc);
-  /* Call for all rules to be associated from session
-   * and inform to UPF
-   */
-  // m5g_pdr_rules_change_and_update_upf(session, PdrState::INSTALL);
   /* Send the UPF (local TEID) info to AMF which are going to
    * be used by GnodeB
    */
@@ -609,7 +601,6 @@ void SessionStateEnforcer::prepare_response_to_access(
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
-  MLOG(MINFO) << "Send message to AMF gRPC client handler :: ";
   // Send message to AMF gRPC client handler.
   amf_srv_client_->handle_response_to_access(response);
 }
