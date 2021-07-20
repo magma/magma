@@ -54,7 +54,6 @@ set(COMMON_SRC
     log.c
     state_converter.cpp
     common_utility_funs.cpp
-    sentry_wrapper.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
@@ -63,26 +62,21 @@ add_subdirectory(glogwrapper)
 add_subdirectory(redis_utils)
 
 add_library(COMMON ${COMMON_SRC})
-target_link_libraries(COMMON
-    lfds710
-    LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper
-    )
 
 ## Find + link sentry if it exists
 ## TODO we can enable by default after we migrate to ubuntu 20.04
 find_library(SENTRY_LIB NAMES sentry sentry-native)
 if (SENTRY_LIB)
-  # Include dir
-  find_path(SENTRY_INCLUDE_DIR
-      NAMES
-      sentry.h
-      )
-  target_link_libraries(COMMON ${SENTRY_LIB} MAGMA_CONFIG)
-  target_include_directories(COMMON PUBLIC
-      ${CMAKE_CURRENT_SOURCE_DIR}
-      $<TARGET_FILE_DIR:COMMON>
-      )
+  target_link_libraries(COMMON ${SENTRY_LIB})
 endif ()
+
+set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
+link_directories(${MAGMA_LIB_DIR}/sentry)
+
+target_link_libraries(COMMON
+        lfds710
+        LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY
+        )
 
 target_include_directories(COMMON PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

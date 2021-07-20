@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "sentry_wrapper.h"
+#include "includes/SentryWrapper.h"
 
 #if SENTRY_ENABLED
 #include <experimental/optional>
@@ -111,7 +111,14 @@ void initialize_sentry(const sentry_config_t* sentry_config) {
 void shutdown_sentry(void) {
   sentry_shutdown();
 }
+
+void set_sentry_transaction(const char* name) {
+  sentry_set_transaction(name);
+}
+
 #else
-void initialize_sentry(const sentry_config_t* sentry_config) {}
+void initialize_sentry(__attribute__((unused))
+                       const sentry_config_t* sentry_config) {}
 void shutdown_sentry(void) {}
+void set_sentry_transaction(__attribute__((unused)) const char* name) {}
 #endif

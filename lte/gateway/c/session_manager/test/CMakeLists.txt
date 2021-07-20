@@ -28,7 +28,13 @@ add_library(SESSIOND_TEST_LIB
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
-target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER gmock_main gtest gtest_main gmock pthread rt)
+target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER MAGMA_CONFIG gmock_main gtest gtest_main gmock pthread rt)
+
+## Find + link sentry if it exists
+find_library(SENTRY_LIB NAMES sentry sentry-native)
+if (SENTRY_LIB)
+  target_link_libraries(SESSIOND_TEST_LIB ${SENTRY_LIB})
+endif()
 
 foreach (session_test polling_pipelined session_credit local_enforcer cloud_reporter
     session_manager_handler sessiond_integ session_state

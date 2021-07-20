@@ -33,7 +33,7 @@
 #include "mme_config.h"
 #include "amf_config.h"
 #include "shared_ts_log.h"
-#include "sentry_wrapper.h"
+#include "includes/SentryWrapper.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
@@ -110,7 +110,6 @@ int main(int argc, char* argv[]) {
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
-
   // Initialize Sentry error collection (Currently only supported on
   // Ubuntu 20.04)
   // We have to initialize here for now since itti_init asserts on there being

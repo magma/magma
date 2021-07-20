@@ -26,7 +26,7 @@
 #include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
-#include "SentryWrappers.h"
+#include "includes/SentryWrapper.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "SessionCredit.h"
 #include "SessionManagerServer.h"
@@ -208,7 +208,12 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  initialize_sentry(mconfig.sentry_config());
+  sentry_config_t sentry_config;
+  sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
+  strncpy(
+      sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
+      MAX_URL_LENGTH);
+  initialize_sentry(&sentry_config);
 
   bool converged_access          = false;
   uint32_t session_max_rtx_count = 0;

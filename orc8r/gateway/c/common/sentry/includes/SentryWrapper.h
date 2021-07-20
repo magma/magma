@@ -13,11 +13,20 @@
 
 #pragma once
 
-#include "mme_config.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define MAX_URL_LENGTH 255
+
+/**
+ * @brief Struct to contain Sentry configuration relevant for C/C++ services
+ */
+typedef struct sentry_config {
+  float sample_rate;
+  bool upload_mme_log;
+  char url_native[MAX_URL_LENGTH];
+} sentry_config_t;
 
 /**
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is
@@ -29,6 +38,13 @@ void initialize_sentry(const sentry_config_t* sentry_config);
  * @brief Shutdown sentry if SENTRY_ENABLED flag is set
  */
 void shutdown_sentry(void);
+
+/**
+ * @brief Set the sentry transaction object
+ *
+ * @param name
+ */
+void set_sentry_transaction(const char* name);
 
 #ifdef __cplusplus
 }

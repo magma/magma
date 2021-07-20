@@ -129,6 +129,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Add magma libraries
 #############################################################
 
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
+
 add_subdirectory(common)
 add_subdirectory(lib)
 add_subdirectory(oai_mme)
