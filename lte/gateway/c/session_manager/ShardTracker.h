@@ -12,19 +12,17 @@
  */
 
 #include <string>
-#include <utility>
 #include <vector>
-#include <map>
 
 namespace magma {
 
-/*Shards represent groups of UEs placed into buckets of
+/* Shards represent groups of UEs placed into buckets of
 a certain size, to make polling more manageable*/
 class ShardTracker {
   ShardTracker();
 
   /**
-   * add UE to shards based on availability
+   * Add UE to shards based on availability
    * @return index(shard id) where UE was placed
    */
   // TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation
@@ -32,7 +30,7 @@ class ShardTracker {
   int add_ue();
 
   /**
-   * remove UE from shard
+   * Remove UE from shard
    * @param shard_id location of UE to be removed
    */
   void remove_ue(int shard_id);
@@ -41,11 +39,9 @@ class ShardTracker {
   // a vector of quantities, where the indices represent
   // the shard id and the values represent the number of
   // UEs held in each shard
-  std::vector<uint16_t> shards_;
+  std::vector<uint16_t> ue_count_per_shard_;
   // largest number of UEs that can fill a shard
-  uint16_t max_shard_size_;
-  // the number of shards we currently have
-  uint16_t number_of_shards_;
+  const uint16_t max_shard_size_ = 100;
 };
 
 }  // namespace magma
