@@ -19,26 +19,23 @@
 namespace magma {
 
 int ShardTracker::add_ue() {
-  int shard_id;
   // If there are no shards, add an entry for the shard
   // representing a single UE at the new shard
   if (ue_count_per_shard_.size() == 0) {
     ue_count_per_shard_.push_back(1);
     return 0;
-  } else {
-    // Iterate through all existing shards, if all are full
-    // create a new shard with quantity 1, otherwise increment
-    // the quantity of UEs in the latest shard
-    for (size_t i = 0; i < ue_count_per_shard_.size(); i++) {
-      if (ue_count_per_shard_[i] < max_shard_size_) {
-        ue_count_per_shard_[i]++;
-        return i;
-      }
-    }
-    shard_id = ue_count_per_shard_.size();
-    ue_count_per_shard_.push_back(1);
   }
-  return shard_id;
+  // Iterate through all existing shards, if all are full
+  // create a new shard with quantity 1, otherwise increment
+  // the quantity of UEs in the latest shard
+  for (size_t shard_id = 0; shard_id < ue_count_per_shard_.size(); shard_id++) {
+    if (ue_count_per_shard_[shard_id] < max_shard_size_) {
+      ue_count_per_shard_[shard_id]++;
+      return shard_id;
+    }
+  }
+  ue_count_per_shard_.push_back(1);
+  return ue_count_per_shard_.size() - 1;
 }
 
 void ShardTracker::remove_ue(int shard_id) {
