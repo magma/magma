@@ -26,16 +26,16 @@ ShardTracker::ShardTracker() : number_of_shards_(0) {}
 
 int ShardTracker::add_ue() {
   int shard_id;
-  //If we have no shards, we add an entry for the shard representing
-  //of 1 representing a single UE at the new shard*/
+  // If we have no shards, we add an entry for the shard representing
+  // of 1 representing a single UE at the new shard*/
   if (shards_.size() == 0) {
     shard_id = 0;
     shards_.push_back(1);
     number_of_shards_++;
   } else {
-    //We iterate through all existing shards, if all are full
-    //we create a new shard with quantity 1, otherwise we increment
-    //the quantity of UEs in the latest shard
+    // We iterate through all existing shards, if all are full
+    // we create a new shard with quantity 1, otherwise we increment
+    // the quantity of UEs in the latest shard
     for (auto i = 0; i < number_of_shards_; i++) {
       if (shards_[i] < MAX_SHARD_SIZE) {
         shards_[i]++;
@@ -49,8 +49,8 @@ int ShardTracker::add_ue() {
 }
 
 void ShardTracker::remove_ue(int shard_id) {
-  //Since we only keep global state of all UEs, we just
-  //need to decrement the number of UEs at a particular id
+  // Since we only keep global state of all UEs, we just
+  // need to decrement the number of UEs at a particular id
   shards_[shard_id]--;
 }
 
