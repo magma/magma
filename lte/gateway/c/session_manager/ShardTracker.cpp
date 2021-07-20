@@ -38,10 +38,15 @@ int ShardTracker::add_ue() {
   return ue_count_per_shard_.size() - 1;
 }
 
-void ShardTracker::remove_ue(int shard_id) {
+bool ShardTracker::remove_ue(int shard_id) {
   // Since we only keep global state of all UEs, we just
   // need to decrement the number of UEs at a particular id
+  // if there are no UEs at the shard, removal should fail
+  if (ue_count_per_shard_[shard_id] == 0) {
+    return false;
+  }
   ue_count_per_shard_[shard_id]--;
+  return true;
 }
 
 }  // namespace magma

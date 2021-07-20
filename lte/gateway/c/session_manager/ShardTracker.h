@@ -32,8 +32,9 @@ class ShardTracker {
   /**
    * Remove UE from shard
    * @param shard_id location of UE to be removed
+   * @return true for successful removal, false for failed removal
    */
-  void remove_ue(int shard_id);
+  bool remove_ue(int shard_id);
 
  private:
   // a vector of quantities, where the indices represent
