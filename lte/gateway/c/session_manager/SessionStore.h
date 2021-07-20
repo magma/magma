@@ -13,7 +13,6 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include <memory>

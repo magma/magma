@@ -15,6 +15,8 @@ limitations under the License.
 # One of the pods tend to crashloop due to the node running out of available
 # inotify watchers (https://github.com/kubernetes/kubernetes/issues/70324)
 
+# TODO(hcgatewood): delete this file, no longer used
+
 {{- if .Values.cloudwatch.create }}
 # create cwagent service account and role binding
 apiVersion: v1

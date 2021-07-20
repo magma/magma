@@ -42,6 +42,8 @@ module "eks" {
     "scheduler",
   ]
 
+  cluster_create_timeout   = "30m"
+
   workers_group_defaults = {
     key_name = var.eks_worker_group_key == null ? aws_key_pair.eks_workers[0].key_name : var.eks_worker_group_key
   }

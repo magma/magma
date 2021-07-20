@@ -76,12 +76,14 @@ class AWSCluster(object):
         cluster_cleanup = AnsiblePlay(
             playbook=f"{playbook_dir}/cluster-provision.yaml",
             tags=['clusterCleanup'],
-            extra_vars=cstrap_dict)
+            extra_vars=cstrap_dict,
+        )
         network_cleanup = AnsiblePlay(
             playbook=f"{playbook_dir}/agw-provision.yaml",
             tags=['cleanupBridge', 'cleanupNet'],
             skip_tags=['attachIface'],
-            extra_vars=cstrap_dict)
+            extra_vars=cstrap_dict,
+        )
 
         for playbook in [cluster_cleanup, network_cleanup]:
             print(f"Running playbook {playbook}")
@@ -121,7 +123,8 @@ class AWSClusterFactory():
             self,
             constants: dict,
             cluster_uuid: str,
-            template: ClusterTemplate = None) -> Dict[str, Any]:
+            template: ClusterTemplate = None,
+    ) -> Dict[str, Any]:
         """ Create AGW gateways in the test cluster
 
         Args:
@@ -146,7 +149,8 @@ class AWSClusterFactory():
         aws_configs = get_aws_configs()
         cluster_stack = AWSClusterFactory.generate_cluster_stack(
             template.gateway.prefix,
-            template.gateway.count)
+            template.gateway.count,
+        )
 
         cstrap_dict = {
             "clusterUuid": cluster_uuid,
@@ -161,32 +165,35 @@ class AWSClusterFactory():
             "awsCloudstrapperAmi": template.gateway.cloudstrapper_ami,
             "awsAgwRegion": template.gateway.region,
             "awsAgwAz": template.gateway.az,
-            "orc8rDomainName": template.orc8r.infra['orc8r_domain_name']
+            "orc8rDomainName": template.orc8r.infra['orc8r_domain_name'],
         }
 
         key_create = AnsiblePlay(
             playbook=f"{playbook_dir}/aws-prerequisites.yaml",
             tags=['keyCreate'],
-            extra_vars=cstrap_dict
+            extra_vars=cstrap_dict,
         )
         bridge_gw_create = AnsiblePlay(
             playbook=f"{playbook_dir}/agw-provision.yaml",
             tags=['createNet', 'createBridge', 'inventory'],
             skip_tags=['attachIface'],
-            extra_vars=cstrap_dict)
+            extra_vars=cstrap_dict,
+        )
 
         # create test instances
         test_inst_create = AnsiblePlay(
             playbook=f"{playbook_dir}/cluster-provision.yaml",
             tags=['clusterStart'],
-            extra_vars=cstrap_dict)
+            extra_vars=cstrap_dict,
+        )
 
         jump_config_dict = {"agws": f"tag_Name_TestClusterBridge"}
         jump_config_dict.update(cstrap_dict)
         test_ssh_configure = AnsiblePlay(
             playbook=f"{playbook_dir}/cluster-provision.yaml",
             tags=['clusterJump'],
-            extra_vars=jump_config_dict)
+            extra_vars=jump_config_dict,
+        )
 
         # configure test instances
         agws_config_dict = {
@@ -198,7 +205,8 @@ class AWSClusterFactory():
             inventory=f"{project_dir}/common_instance_aws_ec2.yaml",
             playbook=f"{playbook_dir}/cluster-configure.yaml",
             tags=['exporter', 'clusterConfigure'],
-            extra_vars=agws_config_dict)
+            extra_vars=agws_config_dict,
+        )
 
         max_retries = 3
         for i in range(max_retries):
@@ -208,7 +216,8 @@ class AWSClusterFactory():
                     bridge_gw_create,
                     test_inst_create,
                     test_ssh_configure,
-                    test_inst_configure]:
+                    test_inst_configure,
+            ]:
                 print(f"Running playbook {playbook}")
                 rc = run_playbook(playbook)
                 if rc != 0:
@@ -225,20 +234,22 @@ class AWSClusterFactory():
         gateways = []
         for gw_info in get_gateways(template.gateway.prefix):
             (gateway_id, hostname) = gw_info
-            gateways.append(GatewayConfig(
-                gateway_id=gateway_id,
-                hostname=hostname,
-                hardware_id="",
-            ))
+            gateways.append(
+                GatewayConfig(
+                    gateway_id=gateway_id,
+                    hostname=hostname,
+                    hardware_id="",
+                ),
+            )
         internal_config = ClusterInternalConfig(
-            bastion_ip=get_bastion_ip()
+            bastion_ip=get_bastion_ip(),
         )
         cluster_config_dict = {
             "uuid": cluster_uuid,
             "internal_config": internal_config,
             "cluster_type": ClusterType.AWS,
             "template": template,
-            "gateways": gateways
+            "gateways": gateways,
         }
         return cluster_config_dict
 
@@ -248,7 +259,8 @@ class AWSClusterFactory():
             cluster_uuid: str,
             template: ClusterTemplate = None,
             skip_certs=False,
-            skip_precheck=False) -> Dict[str, Any]:
+            skip_precheck=False,
+    ) -> Dict[str, Any]:
         """ Create an orc8r instance in the test cluster
 
         Args:
@@ -295,21 +307,25 @@ class AWSClusterFactory():
 
         # update dns record for parent domain
         dns_dict = {
-            "domain_name": template.orc8r.infra["orc8r_domain_name"]
+            "domain_name": template.orc8r.infra["orc8r_domain_name"],
         }
         dns_dict.update(constants)
-        rc = run_playbook(AnsiblePlay(
+        rc = run_playbook(
+            AnsiblePlay(
             playbook=f"{constants['playbooks']}/main.yml",
             tags=['update_dns_records'],
-            extra_vars=dns_dict))
+            extra_vars=dns_dict,
+            ),
+        )
         if rc != 0:
             raise ClusterCreateError(
-                f"Failed updating dns records for parent domain")
+                f"Failed updating dns records for parent domain",
+            )
 
         cluster_config_dict = {
             "uuid": cluster_uuid,
             "cluster_type": ClusterType.AWS,
-            "template": template
+            "template": template,
         }
         return cluster_config_dict
 
@@ -318,7 +334,8 @@ class AWSClusterFactory():
             template_fn: str = "",
             cluster_uuid: str = "",
             skip_certs=False,
-            skip_precheck=False):
+            skip_precheck=False,
+    ):
         """Create AWS based cluster based on provided template
 
         Args:
@@ -358,7 +375,8 @@ class AWSClusterFactory():
                 cluster_uuid,
                 template,
                 skip_certs,
-                skip_precheck)
+                skip_precheck,
+            )
             cluster_config_dict.update(ret)
             ret = self.create_gateways(constants, cluster_uuid, template)
             cluster_config_dict.update(ret)

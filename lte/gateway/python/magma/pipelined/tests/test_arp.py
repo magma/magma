@@ -60,8 +60,10 @@ class ArpTableTest(unittest.TestCase):
     OTHER_IP = '1.2.3.4'
 
     @classmethod
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+    @unittest.mock.patch(
+        'netifaces.ifaddresses',
+        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+    )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -82,7 +84,7 @@ class ArpTableTest(unittest.TestCase):
             apps=[
                 PipelinedController.Arp,
                 PipelinedController.Testing,
-                PipelinedController.StartupFlows
+                PipelinedController.StartupFlows,
             ],
             references={
                 PipelinedController.Arp:
@@ -141,8 +143,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(dlink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet)
@@ -166,8 +170,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(uplink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet)
@@ -191,8 +197,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(uplink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet)
@@ -218,17 +226,19 @@ class ARPTableRestTest(unittest.TestCase):
             No other rule is matched
         """
         isolator = RyuRestTableIsolator(
-            RyuForwardFlowArgsBuilder(self.TID).set_reg_value(DIRECTION_REG,
-                                                              0x10)
-                                               .build_requests()
+            RyuForwardFlowArgsBuilder(self.TID).set_reg_value(
+                DIRECTION_REG,
+                0x10,
+            )
+                                               .build_requests(),
         )
         flow_query = RyuRestFlowQuery(
             self.TID,
             match={
                 'eth_type': 2054,
                 DIRECTION_REG: 16,
-                'arp_tpa': self.IP_DEST + '/255.255.255.0'
-            }
+                'arp_tpa': self.IP_DEST + '/255.255.255.0',
+            },
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packets = ARPPacketBuilder().set_arp_layer(self.IP_DEST + "/28")\
@@ -258,15 +268,17 @@ class ARPTableRestTest(unittest.TestCase):
             No other rule is matched
         """
         isolator = RyuRestTableIsolator(
-            RyuForwardFlowArgsBuilder(self.TID).set_reg_value(DIRECTION_REG,
-                                                              0x1)
-                                               .build_requests()
+            RyuForwardFlowArgsBuilder(self.TID).set_reg_value(
+                DIRECTION_REG,
+                0x1,
+            )
+                                               .build_requests(),
         )
         flow_query = RyuRestFlowQuery(
             self.TID, match={
                 'eth_type': 2048,
-                DIRECTION_REG: 1
-            }
+                DIRECTION_REG: 1,
+            },
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = IPPacketBuilder()\

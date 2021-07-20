@@ -41,8 +41,10 @@ class UEMacAddressTest(unittest.TestCase):
     DPI_IP = '1.1.1.1'
 
     @classmethod
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+    @unittest.mock.patch(
+        'netifaces.ifaddresses',
+        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+    )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -54,17 +56,21 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([],
-            ['ue_mac', 'arpd', 'check_quota'])
+        cls.service_manager = create_service_manager(
+            [],
+            ['ue_mac', 'arpd', 'check_quota'],
+        )
         check_quota_controller_reference = Future()
         testing_controller_reference = Future()
         arp_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.UEMac,
-                  PipelinedController.Arp,
-                  PipelinedController.CheckQuotaController,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.UEMac,
+                PipelinedController.Arp,
+                PipelinedController.CheckQuotaController,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.CheckQuotaController:
                     check_quota_controller_reference,
@@ -105,8 +111,10 @@ class UEMacAddressTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
-                                          cls.DPI_IP)
+        BridgeTools.create_internal_iface(
+            cls.BRIDGE, cls.DPI_PORT,
+            cls.DPI_IP,
+        )
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.check_quota_controller = check_quota_controller_reference.result()
@@ -134,19 +142,24 @@ class UEMacAddressTest(unittest.TestCase):
             [
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
-                    update_type=SubscriberQuotaUpdate.VALID_QUOTA),
+                    update_type=SubscriberQuotaUpdate.VALID_QUOTA,
+                ),
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
-                    update_type=SubscriberQuotaUpdate.TERMINATE),
+                    update_type=SubscriberQuotaUpdate.TERMINATE,
+                ),
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
-                    update_type=SubscriberQuotaUpdate.TERMINATE),
-            ]
+                    update_type=SubscriberQuotaUpdate.TERMINATE,
+                ),
+            ],
         )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             include_stats=False)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            include_stats=False,
+        )
 
         with snapshot_verifier:
             wait_after_send(self.testing_controller)
@@ -167,22 +180,28 @@ class UEMacAddressTest(unittest.TestCase):
             [
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
-                    update_type=SubscriberQuotaUpdate.NO_QUOTA),
+                    update_type=SubscriberQuotaUpdate.NO_QUOTA,
+                ),
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
-                    update_type=SubscriberQuotaUpdate.NO_QUOTA),
+                    update_type=SubscriberQuotaUpdate.NO_QUOTA,
+                ),
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
-                    update_type=SubscriberQuotaUpdate.VALID_QUOTA),
-            ]
+                    update_type=SubscriberQuotaUpdate.VALID_QUOTA,
+                ),
+            ],
         )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             include_stats=False)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            include_stats=False,
+        )
 
         with snapshot_verifier:
             wait_after_send(self.testing_controller)
+
 
 if __name__ == "__main__":
     unittest.main()

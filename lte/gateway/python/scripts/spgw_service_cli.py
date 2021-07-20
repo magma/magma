@@ -38,11 +38,11 @@ def create_bearer(client, args):
                     arp=QosArp(
                         priority_level=args.priority,
                         pre_capability=args.pre_cap,
-                        pre_vulnerability=args.pre_vul
-                    )
-                )
-            )
-        ]
+                        pre_vulnerability=args.pre_vul,
+                    ),
+                ),
+            ),
+        ],
     )
     print("Creating dedicated bearer for : ", args.imsi)
     client.CreateBearer(req)
@@ -53,7 +53,7 @@ def delete_bearer(client, args):
     req = DeleteBearerRequest(
         sid=SIDUtils.to_pb(args.imsi),
         link_bearer_id=args.lbi,
-        eps_bearer_ids=[args.ebi]
+        eps_bearer_ids=[args.ebi],
     )
     print("Deleting dedicated bearer for : ", args.imsi)
     client.DeleteBearer(req)
@@ -65,7 +65,8 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for SPGW service',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
@@ -74,28 +75,48 @@ def create_parser():
 
     for cmd in [parser_create, parser_delete]:
         cmd.add_argument('imsi', help='Subscriber identifier (IMSI00101..)')
-        cmd.add_argument('-lbi', type=int, required=True,
-                         help='Linked bearer id')
+        cmd.add_argument(
+            '-lbi', type=int, required=True,
+            help='Linked bearer id',
+        )
 
-    parser_create.add_argument('--pre_cap', type=int, default=1,
-                               help='pre capability (0:ENABLE, 1:DISABLE)')
-    parser_create.add_argument('--priority', type=int, default=1,
-                               help='priority level')
-    parser_create.add_argument('--pre_vul', type=int, default=0,
-                               help='pre vulnerability (0:ENABLE, 1:DISABLE)')
-    parser_create.add_argument('--qci', type=int, default=1,
-                               help='[0-9, 65 66, 67, 70, 75, 79]')
-    parser_create.add_argument('--gbr_ul', type=int, default=1000000,
-                               help='UL guaranteed bit rate')
-    parser_create.add_argument('--gbr_dl', type=int, default=1000000,
-                               help='DL guaranteed bit rate')
-    parser_create.add_argument('--mbr_ul', type=int, default=1000000,
-                               help='UL maximum bit rate')
-    parser_create.add_argument('--mbr_dl', type=int, default=1000000,
-                               help='DL maximum bit rate')
+    parser_create.add_argument(
+        '--pre_cap', type=int, default=1,
+        help='pre capability (0:ENABLE, 1:DISABLE)',
+    )
+    parser_create.add_argument(
+        '--priority', type=int, default=1,
+        help='priority level',
+    )
+    parser_create.add_argument(
+        '--pre_vul', type=int, default=0,
+        help='pre vulnerability (0:ENABLE, 1:DISABLE)',
+    )
+    parser_create.add_argument(
+        '--qci', type=int, default=1,
+        help='[0-9, 65 66, 67, 70, 75, 79]',
+    )
+    parser_create.add_argument(
+        '--gbr_ul', type=int, default=1000000,
+        help='UL guaranteed bit rate',
+    )
+    parser_create.add_argument(
+        '--gbr_dl', type=int, default=1000000,
+        help='DL guaranteed bit rate',
+    )
+    parser_create.add_argument(
+        '--mbr_ul', type=int, default=1000000,
+        help='UL maximum bit rate',
+    )
+    parser_create.add_argument(
+        '--mbr_dl', type=int, default=1000000,
+        help='DL maximum bit rate',
+    )
 
-    parser_delete.add_argument('-ebi', type=int, required=True,
-                               help='ID of bearer to delete')
+    parser_delete.add_argument(
+        '-ebi', type=int, required=True,
+        help='ID of bearer to delete',
+    )
 
     # Add function callbacks
     parser_create.set_defaults(func=create_bearer)
@@ -114,6 +135,7 @@ def main():
 
     # Execute the subcommand function
     args.func(args, SpgwServiceStub, 'spgw_service')
+
 
 if __name__ == "__main__":
     main()

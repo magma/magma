@@ -24,8 +24,8 @@ from magma.common.rpc_utils import grpc_wrapper
 @grpc_wrapper
 def send_offload_trigger(client, args):
     req = StartAgwOffloadRequest(
-            enb_id = args.enb_id,
-            imsi = args.imsi,
+            enb_id=args.enb_id,
+            imsi=args.imsi,
     )
     print("Sending offload trigger with following fields:\n %s" % req)
     try:
@@ -40,14 +40,16 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='CLI for High Availability',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
     # Downlink Unitdata
     ha_parser = subparsers.add_parser(
-            'offload', help="Send downlink unitdata to SMSOrc8rGW service")
+            'offload', help="Send downlink unitdata to SMSOrc8rGW service",
+    )
     ha_parser.add_argument('--imsi', help='e.g. 001010000090122 (no prefix required)')
     ha_parser.add_argument("--enb-id", type=int, help="Cell ID to offload")
     ha_parser.set_defaults(func=send_offload_trigger)

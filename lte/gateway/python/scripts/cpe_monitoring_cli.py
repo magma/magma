@@ -34,11 +34,14 @@ class MonitoringCLI(object):
         # Matching response time output to get latency
         self.matcher = re.compile(
             b"min/avg/max/mdev = (\\d+.\\d+)/(\\d+.\\d+)/(\\d+.\\d+)/("
-            b"\\d+.\\d+)")
+            b"\\d+.\\d+)",
+        )
 
     def _get_subscribers(self):
-        chan = ServiceRegistry.get_rpc_channel('mobilityd',
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            'mobilityd',
+            ServiceRegistry.LOCAL,
+        )
         client = MobilityServiceStub(chan)
 
         table = client.GetSubscriberIPTable(Void())
@@ -48,7 +51,7 @@ class MonitoringCLI(object):
         ping = subprocess.Popen(
             ["ping", "-c", "4,", "-I", self.CPE_PORT_NAME, ip_addr],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
         )
         return ping.communicate()
 
@@ -59,7 +62,8 @@ class MonitoringCLI(object):
                 # Ping all subscribers on SID => IP subscriber table
                 for sub in subscribers:
                     ip_addr = ipaddress.IPv4Address(
-                        sub.ip.address) if sub.ip.version == 0 else \
+                        sub.ip.address,
+                    ) if sub.ip.version == 0 else \
                         ipaddress.IPv6Address(sub.ip.address)
                     print("SID => {} IP => {}".format(sub.sid, ip_addr))
                     sttime = datetime.now().strftime('%m/%d/%Y_%H:%M:%S')
@@ -68,8 +72,11 @@ class MonitoringCLI(object):
                         print('Error pinging {}'.format(ip_addr))
                         continue
                     avg_resp_time = self.matcher.search(out).groups()[1]
-                    print("[{}] => Got response from {} in: {} ms".format(
-                        sttime, ip_addr, avg_resp_time.decode('utf-8')))
+                    print(
+                        "[{}] => Got response from {} in: {} ms".format(
+                        sttime, ip_addr, avg_resp_time.decode('utf-8'),
+                        ),
+                    )
                 sleep(polling_interval)
             except KeyboardInterrupt:
                 break

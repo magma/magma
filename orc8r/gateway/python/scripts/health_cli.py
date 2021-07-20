@@ -34,6 +34,7 @@ class HealthCLI:
     """
     Command line interface for generic Health-Checking.
     """
+
     def __init__(self):
         self._health_checker = DockerHealthChecker() \
             if is_docker() \
@@ -54,8 +55,10 @@ class HealthCLI:
         # Check connection to the orchestrator
         # This part is implemented in the checkin_cli.py - we'll just execute it
         print('\nGateway <-> Controller connectivity')
-        checkin, error = subprocess.Popen(['checkin_cli.py'],
-                                          stdout=subprocess.PIPE).communicate()
+        checkin, error = subprocess.Popen(
+            ['checkin_cli.py'],
+            stdout=subprocess.PIPE,
+        ).communicate()
         print(str(checkin, 'utf-8'))
         print(str(self._health_checker.get_health_summary()))
 
@@ -100,10 +103,14 @@ class HealthCLI:
             `health_cli.py error_status --service_names '[pipelined,mme]'`
         :param service_names: list or tuple of service names
         """
-        print('\n'.join(['{}:\t{}'.format(name, errors) for name, errors in
-                         self._health_checker
-                        .get_error_summary(service_names)
-                        .items()]))
+        print(
+            '\n'.join([
+                '{}:\t{}'.format(name, errors) for name, errors in
+                 self._health_checker
+                .get_error_summary(service_names)
+                .items()
+            ]),
+        )
 
 
 if __name__ == '__main__':

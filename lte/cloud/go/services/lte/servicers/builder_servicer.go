@@ -16,6 +16,7 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"sort"
 
 	feg "magma/feg/cloud/go/feg"
@@ -196,7 +197,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
-			SyncInterval:    s.getSyncInterval(nwEpc, gwEpc),
+			SyncInterval:    s.getRandomizedSyncInterval(cellGW.Key, nwEpc, gwEpc),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -638,7 +639,7 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 	}
 }
 
-// getSyncInterval takes network-wide subscriberdb sync interval and overrides it if also set for gateway.
+// getSyncInterval takes network-wide subscriberdb sync interval in seconds and overrides it if also set for gateway.
 // If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/lte.yml
 func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	// minSyncInterval enforces a minimum sync interval to prevent too many
@@ -657,4 +658,21 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 		return s.defaultSubscriberdbSyncInterval
 	}
 	return minSyncInterval
+}
+
+// getRandomizedSyncInterval returns the interval received from getSyncInterval as seconds and increases it by a random
+// delta in the range [0, getSyncInterval() / 5.0]. Increased sync interval ameliorates the thundering herd effect at
+// the orc8r. Delta is deterministic based on gwKey
+func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
+
+	// FNV-1 is a non-cryptographic hash function that is fast and very simple to implement
+	h := fnv.New32a()
+	_, err := h.Write([]byte(gwKey))
+	if err != nil {
+		return syncInterval
+	}
+	multiplier := float32(h.Sum32()%100) / 100.0
+	delta := multiplier * (float32(syncInterval) / 5.0)
+	return syncInterval + uint32(delta)
 }

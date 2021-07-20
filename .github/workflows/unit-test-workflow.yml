@@ -5,6 +5,7 @@ on:  # yamllint disable-line rule:truthy
     workflows:
       - cloud-workflow
       - feg-workflow
+      - cwf-operator
     types:
       - completed
 

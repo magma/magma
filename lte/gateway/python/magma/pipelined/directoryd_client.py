@@ -32,8 +32,10 @@ def update_record(imsi: str, ip_addr: str) -> None:
     Make RPC call to 'UpdateRecord' method of local directoryD service
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(DIRECTORYD_SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            DIRECTORYD_SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logging.error('Cant get RPC channel to %s', DIRECTORYD_SERVICE_NAME)
         return
@@ -51,7 +53,8 @@ def update_record(imsi: str, ip_addr: str) -> None:
             imsi,
             ip_addr,
             err.code(),
-            err.details())
+            err.details(),
+        )
 
 
 def get_record(imsi: str, field: str) -> str:
@@ -59,8 +62,10 @@ def get_record(imsi: str, field: str) -> str:
     Make RPC call to 'GetDirectoryField' method of local directoryD service
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(DIRECTORYD_SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            DIRECTORYD_SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logging.error('Cant get RPC channel to %s', DIRECTORYD_SERVICE_NAME)
         return
@@ -78,7 +83,8 @@ def get_record(imsi: str, field: str) -> str:
             "GetDirectoryFieldRequest error for id: %s! [%s] %s",
             imsi,
             err.code(),
-            err.details())
+            err.details(),
+        )
     return None
 
 
@@ -87,8 +93,10 @@ def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> [dict]:
     Make RPC call to 'GetAllDirectoryRecords' method of local directoryD service
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(DIRECTORYD_SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            DIRECTORYD_SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logging.error('Cant get RPC channel to %s', DIRECTORYD_SERVICE_NAME)
         return
@@ -103,5 +111,6 @@ def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> [dict]:
             logging.error(
                 "GetAllDirectoryRecords error! [%s] %s",
                 err.code(),
-                err.details())
+                err.details(),
+            )
     return []

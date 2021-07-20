@@ -382,6 +382,14 @@ typedef struct nw_gtpv2c_delete_local_tunnel_info_s {
 } nw_gtpv2c_delete_local_tunnel_info_t;
 
 /**
+ * API procedure context storage
+ */
+
+typedef struct proc_contex_s {
+  uint8_t ebi;  // saved GTPV2-C info element
+} proc_context_t;
+
+/**
  * API container structure between ULP and Stack.
  */
 
@@ -389,6 +397,7 @@ typedef struct nw_gtpv2c_ulp_api_s {
   nw_gtpv2c_ulp_api_type_t
       apiType; /**< First bytes of this field is used as flag holder   */
   nw_gtpv2c_msg_handle_t hMsg; /**< Handle associated with this API */
+  proc_context_t proc_context;
   union {
     nw_gtpv2c_initial_req_info_t initialReqInfo;
     nw_gtpv2c_triggered_rsp_info_t triggeredRspInfo;

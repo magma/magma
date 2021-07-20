@@ -50,12 +50,16 @@ class StartupFlows(MagmaController):
         self._flows_received = False
         self._clean_restart = kwargs['config']['clean_restart']
         if self._clean_restart:
-            self.logger.info('Clean restart enabled, startup flows will not '
-                             'query flows.')
+            self.logger.info(
+                'Clean restart enabled, startup flows will not '
+                'query flows.',
+            )
             self._flows_received = True
             return
-        self._flow_stats_thread = hub.spawn(self._poll_startup_flows,
-                                            self.POLL_INTERVAL)
+        self._flow_stats_thread = hub.spawn(
+            self._poll_startup_flows,
+            self.POLL_INTERVAL,
+        )
 
     def initialize_on_connect(self, datapath):
         """

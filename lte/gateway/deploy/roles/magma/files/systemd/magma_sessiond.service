@@ -28,6 +28,7 @@ Restart=always
 RestartSec=5
 LimitCORE=infinity
 MemoryLimit=8%
+MemoryMin=300M
 
 [Install]
 WantedBy=multi-user.target

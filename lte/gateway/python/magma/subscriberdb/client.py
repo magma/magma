@@ -13,6 +13,7 @@ limitations under the License.
 import asyncio
 import datetime
 import logging
+from typing import List, NamedTuple, Optional
 
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
@@ -23,6 +24,8 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
+    SubscriberDigestWithID,
+    SyncSubscribersRequest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
@@ -34,6 +37,14 @@ from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_SUCCESS_TOTAL,
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
+
+CloudSubscribersInfo = NamedTuple(
+    'CloudSubscribersInfo', [
+        ('subscribers', List[SubscriberData]),
+        ('flat_digest', Optional[Digest]),
+        ('per_sub_digests', Optional[List[SubscriberDigestWithID]]),
+    ],
+)
 
 
 class SubscriberDBCloudClient(SDWatchdogTask):
@@ -83,11 +94,19 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         if in_sync:
             return
 
-        subscribers, flat_digest = await self._get_all_subscribers()
-        if subscribers is None:
+        resync = await self._sync_subscribers()
+        if not resync:
             return
-        self._update_flat_digest(flat_digest)
-        self._process_subscribers(subscribers)
+
+        subscribers_info = await self._get_all_subscribers()
+        if subscribers_info is None:
+            return
+
+        # Process subscriber data before digest data, in case there's a gateway
+        # failure between the calls
+        self._process_subscribers(subscribers_info.subscribers)
+        self._update_flat_digest(subscribers_info.flat_digest)
+        self._update_per_sub_digests(subscribers_info.per_sub_digests)
 
     async def _check_subscribers_in_sync(self) -> bool:
         """
@@ -119,10 +138,52 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             return False
         return res.in_sync
 
-    async def _get_all_subscribers(self) -> (SubscriberData, Digest):
+    async def _sync_subscribers(self) -> bool:
+        """
+        Sync local subscriber data and digests with the cloud if didn't receive
+        resync signal.
+
+        Returns:
+            boolean value for whether a resync with cloud is needed
+        """
+        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
+        req = SyncSubscribersRequest(
+            per_sub_digests=self._store.get_current_per_sub_digests(),
+        )
+        try:
+            res = await grpc_async_wrapper(
+                subscriberdb_cloud_client.SyncSubscribers.future(
+                    req,
+                    self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                ),
+                self._loop,
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "Sync subscribers request error! [%s] %s", err.code(),
+                err.details(),
+            )
+            return True
+
+        if not res.resync:
+            self._update_flat_digest(res.flat_digest)
+            self._update_per_sub_digests(res.per_sub_digests)
+
+            # TODO(hcgatewood): switch to bulk editing subscriber data rows
+            for item in res.to_renew.items():
+                subscriber_data = item[1]
+                self._store.upsert_subscriber(subscriber_data)
+            for sid in res.deleted:
+                self._store.delete_subscriber(sid)
+            self._detach_subscribers_by_ids(res.deleted)
+
+        return res.resync
+
+    async def _get_all_subscribers(self) -> Optional[CloudSubscribersInfo]:
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
         subscribers = []
         flat_digest = None
+        per_sub_digests = None
         req_page_token = ""  # noqa: S105
         found_empty_token = False
         sync_start = datetime.datetime.now()
@@ -145,6 +206,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 # Cloud sends back digests during request for the first page
                 if req_page_token == "":
                     flat_digest = res.flat_digest
+                    per_sub_digests = res.per_sub_digests
 
                 req_page_token = res.next_page_token
                 found_empty_token = req_page_token == ""
@@ -159,7 +221,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                     time_elapsed.total_seconds() * 1000,
                 )
                 SUBSCRIBER_SYNC_FAILURE_TOTAL.inc()
-                return None, None
+                return None
         logging.info(
             "Successfully fetched all subscriber "
             "pages from the cloud!",
@@ -170,14 +232,27 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             time_elapsed.total_seconds() * 1000,
         )
 
-        return subscribers, flat_digest
+        subscribers_info = CloudSubscribersInfo(
+            subscribers=subscribers,
+            flat_digest=flat_digest,
+            per_sub_digests=per_sub_digests,
+        )
+        return subscribers_info
 
-    def _update_flat_digest(self, flat_digest: Digest) -> None:
+    def _update_flat_digest(self, flat_digest: Optional[Digest]) -> None:
         if Digest is None:
             return
         self._store.update_digest(flat_digest.md5_base64_digest)
 
-    def _process_subscribers(self, subscribers: SubscriberData) -> None:
+    def _update_per_sub_digests(
+            self,
+            per_sub_digests: Optional[List[SubscriberDigestWithID]],
+    ) -> None:
+        if per_sub_digests is None:
+            return
+        self._store.update_per_sub_digests(per_sub_digests)
+
+    def _process_subscribers(self, subscribers: List[SubscriberData]) -> None:
         active_subscriber_ids = []
         sids = []
         for subscriber in subscribers:
@@ -226,6 +301,21 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         ]
         if not deleted_sub_ids:
             return
+        self._detach_subscribers_by_ids(deleted_sub_ids)
+
+    def _detach_subscribers_by_ids(self, deleted_sub_ids: List[str]):
+        """
+        Sends grpc DeleteSubscriber request to mme to detach all subscribers
+        given as args.
+
+        Args:
+            deleted_sub_ids: a list of old subscriber ids in the store,
+                             prefixed by subscriber type
+
+        Returns:
+            None
+
+        """
         # send detach request to mme for all deleted subscribers.
         chan = ServiceRegistry.get_rpc_channel(
             's6a_service',

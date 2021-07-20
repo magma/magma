@@ -13,16 +13,20 @@ limitations under the License.
 
 from prometheus_client import Counter, Gauge
 
-DP_SEND_MSG_ERROR = Counter('dp_send_msg_error',
-                            'Total datapath message send errors', ['cause'])
-ARP_DEFAULT_GW_MAC_ERROR = Counter('arp_default_gw_mac_error',
-                                   'Error with default gateway MAC resolution',
-                                   [],
-                                   )
+DP_SEND_MSG_ERROR = Counter(
+    'dp_send_msg_error',
+    'Total datapath message send errors', ['cause'],
+)
+ARP_DEFAULT_GW_MAC_ERROR = Counter(
+    'arp_default_gw_mac_error',
+    'Error with default gateway MAC resolution',
+    [],
+)
 OPENFLOW_ERROR_MSG = Counter(
     'openflow_error_msg',
     'Total openflow error messages received by code and type',
-    ['error_type', 'error_code'])
+    ['error_type', 'error_code'],
+)
 
 UNKNOWN_PACKET_DIRECTION = Counter(
     'unknown_pkt_direction',
@@ -48,12 +52,14 @@ NETWORK_IFACE_STATUS = Gauge(
     ['iface_name'],
 )
 
-GTP_PORT_USER_PLANE_UL_BYTES = Gauge('gtp_port_user_plane_ul_bytes',
-                                       'GTP port user plane uplink bytes',
-                                       ['ip_addr'],
-                                       )
+GTP_PORT_USER_PLANE_UL_BYTES = Gauge(
+    'gtp_port_user_plane_ul_bytes',
+    'GTP port user plane uplink bytes',
+    ['ip_addr'],
+)
 
-GTP_PORT_USER_PLANE_DL_BYTES = Gauge('gtp_port_user_plane_dl_bytes',
-                                       'GTP port user plane downlink bytes',
-                                       ['ip_addr'],
-                                       )
+GTP_PORT_USER_PLANE_DL_BYTES = Gauge(
+    'gtp_port_user_plane_dl_bytes',
+    'GTP port user plane downlink bytes',
+    ['ip_addr'],
+)
