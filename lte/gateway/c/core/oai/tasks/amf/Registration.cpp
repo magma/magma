@@ -235,17 +235,19 @@ int amf_proc_registration_request(
 int amf_proc_registration_reject(
     amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
+  OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT message\n");
   int rc                 = RETURNerror;
   amf_context_t* amf_ctx = amf_context_get(ue_id);
-  nas_amf_registration_proc_t* registration_proc =
-      (nas_amf_registration_proc_t*) (amf_ctx->amf_procedures
-                                          ->amf_specific_proc);
-  registration_proc->amf_cause = amf_cause;
+
   if (amf_ctx) {
     if (is_nas_specific_procedure_registration_running(amf_ctx)) {
-      rc                = amf_registration_reject(amf_ctx, registration_proc);
-      amf_sap_t amf_sap = {};
-      amf_sap.primitive = AMFREG_REGISTRATION_REJ;
+      nas_amf_registration_proc_t* registration_proc =
+          (nas_amf_registration_proc_t*) (amf_ctx->amf_procedures
+                                              ->amf_specific_proc);
+      registration_proc->amf_cause = amf_cause;
+      rc = amf_registration_reject(amf_ctx, registration_proc);
+      amf_sap_t amf_sap;
+      amf_sap.primitive                   = AMFREG_REGISTRATION_REJ;
       amf_sap.u.amf_reg.ue_id             = ue_id;
       amf_sap.u.amf_reg.ctx               = amf_ctx;
       amf_sap.u.amf_reg.notify            = false;
@@ -253,7 +255,11 @@ int amf_proc_registration_reject(
       amf_sap.u.amf_reg.u.registered.proc = registration_proc;
       rc                                  = amf_sap_send(&amf_sap);
     } else {
-      rc = amf_registration_reject(amf_ctx, registration_proc);
+      nas_amf_registration_proc_t no_registration_proc = {0};
+      no_registration_proc.ue_id                       = ue_id;
+      no_registration_proc.amf_cause                   = amf_cause;
+      no_registration_proc.amf_msg_out                 = NULL;
+      rc = amf_registration_reject(amf_ctx, &no_registration_proc);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -280,7 +286,7 @@ static int amf_registration_reject(
    * Notify AMF-AS SAP that Registration Reject message has to be sent
    * onto the network
    */
-  amf_sap.primitive                      = AMFREG_REGISTRATION_REJ;
+  amf_sap.primitive                      = AMFAS_ESTABLISH_REJ;
   amf_sap.u.amf_as.u.establish.ue_id     = registration_proc->ue_id;
   amf_sap.u.amf_as.u.establish.amf_cause = registration_proc->amf_cause;
   amf_sap.u.amf_as.u.establish.nas_info  = AMF_AS_NAS_INFO_REGISTERED;
@@ -302,6 +308,7 @@ static int amf_registration_reject(
     amf_data_sec.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.establish.sctx, NULL, false, false);
   }
+  OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT message\n");
   rc = amf_sap_send(&amf_sap);
   increment_counter(
       "ue_Registration", 1, 1, "action", "Registration_reject_sent");

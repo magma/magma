@@ -164,7 +164,9 @@ int amf_handle_registration_request(
    * Handle message checking error
    */
   if (amf_cause != AMF_CAUSE_SUCCESS) {
-    rc = amf_proc_registration_reject(ue_id, amf_cause);
+    amf_cause = AMF_CAUSE_SUCCESS;
+    rc        = amf_proc_registration_reject(ue_id, amf_cause);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   amf_registration_request_ies_t* params =
       new (amf_registration_request_ies_t)();
