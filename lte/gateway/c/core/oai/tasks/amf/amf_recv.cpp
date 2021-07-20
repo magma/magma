@@ -31,6 +31,7 @@ extern "C" {
 #include "amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
+#define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)
 namespace magma5g {
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
@@ -221,6 +222,44 @@ int amf_handle_registration_request(
       sizeof(tai_t));
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
+    OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
+    // Check integrity and ciphering algorithm bits
+    // If all bits are zero it means integrity and ciphering algorithms are not
+    // valid, AMF should reject the initial registration. Note : amf_cause is
+    // upto network provider for invalid algorithms, here we considering
+    // CONDITIONAL_IE_ERROR as amf cause.
+    if (ue_context->amf_context.ue_sec_capability.ia == 0 ||
+        ue_context->amf_context.ue_sec_capability.ea == 0) {
+      OAILOG_ERROR(LOG_NAS_AMF, "UE is not supporting any algorithms");
+      amf_cause = AMF_CAUSE_UE_SEC_CAP_MISSMATCH;
+      OAILOG_ERROR(
+          LOG_NAS_AMF, "AMF rejecting the initial registration with cause %d",
+          amf_cause);
+      rc = amf_proc_registration_reject(ue_id, amf_cause);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    } else {
+      // AMF supporting integrity algorinths IA0 to IA2 and ciphering algorithms
+      // EA0 to EA2 checking UE supporting algorithms which are supported by AMF
+      // or not
+      uint8_t supported_ia = ue_context->amf_context.ue_sec_capability.ia0 +
+                             ue_context->amf_context.ue_sec_capability.ia1 +
+                             ue_context->amf_context.ue_sec_capability.ia2;
+      uint8_t supported_ea = ue_context->amf_context.ue_sec_capability.ea0 +
+                             ue_context->amf_context.ue_sec_capability.ea1 +
+                             ue_context->amf_context.ue_sec_capability.ea2;
+
+      if (supported_ia == 0 || supported_ea == 0) {
+        OAILOG_ERROR(
+            LOG_NAS_AMF,
+            "UE is not supporting the algorithms IA0 to IA2 and EA0 to EA2");
+        amf_cause = AMF_CAUSE_UE_SEC_CAP_MISSMATCH;
+        OAILOG_ERROR(
+            LOG_NAS_AMF, "AMF rejecting the initial registration with cause %d",
+            amf_cause);
+        rc = amf_proc_registration_reject(ue_id, amf_cause);
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+      }
+    }
     /*
      * Get the AMF mobile identity. For new registration
      * mobility type suppose to be SUCI
