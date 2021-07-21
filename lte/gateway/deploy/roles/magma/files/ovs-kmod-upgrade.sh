@@ -31,15 +31,9 @@ apt install -y  openvswitch-datapath-dkms libopenvswitch openvswitch-common open
 
 dkms autoinstall
 service magma@* stop
-sleep 5
-ifdown gtp_br0
-ifdown uplink_br0
-sleep 5
-/etc/init.d/openvswitch-switch  force-reload-kmod
-sleep 5
-ifup uplink_br0
-ifup gtp_br0
-sleep 5
+
+magma-bridge-reset.sh -y uplink_br0
+
 service magma@magmad start
 
 kernel_ver=$(cat /sys/module/openvswitch/srcversion)
