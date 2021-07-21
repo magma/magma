@@ -318,10 +318,11 @@ func ClearStatementCacheLogOnError(cache *squirrel.StmtCache, callsite string) {
 	}
 }
 
-// FmtConflictUpdateTarget generates the string used to refer to target value
+// FmtConflictUpdateTarget generates the string used to refer to target column
 // used in an on-conflict upsert operation; the specific syntax depends on the
-// sql dialect.
-// e.g. for mariaDB, "f1=t2.f1"; for postgres, "f1=excluded.f1"
+// SQL dialect. Currently supported syntax includes
+// 1. MariaDB: "c1=t2.c1"
+// 2. Postgres: "c1=excluded.c1"
 func FmtConflictUpdateTarget(tableName string, colName string) string {
 	dialect, envFound := os.LookupEnv("SQL_DIALECT")
 	if !envFound {
@@ -334,6 +335,9 @@ func FmtConflictUpdateTarget(tableName string, colName string) string {
 		upsertColumnPrefix = "excluded"
 	case MariaDialect:
 		upsertColumnPrefix = tableName
+	default:
+		// By default, return Postgres syntax
+		upsertColumnPrefix = "excluded"
 	}
 	return fmt.Sprintf("%s.%s", upsertColumnPrefix, colName)
 }

@@ -34,7 +34,7 @@ import (
 )
 
 type subscriberdbServicer struct {
-	flatDigestEnabled      bool
+	digestsEnabled         bool
 	changesetSizeThreshold int
 	maxProtosLoadSize      uint64
 	digestStore            storage.DigestStore
@@ -49,7 +49,7 @@ func NewSubscriberdbServicer(
 	subStore *storage.SubStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
-		flatDigestEnabled:      config.FlatDigestEnabled,
+		digestsEnabled:         config.DigestsEnabled,
 		changesetSizeThreshold: config.ChangesetSizeThreshold,
 		maxProtosLoadSize:      config.MaxProtosLoadSize,
 		digestStore:            digestStore,
@@ -63,7 +63,7 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 	ctx context.Context,
 	req *lte_protos.CheckSubscribersInSyncRequest,
 ) (*lte_protos.CheckSubscribersInSyncResponse, error) {
-	if !s.flatDigestEnabled {
+	if !s.digestsEnabled {
 		return &lte_protos.CheckSubscribersInSyncResponse{InSync: false}, nil
 	}
 
@@ -85,7 +85,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	ctx context.Context,
 	req *lte_protos.SyncSubscribersRequest,
 ) (*lte_protos.SyncSubscribersResponse, error) {
-	if !s.flatDigestEnabled {
+	if !s.digestsEnabled {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
 
@@ -97,11 +97,6 @@ func (s *subscriberdbServicer) SyncSubscribers(
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
-	_, apnResourcesByAPN, err := loadAPNs(gateway)
-	if err != nil {
-		return nil, err
-	}
-
 	flatDigest, err := storage.GetDigest(s.digestStore, networkID)
 	if err != nil {
 		return nil, err
@@ -112,24 +107,24 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if err != nil {
 		return nil, err
 	}
-	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientPerSubDigests, cloudPerSubDigests)
-	if len(toRenew) > s.changesetSizeThreshold || len(toRenew) > int(s.maxProtosLoadSize) {
-		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
-	}
-
-	sids := funk.Keys(toRenew).([]string)
-	subProtosToRenew, err := s.subStore.GetSubscribers(networkID, sids)
+	resync, renewed, deleted, err := s.getSubscribersChangeset(networkID, clientPerSubDigests, cloudPerSubDigests)
 	if err != nil {
 		return nil, err
 	}
-	// Since the cached sub protos don't contain gateway-specific apn resources data, need to
-	// append that to each sub proto in this handler
-	subProtosToRenew = appendApnResourcesToSubProtos(subProtosToRenew, apnResourcesByAPN)
+	if resync {
+		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
+	}
 
+	// Since the cached protos don't contain gateway-specific information, inject
+	// the apn resource configs related to the gateway
+	renewed, err = injectAPNResources(renewed, gateway)
+	if err != nil {
+		return nil, err
+	}
 	res := &lte_protos.SyncSubscribersResponse{
 		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
 		PerSubDigests: cloudPerSubDigests,
-		ToRenew:       subProtosToRenew,
+		ToRenew:       renewed,
 		Deleted:       deleted,
 		Resync:        false,
 	}
@@ -159,17 +154,11 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 
 	var subProtos []*lte_protos.SubscriberData
 	var nextToken string
-	if s.flatDigestEnabled {
-		// If request page size is 0, return max entity load size
-		pageSize := uint64(req.PageSize)
-		if req.PageSize == 0 {
-			pageSize = s.maxProtosLoadSize
-		}
-		subProtos, nextToken, err = s.subStore.GetSubscribersPage(networkID, req.PageToken, pageSize)
+	if s.digestsEnabled {
+		subProtos, nextToken, err = s.loadSubscribersPageFromCache(networkID, req, gateway)
 		if err != nil {
 			return nil, err
 		}
-		subProtos = appendApnResourcesToSubProtos(subProtos, apnResourcesByAPN)
 	} else {
 		subProtos, nextToken, err = subscriberdb.LoadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
 		if err != nil {
@@ -180,7 +169,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	flatDigest := &lte_protos.Digest{Md5Base64Digest: ""}
 	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
 	// The digests are sent back during the request for the first page of subscriber data
-	if req.PageToken == "" && s.flatDigestEnabled {
+	if req.PageToken == "" && s.digestsEnabled {
 		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
 		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
 		if err != nil {
@@ -195,6 +184,43 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		PerSubDigests: perSubDigests,
 	}
 	return listRes, nil
+}
+
+// getSubscribersChangeset compares the cloud and AGW digests and returns
+// 1. Whether a resync is required for this AGW.
+// 2. If no resync, the list of subscriber configs to be renewed.
+// 3. If no resync, the list of subscriber IDs to be deleted.
+// 4. Any error that occurred.
+func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientDigests []*lte_protos.SubscriberDigestWithID, cloudDigests []*lte_protos.SubscriberDigestWithID) (bool, []*lte_protos.SubscriberData, []string, error) {
+	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientDigests, cloudDigests)
+	if len(toRenew) > s.changesetSizeThreshold || len(toRenew) > int(s.maxProtosLoadSize) {
+		return true, nil, nil, nil
+	}
+
+	sids := funk.Keys(toRenew).([]string)
+	renewed, err := s.subStore.GetSubscribers(networkID, sids)
+	if err != nil {
+		return true, nil, nil, err
+	}
+	return false, renewed, deleted, nil
+}
+
+func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, req *lte_protos.ListSubscribersRequest, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, string, error) {
+	// If request page size is 0, return max entity load size
+	pageSize := uint64(req.PageSize)
+	if req.PageSize == 0 {
+		pageSize = s.maxProtosLoadSize
+	}
+	subProtos, nextToken, err := s.subStore.GetSubscribersPage(networkID, req.PageToken, pageSize)
+	if err != nil {
+		return nil, "", err
+	}
+	subProtos, err = injectAPNResources(subProtos, gateway)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return subProtos, nextToken, nil
 }
 
 // getDigestInfo returns the correctly formatted Digest and NoUpdates values
@@ -236,25 +262,26 @@ func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfi
 	return apnsByName, apnResources, nil
 }
 
-// appendApnResourcesToSubProtos adds the gateway-specific apn resources data to subscriber protos before
-// returning to AGWs.
-func appendApnResourcesToSubProtos(subProtos []*lte_protos.SubscriberData, apnResources lte_models.ApnResources) []*lte_protos.SubscriberData {
+// injectAPNResources adds the gateway-specific apn resources data to subscriber
+// protos before returning to AGWs.
+func injectAPNResources(subProtos []*lte_protos.SubscriberData, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, error) {
+	_, apnResources, err := loadAPNs(gateway)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range subProtos {
 		subProto := subProtos[i]
-		if subProto.GetNon_3Gpp() == nil || subProto.Non_3Gpp.GetApnConfig() == nil {
+		if subProto.GetNon_3Gpp().GetApnConfig() == nil {
 			continue
 		}
-
 		for j := range subProto.Non_3Gpp.ApnConfig {
 			apnKey := subProto.Non_3Gpp.ApnConfig[j].ServiceSelection
-			var apnResource *lte_protos.APNConfiguration_APNResource
-
 			if apnResourceModel, ok := apnResources[apnKey]; ok {
-				apnResource = apnResourceModel.ToProto()
+				subProto.Non_3Gpp.ApnConfig[j].Resource = apnResourceModel.ToProto()
 			}
-			subProto.Non_3Gpp.ApnConfig[j].Resource = apnResource
 		}
 		subProtos[i] = subProto
 	}
-	return subProtos
+	return subProtos, nil
 }

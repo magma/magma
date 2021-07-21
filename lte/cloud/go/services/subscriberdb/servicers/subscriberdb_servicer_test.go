@@ -48,7 +48,7 @@ func TestListSubscribers(t *testing.T) {
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: false}, digestStore, perSubDigestStore, subStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, digestStore, perSubDigestStore, subStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -302,7 +302,7 @@ func TestListSubscribers(t *testing.T) {
 	assert.Equal(t, expectedToken, res.NextPageToken)
 }
 
-func TestListSubscribersFlatDigestEnabled(t *testing.T) {
+func TestListSubscribersDigestsEnabled(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	digestStore := initializeDigestStore(t)
@@ -310,7 +310,7 @@ func TestListSubscribersFlatDigestEnabled(t *testing.T) {
 	subStore := initializeSubStore(t)
 
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
-		FlatDigestEnabled: true,
+		DigestsEnabled:    true,
 		MaxProtosLoadSize: 10,
 	}, digestStore, perSubDigestStore, subStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -488,7 +488,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore, perSubDigestStore, subStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true}, digestStore, perSubDigestStore, subStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -533,8 +533,8 @@ func TestSyncSubscribers(t *testing.T) {
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
 
-	// Create servicer with flat digest feature flag turned on
-	configs := subscriberdb.Config{FlatDigestEnabled: true, ChangesetSizeThreshold: 100, MaxProtosLoadSize: 100}
+	// Create servicer with the subscriber digests feature flag turned on
+	configs := subscriberdb.Config{DigestsEnabled: true, ChangesetSizeThreshold: 100, MaxProtosLoadSize: 100}
 	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -657,7 +657,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 
 	// Create servicer with a small ChangesetSizeThreshold
 	configs := subscriberdb.Config{
-		FlatDigestEnabled:      true,
+		DigestsEnabled:         true,
 		ChangesetSizeThreshold: 2,
 		MaxProtosLoadSize:      100,
 	}

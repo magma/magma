@@ -157,7 +157,7 @@ func (l *digestStore) DeleteDigests(networks []string) error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "delete digests")
+			return nil, errors.Wrap(err, "delete digests")
 		}
 		return nil, nil
 	}

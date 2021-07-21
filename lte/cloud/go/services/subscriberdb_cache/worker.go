@@ -58,20 +58,20 @@ func RenewDigests(
 ) (map[string]string, map[string][]*lte_protos.SubscriberDigestWithID, error) {
 	networksToRenew, networksToRemove, err := getNetworksToUpdate(digestStore, config.UpdateIntervalSecs)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "get networks to update")
+		return nil, nil, errors.Wrap(err, "get networks to update")
 	}
 
 	err = digestStore.DeleteDigests(networksToRemove)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "remove flat digests of invalid networks")
+		return nil, nil, errors.Wrap(err, "remove flat digests of invalid networks")
 	}
 	err = perSubDigestStore.DeleteDigests(networksToRemove)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "remove per sub digests of invalid networks")
+		return nil, nil, errors.Wrap(err, "remove per sub digests of invalid networks")
 	}
 	err = subStore.DeleteSubscribersForNetworks(networksToRemove)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "remove sub protos of invalid networks")
+		return nil, nil, errors.Wrap(err, "remove sub protos of invalid networks")
 	}
 
 	errs := &multierror.Error{}
@@ -97,72 +97,70 @@ func renewDigestsForNetwork(
 	subStore *storage.SubStore,
 ) (string, []*lte_protos.SubscriberDigestWithID, error) {
 	errs := &multierror.Error{}
-	digest, prevDigest, err := updateDigest(network, digestStore)
-	if err != nil {
-		multierror.Append(errs, err)
+	digest, prevDigest, updateDigestErr := updateDigest(network, digestStore)
+	if updateDigestErr != nil {
+		multierror.Append(errs, updateDigestErr)
 	}
 
-	var perSubDigests []*lte_protos.SubscriberDigestWithID
-	if errs.ErrorOrNil() == nil {
-		perSubDigests, err = updatePerSubDigests(network, perSubDigestStore)
-		if err != nil {
-			multierror.Append(errs, err)
-		}
+	perSubDigests, updatePerSubDigestsErr := updatePerSubDigests(network, perSubDigestStore)
+	if updatePerSubDigestsErr != nil {
+		multierror.Append(errs, updatePerSubDigestsErr)
 	}
 
 	// If all digest-related operations succeeded, and the generated digest is the same as
 	// the previous digest, then no need to update the subscriber proto cache
-	if errs.ErrorOrNil() == nil && prevDigest == digest {
+	if updateDigestErr == nil && updatePerSubDigestsErr == nil && prevDigest == digest {
 		return digest, perSubDigests, nil
 	}
 
-	err = updateSubscribers(network, subStore)
-	if err != nil {
-		multierror.Append(errs, errors.Wrapf(err, "update subscriber protos for network %+v", network))
+	updateSubscribersErr := updateSubscribers(network, subStore)
+	if updateSubscribersErr != nil {
+		multierror.Append(errs, errors.Wrapf(updateSubscribersErr, "update subscriber protos for network %+v", network))
 	}
 	// TODO(wangyyt1013): add logs for updated sub protos
+
 	return digest, perSubDigests, errs.ErrorOrNil()
 }
 
-func updatePerSubDigests(network string, perSubDigestStore *storage.PerSubDigestStore) ([]*lte_protos.SubscriberDigestWithID, error) {
+func updatePerSubDigests(network string, store *storage.PerSubDigestStore) ([]*lte_protos.SubscriberDigestWithID, error) {
 	// The per-sub digests in store are updated en masse (collectively serialized into one blob per network);
 	// this update takes place along with every flat digest update for consistency.
 	// If an error occurs during this step, the overall last_updated_at timestamp for the network will
 	// not update, and will indicate outdated-ness instead, forcing a redo in the next loop.
 	perSubDigests, err := subscriberdb.GetPerSubscriberDigests(network)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get per sub dgests to update")
+		return nil, errors.Wrap(err, "get per sub dgests to update")
 	}
-	err = perSubDigestStore.SetDigest(network, perSubDigests)
+	err = store.SetDigest(network, perSubDigests)
 	if err != nil {
-		return nil, errors.Wrapf(err, "set per sub digest")
+		return nil, errors.Wrap(err, "set per sub digest")
 	}
 	return perSubDigests, nil
 }
 
-func updateDigest(network string, digestStore storage.DigestStore) (string, string, error) {
+// updateDigest returns the the current digest (1st return) and previous digest (2nd return) in store.
+func updateDigest(network string, store storage.DigestStore) (string, string, error) {
 	digest, err := subscriberdb.GetDigest(network)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "generate flat digest")
+		return "", "", errors.Wrap(err, "generate flat digest")
 	}
-	prevDigest, err := storage.GetDigest(digestStore, network)
+	prevDigest, err := storage.GetDigest(store, network)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "get previous flat digest")
+		return "", "", errors.Wrap(err, "get previous flat digest")
 	}
-	err = digestStore.SetDigest(network, digest)
+	err = store.SetDigest(network, digest)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "set flat digest")
+		return "", "", errors.Wrap(err, "set flat digest")
 	}
 	return digest, prevDigest, nil
 }
 
-func updateSubscribers(network string, subStore *storage.SubStore) error {
+func updateSubscribers(network string, store *storage.SubStore) error {
 	apnsByName, err := subscriberdb.LoadApnsByName(network)
 	if err != nil {
 		return err
 	}
-	// Ensure the temporary table is empty for use
-	err = subStore.InitiateUpdate()
+	err = store.InitializeUpdate()
 	if err != nil {
 		return err
 	}
@@ -175,14 +173,14 @@ func updateSubscribers(network string, subStore *storage.SubStore) error {
 			return err
 		}
 
-		err = subStore.InsertMany(network, subProtos)
+		err = store.InsertMany(network, subProtos)
 		if err != nil {
 			return err
 		}
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 	}
-	return subStore.ApplyUpdate(network)
+	return store.ApplyUpdate(network)
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.

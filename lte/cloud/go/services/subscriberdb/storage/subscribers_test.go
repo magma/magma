@@ -134,14 +134,14 @@ func TestSubStore(t *testing.T) {
 
 		err = s.InsertMany("n0", subProtos1)
 		assert.NoError(t, err)
-		err = s.InitiateUpdate()
+		err = s.InitializeUpdate()
 		assert.NoError(t, err)
 		err = s.InsertMany("n0", subProtos2)
 		assert.NoError(t, err)
 
 		err = s.ApplyUpdate("n0")
 		assert.NoError(t, err)
-		// Since the tmp table was cleared by InitiateUpdate halfway through, we'll only
+		// Since the tmp table was cleared by InitializeUpdate halfway through, we'll only
 		// commit subProtos2 into the actual table
 		page, nextToken, err = s.GetSubscribersPage("n0", "", 3)
 		assert.NoError(t, err)
@@ -157,7 +157,7 @@ func TestSubStore(t *testing.T) {
 	})
 
 	t.Run("multiple network insert and get", func(t *testing.T) {
-		err = s.InitiateUpdate()
+		err = s.InitializeUpdate()
 		assert.NoError(t, err)
 		err = s.ApplyUpdate("n0")
 		assert.NoError(t, err)

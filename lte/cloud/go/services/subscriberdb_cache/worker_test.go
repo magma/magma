@@ -200,7 +200,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 
 // TestUpdateSubProtosByNetworkNoChange checks that, given there's no error in
 // digest generation for the network, subscribers cache is only updated when
-// the newly generated flat digest is different from the previous digest
+// the newly generated flat digest is different from the previous digest.
 func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)

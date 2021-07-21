@@ -80,14 +80,14 @@ func LoadSubProtosByID(
 		lc, serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Load added/modified subscriber entities")
+		return nil, errors.Wrap(err, "Load added/modified subscriber entities")
 	}
 
 	subProtos := []*lte_protos.SubscriberData{}
 	for _, subEnt := range subEnts {
 		subProto, err := ConvertSubEntsToProtos(subEnt, apnsByName, apnResourcesByAPN)
 		if err != nil {
-			return nil, errors.Wrapf(err, "convert subscriber entity into proto object")
+			return nil, errors.Wrap(err, "convert subscriber entity into proto object")
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
 		subProtos = append(subProtos, subProto)
