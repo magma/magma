@@ -851,45 +851,6 @@ jobs:
           version_path: versions/feg_version
       - magma_slack_notify
 
-  cwag-precommit:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/cwf/gateway
-            make -C ${MAGMA_ROOT}/cwf/gateway precommit
-            cd ${MAGMA_ROOT}/cwf/gateway
-            make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
-      - magma_slack_notify
-
-  cwag-build:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *cwf_build_verify
-      - run-with-retry:
-          retry-count: 2
-          workdir: $MAGMA_ROOT/cwf/gateway/docker
-          command: docker-compose build --parallel
-      # TODO bring up the containers and check for crashloops
-
   cwf-integ-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1361,90 +1322,6 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
-  ### XWF
-
-  xwfm-test:
-    parameters:
-      notify_magma_ci:
-        description: "should run magma_slack_notify for #magma_ci channel"
-        type: boolean
-        default: true
-      notify_xwfm_ci:
-        description: "should run magma_slack_notify for #xwfm_ci channel"
-        type: boolean
-        default: true
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    steps:
-      - checkout
-      - docker/install-dc
-      - run:
-          name: Loading openvswitch kernel module
-          command: sudo modprobe openvswitch
-      - run:
-          name: Setup Environment Variables
-          command: |
-            echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
-            echo export RUN_UID=$RANDOM >> $BASH_ENV
-      - run:
-          command: |
-            env
-            docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
-            cd ${MAGMA_ROOT}/xwf/docker/
-            docker-compose pull || true
-            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
-      - when:
-          condition: <<parameters.notify_magma_ci>>
-          steps:
-            - magma_slack_notify
-      - when:
-          condition: <<parameters.notify_xwfm_ci>>
-          steps:
-            - magma_slack_notify
-
-  xwfm-deploy:
-    parameters:
-      tag:
-        description: Containers tag
-        type: string
-        default: ${CIRCLE_SHA1:0:8}
-      tag-latest:
-        default: false
-        type: boolean
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - docker/install-dc
-      - run:
-          name: Build xwf go radius
-          command: |
-            cd ${MAGMA_ROOT}/feg
-            docker build --build-arg BUILD_NUM=${CIRCLE_SHA1:0:8} --tag goradius -f radius/src/Dockerfile ./
-      - tag-push-docker:
-          images: 'goradius'
-          tag: <<parameters.tag>>
-          registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: <<parameters.tag-latest>>
-      - run:
-          name: Load openvswitch kernel module for xwf integ test
-          command: sudo modprobe openvswitch
-      - run:
-          name: Build xwfm-integ-tests
-          command: |
-            cd ${MAGMA_ROOT}
-            docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
-      - tag-push-docker:
-          images: 'xwfm-integ-tests'
-          tag: <<parameters.tag>>
-          registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: <<parameters.tag-latest>>
-      - magma_slack_notify
-
   publish-amis-to-marketplace:
     machine:
       image: ubuntu-2004:202104-01
@@ -1654,33 +1531,8 @@ workflows:
 
   cwag:
     jobs:
-      - cwag-precommit
-      - cwag-build
       - cwf-integ-test:
           <<: *master_and_develop
-      - xwfm-test:
-          <<: *master_and_develop
-      - cwag-deploy:
-          <<: *only_master
-          requires:
-            - cwag-precommit
-            - cwf-integ-test
-          tag-latest: true
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - cwag-deploy
-            - xwfm-test
-          tag-latest: true
-      - cwag-deploy:
-          <<: *only_master
-          name: cwag-deploy-latest
-          requires:
-            - cwag-deploy
-            - xwfm-deploy-latest
-          images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag-latest: true
 
 
   cwf_operator:
@@ -1689,15 +1541,6 @@ workflows:
       - cwf-operator-build:
           requires:
             - cwf-operator-precommit
-
-  hourly_xwfm:
-    triggers:
-      - schedule:
-          cron: "0 * * * *"
-          <<: *only_master
-    jobs:
-      - xwfm-test:
-          notify_magma_ci: false
 
   weekly_ami_push:
     triggers:
