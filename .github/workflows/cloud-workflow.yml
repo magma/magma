@@ -42,7 +42,8 @@ jobs:
             python3 build.py --generate
             sudo chown -R $USER $MAGMA_ROOT/*
             git add .
-            echo GIT_STATUS=`git status` >> $GITHUB_ENV
+            echo GIT_STATUS=$(git status) >> $GITHUB_ENV
+            git status
             git diff-index --quiet HEAD
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
