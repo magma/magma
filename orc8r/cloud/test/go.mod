@@ -5,6 +5,7 @@ go 1.13
 replace (
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	magma/gateway => ../../gateway/go
+	magma/orc8r/cloud/api/v1/go => ../api/v1/go
 	magma/orc8r/cloud/go => ../go
 	magma/orc8r/lib/go => ../../lib/go
 	magma/orc8r/lib/go/protos => ../../lib/go/protos
@@ -22,5 +23,6 @@ require (
 	k8s.io/api v0.0.0-20191016110408-35e52d86657a
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	magma/orc8r/cloud/api/v1/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
 )

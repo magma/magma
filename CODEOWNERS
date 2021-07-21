@@ -56,11 +56,10 @@
 
 /CODEOWNERS @amarpad @electronjoe @hcgatewood
 
-# Paths excluded from code ownership
+# Generated code excluded from code ownership
 **/go.mod @ghost
 **/go.sum @ghost
 **/*.pb.go @ghost
 **/*_swaggergen.go @ghost
 /orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @ghost
-/orc8r/cloud/go/obsidian/swagger/v1/client/ @ghost
-/orc8r/cloud/go/obsidian/swagger/v1/models/ @ghost
+/orc8r/cloud/api/ @ghost
