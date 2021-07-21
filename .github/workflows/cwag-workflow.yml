@@ -13,11 +13,6 @@ on:  # yamllint disable-line rule:truthy
   pull_request:
     branches:
       - master
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
-      - 'feg/**'
-      - 'cwf/**'
 jobs:
   cwag-precommit:
     runs-on: ubuntu-latest
@@ -26,17 +21,22 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
       - uses: actions/setup-go@v2
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         with:
           go-version: '1.15.7'
       - name: Run golang_before_install.sh script
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         run: ./circleci/golang_before_install.sh
       - name: Run go mod download with retry
         uses: nick-invision/retry@v2
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         with:
           command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
           timeout_minutes: 10
       - name: Run precommit
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         run: |
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway precommit
@@ -130,6 +130,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
+      - name: test
+        run: echo "${GITHUB_SHA:0:8}"
       - uses: actions/checkout@v2
       - name: Run docker compose
         # yamllint disable rule:line-length
@@ -141,7 +143,6 @@ jobs:
           max_attempts: 2
           timeout_minutes: 10
       - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         env:
           DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
           DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
@@ -149,7 +150,7 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwag
       - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/master'
         env:
           DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
