@@ -121,7 +121,7 @@ class LocalEnforcer {
       std::shared_ptr<aaa::AAAClient> aaa_client,
       long session_force_termination_timeout_ms,
       long quota_exhaustion_termination_on_init_ms,
-      magma::mconfig::SessionD mconfig);
+      magma::mconfig::SessionD mconfig, std::shared_ptr<ShardTracker> shards);
 
   void attachEventBase(folly::EventBase* evb);
 
@@ -347,7 +347,6 @@ class LocalEnforcer {
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   SessionStore& session_store_;
-  std::shared_ptr<ShardTracker> shards_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a
@@ -356,6 +355,7 @@ class LocalEnforcer {
   std::chrono::milliseconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
   std::unique_ptr<Timezone> access_timezone_;
+  std::shared_ptr<ShardTracker> shards_;
 
  private:
   /**

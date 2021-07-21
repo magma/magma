@@ -64,7 +64,7 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
     long quota_exhaustion_termination_on_init_ms,
-    magma::mconfig::SessionD mconfig)
+    magma::mconfig::SessionD mconfig, std::shared_ptr<ShardTracker> shards)
     : reporter_(reporter),
       rule_store_(rule_store),
       pipelined_client_(pipelined_client),
@@ -72,14 +72,14 @@ LocalEnforcer::LocalEnforcer(
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
       session_store_(session_store),
-      shards_(std::make_shared<ShardTracker>()),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms),
       retry_timeout_(2000),
       mconfig_(mconfig),
-      access_timezone_(compute_access_timezone()) {}
+      access_timezone_(compute_access_timezone()),
+      shards_(shards) {}
 
 void LocalEnforcer::start() {
   evb_->loopForever();
@@ -1015,9 +1015,10 @@ void LocalEnforcer::init_session(
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
   const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
+  int shard_id                = shards_->add_ue(imsi);
   auto session                = std::make_unique<SessionState>(
       imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
-      time_since_epoch, response);
+      time_since_epoch, response, shard_id);
   session_map[imsi].push_back(std::move(session));
 }
 
@@ -1050,15 +1051,6 @@ bool LocalEnforcer::update_tunnel_ids(
   for (const auto& monitor : csr.usage_monitors()) {
     auto uc = get_default_update_criteria();
     session->receive_monitor(monitor, nullptr);
-  }
-
-  // iterate through sessions in session map and update shard ids
-  SessionMap::iterator iter;
-  for (iter = session_map.begin(); iter != session_map.end(); iter++) {
-    int shard_id = shards_->add_ue();
-    for (size_t i = 0; i < iter->second.size(); i++) {
-      iter->second[i]->set_shard_id(shard_id);
-    }
   }
 
   handle_session_activate_rule_updates(

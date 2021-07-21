@@ -13,45 +13,38 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "ShardTracker.h"
 
 namespace magma {
 
-int ShardTracker::add_ue() {
-  /*
-  * If there are no shards, add an entry for the shard
-  * representing a single UE at the new shard
-  */
-  if (ue_count_per_shard_.size() == 0) {
-    ue_count_per_shard_.push_back(1);
-    return 0;
+int ShardTracker::add_ue(std::string imsi) {
+  if (shards_.empty()) {
+    set<string> new_shard = {imsi};
+    shards_.push_back(new_shard);
   }
-  /*
-  * Iterate through all existing shards, if all are full
-  * create a new shard with quantity 1, otherwise increment
-  * the quantity of UEs in the latest shard
-  */
-  for (size_t shard_id = 0; shard_id < ue_count_per_shard_.size(); shard_id++) {
-    if (ue_count_per_shard_[shard_id] < max_shard_size_) {
-      ue_count_per_shard_[shard_id]++;
+
+  for (size_t shard_id = 0; shard_id < shards_.size(); shard_id++) {
+    if (shards_[shard_id].find(imsi) != shards_[shard_id].end()) {
+      return shard_id;
+    }
+    if (shards_[shard_id].size() < max_shard_size_) {
+      shards_[shard_id].insert(imsi);
       return shard_id;
     }
   }
-  ue_count_per_shard_.push_back(1);
-  return ue_count_per_shard_.size() - 1;
+  set<string> new_shard = {imsi};
+  shards_.push_back(new_shard);
+  return shards_.size() - 1;
 }
 
-bool ShardTracker::remove_ue(int shard_id) {
-  /*
-  * Since we only keep global state of all UEs, we just
-  * need to decrement the number of UEs at a particular id
-  * if there are no UEs at the shard, removal should fail
-  */
-  if (ue_count_per_shard_.empty()) {
+bool ShardTracker::remove_ue(std::string imsi, int shard_id) {
+  if (shards_[shard_id].empty() ||
+      (shards_[shard_id].find(imsi) == shards_[shard_id].end())) {
     return false;
   }
-  ue_count_per_shard_[shard_id]--;
+  shards_[shard_id].erase(imsi);
   return true;
 }
 

@@ -62,9 +62,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
     auto aaa_client        = std::make_shared<MockAAAClient>();
     events_reporter        = std::make_shared<MockEventsReporter>();
     auto default_mconfig   = get_default_mconfig();
+    auto shards            = std::make_shared<ShardTracker>();
     local_enforcer         = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig);
+        spgw_client, aaa_client, 0, 0, default_mconfig, shards);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";

@@ -83,7 +83,7 @@ class SessionStoreTest : public ::testing::Test {
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
         imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
-        response1);
+        response1, 0);
   }
 
   std::unique_ptr<SessionState> get_lte_session(
@@ -110,7 +110,7 @@ class SessionStoreTest : public ::testing::Test {
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
         imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
-        response1);
+        response1, 0);
   }
   UsageMonitoringUpdateResponse get_monitoring_update() {
     UsageMonitoringUpdateResponse response;

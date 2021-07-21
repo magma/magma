@@ -79,19 +79,21 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto credits = response1.mutable_credits();
   create_credit_update_response(imsi, sid, 1, 1000, credits->Add());
   auto session = std::make_unique<SessionState>(
-      imsi, sid, cfg, *rule_store, tgpp_context, pdp_start_time, response1);
+      imsi, sid, cfg, *rule_store, tgpp_context, pdp_start_time, response1, 0);
 
   CreateSessionResponse response2;
   credits = response2.mutable_credits();
   create_credit_update_response(imsi2, sid2, 2, 2000, credits->Add());
   auto session2 = std::make_unique<SessionState>(
-      imsi2, sid2, cfg, *rule_store, tgpp_context, pdp_start_time, response2);
+      imsi2, sid2, cfg, *rule_store, tgpp_context, pdp_start_time, response2,
+      0);
 
   CreateSessionResponse response3;
   credits = response3.mutable_credits();
   create_credit_update_response(imsi3, sid3, 3, 3000, credits->Add());
   auto session3 = std::make_unique<SessionState>(
-      imsi3, sid3, cfg, *rule_store, tgpp_context, pdp_start_time, response3);
+      imsi3, sid3, cfg, *rule_store, tgpp_context, pdp_start_time, response3,
+      0);
 
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session2->get_session_id(), sid2);

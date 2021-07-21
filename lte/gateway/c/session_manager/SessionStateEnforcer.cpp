@@ -96,6 +96,7 @@ bool SessionStateEnforcer::m5g_init_session_credit(
     const std::string& session_id, const SessionConfig& cfg) {
   /* creating SessionState object with state CREATING
    * This calls constructor and allocates memory*/
+  // TODO: Figure out how to handle sharding(object)
   auto session_state =
       std::make_unique<SessionState>(imsi, session_id, cfg, *rule_store_);
   MLOG(MDEBUG) << " New SessionState object created with IMSI: " << imsi

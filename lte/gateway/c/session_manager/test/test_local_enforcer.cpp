@@ -56,9 +56,10 @@ class LocalEnforcerTest : public ::testing::Test {
     aaa_client           = std::make_shared<MockAAAClient>();
     events_reporter      = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
+    auto shards          = std::make_shared<ShardTracker>();
     local_enforcer       = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig);
+        spgw_client, aaa_client, 0, 0, default_mconfig, shards);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map   = SessionMap{};
@@ -1146,7 +1147,7 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
       IMSI1, SESSION_ID_1, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state = std::make_unique<SessionState>(
       IMSI1, SESSION_ID_1, default_cfg_1, *rule_store, tgpp_ctx, pdp_start_time,
-      response);
+      response, 0);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;
@@ -3584,8 +3585,6 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
       sessionStream.clear();
       local_enforcer->init_session(
           session_map, imsi_id, session_id, test_cfg_, response);
-      local_enforcer->update_tunnel_ids(
-          session_map, create_update_tunnel_ids_request(imsi_id, 0, teids0));
       EXPECT_EQ(session_map[imsi_id].size(), i);
     }
     EXPECT_EQ(session_map[imsi_id].size(), session_count);
@@ -3605,7 +3604,7 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
     SessionRead read_req = {};
     read_req.insert(imsi_id);
     auto session_map = session_store->read_sessions(read_req);
-    for (size_t j = 0; j < session_map[imsi_id].size(); j++) {
+    for (size_t j = 0; j < session_map[imsi_id].size(); j++) {  
       EXPECT_EQ(session_map[imsi_id][j]->get_shard_id(), (i - 1) / 100);
     }
   }
