@@ -91,6 +91,7 @@ for IMAGE in "${IMAGES_ARRAY[@]}"; do
     IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
   fi
   echo "docker tag $IMAGE $DOCKER_REGISTRY $IMAGE $TAG "
+  echo $(docker images ls)
   IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
   echo "docker tag $IMAGE_ID $DOCKER_REGISTRY $IMAGE $TAG "
   tag_and_push "$TAG"
