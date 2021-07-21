@@ -258,9 +258,9 @@
           "orc8r/dev_minikube",
           "orc8r/dev_security",
           "orc8r/dev_indexers",
+          "orc8r/dev_sub_digests",
           "orc8r/dev_dependencies",
-          "orc8r/dev_aws_stack",
-          "orc8r/dev_sub_digests"
+          "orc8r/dev_aws_stack"
         ]
       },
       {

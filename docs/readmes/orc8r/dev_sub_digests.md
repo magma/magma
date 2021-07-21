@@ -6,17 +6,17 @@ hide_title: true
 
 # Subscriber Digests
 
-Orc8r manages subscriber data through its `subscriberdb` service, and streams the data southbound to AGWs on a regular basis. In this process, a digest-cache pattern is used to intelligently recognize and send down only the data necessary for syncing AGWs. This document overviews the said pattern.
+Orc8r manages subscriber configs through its *subscriberdb* service, syncing the data southbound to AGWs on a regular basis. To perform this efficiently, data digests are taken and compared to intelligently send only the data necessary for syncing with an AGW. This document provides an overview of this digest pattern.
 
 ## Motivation
 
-Previously, orc8r follows a vanilla data transmission pattern that sends all subscriber data down to all gateways at every configurable interval.
+Previously, Orc8r follows a basic data sync pattern that sends all subscriber configs down to all gateways at every configurable interval, regardless of whether the AGW actually needs the data.
 
-This introduces various issues at scale, a major one being the significant amount of network pressure this pattern necessitates. For example, to achieve our [GA scalability targets](https://docs.google.com/document/d/1P306DmuC1CFi7bqz4_VVi7v4Ewr1y-dD47C-s5XzdJ8/edit), we need to support **~20TB of network load per month per network**, which is definitively unsustainable.
+This introduces a number of issues at scale, namely significant network pressure. For example, to be able to support 20k subscribers over 500 active gateways, Orc8r would need to support at least [**20TB of network pressure per month per network**](../proposals/p010_subscriber_scaling.md#context), just for subscriber config sync.
 
-Therefore, starting from v1.6, as part of our [subscriber scaling project](../proposals/p010_subscriber_scaling.md), orc8r implements the subscriber digests pattern to minimize network pressure and optimize the current mode of subscriber data transmission. This pattern utilizes the assumption of reads >> writes, and focuses on two major improvements
-1. Instead of syncing at every interval, only sync when AGW is out-of-sync
-2. Instead of syncing all data, sync the cloud-AGW data changeset when reasonable
+Therefore, starting with Magma v1.6, Orc8r uses deterministic Protobuf digests to only sync subscriber configs when they're updated. This pattern utilizes the assumption `#reads >> #writes` to retain a [level-triggered architecture](http://haobaozhong.github.io/design/2019/08/28/level-edge-triggered.html), providing two major improvements
+1. Instead of syncing at every interval, only sync when AGW is out of sync
+2. Instead of syncing all data, only transmit updates
 
 ## Overview
 
@@ -24,37 +24,38 @@ The architectural additions implemented for the subscriber digests pattern are h
 
 ![Subscriber Digests Architecture](assets/orc8r/subscriber_digests_architecture.png)
 
-### Digest Generation
+### Digest generation
 
-This pattern relies on taking deterministically encoded data snapshots, a.k.a. "digests", that are used to represent the local data version. To this end, orc8r library code `mproto` is created using the golang third-party library `proto` to conduct consistently deterministic data serializations.
+This pattern relies on generating, storing, and communicating digests (aka hashes, or deterministically-encoded, constant-length "snapshots") of the data to be synced.
 
 The subscriber digests pattern specifically generates and utilizes two types of digests
 
-1. **Flat digests**: a digest of the entire set of subscriber data of a network
-2. **Per-subscriber digests**: a digest of a single subscriber data object; for a network, the list of per-subscriber digests is tracked and distributed en masse
+1. **Flat digests**: a digest of the entire set of subscriber configs of a network
+2. **Per-subscriber digests**: a digest of a single subscriber config object. For a network, the list of per-subscriber digests is tracked and distributed en masse
 
-NOTE: Currently, a decoupling process between subscriber data objects and their gateway-specific APN resource configurations is conducted to make sure the generated digests is representative and also network-general. See [additional notes](./dev_sub_digests.md#apn-resource-handling) for more details.
+NOTE: Currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to make sure the generated digests is representative and also network-general. See [additional notes](#apn-resource-handling) for more details.
 
-### Subscriber Digests Cache
-`subscriberdb_cache` is a single-pod service in sole charge of managing network digests. The service consists mainly of worker code that constantly generates new flat digests and per-subscriber digests at a configurable interval for each network.
+### Subscriber digests cache
 
-The generated digests are written to a cloud SQL store to which `subscriberdb` service has read-only access. In this way, `subscriberdb` can directly read the most recently cached digests from the SQL store, instead of making extraneous gRPC calls over the network and having multiple servicer workers compete for the `subscriberdb_cache` endpoints.
+*subscriberdb_cache* is a single-pod service in charge of managing network digests. The service constantly generates new flat digests and per-subscriber digests at a configurable interval for each network.
 
-Additionally,  `subscriberdb_cache` also caches the subscriber data that the digests represent. This is to ensure consistency between the cached digests and the actual subscriber data objects in a `subscriberdb` servicer response.
+The generated digests are written to a cloud SQL store to which *subscriberdb* has read-only access. In this way, *subscriberdb* can directly read the most up-to-date digests from the SQL store, instead of making extraneous gRPC calls over the network and contending for the limited resources of the *subscriberdb_cache* singleton.
 
-That is, every time an update of the digests are detected, `subscriberdb_cache` loads all subscriber data from `configurator` and applies the batch update to store. In this way, `subscriberdb_cache` acts as the single source of truth from which the `subscriberdb` servicer loads all data required for the subscriber digests pattern.
+Additionally, *subscriberdb_cache* also caches the subscriber configs that the digests represent. This ensures consistency between the cached digests and the actual subscriber configs in a *subscriberdb* servicer response.
 
-`subscriberdb_cache` supports loading subscriber data either directly by IDs or by pages. To that end, it generates its own page tokens using the same mechanism as in  `configurator` for simplicity.
+That is, every time an update of the digests are detected, *subscriberdb_cache* loads all subscriber configs from `configurator` and applies the batch update to store. In this way, *subscriberdb_cache* acts as the single source of truth from which the *subscriberdb* servicer loads all data required for the subscriber digests pattern.
 
-### AGW Digest Store
+*subscriberdb_cache* supports loading subscriber configs either directly by IDs or by pages. To that end, it generates its own page tokens using the same mechanism as in `configurator`.
 
-Aside from its subscriber database, a gateway also manages SQL stores for its local flat and per-subscriber digests.
+### AGW digest store
 
-Every time a gateway engages in a sync session with the cloud, it receives the latest cloud digests, with which it updates its local SQL store. These digests represent the version of subscriber data stored in the gateway, and they are used in the gateway's subsequent requests to the cloud.
+Aside from its subscriber configsbase, a gateway also manages SQL stores for its local flat and per-subscriber digests.
 
-### Cloud-AGW Callpath
+Every time a gateway synchronizes its subscriber configs with the cloud, it receives the latest cloud digests, which it writes to local SQL store. These digests represent the version of subscriber configs stored in the gateway, and they are used in the gateway's subsequent requests to the cloud.
 
-The current interactions between the `subscriberdb` cloud servicer and the AGW client involve 3 servicer endpoints
+### Cloud-AGW callpath
+
+The current interactions between the *subscriberdb* cloud servicer and the AGW client involve 3 servicer endpoints
 
 1. `CheckSubscribersInSync`
     - AGW sends its local flat digest
@@ -62,27 +63,25 @@ The current interactions between the `subscriberdb` cloud servicer and the AGW c
 
 2. If AGW is not in-sync: `SyncSubscribers`
     - AGW sends its local per-subscriber digests
-    - Cloud compares the AGW digests with the cloud digests, and calculates the changeset between the two sets of per-subscriber digests. That is, it locates the subscribers to renew or to delete on the AGW side
-        - If the changeset is of a reasonable size (configurable), returns the data needed to update AGW locally, as well as the latest cloud digests
+    - Cloud compares the AGW digests with the cloud digests, and calculates the changeset between the two sets of per-subscriber digests. That is, it locates the subscribers to renew and delete on the AGW side
+        - If the changeset is of a reasonable (configurable) size, returns the data needed to update AGW locally, as well as the latest cloud digests
         - If not, returns a signal for AGW to conduct a full-on resync
 3. If AGW receives resync signal: `ListSubscribers`
-    - AGW sends desired pageSize, as well as the current page token (until all pages are fetched)
-    - Cloud returns the corresponding page of data loaded from `subscriberdb_cache`, as well as the latest cloud digests
+    - AGW sends desired page size, as well as the current page token (until all pages are fetched)
+    - Cloud returns the corresponding page of data loaded from *subscriberdb_cache*, as well as the latest cloud digests
 
 ## Additional Notes
 
-### APN Resource Configs Handling
+### APN resource configs handling
 
-Currently, gateway-specific APN resources configurations are also stored in subscriber data objects streamed down to AGWs. This is an issue to be addressed by ongoing refactoring projects.
+Currently, gateway-specific "APN resource" configurations are also stored in the subscriber config objects synced to AGWs. This is a legacy pattern that will be redressed in an upcoming refactor.
 
-Until a fix is landed, to ensure that the generated subscriber digests are the same for all gateways in a network, the APN resources configs are extracted from subscriber data objects beforehand, and captured in its own digest instead. That is, the subscriber digests generated in `subscriberdb_cache` are concatenations of `apnResourceDigest` and `subscriberDigest`; in the generation of the `subscriberDigest`, the APN resource configurations are left blank.
+As an immediate workaround, to ensure the generated subscriber digests are the same for all gateways in a network, the APN resources configs are extracted from subscriber config objects beforehand, and captured in its own, separate digest. That is, the subscriber digests generated in *subscriberdb_cache* are concatenations of `apnResourceDigest` and `subscriberDigest`. In the generation of the `subscriberDigest`, the APN resource configurations are left blank.
 
-Similarly, the cached subscriber data objects in `subscriberdb_cache` also don't contain APN resource configs. As a result, the `subscriberdb` servicers would currently append APN resource configs to subscriber data objects loaded from cache, before streaming it down to AGWs.
+Similarly, the cached subscriber config objects in *subscriberdb_cache* also don't contain APN resource configs. As a result, the *subscriberdb* servicers currently append APN resource configs to subscriber config objects loaded from cache, before transmitting the full configs down to AGWs.
 
-### Orc8r-directed Resync
+### Orc8r-directed resync
 
-For reliability, and also to avoid hash collision-induced edge cases in the subscriber digests pattern, an orc8r-directed resync is enforced on the AGWs at a configurable interval (e.g. once per day).
+For added reliability, and to avoid (trivially improbable) hash collisions, an Orc8r-directed resync is enforced on the AGWs at a configurable interval (e.g. once per day).
 
-To this end, `subscriberdb` tracks the last resync times of each gateway, and enforces the resync for a gateway hasn't undergone a resync in a while.
-
-NOTE: Since the cloud servicer doesn't track the success status of the requests on the AGW end, it takes an AGW request for the last page of subscriber data as an approximate indication that the AGW has come to the end of a resync.
+To this end, *subscriberdb* tracks the last resync times of each gateway, and enforces the resync for gateways which haven't undergone a resync in a while.
