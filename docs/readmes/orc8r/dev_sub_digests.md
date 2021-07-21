@@ -10,11 +10,11 @@ Orc8r manages subscriber configs through its *subscriberdb* service, syncing the
 
 ## Motivation
 
-Previously, Orc8r follows a basic data sync pattern that sends all subscriber configs down to all gateways at every configurable interval, regardless of whether the AGW actually needs the data.
+Previously, Orc8r followed a basic data sync pattern that sent all subscriber configs down to all gateways once per configurable interval, regardless of whether the AGW actually needs the data.
 
-This introduces a number of issues at scale, namely significant network pressure. For example, to be able to support 20k subscribers over 500 active gateways, Orc8r would need to support at least [**20TB of network pressure per month per network**](../proposals/p010_subscriber_scaling.md#context), just for subscriber config sync.
+This introduces a number of issues at scale, namely significant network pressure. For example, to support 20k subscribers over 500 active gateways, subscriber config sync alone would generate at least [**20TB of network pressure per month per network**](../proposals/p010_subscriber_scaling.md#context).
 
-Therefore, starting with Magma v1.6, Orc8r uses deterministic Protobuf digests to only sync subscriber configs when they're updated. This pattern utilizes the assumption `#reads >> #writes` to retain a [level-triggered architecture](http://haobaozhong.github.io/design/2019/08/28/level-edge-triggered.html), providing two major improvements
+Therefore, starting with Magma v1.6, Orc8r uses deterministic protobuf digests to only sync subscriber configs when they're updated. This pattern utilizes the assumption `#reads >> #writes` to retain a [level-triggered architecture](http://haobaozhong.github.io/design/2019/08/28/level-edge-triggered.html), providing two major improvements
 1. Instead of syncing at every interval, only sync when AGW is out of sync
 2. Instead of syncing all data, only transmit updates
 
@@ -33,23 +33,23 @@ The subscriber digests pattern specifically generates and utilizes two types of 
 1. **Flat digests**: a digest of the entire set of subscriber configs of a network
 2. **Per-subscriber digests**: a digest of a single subscriber config object. For a network, the list of per-subscriber digests is tracked and distributed en masse
 
-NOTE: Currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to make sure the generated digests is representative and also network-general. See [additional notes](#apn-resource-handling) for more details.
+NOTE: currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to ensure the generated digests are representative and also network-general. See [additional notes](#apn-resource-handling) for more details.
 
 ### Subscriber digests cache
 
 *subscriberdb_cache* is a single-pod service in charge of managing network digests. The service constantly generates new flat digests and per-subscriber digests at a configurable interval for each network.
 
-The generated digests are written to a cloud SQL store to which *subscriberdb* has read-only access. In this way, *subscriberdb* can directly read the most up-to-date digests from the SQL store, instead of making extraneous gRPC calls over the network and contending for the limited resources of the *subscriberdb_cache* singleton.
+The generated digests are written to a cloud SQL store to which *subscriberdb* has read-only access. In this way, *subscriberdb* can directly read the most up-to-date digests from the SQL store, preserving the limited resources of the *subscriberdb_cache* singleton.
 
 Additionally, *subscriberdb_cache* also caches the subscriber configs that the digests represent. This ensures consistency between the cached digests and the actual subscriber configs in a *subscriberdb* servicer response.
 
-That is, every time an update of the digests are detected, *subscriberdb_cache* loads all subscriber configs from `configurator` and applies the batch update to store. In this way, *subscriberdb_cache* acts as the single source of truth from which the *subscriberdb* servicer loads all data required for the subscriber digests pattern.
+That is, every time an update of the digests are detected, *subscriberdb_cache* loads all subscriber configs from *configurator* and applies the batch update to store. In this way, *subscriberdb_cache* acts as the single source of truth from which the *subscriberdb* servicer loads all data required for the subscriber digests pattern.
 
-*subscriberdb_cache* supports loading subscriber configs either directly by IDs or by pages. To that end, it generates its own page tokens using the same mechanism as in `configurator`.
+*subscriberdb_cache* supports loading subscriber configs either directly by IDs or by pages. To that end, it generates its own page tokens using the same mechanism as in *configurator*.
 
 ### AGW digest store
 
-Aside from its subscriber configsbase, a gateway also manages SQL stores for its local flat and per-subscriber digests.
+Aside from its subscriber database, a gateway also manages SQL stores for its local flat and per-subscriber digests.
 
 Every time a gateway synchronizes its subscriber configs with the cloud, it receives the latest cloud digests, which it writes to local SQL store. These digests represent the version of subscriber configs stored in the gateway, and they are used in the gateway's subsequent requests to the cloud.
 
@@ -82,6 +82,6 @@ Similarly, the cached subscriber config objects in *subscriberdb_cache* also don
 
 ### Orc8r-directed resync
 
-For added reliability, and to avoid (trivially improbable) hash collisions, an Orc8r-directed resync is enforced on the AGWs at a configurable interval (e.g. once per day).
+For added reliability, and to remediate (trivially improbable) hash collisions, an Orc8r-directed resync is enforced on the AGWs at a configurable interval (e.g. once per day).
 
 To this end, *subscriberdb* tracks the last resync times of each gateway, and enforces the resync for gateways which haven't undergone a resync in a while.
