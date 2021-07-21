@@ -129,12 +129,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
-      DOCKER_REGISTRY: cwf_
     steps:
       - uses: actions/checkout@v2
       - name: Run docker compose
         # yamllint disable rule:line-length
         uses: nick-invision/retry@v2
+        env:
+          DOCKER_REGISTRY: cwf_
         with:
           command: cd ${MAGMA_ROOT}/cwf/gateway/docker && docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
           max_attempts: 2
