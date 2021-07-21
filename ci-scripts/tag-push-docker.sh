@@ -80,6 +80,8 @@ if [[ -z $DOCKER_PASSWORD ]]; then
 fi
 
 docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+echo "the tag "$TAG
+
 # shellcheck disable=SC2207
 # Docker images does not contains special characters so we can skip the check
 IMAGES_ARRAY=($(echo "$IMAGES" | tr "|" "\n"))
@@ -88,7 +90,9 @@ for IMAGE in "${IMAGES_ARRAY[@]}"; do
   if [ -n "${PROJECT}" ]; then
     IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
   fi
+  echo "docker tag $IMAGE $DOCKER_REGISTRY $IMAGE $TAG "
   IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
+  echo "docker tag $IMAGE_ID $DOCKER_REGISTRY $IMAGE $TAG "
   tag_and_push "$TAG"
   if [ "$TAG_LATEST" = true ]; then
     tag_and_push "latest"
