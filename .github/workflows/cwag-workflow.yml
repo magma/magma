@@ -130,18 +130,15 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - name: test
-        run: echo "${GITHUB_SHA:0:8}"
       - uses: actions/checkout@v2
       - name: Run docker compose
         # yamllint disable rule:line-length
-        uses: nick-invision/retry@v2
         env:
           DOCKER_REGISTRY: cwf_
-        with:
-          command: cd ${MAGMA_ROOT}/cwf/gateway/docker && docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
-          max_attempts: 2
-          timeout_minutes: 10
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker images ls
       - name: Tag and push to Docker Registry
         env:
           DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
