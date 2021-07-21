@@ -163,7 +163,7 @@ status_code_e encode_eps_quality_of_service(
   return encoded;
 }
 
-#define EPS_QOS_BIT_RATE_MAX 262144  // 256 Mbps
+#define EPS_QOS_BIT_RATE_MAX 10240000  // 10 Gbps
 //------------------------------------------------------------------------------
 status_code_e eps_qos_bit_rate_value(uint8_t br) {
   if (br < 0b00000001) {
@@ -187,6 +187,19 @@ status_code_e eps_qos_bit_rate_ext_value(uint8_t br) {
     return (16384 + (br - 0b01001010) * 1024);
   } else if ((br > 0b10111010) && (br < 0b11111011)) {
     return (131072 + (br - 0b10111010) * 2048);
+  } else {
+    return (-1);
+  }
+}
+
+//------------------------------------------------------------------------------
+status_code_e eps_qos_bit_rate_ext2_value(uint8_t br) {
+  if ((br > 0b00000000) && (br < 0b00111110)) {
+    return (262144 + br * 4096);
+  } else if ((br > 0b00111101) && (br < 0b10100010)) {
+    return (512000 + (br - 0b00111101) * 10240);
+  } else if ((br > 0b10100001) && (br < 0b11110111)) {
+    return (1536000 + (br - 0b10111010) * 102400);
   } else {
     return (-1);
   }
@@ -228,8 +241,9 @@ status_code_e qos_params_to_eps_qos(
               ((mbr_ul_kbps - 128000) / 2000) + 186;
         }
       } else if (mbr_ul_kbps > 256000) {
-        eps_qos->bitRates.maxBitRateForUL = 0xfa;
-        eps_qos->bitRatesExt2Present      = 1;
+        eps_qos->bitRates.maxBitRateForUL    = 0xfe;
+        eps_qos->bitRatesExt.maxBitRateForUL = 0xfa;
+        eps_qos->bitRatesExt2Present         = 1;
         if ((mbr_ul_kbps >= 260000) && (mbr_ul_kbps <= 500000)) {
           eps_qos->bitRatesExt2.maxBitRateForUL = (mbr_ul_kbps - 256000) / 4000;
         } else if ((mbr_ul_kbps > 510000) && (mbr_ul_kbps <= 1500000)) {
@@ -262,8 +276,9 @@ status_code_e qos_params_to_eps_qos(
               ((mbr_dl_kbps - 128000) / 2000) + 186;
         }
       } else if (mbr_dl_kbps > 256000) {
-        eps_qos->bitRates.maxBitRateForDL = 0xfa;
-        eps_qos->bitRatesExt2Present      = 1;
+        eps_qos->bitRates.maxBitRateForDL    = 0xfe;
+        eps_qos->bitRatesExt.maxBitRateForDL = 0xfa;
+        eps_qos->bitRatesExt2Present         = 1;
         if ((mbr_dl_kbps >= 260000) && (mbr_dl_kbps <= 500000)) {
           eps_qos->bitRatesExt2.maxBitRateForDL = (mbr_dl_kbps - 256000) / 4000;
         } else if ((mbr_dl_kbps > 510000) && (mbr_dl_kbps <= 1500000)) {
