@@ -80,7 +80,7 @@ func LoadSubProtosByID(
 		lc, serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Load added/modified subscriber entities")
+		return nil, errors.Wrap(err, "load added/modified subscriber entities")
 	}
 
 	subProtos := []*lte_protos.SubscriberData{}

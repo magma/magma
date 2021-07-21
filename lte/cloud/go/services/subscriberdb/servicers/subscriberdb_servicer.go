@@ -270,18 +270,15 @@ func injectAPNResources(subProtos []*lte_protos.SubscriberData, gateway *protos.
 		return nil, err
 	}
 
-	for i := range subProtos {
-		subProto := subProtos[i]
+	for _, subProto := range subProtos {
 		if subProto.GetNon_3Gpp().GetApnConfig() == nil {
 			continue
 		}
-		for j := range subProto.Non_3Gpp.ApnConfig {
-			apnKey := subProto.Non_3Gpp.ApnConfig[j].ServiceSelection
-			if apnResourceModel, ok := apnResources[apnKey]; ok {
-				subProto.Non_3Gpp.ApnConfig[j].Resource = apnResourceModel.ToProto()
+		for _, apnConfig := range subProto.Non_3Gpp.ApnConfig {
+			if apnResourceModel, ok := apnResources[apnConfig.ServiceSelection]; ok {
+				apnConfig.Resource = apnResourceModel.ToProto()
 			}
 		}
-		subProtos[i] = subProto
 	}
 	return subProtos, nil
 }
