@@ -364,15 +364,18 @@ int amf_smf_notification_send(
         magma::lte::NotifyUeEvents::UE_SERVICE_REQUEST_ON_PAGING);
   }
 
-  auto it                   = ue_context->amf_context.smf_ctxt_vector.begin();
-  smf_context_t smf_context = *it;
-  if (smf_context.pdu_address.pdn_type == IPv4) {
-    char ip_str[INET_ADDRSTRLEN];
+  auto it = ue_context->amf_context.smf_ctxt_vector.begin();
+  if (it != ue_context->amf_context.smf_ctxt_vector.end()) {
+    smf_context_t smf_context = *it;
 
-    inet_ntop(
-        AF_INET, &(smf_context.pdu_address.ipv4_address.s_addr), ip_str,
-        INET_ADDRSTRLEN);
-    req_common->set_ue_ipv4((char*) ip_str);
+    if (smf_context.pdu_address.pdn_type == IPv4) {
+      char ip_str[INET_ADDRSTRLEN];
+
+      inet_ntop(
+          AF_INET, &(smf_context.pdu_address.ipv4_address.s_addr), ip_str,
+          INET_ADDRSTRLEN);
+      req_common->set_ue_ipv4((char*) ip_str);
+    }
   }
   // Set the PDU Address
 

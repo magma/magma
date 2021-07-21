@@ -745,7 +745,7 @@ int ngap_amf_handle_initial_context_setup_response(
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtRes, false);
 
   if (ie) {
     if (ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count < 1) {

@@ -94,7 +94,16 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(
         else
           decoded += decoded_result;
       } break;
-      default: {}
+      case NAS_MESSAGE_CONTAINER: {
+        len = len - decoded + 3;
+        if ((decoded_result = DecodeServiceRequestMsg(
+                 svc_req, buffer + (decoded + 3), len)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += (decoded_result + 3);
+        }
+      } break;
+      default: { return decoded; }
     }
   }
 

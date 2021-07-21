@@ -555,15 +555,16 @@ void amf_app_handle_pdu_session_response(
     // pdu session state
     smf_ctx->pdu_session_state = ACTIVE;
     amf_sap_t amf_sap;
+    amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
 
     amf_sap.u.amf_as.u.establish.pdu_sesion_status_ie =
         (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
     amf_sap.u.amf_as.u.establish.pdu_session_status =
-        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
     amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     amf_sap.u.amf_as.u.establish.guti.m_tmsi =
         htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
