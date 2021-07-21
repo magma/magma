@@ -354,9 +354,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.shard_id,
-            request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies,
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
+            request.policies, request.shard_id,
         )
 
         failed_policies_results = \
