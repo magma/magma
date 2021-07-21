@@ -50,7 +50,8 @@ def _deserialize_session_json(serialized_json_str: bytes) -> str:
 
 
 def _deserialize_generic_json(
-        element: Union[str, dict, list])-> Union[str, dict, list]:
+        element: Union[str, dict, list],
+) -> Union[str, dict, list]:
     """
     Helper function to deserialize dictionaries or list with nested
     json strings

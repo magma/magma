@@ -8,7 +8,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
+
 module magma/orc8r/cloud/go
 
 replace (
@@ -30,9 +30,8 @@ require (
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/facebookincubator/prometheus-edge-hub v1.1.0
 	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/runtime v0.19.5
 	github.com/go-openapi/strfmt v0.19.4
-	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.19.3
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-swagger/go-swagger v0.21.0
@@ -40,6 +39,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.1.1
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/imdario/mergo v0.3.5
 	github.com/labstack/echo v3.3.10+incompatible
@@ -59,7 +59,7 @@ require (
 	github.com/prometheus/prometheus v0.0.0-20190607092147-e23fa22233cf
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.0.0
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
@@ -67,7 +67,7 @@ require (
 	golang.org/x/tools v0.1.0
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.0.0-20191016110408-35e52d86657a
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible

@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	context2 "context"
 	"encoding/base64"
 	"net"
 	"testing"
@@ -65,10 +66,10 @@ func TestIndexerIP(t *testing.T) {
 	errs, err := idx.Index("nid0", states)
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	gotA, err := subscriberdb.GetIMSIsForIP("nid0", "127.0.0.1")
+	gotA, err := subscriberdb.GetIMSIsForIP(context2.Background(), "nid0", "127.0.0.1")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"IMSI0", "IMSI1"}, gotA)
-	gotB, err := subscriberdb.GetIMSIsForIP("nid0", "127.0.0.2")
+	gotB, err := subscriberdb.GetIMSIsForIP(context2.Background(), "nid0", "127.0.0.2")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"IMSI1"}, gotB)
 
@@ -80,7 +81,7 @@ func TestIndexerIP(t *testing.T) {
 	errs, err = idx.Index("nid0", states)
 	assert.NoError(t, err)
 	assert.Error(t, errs[id2])
-	gotC, err := subscriberdb.GetIMSIsForIP("nid0", "127.0.0.3")
+	gotC, err := subscriberdb.GetIMSIsForIP(context2.Background(), "nid0", "127.0.0.3")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"IMSI0"}, gotC)
 }

@@ -14,6 +14,7 @@ limitations under the License.
 package reporter
 
 import (
+	"context"
 	"time"
 
 	"magma/feg/cloud/go/feg"
@@ -42,6 +43,7 @@ func (reporter *NetworkHealthStatusReporter) ReportHealthStatus(dur time.Duratio
 }
 
 func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
+	ctx := context.Background()
 	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return err
@@ -63,7 +65,7 @@ func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
 		}
 		healthyGateways := 0
 		for _, gw := range gateways {
-			healthStatus, err := health.GetHealth(networkID, gw.Key)
+			healthStatus, err := health.GetHealth(ctx, networkID, gw.Key)
 			if err != nil {
 				glog.V(2).Infof("error getting health for network %s, gateway %s: %v\n", networkID, gw.Key, err)
 				continue

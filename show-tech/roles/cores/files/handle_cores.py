@@ -11,18 +11,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import click
 import datetime
 import glob
 import gzip
-import logging
 import json
+import logging
 import os
+import shlex
 import shutil
 import subprocess
-import shlex
 
-logging.basicConfig(format='%(levelname)s: %(message)s' ,level=logging.INFO)
+import click
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +36,7 @@ class ComponentCores(object):
         self.all_cores = glob.glob(self.component_data["path"])
         self.cores = self.filter_files_by_ctime()
         self.app_binary = self.component_data["binary"]
-        self.core_dirs = { os.path.dirname(x) for x in self.cores }
+        self.core_dirs = {os.path.dirname(x) for x in self.cores}
 
     def filter_files_by_ctime(self):
         cores = []
@@ -61,7 +62,7 @@ class ComponentCores(object):
                 shutil.rmtree(dest_core_dir)
             shutil.copytree(core_dir, dest_core_dir)
         # Uncompress them on source dir
-        for core_file in  self.get_core_files():
+        for core_file in self.get_core_files():
             logger.debug("Analyzing {}".format(core_file))
             core = CoreFile(core_file, self.app_binary, self.dest_dir)
             core.analyze()
@@ -102,7 +103,7 @@ class CoreFile(object):
                 check=True,
                 stdout=fout,
                 stderr=fout,
-                timeout=60
+                timeout=60,
             )
 
 
@@ -110,7 +111,7 @@ class CoreFile(object):
 @click.option(
     "--cores-map",
     help="Map of core files to collect and process with binary",
-    default="{}"
+    default="{}",
 )
 @click.option(
     "--component",
@@ -127,7 +128,7 @@ class CoreFile(object):
     help="destination directory to place cores and dbg outputs in",
     required=True,
 )
-def main(cores_map : str, component: str, max_age: int, dest_dir: str):
+def main(cores_map: str, component: str, max_age: int, dest_dir: str):
     cores_map = json.loads(cores_map)
     logger.info("processing cores on component {}".format(component))
     c = ComponentCores(cores_map, component, max_age, dest_dir)

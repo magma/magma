@@ -582,6 +582,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	epcConfig := lteModels.NewDefaultTDDNetworkConfig().Epc
 	epcConfig.HssRelayEnabled = swag.Bool(true)
 	epcConfig.GxGyRelayEnabled = swag.Bool(true)
+	epcConfig.SubscriberdbSyncInterval = lteModels.SubscriberdbSyncInterval(90)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/epc/", testURLRoot, "n2"),
@@ -1007,6 +1008,7 @@ func TestCreateGateway(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(
+		context.Background(),
 		"n1", orc8r.AccessGatewayRecordType, "hw2",
 		&models.GatewayDevice{
 			HardwareID: "hw2",
@@ -1061,7 +1063,7 @@ func TestCreateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -1130,7 +1132,7 @@ func TestCreateGateway(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	// the device should get created regardless
-	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
+	actualDevice, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actualEnts))
 	assert.Equal(t, payload.Device, actualDevice)
@@ -1260,11 +1262,7 @@ func TestListAndGetGateways(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
@@ -1439,11 +1437,7 @@ func TestUpdateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	// update everything
@@ -1499,7 +1493,7 @@ func TestUpdateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -1587,11 +1581,7 @@ func TestDeleteGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		"n1", orc8r.AccessGatewayRecordType, "hw1",
-		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -1615,7 +1605,7 @@ func TestDeleteGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.Nil(t, actualDevice)
 	assert.EqualError(t, err, "Not found")
 
@@ -1803,6 +1793,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 	modifiedCellularConfig := newDefaultGatewayConfig()
 	modifiedCellularConfig.Epc.NatEnabled = swag.Bool(false)
+	modifiedCellularConfig.Epc.SubscriberdbSyncInterval = lteModels.SubscriberdbSyncInterval(90)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/cellular/epc", testURLRoot),

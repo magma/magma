@@ -84,10 +84,12 @@ typedef struct s1ap_handover_state_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   uint32_t source_enb_id;
   uint32_t target_enb_id;
-  enb_ue_s1ap_id_t
-      target_enb_ue_s1ap_id : 24;  ///< Unique UE id over eNB (24 bits wide)
-  sctp_stream_id_t target_sctp_stream_recv;  ///< eNB -> MME stream
-  sctp_stream_id_t target_sctp_stream_send;  ///< MME -> eNB stream
+  enb_ue_s1ap_id_t source_enb_ue_s1ap_id : 24;
+  enb_ue_s1ap_id_t target_enb_ue_s1ap_id : 24;
+  sctp_stream_id_t source_sctp_stream_recv;  ///< source eNB -> MME stream
+  sctp_stream_id_t target_sctp_stream_recv;  ///< target eNB -> MME stream
+  sctp_stream_id_t source_sctp_stream_send;  ///< MME -> source eNB stream
+  sctp_stream_id_t target_sctp_stream_send;  ///< MME -> target eNB stream
   e_rab_admitted_list_t e_rab_admitted_list;
 } s1ap_handover_state_t;
 

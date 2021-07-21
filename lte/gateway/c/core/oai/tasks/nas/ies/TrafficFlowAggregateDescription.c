@@ -34,7 +34,7 @@ int decode_traffic_flow_aggregate_description(
       "The Traffic flow aggregate description information element is decoded "
       "using the same format as the Traffic flow template (TFT) information "
       "element");
-  return 0;
+  return -1;
 }
 
 //------------------------------------------------------------------------------
@@ -45,5 +45,5 @@ int encode_traffic_flow_aggregate_description(
       "The Traffic flow aggregate description information element is encoded "
       "using the same format as the Traffic flow template (TFT) information "
       "element");
-  return 0;
+  return -1;
 }

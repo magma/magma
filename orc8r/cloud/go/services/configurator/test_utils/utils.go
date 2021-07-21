@@ -14,6 +14,7 @@
 package test_utils
 
 import (
+	"context"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -37,11 +38,11 @@ func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *m
 func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, name string, record *models.GatewayDevice) {
 	var gwEntity configurator.NetworkEntity
 	if record != nil {
-		if exists, _ := device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HardwareID); exists {
+		if exists, _ := device.DoesDeviceExist(context.Background(), networkID, orc8r.AccessGatewayRecordType, record.HardwareID); exists {
 			t.Fatalf("Hwid is already registered %s", record.HardwareID)
 		}
 		// write into device
-		err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HardwareID, record, serdes.Device)
+		err := device.RegisterDevice(context.Background(), networkID, orc8r.AccessGatewayRecordType, record.HardwareID, record, serdes.Device)
 		assert.NoError(t, err)
 
 		gwEntity = configurator.NetworkEntity{
@@ -66,6 +67,6 @@ func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, n
 func RemoveGateway(t *testing.T, networkID, gatewayID string) {
 	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	assert.NoError(t, err)
-	assert.NoError(t, device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, physicalID))
+	assert.NoError(t, device.DeleteDevice(context.Background(), networkID, orc8r.AccessGatewayRecordType, physicalID))
 	assert.NoError(t, configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gatewayID))
 }

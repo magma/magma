@@ -119,6 +119,10 @@ COPY --from=builder /root/.cache /root/.cache
 # Production image
 # -----------------------------------------------------------------------------
 FROM ubuntu:bionic AS gateway_go
+ARG MAGMA_BUILD_BRANCH=unknown
+ARG MAGMA_BUILD_TAG=unknown
+ARG MAGMA_BUILD_COMMIT_HASH=unknonw
+ARG MAGMA_BUILD_COMMIT_DATE=unknown
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools netcat gettext musl
@@ -137,3 +141,9 @@ COPY feg/gateway/configs /etc/magma
 RUN mkdir -p /var/opt/magma/envdir
 RUN mkdir -p /var/opt/magma/configs
 RUN mkdir -p /var/opt/magma/tmp
+
+# Add commit information
+ENV MAGMA_BUILD_BRANCH $MAGMA_BUILD_BRANCH
+ENV MAGMA_BUILD_TAG $MAGMA_BUILD_TAG
+ENV MAGMA_BUILD_COMMIT_HASH $MAGMA_BUILD_COMMIT_HASH
+ENV MAGMA_BUILD_COMMIT_DATE $MAGMA_BUILD_COMMIT_DATE

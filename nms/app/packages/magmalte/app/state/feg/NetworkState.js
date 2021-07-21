@@ -24,6 +24,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 export type UpdateNetworkProps = {
   networkId: network_id,
+  fegNetwork?: feg_network,
   subscriberConfig?: network_subscriber_config,
   setFegNetwork: feg_network => void,
   refreshState: boolean,
@@ -32,6 +33,16 @@ export type UpdateNetworkProps = {
 export async function UpdateNetworkState(props: UpdateNetworkProps) {
   const {networkId, setFegNetwork} = props;
   const requests = [];
+  if (props.fegNetwork) {
+    requests.push(
+      await MagmaV1API.putFegByNetworkId({
+        networkId: networkId,
+        fegNetwork: {
+          ...props.fegNetwork,
+        },
+      }),
+    );
+  }
   if (props.subscriberConfig) {
     requests.push(
       await MagmaV1API.putFegByNetworkIdSubscriberConfig({

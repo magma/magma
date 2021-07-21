@@ -60,17 +60,22 @@ class TunnelLearnTest(unittest.TestCase):
         """
         super(TunnelLearnTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([],
-            ['ue_mac', 'tunnel_learn'])
+        cls.service_manager = create_service_manager(
+            [],
+            ['ue_mac', 'tunnel_learn'],
+        )
         cls._tbl_num = cls.service_manager.get_table_num(
-            TunnelLearnController.APP_NAME)
+            TunnelLearnController.APP_NAME,
+        )
 
         tunnel_learn_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.TunnelLearnController,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.TunnelLearnController,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.TunnelLearnController:
                     tunnel_learn_controller_reference,
@@ -91,8 +96,8 @@ class TunnelLearnTest(unittest.TestCase):
                 'clean_restart': True,
                 'access_control': {
                     'ip_blocklist': [
-                    ]
-                }
+                    ],
+                },
             },
             mconfig=PipelineD(
                 allowed_gre_peers=[],
@@ -120,8 +125,10 @@ class TunnelLearnTest(unittest.TestCase):
         in the scratch table(snapshot is checked)
         """
         # Set up subscribers
-        sub = SubContextConfig('IMSI001010000000013', '192.168.128.74',
-                               default_ambr_config, self._tbl_num)
+        sub = SubContextConfig(
+            'IMSI001010000000013', '192.168.128.74',
+            default_ambr_config, self._tbl_num,
+        )
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),

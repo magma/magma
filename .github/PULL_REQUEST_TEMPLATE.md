@@ -1,6 +1,7 @@
 <!--
-    Tag your PR title with the components that it touches.
-    E.g. "[lte][agw] Changeset" or "[orc8r][docker] ..."
+    Tag your PR title with the components that it touches along with
+    the type of change
+    E.g. "fix(orc8r): Fix reindexer race condition" or "feat(agw) ..."
 -->
 
 ## Summary

@@ -23,6 +23,7 @@ AGW$ sudo checkin_cli.py
 3. -- Testing SSL --
 4. -- Creating direct cloud checkin --
 5. -- Creating proxy cloud checkin --
+Success!
 ```
 
 If the output is not successful, the script will recommend some steps to resolve the problem. After following the steps the problem has not been resolved, follow below steps.
@@ -67,15 +68,29 @@ rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
     `AGW$ sudo tail -f /var/log/syslog | grep -i "magmad"`
 
 
+9. From Orchestrator, get all pods and verify attempts from AGW are reaching Orc8r in nginx and look for any bootstrapping erors in the bootstrapper.
 
-9. From Orchestrator, get all pods and find pod orc8r-controller-*
+    - First, you can use below command to get all pods from orc8r
+        ```
+        kubectl -n orc8r get pods
+        ```
+        For example, boostrapper and nginx Orc8r pods should look something like below:
 
-```
-kubectl -n magma get pods
-kubectl -n magma logs -f <controller podname>
-```
+        ```
+        orc8r-bootstrapper-775b5b8f6d-89spq              1/1     Running   0          37d
+        orc8r-bootstrapper-775b5b8f6d-gfmrp              1/1     Running   0          37d
+        orc8r-nginx-5f599dd8d5-rz4gm                     1/1     Running   0          37d
+        orc8r-nginx-5f599dd8d5-sxpzf                     1/1     Running   0          37d
+        ```
 
-First command will list all pods and next command can be used to check logs of a particular pod. Check if there is any problematic log for the related pod.
+    - Next, using the pod name get the logs from the pod with below command. Check if there is any problematic log for the related pod
+
+        ```
+        kubectl -n orc8r logs -f <nginx podname>
+        kubectl -n orc8r logs -f <bootstrapper podname>
+        ```
+
+        For example: `kubectl -n orc8r get logs orc8r-bootstrapper-775b5b8f6d-89spq`
 
 10. Try restarting magmad services.
 ```

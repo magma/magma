@@ -33,6 +33,9 @@ static void service303_message_exit(void);
 
 task_zmq_ctx_t service303_server_task_zmq_ctx;
 task_zmq_ctx_t service303_message_task_zmq_ctx;
+static long display_stats_timer_id;
+static int handle_display_timer(zloop_t*, int, void*);
+static void start_display_stats_timer(size_t);
 
 static int handle_service303_server_message(
     zloop_t* loop, zsock_t* reader, void* arg) {
@@ -81,10 +84,14 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case APPLICATION_UNHEALTHY_MSG: {
       service303_set_application_health(APP_UNHEALTHY);
     } break;
-    case APPLICATION_STATS_MSG: {
-      service303_mme_statistics_read(
-          &received_message_p->ittiMsg.application_mme_stats_msg);
-    }
+    case APPLICATION_MME_APP_STATS_MSG: {
+      service303_mme_app_statistics_read(
+          &received_message_p->ittiMsg.application_mme_app_stats_msg);
+    } break;
+    case APPLICATION_S1AP_STATS_MSG: {
+      service303_s1ap_statistics_read(
+          &received_message_p->ittiMsg.application_s1ap_stats_msg);
+    } break;
     case TERMINATE_MESSAGE:
       free(received_message_p);
       service303_message_exit();
@@ -101,11 +108,12 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 static void* service303_thread(void* args) {
+  service303_data_t* service303_data = (service303_data_t*) args;
   itti_mark_task_ready(TASK_SERVICE303);
   init_task_context(
       TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
       &service303_message_task_zmq_ctx);
-
+  start_display_stats_timer((size_t) service303_data->stats_display_timer_sec);
   zloop_start(service303_message_task_zmq_ctx.event_loop);
   service303_message_exit();
   return NULL;
@@ -141,7 +149,19 @@ static void service303_server_exit(void) {
 }
 
 static void service303_message_exit(void) {
+  stop_timer(&service303_message_task_zmq_ctx, display_stats_timer_id);
   destroy_task_context(&service303_message_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_SERVICE303 terminated\n");
   pthread_exit(NULL);
+}
+
+static int handle_display_timer(zloop_t* loop, int id, void* arg) {
+  service303_statistics_display();
+  return 0;
+}
+
+static void start_display_stats_timer(size_t stats_display_timer_sec) {
+  display_stats_timer_id = start_timer(
+      &service303_message_task_zmq_ctx, 1000 * stats_display_timer_sec,
+      TIMER_REPEAT_FOREVER, handle_display_timer, NULL);
 }

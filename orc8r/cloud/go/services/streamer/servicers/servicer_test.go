@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	context2 "context"
 	"errors"
 	"testing"
 
@@ -33,7 +34,7 @@ type mockStreamProvider struct {
 	retErr error
 }
 
-func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context2.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	return m.retVal, m.retErr
 }
 

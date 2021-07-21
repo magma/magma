@@ -58,7 +58,7 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := indexImpl(req.NetworkId, states)
+	stErrs, err := indexImpl(ctx, req.NetworkId, states)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +77,12 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 	return nil, status.Errorf(codes.InvalidArgument, "unsupported from/to for CompleteReindex: %v to %v", req.FromVersion, req.ToVersion)
 }
 
-func indexImpl(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setEnodebState(networkID, states)
+func indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	return setEnodebState(ctx, networkID, states)
 }
 
 // setEnodebState stores EnodebState with reporterID as an additional PK
-func setEnodebState(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+func setEnodebState(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
 	stateErrors := state_types.StateErrors{}
 	for id, st := range states {
 		// Set time reported before storing
@@ -102,7 +102,7 @@ func setEnodebState(networkID string, states state_types.StatesByID) (state_type
 			stateErrors[id] = errors.Wrap(err, "error loading gatewayID")
 			continue
 		}
-		err = lte_api.SetEnodebState(networkID, gwEnt.Key, id.DeviceID, serializedState)
+		err = lte_api.SetEnodebState(ctx, networkID, gwEnt.Key, id.DeviceID, serializedState)
 		if err != nil {
 			stateErrors[id] = errors.Wrap(err, "error setting enodeb state")
 			continue

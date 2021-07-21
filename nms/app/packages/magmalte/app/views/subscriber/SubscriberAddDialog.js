@@ -590,6 +590,14 @@ function AddSubscriberDetails(props: DialogProps) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         subscriberErrors +=
           'error saving ' + subscriber.imsi + ' : ' + errMsg + '\n';
+        //report saved errors if we reach end of loop without calling bulkadd.
+        if (i == subscribers.length - 1) {
+          setError(subscriberErrors);
+          enqueueSnackbar('Saving subscribers to the api failed: ', {
+            variant: 'error',
+          });
+          return;
+        }
       }
     }
     enqueueSnackbar(

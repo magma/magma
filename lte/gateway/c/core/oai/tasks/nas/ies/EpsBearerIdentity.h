@@ -25,15 +25,4 @@
 
 typedef ebi_t EpsBearerIdentity;
 
-int encode_eps_bearer_identity(
-    EpsBearerIdentity* epsbeareridentity, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
-
-void dump_eps_bearer_identity_xml(
-    EpsBearerIdentity* epsbeareridentity, uint8_t iei);
-
-int decode_eps_bearer_identity(
-    EpsBearerIdentity* epsbeareridentity, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
-
 #endif /* EPS BEARER IDENTITY_H_ */

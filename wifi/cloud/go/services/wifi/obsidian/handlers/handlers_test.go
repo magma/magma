@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -30,14 +31,12 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/wifi/cloud/go/serdes"
 	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
-
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
-
 	models2 "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
 
 	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestListNetworks(t *testing.T) {
@@ -1044,7 +1043,7 @@ func TestDeleteGateway(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	_, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.EqualError(t, err, "Not found")
 
 	expectedEnts := configurator.NetworkEntities{
@@ -1386,7 +1385,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 
 	// But the HardwareID of the physical device with id "hw1" should have updated
 	expectedDevice := &models.GatewayDevice{HardwareID: "hw2", Key: &models.ChallengeKey{KeyType: "ECHO"}}
-	actualDevice, err := device.GetDevice(nID, orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
+	actualDevice, err := device.GetDevice(context.Background(), nID, orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedDevice, actualDevice)
 
@@ -2227,7 +2226,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 // n1 is a wifi network, n2 is not
 func seedNetworks(t *testing.T) {
 	gatewayRecord := &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}
-	err := device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
+	err := device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateNetworks(

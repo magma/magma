@@ -79,7 +79,7 @@ message Regional_subscription {
 
 // ue_mm_context_t
 message UeContext {
-  string msisdn = 1;
+  bytes msisdn = 1;
   uint32 rel_cause = 2; //enum s1cause
   uint32 mm_state = 3; // mm_state_t
   uint32 ecm_state = 4; // ecm_state_t
@@ -158,7 +158,7 @@ message MmeUeContext {
 // mme_app_desc_t
 message MmeNasState {
   MmeUeContext mme_ue_contexts = 1; // mme_ue_context_t
-  uint32 nb_enb_connected = 2;
+  uint32 nb_enb_connected = 2 [deprecated=true];
   uint32 nb_ue_attached = 3;
   uint32 nb_ue_connected = 4;
   uint32 nb_default_eps_bearers = 5;

@@ -244,18 +244,19 @@ void mme_config_init(mme_config_t* config) {
 
   pthread_rwlock_init(&config->rw_lock, NULL);
 
-  config->config_file                    = NULL;
-  config->max_enbs                       = 2;
-  config->max_ues                        = 2;
-  config->unauthenticated_imsi_supported = 0;
-  config->relative_capacity              = RELATIVE_CAPACITY;
-  config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
-  config->enable_congestion_control      = true;
-  config->s1ap_zmq_th                    = LONG_MAX;
-  config->mme_app_zmq_congest_th         = LONG_MAX;
-  config->mme_app_zmq_auth_th            = LONG_MAX;
-  config->mme_app_zmq_ident_th           = LONG_MAX;
-  config->mme_app_zmq_smc_th             = LONG_MAX;
+  config->config_file                               = NULL;
+  config->max_enbs                                  = 2;
+  config->max_ues                                   = 2;
+  config->unauthenticated_imsi_supported            = 0;
+  config->relative_capacity                         = RELATIVE_CAPACITY;
+  config->stats_timer_sec                           = 60;
+  config->service303_config.stats_display_timer_sec = 60;
+  config->enable_congestion_control                 = true;
+  config->s1ap_zmq_th                               = LONG_MAX;
+  config->mme_app_zmq_congest_th                    = LONG_MAX;
+  config->mme_app_zmq_auth_th                       = LONG_MAX;
+  config->mme_app_zmq_ident_th                      = LONG_MAX;
+  config->mme_app_zmq_smc_th                        = LONG_MAX;
 
   log_config_init(&config->log_config);
   eps_network_feature_config_init(&config->eps_network_feature_support);
@@ -523,8 +524,9 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     }
 
     if ((config_setting_lookup_int(
-            setting_mme, MME_CONFIG_STRING_STATISTIC_TIMER, &aint))) {
-      config_pP->mme_statistic_timer = (uint32_t) aint;
+            setting_mme, MME_CONFIG_STRING_STATS_TIMER, &aint))) {
+      config_pP->stats_timer_sec                           = (uint32_t) aint;
+      config_pP->service303_config.stats_display_timer_sec = (uint32_t) aint;
     }
 
     if ((config_setting_lookup_string(
@@ -1170,8 +1172,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         setting_mme, MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP);
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP \n");
     if (setting != NULL) {
-      const char* sac_str = NULL;
-      num                 = config_setting_length(setting);
+      num = config_setting_length(setting);
       OAILOG_INFO(
           LOG_MME_APP, "Number of SRVC_AREA_CODE_2_TACS configured =%d\n", num);
       if (num > 0) {
@@ -1671,7 +1672,7 @@ void mme_config_display(mme_config_t* config_pP) {
       config_pP->relative_capacity);
   OAILOG_INFO(
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
-      config_pP->mme_statistic_timer);
+      config_pP->stats_timer_sec);
   OAILOG_INFO(
       LOG_CONFIG, "- Congestion control enabled ........................: %s\n",
       config_pP->enable_congestion_control ? "true" : "false");

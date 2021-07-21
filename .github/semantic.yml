@@ -1,5 +1,4 @@
-# This config is for https://github.com/zeke/semantic-pull-requests
-#
+# Ref: https://github.com/zeke/semantic-pull-requests#configuration
 
 # Always validate the PR title, and ignore the commits
 titleOnly: true
@@ -13,48 +12,51 @@ titleAndCommits: false
 # Require at least one commit to be valid
 # this is only relevant when using commitsOnly: true or titleAndCommits: true,
 # which validate all commits by default
-anyCommit: true
+anyCommit: false
 
 scopes:
-  - orc8r
-  - nms
-  - feg
+  - aaa_server
   - agw
-  - mme
-  - pipelined
-  - sessiond
-  - mobilityd
-  - subscriberdb
-  - policydb
-  - enodebd
-  - health
-  - monitord
-  - redirectd
-  - smsd
-  - envoy_controller
-  - ctraced
-  - directoryd
-  - eventd
-  - magmad
-  - state
+  - amf
   - ci
+  - cloud
+  - control_proxy
+  - csfb
+  - ctraced
   - cwg
+  - directoryd
+  - eap
+  - eap_aka
+  - eap_sim
+  - enodebd
+  - envoy_controller
+  - eventd
+  - feg
+  - feg_hello
+  - health
+  - magmad
+  - mme
+  - mobilityd
+  - monitord
+  - nms
+  - orc8r
+  - pipelined
+  - policydb
+  - radiusd
+  - redirectd
+  - redis
+  - s6a_proxy
+  - s8_proxy
+  - session_proxy
+  - sessiond
+  - smf
+  - smsd
+  - state
+  - subscriberdb
+  - swx_proxy
+  - td-agent-bit
+  - upf
   - xwf
-
-# By default types specified in commitizen/conventional-commit-types is used.
-# See: https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json
-# You can override the valid types
-types:
-  - feat
-  - fix
-  - docs
-  - style
-  - refactor
-  - perf
-  - test
-  - build
-  - chore
-  - revert
 
 # Allow use of Merge commits (eg on github: "Merge branch 'master' into feature/ride-unicorns")
 # this is only relevant when using commitsOnly: true (or titleAndCommits: true)

@@ -20,4 +20,7 @@ import (
 // Config represents the configuration provided to lte service
 type Config struct {
 	Analytics calculations.AnalyticsConfig `yaml:"analytics"`
+	// DefaultSubscriberdbSyncInterval is the the default interval in
+	// seconds between gateway requests to sync its subscriberdb with cloud.
+	DefaultSubscriberdbSyncInterval uint32 `yaml:"defaultSubscriberdbSyncInterval"`
 }

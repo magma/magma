@@ -15,6 +15,10 @@ provider "aws" {
   region  = var.region
 }
 
+provider "random" {
+  version = "~> 2.1"
+}
+
 data "aws_eks_cluster" "cluster" {
   name = module.eks.cluster_id
 }

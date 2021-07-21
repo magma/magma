@@ -1,0 +1,102 @@
+---
+name: cwf-operator
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+    paths:
+      - 'cwf/**'
+      - 'k8s/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'cwf/**'
+      - 'k8s/**'
+jobs:
+  cwf-operator-precommit:
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on  # yamllint disable-line rule:truthy
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.7'
+      - name: Run golang_before_install.sh script
+        run: ./circleci/golang_before_install.sh
+      - name: Run go mod download with retry
+        uses: nick-invision/retry@v2
+        with:
+          command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
+          timeout_minutes: 10
+      - name: Run precommit
+        run: |
+            cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
+            make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cwf-operator-precommit update failed"
+          SLACK_USERNAME: "Cwf workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+  cwf-operator-build:
+    needs: cwf-operator-precommit
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run docker compose build
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+             cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
+             DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+      - name: Tag and push to Docker Registry
+        if: github.ref == 'refs/heads/master'
+        # yamllint disable rule:line-length
+        env:
+          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+        run: |
+            ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+      - name: Tag and push to Jfrog Registry
+        if: github.ref == 'refs/heads/master'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+        run: |
+            ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      # yamllint enable
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cwf-operator-build update failed"
+          SLACK_USERNAME: "Cwf workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+      # Notify ci channel when push succeeds
+      - name: Notify success to slack
+        if: success() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*Cwf Artifact Has Been Published*"
+          SLACK_USERNAME: "Cwf workflow"
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"

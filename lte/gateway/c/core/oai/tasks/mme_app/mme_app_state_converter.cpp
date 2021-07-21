@@ -520,7 +520,7 @@ void MmeNasStateConverter::regional_subscription_to_proto(
 
 void MmeNasStateConverter::proto_to_regional_subscription(
     const oai::UeContext& ue_context_proto, ue_mm_context_t* state_ue_context) {
-  for (int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
+  for (unsigned int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
     memcpy(
         state_ue_context->reg_sub[itr].zone_code,
         ue_context_proto.reg_sub(itr).zone_code().c_str(),
@@ -533,11 +533,9 @@ void MmeNasStateConverter::ue_context_to_proto(
     const ue_mm_context_t* state_ue_context, oai::UeContext* ue_context_proto) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_proto->Clear();
-
-  char* msisdn_buffer = bstr2cstr(state_ue_context->msisdn, (char) '?');
-  if (msisdn_buffer) {
-    ue_context_proto->set_msisdn(msisdn_buffer);
-    bcstrfree(msisdn_buffer);
+  if (state_ue_context->msisdn && state_ue_context->msisdn->slen) {
+    BSTRING_TO_STRING(
+        state_ue_context->msisdn, ue_context_proto->mutable_msisdn());
   } else {
     ue_context_proto->set_msisdn("");
   }
@@ -755,7 +753,6 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
 void MmeNasStateConverter::state_to_proto(
     const mme_app_desc_t* mme_nas_state_p, oai::MmeNasState* state_proto) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  state_proto->set_nb_enb_connected(mme_nas_state_p->nb_enb_connected);
   state_proto->set_nb_ue_attached(mme_nas_state_p->nb_ue_attached);
   state_proto->set_nb_ue_connected(mme_nas_state_p->nb_ue_connected);
   state_proto->set_nb_default_eps_bearers(
@@ -764,10 +761,6 @@ void MmeNasStateConverter::state_to_proto(
   state_proto->set_nb_ue_managed(mme_nas_state_p->nb_ue_managed);
   state_proto->set_nb_ue_idle(mme_nas_state_p->nb_ue_idle);
   state_proto->set_nb_bearers_managed(mme_nas_state_p->nb_bearers_managed);
-  state_proto->set_nb_ue_since_last_stat(
-      mme_nas_state_p->nb_ue_since_last_stat);
-  state_proto->set_nb_bearers_since_last_stat(
-      mme_nas_state_p->nb_bearers_since_last_stat);
   state_proto->set_mme_app_ue_s1ap_id_generator(
       mme_nas_state_p->mme_app_ue_s1ap_id_generator);
 
@@ -795,18 +788,14 @@ void MmeNasStateConverter::state_to_proto(
 void MmeNasStateConverter::proto_to_state(
     const oai::MmeNasState& state_proto, mme_app_desc_t* mme_nas_state_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_nas_state_p->nb_enb_connected = state_proto.nb_enb_connected();
-  mme_nas_state_p->nb_ue_attached   = state_proto.nb_ue_attached();
-  mme_nas_state_p->nb_ue_connected  = state_proto.nb_ue_connected();
+  mme_nas_state_p->nb_ue_attached  = state_proto.nb_ue_attached();
+  mme_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   mme_nas_state_p->nb_default_eps_bearers =
       state_proto.nb_default_eps_bearers();
-  mme_nas_state_p->nb_s1u_bearers        = state_proto.nb_s1u_bearers();
-  mme_nas_state_p->nb_ue_managed         = state_proto.nb_ue_managed();
-  mme_nas_state_p->nb_ue_idle            = state_proto.nb_ue_idle();
-  mme_nas_state_p->nb_bearers_managed    = state_proto.nb_bearers_managed();
-  mme_nas_state_p->nb_ue_since_last_stat = state_proto.nb_ue_since_last_stat();
-  mme_nas_state_p->nb_bearers_since_last_stat =
-      state_proto.nb_bearers_since_last_stat();
+  mme_nas_state_p->nb_s1u_bearers     = state_proto.nb_s1u_bearers();
+  mme_nas_state_p->nb_ue_managed      = state_proto.nb_ue_managed();
+  mme_nas_state_p->nb_ue_idle         = state_proto.nb_ue_idle();
+  mme_nas_state_p->nb_bearers_managed = state_proto.nb_bearers_managed();
   mme_nas_state_p->mme_app_ue_s1ap_id_generator =
       state_proto.mme_app_ue_s1ap_id_generator();
   if (mme_nas_state_p->mme_app_ue_s1ap_id_generator == 0) {  // uninitialized

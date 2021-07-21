@@ -22,7 +22,7 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
+	"magma/orc8r/cloud/go/service/middleware/unary/test"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -99,7 +99,7 @@ func TestIdentityInjector(t *testing.T) {
 	conn, err := registry.GetClientConnection(context.Background(), addr)
 	assert.NoError(t, err)
 	stateClient := protos.NewStateServiceClient(conn)
-	csn := test_utils.StartMockGwAccessControl(t, []string{testAgHwID})
+	csn := test.StartMockGwAccessControl(t, []string{testAgHwID})
 	ctx := metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-serial", csn[0]))

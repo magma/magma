@@ -5,43 +5,54 @@ hide_title: true
 ---
 
 # Continuous Integration Checks
+When a PR is submitted to the Magma repo, a suite of Continuous Integration tests and analysis are executed. Checks marked as required must pass for a PR to merge.
 
-When submitting PRs to the Magma repo, a suite of Continuous Integration tests and analysis are executed (some dependent upon the files modified in the PR).  This document attempts to give high level explanations of the purpose of each check, contacts for questions regarding each test, and expectations around CI flow success.
+This document attempts to give high level explanations of the purpose of each check, contacts for questions regarding each test, and expectations around CI flow success.
 
-| Check Name | Purpose | Point of Contact |
-|-|-|-|
-| CodeQL / Analyze (go) | Security analysis for all Golang |  |
-| DCO check / DCO Check | Ensure all Pull Requests are Signed | N/A |
-| Shellcheck by Reviewdog | Annotate Pull Requests with shell script static analysis | electronjoe (GH), Scott Moeller (slack) |
-| CodeQL / Analyze (javascript) | Security analysis for all Javascript |  |
-| CodeQL / Analyze (python) | Security analysis for all Python |  |
-| GCC Warnings & Errors / gen_build_container | Passive Check generates container for GCC builds |  |
-| GCC Warnings & Errors / build_oai | Annotate Pull Requests with any GCC Warnings or Errors for MME target | electronjoe (GH), Scott Moeller (slack) |
-| GCC Warnings & Errors / build_session_manager | Annotate Pull Requests with any GCC Warnings or Errors for session_manager target | electronjoe (GH), Scott Moeller (slack) |
-| Jenkins | ? |  |
-| Jenkins CWAG Libvirt | CWAG Docker Compose based integration test? |  themarwhal (GH), Marie Bremner (slack) |
-| Jenkins LTE | A lighter weight and low flake subset of LTE tests including...? |  |
-| Code scanning results / CodeQL | How does this differ from the other CodeQL / Analyzer stages? |  |
-| Magma CI autolabel | ? |  |
-| Magma-OAI-Jenkins | OAI's MME integration test run on OAI Jenkins | rdefosse (GH), Raphael Defosseux (slack) |
-| ci/circleci: c-cpp-codecov | AGW c/c++ unit tests and push coverage to codecov.io | electronjoe (GH), Scott Moeller (slack) |
-| ci/circleci: cloud-test | ? |  |
-| ci/circleci: cloud_lint | ? |  |
-| ci/circleci: cwag-precommit | ? |  |
-| ci/circleci: cwf-operator-build | ? |  |
-| ci/circleci: cwf-operator-precommit | ? |  |
-| ci/circleci: eslint | ? |  |
-| ci/circleci: feg-build | Builds Docker images for FEG | themarwhal (GH), Marie Bremner (slack); mpgermano(GH), Michael Germano (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), Evgeniy Makeev (slack) |
-| ci/circleci: feg-lint | FEG Go linter and code coverage | themarwhal (GH), Marie Bremner (slack); mpgermano(GH), Michael Germano (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), Evgeniy Makeev (slack) |
-| ci/circleci: feg-precommit | Runs FEG unittest | themarwhal (GH), Marie Bremner (slack); mpgermano(GH), Michael Germano (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), Evgeniy Makeev (slack) |
-| ci/circleci: insync-checkin | ? |  |
-| ci/circleci: lte-test | ? Is this dupe with Jenkins LTE?... |  |
-| ci/circleci: mme_test | Validate that MME related unit tests build and pass | themarwhal (GH), Marie Bremner (slack) |
-| ci/circleci: nms-build | Validate that the NMS builds | karthiksubravet (GH), karthik subraveti (slack); andreilee (GH), Andre Lee (slack) |
-| ci/circleci: nms-e2e-test | ? | karthiksubravet (GH), karthik subraveti (slack); andreilee (GH), Andre Lee (slack) |
-| ci/circleci: nms-flow-test | ? | karthiksubravet (GH), karthik subraveti (slack); andreilee (GH), Andre Lee (slack) |
-| ci/circleci: nms-yarn-test | ? | karthiksubravet (GH), karthik subraveti (slack); andreilee (GH), Andre Lee (slack) |
-| ci/circleci: orc8r-build | Validate that the orc8r builds | |
-| ci/circleci: orc8r-gateway-test | ? | |
-| ci/circleci: session_manager_test | Validate that the session_manager related unit tests build and pass | themarwhal (GH), Marie Bremner (slack) |
-| netlify/* | ? | |
+## How to reach out to a check owner
+Below are some resources for finding who to contact:
+* [GitHub-to-Slack ID mappings are available](contribute_id_mappings)
+* [List of Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain/members)
+* [List of `approvers-*` teams and their members](https://github.com/orgs/magma/teams/?query=approvers)
+
+## Blocking Checks
+Merge blocking CI checks are listed below.
+
+| Check Name             | Purpose                                       | Owner                  | Remediation Steps                                                            |
+| ---------------------- | --------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------- |
+| DCO Check              | Check PR is signed off                        | any maintainer         | [PR guidelines](contribute_workflow#guidelines)                              |
+| Semantic Pull Request  | PR format checker                             | any maintainer         | [PR guidelines](contribute_workflow#guidelines)                              |
+| mergefreeze            | Stop merges during a code freeze              | themarwhal             | N/A                                                                          |
+| cloud-test             | Run Orc8r unit tests                          | approvers-orc8r        | [Orc8r tests](../orc8r/dev_testing)                                          |
+| cloud_lint             | Check Orc8r changes satisfy golint            | approvers-orc8r        | [Orc8r tests](../orc8r/dev_testing)                                          |
+| cwag-precommit         | Run CWAG unit tests                           | approvers-cwf          | TODO                                                                         |
+| cwf-operator-build     | Validate CWF deployer builds                  | approvers-cwf          | TODO                                                                         |
+| cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
+| eslint                 | Ensure NMS changes satisfy eslint             | approvers-nms          | TODO                                                                         |
+| feg-precommit          | Run FeG unit tests                            | approvers-feg          | [FeG tests](../feg/dev_testing)                                                                         |
+| insync-checkin         | Ensure generated files are committed          | any maintainer         | [Orc8r tests](../orc8r/dev_testing)                                                                         |
+| lte-test               | Run AGW Python unit tests                     | approvers-agw          | [AGW tests](../lte/dev_unit_testing)                                         |
+| feg-build              | Validate FeG builds                           | approvers-feg          | [FeG build](../feg/deploy_build)                                             |
+| nms-build              | Validate NMS builds                           | approvers-nms          | TODO                                                                         |
+| nms-flow-test          | Validate NMS changes satisfy flow             | approvers-nms          | TODO                                                                         |
+| nms-yarn-test          | Run NMS unit tests                            | approvers-nms          | TODO                                                                         |
+| nms-e2e-test           | Run NMS end to end tests                      | approvers-nms          | TODO                                                                         |
+| orc8r-build            | Validate Orc8r builds                         | approvers-orc8r        | [Orc8r build](../basics/quick_start_guide#terminal-tab-2-build-orchestrator) |
+| orc8r-gateway-test     | Run Golang unit tests for orc8r/gateway       | approvers-agw          | TODO                                                                         |
+| mme_test               | Run MME and sctpd unit tests                  | approvers-agw-mme      | [AGW tests](../lte/dev_unit_testing)                                         |
+| session_manager_test   | Run SessionD unit tests                       | approvers-agw-sessiond | [AGW tests](../lte/dev_unit_testing)                                         |
+| Magma-OAI-Jenkins      | OAI's MME integration test run on OAI Jenkins | rdefosse               | N/A                                                                          |
+
+## Non-blocking Checks
+The CI checks listed below do not block merging on failure.
+
+| Check Name                                    |  Purpose                                                         |  Point of Contact  |  Remediation Steps |
+| --------------------------------------------- | ---------------------------------------------------------------- | ------------------ | ------------------ |
+| Shellcheck by Reviewdog                       | Annotate PRs with shell script static analysis                   | electronjoe        | N/A                |
+| GCC Warnings & Errors / gen_build_container   | Passive Check generates container for GCC builds                 | electronjoe        | N/A                |
+| GCC Warnings & Errors / build_oai             | Annotate PRs with any GCC Warnings or Errors for MME             | electronjoe        | N/A                |
+| GCC Warnings & Errors / build_session_manager | Annotate PRs with any GCC Warnings or Errors for session_manager | electronjoe        | N/A                |
+| Jenkins CWAG Libvirt                          | Run CWF integration tests                                        | themarwhal mattymo | TODO               |
+| ci/circleci: c-cpp-codecov                    | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                |
+| ci/circleci: cwag-build                       | Validate CWAG builds                                             | approvers-cwf      | TODO               |
+| ci/circleci: feg-lint                         | Check FeG changes satisfies Go linter                            | approvers-feg      | TODO               |

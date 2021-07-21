@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the

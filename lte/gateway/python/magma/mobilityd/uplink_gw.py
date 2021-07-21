@@ -50,7 +50,7 @@ class UplinkGatewayInfo:
         """
         self._backing_map = gw_info_map
         self._read_default_gw_timer = None
-        self._read_default_gw_interval_seconds = 120
+        self._read_default_gw_interval_seconds = 20
 
     def get_gw_ip(self, vlan_id: Optional[str] = "") -> Optional[str]:
         """
@@ -67,24 +67,26 @@ class UplinkGatewayInfo:
     def read_default_gw(self):
         self._do_read_default_gw()
 
-        if self._read_default_gw_timer is not None:
-            return
-        self._read_default_gw_timer = threading.Timer(
-            self._read_default_gw_interval_seconds,
-            self._do_read_default_gw,
-        )
-        self._read_default_gw_timer.start()
-
     def _do_read_default_gw(self):
         gws = netifaces.gateways()
         logging.info("Using GW info: %s", gws)
         if gws is not None:
-            default_gw = gws['default']
+            default_gw = gws.get('default', None)
             gw_ip_addr = None
             if default_gw is not None:
                 gw_ip_addr = default_gw.get(netifaces.AF_INET, None)
             if gw_ip_addr is not None:
                 self.update_ip(gw_ip_addr[0])
+                logging.info("GW probe: timer stopped")
+                self._read_default_gw_timer = None
+                return
+
+        self._read_default_gw_timer = threading.Timer(
+            self._read_default_gw_interval_seconds,
+            self._do_read_default_gw,
+        )
+        self._read_default_gw_timer.start()
+        logging.info("GW probe: timer started")
 
     def update_ip(self, ip: Optional[str], vlan_id=None):
         """

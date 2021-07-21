@@ -630,9 +630,9 @@
         },
         "eventlet": {
           "root": true,
-          "source": "apt",
+          "source": "pypi",
           "sysdep": "python3-eventlet",
-          "version": "0.26.1"
+          "version": "0.30.2"
         },
         "fire": {
           "root": true,
@@ -736,6 +736,12 @@
           "sysdep": "python3-jsonpickle",
           "version": "1.2"
         },
+        "jsonpointer": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-json-pointer",
+          "version": "2.0"
+        },
         "jsonref": {
           "root": false,
           "source": "apt",
@@ -756,9 +762,9 @@
         },
         "lxml": {
           "root": true,
-          "source": "apt",
+          "source": "pypi",
           "sysdep": "python3-lxml",
-          "version": "4.6.2"
+          "version": "4.6.3"
         },
         "mccabe": {
           "root": false,
@@ -770,7 +776,7 @@
           "root": false,
           "source": "apt",
           "sysdep": "python3-msgpack",
-          "version": "0.6.2"
+          "version": "1.0.0"
         },
         "multidict": {
           "root": false,
@@ -876,7 +882,7 @@
         },
         "pyyaml": {
           "root": true,
-          "source": "apt",
+          "source": "pypi",
           "sysdep": "python3-yaml",
           "version": "5.3.1"
         },
@@ -958,6 +964,12 @@
           "sysdep": "python3-swagger-spec-validator",
           "version": "2.7.3"
         },
+        "systemd-python": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-systemd-python",
+          "version": "234"
+        },
         "toml": {
           "root": false,
           "source": "apt",
@@ -1029,6 +1041,9 @@
         "cryptography": {
           "version": "2.8"
         },
+        "eventlet": {
+          "version": "0.30.2"
+        },
         "fire": {
           "version": "0.2.1"
         },
@@ -1050,8 +1065,14 @@
         "jsonpickle": {
           "version": "1.2"
         },
+        "jsonpointer": {
+          "version": "2.0"
+        },
         "jsonschema": {
           "version": "3.1.0"
+        },
+        "lxml": {
+          "version": "4.6.3"
         },
         "netifaces": {
           "version": "0.10.4"

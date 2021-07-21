@@ -155,6 +155,7 @@ func TestStartSessionGyFail(t *testing.T) {
 			SessionID:      request.SessionID,
 			RequestNumber:  request.RequestNumber,
 			RuleInstallAVP: ruleInstalls,
+			Online:         1,
 		}
 	}).Once()
 
@@ -277,6 +278,7 @@ func standardUsageTest(
 			SessionID:      request.SessionID,
 			RequestNumber:  request.RequestNumber,
 			RuleInstallAVP: ruleInstalls,
+			Online:         1,
 		}
 	}).Once()
 
@@ -454,6 +456,7 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 			SessionID:      request.SessionID,
 			RequestNumber:  request.RequestNumber,
 			RuleInstallAVP: ruleInstalls,
+			Online:         1,
 		}
 	}).Once()
 	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
@@ -1717,6 +1720,7 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 			SessionID:      request.SessionID,
 			RequestNumber:  request.RequestNumber,
 			RuleInstallAVP: ruleInstalls,
+			Online:         1,
 		}
 	}).Once()
 

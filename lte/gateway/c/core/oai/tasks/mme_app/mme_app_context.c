@@ -1669,7 +1669,7 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
     OAILOG_ERROR(
         LOG_MME_APP,
         " UE CONTEXT MODIFICATION FAILURE RECEIVED, Failed to find UE context"
-        "for mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+        "for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         s1ap_ue_context_mod_fail->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1705,7 +1705,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
     OAILOG_ERROR(
         LOG_MME_APP,
         " UE CONTEXT MODIFICATION RESPONSE RECEIVED, Failed to find UE context"
-        "for mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+        "for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
         s1ap_ue_context_mod_resp->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1839,12 +1839,23 @@ void mme_app_handle_s1ap_ue_context_release_complete(
       update_mme_app_stats_connected_ue_sub();
       OAILOG_FUNC_OUT(LOG_MME_APP);
     } else {
+      // delete gtpv2c tunnel on last PDN
+      bool no_delete_gtpv2c_tunnel = true;
+      pdn_cid_t last_cid_to_delete = 0;
+      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+        if (ue_context_p->pdn_contexts[i]) {
+          // save the last connection id to be deleted
+          last_cid_to_delete = i;
+        }
+      }
       // Send a DELETE_SESSION_REQUEST message to the SGW
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
         if (ue_context_p->pdn_contexts[i]) {
           // Send a DELETE_SESSION_REQUEST message to the SGW
+          no_delete_gtpv2c_tunnel = (last_cid_to_delete == i) ? false : true;
           mme_app_send_delete_session_request(
-              ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i);
+              ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i,
+              no_delete_gtpv2c_tunnel);
         }
       }
       // Move the UE to Idle state

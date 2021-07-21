@@ -93,7 +93,7 @@ func TestNHRouting(t *testing.T) {
 	testHealthServiser := setupNeutralHostNetworks(t)
 
 	// test # 1: Verify, relay finds the right serving FeG for IMSI's PLMN ID
-	foundFegHwId, err := gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi)
+	foundFegHwId, err := gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi)
 	assert.NoError(t, err)
 	assert.Equal(t, fegHwId, foundFegHwId)
 
@@ -115,7 +115,7 @@ func TestNHRouting(t *testing.T) {
 
 	// Add Serving FeG Host to directoryd
 	directoryd_test_init.StartTestService(t)
-	directoryd.MapHWIDToHostname(fegHwId, s6aHost)
+	directoryd.MapHWIDToHostname(context.Background(), fegHwId, s6aHost)
 	gateway_registry.SetPort(s6aAddr.Port)
 
 	// Start S6a relay Service
@@ -211,15 +211,11 @@ func TestNHRouting(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		nhNetworkID, orc8r.AccessGatewayRecordType, nhFegHwId,
-		&models.GatewayDevice{HardwareID: nhFegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), nhNetworkID, orc8r.AccessGatewayRecordType, nhFegHwId, &models.GatewayDevice{HardwareID: nhFegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	// Map NH FeG to already running test S6a proxy address
-	directoryd.MapHWIDToHostname(nhFegHwId, "localhost")
+	directoryd.MapHWIDToHostname(context.Background(), nhFegHwId, "localhost")
 
 	// Update Serving FeG Health status
 	healthctx := protos.NewGatewayIdentity(nhFegHwId, nhNetworkID, nhFegId).NewContextWithIdentity(context.Background())
@@ -228,11 +224,11 @@ func TestNHRouting(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that NH FeG will be used as "catch all" for all but nhPlmnId
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, "") // no IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, "") // no IMSI
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
 
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi) // NH IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi) // NH IMSI
 	assert.NoError(t, err)
 	assert.Equal(t, fegHwId, foundFegHwId)
 
@@ -276,13 +272,13 @@ func TestNHRouting(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify, relay now finds the NH local FeG for any IMSI
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi)
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi)
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nonNhImsi)
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nonNhImsi)
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, "") // no IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, "") // no IMSI
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
 

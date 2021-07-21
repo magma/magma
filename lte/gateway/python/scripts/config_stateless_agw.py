@@ -30,7 +30,7 @@ from magma.configuration.service_configs import (
 )
 
 return_codes = Enum(
-    "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0
+    "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0,
 )
 STATELESS_SERVICE_CONFIGS = [
     ("mme", "use_stateless", True),
@@ -161,8 +161,15 @@ def disable_stateless_agw():
 
 
 def ovs_reset_bridges():
+    service_config = load_service_config('pipelined')
+    sgi_interface = service_config['nat_iface']
+    if_up_cmd = "ip link set dev %s up" % sgi_interface
+    subprocess.call(if_up_cmd.split())
+    print("ip up cmd %s", if_up_cmd)
+
     subprocess.call(
-        "ovs-vsctl --all destroy Flow_Sample_Collector_Set".split())
+        "ovs-vsctl --all destroy Flow_Sample_Collector_Set".split(),
+    )
     subprocess.call("ifdown uplink_br0".split())
     subprocess.call("ifdown gtp_br0".split())
     subprocess.call("ifdown patch-up".split())
@@ -223,7 +230,7 @@ STATELESS_FUNC_DICT = {
     "sctpd_post": sctpd_post_start,
     "clear_redis": clear_redis_and_restart,
     "flushall_redis": flushall_redis_and_restart,
-    "reset_sctpd_for_stateful": reset_sctpd_for_stateful
+    "reset_sctpd_for_stateful": reset_sctpd_for_stateful,
 }
 
 

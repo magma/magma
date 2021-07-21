@@ -37,14 +37,14 @@ require (
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/docker/docker v1.13.1
 	github.com/fiorix/go-diameter/v4 v4.0.4
-	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/swag v0.19.15
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.10.0
-	github.com/shirou/gopsutil v2.20.3+incompatible
+	github.com/prometheus/client_golang v1.11.0
+	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	github.com/stretchr/testify v1.6.1
 	github.com/vishvananda/netlink v1.1.0

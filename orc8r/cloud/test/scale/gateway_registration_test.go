@@ -10,21 +10,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package scale_test
+package scale
 
 import (
 	"flag"
-	oclient "github.com/go-openapi/runtime/client"
-	"github.com/stretchr/testify/assert"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/lte_gateways"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/lte_networks"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/client/upgrades"
-	"magma/orc8r/cloud/test/testlib"
 	"net/http"
 	"testing"
-	//"magma/orc8r/cloud/go/obsidian/swagger/v1/models"
-	//"fmt"
+
+	"magma/orc8r/cloud/api/v1/go/client"
+	"magma/orc8r/cloud/api/v1/go/client/lte_gateways"
+	"magma/orc8r/cloud/api/v1/go/client/lte_networks"
+	"magma/orc8r/cloud/api/v1/go/client/upgrades"
+	"magma/orc8r/cloud/test/testlib"
+
+	oclient "github.com/go-openapi/runtime/client"
+	"github.com/stretchr/testify/assert"
+	// "magma/orc8r/api/v1/go/models"
+	// "fmt"
 )
 
 func TestSanity(t *testing.T) {

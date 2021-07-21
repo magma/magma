@@ -33,9 +33,11 @@ class InoutTest(BaseMagmaTest.MagmaControllerTest):
         self._port_no = {}
         for iface_name, ip_address in self.TEST_IPS.items():
             port = self._topo_builder.bind(iface_name, bridge)
-            self._topo_builder.create_interface(iface_name,
-                                                ip_address,
-                                                self.TEST_NETMASK)
+            self._topo_builder.create_interface(
+                iface_name,
+                ip_address,
+                self.TEST_NETMASK,
+            )
             self._port_no[iface_name] = port.port_no
 
         self.assertFalse(self._topo_builder.invalid_devices())
@@ -62,8 +64,10 @@ class InoutTest(BaseMagmaTest.MagmaControllerTest):
         self._setup_ovs()
         self._wait_for_datapath()
 
-        ret, out, err = util.start_process(["ovs-ofctl", "dump-flows",
-                                           self.TEST_BRIDGE])
+        ret, out, err = util.start_process([
+            "ovs-ofctl", "dump-flows",
+            self.TEST_BRIDGE,
+        ])
         flow_string = str(out)
 
         # check if the flows we expect are loaded
@@ -73,5 +77,3 @@ class InoutTest(BaseMagmaTest.MagmaControllerTest):
 
         expected = "nw_src=%s actions=set_field:0x10->metadata,resubmit(,1)" % in_net
         self.assertTrue(expected in flow_string)
-
-

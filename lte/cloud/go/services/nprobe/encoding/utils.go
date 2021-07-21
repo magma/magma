@@ -16,7 +16,10 @@ package encoding
 import (
 	"encoding/asn1"
 	"encoding/binary"
+	"encoding/hex"
 	"net"
+	"strconv"
+	"strings"
 	"time"
 
 	"magma/lte/cloud/go/services/nprobe"
@@ -35,14 +38,102 @@ func convertUint32ToBytes(v uint32) []byte {
 	return o
 }
 
-// encodeGeneralizedTime parses timestamp and marshals it to
-// a byte sequence
-func encodeGeneralizedTime(timestamp string) ([]byte, error) {
-	ptime, err := time.Parse(time.RFC3339Nano, timestamp)
-	if err != nil {
-		return []byte{}, err
+// encodeAPN encodes APN to a byte sequence as specified in TS TS 29.274
+func encodeAPN(apn string) []byte {
+	encodedAPN := []byte{}
+	if alen := len(apn); alen > 0 {
+		encodedAPN = append(encodedAPN, byte(alen))
+		encodedAPN = append(encodedAPN, []byte(apn)...)
 	}
-	return ptime.MarshalBinary()
+	return encodedAPN
+}
+
+// encodeUserLocation converts user location encodingfrom TS 29.061 to TS 29.274
+func encodeUserLocation(s string) []byte {
+	ulStr := strings.Join(strings.Fields(s), "")
+	userLocation, err := hex.DecodeString(ulStr)
+	if err != nil || len(userLocation) == 0 {
+		return []byte{}
+	}
+
+	encodedUL := []byte{}
+	if userLocation[0] == 0x82 {
+		encodedUL = append(encodedUL, byte(0x18)) // TAI(8)+ECGI(16)
+		encodedUL = append(encodedUL, userLocation[1:]...)
+	}
+	return encodedUL
+}
+
+// encodeIMSI encodes IMSI to a byte sequence as specified in TS 29.274
+func encodeIMSI(s string) []byte {
+	encodedIMSI := []byte{}
+	imsi := strings.TrimPrefix(s, "IMSI")
+	if len(imsi) < 6 || len(imsi) > 16 {
+		return encodedIMSI
+	}
+	for idx := 0; idx+1 < len(imsi); idx += 2 {
+		firstDigit, err := strconv.Atoi(string(imsi[idx]))
+		if err != nil {
+			return []byte{}
+		}
+		secondDigit, err := strconv.Atoi(string(imsi[idx+1]))
+		if err != nil {
+			return []byte{}
+		}
+		encodedIMSI = append(encodedIMSI, byte((secondDigit<<4)+firstDigit))
+	}
+	if len(imsi)%2 == 1 {
+		digit, err := strconv.Atoi(imsi[len(imsi)-1:])
+		if err != nil {
+			return []byte{}
+		}
+		encodedIMSI = append(encodedIMSI, byte(0xF0+digit))
+	}
+	return encodedIMSI
+}
+
+// encodeIMEI encodes IMEI to a byte sequence as specified in TS 29.274
+func encodeIMEI(imei []rune) []byte {
+	iLen := len(imei)
+	if iLen != 15 && iLen != 16 {
+		return []byte{}
+	}
+
+	// Encoding snr and tac
+	encodedIMEI := make([]byte, 8)
+	for idx := 0; idx+1 < len(imei)-2; idx += 2 {
+		firstDigit := int(imei[idx])
+		secondDigit := int(imei[idx+1])
+		i := 3 - idx/2
+		if idx >= 8 {
+			i = 7 - idx/2 + 3
+		}
+		encodedIMEI[i] = byte((firstDigit << 4) + secondDigit)
+	}
+
+	// Encoding spare
+	lastDigit := int(imei[iLen-1])
+	if iLen%2 == 1 {
+		encodedIMEI[7] = byte(0xF0 + lastDigit)
+	} else {
+		encodedIMEI[7] = byte((int(imei[iLen-2]) << 4) + lastDigit)
+	}
+	return encodedIMEI
+}
+
+// encodeUnixTime encodes unix time to a byte sequence
+func encodeUnixTime(timestamp time.Time) []byte {
+	unix := convertUint32ToBytes(uint32(timestamp.Unix()))
+	return append(
+		unix,
+		convertUint32ToBytes(uint32(timestamp.Nanosecond()))...,
+	)
+}
+
+// encodeGeneralizedTime encodes timestamp to a byte sequence as specified in TS 33.108
+func encodeGeneralizedTime(timestamp time.Time) []byte {
+	formatStr := "20060102150405.000"
+	return []byte(timestamp.Format(formatStr))
 }
 
 // decodeRecordType decodes record type (parent structure tag)
@@ -106,10 +197,10 @@ func processEventSpecificData(event *models.Event) EPSSpecificParameters {
 }
 
 // makeTimestamp returns a Timestamp object as defined in the asn1 schema
-func makeTimestamp(timestamp []byte) Timestamp {
+func makeTimestamp(timestamp time.Time) Timestamp {
 	return Timestamp{
 		LocalTime: LocalTimestamp{
-			GeneralizedTime:        timestamp,
+			GeneralizedTime:        encodeGeneralizedTime(timestamp),
 			WinterSummerIndication: IndicationNotAvailable,
 		},
 	}
@@ -133,9 +224,9 @@ func makePdnAddressAllocation(event *models.Event) []byte {
 // makeEPSLocation returns an EPSLocation object as definied in the asn1 schema
 func makeEPSLocation(event *models.Event) EPSLocation {
 	eventData := event.Value.(map[string]interface{})
-	if userLocation, ok := eventData["user_location"]; ok {
+	if v, ok := eventData["user_location"]; ok {
 		return EPSLocation{
-			UserLocationInfo: []byte(userLocation.(string)),
+			UserLocationInfo: encodeUserLocation(v.(string)),
 		}
 	}
 	return EPSLocation{}
@@ -143,21 +234,22 @@ func makeEPSLocation(event *models.Event) EPSLocation {
 
 // makePartyInformation returns a PartyInformation slice as defined in the asn1 schema
 func makePartyInformation(event *models.Event) []PartyInformation {
-	var infoIdentity PartyIdentity
+	partyID := PartyIdentity{}
 	eventData := event.Value.(map[string]interface{})
-	if imsi, ok := eventData["imsi"]; ok {
-		infoIdentity.IMSI = []byte(imsi.(string))
+	if v, ok := eventData["imsi"]; ok {
+		partyID.IMSI = encodeIMSI(v.(string))
 	}
-	if imei, ok := eventData["imei"]; ok {
-		infoIdentity.IMEI = []byte(imei.(string))
+	if v, ok := eventData["imei"]; ok {
+		partyID.IMEI = encodeIMEI([]rune(v.(string)))
 	}
-	if msisdn, ok := eventData["msisdn"]; ok {
-		infoIdentity.MSISDN = []byte(msisdn.(string))
+	if v, ok := eventData["msisdn"]; ok {
+		msisdn := v.(string)
+		partyID.MSISDN = []byte(msisdn)
 	}
 	return []PartyInformation{
 		{
 			PartyQualified: PartyQualifierTarget,
-			PartyIdentity:  infoIdentity,
+			PartyIdentity:  partyID,
 		},
 	}
 }
@@ -173,7 +265,7 @@ func makeNetworkIdentifier(event *models.Event, operatorID uint32) NetworkIdenti
 		}
 	}
 	return NetworkIdentifier{
-		OperatorIdentifier: convertUint32ToBytes(operatorID),
+		OperatorIdentifier: []byte(strconv.Itoa(int(operatorID))),
 		NetworkElementIdentifier: NetworkElementIdentifier{
 			IPAddress: ipAddr,
 		},
@@ -185,15 +277,10 @@ func makeNetworkIdentifier(event *models.Event, operatorID uint32) NetworkIdenti
 func makeBearerActivationParams(event *models.Event) EPSSpecificParameters {
 	eventData := event.Value.(map[string]interface{})
 	if sessionID, ok := eventData["session_id"]; ok {
-		apn := []byte{}
-		if v, ok := eventData["apn"]; ok {
-			apn = append(apn, []byte(v.(string))...)
-
-		}
 		return EPSSpecificParameters{
 			EPSBearerIdentity:      []byte(sessionID.(string)),
 			PDNAddressAllocation:   makePdnAddressAllocation(event),
-			APN:                    apn,
+			APN:                    encodeAPN(eventData["apn"].(string)),
 			RATType:                []byte{RatTypeEutran},
 			BearerActivationType:   DefaultBearer,
 			EPSLocationOfTheTarget: makeEPSLocation(event),
