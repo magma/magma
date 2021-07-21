@@ -13,7 +13,7 @@
 #pragma once
 #include <string>
 #include <vector>
-using namespace std;
+#include <set>
 
 namespace magma {
 
@@ -24,8 +24,6 @@ class ShardTracker {
   /**
    * Add UE to shards based on availability
    * @return index(shard id) where UE was placed
-   * TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation
-   * (GH8167)
    */
   int add_ue(std::string imsi);
 
@@ -39,10 +37,10 @@ class ShardTracker {
  private:
   /*
    * a vector of quantities, where the indices represent
-   * the shard id and the values represent the number of
-   * UEs held in each shard
+   * the shard id and the values are the UEs(IMSIs) assigned
+   * to that shard id
    */
-  vector<set<string>> shards_;
+  std::vector<std::set<std::string>> shards_;
   /*
    * largest number of UEs that can fill a shard
    */

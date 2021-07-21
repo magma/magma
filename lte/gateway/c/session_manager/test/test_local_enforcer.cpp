@@ -3591,7 +3591,6 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
     session_store->create_sessions(imsi_id, std::move(sessions));
     sessions.clear();
   }
-
   // check shards for all 501 UEs to make share there are 6, all sessions should
   // have the same shard id per IMSI
   for (int i = 1; i <= 501; i++) {
@@ -3604,7 +3603,7 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
     SessionRead read_req = {};
     read_req.insert(imsi_id);
     auto session_map = session_store->read_sessions(read_req);
-    for (size_t j = 0; j < session_map[imsi_id].size(); j++) {  
+    for (size_t j = 0; j < session_map[imsi_id].size(); j++) {
       EXPECT_EQ(session_map[imsi_id][j]->get_shard_id(), (i - 1) / 100);
     }
   }
