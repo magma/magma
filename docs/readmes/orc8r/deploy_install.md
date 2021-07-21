@@ -235,15 +235,18 @@ Create the Orchestrator admin user with the `admin_operator` certificate
 created earlier
 
 ```bash
-export ORC_POD=$(kubectl --namespace orc8r get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}')
-kubectl --namespace orc8r exec ${ORC_POD} -- /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+kubectl --namespace orc8r exec deploy/orc8r-orchestrator -- \
+  /var/opt/magma/bin/accessc \
+  add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem \
+  admin_operator
 ```
 
 If you want to verify the admin user was successfully created, inspect the
 output from
 
 ```bash
-$ kubectl --namespace orc8r exec ${ORC_POD} -- /var/opt/magma/bin/accessc list-certs
+$ kubectl --namespace orc8r exec deploy/orc8r-orchestrator -- \
+  /var/opt/magma/bin/accessc list-certs
 
 # NOTE: actual values will differ
 Serial Number: 83550F07322CEDCD; Identity: Id_Operator_admin_operator; Not Before: 2020-06-26 22:39:55 +0000 UTC; Not After: 2030-06-24 22:39:55 +0000 UTC
@@ -260,8 +263,8 @@ also need to add a new admin user with the updated `admin_operator` cert.
 Create an admin user for the `master` organization on the NMS
 
 ```bash
-export NMS_POD=$(kubectl --namespace orc8r get pod -l  app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
-kubectl --namespace orc8r exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+kubectl --namespace orc8r exec -it deploy/nms-magmalte -- \
+  yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 ## DNS Resolution

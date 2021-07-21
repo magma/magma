@@ -13,13 +13,9 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/dynamic.h>
-#include <folly/Format.h>
-#include <folly/json.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>

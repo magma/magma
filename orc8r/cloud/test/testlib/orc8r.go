@@ -13,8 +13,9 @@ limitations under the License.
 package testlib
 
 import (
+	"magma/orc8r/cloud/api/v1/go/models"
+
 	"github.com/go-openapi/swag"
-	"magma/orc8r/cloud/go/obsidian/swagger/v1/models"
 )
 
 //GetDefaultLteNetwork gets a default LTE network instance

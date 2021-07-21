@@ -497,14 +497,14 @@ int encode_linked_ti_ie(
     linked_ti_t* linkedti, const bool iei_present, uint8_t* buffer,
     const uint32_t len) {
   Fatal("TODO Implement encode_linked_ti_ie");
-  return 0;
+  return -1;
 }
 
 int decode_linked_ti_ie(
     linked_ti_t* linkedti, const bool iei_present, uint8_t* buffer,
     const uint32_t len) {
   Fatal("TODO Implement decode_linked_ti_ie");
-  return 0;
+  return -1;
 }
 
 //------------------------------------------------------------------------------

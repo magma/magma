@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/registry"
-	platform_registry "magma/orc8r/lib/go/registry"
 )
 
 const (
@@ -56,7 +55,7 @@ const (
 // Add a new service.
 // If the service already exists, overwrites the service config.
 func AddService(serviceType, host string, port int) {
-	fegRegistry.AddService(platform_registry.ServiceLocation{Name: serviceType, Host: host, Port: port})
+	fegRegistry.AddService(registry.ServiceLocation{Name: serviceType, Host: host, Port: port})
 }
 
 // Returns the RPC address of the service.

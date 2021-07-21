@@ -171,4 +171,4 @@ jobs:
           SLACK_TITLE: "*FeG Artifact Has Been Published*"
           SLACK_USERNAME: "Feg workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#FF0000"
+          SLACK_COLOR: "#00FF00"

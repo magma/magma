@@ -8,7 +8,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
+
 module magma/orc8r/cloud/go
 
 replace (
@@ -30,7 +30,6 @@ require (
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/facebookincubator/prometheus-edge-hub v1.1.0
 	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/runtime v0.19.5
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.19.3
@@ -40,6 +39,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.1.1
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/imdario/mergo v0.3.5
 	github.com/labstack/echo v3.3.10+incompatible
