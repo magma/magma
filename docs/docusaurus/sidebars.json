@@ -267,6 +267,7 @@
         "label": "NMS",
         "ids": [
           "nms/dev_spacing",
+          "nms/dev_testing",
           "nms/dev_themes",
           "nms/dev_components"
         ]
