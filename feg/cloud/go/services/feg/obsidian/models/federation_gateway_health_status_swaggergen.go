@@ -65,7 +65,6 @@ func (m *FederationGatewayHealthStatus) validateDescription(formats strfmt.Regis
 }
 
 func (m *FederationGatewayHealthStatus) validateServiceStatus(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ServiceStatus) { // not required
 		return nil
 	}
@@ -129,8 +128,32 @@ func (m *FederationGatewayHealthStatus) validateStatus(formats strfmt.Registry) 
 	return nil
 }
 
-// ContextValidate validates this federation gateway health status based on context it is used
+// ContextValidate validate this federation gateway health status based on the context it is used
 func (m *FederationGatewayHealthStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateServiceStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *FederationGatewayHealthStatus) contextValidateServiceStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	for k := range m.ServiceStatus {
+
+		if val, ok := m.ServiceStatus[k]; ok {
+			if err := val.ContextValidate(ctx, formats); err != nil {
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 

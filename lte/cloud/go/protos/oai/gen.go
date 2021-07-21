@@ -11,5 +11,5 @@
  * limitations under the License.
  */
 
-//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT --go_out=plugins=grpc:$MAGMA_ROOT/.. $MAGMA_ROOT/lte/protos/oai/*.proto"
+//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT --go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$MAGMA_ROOT/.. $MAGMA_ROOT/lte/protos/oai/*.proto"
 package oai

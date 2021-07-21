@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 package magma.testdata.middleware;
 
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/service/middleware/unary/test/protos";
 
 // TestService is a dummy test service used to validate Orc8r middleware.
 service TestService {

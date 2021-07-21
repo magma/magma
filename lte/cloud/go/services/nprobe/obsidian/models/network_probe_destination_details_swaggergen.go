@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkProbeDestinationDetails network probe destination details
+//
 // swagger:model network_probe_destination_details
 type NetworkProbeDestinationDetails struct {
 
@@ -25,10 +26,12 @@ type NetworkProbeDestinationDetails struct {
 	Certificate *strfmt.Base64 `json:"certificate"`
 
 	// delivery address
+	// Example: 127.0.0.1:4040
 	// Required: true
 	DeliveryAddress string `json:"delivery_address"`
 
 	// delivery type
+	// Example: events_only
 	// Required: true
 	// Enum: [all events_only]
 	DeliveryType string `json:"delivery_type"`
@@ -79,14 +82,12 @@ func (m *NetworkProbeDestinationDetails) validateCertificate(formats strfmt.Regi
 		return err
 	}
 
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 
 func (m *NetworkProbeDestinationDetails) validateDeliveryAddress(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("delivery_address", "body", string(m.DeliveryAddress)); err != nil {
+	if err := validate.RequiredString("delivery_address", "body", m.DeliveryAddress); err != nil {
 		return err
 	}
 
@@ -116,7 +117,7 @@ const (
 
 // prop value enum
 func (m *NetworkProbeDestinationDetails) validateDeliveryTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, networkProbeDestinationDetailsTypeDeliveryTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, networkProbeDestinationDetailsTypeDeliveryTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -124,7 +125,7 @@ func (m *NetworkProbeDestinationDetails) validateDeliveryTypeEnum(path, location
 
 func (m *NetworkProbeDestinationDetails) validateDeliveryType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("delivery_type", "body", string(m.DeliveryType)); err != nil {
+	if err := validate.RequiredString("delivery_type", "body", m.DeliveryType); err != nil {
 		return err
 	}
 
@@ -142,8 +143,6 @@ func (m *NetworkProbeDestinationDetails) validatePrivateKey(formats strfmt.Regis
 		return err
 	}
 
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 
@@ -153,6 +152,11 @@ func (m *NetworkProbeDestinationDetails) validateSkipVerifyServer(formats strfmt
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network probe destination details based on context it is used
+func (m *NetworkProbeDestinationDetails) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

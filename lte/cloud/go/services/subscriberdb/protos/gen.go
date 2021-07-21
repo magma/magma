@@ -11,5 +11,5 @@
  limitations under the License.
 */
 
-//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
+//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT --go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$MAGMA_ROOT/.. *.proto"
 package protos

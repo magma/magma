@@ -17,7 +17,9 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/protobuf v1.27.1
+	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 )

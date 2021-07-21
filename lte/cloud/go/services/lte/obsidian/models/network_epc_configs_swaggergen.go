@@ -377,7 +377,6 @@ func (m *NetworkEpcConfigs) validateSubProfiles(formats strfmt.Registry) error {
 }
 
 func (m *NetworkEpcConfigs) validateSubscriberdbSyncInterval(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SubscriberdbSyncInterval) { // not required
 		return nil
 	}
@@ -430,6 +429,10 @@ func (m *NetworkEpcConfigs) ContextValidate(ctx context.Context, formats strfmt.
 	}
 
 	if err := m.contextValidateSubProfiles(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSubscriberdbSyncInterval(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -515,6 +518,18 @@ func (m *NetworkEpcConfigs) contextValidateSubProfiles(ctx context.Context, form
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) contextValidateSubscriberdbSyncInterval(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.SubscriberdbSyncInterval.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("subscriberdb_sync_interval")
+		}
+		return err
 	}
 
 	return nil
