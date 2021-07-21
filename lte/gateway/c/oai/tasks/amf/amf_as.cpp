@@ -148,8 +148,6 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), amf_security_context,
       &decode_status);
 
-  // ue_m5gmm_context->mm_state = DEREGISTERED;
-
   bdestroy_wrapper(&msg->nas_msg);
 
   // conditional IE error
@@ -167,6 +165,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
 
   // Process initial NAS message
   AMFMsg* amf_msg = &nas_msg.plain.amf;
+
   switch (amf_msg->header.message_type) {
     case REG_REQUEST:
       memcpy(&originating_tai, &msg->tai, sizeof(originating_tai));
@@ -216,6 +215,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           LOG_NAS_AMF, "unknown message type: %d, in %s ",
           amf_msg->header.message_type, __FUNCTION__);
   }
+
   return rc;
 }
 
@@ -274,7 +274,6 @@ int amf_as_send_ng(const amf_as_t* msg) {
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       } break;
       case AS_NAS_ESTABLISH_RSP_: {
-        // case AS_NAS_ESTABLISH_CNF_: {
         if (as_msg.msg.nas_establish_rsp.err_code == M5G_AS_SUCCESS) {
           // This flow is to release the UE context after sending the NAS
           // message.
@@ -298,6 +297,14 @@ int amf_as_send_ng(const amf_as_t* msg) {
         break;
     }
   }
+
+  /* ICS goes as a seperate message.
+   * Return ok here
+   */
+  if (msg->primitive == _AMFAS_ESTABLISH_CNF) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
 }
 
@@ -372,8 +379,7 @@ static int amf_as_encode(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_reg_acceptmsg(
-    const amf_as_establish_t* msg, amf_nas_message_t* nas_msg) {
+int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type = REG_ACCEPT;
@@ -399,19 +405,29 @@ static int amf_reg_acceptmsg(
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.type_of_identity = M5GSMobileIdentityMsg_GUTI;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mcc_digit1 = msg->guti.guamfi.plmn.mcc_digit1;
+      .mobile_identity.guti.mcc_digit1 = guti->guamfi.plmn.mcc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mcc_digit2 = msg->guti.guamfi.plmn.mcc_digit2;
+      .mobile_identity.guti.mcc_digit2 = guti->guamfi.plmn.mcc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mcc_digit3 = msg->guti.guamfi.plmn.mcc_digit3;
+      .mobile_identity.guti.mcc_digit3 = guti->guamfi.plmn.mcc_digit3;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mnc_digit1 = msg->guti.guamfi.plmn.mnc_digit1;
+      .mobile_identity.guti.mnc_digit1 = guti->guamfi.plmn.mnc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mnc_digit2 = msg->guti.guamfi.plmn.mnc_digit2;
+      .mobile_identity.guti.mnc_digit2 = guti->guamfi.plmn.mnc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mnc_digit3 = msg->guti.guamfi.plmn.mnc_digit3;
+      .mobile_identity.guti.mnc_digit3 = guti->guamfi.plmn.mnc_digit3;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_regionid = guti->guamfi.amf_regionid;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_setid = guti->guamfi.amf_set_id;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_pointer = guti->guamfi.amf_pointer;
+
   uint8_t* offset;
-  offset = (uint8_t*) &msg->guti.m_tmsi;
+  uint32_t encoded_tmsi = ntohl(guti->m_tmsi);
+
+  offset = (uint8_t*) &encoded_tmsi;
+
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi1 = *offset;
   offset++;
@@ -423,17 +439,11 @@ static int amf_reg_acceptmsg(
   offset++;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi4 = *offset;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.amf_regionid = msg->guti.guamfi.amf_regionid;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.amf_setid = msg->guti.guamfi.amf_set_id;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.amf_pointer = msg->guti.guamfi.amf_pointer;
 
   OAILOG_INFO(
       LOG_AMF_APP, "AMF_REGION_ID %u AMF_SET_ID %u AMF_POINTER %u \n",
-      msg->guti.guamfi.amf_regionid, msg->guti.guamfi.amf_set_id,
-      msg->guti.guamfi.amf_pointer);
+      guti->guamfi.amf_regionid, guti->guamfi.amf_set_id,
+      guti->guamfi.amf_pointer);
   // TAI List, Allowed NSSAI and GPRS Timer 3 harcoded
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;  // sit_change
@@ -447,17 +457,17 @@ static int amf_reg_acceptmsg(
       .num_elements =
       0x0;  // 0 implies 1 as per ts_124501v1506 section 9.11.3.9
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mcc_digit1 = msg->guti.guamfi.plmn.mcc_digit1;
+      .mcc_digit1 = guti->guamfi.plmn.mcc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mcc_digit2 = msg->guti.guamfi.plmn.mcc_digit2;
+      .mcc_digit2 = guti->guamfi.plmn.mcc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mcc_digit3 = msg->guti.guamfi.plmn.mcc_digit3;
+      .mcc_digit3 = guti->guamfi.plmn.mcc_digit3;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mnc_digit1 = msg->guti.guamfi.plmn.mnc_digit1;
+      .mnc_digit1 = guti->guamfi.plmn.mnc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mnc_digit2 = msg->guti.guamfi.plmn.mnc_digit2;
+      .mnc_digit2 = guti->guamfi.plmn.mnc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mnc_digit3 = msg->guti.guamfi.plmn.mnc_digit3;
+      .mnc_digit3 = guti->guamfi.plmn.mnc_digit3;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[0] = 0x00;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
@@ -647,19 +657,18 @@ static int amf_de_reg_acceptmsg(
 uint16_t amf_as_data_req(
     const amf_as_data_t* msg, m5g_dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int size       = 0;
-  int is_encoded = false;
-  amf_nas_message_t nas_msg;
+  int size                                    = 0;
+  int is_encoded                              = false;
+  amf_nas_message_t nas_msg                   = {0};
   nas_msg.security_protected.header           = {0};
   nas_msg.security_protected.plain.amf.header = {0};
   nas_msg.security_protected.plain.amf.header = {0};
 
   // Setup the AS message
+  as_msg->ue_id = msg->ue_id;
   if (msg->guti) {
     as_msg->s_tmsi.amf_set_id = msg->guti->guamfi.amf_set_id;
     as_msg->s_tmsi.m_tmsi     = msg->guti->m_tmsi;
-  } else {
-    as_msg->ue_id = msg->ue_id;
   }
 
   // Setup the NAS security header
@@ -669,8 +678,12 @@ uint16_t amf_as_data_req(
   if (amf_msg) {
     switch (msg->nas_info) {
       case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
-        size = amf_send_registration_accept_dl_nas(
-            msg, &amf_msg->msg.registrationacceptmsg);
+        size = amf_reg_acceptmsg(msg->guti, &nas_msg);
+
+        if (msg->guti) {
+          delete (msg->guti);
+        }
+
         break;
       case AMF_AS_NAS_DL_NAS_TRANSPORT:
         // DL messages to NGAP on Identity/Authentication request
@@ -698,18 +711,12 @@ uint16_t amf_as_data_req(
 
     if (ue_m5gmm_context) {
       amf_ctx = &ue_m5gmm_context->amf_context;
-#if 1  // TODO-RECHECK for NW initiated derestration and security
       if (amf_ctx) {
-        // if (amf_msg->nw_deregister_request.nw_deregistertype ==
-        //    NW_DEREGISTER_TYPE_IMSI_DEREGISTER) {
-        //  amf_ctx->is_imsi_only_deregister = true;
-        //}
         if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
-          amf_security_context = &amf_ctx->_security;
-          // is_encoded           = true;// TODO
+          amf_security_context           = &amf_ctx->_security;
+          nas_msg.header.sequence_number = amf_ctx->_security.dl_count.seq_num;
         }
       }
-#endif
     } else {
       OAILOG_ERROR(
           LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
@@ -728,7 +735,7 @@ uint16_t amf_as_data_req(
       OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding successful\n");
       as_msg->err_code = M5G_AS_SUCCESS;
     } else {
-      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed\n");
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed bytes=%d\n", bytes);
     }
 
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
@@ -869,104 +876,6 @@ static void _s6a_handle_authentication_info_ans(
 
 /***************************************************************************
  **                                                                       **
- ** Name:        amf_auth_request()                                  **
- **                                                                       **
- ** Description: Send authentication Request to UE                        **
- **                                                                       **
- ** Inputs:      msg: Security msg                                        **
- **              amf_msg :   amf msg                                      **
- **                                                                       **
- ** Return:   size                                                        **
- **                                                                       **
- **************************************************************************/
-static int amf_auth_request(
-    const amf_as_security_t* msg, AuthenticationRequestMsg* amf_msg) {
-  s6a_auth_info_req_t air_t;
-  memset(&air_t, 0, sizeof(s6a_auth_info_req_t));
-
-  ue_m5gmm_context_s* ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
-  if (ue_context) {
-    IMSI64_TO_STRING(ue_context->amf_context.imsi64, air_t.imsi, IMSI_LENGTH);
-  } else {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-  }
-  air_t.imsi_length = IMSI_LENGTH;
-  memcpy(
-      &air_t.visited_plmn, &ue_context->amf_context.imsi,
-      sizeof(air_t.visited_plmn));
-  air_t.nb_of_vectors      = 1;
-  air_t.re_synchronization = 0;
-  s6a_auth_info_ans_t aia_t;
-  memset(&aia_t, 0, sizeof(s6a_auth_info_ans_t));
-  auto imsi_len = air_t.imsi_length;
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending S6A-AUTHENTICATION_INFORMATION_REQUEST\n");
-  magma::S6aClient::authentication_info_req(
-      &air_t,
-      [imsiStr = std::string(air_t.imsi), imsi_len, &aia_t](
-          grpc::Status status, feg::AuthenticationInformationAnswer response) {
-        _s6a_handle_authentication_info_ans(
-            imsiStr, imsi_len, status, response, &aia_t);
-      });
-  std::this_thread::sleep_for(std::chrono::milliseconds(60));
-
-  if (aia_t.auth_info.nb_of_vectors == 1) {
-#if 0
-    amf_msg->auth_autn.AUTN.assign(
-        (const char*) aia_t.auth_info.eutran_vector[0].autn,
-        AUTN_LENGTH_OCTETS);
-    amf_msg->auth_rand.rand_val.assign(
-        (const char*) aia_t.auth_info.eutran_vector[0].rand,
-        RAND_LENGTH_OCTETS);
-#endif
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .autn,
-        aia_t.auth_info.eutran_vector[0].autn, AUTN_LENGTH_OCTETS);
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .rand,
-        aia_t.auth_info.eutran_vector[0].rand, RAND_LENGTH_OCTETS);
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .ck,
-        aia_t.auth_info.eutran_vector[0].ck, CK_LENGTH_OCTETS);
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .ik,
-        aia_t.auth_info.eutran_vector[0].ik, IK_LENGTH_OCTETS);
-  } else {
-    OAILOG_DEBUG(LOG_AMF_APP, "s6a_air request failed\n");
-  }
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending AUTHENTICATION_REQUEST to UE\n");
-  int size = AUTHENTICATION_REQUEST_MINIMUM_LENGTH;
-  amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
-      M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  amf_msg->message_type.msg_type      = AUTH_REQUEST;
-  amf_msg->nas_key_set_identifier.tsc = NATIVE_SECURITY_CONTEXT;
-  amf_msg->nas_key_set_identifier.nas_key_set_identifier = 0x1;
-  uint8_t abba_buff[]                                    = {0x00, 0x00};
-  // amf_msg->abba.contents.assign((const char*) abba_buff, sizeof(abba_buff));
-  memcpy(amf_msg->abba.contents, abba_buff, sizeof(abba_buff));
-  size += RAND_MAX_LEN;
-  amf_msg->auth_rand.iei = AUTH_PARAM_RAND;
-  size += AUTN_MAX_LEN;
-  amf_msg->auth_autn.iei = AUTH_PARAM_AUTN;
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
-}
-
-/***************************************************************************
- **                                                                       **
  ** Name:        amf_auth_reject()                                        **
  **                                                                       **
  ** Description: Send authentication Reject to UE                         **
@@ -1058,7 +967,6 @@ static int amf_as_security_req(
   uint8_t ck_ik[32] = {0};
   uint8_t snni[32]  = {0};
   uint8_t xres[16]  = {0};
-  uint8_t rand[16]  = {0};
 
   memset(&nas_msg, 0, sizeof(amf_nas_message_t));
 
@@ -1099,181 +1007,11 @@ static int amf_as_security_req(
         amf_context_t* amf_ctx = NULL;
 
         amf_ctx = &ue_context->amf_context;
-        nas5g_auth_info_proc_t* auth_info_proc =
-            get_nas5g_cn_procedure_auth_info(amf_ctx);
-
-        // To check the validitiy of the vectors
-        if ((auth_info_proc) && (auth_info_proc->vector[0])) {
-          memcpy(
-              nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
-              auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
-          memcpy(
-              nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
-              auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
-
-          if (ue_context->amf_context._security.eksi >= KSI_NO_KEY_AVAILABLE) {
-            ue_context->amf_context._security.eksi = 0;
-          }
-          OAILOG_INFO(
-              LOG_AMF_APP, "eksi:%x", ue_context->amf_context._security.eksi);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .kasme,
-              auth_info_proc->vector[0]->kasme, KASME_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .autn,
-              auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .rand,
-              auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .ck,
-              auth_info_proc->vector[0]->ck, CK_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .ik,
-              auth_info_proc->vector[0]->ik, IK_LENGTH_OCTETS);
-
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .xres,
-              auth_info_proc->vector[0]->xres.data,
-              auth_info_proc->vector[0]->xres.size);
-          ue_context->amf_context
-              ._vector
-                  [ue_context->amf_context._security.eksi %
-                   MAX_EPS_AUTH_VECTORS]
-              .xres_size = auth_info_proc->vector[0]->xres.size;
-        }
-
-        /* Building 32 bytes of string with serving network SN
-         * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
-         * mcc and mnc are retrieved from serving network PLMN
-         */
-        uint32_t mcc              = 0;
-        uint32_t mnc              = 0;
-        uint32_t mnc_digit_length = 0;
-        PLMN_T_TO_MCC_MNC(
-            ue_context->amf_context.originating_tai.plmn, mcc, mnc,
-            mnc_digit_length);
-        uint32_t snni_buf_len = sprintf(
-            (char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
-        if (snni_buf_len != 32) {
-          OAILOG_ERROR(
-              LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
-          OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-        } else {
-          OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s", snni);
-        }
-
-        memcpy(
-            rand,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .rand,
-            RAND_LENGTH_OCTETS);
-
-        memcpy(
-            ck_ik,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .ck,
-            16);
-
-        memcpy(
-            &ck_ik[16],
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .ik,
-            16);
-
-        memcpy(
-            xres,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .xres,
-            AUTH_XRES_SIZE);
-
-        derive_5gkey_xres_star(
-            ck_ik, snni, rand, xres,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .xres);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "rand: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .rand[0]),
-            RAND_LENGTH_OCTETS);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "ik: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .ik[0]),
-            AUTH_IK_SIZE);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "ck: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .ck[0]),
-            AUTH_CK_SIZE);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "XRES: ", (const char*) &xres[0],
-            AUTH_XRES_SIZE);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "XRES*: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .xres[0]),
-            AUTH_XRES_SIZE);
 
         OAILOG_INFO(LOG_AMF_APP, " \n test\n");
         OAILOG_INFO(
-            LOG_AMF_APP, "AMF_TEST: Sending AUTHENTICATION_REQUEST to UE\n");
+            LOG_AMF_APP, "Sending AUTHENTICATION_REQUEST to UE ksi %d\n",
+            msg->ksi);
         size                                                     = 50;
         nas_msg.header.extended_protocol_discriminator           = 0x7E;
         nas_msg.header.security_header_type                      = 0x0;
@@ -1287,8 +1025,20 @@ static int amf_as_security_req(
         nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
             .tsc = 0;
         nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
-            .nas_key_set_identifier = ue_context->amf_context._security.eksi;
-        uint8_t abba_buff[]         = {0x00, 0x00};
+            .nas_key_set_identifier = msg->ksi;
+        memcpy(
+            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
+            amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
+                .rand,
+            RAND_LENGTH_OCTETS);
+
+        memcpy(
+            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
+            amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
+                .autn,
+            AUTN_LENGTH_OCTETS);
+
+        uint8_t abba_buff[] = {0x00, 0x00};
         memcpy(
             &(nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents),
             (const char*) abba_buff, 2);
@@ -1296,9 +1046,6 @@ static int amf_as_security_req(
         //    (const char*) abba_buff, 2);
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.iei = 0x21;
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.iei = 0x20;
-
-        nas5g_delete_cn_procedure(
-            &(ue_context->amf_context), &auth_info_proc->cn_proc);
 
       } break;
       case AMF_AS_MSG_TYPE_SMC: {
@@ -1666,7 +1413,7 @@ uint16_t amf_as_establish_cnf(
   amf_as_set_header(&nas_msg, &msg->sctx);
   switch (msg->nas_info) {
     case AMF_AS_NAS_INFO_REGISTERD:
-      size = amf_reg_acceptmsg(msg, &nas_msg);
+      size = amf_reg_acceptmsg(&(msg->guti), &nas_msg);
       nas_msg.header.security_header_type =
           SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
       /* TODO amf_as_set_header() is incorrectly setting the security header

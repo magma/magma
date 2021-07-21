@@ -31,6 +31,7 @@ extern "C" {
 #include "amf_sap.h"
 #include "amf_recv.h"
 #include "amf_app_state_manager.h"
+#include "amf_app_timer_management.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0
@@ -38,6 +39,7 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
+
 amf_as_data_t amf_data_sec;
 nas_amf_smc_proc_t smc_proc;
 static int amf_registration_failure_authentication_cb(
@@ -81,7 +83,7 @@ int amf_registration_success_authentication_cb(amf_context_t* amf_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-static int amf_start_registration_proc_authentication(
+int amf_start_registration_proc_authentication(
     amf_context_t* amf_context,
     nas_amf_registration_proc_t* registration_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -115,7 +117,8 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
   amf_context->amf_procedures->amf_specific_proc =
-      new nas_amf_specific_proc_t();
+      reinterpret_cast<nas_amf_specific_proc_t*>(
+          new nas_amf_registration_proc_t());
 
   amf_context->amf_procedures->amf_specific_proc->amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
@@ -200,9 +203,28 @@ int amf_proc_registration_request(
   if (!(is_nas_specific_procedure_registration_running(
           &ue_m5gmm_context->amf_context))) {
     amf_proc_create_procedure_registration_request(ue_m5gmm_context, ies);
+  } else {
+    /* Update the GUTI */
+    if (ies->guti) {
+      nas_amf_registration_proc_t* registration_proc =
+          get_nas_specific_procedure_registration(
+              &(ue_m5gmm_context->amf_context));
+
+      registration_proc->ies = ies;
+    }
   }
 
   OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_m5gmm_context);
+
+  /* If in a connected state REGISTRATION_REQUEST is received
+   * Just respond with plan response.
+   * This can happen in periodic registration case.
+   */
+  if (ue_m5gmm_context->mm_state == REGISTERED_CONNECTED) {
+    amf_registration_run_procedure(&ue_m5gmm_context->amf_context);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
   rc = ue_state_handle_message_initial(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
       ue_m5gmm_context, &ue_m5gmm_context->amf_context);
@@ -357,17 +379,29 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
             amf_registration_failure_identification_cb);
       }
     } else if (registration_proc->ies->guti) {
-      /* TODO: Currently we are not receving GUTI during intial
-       * Registration procedure and in future this code can be used.
-       */
-      rc = amf_proc_identification(
-          amf_context, (nas_amf_proc_t*) registration_proc,
-          IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
-          amf_registration_failure_identification_cb);
+      if (amf_context->is_initial_identity_imsi == true) {
+        if (registration_proc->ies->decode_status.mac_matched == 0) {
+          /* IMSI is known but mac-mismatch start the authentication process */
+          amf_ctx_clear_auth_vectors(amf_context);
+
+          rc = amf_start_registration_proc_authentication(
+              amf_context, registration_proc);
+        } else {
+          /* IMSI is known and Mac is matching */
+          amf_registration(amf_context);
+        }
+      } else {
+        /* If its first time GUTI Identify the IMSI */
+        rc = amf_proc_identification(
+            amf_context, (nas_amf_proc_t*) registration_proc,
+            IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
+            amf_registration_failure_identification_cb);
+      }
     } else {
-      OAILOG_ERROR(LOG_NAS_AMF, "Unsupported IE type! \n");
+      OAILOG_ERROR(LOG_NAS_AMF, "Unsupported Identifier type! \n");
     }
   }
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -527,6 +561,8 @@ static int amf_registration(amf_context_t* amf_context) {
       get_nas_specific_procedure_registration(amf_context);
 
   if (registration_proc) {
+    registration_proc->T3550.id             = -1;
+    registration_proc->retransmission_count = 0;
     rc = amf_send_registration_accept(amf_context);
   }
 
@@ -564,8 +600,9 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
         PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
 
-    registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;
     if (registration_proc) {
+      registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;
+
       /*
        * The IMSI if provided by the UE
        */
@@ -576,41 +613,62 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
               amf_context, registration_proc->ies->imsi, new_imsi64);
         }
       }
+
+      m5gmm_state_t state =
+          PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)->mm_state;
+
       /*
-       * Notify AMF-AS SAP that Registaration Accept message together with an
-       * Activate Pdu session Context Request message has to be sent to the UE
+       * Notify AMF-AS SAP that Registaration Accept message
+       * if this is a re-transmit or periodic registration
        */
-      amf_sap.primitive = AMFAS_ESTABLISH_CNF;
-      amf_sap.u.amf_as.u.establish.puid =
-          registration_proc->amf_spec_proc.amf_proc.base_proc.nas_puid;
-      amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
-      amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_REGISTERD;
+      if ((registration_proc->registration_accept_sent) ||
+          ((registration_proc->ies->m5gsregistrationtype ==
+            AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) &&
+           (state == REGISTERED_CONNECTED))) {
+        amf_sap.primitive                = AMFAS_DATA_REQ;
+        amf_sap.u.amf_as.u.data.ue_id    = ue_id;
+        amf_sap.u.amf_as.u.data.nas_info = AMF_AS_NAS_DATA_REGISTRATION_ACCEPT;
+        amf_sap.u.amf_as.u.data.guti     = new (guti_m5_t)();
+        memcpy(
+            amf_sap.u.amf_as.u.data.guti, &(amf_context->m5_guti),
+            sizeof(guti_m5_t));
+        amf_sap.u.amf_as.u.data.guti->m_tmsi =
+            htonl(amf_sap.u.amf_as.u.data.guti->m_tmsi);
+      } else {
+        /*
+         * Notify AMF-AS SAP that Registaration Accept message together
+         * with an Activate Pdu session Context Request message has to
+         * be sent to the UE
+         */
+        amf_sap.primitive = AMFAS_ESTABLISH_CNF;
+        amf_sap.u.amf_as.u.establish.puid =
+            registration_proc->amf_spec_proc.amf_proc.base_proc.nas_puid;
+        amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+        amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_REGISTERD;
 
-      /* GUTI have already updated in amf_context during Identification
-       * response complete, now assign to amf_sap
-       */
-      amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
-      OAILOG_INFO(
-          LOG_AMF_APP, " Region_id %u set_id %u pointer %u \n",
-          amf_context->m5_guti.guamfi.amf_regionid,
-          amf_context->m5_guti.guamfi.amf_set_id,
-          amf_context->m5_guti.guamfi.amf_pointer);
-      amf_sap.u.amf_as.u.establish.guti.m_tmsi =
-          htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+        /* GUTI have already updated in amf_context during Identification
+         * response complete, now assign to amf_sap
+         */
+        amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
+        amf_sap.u.amf_as.u.establish.guti.m_tmsi =
+            htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+      }
+
       rc = amf_sap_send(&amf_sap);
-
+      if (rc == RETURNok) {
+        registration_proc->registration_accept_sent++;
+      }
       /*
        * Start T3550 timer
        */
-      OAILOG_INFO(LOG_AMF_APP, "Timer: registration_accept timer start\n");
-      registration_proc->T3550.id = start_timer(
-          &amf_app_task_zmq_ctx, REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, registration_accept_t3550_handler,
-          (void*) registration_proc->ue_id);
+      registration_proc->T3550.id = amf_app_start_timer(
+          REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+          registration_accept_t3550_handler, registration_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
-          "Timer: Registration_accept timer T3550 with id  %d Started\n",
-          registration_proc->T3550.id);
+          "Timer: Registration_accept timer T3550 with id  %d Started for ue "
+          "id: %d\n",
+          registration_proc->T3550.id, registration_proc->ue_id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -619,118 +677,66 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 static int registration_accept_t3550_handler(
     zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "Timer: In registration_accept_t3550 handler\n");
-#if 0 /* TIMER_CHANGES_REVIEW */
   amf_context_t* amf_ctx                         = NULL;
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
   amf_ue_ngap_id_t ue_id                         = 0;
-
-  ue_id = *((amf_ue_ngap_id_t*) (arg));
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
+        timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
   /*
    * Get the UE context
    */
   ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
-    return -1;
+    OAILOG_INFO(
+        LOG_AMF_APP, "T3550: ue_context is NULL for ue_id: %d\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
+
+  amf_ctx = &ue_amf_context->amf_context;
 
   registration_proc =
       (nas_amf_registration_proc_t*)
           ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Timer: In _registration_t3550_handler - T3550 id %p\n",
-      registration_proc);
   if (registration_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3550 timer   timer id %d ue id %d\n",
+        LOG_AMF_APP,
+        "T3550: timer id: %d expired for"
+        "ue_id=" AMF_UE_NGAP_ID_FMT "\n",
         registration_proc->T3550.id, registration_proc->ue_id);
-    registration_proc->T3550.id = -1;
 
     registration_proc->retransmission_count += 1;
     OAILOG_ERROR(
-        LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
+        LOG_AMF_APP, "T3550: Incrementing retransmission_count to %d\n",
         registration_proc->retransmission_count);
     if (registration_proc->retransmission_count < REGISTRATION_COUNTER_MAX) {
-      /* Send entity Registration request message to the UE */
+      /* Send entity Registration accept message to the UE */
 
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "Timer: timer has expired Sending Registration request again\n");
-      // amf_registration_request(registration_proc); /* TO DO for negative
-      // scenario */
+          "T3550: timer has expired retransmitting registration accept\n");
+      amf_send_registration_accept(amf_ctx);
     } else {
       /* Abort the registration procedure */
-
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "Timer: Maximum retires done hence Abort the registration "
-          "procedure\n");
-      return -1;
+          "T3550: Maximum retires:%d, for registration accept done hence Abort "
+          "the registration "
+          "procedure\n",
+          registration_proc->retransmission_count);
+      // To abort the registration procedure
+      amf_proc_registration_abort(amf_ctx, ue_amf_context);
+      // Clean up all the sessions.
+      amf_smf_context_cleanup_pdu_session(ue_amf_context);
     }
-
-    return 0;
   }
-
-#endif /* TIMER_CHANGES_REVIEW */
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_send_registration_accept_dl_nas()                         **
- **                                                                        **
- ** Description: Builds Registration Accept message to be sent             **
- **              is NGAP : DL NAS Tx                                       **
- **                                                                        **
- **      The registration Accept message is sent by the network to the     **
- **      UE to indicate that the corresponding attach request has          **
- **      been accepted.                                                    **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-int amf_send_registration_accept_dl_nas(
-    const amf_as_data_t* msg, RegistrationAcceptMsg* amf_msg) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
-  amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
-      M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  amf_msg->sec_header_type.sec_hdr        = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  amf_msg->message_type.msg_type          = REG_ACCEPT;
-  amf_msg->m5gs_reg_result.sms_allowed    = NOT_ALLOWED;
-  amf_msg->m5gs_reg_result.reg_result_val = M3GPP_ACCESS;
-
-  /* 5GS mobile identity IE */
-  size += MOBILE_IDENTITY_MAX_LENGTH;
-  amf_msg->mobile_id.mobile_identity.guti.odd_even = EVEN_IDENTITY_DIGITS;
-  amf_msg->mobile_id.iei                           = M5GS_MOBILE_IDENTITY;
-  amf_msg->mobile_id.len = M5GSMobileIdentityMsg_GUTI_LENGTH;
-  amf_msg->mobile_id.mobile_identity.guti.type_of_identity =
-      M5GSMobileIdentityMsg_GUTI;
-  amf_msg->mobile_id.mobile_identity.guti.mcc_digit1 =
-      msg->guti->guamfi.plmn.mcc_digit1;
-  amf_msg->mobile_id.mobile_identity.guti.mcc_digit2 =
-      msg->guti->guamfi.plmn.mcc_digit2;
-  amf_msg->mobile_id.mobile_identity.guti.mcc_digit3 =
-      msg->guti->guamfi.plmn.mcc_digit3;
-  amf_msg->mobile_id.mobile_identity.guti.mnc_digit1 =
-      msg->guti->guamfi.plmn.mnc_digit1;
-  amf_msg->mobile_id.mobile_identity.guti.mnc_digit2 =
-      msg->guti->guamfi.plmn.mnc_digit2;
-  amf_msg->mobile_id.mobile_identity.guti.mnc_digit3 =
-      msg->guti->guamfi.plmn.mnc_digit3;
-  uint8_t* offset;
-  offset                                        = (uint8_t*) &msg->guti->m_tmsi;
-  amf_msg->mobile_id.mobile_identity.guti.tmsi1 = *offset;
-  offset++;
-  amf_msg->mobile_id.mobile_identity.guti.tmsi2 = *offset;
-  offset++;
-  amf_msg->mobile_id.mobile_identity.guti.tmsi3 = *offset;
-  offset++;
-  amf_msg->mobile_id.mobile_identity.guti.tmsi4 = *offset;
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 /****************************************************************************
@@ -739,41 +745,31 @@ int amf_send_registration_accept_dl_nas(
  **                                                                        **
  ** Description: Completion of Registration Procedure                      **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                         **
- **      smf_msg_pP:       The received SMF message                        **
- **      Others:    None                                                   **
+ ** Inputs:  amf_ctx:     UE Related AMF context                           **
  **                                                                        **
- ** Outputs:     amf_cause: AMF cause code                                 **
+ ** Outputs:                                                               **
  **      Return:    RETURNok, RETURNerror                                  **
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_registration_complete(
-    amf_ue_ngap_id_t ue_id, bstring smf_msg_pP, int amf_cause,
-    const amf_nas_message_decode_status_t status) {
+int amf_proc_registration_complete(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
   int rc                                         = RETURNerror;
   amf_sap_t amf_sap;
-  amf_context_t* amf_ctx = NULL;
+  amf_ue_ngap_id_t ue_id =
+      PARENT_STRUCT(amf_ctx, struct ue_m5gmm_context_s, amf_context)
+          ->amf_ue_ngap_id;
 
-  /*
-   * Get the UE context
-   */
-  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (amf_ctx) {
+    if (is_nas_specific_procedure_registration_running(amf_ctx)) {
+      registration_proc = (nas_amf_registration_proc_t*)
+                              amf_ctx->amf_procedures->amf_specific_proc;
 
-  if (ue_amf_context) {
-    if (is_nas_specific_procedure_registration_running(
-            &ue_amf_context->amf_context)) {
-      registration_proc =
-          (nas_amf_registration_proc_t*)
-              ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
-      amf_ctx = &ue_amf_context->amf_context;
-
-      stop_timer(&amf_app_task_zmq_ctx, registration_proc->T3550.id);
+      amf_app_stop_timer(registration_proc->T3550.id);
       OAILOG_INFO(
-          LOG_AMF_APP, "Timer: after stop registration timer with id = %d\n",
+          LOG_AMF_APP,
+          "Timer: after stop registration timer T3550 with id = %d\n",
           registration_proc->T3550.id);
       registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;
 
@@ -783,33 +779,29 @@ int amf_proc_registration_complete(
        * ACCEPT message as valid.
        */
       amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_GUTI);
-    } else {
-      OAILOG_DEBUG(
-          LOG_NAS_AMF,
-          "UE " AMF_UE_NGAP_ID_FMT
-          " REGISTRATION COMPLETE discarded (AMF procedure not found)\n",
-          ue_id);
-      bdestroy((bstring)(smf_msg_pP));
     }
   } else {
-    OAILOG_WARNING(LOG_NAS_AMF, "UE Context not found..\n");
-    OAILOG_DEBUG(
+    OAILOG_WARNING(
         LOG_NAS_AMF,
-        "UE " AMF_UE_NGAP_ID_FMT
-        " REGISTRATION COMPLETE discarded (context not found)\n",
+        "UE Context not found for "
+        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
         ue_id);
+    OAILOG_DEBUG(
+        LOG_NAS_AMF, " REGISTRATION COMPLETE discarded (context not found)\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
+
   /*
    * Set the network registration indicator
    */
-  ue_amf_context->amf_context.is_registered = true;
+  amf_ctx->is_registered = true;
+
   /*
    * Notify AMF that registration procedure has successfully completed
    */
   amf_sap.primitive                   = AMFREG_REGISTRATION_CNF;
   amf_sap.u.amf_reg.ue_id             = ue_id;
-  amf_sap.u.amf_reg.ctx               = &ue_amf_context->amf_context;
+  amf_sap.u.amf_reg.ctx               = amf_ctx;
   amf_sap.u.amf_reg.notify            = true;
   amf_sap.u.amf_reg.free_proc         = true;
   amf_sap.u.amf_reg.u.registered.proc = registration_proc;
@@ -843,16 +835,25 @@ int amf_handle_registration_complete_response(
     amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc;
+  int rc                               = RETURNerror;
+  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "AMFAS-SAP - received registration complete message for ue_id = (%u)\n",
       ue_id);
-  /*
-   * Execute the registration procedure completion
-   */
-  rc = amf_proc_registration_complete(ue_id, msg->smf_pdu, amf_cause, status);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+
+  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_m5gmm_context == NULL) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  /* FSM to move from COMMON_PROCEDURE_INITIATED2 -> REGISTERED_CONNECTED */
+  ue_state_handle_message_initial(
+      COMMON_PROCEDURE_INITIATED2, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
+      ue_m5gmm_context, &ue_m5gmm_context->amf_context);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 /****************************************************************************
@@ -977,7 +978,7 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
   }
 
   amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
-}  // namespace magma5g
+}
 
 /***********************************************************************
  ** Name:    amf_delete_registration_ies()                            **
@@ -1116,6 +1117,54 @@ void delete_wrapper(void** ptr) {
     delete (*ptr);
     *ptr = NULL;
   }
+}
+/****************************************************************************
+**                                                                        **
+** Name:    amf_proc_registration_abort()                                 **
+**                                                                        **
+** Description: Abort the ongoing registration procedure                  **
+**              for timer failure cases                                   **
+**                                                                        **
+** Inputs:  amf_ctx  : AMF context                                        **
+**          ue_amf_context: UE context                                    **
+**                                                                        **
+**      Others:    None                                                   **
+**                                                                        **
+** Outputs:                                                               **
+**      Return:    RETURNok, RETURNerror                                  **
+**      Others:    None                                                   **
+**                                                                        **
+***************************************************************************/
+int amf_proc_registration_abort(
+    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  int rc = RETURNerror;
+  if ((ue_amf_context) && (amf_ctx)) {
+    MessageDef* message_p = nullptr;
+    message_p =
+        itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
+
+    if (message_p == NULL) {
+      OAILOG_ERROR(LOG_AMF_APP, "message is NULL");
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    }
+    memset(
+        &NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p), 0,
+        sizeof(itti_ngap_ue_context_release_command_t));
+
+    NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).amf_ue_ngap_id =
+        ue_amf_context->amf_ue_ngap_id;
+    NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).gnb_ue_ngap_id =
+        ue_amf_context->gnb_ue_ngap_id;
+    NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause =
+        (Ngcause) ngap_CauseNas_deregister;
+    message_p->ittiMsgHeader.imsi = ue_amf_context->amf_context.imsi64;
+    send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    amf_delete_registration_proc(amf_ctx);
+    amf_remove_ue_context(ue_amf_context);
+    rc = RETURNok;
+  }
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 }  // namespace magma5g

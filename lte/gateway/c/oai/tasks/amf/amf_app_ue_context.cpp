@@ -25,6 +25,7 @@ extern "C" {
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "amf_app_state_manager.h"
+#include "amf_recv.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -160,6 +161,9 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   new_p->m5_ue_context_modification_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
   new_p->mm_state = DEREGISTERED;
+
+  new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
+  new_p->mm_state                   = DEREGISTERED;
 
   return new_p;
 }
@@ -436,5 +440,108 @@ void amf_app_state_free_ue_context(void** ue_context_node) {
   // TODO clean up AMF context. This has been taken care in new PR with support
   // for Multi UE.
   OAILOG_FUNC_OUT(LOG_AMF_APP);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    ue_context_loopkup_by_guti()                                  **
+ **                                                                        **
+ ** Description: Checks if UE context exists already or not                **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv) {
+  tmsi_t tmsi_stored;
+  ue_m5gmm_context_s* ue_context;
+
+  for (auto i = ue_context_map.begin(); i != ue_context_map.end(); i++) {
+    ue_context = i->second;
+    if (ue_context == NULL) {
+      continue;
+    }
+
+    tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
+
+    if (tmsi_rcv == tmsi_stored) {
+      return ue_context;
+    }
+  }
+
+  return NULL;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    ue_context_update_ue_id()                                     **
+ **                                                                        **
+ ** Description:  Update the UE_ID                                         **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+void ue_context_update_ue_id(
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t ue_id) {
+  if (ue_id == ue_context->amf_ue_ngap_id) {
+    return;
+  }
+
+  /* Erase the content with ue_id */
+  ue_context_map.erase(ue_context->amf_ue_ngap_id);
+
+  /* Re-Insert with same context but with updated Key */
+  ue_context_map.insert(
+      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+
+  return;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    ue_context_lookup_by_gnb_ue_id()                              **
+ **                                                                        **
+ ** Description:  Fetch the ue_context by gnb ue id                        **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
+    gnb_ue_ngap_id_t gnb_ue_ngap_id) {
+  ue_m5gmm_context_s* ue_context;
+  for (auto i = ue_context_map.begin(); i != ue_context_map.end(); i++) {
+    ue_context = i->second;
+    if (ue_context == NULL) {
+      continue;
+    }
+
+    if (ue_context->gnb_ue_ngap_id == gnb_ue_ngap_id) {
+      return ue_context;
+    }
+  }
+  return NULL;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_idle_mode_procedure()                                     **
+ **                                                                        **
+ ** Description:  Transition to idle mode                                  **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  ue_m5gmm_context_s* ue_context_p =
+      PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
+  amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
+
+  smf_context_t smf_ctx;
+
+  for (auto it = ue_context_p->amf_context.smf_ctxt_vector.begin();
+       it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++) {
+    smf_ctx                   = *it;
+    smf_ctx.pdu_session_state = INACTIVE;
+  }
+
+  amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 }  // namespace magma5g

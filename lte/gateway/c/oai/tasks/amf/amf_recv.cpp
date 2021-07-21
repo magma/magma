@@ -38,14 +38,15 @@ int amf_handle_service_request(
     const amf_nas_message_decode_status_t decode_status) {
   int rc                         = RETURNok;
   ue_m5gmm_context_s* ue_context = nullptr;
-  tmsi_t tmsi_rcv;
-  tmsi_t tmsi_stored;
+  bool tmsi_based_context_found  = false;
   notify_ue_event notify_ue_event_type;
   amf_sap_t amf_sap;
+  tmsi_t tmsi_rcv;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   char ip_str[INET_ADDRSTRLEN];
   uint16_t pdu_session_status      = 0;
   uint16_t pdu_reactivation_result = 0;
+  uint32_t tmsi_stored;
 
   OAILOG_INFO(
       LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
@@ -71,7 +72,7 @@ int amf_handle_service_request(
       LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n", tmsi_stored);
   OAILOG_INFO(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
-  if (tmsi_rcv == tmsi_stored) {
+  if (ue_context) {
     OAILOG_INFO(
         LOG_NAS_AMF,
         "TMSI matched for the UE id %d "
@@ -116,41 +117,17 @@ int amf_handle_service_request(
             notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
             // construct the proto structure and send message to SMF
             amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
-#if 0
-              amf_smf_create_session_on_service_req(
-                 imsi, smf_context.apn,
-                 smf_context.smf_proc_data.pdu_session_identity.pdu_session_id,
-                 smf_context.smf_proc_data.pdu_session_type.type_val,
-                 smf_context.gtp_tunnel_id.gnb_gtp_teid,
-                 smf_context.smf_proc_data.pti.pti,
-                 smf_context.gtp_tunnel_id.gnb_gtp_teid_ip_addr, ip_str);
-#endif
           }
         }
       }
-#if 0
-      if (pdu_session_status) {
-        amf_sap.primitive = AMFAS_ESTABLISH_CNF;
-
-        amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
-        amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
-        amf_sap.u.amf_as.u.establish.pdu_sesion_status_ie =
-            (AMF_AS_PDU_SESSION_STATUS |
-             AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
-        amf_sap.u.amf_as.u.establish.pdu_session_status = pdu_session_status;
-        amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-            pdu_session_status;
-        rc = amf_sap_send(&amf_sap);
-      }
-#endif
     }
   } else {
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "TMSI not matched for the UE id %d "
-        "and prepare for reject message ion DL"
-        " receved TMSI %08X stored TMSI %08X\n",
-        ue_id, tmsi_rcv, tmsi_stored);
+        "TMSI not matched for "
+        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+        ue_id);
+
     // Send prepare and send reject message.
     amf_sap.primitive                     = AMFAS_ESTABLISH_REJ;
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
@@ -180,6 +157,7 @@ int amf_handle_registration_request(
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
   guti_and_amf_id_t guti_and_amf_id;
+  nas_amf_registration_proc_t* registration_proc = NULL;
   /*
    * Handle message checking error
    */
@@ -205,8 +183,8 @@ int amf_handle_registration_request(
       msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_MOBILITY_UPDATING;
   } else if (
-      msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERODIC_UPDATING) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_PERODIC_UPDATING;
+      msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_PERIODIC_UPDATING;
   } else if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_EMERGENCY) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_EMERGENCY;
   } else if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_RESERVED) {
@@ -337,13 +315,14 @@ int amf_handle_registration_request(
         msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
         M5GSMobileIdentityMsg_GUTI) {
       OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST Id is GUTI\n");
-      params->guti                        = new (guti_m5_t)();
+      params->guti = new (guti_m5_t)();
+
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
 
-  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERODIC_UPDATING) {
+  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
     /*
      * This request for periodic registration update
      * For registered UE, is_amf_ctx_new = False
@@ -355,7 +334,7 @@ int amf_handle_registration_request(
      */
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "AMF_REGISTRATION_TYPE_PERODIC_UPDATING processing"
+        "AMF_REGISTRATION_TYPE_PERIODIC_UPDATING processing"
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
@@ -384,6 +363,7 @@ int amf_handle_registration_request(
       /* Update this new GUTI in amf_context and map
        * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
        */
+      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
       imsi64_t imsi64                = ue_context->amf_context.imsi64;
@@ -396,13 +376,13 @@ int amf_handle_registration_request(
         // element found in map and update the GUTI
         found_imsi->second = guti_and_amf_id;
       }
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "In periodic registration update: New GUTI updated in "
-          "map and ue contxt, sending accept message in DL\n");
 
-      // Call the registration accept API to send accept messaeg in DL
-      rc = amf_send_registration_accept(&ue_context->amf_context);
+      params->guti = new (guti_m5_t)();
+      memcpy(
+          params->guti, &(ue_context->amf_context.m5_guti), sizeof(guti_m5_t));
+
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
+
     } else {
       // UE context is new and/or UE identity type is not GUTI
       // add log message.
@@ -413,19 +393,20 @@ int amf_handle_registration_request(
       // TODO Implement Reject message
       return RETURNerror;
     }
-  }  // end of AMF_REGISTRATION_TYPE_PERODIC_UPDATING
+  }  // end of AMF_REGISTRATION_TYPE_PERIODIC_UPDATING
+
+  params->decode_status = decode_status;
   /*
    * Execute the requested new UE registration procedure
    * This will initiate identity req in DL.
    */
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
-  if (is_amf_ctx_new) {
-    rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-  }
+  rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   return rc;
-}  // namespace magma5g
+}
 
 /****************************************************************************
  **                                                                        **
@@ -487,6 +468,16 @@ int amf_handle_identity_response(
           MSIN_MAX_LENGTH);
       // Copy entire supi_imsi to imsi.u.value which is 8 bytes
       memcpy(&imsi.u.value, &supi_imsi, IMSI_BCD8_SIZE);
+
+      if (supi_imsi.plmn.mnc_digit3 != 0xf) {
+        imsi.u.value[0] = ((supi_imsi.plmn.mcc_digit1 << 4) & 0xf0) |
+                          (supi_imsi.plmn.mcc_digit2 & 0xf);
+        imsi.u.value[1] = ((supi_imsi.plmn.mcc_digit3 << 4) & 0xf0) |
+                          (supi_imsi.plmn.mnc_digit1 & 0xf);
+        imsi.u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
+                          (supi_imsi.plmn.mnc_digit3 & 0xf);
+      }
+
     } else {
       /* Mobile identity is SUPI type IMSI but Protection scheme is not NULL
        * which is not valid message from UE. Return from here after

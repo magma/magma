@@ -64,6 +64,8 @@ void amf_ctx_set_valid_imsi(
 void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(
     amf_context_t* ctxt, ksi_t eksi) {
   ctxt->_security.eksi = eksi;
+  ctxt->ksi            = eksi;
+
   OAILOG_TRACE(
       LOG_NAS_AMF,
       "ue_id= " AMF_UE_NGAP_ID_FMT " set security context eksi %d\n",

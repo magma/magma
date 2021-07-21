@@ -29,11 +29,11 @@ extern "C" {
 #include "amf_identity.h"
 #include "amf_sap.h"
 #include "amf_recv.h"
+#include "amf_app_timer_management.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
 
-extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 // Global map of supi to guti along with amf_ue_ngap_id
 std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
@@ -145,7 +145,7 @@ int amf_proc_identification_complete(
     OAILOG_INFO(
         LOG_AMF_APP, "Timer: Stopping Identity timer with ID %d\n",
         ident_proc->T3570.id);
-    stop_timer(&amf_app_task_zmq_ctx, ident_proc->T3570.id);
+    amf_app_stop_timer(ident_proc->T3570.id);
     OAILOG_INFO(LOG_AMF_APP, "Timer: After Stopping Identity timer \n");
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
 

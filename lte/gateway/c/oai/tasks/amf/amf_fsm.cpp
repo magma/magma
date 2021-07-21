@@ -52,6 +52,8 @@ static UE_Handlers_t UE_handlers[] = {
      reinterpret_cast<void (*)(void)>(&amf_app_handle_deregistration_req)},
     {"Deregister_Completed",
      reinterpret_cast<void (*)(void)>(&amf_app_handle_deregistration_req)},
+    {"Idle_mode_procedure",
+     reinterpret_cast<void (*)(void)>(&amf_idle_mode_procedure)},
     {"PDU_Creating",
      reinterpret_cast<void (*)(void)>(&amf_smf_create_pdu_session)},
     {"PDU_Created",
@@ -123,16 +125,30 @@ void create_state_matrix() {
       DEREGISTERED, STATE_EVENT_DEREGISTER, SESSION_NULL, DEREGISTERED,
       SESSION_NULL, "Deregister_Completed");
 
+  Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,
+      REGISTERED_IDLE, SESSION_NULL, "Idle_mode_procedure");
+
+  Update_ue_state_matrix(
+      REGISTERED_IDLE, STATE_EVENT_REG_REQUEST, SESSION_NULL,
+      COMMON_PROCEDURE_INITIATED1, SESSION_NULL,
+      "Common_procedure_Initiated_step1");
+
   /* PDU session State Transitions*/
   Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
       SESSION_NULL, REGISTERED_CONNECTED, CREATING, "PDU_Creating");
+
   Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT, CREATING,
       REGISTERED_CONNECTED, ACTIVE, "PDU_Created");
   Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, ACTIVE,
       REGISTERED_CONNECTED, RELEASED, "PDU_Release");
+
+  Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
+      DEREGISTERED, SESSION_NULL, "PDU_Release");
 
   Update_ue_state_matrix(
       DEREGISTERED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,

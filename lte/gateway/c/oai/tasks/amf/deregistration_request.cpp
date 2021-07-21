@@ -211,7 +211,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   amf_smf_context_cleanup_pdu_session(ue_context);
 
   // Remove stored UE context from AMF core.
-  amf_remove_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context);
+  amf_remove_ue_context(ue_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -259,8 +259,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_remove_ue_context(
-    amf_ue_context_t* amf_ue_context_p, ue_m5gmm_context_s* ue_context_p) {
+void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
   std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
       found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
 
