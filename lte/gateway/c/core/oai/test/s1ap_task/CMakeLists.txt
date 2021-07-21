@@ -1,4 +1,4 @@
-# Copyright 2020 The Magma Authors.
+# Copyright 2021 The Magma Authors.
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 # Unless required by applicable law or agreed to in writing, software
@@ -7,17 +7,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.7.2)
+add_executable(s1ap_test test_s1ap_handle_new_association.cpp)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+target_link_libraries(s1ap_test
+        TASK_S1AP
+        gtest gtest_main
+        )
 
-add_subdirectory(mme_app_task)
-add_subdirectory(mobility_client)
-add_subdirectory(openflow)
-add_subdirectory(spgw_task)
-add_subdirectory(itti)
-add_subdirectory(pipelined_client)
-add_subdirectory(n11)
-add_subdirectory(s1ap_task)
+add_test(test_s1ap s1ap_test)
