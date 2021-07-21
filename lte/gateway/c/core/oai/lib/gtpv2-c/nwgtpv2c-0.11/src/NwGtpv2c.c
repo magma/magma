@@ -766,6 +766,10 @@ static nw_rc_t nwGtpv2cHandleUlpInitialReq(
       pTrxn->seqNum |= 0x00800000UL;
     }
 
+    memcpy(
+        &pTrxn->proc_context, &pUlpReq->proc_context,
+        sizeof(pTrxn->proc_context));
+
     char peer_ip[INET_ADDRSTRLEN];
     inet_ntop(
         AF_INET, (void*) &pTrxn->peer_ip.addrv4.sin_addr, peer_ip,
@@ -1179,7 +1183,7 @@ static nw_rc_t nwGtpv2cSendTriggeredRspIndToUlp(
     NW_IN uint16_t localPort, NW_IN uint16_t peerPort,
     NW_IN struct sockaddr* peerIp, NW_IN uint32_t hUlpTunnel,
     NW_IN uint32_t msgType, NW_IN bool noDelete,
-    NW_IN nw_gtpv2c_msg_handle_t hMsg) {
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN proc_context_t* proc_context) {
   nw_rc_t rc = NW_FAILURE;
   nw_gtpv2c_ulp_api_t ulpApi;
 
@@ -1195,6 +1199,7 @@ static nw_rc_t nwGtpv2cSendTriggeredRspIndToUlp(
   ulpApi.u_api_info.triggeredRspIndInfo.error      = *pError;
   ulpApi.u_api_info.triggeredRspIndInfo.trx_flags  = *trxFlags_p;
   ulpApi.u_api_info.triggeredRspIndInfo.noDelete   = noDelete;
+  memcpy(&ulpApi.proc_context, proc_context, sizeof(ulpApi.proc_context));
   rc          = thiz->ulp.ulpReqCallback(thiz->ulp.hUlp, &ulpApi);
   *trxFlags_p = ulpApi.u_api_info.triggeredRspIndInfo.trx_flags;
   OAILOG_FUNC_RETURN(LOG_GTPV2C, rc);
@@ -1559,7 +1564,7 @@ static nw_rc_t nwGtpv2cHandleTriggeredRsp(
     }
     rc = nwGtpv2cSendTriggeredRspIndToUlp(
         thiz, &error, keyTrxn.seqNum, &trx_flags, localPort, peerPort, peerIp,
-        hUlpTunnel, msgType, noDelete, hMsg);
+        hUlpTunnel, msgType, noDelete, hMsg, &pTrxn->proc_context);
     if (remove && !(trx_flags & INTERNAL_LATE_RESPONS_IND)) {
       OAILOG_WARNING(
           LOG_GTPV2C,

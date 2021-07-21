@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-// BlockUnregisteredGateways is an Interceptor blocking calls from Gateways
+// BlockUnregisteredGateways is an interceptor blocking calls from Gateways
 // which were not registered on the cloud.
 // BlockUnregisteredGateways must be invoked after Identity Decorator since
 // it relies on the Identity Decorator's results

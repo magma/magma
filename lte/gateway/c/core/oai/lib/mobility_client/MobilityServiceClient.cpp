@@ -45,7 +45,7 @@ using magma::orc8r::Void;
 namespace magma {
 namespace lte {
 
-int MobilityServiceClient::AllocateIPv4AddressAsync(
+void MobilityServiceClient::AllocateIPv4AddressAsync(
     const std::string& imsi, const std::string& apn,
     const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
   AllocateIPRequest request = AllocateIPRequest();
@@ -58,10 +58,9 @@ int MobilityServiceClient::AllocateIPv4AddressAsync(
   request.set_apn(apn);
 
   AllocateIPAddressRPC(request, callback);
-  return 0;
 }
 
-int MobilityServiceClient::AllocateIPv6AddressAsync(
+void MobilityServiceClient::AllocateIPv6AddressAsync(
     const std::string& imsi, const std::string& apn,
     const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
   AllocateIPRequest request = AllocateIPRequest();
@@ -74,10 +73,9 @@ int MobilityServiceClient::AllocateIPv6AddressAsync(
   request.set_apn(apn);
 
   AllocateIPAddressRPC(request, callback);
-  return 0;
 }
 
-int MobilityServiceClient::AllocateIPv4v6AddressAsync(
+void MobilityServiceClient::AllocateIPv4v6AddressAsync(
     const std::string& imsi, const std::string& apn,
     const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
   AllocateIPRequest request = AllocateIPRequest();
@@ -90,10 +88,9 @@ int MobilityServiceClient::AllocateIPv4v6AddressAsync(
   request.set_apn(apn);
 
   AllocateIPAddressRPC(request, callback);
-  return 0;
 }
 
-int MobilityServiceClient::ReleaseIPv4Address(
+void MobilityServiceClient::ReleaseIPv4Address(
     const std::string& imsi, const std::string& apn,
     const struct in_addr& addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
@@ -114,10 +111,9 @@ int MobilityServiceClient::ReleaseIPv4Address(
                 << ", msg: " << status.error_message() << std::endl;
     }
   });
-  return 0;
 }
 
-int MobilityServiceClient::ReleaseIPv6Address(
+void MobilityServiceClient::ReleaseIPv6Address(
     const std::string& imsi, const std::string& apn,
     const struct in6_addr& addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
@@ -137,10 +133,9 @@ int MobilityServiceClient::ReleaseIPv6Address(
                 << ", msg: " << status.error_message() << std::endl;
     }
   });
-  return 0;
 }
 
-int MobilityServiceClient::ReleaseIPv4v6Address(
+void MobilityServiceClient::ReleaseIPv4v6Address(
     const std::string& imsi, const std::string& apn,
     const struct in_addr& ipv4_addr, const struct in6_addr& ipv6_addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
@@ -173,7 +168,6 @@ int MobilityServiceClient::ReleaseIPv4v6Address(
                 << ", msg: " << status.error_message() << std::endl;
     }
   });
-  return 0;
 }
 
 // More than one IP can be assigned due to multiple PDNs (one per PDN)

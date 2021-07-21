@@ -69,6 +69,9 @@
       "feg/deploy_intro": {
         "title": "Introduction"
       },
+      "feg/dev_testing": {
+        "title": "Test Federation Gateway"
+      },
       "feg/docker_setup": {
         "title": "FeG Docker Setup"
       },
@@ -329,7 +332,7 @@
         "title": "Security"
       },
       "orc8r/dev_testing": {
-        "title": "Testing Tips"
+        "title": "Test Orchestrator"
       },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
@@ -439,6 +442,9 @@
       "proposals/p017_apn_refactoring": {
         "title": "APN Refactoring Proposal"
       },
+      "proposals/p018_control_network_metrics": {
+        "title": "Export Control Path Network Metrics"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
@@ -447,6 +453,9 @@
       },
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
+      },
+      "resources/ref_magma_metrics": {
+        "title": "Life of a Magma Metric"
       },
       "resources/ref_pcap": {
         "title": "PCAP Collection"

@@ -32,8 +32,8 @@ controller:
   spec:
     # Postgres/mysql configuration
     database:
-      driver: postgres      # mysql/postgres
-      sql_dialect: psql # maria/psql
+      driver: postgres   # mysql/postgres
+      sql_dialect: psql  # maria/psql
       db: magma          # DB Name
       protocol: tcp
       host: postgresql

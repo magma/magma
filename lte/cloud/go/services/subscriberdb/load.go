@@ -171,10 +171,10 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 				MaxBandwidthDl: *(apnConfig.Ambr.MaxBandwidthDl),
 			},
 			QosProfile: &lte_protos.APNConfiguration_QoSProfile{
-				ClassId:                 *(apnConfig.QosProfile.ClassID),
-				PriorityLevel:           *(apnConfig.QosProfile.PriorityLevel),
-				PreemptionCapability:    *(apnConfig.QosProfile.PreemptionCapability),
-				PreemptionVulnerability: *(apnConfig.QosProfile.PreemptionVulnerability),
+				ClassId:                 swag.Int32Value(apnConfig.QosProfile.ClassID),
+				PriorityLevel:           swag.Uint32Value(apnConfig.QosProfile.PriorityLevel),
+				PreemptionCapability:    swag.BoolValue(apnConfig.QosProfile.PreemptionCapability),
+				PreemptionVulnerability: swag.BoolValue(apnConfig.QosProfile.PreemptionVulnerability),
 			},
 			Resource: apnResource,
 		}

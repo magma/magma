@@ -532,11 +532,9 @@ void MmeNasStateConverter::ue_context_to_proto(
     const ue_mm_context_t* state_ue_context, oai::UeContext* ue_context_proto) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_proto->Clear();
-
-  char* msisdn_buffer = bstr2cstr(state_ue_context->msisdn, (char) '?');
-  if (msisdn_buffer) {
-    ue_context_proto->set_msisdn(msisdn_buffer);
-    bcstrfree(msisdn_buffer);
+  if (state_ue_context->msisdn && state_ue_context->msisdn->slen) {
+    BSTRING_TO_STRING(
+        state_ue_context->msisdn, ue_context_proto->mutable_msisdn());
   } else {
     ue_context_proto->set_msisdn("");
   }

@@ -13,11 +13,11 @@ limitations under the License.
 """
 import argparse
 import socket
+from typing import List
+
+import jsonpickle
 import requests
 import urllib3
-import jsonpickle
-
-from typing import List
 
 NETWORK_TYPE = "carrier_wifi_network"
 
@@ -149,13 +149,13 @@ def create_network_if_not_exists(url: str, network_id: str):
         print(f"NMS XWF-M Network exists already - {network_id}")
     else:
         data = XwFMNetwork(
-            id=network_id, name="XWFM Network", description="XWFM Network"
+            id=network_id, name="XWFM Network", description="XWFM Network",
         )
         cloud_post(url + "/networks", jsonpickle.pickler.encode(data))
 
         # create tier
         tier_payload = Tier(
-            id="default", name="default", version="0.0.0-0", images=[], gateways=[]
+            id="default", name="default", version="0.0.0-0", images=[], gateways=[],
         )
         cloud_post(
             url + f"/networks/{network_id}/tiers",
@@ -188,8 +188,8 @@ def register_gateway(url: str, network_id: str, hardware_id: str, tier_id: str):
 	    tier="default",
             id=f"fbc_gw_{gid}",
             device=GatewayDevice(
-                hardware_id=hardware_id, key=ChallengeKey(key_type="ECHO")
-	    ),
+                hardware_id=hardware_id, key=ChallengeKey(key_type="ECHO"),
+            ),
 	    magmad=MagmadGatewayConfigs(
 	        autoupgrade_enabled=True,
 	        autoupgrade_poll_interval=60,
@@ -211,13 +211,13 @@ def create_parser():
     )
 
     parser.add_argument(
-        "--partner", dest="partner", action="store", help="Partner Short Name"
+        "--partner", dest="partner", action="store", help="Partner Short Name",
     )
     parser.add_argument(
-        "--hwid", dest="hwid", action="store", help="Gateway Hardware ID"
+        "--hwid", dest="hwid", action="store", help="Gateway Hardware ID",
     )
     parser.add_argument(
-        "--url", dest="url", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address",
     )
     return parser
 

@@ -26,6 +26,7 @@ EnvironmentFile=/etc/environment
 ExecStart=/usr/local/bin/mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
 MemoryAccounting=yes
 MemoryLimit=13%
+MemoryMin=512M
 ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_oai_config.py
 ExecStartPre=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py reset_sctpd_for_stateful
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py mme

@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "assertions.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "common_defs.h"
@@ -905,7 +906,8 @@ int decode_mobile_station_classmark_3_ie(
 int encode_mobile_station_classmark_3_ie(
     mobile_station_classmark3_t* mobilestationclassmark3,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  return 0;
+  Fatal("TODO encode_mobile_station_classmark_3_ie");
+  return -1;
 }
 
 //------------------------------------------------------------------------------
@@ -1049,5 +1051,6 @@ int decode_network_resource_identifier_container_ie(
 int encode_network_resource_identifier_container_ie(
     network_resource_identifier_container_t* networkresourceidentifiercontainer,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  return 0;
+  Fatal("TODO encode_network_resource_identifier_container_ie");
+  return -1;
 }

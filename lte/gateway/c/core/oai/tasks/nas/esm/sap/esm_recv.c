@@ -523,13 +523,15 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
+  bool no_delete_gtpv2c_tunnel = true;  // Due to check on line 470
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Sending Delete session req message "
       "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
       ue_mm_context_p->mme_ue_s1ap_id, pid, msg->linkedepsbeareridentity);
   mme_app_send_delete_session_request(
-      ue_mm_context_p, msg->linkedepsbeareridentity, pid);
+      ue_mm_context_p, msg->linkedepsbeareridentity, pid,
+      no_delete_gtpv2c_tunnel);
 
   /*
    * Return the ESM cause value

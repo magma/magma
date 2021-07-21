@@ -17,6 +17,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/parallel"
 )
 
 var clusterConfig = flag.String("cluster-config", "", "Location of the cluster config file")
@@ -26,6 +30,16 @@ type Gateway struct {
 	ID         string `json:"gateway_id"`
 	HardwareID string `json:"hardware_id"`
 	HostName   string `json:"hostname"`
+}
+
+type Gateways []Gateway
+
+func (g Gateways) Hostnames() []string {
+	var hh []string
+	for _, gw := range g {
+		hh = append(hh, gw.HostName)
+	}
+	return hh
 }
 
 //ClusterInternalConfig cluster's internal configuration
@@ -39,11 +53,36 @@ type Cluster struct {
 	ClusterType    int                    `json:"cluster_type"`
 	InternalConfig ClusterInternalConfig  `json:"internal_config"`
 	Template       map[string]interface{} `json:"template"`
-	Gateways       []Gateway              `json:"gateways"`
+	Gateways       Gateways               `json:"gateways"`
+}
+
+func (c *Cluster) RunCmdOnGateways(cmd string) ([]string, error) {
+	outs, err := parallel.MapString(c.Gateways.Hostnames(), parallel.DefaultNumWorkers, func(in parallel.In) (parallel.Out, error) {
+		hostname := in.(string)
+		out, err := runRemoteCommand(hostname, c.InternalConfig.BastionIP, []string{cmd})
+		if err != nil {
+			return nil, errors.Wrapf(err, "run remote commands on gateway '%s'; out: %+v", hostname, out)
+		}
+		return out, nil
+	})
+	return outs, err
 }
 
 // GetClusterInfo parses cluster config file and returns config instance
 func GetClusterInfo() (*Cluster, error) {
+	c, err := GetClusterFromFile()
+	if err != nil {
+		return nil, err
+	}
+	err = c.populateHWIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func GetClusterFromFile() (*Cluster, error) {
 	if clusterConfig == nil {
 		return nil, fmt.Errorf("Cluster config doesn't exist")
 	}
@@ -54,17 +93,6 @@ func GetClusterInfo() (*Cluster, error) {
 	}
 	cluster := Cluster{}
 	_ = json.Unmarshal([]byte(bytes), &cluster)
-
-	// populate gateway information
-	for i := range cluster.Gateways {
-		hardwareID, err := fetchHardwareID(
-			cluster.Gateways[i].HostName,
-			cluster.InternalConfig.BastionIP)
-		if err != nil {
-			return nil, err
-		}
-		cluster.Gateways[i].HardwareID = hardwareID
-	}
 	return &cluster, nil
 }
 
@@ -80,4 +108,24 @@ func SetClusterInfo(cluster *Cluster) error {
 	}
 	err = ioutil.WriteFile(*clusterConfig, file, 0644)
 	return err
+}
+
+func (c *Cluster) populateHWIDs() error {
+	hwids, err := parallel.MapString(c.Gateways.Hostnames(), parallel.DefaultNumWorkers, func(in parallel.In) (parallel.Out, error) {
+		hostname := in.(string)
+		hwid, err := fetchHardwareID(hostname, c.InternalConfig.BastionIP)
+		if err != nil {
+			return nil, err
+		}
+		return hwid, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	for i, hwid := range hwids {
+		c.Gateways[i].HardwareID = hwid
+	}
+
+	return nil
 }

@@ -61,7 +61,7 @@
 //------------------------------------------------------------------------------
 void mme_app_send_delete_session_request(
     struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
-    const pdn_cid_t cid) {
+    const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel) {
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO_UE(
@@ -84,7 +84,8 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).local_teid = ue_context_p->mme_teid_s11;
   S11_DELETE_SESSION_REQUEST(message_p).teid =
       ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
-  S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi;  // default bearer
+  S11_DELETE_SESSION_REQUEST(message_p).noDelete = no_delete_gtpv2c_tunnel;
+  S11_DELETE_SESSION_REQUEST(message_p).lbi      = ebi;  // default bearer
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_addr =
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family =
@@ -201,11 +202,22 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       }
     }
   } else {
+    // delete gtpv2c tunnel on last PDN
+    bool no_delete_gtpv2c_tunnel = true;
+    pdn_cid_t last_cid_to_delete = 0;
+    for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+      if (ue_context_p->pdn_contexts[i]) {
+        // save the last connection id to be deleted
+        last_cid_to_delete = i;
+      }
+    }
     for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
       if (ue_context_p->pdn_contexts[i]) {
         // Send a DELETE_SESSION_REQUEST message to the SGW
+        no_delete_gtpv2c_tunnel = (last_cid_to_delete == i) ? false : true;
         mme_app_send_delete_session_request(
-            ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i);
+            ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i,
+            no_delete_gtpv2c_tunnel);
       }
     }
   }
