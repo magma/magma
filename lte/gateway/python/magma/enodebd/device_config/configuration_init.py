@@ -200,7 +200,7 @@ def _get_enb_config(
             bandwidth_mhz = enb_config.bandwidth_mhz
             cell_id = enb_config.cell_id
             mme_address = enb_config.mme_ip
-            mme_port = 36412
+            mme_port = DEFAULT_S1_PORT
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None

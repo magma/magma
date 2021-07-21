@@ -84,7 +84,7 @@ export default function AddEditEnodebDialog(props: Props) {
   const [serialId, setSerialId] = useState<string>(editingEnodeb?.serial || '');
   const [tac, setTac] = useState(String(editingEnodeb?.config.tac || ''));
   const [mme_ip, setMmeIP] = useState(
-    String(editingEnodeb?.config.mme_ip || '10.0.2.1'),
+    String(editingEnodeb?.config.mme_ip || ''),
   );
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
     editingEnodeb?.config.transmit_enabled ?? false,
