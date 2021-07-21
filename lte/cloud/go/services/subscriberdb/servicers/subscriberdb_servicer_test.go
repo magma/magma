@@ -313,8 +313,8 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 	lastResyncStore := initializeLastResyncTimeStore(t)
 
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
-		DigestsEnabled:    true,
-		MaxProtosLoadSize: 10,
+		DigestsEnabled:     true,
+		MaxProtosLoadSize:  10,
 		ResyncIntervalSecs: 1000,
 	}, digestStore, perSubDigestStore, subStore, lastResyncStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -749,7 +749,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 		DigestsEnabled:         true,
 		ChangesetSizeThreshold: 2,
 		MaxProtosLoadSize:      100,
-		ResyncIntervalSecs:    1000,
+		ResyncIntervalSecs:     1000,
 	}
 	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subStore, lastResyncStore)
 

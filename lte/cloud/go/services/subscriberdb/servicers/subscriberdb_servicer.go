@@ -38,11 +38,11 @@ type subscriberdbServicer struct {
 	digestsEnabled         bool
 	changesetSizeThreshold int
 	maxProtosLoadSize      uint64
-	resyncIntervalSecs uint64
+	resyncIntervalSecs     uint64
 	digestStore            storage.DigestStore
 	perSubDigestStore      *storage.PerSubDigestStore
 	subStore               *storage.SubStore
-	lastResyncTimeStore   *storage.LastResyncTimeStore
+	lastResyncTimeStore    *storage.LastResyncTimeStore
 }
 
 func NewSubscriberdbServicer(
@@ -56,11 +56,11 @@ func NewSubscriberdbServicer(
 		digestsEnabled:         config.DigestsEnabled,
 		changesetSizeThreshold: config.ChangesetSizeThreshold,
 		maxProtosLoadSize:      config.MaxProtosLoadSize,
-		resyncIntervalSecs: config.ResyncIntervalSecs,
+		resyncIntervalSecs:     config.ResyncIntervalSecs,
 		digestStore:            digestStore,
 		perSubDigestStore:      perSubDigestStore,
 		subStore:               subStore,
-		lastResyncTimeStore:   lastResyncTimeStore,
+		lastResyncTimeStore:    lastResyncTimeStore,
 	}
 	return servicer
 }
