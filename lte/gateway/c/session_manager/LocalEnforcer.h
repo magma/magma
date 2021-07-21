@@ -35,7 +35,7 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "SpgwServiceClient.h"
-#include "UEShard.h"
+#include "ShardTracker.h"
 
 namespace magma {
 using std::experimental::optional;
@@ -346,8 +346,8 @@ class LocalEnforcer {
   std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  std::shared_ptr<UEShard> shards_;
   SessionStore& session_store_;
+  std::shared_ptr<ShardTracker> shards_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a

@@ -72,7 +72,7 @@ LocalEnforcer::LocalEnforcer(
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
       session_store_(session_store),
-      shards_(std::make_shared<UEShard>()),
+      shards_(std::make_shared<ShardTracker>()),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
