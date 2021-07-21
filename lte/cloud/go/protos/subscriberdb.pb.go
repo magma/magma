@@ -936,8 +936,8 @@ type SyncSubscribersResponse struct {
 	// per_sub_digests is a list of digests for each server-side subscriber, ordered
 	// by their IDs (IMSI).
 	PerSubDigests []*SubscriberDigestWithID `protobuf:"bytes,3,rep,name=per_sub_digests,json=perSubDigests,proto3" json:"per_sub_digests,omitempty"`
-	// to_renew is the set of all subscriber data modified/added on the server side,
-	// indexed by their IDs (IMSI).
+	// to_renew is the list of all subscriber data modified/added on the server side,
+	// ordered by their IDs (IMSI).
 	ToRenew []*SubscriberData `protobuf:"bytes,4,rep,name=to_renew,json=toRenew,proto3" json:"to_renew,omitempty"`
 	// deleted is a list of IDs for subscribers removed on the server side.
 	Deleted              []string `protobuf:"bytes,5,rep,name=deleted,proto3" json:"deleted,omitempty"`
