@@ -21,30 +21,30 @@ a certain size, to make polling more manageable*/
 class ShardTracker {
  public:
   /**
-  * Add UE to shards based on availability
-  * @return index(shard id) where UE was placed
-  * TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation
-  * (GH8167)
-  */
+   * Add UE to shards based on availability
+   * @return index(shard id) where UE was placed
+   * TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation
+   * (GH8167)
+   */
   int add_ue();
 
   /**
-  * Remove UE from shard
-  * @param shard_id location of UE to be removed
-  * @return true for successful removal, false for failed removal
-  */
+   * Remove UE from shard
+   * @param shard_id location of UE to be removed
+   * @return true for successful removal, false for failed removal
+   */
   bool remove_ue(int shard_id);
 
  private:
   /*
-  * a vector of quantities, where the indices represent
-  * the shard id and the values represent the number of
-  * UEs held in each shard
-  */
+   * a vector of quantities, where the indices represent
+   * the shard id and the values represent the number of
+   * UEs held in each shard
+   */
   std::vector<uint16_t> ue_count_per_shard_;
   /*
-  * largest number of UEs that can fill a shard
-  */
+   * largest number of UEs that can fill a shard
+   */
   const uint16_t max_shard_size_ = 100;
 };
 
