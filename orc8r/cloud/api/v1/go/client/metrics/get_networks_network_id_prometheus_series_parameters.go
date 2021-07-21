@@ -13,79 +13,95 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDPrometheusSeriesParams creates a new GetNetworksNetworkIDPrometheusSeriesParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDPrometheusSeriesParams creates a new GetNetworksNetworkIDPrometheusSeriesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDPrometheusSeriesParams() *GetNetworksNetworkIDPrometheusSeriesParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusSeriesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusSeriesParamsWithTimeout creates a new GetNetworksNetworkIDPrometheusSeriesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDPrometheusSeriesParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDPrometheusSeriesParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusSeriesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusSeriesParamsWithContext creates a new GetNetworksNetworkIDPrometheusSeriesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDPrometheusSeriesParamsWithContext(ctx context.Context) *GetNetworksNetworkIDPrometheusSeriesParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusSeriesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusSeriesParamsWithHTTPClient creates a new GetNetworksNetworkIDPrometheusSeriesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDPrometheusSeriesParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDPrometheusSeriesParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusSeriesParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusSeriesParams contains all the parameters to send to the API endpoint
-for the get networks network ID prometheus series operation typically these are written to a http.Request
+/* GetNetworksNetworkIDPrometheusSeriesParams contains all the parameters to send to the API endpoint
+   for the get networks network ID prometheus series operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDPrometheusSeriesParams struct {
 
-	/*End
-	  end time of the requested range (UnixTime or RFC3339)
+	/* End.
 
+	   end time of the requested range (UnixTime or RFC3339)
 	*/
 	End *string
-	/*Match
-	  Matcher for metric series query
 
+	/* Match.
+
+	   Matcher for metric series query
 	*/
 	Match []string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Start
-	  start time of the requested range (UnixTime or RFC3339)
 
+	/* Start.
+
+	   start time of the requested range (UnixTime or RFC3339)
 	*/
 	Start *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID prometheus series params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPrometheusSeriesParams) WithDefaults() *GetNetworksNetworkIDPrometheusSeriesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID prometheus series params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPrometheusSeriesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID prometheus series params
@@ -177,24 +193,28 @@ func (o *GetNetworksNetworkIDPrometheusSeriesParams) WriteToRequest(r runtime.Cl
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
-	valuesMatch := o.Match
+	if o.Match != nil {
 
-	joinedMatch := swag.JoinByFormat(valuesMatch, "ssv")
-	// query array param match
-	if err := r.SetQueryParam("match", joinedMatch...); err != nil {
-		return err
+		// binding items for match
+		joinedMatch := o.bindParamMatch(reg)
+
+		// query array param match
+		if err := r.SetQueryParam("match", joinedMatch...); err != nil {
+			return err
+		}
 	}
 
 	// path param network_id
@@ -206,20 +226,38 @@ func (o *GetNetworksNetworkIDPrometheusSeriesParams) WriteToRequest(r runtime.Cl
 
 		// query param start
 		var qrStart string
+
 		if o.Start != nil {
 			qrStart = *o.Start
 		}
 		qStart := qrStart
 		if qStart != "" {
+
 			if err := r.SetQueryParam("start", qStart); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+// bindParamGetNetworksNetworkIDPrometheusSeries binds the parameter match
+func (o *GetNetworksNetworkIDPrometheusSeriesParams) bindParamMatch(formats strfmt.Registry) []string {
+	matchIR := o.Match
+
+	var matchIC []string
+	for _, matchIIR := range matchIR { // explode []string
+
+		matchIIV := matchIIR // string as string
+		matchIC = append(matchIC, matchIIV)
+	}
+
+	// items.CollectionFormat: "ssv"
+	matchIS := swag.JoinByFormat(matchIC, "ssv")
+
+	return matchIS
 }

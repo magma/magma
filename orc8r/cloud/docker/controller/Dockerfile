@@ -21,10 +21,10 @@ RUN apt-get update && apt-get install -y \
   unzip \
   vim
 
-# Golang 1.13
+# Golang 1.16
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.16.6.linux-amd64.tar.gz -O && \
+    tar xf go1.16.6.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Protobuf compiler

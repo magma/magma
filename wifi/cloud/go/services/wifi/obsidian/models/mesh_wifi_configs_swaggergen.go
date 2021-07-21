@@ -6,42 +6,57 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // MeshWifiConfigs Wifi configurations for a mesh network
+//
 // swagger:model mesh_wifi_configs
 type MeshWifiConfigs struct {
 
 	// additional props
+	// Example: {"meshprop1":"meshvalue1","meshprop2":"meshvalue2"}
 	AdditionalProps map[string]string `json:"additional_props,omitempty"`
 
 	// mesh channel type
+	// Example: HT20
 	MeshChannelType string `json:"mesh_channel_type,omitempty"`
 
 	// mesh frequency
+	// Example: 5825
 	MeshFrequency int32 `json:"mesh_frequency,omitempty"`
 
 	// mesh ssid
+	// Example: bazooka
 	MeshSsid string `json:"mesh_ssid,omitempty"`
 
 	// password
+	// Example: password
 	Password string `json:"password,omitempty"`
 
 	// ssid
+	// Example: SuperFastWifiNetwork
 	Ssid string `json:"ssid,omitempty"`
 
 	// vl ssid
+	// Example: VirtualLighthouseNetwork
 	VlSsid string `json:"vl_ssid,omitempty"`
 
 	// xwf enabled
+	// Example: false
 	XwfEnabled bool `json:"xwf_enabled,omitempty"`
 }
 
 // Validate validates this mesh wifi configs
 func (m *MeshWifiConfigs) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this mesh wifi configs based on context it is used
+func (m *MeshWifiConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

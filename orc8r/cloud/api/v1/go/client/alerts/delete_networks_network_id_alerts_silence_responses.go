@@ -10,8 +10,7 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // DeleteNetworksNetworkIDAlertsSilenceReader is a Reader for the DeleteNetworksNetworkIDAlertsSilence structure.
@@ -45,7 +44,7 @@ func NewDeleteNetworksNetworkIDAlertsSilenceOK() *DeleteNetworksNetworkIDAlertsS
 	return &DeleteNetworksNetworkIDAlertsSilenceOK{}
 }
 
-/*DeleteNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
+/* DeleteNetworksNetworkIDAlertsSilenceOK describes a response with status code 200, with default header values.
 
 Successfully deleted silencer
 */
@@ -56,7 +55,6 @@ type DeleteNetworksNetworkIDAlertsSilenceOK struct {
 func (o *DeleteNetworksNetworkIDAlertsSilenceOK) Error() string {
 	return fmt.Sprintf("[DELETE /networks/{network_id}/alerts/silence][%d] deleteNetworksNetworkIdAlertsSilenceOK  %+v", 200, o.Payload)
 }
-
 func (o *DeleteNetworksNetworkIDAlertsSilenceOK) GetPayload() string {
 	return o.Payload
 }
@@ -78,7 +76,7 @@ func NewDeleteNetworksNetworkIDAlertsSilenceDefault(code int) *DeleteNetworksNet
 	}
 }
 
-/*DeleteNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
+/* DeleteNetworksNetworkIDAlertsSilenceDefault describes a response with status code -1, with default header values.
 
 Network ID
 */

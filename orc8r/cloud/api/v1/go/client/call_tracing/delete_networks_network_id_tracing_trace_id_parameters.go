@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteNetworksNetworkIDTracingTraceIDParams creates a new DeleteNetworksNetworkIDTracingTraceIDParams object
-// with the default values initialized.
+// NewDeleteNetworksNetworkIDTracingTraceIDParams creates a new DeleteNetworksNetworkIDTracingTraceIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteNetworksNetworkIDTracingTraceIDParams() *DeleteNetworksNetworkIDTracingTraceIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTracingTraceIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDTracingTraceIDParamsWithTimeout creates a new DeleteNetworksNetworkIDTracingTraceIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteNetworksNetworkIDTracingTraceIDParamsWithTimeout(timeout time.Duration) *DeleteNetworksNetworkIDTracingTraceIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTracingTraceIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDTracingTraceIDParamsWithContext creates a new DeleteNetworksNetworkIDTracingTraceIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteNetworksNetworkIDTracingTraceIDParamsWithContext(ctx context.Context) *DeleteNetworksNetworkIDTracingTraceIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTracingTraceIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteNetworksNetworkIDTracingTraceIDParamsWithHTTPClient creates a new DeleteNetworksNetworkIDTracingTraceIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteNetworksNetworkIDTracingTraceIDParamsWithHTTPClient(client *http.Client) *DeleteNetworksNetworkIDTracingTraceIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTracingTraceIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteNetworksNetworkIDTracingTraceIDParams contains all the parameters to send to the API endpoint
-for the delete networks network ID tracing trace ID operation typically these are written to a http.Request
+/* DeleteNetworksNetworkIDTracingTraceIDParams contains all the parameters to send to the API endpoint
+   for the delete networks network ID tracing trace ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteNetworksNetworkIDTracingTraceIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*TraceID
-	  Unique ID of call trace
 
+	/* TraceID.
+
+	   Unique ID of call trace
 	*/
 	TraceID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete networks network ID tracing trace ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDTracingTraceIDParams) WithDefaults() *DeleteNetworksNetworkIDTracingTraceIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete networks network ID tracing trace ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDTracingTraceIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete networks network ID tracing trace ID params

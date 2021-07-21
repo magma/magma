@@ -13,84 +13,103 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDSubscribersV2Params creates a new GetLTENetworkIDSubscribersV2Params object
-// with the default values initialized.
+// NewGetLTENetworkIDSubscribersV2Params creates a new GetLTENetworkIDSubscribersV2Params object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDSubscribersV2Params() *GetLTENetworkIDSubscribersV2Params {
-	var ()
 	return &GetLTENetworkIDSubscribersV2Params{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDSubscribersV2ParamsWithTimeout creates a new GetLTENetworkIDSubscribersV2Params object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDSubscribersV2ParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDSubscribersV2Params {
-	var ()
 	return &GetLTENetworkIDSubscribersV2Params{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDSubscribersV2ParamsWithContext creates a new GetLTENetworkIDSubscribersV2Params object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDSubscribersV2ParamsWithContext(ctx context.Context) *GetLTENetworkIDSubscribersV2Params {
-	var ()
 	return &GetLTENetworkIDSubscribersV2Params{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDSubscribersV2ParamsWithHTTPClient creates a new GetLTENetworkIDSubscribersV2Params object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDSubscribersV2ParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDSubscribersV2Params {
-	var ()
 	return &GetLTENetworkIDSubscribersV2Params{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDSubscribersV2Params contains all the parameters to send to the API endpoint
-for the get LTE network ID subscribers v2 operation typically these are written to a http.Request
+/* GetLTENetworkIDSubscribersV2Params contains all the parameters to send to the API endpoint
+   for the get LTE network ID subscribers v2 operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDSubscribersV2Params struct {
 
-	/*IP
-	  Filter to subscribers assigned the passed IP address
+	/* IP.
 
+	   Filter to subscribers assigned the passed IP address
 	*/
 	IP *string
-	/*Msisdn
-	  Filter to subscribers with the passed MSISDN
 
+	/* Msisdn.
+
+	   Filter to subscribers with the passed MSISDN
 	*/
 	Msisdn *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*PageSize
-	  Maximum number of entities to return
 
+	/* PageSize.
+
+	   Maximum number of entities to return
+
+	   Format: uint32
 	*/
 	PageSize *uint32
-	/*PageToken
-	  Opaque page token for paginated requests
 
+	/* PageToken.
+
+	   Opaque page token for paginated requests
 	*/
 	PageToken *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID subscribers v2 params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDSubscribersV2Params) WithDefaults() *GetLTENetworkIDSubscribersV2Params {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID subscribers v2 params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDSubscribersV2Params) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID subscribers v2 params
@@ -193,32 +212,34 @@ func (o *GetLTENetworkIDSubscribersV2Params) WriteToRequest(r runtime.ClientRequ
 
 		// query param ip
 		var qrIP string
+
 		if o.IP != nil {
 			qrIP = *o.IP
 		}
 		qIP := qrIP
 		if qIP != "" {
+
 			if err := r.SetQueryParam("ip", qIP); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Msisdn != nil {
 
 		// query param msisdn
 		var qrMsisdn string
+
 		if o.Msisdn != nil {
 			qrMsisdn = *o.Msisdn
 		}
 		qMsisdn := qrMsisdn
 		if qMsisdn != "" {
+
 			if err := r.SetQueryParam("msisdn", qMsisdn); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -230,32 +251,34 @@ func (o *GetLTENetworkIDSubscribersV2Params) WriteToRequest(r runtime.ClientRequ
 
 		// query param page_size
 		var qrPageSize uint32
+
 		if o.PageSize != nil {
 			qrPageSize = *o.PageSize
 		}
 		qPageSize := swag.FormatUint32(qrPageSize)
 		if qPageSize != "" {
+
 			if err := r.SetQueryParam("page_size", qPageSize); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.PageToken != nil {
 
 		// query param page_token
 		var qrPageToken string
+
 		if o.PageToken != nil {
 			qrPageToken = *o.PageToken
 		}
 		qPageToken := qrPageToken
 		if qPageToken != "" {
+
 			if err := r.SetQueryParam("page_token", qPageToken); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

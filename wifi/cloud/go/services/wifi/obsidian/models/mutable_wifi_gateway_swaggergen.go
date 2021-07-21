@@ -6,16 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models1 "magma/orc8r/cloud/go/models"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableWifiGateway Wifi gateway object with read-only fields omitted
+//
 // swagger:model mutable_wifi_gateway
 type MutableWifiGateway struct {
 
@@ -88,6 +90,10 @@ func (m *MutableWifiGateway) Validate(formats strfmt.Registry) error {
 
 func (m *MutableWifiGateway) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", GatewayDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
@@ -117,6 +123,10 @@ func (m *MutableWifiGateway) validateDevice(formats strfmt.Registry) error {
 }
 
 func (m *MutableWifiGateway) validateID(formats strfmt.Registry) error {
+
+	if err := validate.Required("id", "body", GatewayID(m.ID)); err != nil {
+		return err
+	}
 
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -148,6 +158,10 @@ func (m *MutableWifiGateway) validateMagmad(formats strfmt.Registry) error {
 
 func (m *MutableWifiGateway) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", GatewayName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
@@ -159,6 +173,10 @@ func (m *MutableWifiGateway) validateName(formats strfmt.Registry) error {
 }
 
 func (m *MutableWifiGateway) validateTier(formats strfmt.Registry) error {
+
+	if err := validate.Required("tier", "body", TierID(m.Tier)); err != nil {
+		return err
+	}
 
 	if err := m.Tier.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -178,6 +196,134 @@ func (m *MutableWifiGateway) validateWifi(formats strfmt.Registry) error {
 
 	if m.Wifi != nil {
 		if err := m.Wifi.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("wifi")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable wifi gateway based on the context it is used
+func (m *MutableWifiGateway) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMagmad(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTier(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateWifi(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateDevice(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Device != nil {
+		if err := m.Device.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("device")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateMagmad(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Magmad != nil {
+		if err := m.Magmad.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("magmad")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateTier(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Tier.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("tier")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableWifiGateway) contextValidateWifi(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Wifi != nil {
+		if err := m.Wifi.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("wifi")
 			}

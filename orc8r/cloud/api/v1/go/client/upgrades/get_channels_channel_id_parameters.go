@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetChannelsChannelIDParams creates a new GetChannelsChannelIDParams object
-// with the default values initialized.
+// NewGetChannelsChannelIDParams creates a new GetChannelsChannelIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetChannelsChannelIDParams() *GetChannelsChannelIDParams {
-	var ()
 	return &GetChannelsChannelIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetChannelsChannelIDParamsWithTimeout creates a new GetChannelsChannelIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetChannelsChannelIDParamsWithTimeout(timeout time.Duration) *GetChannelsChannelIDParams {
-	var ()
 	return &GetChannelsChannelIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetChannelsChannelIDParamsWithContext creates a new GetChannelsChannelIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetChannelsChannelIDParamsWithContext(ctx context.Context) *GetChannelsChannelIDParams {
-	var ()
 	return &GetChannelsChannelIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetChannelsChannelIDParamsWithHTTPClient creates a new GetChannelsChannelIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetChannelsChannelIDParamsWithHTTPClient(client *http.Client) *GetChannelsChannelIDParams {
-	var ()
 	return &GetChannelsChannelIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetChannelsChannelIDParams contains all the parameters to send to the API endpoint
-for the get channels channel ID operation typically these are written to a http.Request
+/* GetChannelsChannelIDParams contains all the parameters to send to the API endpoint
+   for the get channels channel ID operation.
+
+   Typically these are written to a http.Request.
 */
 type GetChannelsChannelIDParams struct {
 
-	/*ChannelID
-	  Release Channel ID
+	/* ChannelID.
 
+	   Release Channel ID
 	*/
 	ChannelID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get channels channel ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetChannelsChannelIDParams) WithDefaults() *GetChannelsChannelIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get channels channel ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetChannelsChannelIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get channels channel ID params

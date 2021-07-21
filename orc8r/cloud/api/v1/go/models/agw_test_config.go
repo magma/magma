@@ -6,38 +6,45 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AgwTestConfig Shared AGW test configuration for auto-upgrades
+//
 // swagger:model agw_test_config
 type AgwTestConfig struct {
 
 	// URL of debian package repo
+	// Example: https://artifactory.magmacore.org/artifactory/debian/
 	// Required: true
 	// Min Length: 1
 	PackageRepo *string `json:"package_repo"`
 
 	// Release channel for package repo (stretch-beta, stretch-dev, etc)
+	// Example: stretch-beta
 	// Required: true
 	// Min Length: 1
 	ReleaseChannel *string `json:"release_channel"`
 
 	// Slack webhook for test notifications
+	// Example: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
 	// Required: true
 	// Min Length: 1
 	SlackWebhook *string `json:"slack_webhook"`
 
 	// Gateway ID of the target gateway
+	// Example: mpk_dogfooding_magma_1
 	// Required: true
 	// Min Length: 1
 	TargetGatewayID *string `json:"target_gateway_id"`
 
 	// ID of upgrade tier to bump when new version is found in package repo
+	// Example: t2
 	// Required: true
 	// Min Length: 1
 	TargetTier *string `json:"target_tier"`
@@ -79,7 +86,7 @@ func (m *AgwTestConfig) validatePackageRepo(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("package_repo", "body", string(*m.PackageRepo), 1); err != nil {
+	if err := validate.MinLength("package_repo", "body", *m.PackageRepo, 1); err != nil {
 		return err
 	}
 
@@ -92,7 +99,7 @@ func (m *AgwTestConfig) validateReleaseChannel(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("release_channel", "body", string(*m.ReleaseChannel), 1); err != nil {
+	if err := validate.MinLength("release_channel", "body", *m.ReleaseChannel, 1); err != nil {
 		return err
 	}
 
@@ -105,7 +112,7 @@ func (m *AgwTestConfig) validateSlackWebhook(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("slack_webhook", "body", string(*m.SlackWebhook), 1); err != nil {
+	if err := validate.MinLength("slack_webhook", "body", *m.SlackWebhook, 1); err != nil {
 		return err
 	}
 
@@ -118,7 +125,7 @@ func (m *AgwTestConfig) validateTargetGatewayID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("target_gateway_id", "body", string(*m.TargetGatewayID), 1); err != nil {
+	if err := validate.MinLength("target_gateway_id", "body", *m.TargetGatewayID, 1); err != nil {
 		return err
 	}
 
@@ -131,10 +138,15 @@ func (m *AgwTestConfig) validateTargetTier(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("target_tier", "body", string(*m.TargetTier), 1); err != nil {
+	if err := validate.MinLength("target_tier", "body", *m.TargetTier, 1); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this agw test config based on context it is used
+func (m *AgwTestConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

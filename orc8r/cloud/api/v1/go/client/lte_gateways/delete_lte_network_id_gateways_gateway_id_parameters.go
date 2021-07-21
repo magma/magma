@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteLTENetworkIDGatewaysGatewayIDParams creates a new DeleteLTENetworkIDGatewaysGatewayIDParams object
-// with the default values initialized.
+// NewDeleteLTENetworkIDGatewaysGatewayIDParams creates a new DeleteLTENetworkIDGatewaysGatewayIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteLTENetworkIDGatewaysGatewayIDParams() *DeleteLTENetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteLTENetworkIDGatewaysGatewayIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteLTENetworkIDGatewaysGatewayIDParamsWithTimeout creates a new DeleteLTENetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteLTENetworkIDGatewaysGatewayIDParamsWithTimeout(timeout time.Duration) *DeleteLTENetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteLTENetworkIDGatewaysGatewayIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteLTENetworkIDGatewaysGatewayIDParamsWithContext creates a new DeleteLTENetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteLTENetworkIDGatewaysGatewayIDParamsWithContext(ctx context.Context) *DeleteLTENetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteLTENetworkIDGatewaysGatewayIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteLTENetworkIDGatewaysGatewayIDParamsWithHTTPClient creates a new DeleteLTENetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteLTENetworkIDGatewaysGatewayIDParamsWithHTTPClient(client *http.Client) *DeleteLTENetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteLTENetworkIDGatewaysGatewayIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
-for the delete LTE network ID gateways gateway ID operation typically these are written to a http.Request
+/* DeleteLTENetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
+   for the delete LTE network ID gateways gateway ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteLTENetworkIDGatewaysGatewayIDParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete LTE network ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteLTENetworkIDGatewaysGatewayIDParams) WithDefaults() *DeleteLTENetworkIDGatewaysGatewayIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete LTE network ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteLTENetworkIDGatewaysGatewayIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete LTE network ID gateways gateway ID params

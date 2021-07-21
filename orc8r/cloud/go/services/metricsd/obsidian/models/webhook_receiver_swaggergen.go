@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // WebhookReceiver webhook receiver
+//
 // swagger:model webhook_receiver
 type WebhookReceiver struct {
 
@@ -47,7 +49,6 @@ func (m *WebhookReceiver) Validate(formats strfmt.Registry) error {
 }
 
 func (m *WebhookReceiver) validateHTTPConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HTTPConfig) { // not required
 		return nil
 	}
@@ -68,6 +69,34 @@ func (m *WebhookReceiver) validateURL(formats strfmt.Registry) error {
 
 	if err := validate.Required("url", "body", m.URL); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this webhook receiver based on the context it is used
+func (m *WebhookReceiver) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateHTTPConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *WebhookReceiver) contextValidateHTTPConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.HTTPConfig != nil {
+		if err := m.HTTPConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("http_config")
+			}
+			return err
+		}
 	}
 
 	return nil

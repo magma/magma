@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams creates a new DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams object
-// with the default values initialized.
+// NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams creates a new DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams() *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams {
-	var ()
 	return &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithTimeout creates a new DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithTimeout(timeout time.Duration) *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams {
-	var ()
 	return &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithContext creates a new DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithContext(ctx context.Context) *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams {
-	var ()
 	return &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithHTTPClient creates a new DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithHTTPClient(client *http.Client) *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams {
-	var ()
 	return &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
-for the delete feg network ID subscriber config rule names rule ID operation typically these are written to a http.Request
+/* DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
+   for the delete feg network ID subscriber config rule names rule ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*RuleID
-	  Rule Id
 
+	/* RuleID.
+
+	   Rule Id
 	*/
 	RuleID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete feg network ID subscriber config rule names rule ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams) WithDefaults() *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete feg network ID subscriber config rule names rule ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete feg network ID subscriber config rule names rule ID params

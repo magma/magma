@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GettableAlertSilencer gettable alert silencer
+//
 // swagger:model gettable_alert_silencer
 type GettableAlertSilencer struct {
 	AlertSilencer
@@ -70,7 +72,6 @@ func (m GettableAlertSilencer) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	_parts = append(_parts, aO0)
-
 	var dataAO1 struct {
 		ID *string `json:"id"`
 
@@ -90,7 +91,6 @@ func (m GettableAlertSilencer) MarshalJSON() ([]byte, error) {
 		return nil, errAO1
 	}
 	_parts = append(_parts, jsonDataAO1)
-
 	return swag.ConcatJSON(_parts...), nil
 }
 
@@ -152,6 +152,39 @@ func (m *GettableAlertSilencer) validateUpdatedAt(formats strfmt.Registry) error
 
 	if err := validate.Required("updatedAt", "body", m.UpdatedAt); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gettable alert silencer based on the context it is used
+func (m *GettableAlertSilencer) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	// validation for a type composition with AlertSilencer
+	if err := m.AlertSilencer.ContextValidate(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GettableAlertSilencer) contextValidateStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Status != nil {
+		if err := m.Status.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("status")
+			}
+			return err
+		}
 	}
 
 	return nil

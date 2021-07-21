@@ -16,7 +16,7 @@ package magma.orc8r.configurator.mconfig;
 
 import "magma/orc8r/cloud/go/services/configurator/storage/storage.proto";
 
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/configurator/mconfig/protos";
 
 // MconfigBuilder creates a partial mconfig for a gateway within a network.
 service MconfigBuilder {

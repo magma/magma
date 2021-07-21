@@ -6,17 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PolicyRuleConfig policy rule config
+//
 // swagger:model policy_rule_config
 type PolicyRuleConfig struct {
 
@@ -176,14 +177,13 @@ const (
 
 // prop value enum
 func (m *PolicyRuleConfig) validateAppNameEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyRuleConfigTypeAppNamePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyRuleConfigTypeAppNamePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *PolicyRuleConfig) validateAppName(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AppName) { // not required
 		return nil
 	}
@@ -225,14 +225,13 @@ const (
 
 // prop value enum
 func (m *PolicyRuleConfig) validateAppServiceTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyRuleConfigTypeAppServiceTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyRuleConfigTypeAppServiceTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *PolicyRuleConfig) validateAppServiceType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AppServiceType) { // not required
 		return nil
 	}
@@ -280,7 +279,6 @@ func (m *PolicyRuleConfig) validatePriority(formats strfmt.Registry) error {
 }
 
 func (m *PolicyRuleConfig) validateRedirect(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Redirect) { // not required
 		return nil
 	}
@@ -326,14 +324,13 @@ const (
 
 // prop value enum
 func (m *PolicyRuleConfig) validateTrackingTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyRuleConfigTypeTrackingTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, policyRuleConfigTypeTrackingTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *PolicyRuleConfig) validateTrackingType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.TrackingType) { // not required
 		return nil
 	}
@@ -341,6 +338,56 @@ func (m *PolicyRuleConfig) validateTrackingType(formats strfmt.Registry) error {
 	// value enum
 	if err := m.validateTrackingTypeEnum("tracking_type", "body", m.TrackingType); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this policy rule config based on the context it is used
+func (m *PolicyRuleConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateFlowList(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRedirect(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PolicyRuleConfig) contextValidateFlowList(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.FlowList); i++ {
+
+		if m.FlowList[i] != nil {
+			if err := m.FlowList[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("flow_list" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *PolicyRuleConfig) contextValidateRedirect(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Redirect != nil {
+		if err := m.Redirect.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("redirect")
+			}
+			return err
+		}
 	}
 
 	return nil

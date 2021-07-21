@@ -13,73 +13,88 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDPrometheusQueryParams creates a new GetNetworksNetworkIDPrometheusQueryParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDPrometheusQueryParams creates a new GetNetworksNetworkIDPrometheusQueryParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDPrometheusQueryParams() *GetNetworksNetworkIDPrometheusQueryParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusQueryParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusQueryParamsWithTimeout creates a new GetNetworksNetworkIDPrometheusQueryParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDPrometheusQueryParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDPrometheusQueryParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusQueryParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusQueryParamsWithContext creates a new GetNetworksNetworkIDPrometheusQueryParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDPrometheusQueryParamsWithContext(ctx context.Context) *GetNetworksNetworkIDPrometheusQueryParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusQueryParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusQueryParamsWithHTTPClient creates a new GetNetworksNetworkIDPrometheusQueryParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDPrometheusQueryParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDPrometheusQueryParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusQueryParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusQueryParams contains all the parameters to send to the API endpoint
-for the get networks network ID prometheus query operation typically these are written to a http.Request
+/* GetNetworksNetworkIDPrometheusQueryParams contains all the parameters to send to the API endpoint
+   for the get networks network ID prometheus query operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDPrometheusQueryParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Query
-	  PromQL query to proxy to prometheus
 
+	/* Query.
+
+	   PromQL query to proxy to prometheus
 	*/
 	Query string
-	/*Time
-	  time for query (UnixTime or RFC3339)
 
+	/* Time.
+
+	   time for query (UnixTime or RFC3339)
 	*/
 	Time *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID prometheus query params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPrometheusQueryParams) WithDefaults() *GetNetworksNetworkIDPrometheusQueryParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID prometheus query params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPrometheusQueryParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID prometheus query params
@@ -165,6 +180,7 @@ func (o *GetNetworksNetworkIDPrometheusQueryParams) WriteToRequest(r runtime.Cli
 	qrQuery := o.Query
 	qQuery := qrQuery
 	if qQuery != "" {
+
 		if err := r.SetQueryParam("query", qQuery); err != nil {
 			return err
 		}
@@ -174,16 +190,17 @@ func (o *GetNetworksNetworkIDPrometheusQueryParams) WriteToRequest(r runtime.Cli
 
 		// query param time
 		var qrTime string
+
 		if o.Time != nil {
 			qrTime = *o.Time
 		}
 		qTime := qrTime
 		if qTime != "" {
+
 			if err := r.SetQueryParam("time", qTime); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

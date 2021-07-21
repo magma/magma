@@ -6,31 +6,37 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkSentryConfig Sentry.io configuration
+//
 // swagger:model network_sentry_config
 type NetworkSentryConfig struct {
 
 	// sample rate
+	// Example: 0.5
 	// Maximum: 1
 	// Minimum: 0
 	SampleRate *float32 `json:"sample_rate,omitempty"`
 
 	// upload mme log
+	// Example: false
 	UploadMmeLog bool `json:"upload_mme_log,omitempty"`
 
 	// url native
+	// Example: https://examplePublicKey@o0.ingest.sentry.io/0
 	// Min Length: 0
 	// Format: uri
 	URLNative strfmt.URI `json:"url_native,omitempty"`
 
 	// url python
+	// Example: https://examplePublicKey@o0.ingest.sentry.io/0
 	// Min Length: 0
 	// Format: uri
 	URLPython strfmt.URI `json:"url_python,omitempty"`
@@ -59,7 +65,6 @@ func (m *NetworkSentryConfig) Validate(formats strfmt.Registry) error {
 }
 
 func (m *NetworkSentryConfig) validateSampleRate(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SampleRate) { // not required
 		return nil
 	}
@@ -76,12 +81,11 @@ func (m *NetworkSentryConfig) validateSampleRate(formats strfmt.Registry) error 
 }
 
 func (m *NetworkSentryConfig) validateURLNative(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.URLNative) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("url_native", "body", string(m.URLNative), 0); err != nil {
+	if err := validate.MinLength("url_native", "body", m.URLNative.String(), 0); err != nil {
 		return err
 	}
 
@@ -93,12 +97,11 @@ func (m *NetworkSentryConfig) validateURLNative(formats strfmt.Registry) error {
 }
 
 func (m *NetworkSentryConfig) validateURLPython(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.URLPython) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("url_python", "body", string(m.URLPython), 0); err != nil {
+	if err := validate.MinLength("url_python", "body", m.URLPython.String(), 0); err != nil {
 		return err
 	}
 
@@ -106,6 +109,11 @@ func (m *NetworkSentryConfig) validateURLPython(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network sentry config based on context it is used
+func (m *NetworkSentryConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

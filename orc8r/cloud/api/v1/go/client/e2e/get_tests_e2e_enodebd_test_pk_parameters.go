@@ -13,64 +13,79 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetTestsE2eEnodebdTestPkParams creates a new GetTestsE2eEnodebdTestPkParams object
-// with the default values initialized.
+// NewGetTestsE2eEnodebdTestPkParams creates a new GetTestsE2eEnodebdTestPkParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetTestsE2eEnodebdTestPkParams() *GetTestsE2eEnodebdTestPkParams {
-	var ()
 	return &GetTestsE2eEnodebdTestPkParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetTestsE2eEnodebdTestPkParamsWithTimeout creates a new GetTestsE2eEnodebdTestPkParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetTestsE2eEnodebdTestPkParamsWithTimeout(timeout time.Duration) *GetTestsE2eEnodebdTestPkParams {
-	var ()
 	return &GetTestsE2eEnodebdTestPkParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetTestsE2eEnodebdTestPkParamsWithContext creates a new GetTestsE2eEnodebdTestPkParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetTestsE2eEnodebdTestPkParamsWithContext(ctx context.Context) *GetTestsE2eEnodebdTestPkParams {
-	var ()
 	return &GetTestsE2eEnodebdTestPkParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetTestsE2eEnodebdTestPkParamsWithHTTPClient creates a new GetTestsE2eEnodebdTestPkParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetTestsE2eEnodebdTestPkParamsWithHTTPClient(client *http.Client) *GetTestsE2eEnodebdTestPkParams {
-	var ()
 	return &GetTestsE2eEnodebdTestPkParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
-for the get tests e2e enodebd test pk operation typically these are written to a http.Request
+/* GetTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
+   for the get tests e2e enodebd test pk operation.
+
+   Typically these are written to a http.Request.
 */
 type GetTestsE2eEnodebdTestPkParams struct {
 
-	/*TestPk
-	  E2E test case PK
+	/* TestPk.
 
+	   E2E test case PK
+
+	   Format: int64
 	*/
 	TestPk int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get tests e2e enodebd test pk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTestsE2eEnodebdTestPkParams) WithDefaults() *GetTestsE2eEnodebdTestPkParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get tests e2e enodebd test pk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTestsE2eEnodebdTestPkParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get tests e2e enodebd test pk params

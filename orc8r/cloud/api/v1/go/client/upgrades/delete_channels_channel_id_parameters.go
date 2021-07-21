@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteChannelsChannelIDParams creates a new DeleteChannelsChannelIDParams object
-// with the default values initialized.
+// NewDeleteChannelsChannelIDParams creates a new DeleteChannelsChannelIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteChannelsChannelIDParams() *DeleteChannelsChannelIDParams {
-	var ()
 	return &DeleteChannelsChannelIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteChannelsChannelIDParamsWithTimeout creates a new DeleteChannelsChannelIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteChannelsChannelIDParamsWithTimeout(timeout time.Duration) *DeleteChannelsChannelIDParams {
-	var ()
 	return &DeleteChannelsChannelIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteChannelsChannelIDParamsWithContext creates a new DeleteChannelsChannelIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteChannelsChannelIDParamsWithContext(ctx context.Context) *DeleteChannelsChannelIDParams {
-	var ()
 	return &DeleteChannelsChannelIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteChannelsChannelIDParamsWithHTTPClient creates a new DeleteChannelsChannelIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteChannelsChannelIDParamsWithHTTPClient(client *http.Client) *DeleteChannelsChannelIDParams {
-	var ()
 	return &DeleteChannelsChannelIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteChannelsChannelIDParams contains all the parameters to send to the API endpoint
-for the delete channels channel ID operation typically these are written to a http.Request
+/* DeleteChannelsChannelIDParams contains all the parameters to send to the API endpoint
+   for the delete channels channel ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteChannelsChannelIDParams struct {
 
-	/*ChannelID
-	  Release Channel ID
+	/* ChannelID.
 
+	   Release Channel ID
 	*/
 	ChannelID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete channels channel ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteChannelsChannelIDParams) WithDefaults() *DeleteChannelsChannelIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete channels channel ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteChannelsChannelIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete channels channel ID params

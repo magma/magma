@@ -6,25 +6,30 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkDNSConfig DNS configuration for a network
+//
 // swagger:model network_dns_config
 type NetworkDNSConfig struct {
 
 	// dhcp server enabled
+	// Example: true
 	DhcpServerEnabled bool `json:"dhcp_server_enabled,omitempty"`
 
 	// enable caching
+	// Example: false
 	// Required: true
 	EnableCaching *bool `json:"enable_caching"`
 
 	// local ttl
+	// Example: 0
 	// Required: true
 	LocalTTL *uint32 `json:"local_ttl"`
 
@@ -73,12 +78,37 @@ func (m *NetworkDNSConfig) validateLocalTTL(formats strfmt.Registry) error {
 }
 
 func (m *NetworkDNSConfig) validateRecords(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Records) { // not required
 		return nil
 	}
 
 	if err := m.Records.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("records")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this network dns config based on the context it is used
+func (m *NetworkDNSConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateRecords(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkDNSConfig) contextValidateRecords(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Records.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("records")
 		}

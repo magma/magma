@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PromFiringAlert prom firing alert
+//
 // swagger:model prom_firing_alert
 type PromFiringAlert struct {
 
@@ -97,11 +99,17 @@ func (m *PromFiringAlert) Validate(formats strfmt.Registry) error {
 
 func (m *PromFiringAlert) validateAnnotations(formats strfmt.Registry) error {
 
-	if err := m.Annotations.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("annotations")
-		}
+	if err := validate.Required("annotations", "body", m.Annotations); err != nil {
 		return err
+	}
+
+	if m.Annotations != nil {
+		if err := m.Annotations.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("annotations")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -127,11 +135,17 @@ func (m *PromFiringAlert) validateFingerprint(formats strfmt.Registry) error {
 
 func (m *PromFiringAlert) validateLabels(formats strfmt.Registry) error {
 
-	if err := m.Labels.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("labels")
-		}
+	if err := validate.Required("labels", "body", m.Labels); err != nil {
 		return err
+	}
+
+	if m.Labels != nil {
+		if err := m.Labels.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("labels")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -186,6 +200,84 @@ func (m *PromFiringAlert) validateUpdatedAt(formats strfmt.Registry) error {
 
 	if err := validate.Required("updatedAt", "body", m.UpdatedAt); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this prom firing alert based on the context it is used
+func (m *PromFiringAlert) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAnnotations(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateLabels(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateReceivers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateStatus(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PromFiringAlert) contextValidateAnnotations(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Annotations.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("annotations")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *PromFiringAlert) contextValidateLabels(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Labels.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("labels")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *PromFiringAlert) contextValidateReceivers(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Receivers != nil {
+		if err := m.Receivers.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("receivers")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *PromFiringAlert) contextValidateStatus(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Status != nil {
+		if err := m.Status.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("status")
+			}
+			return err
+		}
 	}
 
 	return nil

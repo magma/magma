@@ -6,14 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // PrometheusLabelset prometheus labelset
+//
 // swagger:model prometheus_labelset
 type PrometheusLabelset map[string]string
 
 // Validate validates this prometheus labelset
 func (m PrometheusLabelset) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this prometheus labelset based on context it is used
+func (m PrometheusLabelset) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

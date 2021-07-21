@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetWifiNetworkIDParams creates a new GetWifiNetworkIDParams object
-// with the default values initialized.
+// NewGetWifiNetworkIDParams creates a new GetWifiNetworkIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetWifiNetworkIDParams() *GetWifiNetworkIDParams {
-	var ()
 	return &GetWifiNetworkIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetWifiNetworkIDParamsWithTimeout creates a new GetWifiNetworkIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetWifiNetworkIDParamsWithTimeout(timeout time.Duration) *GetWifiNetworkIDParams {
-	var ()
 	return &GetWifiNetworkIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetWifiNetworkIDParamsWithContext creates a new GetWifiNetworkIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetWifiNetworkIDParamsWithContext(ctx context.Context) *GetWifiNetworkIDParams {
-	var ()
 	return &GetWifiNetworkIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetWifiNetworkIDParamsWithHTTPClient creates a new GetWifiNetworkIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetWifiNetworkIDParamsWithHTTPClient(client *http.Client) *GetWifiNetworkIDParams {
-	var ()
 	return &GetWifiNetworkIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetWifiNetworkIDParams contains all the parameters to send to the API endpoint
-for the get wifi network ID operation typically these are written to a http.Request
+/* GetWifiNetworkIDParams contains all the parameters to send to the API endpoint
+   for the get wifi network ID operation.
+
+   Typically these are written to a http.Request.
 */
 type GetWifiNetworkIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get wifi network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetWifiNetworkIDParams) WithDefaults() *GetWifiNetworkIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get wifi network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetWifiNetworkIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get wifi network ID params

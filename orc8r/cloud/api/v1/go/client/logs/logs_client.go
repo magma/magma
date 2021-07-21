@@ -7,12 +7,11 @@ package logs
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new logs API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,27 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, opts ...ClientOption) (*GetNetworksNetworkIDLogsCountOK, error)
+
+	GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, opts ...ClientOption) (*GetNetworksNetworkIDLogsSearchOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-GetNetworksNetworkIDLogsCount counts logs
+  GetNetworksNetworkIDLogsCount counts logs
 */
-func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams) (*GetNetworksNetworkIDLogsCountOK, error) {
+func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsCountParams, opts ...ClientOption) (*GetNetworksNetworkIDLogsCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDLogsCountParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDLogsCount",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/logs/count",
@@ -44,7 +54,12 @@ func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsC
 		Reader:             &GetNetworksNetworkIDLogsCountReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +73,14 @@ func (a *Client) GetNetworksNetworkIDLogsCount(params *GetNetworksNetworkIDLogsC
 }
 
 /*
-GetNetworksNetworkIDLogsSearch searches logs
+  GetNetworksNetworkIDLogsSearch searches logs
 */
-func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams) (*GetNetworksNetworkIDLogsSearchOK, error) {
+func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogsSearchParams, opts ...ClientOption) (*GetNetworksNetworkIDLogsSearchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDLogsSearchParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDLogsSearch",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/logs/search",
@@ -77,7 +91,12 @@ func (a *Client) GetNetworksNetworkIDLogsSearch(params *GetNetworksNetworkIDLogs
 		Reader:             &GetNetworksNetworkIDLogsSearchReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

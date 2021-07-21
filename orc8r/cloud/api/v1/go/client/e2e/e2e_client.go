@@ -7,12 +7,11 @@ package e2e
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new e2e API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,35 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteTestsE2eEnodebdTestPk(params *DeleteTestsE2eEnodebdTestPkParams, opts ...ClientOption) (*DeleteTestsE2eEnodebdTestPkNoContent, error)
+
+	GetTestsE2e(params *GetTestsE2eParams, opts ...ClientOption) (*GetTestsE2eOK, error)
+
+	GetTestsE2eEnodebd(params *GetTestsE2eEnodebdParams, opts ...ClientOption) (*GetTestsE2eEnodebdOK, error)
+
+	GetTestsE2eEnodebdTestPk(params *GetTestsE2eEnodebdTestPkParams, opts ...ClientOption) (*GetTestsE2eEnodebdTestPkOK, error)
+
+	PostTestsE2eEnodebd(params *PostTestsE2eEnodebdParams, opts ...ClientOption) (*PostTestsE2eEnodebdCreated, error)
+
+	PutTestsE2eEnodebdTestPk(params *PutTestsE2eEnodebdTestPkParams, opts ...ClientOption) (*PutTestsE2eEnodebdTestPkNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteTestsE2eEnodebdTestPk deletes enodebd e2e test case
+  DeleteTestsE2eEnodebdTestPk deletes enodebd e2e test case
 */
-func (a *Client) DeleteTestsE2eEnodebdTestPk(params *DeleteTestsE2eEnodebdTestPkParams) (*DeleteTestsE2eEnodebdTestPkNoContent, error) {
+func (a *Client) DeleteTestsE2eEnodebdTestPk(params *DeleteTestsE2eEnodebdTestPkParams, opts ...ClientOption) (*DeleteTestsE2eEnodebdTestPkNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteTestsE2eEnodebdTestPkParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteTestsE2eEnodebdTestPk",
 		Method:             "DELETE",
 		PathPattern:        "/tests/e2e/enodebd/{test_pk}",
@@ -44,7 +62,12 @@ func (a *Client) DeleteTestsE2eEnodebdTestPk(params *DeleteTestsE2eEnodebdTestPk
 		Reader:             &DeleteTestsE2eEnodebdTestPkReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +81,14 @@ func (a *Client) DeleteTestsE2eEnodebdTestPk(params *DeleteTestsE2eEnodebdTestPk
 }
 
 /*
-GetTestsE2e lists e2e tests
+  GetTestsE2e lists e2e tests
 */
-func (a *Client) GetTestsE2e(params *GetTestsE2eParams) (*GetTestsE2eOK, error) {
+func (a *Client) GetTestsE2e(params *GetTestsE2eParams, opts ...ClientOption) (*GetTestsE2eOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTestsE2eParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTestsE2e",
 		Method:             "GET",
 		PathPattern:        "/tests/e2e",
@@ -77,7 +99,12 @@ func (a *Client) GetTestsE2e(params *GetTestsE2eParams) (*GetTestsE2eOK, error) 
 		Reader:             &GetTestsE2eReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +118,14 @@ func (a *Client) GetTestsE2e(params *GetTestsE2eParams) (*GetTestsE2eOK, error) 
 }
 
 /*
-GetTestsE2eEnodebd lists enodebd e2e test cases
+  GetTestsE2eEnodebd lists enodebd e2e test cases
 */
-func (a *Client) GetTestsE2eEnodebd(params *GetTestsE2eEnodebdParams) (*GetTestsE2eEnodebdOK, error) {
+func (a *Client) GetTestsE2eEnodebd(params *GetTestsE2eEnodebdParams, opts ...ClientOption) (*GetTestsE2eEnodebdOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTestsE2eEnodebdParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTestsE2eEnodebd",
 		Method:             "GET",
 		PathPattern:        "/tests/e2e/enodebd",
@@ -110,7 +136,12 @@ func (a *Client) GetTestsE2eEnodebd(params *GetTestsE2eEnodebdParams) (*GetTests
 		Reader:             &GetTestsE2eEnodebdReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +155,14 @@ func (a *Client) GetTestsE2eEnodebd(params *GetTestsE2eEnodebdParams) (*GetTests
 }
 
 /*
-GetTestsE2eEnodebdTestPk gets enodebd e2e test case
+  GetTestsE2eEnodebdTestPk gets enodebd e2e test case
 */
-func (a *Client) GetTestsE2eEnodebdTestPk(params *GetTestsE2eEnodebdTestPkParams) (*GetTestsE2eEnodebdTestPkOK, error) {
+func (a *Client) GetTestsE2eEnodebdTestPk(params *GetTestsE2eEnodebdTestPkParams, opts ...ClientOption) (*GetTestsE2eEnodebdTestPkOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTestsE2eEnodebdTestPkParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTestsE2eEnodebdTestPk",
 		Method:             "GET",
 		PathPattern:        "/tests/e2e/enodebd/{test_pk}",
@@ -143,7 +173,12 @@ func (a *Client) GetTestsE2eEnodebdTestPk(params *GetTestsE2eEnodebdTestPkParams
 		Reader:             &GetTestsE2eEnodebdTestPkReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +192,14 @@ func (a *Client) GetTestsE2eEnodebdTestPk(params *GetTestsE2eEnodebdTestPkParams
 }
 
 /*
-PostTestsE2eEnodebd creates new enodebe e2e test case
+  PostTestsE2eEnodebd creates new enodebe e2e test case
 */
-func (a *Client) PostTestsE2eEnodebd(params *PostTestsE2eEnodebdParams) (*PostTestsE2eEnodebdCreated, error) {
+func (a *Client) PostTestsE2eEnodebd(params *PostTestsE2eEnodebdParams, opts ...ClientOption) (*PostTestsE2eEnodebdCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostTestsE2eEnodebdParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostTestsE2eEnodebd",
 		Method:             "POST",
 		PathPattern:        "/tests/e2e/enodebd",
@@ -176,7 +210,12 @@ func (a *Client) PostTestsE2eEnodebd(params *PostTestsE2eEnodebdParams) (*PostTe
 		Reader:             &PostTestsE2eEnodebdReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +229,14 @@ func (a *Client) PostTestsE2eEnodebd(params *PostTestsE2eEnodebdParams) (*PostTe
 }
 
 /*
-PutTestsE2eEnodebdTestPk updates enodebd e2e test case
+  PutTestsE2eEnodebdTestPk updates enodebd e2e test case
 */
-func (a *Client) PutTestsE2eEnodebdTestPk(params *PutTestsE2eEnodebdTestPkParams) (*PutTestsE2eEnodebdTestPkNoContent, error) {
+func (a *Client) PutTestsE2eEnodebdTestPk(params *PutTestsE2eEnodebdTestPkParams, opts ...ClientOption) (*PutTestsE2eEnodebdTestPkNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutTestsE2eEnodebdTestPkParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutTestsE2eEnodebdTestPk",
 		Method:             "PUT",
 		PathPattern:        "/tests/e2e/enodebd/{test_pk}",
@@ -209,7 +247,12 @@ func (a *Client) PutTestsE2eEnodebdTestPk(params *PutTestsE2eEnodebdTestPkParams
 		Reader:             &PutTestsE2eEnodebdTestPkReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

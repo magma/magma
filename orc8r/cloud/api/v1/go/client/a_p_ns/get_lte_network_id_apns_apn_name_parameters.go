@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDAPNSAPNNameParams creates a new GetLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized.
+// NewGetLTENetworkIDAPNSAPNNameParams creates a new GetLTENetworkIDAPNSAPNNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDAPNSAPNNameParams() *GetLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &GetLTENetworkIDAPNSAPNNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDAPNSAPNNameParamsWithTimeout creates a new GetLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDAPNSAPNNameParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &GetLTENetworkIDAPNSAPNNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDAPNSAPNNameParamsWithContext creates a new GetLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDAPNSAPNNameParamsWithContext(ctx context.Context) *GetLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &GetLTENetworkIDAPNSAPNNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDAPNSAPNNameParamsWithHTTPClient creates a new GetLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDAPNSAPNNameParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &GetLTENetworkIDAPNSAPNNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
-for the get LTE network ID APNS APN name operation typically these are written to a http.Request
+/* GetLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID APNS APN name operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDAPNSAPNNameParams struct {
 
-	/*APNName
-	  Access Point Name
+	/* APNName.
 
+	   Access Point Name
 	*/
 	APNName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID APNS APN name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDAPNSAPNNameParams) WithDefaults() *GetLTENetworkIDAPNSAPNNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID APNS APN name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDAPNSAPNNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID APNS APN name params

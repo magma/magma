@@ -6,30 +6,35 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ModeMapItem Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+//
 // swagger:model mode_map_item
 type ModeMapItem struct {
 
 	// apn
+	// Example: internet.com
 	Apn string `json:"apn,omitempty"`
 
 	// imsi range
+	// Example: 000000000000000:000019999999999
 	ImsiRange string `json:"imsi_range,omitempty"`
 
 	// mode
+	// Example: local_subscriber
 	// Enum: [local_subscriber s8_subscriber]
 	Mode string `json:"mode,omitempty"`
 
 	// plmn
+	// Example: 123456
 	// Max Length: 6
 	// Min Length: 5
 	// Pattern: ^(\d{5,6})$
@@ -77,14 +82,13 @@ const (
 
 // prop value enum
 func (m *ModeMapItem) validateModeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, modeMapItemTypeModePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, modeMapItemTypeModePropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *ModeMapItem) validateMode(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Mode) { // not required
 		return nil
 	}
@@ -98,23 +102,27 @@ func (m *ModeMapItem) validateMode(formats strfmt.Registry) error {
 }
 
 func (m *ModeMapItem) validatePlmn(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Plmn) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("plmn", "body", string(m.Plmn), 5); err != nil {
+	if err := validate.MinLength("plmn", "body", m.Plmn, 5); err != nil {
 		return err
 	}
 
-	if err := validate.MaxLength("plmn", "body", string(m.Plmn), 6); err != nil {
+	if err := validate.MaxLength("plmn", "body", m.Plmn, 6); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("plmn", "body", string(m.Plmn), `^(\d{5,6})$`); err != nil {
+	if err := validate.Pattern("plmn", "body", m.Plmn, `^(\d{5,6})$`); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this mode map item based on context it is used
+func (m *ModeMapItem) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

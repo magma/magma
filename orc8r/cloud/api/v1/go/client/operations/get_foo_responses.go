@@ -10,8 +10,7 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // GetFooReader is a Reader for the GetFoo structure.
@@ -28,9 +27,8 @@ func (o *GetFooReader) ReadResponse(response runtime.ClientResponse, consumer ru
 			return nil, err
 		}
 		return result, nil
-
 	default:
-		return nil, runtime.NewAPIError("unknown error", response, response.Code())
+		return nil, runtime.NewAPIError("response status code does not match any response statuses defined for this endpoint in the swagger spec", response, response.Code())
 	}
 }
 
@@ -39,7 +37,7 @@ func NewGetFooOK() *GetFooOK {
 	return &GetFooOK{}
 }
 
-/*GetFooOK handles this case with default header values.
+/* GetFooOK describes a response with status code 200, with default header values.
 
 Bar baz
 */
@@ -50,7 +48,6 @@ type GetFooOK struct {
 func (o *GetFooOK) Error() string {
 	return fmt.Sprintf("[GET /foo][%d] getFooOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFooOK) GetPayload() int64 {
 	return o.Payload
 }

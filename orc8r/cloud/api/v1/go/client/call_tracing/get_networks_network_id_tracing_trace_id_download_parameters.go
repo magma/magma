@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDTracingTraceIDDownloadParams creates a new GetNetworksNetworkIDTracingTraceIDDownloadParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDTracingTraceIDDownloadParams creates a new GetNetworksNetworkIDTracingTraceIDDownloadParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDTracingTraceIDDownloadParams() *GetNetworksNetworkIDTracingTraceIDDownloadParams {
-	var ()
 	return &GetNetworksNetworkIDTracingTraceIDDownloadParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithTimeout creates a new GetNetworksNetworkIDTracingTraceIDDownloadParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDTracingTraceIDDownloadParams {
-	var ()
 	return &GetNetworksNetworkIDTracingTraceIDDownloadParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithContext creates a new GetNetworksNetworkIDTracingTraceIDDownloadParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithContext(ctx context.Context) *GetNetworksNetworkIDTracingTraceIDDownloadParams {
-	var ()
 	return &GetNetworksNetworkIDTracingTraceIDDownloadParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithHTTPClient creates a new GetNetworksNetworkIDTracingTraceIDDownloadParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDTracingTraceIDDownloadParams {
-	var ()
 	return &GetNetworksNetworkIDTracingTraceIDDownloadParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDownloadParams contains all the parameters to send to the API endpoint
-for the get networks network ID tracing trace ID download operation typically these are written to a http.Request
+/* GetNetworksNetworkIDTracingTraceIDDownloadParams contains all the parameters to send to the API endpoint
+   for the get networks network ID tracing trace ID download operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDTracingTraceIDDownloadParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*TraceID
-	  Unique ID of call trace
 
+	/* TraceID.
+
+	   Unique ID of call trace
 	*/
 	TraceID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID tracing trace ID download params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDTracingTraceIDDownloadParams) WithDefaults() *GetNetworksNetworkIDTracingTraceIDDownloadParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID tracing trace ID download params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDTracingTraceIDDownloadParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID tracing trace ID download params

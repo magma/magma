@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams creates a new GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams object
-// with the default values initialized.
+// NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams creates a new GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams() *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams {
-	var ()
 	return &GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithTimeout creates a new GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithTimeout(timeout time.Duration) *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams {
-	var ()
 	return &GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithContext creates a new GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithContext(ctx context.Context) *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams {
-	var ()
 	return &GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithHTTPClient creates a new GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithHTTPClient(client *http.Client) *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams {
-	var ()
 	return &GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams contains all the parameters to send to the API endpoint
-for the get cwf network ID subscribers subscriber ID directory record operation typically these are written to a http.Request
+/* GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams contains all the parameters to send to the API endpoint
+   for the get cwf network ID subscribers subscriber ID directory record operation.
+
+   Typically these are written to a http.Request.
 */
 type GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*SubscriberID
-	  Subscriber ID
 
+	/* SubscriberID.
+
+	   Subscriber ID
 	*/
 	SubscriberID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get cwf network ID subscribers subscriber ID directory record params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams) WithDefaults() *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get cwf network ID subscribers subscriber ID directory record params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get cwf network ID subscribers subscriber ID directory record params

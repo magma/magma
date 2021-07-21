@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetWifiNetworkIDMeshesMeshIDParams creates a new GetWifiNetworkIDMeshesMeshIDParams object
-// with the default values initialized.
+// NewGetWifiNetworkIDMeshesMeshIDParams creates a new GetWifiNetworkIDMeshesMeshIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetWifiNetworkIDMeshesMeshIDParams() *GetWifiNetworkIDMeshesMeshIDParams {
-	var ()
 	return &GetWifiNetworkIDMeshesMeshIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetWifiNetworkIDMeshesMeshIDParamsWithTimeout creates a new GetWifiNetworkIDMeshesMeshIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetWifiNetworkIDMeshesMeshIDParamsWithTimeout(timeout time.Duration) *GetWifiNetworkIDMeshesMeshIDParams {
-	var ()
 	return &GetWifiNetworkIDMeshesMeshIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetWifiNetworkIDMeshesMeshIDParamsWithContext creates a new GetWifiNetworkIDMeshesMeshIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetWifiNetworkIDMeshesMeshIDParamsWithContext(ctx context.Context) *GetWifiNetworkIDMeshesMeshIDParams {
-	var ()
 	return &GetWifiNetworkIDMeshesMeshIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetWifiNetworkIDMeshesMeshIDParamsWithHTTPClient creates a new GetWifiNetworkIDMeshesMeshIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetWifiNetworkIDMeshesMeshIDParamsWithHTTPClient(client *http.Client) *GetWifiNetworkIDMeshesMeshIDParams {
-	var ()
 	return &GetWifiNetworkIDMeshesMeshIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetWifiNetworkIDMeshesMeshIDParams contains all the parameters to send to the API endpoint
-for the get wifi network ID meshes mesh ID operation typically these are written to a http.Request
+/* GetWifiNetworkIDMeshesMeshIDParams contains all the parameters to send to the API endpoint
+   for the get wifi network ID meshes mesh ID operation.
+
+   Typically these are written to a http.Request.
 */
 type GetWifiNetworkIDMeshesMeshIDParams struct {
 
-	/*MeshID
-	  Mesh ID
+	/* MeshID.
 
+	   Mesh ID
 	*/
 	MeshID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get wifi network ID meshes mesh ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetWifiNetworkIDMeshesMeshIDParams) WithDefaults() *GetWifiNetworkIDMeshesMeshIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get wifi network ID meshes mesh ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetWifiNetworkIDMeshesMeshIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get wifi network ID meshes mesh ID params

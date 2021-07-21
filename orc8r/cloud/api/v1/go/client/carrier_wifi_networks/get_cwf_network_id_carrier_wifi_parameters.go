@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetCwfNetworkIDCarrierWifiParams creates a new GetCwfNetworkIDCarrierWifiParams object
-// with the default values initialized.
+// NewGetCwfNetworkIDCarrierWifiParams creates a new GetCwfNetworkIDCarrierWifiParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetCwfNetworkIDCarrierWifiParams() *GetCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &GetCwfNetworkIDCarrierWifiParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetCwfNetworkIDCarrierWifiParamsWithTimeout creates a new GetCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetCwfNetworkIDCarrierWifiParamsWithTimeout(timeout time.Duration) *GetCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &GetCwfNetworkIDCarrierWifiParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetCwfNetworkIDCarrierWifiParamsWithContext creates a new GetCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetCwfNetworkIDCarrierWifiParamsWithContext(ctx context.Context) *GetCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &GetCwfNetworkIDCarrierWifiParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetCwfNetworkIDCarrierWifiParamsWithHTTPClient creates a new GetCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetCwfNetworkIDCarrierWifiParamsWithHTTPClient(client *http.Client) *GetCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &GetCwfNetworkIDCarrierWifiParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
-for the get cwf network ID carrier wifi operation typically these are written to a http.Request
+/* GetCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
+   for the get cwf network ID carrier wifi operation.
+
+   Typically these are written to a http.Request.
 */
 type GetCwfNetworkIDCarrierWifiParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get cwf network ID carrier wifi params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDCarrierWifiParams) WithDefaults() *GetCwfNetworkIDCarrierWifiParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get cwf network ID carrier wifi params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDCarrierWifiParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get cwf network ID carrier wifi params

@@ -6,16 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models1 "magma/orc8r/cloud/go/tools/swaggergen/testdata/base/models"
 	models2 "magma/orc8r/cloud/go/tools/swaggergen/testdata/importer/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ImportingChainDef importing chain def
+//
 // swagger:model importing_chain_def
 type ImportingChainDef struct {
 
@@ -98,7 +100,6 @@ func (m *ImportingChainDef) validateBaz(formats strfmt.Registry) error {
 }
 
 func (m *ImportingChainDef) validateBazArray(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.BazArray) { // not required
 		return nil
 	}
@@ -121,6 +122,86 @@ func (m *ImportingChainDef) validateFoo(formats strfmt.Registry) error {
 
 	if m.Foo != nil {
 		if err := m.Foo.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("foo")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this importing chain def based on the context it is used
+func (m *ImportingChainDef) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateBar(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateBaz(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateBazArray(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFoo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *ImportingChainDef) contextValidateBar(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Bar != nil {
+		if err := m.Bar.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("bar")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ImportingChainDef) contextValidateBaz(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Baz != nil {
+		if err := m.Baz.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("baz")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ImportingChainDef) contextValidateBazArray(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.BazArray.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("baz_array")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *ImportingChainDef) contextValidateFoo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Foo != nil {
+		if err := m.Foo.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("foo")
 			}

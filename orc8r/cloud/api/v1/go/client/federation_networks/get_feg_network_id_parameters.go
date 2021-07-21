@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetFegNetworkIDParams creates a new GetFegNetworkIDParams object
-// with the default values initialized.
+// NewGetFegNetworkIDParams creates a new GetFegNetworkIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetFegNetworkIDParams() *GetFegNetworkIDParams {
-	var ()
 	return &GetFegNetworkIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetFegNetworkIDParamsWithTimeout creates a new GetFegNetworkIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetFegNetworkIDParamsWithTimeout(timeout time.Duration) *GetFegNetworkIDParams {
-	var ()
 	return &GetFegNetworkIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetFegNetworkIDParamsWithContext creates a new GetFegNetworkIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetFegNetworkIDParamsWithContext(ctx context.Context) *GetFegNetworkIDParams {
-	var ()
 	return &GetFegNetworkIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetFegNetworkIDParamsWithHTTPClient creates a new GetFegNetworkIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetFegNetworkIDParamsWithHTTPClient(client *http.Client) *GetFegNetworkIDParams {
-	var ()
 	return &GetFegNetworkIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetFegNetworkIDParams contains all the parameters to send to the API endpoint
-for the get feg network ID operation typically these are written to a http.Request
+/* GetFegNetworkIDParams contains all the parameters to send to the API endpoint
+   for the get feg network ID operation.
+
+   Typically these are written to a http.Request.
 */
 type GetFegNetworkIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get feg network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetFegNetworkIDParams) WithDefaults() *GetFegNetworkIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get feg network ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetFegNetworkIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get feg network ID params

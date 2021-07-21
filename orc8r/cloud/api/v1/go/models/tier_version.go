@@ -6,13 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // TierVersion tier version
+// Example: 0.3.14-123456789-deadbeef
+//
 // swagger:model tier_version
 type TierVersion string
 
@@ -27,5 +30,10 @@ func (m TierVersion) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this tier version based on context it is used
+func (m TierVersion) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

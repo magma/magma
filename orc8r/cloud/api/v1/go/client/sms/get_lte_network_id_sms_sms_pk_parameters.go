@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDSMSSMSPkParams creates a new GetLTENetworkIDSMSSMSPkParams object
-// with the default values initialized.
+// NewGetLTENetworkIDSMSSMSPkParams creates a new GetLTENetworkIDSMSSMSPkParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDSMSSMSPkParams() *GetLTENetworkIDSMSSMSPkParams {
-	var ()
 	return &GetLTENetworkIDSMSSMSPkParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDSMSSMSPkParamsWithTimeout creates a new GetLTENetworkIDSMSSMSPkParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDSMSSMSPkParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDSMSSMSPkParams {
-	var ()
 	return &GetLTENetworkIDSMSSMSPkParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDSMSSMSPkParamsWithContext creates a new GetLTENetworkIDSMSSMSPkParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDSMSSMSPkParamsWithContext(ctx context.Context) *GetLTENetworkIDSMSSMSPkParams {
-	var ()
 	return &GetLTENetworkIDSMSSMSPkParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDSMSSMSPkParamsWithHTTPClient creates a new GetLTENetworkIDSMSSMSPkParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDSMSSMSPkParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDSMSSMSPkParams {
-	var ()
 	return &GetLTENetworkIDSMSSMSPkParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDSMSSMSPkParams contains all the parameters to send to the API endpoint
-for the get LTE network ID SMS SMS pk operation typically these are written to a http.Request
+/* GetLTENetworkIDSMSSMSPkParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID SMS SMS pk operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDSMSSMSPkParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*SMSPk
-	  PK of the SMS message
 
+	/* SMSPk.
+
+	   PK of the SMS message
 	*/
 	SMSPk string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID SMS SMS pk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDSMSSMSPkParams) WithDefaults() *GetLTENetworkIDSMSSMSPkParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID SMS SMS pk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDSMSSMSPkParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID SMS SMS pk params

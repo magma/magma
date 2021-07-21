@@ -7,12 +7,11 @@ package metrics
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new metrics API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,47 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	GetNetworksNetworkIDPrometheusQuery(params *GetNetworksNetworkIDPrometheusQueryParams, opts ...ClientOption) (*GetNetworksNetworkIDPrometheusQueryOK, error)
+
+	GetNetworksNetworkIDPrometheusQueryRange(params *GetNetworksNetworkIDPrometheusQueryRangeParams, opts ...ClientOption) (*GetNetworksNetworkIDPrometheusQueryRangeOK, error)
+
+	GetNetworksNetworkIDPrometheusSeries(params *GetNetworksNetworkIDPrometheusSeriesParams, opts ...ClientOption) (*GetNetworksNetworkIDPrometheusSeriesOK, error)
+
+	GetTenantsTargetsMetadata(params *GetTenantsTargetsMetadataParams, opts ...ClientOption) (*GetTenantsTargetsMetadataOK, error)
+
+	GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues(params *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK, error)
+
+	GetTenantsTenantIDMetricsAPIV1Query(params *GetTenantsTenantIDMetricsAPIV1QueryParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1QueryOK, error)
+
+	GetTenantsTenantIDMetricsAPIV1QueryRange(params *GetTenantsTenantIDMetricsAPIV1QueryRangeParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1QueryRangeOK, error)
+
+	GetTenantsTenantIDMetricsAPIV1Series(params *GetTenantsTenantIDMetricsAPIV1SeriesParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1SeriesOK, error)
+
+	GetTenantsTenantIDMetricsQuery(params *GetTenantsTenantIDMetricsQueryParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsQueryOK, error)
+
+	GetTenantsTenantIDMetricsQueryRange(params *GetTenantsTenantIDMetricsQueryRangeParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsQueryRangeOK, error)
+
+	GetTenantsTenantIDMetricsSeries(params *GetTenantsTenantIDMetricsSeriesParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsSeriesOK, error)
+
+	PostNetworksNetworkIDMetricsPush(params *PostNetworksNetworkIDMetricsPushParams, opts ...ClientOption) (*PostNetworksNetworkIDMetricsPushOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-GetNetworksNetworkIDPrometheusQuery retrieves the datapoints from a prometheus query
+  GetNetworksNetworkIDPrometheusQuery retrieves the datapoints from a prometheus query
 */
-func (a *Client) GetNetworksNetworkIDPrometheusQuery(params *GetNetworksNetworkIDPrometheusQueryParams) (*GetNetworksNetworkIDPrometheusQueryOK, error) {
+func (a *Client) GetNetworksNetworkIDPrometheusQuery(params *GetNetworksNetworkIDPrometheusQueryParams, opts ...ClientOption) (*GetNetworksNetworkIDPrometheusQueryOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPrometheusQueryParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPrometheusQuery",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/prometheus/query",
@@ -44,7 +74,12 @@ func (a *Client) GetNetworksNetworkIDPrometheusQuery(params *GetNetworksNetworkI
 		Reader:             &GetNetworksNetworkIDPrometheusQueryReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +93,14 @@ func (a *Client) GetNetworksNetworkIDPrometheusQuery(params *GetNetworksNetworkI
 }
 
 /*
-GetNetworksNetworkIDPrometheusQueryRange retrieves the datapoints from a prometheus query over a specified time range
+  GetNetworksNetworkIDPrometheusQueryRange retrieves the datapoints from a prometheus query over a specified time range
 */
-func (a *Client) GetNetworksNetworkIDPrometheusQueryRange(params *GetNetworksNetworkIDPrometheusQueryRangeParams) (*GetNetworksNetworkIDPrometheusQueryRangeOK, error) {
+func (a *Client) GetNetworksNetworkIDPrometheusQueryRange(params *GetNetworksNetworkIDPrometheusQueryRangeParams, opts ...ClientOption) (*GetNetworksNetworkIDPrometheusQueryRangeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPrometheusQueryRangeParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPrometheusQueryRange",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/prometheus/query_range",
@@ -77,7 +111,12 @@ func (a *Client) GetNetworksNetworkIDPrometheusQueryRange(params *GetNetworksNet
 		Reader:             &GetNetworksNetworkIDPrometheusQueryRangeReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +130,14 @@ func (a *Client) GetNetworksNetworkIDPrometheusQueryRange(params *GetNetworksNet
 }
 
 /*
-GetNetworksNetworkIDPrometheusSeries gets a list of metric series in prometheus database
+  GetNetworksNetworkIDPrometheusSeries gets a list of metric series in prometheus database
 */
-func (a *Client) GetNetworksNetworkIDPrometheusSeries(params *GetNetworksNetworkIDPrometheusSeriesParams) (*GetNetworksNetworkIDPrometheusSeriesOK, error) {
+func (a *Client) GetNetworksNetworkIDPrometheusSeries(params *GetNetworksNetworkIDPrometheusSeriesParams, opts ...ClientOption) (*GetNetworksNetworkIDPrometheusSeriesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPrometheusSeriesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPrometheusSeries",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/prometheus/series",
@@ -110,7 +148,12 @@ func (a *Client) GetNetworksNetworkIDPrometheusSeries(params *GetNetworksNetwork
 		Reader:             &GetNetworksNetworkIDPrometheusSeriesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +167,14 @@ func (a *Client) GetNetworksNetworkIDPrometheusSeries(params *GetNetworksNetwork
 }
 
 /*
-GetTenantsTargetsMetadata retrieves description of all metrics
+  GetTenantsTargetsMetadata retrieves description of all metrics
 */
-func (a *Client) GetTenantsTargetsMetadata(params *GetTenantsTargetsMetadataParams) (*GetTenantsTargetsMetadataOK, error) {
+func (a *Client) GetTenantsTargetsMetadata(params *GetTenantsTargetsMetadataParams, opts ...ClientOption) (*GetTenantsTargetsMetadataOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTargetsMetadataParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTargetsMetadata",
 		Method:             "GET",
 		PathPattern:        "/tenants/targets_metadata",
@@ -143,7 +185,12 @@ func (a *Client) GetTenantsTargetsMetadata(params *GetTenantsTargetsMetadataPara
 		Reader:             &GetTenantsTargetsMetadataReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +204,14 @@ func (a *Client) GetTenantsTargetsMetadata(params *GetTenantsTargetsMetadataPara
 }
 
 /*
-GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues retrieves list of label values for the given label name
+  GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues retrieves list of label values for the given label name
 */
-func (a *Client) GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues(params *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams) (*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues(params *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values",
@@ -176,7 +222,12 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues(params *GetT
 		Reader:             &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +241,14 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1LabelLabelNameValues(params *GetT
 }
 
 /*
-GetTenantsTenantIDMetricsAPIV1Query retrieves the datapoints from a prometheus query
+  GetTenantsTenantIDMetricsAPIV1Query retrieves the datapoints from a prometheus query
 */
-func (a *Client) GetTenantsTenantIDMetricsAPIV1Query(params *GetTenantsTenantIDMetricsAPIV1QueryParams) (*GetTenantsTenantIDMetricsAPIV1QueryOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsAPIV1Query(params *GetTenantsTenantIDMetricsAPIV1QueryParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1QueryOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsAPIV1QueryParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsAPIV1Query",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/api/v1/query",
@@ -209,7 +259,12 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1Query(params *GetTenantsTenantIDM
 		Reader:             &GetTenantsTenantIDMetricsAPIV1QueryReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +278,14 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1Query(params *GetTenantsTenantIDM
 }
 
 /*
-GetTenantsTenantIDMetricsAPIV1QueryRange retrieves the datapoints from a prometheus query over a specified time range
+  GetTenantsTenantIDMetricsAPIV1QueryRange retrieves the datapoints from a prometheus query over a specified time range
 */
-func (a *Client) GetTenantsTenantIDMetricsAPIV1QueryRange(params *GetTenantsTenantIDMetricsAPIV1QueryRangeParams) (*GetTenantsTenantIDMetricsAPIV1QueryRangeOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsAPIV1QueryRange(params *GetTenantsTenantIDMetricsAPIV1QueryRangeParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1QueryRangeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsAPIV1QueryRangeParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsAPIV1QueryRange",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/api/v1/query_range",
@@ -242,7 +296,12 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1QueryRange(params *GetTenantsTena
 		Reader:             &GetTenantsTenantIDMetricsAPIV1QueryRangeReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +315,14 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1QueryRange(params *GetTenantsTena
 }
 
 /*
-GetTenantsTenantIDMetricsAPIV1Series gets a list of metric series in prometheus database
+  GetTenantsTenantIDMetricsAPIV1Series gets a list of metric series in prometheus database
 */
-func (a *Client) GetTenantsTenantIDMetricsAPIV1Series(params *GetTenantsTenantIDMetricsAPIV1SeriesParams) (*GetTenantsTenantIDMetricsAPIV1SeriesOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsAPIV1Series(params *GetTenantsTenantIDMetricsAPIV1SeriesParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsAPIV1SeriesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsAPIV1SeriesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsAPIV1Series",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/api/v1/series",
@@ -275,7 +333,12 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1Series(params *GetTenantsTenantID
 		Reader:             &GetTenantsTenantIDMetricsAPIV1SeriesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +352,14 @@ func (a *Client) GetTenantsTenantIDMetricsAPIV1Series(params *GetTenantsTenantID
 }
 
 /*
-GetTenantsTenantIDMetricsQuery retrieves the datapoints from a prometheus query
+  GetTenantsTenantIDMetricsQuery retrieves the datapoints from a prometheus query
 */
-func (a *Client) GetTenantsTenantIDMetricsQuery(params *GetTenantsTenantIDMetricsQueryParams) (*GetTenantsTenantIDMetricsQueryOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsQuery(params *GetTenantsTenantIDMetricsQueryParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsQueryOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsQueryParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsQuery",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/query",
@@ -308,7 +370,12 @@ func (a *Client) GetTenantsTenantIDMetricsQuery(params *GetTenantsTenantIDMetric
 		Reader:             &GetTenantsTenantIDMetricsQueryReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +389,14 @@ func (a *Client) GetTenantsTenantIDMetricsQuery(params *GetTenantsTenantIDMetric
 }
 
 /*
-GetTenantsTenantIDMetricsQueryRange retrieves the datapoints from a prometheus query over a specified time range
+  GetTenantsTenantIDMetricsQueryRange retrieves the datapoints from a prometheus query over a specified time range
 */
-func (a *Client) GetTenantsTenantIDMetricsQueryRange(params *GetTenantsTenantIDMetricsQueryRangeParams) (*GetTenantsTenantIDMetricsQueryRangeOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsQueryRange(params *GetTenantsTenantIDMetricsQueryRangeParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsQueryRangeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsQueryRangeParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsQueryRange",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/query_range",
@@ -341,7 +407,12 @@ func (a *Client) GetTenantsTenantIDMetricsQueryRange(params *GetTenantsTenantIDM
 		Reader:             &GetTenantsTenantIDMetricsQueryRangeReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -355,15 +426,14 @@ func (a *Client) GetTenantsTenantIDMetricsQueryRange(params *GetTenantsTenantIDM
 }
 
 /*
-GetTenantsTenantIDMetricsSeries gets a list of metric series in prometheus database
+  GetTenantsTenantIDMetricsSeries gets a list of metric series in prometheus database
 */
-func (a *Client) GetTenantsTenantIDMetricsSeries(params *GetTenantsTenantIDMetricsSeriesParams) (*GetTenantsTenantIDMetricsSeriesOK, error) {
+func (a *Client) GetTenantsTenantIDMetricsSeries(params *GetTenantsTenantIDMetricsSeriesParams, opts ...ClientOption) (*GetTenantsTenantIDMetricsSeriesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDMetricsSeriesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantIDMetricsSeries",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}/metrics/series",
@@ -374,7 +444,12 @@ func (a *Client) GetTenantsTenantIDMetricsSeries(params *GetTenantsTenantIDMetri
 		Reader:             &GetTenantsTenantIDMetricsSeriesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -388,15 +463,14 @@ func (a *Client) GetTenantsTenantIDMetricsSeries(params *GetTenantsTenantIDMetri
 }
 
 /*
-PostNetworksNetworkIDMetricsPush submits metrics to orchestrator databases
+  PostNetworksNetworkIDMetricsPush submits metrics to orchestrator databases
 */
-func (a *Client) PostNetworksNetworkIDMetricsPush(params *PostNetworksNetworkIDMetricsPushParams) (*PostNetworksNetworkIDMetricsPushOK, error) {
+func (a *Client) PostNetworksNetworkIDMetricsPush(params *PostNetworksNetworkIDMetricsPushParams, opts ...ClientOption) (*PostNetworksNetworkIDMetricsPushOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDMetricsPushParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDMetricsPush",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/metrics/push",
@@ -407,7 +481,12 @@ func (a *Client) PostNetworksNetworkIDMetricsPush(params *PostNetworksNetworkIDM
 		Reader:             &PostNetworksNetworkIDMetricsPushReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

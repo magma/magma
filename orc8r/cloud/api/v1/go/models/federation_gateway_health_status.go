@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FederationGatewayHealthStatus Health status of a Federation Gateway
+//
 // swagger:model federation_gateway_health_status
 type FederationGatewayHealthStatus struct {
 
@@ -56,7 +57,7 @@ func (m *FederationGatewayHealthStatus) Validate(formats strfmt.Registry) error 
 
 func (m *FederationGatewayHealthStatus) validateDescription(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("description", "body", string(m.Description)); err != nil {
+	if err := validate.RequiredString("description", "body", m.Description); err != nil {
 		return err
 	}
 
@@ -108,7 +109,7 @@ const (
 
 // prop value enum
 func (m *FederationGatewayHealthStatus) validateStatusEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, federationGatewayHealthStatusTypeStatusPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, federationGatewayHealthStatusTypeStatusPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -116,7 +117,7 @@ func (m *FederationGatewayHealthStatus) validateStatusEnum(path, location string
 
 func (m *FederationGatewayHealthStatus) validateStatus(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("status", "body", string(m.Status)); err != nil {
+	if err := validate.RequiredString("status", "body", m.Status); err != nil {
 		return err
 	}
 
@@ -125,6 +126,11 @@ func (m *FederationGatewayHealthStatus) validateStatus(formats strfmt.Registry) 
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this federation gateway health status based on context it is used
+func (m *FederationGatewayHealthStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

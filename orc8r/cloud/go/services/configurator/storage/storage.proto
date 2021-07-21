@@ -13,7 +13,7 @@ limitations under the License.
 syntax = "proto3";
 
 package magma.orc8r.configurator.storage;
-option go_package = "storage";
+option go_package = "magma/orc8r/cloud/go/services/configurator/storage";
 
 import "google/protobuf/wrappers.proto";
 

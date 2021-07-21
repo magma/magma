@@ -7,12 +7,11 @@ package baremetal
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new baremetal API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,41 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteCiNodesNodeID(params *DeleteCiNodesNodeIDParams, opts ...ClientOption) (*DeleteCiNodesNodeIDNoContent, error)
+
+	GetCiNodes(params *GetCiNodesParams, opts ...ClientOption) (*GetCiNodesOK, error)
+
+	GetCiNodesNodeID(params *GetCiNodesNodeIDParams, opts ...ClientOption) (*GetCiNodesNodeIDOK, error)
+
+	PostCiNodes(params *PostCiNodesParams, opts ...ClientOption) (*PostCiNodesCreated, error)
+
+	PostCiNodesNodeIDRelease(params *PostCiNodesNodeIDReleaseParams, opts ...ClientOption) (*PostCiNodesNodeIDReleaseNoContent, error)
+
+	PostCiNodesNodeIDReleaseLeaseID(params *PostCiNodesNodeIDReleaseLeaseIDParams, opts ...ClientOption) (*PostCiNodesNodeIDReleaseLeaseIDNoContent, error)
+
+	PostCiNodesNodeIDReserve(params *PostCiNodesNodeIDReserveParams, opts ...ClientOption) (*PostCiNodesNodeIDReserveOK, error)
+
+	PostCiReserve(params *PostCiReserveParams, opts ...ClientOption) (*PostCiReserveOK, error)
+
+	PutCiNodesNodeID(params *PutCiNodesNodeIDParams, opts ...ClientOption) (*PutCiNodesNodeIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteCiNodesNodeID deletes a c i node
+  DeleteCiNodesNodeID deletes a c i node
 */
-func (a *Client) DeleteCiNodesNodeID(params *DeleteCiNodesNodeIDParams) (*DeleteCiNodesNodeIDNoContent, error) {
+func (a *Client) DeleteCiNodesNodeID(params *DeleteCiNodesNodeIDParams, opts ...ClientOption) (*DeleteCiNodesNodeIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCiNodesNodeIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteCiNodesNodeID",
 		Method:             "DELETE",
 		PathPattern:        "/ci/nodes/{node_id}",
@@ -44,7 +68,12 @@ func (a *Client) DeleteCiNodesNodeID(params *DeleteCiNodesNodeIDParams) (*Delete
 		Reader:             &DeleteCiNodesNodeIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +87,14 @@ func (a *Client) DeleteCiNodesNodeID(params *DeleteCiNodesNodeIDParams) (*Delete
 }
 
 /*
-GetCiNodes lists c i worker nodes
+  GetCiNodes lists c i worker nodes
 */
-func (a *Client) GetCiNodes(params *GetCiNodesParams) (*GetCiNodesOK, error) {
+func (a *Client) GetCiNodes(params *GetCiNodesParams, opts ...ClientOption) (*GetCiNodesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCiNodesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCiNodes",
 		Method:             "GET",
 		PathPattern:        "/ci/nodes",
@@ -77,7 +105,12 @@ func (a *Client) GetCiNodes(params *GetCiNodesParams) (*GetCiNodesOK, error) {
 		Reader:             &GetCiNodesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +124,14 @@ func (a *Client) GetCiNodes(params *GetCiNodesParams) (*GetCiNodesOK, error) {
 }
 
 /*
-GetCiNodesNodeID gets a specific c i node
+  GetCiNodesNodeID gets a specific c i node
 */
-func (a *Client) GetCiNodesNodeID(params *GetCiNodesNodeIDParams) (*GetCiNodesNodeIDOK, error) {
+func (a *Client) GetCiNodesNodeID(params *GetCiNodesNodeIDParams, opts ...ClientOption) (*GetCiNodesNodeIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCiNodesNodeIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCiNodesNodeID",
 		Method:             "GET",
 		PathPattern:        "/ci/nodes/{node_id}",
@@ -110,7 +142,12 @@ func (a *Client) GetCiNodesNodeID(params *GetCiNodesNodeIDParams) (*GetCiNodesNo
 		Reader:             &GetCiNodesNodeIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +161,14 @@ func (a *Client) GetCiNodesNodeID(params *GetCiNodesNodeIDParams) (*GetCiNodesNo
 }
 
 /*
-PostCiNodes creates new available c i worker node
+  PostCiNodes creates new available c i worker node
 */
-func (a *Client) PostCiNodes(params *PostCiNodesParams) (*PostCiNodesCreated, error) {
+func (a *Client) PostCiNodes(params *PostCiNodesParams, opts ...ClientOption) (*PostCiNodesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCiNodesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostCiNodes",
 		Method:             "POST",
 		PathPattern:        "/ci/nodes",
@@ -143,7 +179,12 @@ func (a *Client) PostCiNodes(params *PostCiNodesParams) (*PostCiNodesCreated, er
 		Reader:             &PostCiNodesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +198,14 @@ func (a *Client) PostCiNodes(params *PostCiNodesParams) (*PostCiNodesCreated, er
 }
 
 /*
-PostCiNodesNodeIDRelease releases a manually reserved c i node
+  PostCiNodesNodeIDRelease releases a manually reserved c i node
 */
-func (a *Client) PostCiNodesNodeIDRelease(params *PostCiNodesNodeIDReleaseParams) (*PostCiNodesNodeIDReleaseNoContent, error) {
+func (a *Client) PostCiNodesNodeIDRelease(params *PostCiNodesNodeIDReleaseParams, opts ...ClientOption) (*PostCiNodesNodeIDReleaseNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCiNodesNodeIDReleaseParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostCiNodesNodeIDRelease",
 		Method:             "POST",
 		PathPattern:        "/ci/nodes/{node_id}/release",
@@ -176,7 +216,12 @@ func (a *Client) PostCiNodesNodeIDRelease(params *PostCiNodesNodeIDReleaseParams
 		Reader:             &PostCiNodesNodeIDReleaseReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +235,14 @@ func (a *Client) PostCiNodesNodeIDRelease(params *PostCiNodesNodeIDReleaseParams
 }
 
 /*
-PostCiNodesNodeIDReleaseLeaseID releases a c i worker node
+  PostCiNodesNodeIDReleaseLeaseID releases a c i worker node
 */
-func (a *Client) PostCiNodesNodeIDReleaseLeaseID(params *PostCiNodesNodeIDReleaseLeaseIDParams) (*PostCiNodesNodeIDReleaseLeaseIDNoContent, error) {
+func (a *Client) PostCiNodesNodeIDReleaseLeaseID(params *PostCiNodesNodeIDReleaseLeaseIDParams, opts ...ClientOption) (*PostCiNodesNodeIDReleaseLeaseIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCiNodesNodeIDReleaseLeaseIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostCiNodesNodeIDReleaseLeaseID",
 		Method:             "POST",
 		PathPattern:        "/ci/nodes/{node_id}/release/{lease_id}",
@@ -209,7 +253,12 @@ func (a *Client) PostCiNodesNodeIDReleaseLeaseID(params *PostCiNodesNodeIDReleas
 		Reader:             &PostCiNodesNodeIDReleaseLeaseIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +272,14 @@ func (a *Client) PostCiNodesNodeIDReleaseLeaseID(params *PostCiNodesNodeIDReleas
 }
 
 /*
-PostCiNodesNodeIDReserve manuallies reserve a specific c i node
+  PostCiNodesNodeIDReserve manuallies reserve a specific c i node
 */
-func (a *Client) PostCiNodesNodeIDReserve(params *PostCiNodesNodeIDReserveParams) (*PostCiNodesNodeIDReserveOK, error) {
+func (a *Client) PostCiNodesNodeIDReserve(params *PostCiNodesNodeIDReserveParams, opts ...ClientOption) (*PostCiNodesNodeIDReserveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCiNodesNodeIDReserveParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostCiNodesNodeIDReserve",
 		Method:             "POST",
 		PathPattern:        "/ci/nodes/{node_id}/reserve",
@@ -242,7 +290,12 @@ func (a *Client) PostCiNodesNodeIDReserve(params *PostCiNodesNodeIDReserveParams
 		Reader:             &PostCiNodesNodeIDReserveReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +309,14 @@ func (a *Client) PostCiNodesNodeIDReserve(params *PostCiNodesNodeIDReserveParams
 }
 
 /*
-PostCiReserve reserves a c i worker node if available
+  PostCiReserve reserves a c i worker node if available
 */
-func (a *Client) PostCiReserve(params *PostCiReserveParams) (*PostCiReserveOK, error) {
+func (a *Client) PostCiReserve(params *PostCiReserveParams, opts ...ClientOption) (*PostCiReserveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCiReserveParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostCiReserve",
 		Method:             "POST",
 		PathPattern:        "/ci/reserve",
@@ -275,7 +327,12 @@ func (a *Client) PostCiReserve(params *PostCiReserveParams) (*PostCiReserveOK, e
 		Reader:             &PostCiReserveReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +346,14 @@ func (a *Client) PostCiReserve(params *PostCiReserveParams) (*PostCiReserveOK, e
 }
 
 /*
-PutCiNodesNodeID updates a c i node
+  PutCiNodesNodeID updates a c i node
 */
-func (a *Client) PutCiNodesNodeID(params *PutCiNodesNodeIDParams) (*PutCiNodesNodeIDNoContent, error) {
+func (a *Client) PutCiNodesNodeID(params *PutCiNodesNodeIDParams, opts ...ClientOption) (*PutCiNodesNodeIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCiNodesNodeIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCiNodesNodeID",
 		Method:             "PUT",
 		PathPattern:        "/ci/nodes/{node_id}",
@@ -308,7 +364,12 @@ func (a *Client) PutCiNodesNodeID(params *PutCiNodesNodeIDParams) (*PutCiNodesNo
 		Reader:             &PutCiNodesNodeIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

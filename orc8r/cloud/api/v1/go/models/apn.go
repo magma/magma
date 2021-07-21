@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // APN apn
+//
 // swagger:model apn
 type APN struct {
 
@@ -23,7 +25,7 @@ type APN struct {
 
 	// apn name
 	// Required: true
-	APNName APNName `json:"apn_name"`
+	APNName APNName `json:"apn_name" magma_alt_name:"service_selection"`
 }
 
 // Validate validates this apn
@@ -64,7 +66,55 @@ func (m *APN) validateAPNConfiguration(formats strfmt.Registry) error {
 
 func (m *APN) validateAPNName(formats strfmt.Registry) error {
 
+	if err := validate.Required("apn_name", "body", APNName(m.APNName)); err != nil {
+		return err
+	}
+
 	if err := m.APNName.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("apn_name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this apn based on the context it is used
+func (m *APN) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAPNConfiguration(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateAPNName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *APN) contextValidateAPNConfiguration(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.APNConfiguration != nil {
+		if err := m.APNConfiguration.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("apn_configuration")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *APN) contextValidateAPNName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.APNName.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("apn_name")
 		}

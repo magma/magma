@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParams creates a new GetFegNetworkIDGatewaysGatewayIDHealthStatusParams object
-// with the default values initialized.
+// NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParams creates a new GetFegNetworkIDGatewaysGatewayIDHealthStatusParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParams() *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams {
-	var ()
 	return &GetFegNetworkIDGatewaysGatewayIDHealthStatusParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithTimeout creates a new GetFegNetworkIDGatewaysGatewayIDHealthStatusParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithTimeout(timeout time.Duration) *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams {
-	var ()
 	return &GetFegNetworkIDGatewaysGatewayIDHealthStatusParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithContext creates a new GetFegNetworkIDGatewaysGatewayIDHealthStatusParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithContext(ctx context.Context) *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams {
-	var ()
 	return &GetFegNetworkIDGatewaysGatewayIDHealthStatusParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithHTTPClient creates a new GetFegNetworkIDGatewaysGatewayIDHealthStatusParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithHTTPClient(client *http.Client) *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams {
-	var ()
 	return &GetFegNetworkIDGatewaysGatewayIDHealthStatusParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDHealthStatusParams contains all the parameters to send to the API endpoint
-for the get feg network ID gateways gateway ID health status operation typically these are written to a http.Request
+/* GetFegNetworkIDGatewaysGatewayIDHealthStatusParams contains all the parameters to send to the API endpoint
+   for the get feg network ID gateways gateway ID health status operation.
+
+   Typically these are written to a http.Request.
 */
 type GetFegNetworkIDGatewaysGatewayIDHealthStatusParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get feg network ID gateways gateway ID health status params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams) WithDefaults() *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get feg network ID gateways gateway ID health status params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get feg network ID gateways gateway ID health status params

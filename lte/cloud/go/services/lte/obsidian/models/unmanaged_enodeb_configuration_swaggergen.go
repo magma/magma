@@ -6,28 +6,33 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // UnmanagedEnodebConfiguration Configuration for externally managed eNodeb devices.
+//
 // swagger:model unmanaged_enodeb_configuration
 type UnmanagedEnodebConfiguration struct {
 
 	// cell id
+	// Example: 138777000
 	// Required: true
 	// Maximum: 2.68435455e+08
 	CellID *uint32 `json:"cell_id"`
 
 	// ip address
+	// Example: 192.168.1.142
 	// Required: true
 	// Format: ipv4
 	IPAddress *strfmt.IPv4 `json:"ip_address"`
 
 	// tac
+	// Example: 1
 	// Required: true
 	// Maximum: 65535
 	// Minimum: 1
@@ -62,7 +67,7 @@ func (m *UnmanagedEnodebConfiguration) validateCellID(formats strfmt.Registry) e
 		return err
 	}
 
-	if err := validate.MaximumInt("cell_id", "body", int64(*m.CellID), 2.68435455e+08, false); err != nil {
+	if err := validate.MaximumUint("cell_id", "body", uint64(*m.CellID), 2.68435455e+08, false); err != nil {
 		return err
 	}
 
@@ -88,14 +93,19 @@ func (m *UnmanagedEnodebConfiguration) validateTac(formats strfmt.Registry) erro
 		return err
 	}
 
-	if err := validate.MinimumInt("tac", "body", int64(*m.Tac), 1, false); err != nil {
+	if err := validate.MinimumUint("tac", "body", uint64(*m.Tac), 1, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("tac", "body", int64(*m.Tac), 65535, false); err != nil {
+	if err := validate.MaximumUint("tac", "body", uint64(*m.Tac), 65535, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this unmanaged enodeb configuration based on context it is used
+func (m *UnmanagedEnodebConfiguration) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

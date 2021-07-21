@@ -7,12 +7,11 @@ package gateways
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new gateways API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,55 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworksNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*DeleteNetworksNetworkIDGatewaysGatewayIDNoContent, error)
+
+	GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewaysParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDDescriptionOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworksNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworksNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDNameOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworksNetworkIDGatewaysGatewayIDStatusParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDStatusOK, error)
+
+	GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDTierOK, error)
+
+	PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGatewaysParams, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysCreated, error)
+
+	PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNetworksNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDDescriptionNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDMagmadNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDNameNoContent, error)
+
+	PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDTierNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteNetworksNetworkIDGatewaysGatewayID deletes a gateway
+  DeleteNetworksNetworkIDGatewaysGatewayID deletes a gateway
 */
-func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworksNetworkIDGatewaysGatewayIDParams) (*DeleteNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworksNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*DeleteNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDGatewaysGatewayID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}",
@@ -44,7 +82,12 @@ func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworks
 		Reader:             &DeleteNetworksNetworkIDGatewaysGatewayIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +101,14 @@ func (a *Client) DeleteNetworksNetworkIDGatewaysGatewayID(params *DeleteNetworks
 }
 
 /*
-GetNetworksNetworkIDGateways lists all gateways for a network
+  GetNetworksNetworkIDGateways lists all gateways for a network
 */
-func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewaysParams) (*GetNetworksNetworkIDGatewaysOK, error) {
+func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewaysParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGateways",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways",
@@ -77,7 +119,12 @@ func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewa
 		Reader:             &GetNetworksNetworkIDGatewaysReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +138,14 @@ func (a *Client) GetNetworksNetworkIDGateways(params *GetNetworksNetworkIDGatewa
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayID gets a specific gateway
+  GetNetworksNetworkIDGatewaysGatewayID gets a specific gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetworkIDGatewaysGatewayIDParams) (*GetNetworksNetworkIDGatewaysGatewayIDOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayID",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}",
@@ -110,7 +156,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetwor
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +175,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayID(params *GetNetworksNetwor
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDDescription gets the description of a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDDescription gets the description of a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams) (*GetNetworksNetworkIDGatewaysGatewayIDDescriptionOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayIDDescription",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/description",
@@ -143,7 +193,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNet
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +212,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDescription(params *GetNet
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDDevice gets the physical device for a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDDevice gets the physical device for a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworksNetworkIDGatewaysGatewayIDDeviceParams) (*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworksNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDDeviceParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayIDDevice",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/device",
@@ -176,7 +230,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworks
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDDeviceReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +249,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDDevice(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDMagmad gets magmad agent configuration
+  GetNetworksNetworkIDGatewaysGatewayIDMagmad gets magmad agent configuration
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworksNetworkIDGatewaysGatewayIDMagmadParams) (*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworksNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDMagmadParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayIDMagmad",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/magmad",
@@ -209,7 +267,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworks
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDMagmadReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +286,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDMagmad(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDName gets the name of a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDName gets the name of a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNetworkIDGatewaysGatewayIDNameParams) (*GetNetworksNetworkIDGatewaysGatewayIDNameOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayIDName",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/name",
@@ -242,7 +304,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNe
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +323,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDName(params *GetNetworksNe
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDStatus gets the status of a gateway
+  GetNetworksNetworkIDGatewaysGatewayIDStatus gets the status of a gateway
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworksNetworkIDGatewaysGatewayIDStatusParams) (*GetNetworksNetworkIDGatewaysGatewayIDStatusOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworksNetworkIDGatewaysGatewayIDStatusParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDStatusParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayIDStatus",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/status",
@@ -275,7 +341,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworks
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDStatusReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +360,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDStatus(params *GetNetworks
 }
 
 /*
-GetNetworksNetworkIDGatewaysGatewayIDTier gets the ID of the upgrade tier a gateway belongs to
+  GetNetworksNetworkIDGatewaysGatewayIDTier gets the ID of the upgrade tier a gateway belongs to
 */
-func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNetworkIDGatewaysGatewayIDTierParams) (*GetNetworksNetworkIDGatewaysGatewayIDTierOK, error) {
+func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*GetNetworksNetworkIDGatewaysGatewayIDTierOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDGatewaysGatewayIDTierParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDGatewaysGatewayIDTier",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/tier",
@@ -308,7 +378,12 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNe
 		Reader:             &GetNetworksNetworkIDGatewaysGatewayIDTierReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +397,14 @@ func (a *Client) GetNetworksNetworkIDGatewaysGatewayIDTier(params *GetNetworksNe
 }
 
 /*
-PostNetworksNetworkIDGateways registers a new gateway
+  PostNetworksNetworkIDGateways registers a new gateway
 */
-func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGatewaysParams) (*PostNetworksNetworkIDGatewaysCreated, error) {
+func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGatewaysParams, opts ...ClientOption) (*PostNetworksNetworkIDGatewaysCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDGateways",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/gateways",
@@ -341,7 +415,12 @@ func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGate
 		Reader:             &PostNetworksNetworkIDGatewaysReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -355,15 +434,14 @@ func (a *Client) PostNetworksNetworkIDGateways(params *PostNetworksNetworkIDGate
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayID updates an entire gateway record
+  PutNetworksNetworkIDGatewaysGatewayID updates an entire gateway record
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetworkIDGatewaysGatewayIDParams) (*PutNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDGatewaysGatewayID",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}",
@@ -374,7 +452,12 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetwor
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -388,15 +471,14 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayID(params *PutNetworksNetwor
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDDescription updates the description of a gateway
+  PutNetworksNetworkIDGatewaysGatewayIDDescription updates the description of a gateway
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNetworksNetworkIDGatewaysGatewayIDDescriptionParams) (*PutNetworksNetworkIDGatewaysGatewayIDDescriptionNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNetworksNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDGatewaysGatewayIDDescription",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/description",
@@ -407,7 +489,12 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNet
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -421,15 +508,14 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDescription(params *PutNet
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDDevice updates the physical device for a gateway
+  PutNetworksNetworkIDGatewaysGatewayIDDevice updates the physical device for a gateway
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams) (*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworksNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDDeviceParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDGatewaysGatewayIDDevice",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/device",
@@ -440,7 +526,12 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworks
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDDeviceReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -454,15 +545,14 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDDevice(params *PutNetworks
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDMagmad reconfigures magmad agent
+  PutNetworksNetworkIDGatewaysGatewayIDMagmad reconfigures magmad agent
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams) (*PutNetworksNetworkIDGatewaysGatewayIDMagmadNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworksNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDMagmadNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDMagmadParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDGatewaysGatewayIDMagmad",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/magmad",
@@ -473,7 +563,12 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworks
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDMagmadReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -487,15 +582,14 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDMagmad(params *PutNetworks
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDName updates the name of a gateway
+  PutNetworksNetworkIDGatewaysGatewayIDName updates the name of a gateway
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNetworkIDGatewaysGatewayIDNameParams) (*PutNetworksNetworkIDGatewaysGatewayIDNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDGatewaysGatewayIDName",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/name",
@@ -506,7 +600,12 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNe
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -520,15 +619,14 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDName(params *PutNetworksNe
 }
 
 /*
-PutNetworksNetworkIDGatewaysGatewayIDTier updates the ID of the upgrade tier a gateway belongs to
+  PutNetworksNetworkIDGatewaysGatewayIDTier updates the ID of the upgrade tier a gateway belongs to
 */
-func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNetworkIDGatewaysGatewayIDTierParams) (*PutNetworksNetworkIDGatewaysGatewayIDTierNoContent, error) {
+func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*PutNetworksNetworkIDGatewaysGatewayIDTierNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDGatewaysGatewayIDTierParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDGatewaysGatewayIDTier",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/gateways/{gateway_id}/tier",
@@ -539,7 +637,12 @@ func (a *Client) PutNetworksNetworkIDGatewaysGatewayIDTier(params *PutNetworksNe
 		Reader:             &PutNetworksNetworkIDGatewaysGatewayIDTierReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteLTENetworkIDAPNSAPNNameParams creates a new DeleteLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized.
+// NewDeleteLTENetworkIDAPNSAPNNameParams creates a new DeleteLTENetworkIDAPNSAPNNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteLTENetworkIDAPNSAPNNameParams() *DeleteLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &DeleteLTENetworkIDAPNSAPNNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteLTENetworkIDAPNSAPNNameParamsWithTimeout creates a new DeleteLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteLTENetworkIDAPNSAPNNameParamsWithTimeout(timeout time.Duration) *DeleteLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &DeleteLTENetworkIDAPNSAPNNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteLTENetworkIDAPNSAPNNameParamsWithContext creates a new DeleteLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteLTENetworkIDAPNSAPNNameParamsWithContext(ctx context.Context) *DeleteLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &DeleteLTENetworkIDAPNSAPNNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteLTENetworkIDAPNSAPNNameParamsWithHTTPClient creates a new DeleteLTENetworkIDAPNSAPNNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteLTENetworkIDAPNSAPNNameParamsWithHTTPClient(client *http.Client) *DeleteLTENetworkIDAPNSAPNNameParams {
-	var ()
 	return &DeleteLTENetworkIDAPNSAPNNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
-for the delete LTE network ID APNS APN name operation typically these are written to a http.Request
+/* DeleteLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
+   for the delete LTE network ID APNS APN name operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteLTENetworkIDAPNSAPNNameParams struct {
 
-	/*APNName
-	  Access Point Name
+	/* APNName.
 
+	   Access Point Name
 	*/
 	APNName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete LTE network ID APNS APN name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteLTENetworkIDAPNSAPNNameParams) WithDefaults() *DeleteLTENetworkIDAPNSAPNNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete LTE network ID APNS APN name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteLTENetworkIDAPNSAPNNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete LTE network ID APNS APN name params

@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteWifiNetworkIDGatewaysGatewayIDParams creates a new DeleteWifiNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized.
+// NewDeleteWifiNetworkIDGatewaysGatewayIDParams creates a new DeleteWifiNetworkIDGatewaysGatewayIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteWifiNetworkIDGatewaysGatewayIDParams() *DeleteWifiNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteWifiNetworkIDGatewaysGatewayIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteWifiNetworkIDGatewaysGatewayIDParamsWithTimeout creates a new DeleteWifiNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteWifiNetworkIDGatewaysGatewayIDParamsWithTimeout(timeout time.Duration) *DeleteWifiNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteWifiNetworkIDGatewaysGatewayIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteWifiNetworkIDGatewaysGatewayIDParamsWithContext creates a new DeleteWifiNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteWifiNetworkIDGatewaysGatewayIDParamsWithContext(ctx context.Context) *DeleteWifiNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteWifiNetworkIDGatewaysGatewayIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteWifiNetworkIDGatewaysGatewayIDParamsWithHTTPClient creates a new DeleteWifiNetworkIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteWifiNetworkIDGatewaysGatewayIDParamsWithHTTPClient(client *http.Client) *DeleteWifiNetworkIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteWifiNetworkIDGatewaysGatewayIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteWifiNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
-for the delete wifi network ID gateways gateway ID operation typically these are written to a http.Request
+/* DeleteWifiNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
+   for the delete wifi network ID gateways gateway ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteWifiNetworkIDGatewaysGatewayIDParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete wifi network ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteWifiNetworkIDGatewaysGatewayIDParams) WithDefaults() *DeleteWifiNetworkIDGatewaysGatewayIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete wifi network ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteWifiNetworkIDGatewaysGatewayIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete wifi network ID gateways gateway ID params

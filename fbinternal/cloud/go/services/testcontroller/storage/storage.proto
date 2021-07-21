@@ -4,7 +4,7 @@ package magma.fbinternal.testcontroller.storage;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "storage";
+option go_package = "fbinternal/cloud/go/services/testcontroller/storage";
 
 // TestCase is an end-to-end test case.
 message TestCase {

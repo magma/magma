@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // LatestScriptExecution latest script execution
+//
 // swagger:model latest_script_execution
 type LatestScriptExecution struct {
 
@@ -55,10 +57,15 @@ func (m *LatestScriptExecution) validateTimestamp(formats strfmt.Registry) error
 
 func (m *LatestScriptExecution) validateVersion(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("version", "body", string(m.Version)); err != nil {
+	if err := validate.RequiredString("version", "body", m.Version); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this latest script execution based on context it is used
+func (m *LatestScriptExecution) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

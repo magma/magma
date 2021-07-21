@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewPostCiReserveParams creates a new PostCiReserveParams object
-// with the default values initialized.
+// NewPostCiReserveParams creates a new PostCiReserveParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostCiReserveParams() *PostCiReserveParams {
-	var ()
 	return &PostCiReserveParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostCiReserveParamsWithTimeout creates a new PostCiReserveParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostCiReserveParamsWithTimeout(timeout time.Duration) *PostCiReserveParams {
-	var ()
 	return &PostCiReserveParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostCiReserveParamsWithContext creates a new PostCiReserveParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostCiReserveParamsWithContext(ctx context.Context) *PostCiReserveParams {
-	var ()
 	return &PostCiReserveParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostCiReserveParamsWithHTTPClient creates a new PostCiReserveParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostCiReserveParamsWithHTTPClient(client *http.Client) *PostCiReserveParams {
-	var ()
 	return &PostCiReserveParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostCiReserveParams contains all the parameters to send to the API endpoint
-for the post ci reserve operation typically these are written to a http.Request
+/* PostCiReserveParams contains all the parameters to send to the API endpoint
+   for the post ci reserve operation.
+
+   Typically these are written to a http.Request.
 */
 type PostCiReserveParams struct {
 
-	/*Tag
-	  Optional tag to restrict reservation pool to
+	/* Tag.
 
+	   Optional tag to restrict reservation pool to
 	*/
 	Tag *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post ci reserve params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCiReserveParams) WithDefaults() *PostCiReserveParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post ci reserve params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCiReserveParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post ci reserve params
@@ -128,16 +141,17 @@ func (o *PostCiReserveParams) WriteToRequest(r runtime.ClientRequest, reg strfmt
 
 		// query param tag
 		var qrTag string
+
 		if o.Tag != nil {
 			qrTag = *o.Tag
 		}
 		qTag := qrTag
 		if qTag != "" {
+
 			if err := r.SetQueryParam("tag", qTag); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

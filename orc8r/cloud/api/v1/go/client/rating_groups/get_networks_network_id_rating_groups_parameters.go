@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDRatingGroupsParams creates a new GetNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDRatingGroupsParams creates a new GetNetworksNetworkIDRatingGroupsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDRatingGroupsParams() *GetNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &GetNetworksNetworkIDRatingGroupsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDRatingGroupsParamsWithTimeout creates a new GetNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDRatingGroupsParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &GetNetworksNetworkIDRatingGroupsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDRatingGroupsParamsWithContext creates a new GetNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDRatingGroupsParamsWithContext(ctx context.Context) *GetNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &GetNetworksNetworkIDRatingGroupsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDRatingGroupsParamsWithHTTPClient creates a new GetNetworksNetworkIDRatingGroupsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDRatingGroupsParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDRatingGroupsParams {
-	var ()
 	return &GetNetworksNetworkIDRatingGroupsParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDRatingGroupsParams contains all the parameters to send to the API endpoint
-for the get networks network ID rating groups operation typically these are written to a http.Request
+/* GetNetworksNetworkIDRatingGroupsParams contains all the parameters to send to the API endpoint
+   for the get networks network ID rating groups operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDRatingGroupsParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID rating groups params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDRatingGroupsParams) WithDefaults() *GetNetworksNetworkIDRatingGroupsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID rating groups params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDRatingGroupsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID rating groups params

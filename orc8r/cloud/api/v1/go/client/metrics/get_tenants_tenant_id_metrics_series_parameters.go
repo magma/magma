@@ -13,79 +13,95 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetTenantsTenantIDMetricsSeriesParams creates a new GetTenantsTenantIDMetricsSeriesParams object
-// with the default values initialized.
+// NewGetTenantsTenantIDMetricsSeriesParams creates a new GetTenantsTenantIDMetricsSeriesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetTenantsTenantIDMetricsSeriesParams() *GetTenantsTenantIDMetricsSeriesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsSeriesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsSeriesParamsWithTimeout creates a new GetTenantsTenantIDMetricsSeriesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetTenantsTenantIDMetricsSeriesParamsWithTimeout(timeout time.Duration) *GetTenantsTenantIDMetricsSeriesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsSeriesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsSeriesParamsWithContext creates a new GetTenantsTenantIDMetricsSeriesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetTenantsTenantIDMetricsSeriesParamsWithContext(ctx context.Context) *GetTenantsTenantIDMetricsSeriesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsSeriesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsSeriesParamsWithHTTPClient creates a new GetTenantsTenantIDMetricsSeriesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetTenantsTenantIDMetricsSeriesParamsWithHTTPClient(client *http.Client) *GetTenantsTenantIDMetricsSeriesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsSeriesParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetTenantsTenantIDMetricsSeriesParams contains all the parameters to send to the API endpoint
-for the get tenants tenant ID metrics series operation typically these are written to a http.Request
+/* GetTenantsTenantIDMetricsSeriesParams contains all the parameters to send to the API endpoint
+   for the get tenants tenant ID metrics series operation.
+
+   Typically these are written to a http.Request.
 */
 type GetTenantsTenantIDMetricsSeriesParams struct {
 
-	/*End
-	  end time of the requested range (UnixTime or RFC3339)
+	/* End.
 
+	   end time of the requested range (UnixTime or RFC3339)
 	*/
 	End *string
-	/*Match
-	  Matcher for metric series query
 
+	/* Match.
+
+	   Matcher for metric series query
 	*/
 	Match []string
-	/*Start
-	  start time of the requested range (UnixTime or RFC3339)
 
+	/* Start.
+
+	   start time of the requested range (UnixTime or RFC3339)
 	*/
 	Start *string
-	/*TenantID
-	  Tenant ID
 
+	/* TenantID.
+
+	   Tenant ID
 	*/
 	TenantID int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get tenants tenant ID metrics series params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTenantIDMetricsSeriesParams) WithDefaults() *GetTenantsTenantIDMetricsSeriesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get tenants tenant ID metrics series params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTenantIDMetricsSeriesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get tenants tenant ID metrics series params
@@ -177,40 +193,45 @@ func (o *GetTenantsTenantIDMetricsSeriesParams) WriteToRequest(r runtime.ClientR
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
-	valuesMatch := o.Match
+	if o.Match != nil {
 
-	joinedMatch := swag.JoinByFormat(valuesMatch, "ssv")
-	// query array param match
-	if err := r.SetQueryParam("match", joinedMatch...); err != nil {
-		return err
+		// binding items for match
+		joinedMatch := o.bindParamMatch(reg)
+
+		// query array param match
+		if err := r.SetQueryParam("match", joinedMatch...); err != nil {
+			return err
+		}
 	}
 
 	if o.Start != nil {
 
 		// query param start
 		var qrStart string
+
 		if o.Start != nil {
 			qrStart = *o.Start
 		}
 		qStart := qrStart
 		if qStart != "" {
+
 			if err := r.SetQueryParam("start", qStart); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param tenant_id
@@ -222,4 +243,21 @@ func (o *GetTenantsTenantIDMetricsSeriesParams) WriteToRequest(r runtime.ClientR
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+// bindParamGetTenantsTenantIDMetricsSeries binds the parameter match
+func (o *GetTenantsTenantIDMetricsSeriesParams) bindParamMatch(formats strfmt.Registry) []string {
+	matchIR := o.Match
+
+	var matchIC []string
+	for _, matchIIR := range matchIR { // explode []string
+
+		matchIIV := matchIIR // string as string
+		matchIC = append(matchIC, matchIIV)
+	}
+
+	// items.CollectionFormat: "ssv"
+	matchIS := swag.JoinByFormat(matchIC, "ssv")
+
+	return matchIS
 }

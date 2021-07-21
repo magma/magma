@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // E2eTestCase Generic e2e test case
+//
 // swagger:model e2e_test_case
 type E2eTestCase struct {
 
@@ -22,6 +24,7 @@ type E2eTestCase struct {
 	Config interface{} `json:"config"`
 
 	// pk
+	// Example: 42
 	// Required: true
 	Pk *int64 `json:"pk"`
 
@@ -30,6 +33,7 @@ type E2eTestCase struct {
 	State *E2eTestCaseState `json:"state"`
 
 	// test type
+	// Example: enodebd
 	// Required: true
 	// Min Length: 1
 	TestType *string `json:"test_type"`
@@ -63,8 +67,8 @@ func (m *E2eTestCase) Validate(formats strfmt.Registry) error {
 
 func (m *E2eTestCase) validateConfig(formats strfmt.Registry) error {
 
-	if err := validate.Required("config", "body", m.Config); err != nil {
-		return err
+	if m.Config == nil {
+		return errors.Required("config", "body", nil)
 	}
 
 	return nil
@@ -103,8 +107,36 @@ func (m *E2eTestCase) validateTestType(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("test_type", "body", string(*m.TestType), 1); err != nil {
+	if err := validate.MinLength("test_type", "body", *m.TestType, 1); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this e2e test case based on the context it is used
+func (m *E2eTestCase) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateState(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *E2eTestCase) contextValidateState(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.State != nil {
+		if err := m.State.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state")
+			}
+			return err
+		}
 	}
 
 	return nil

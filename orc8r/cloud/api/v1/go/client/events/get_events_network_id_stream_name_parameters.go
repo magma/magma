@@ -13,83 +13,100 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetEventsNetworkIDStreamNameParams creates a new GetEventsNetworkIDStreamNameParams object
-// with the default values initialized.
+// NewGetEventsNetworkIDStreamNameParams creates a new GetEventsNetworkIDStreamNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetEventsNetworkIDStreamNameParams() *GetEventsNetworkIDStreamNameParams {
-	var ()
 	return &GetEventsNetworkIDStreamNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetEventsNetworkIDStreamNameParamsWithTimeout creates a new GetEventsNetworkIDStreamNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetEventsNetworkIDStreamNameParamsWithTimeout(timeout time.Duration) *GetEventsNetworkIDStreamNameParams {
-	var ()
 	return &GetEventsNetworkIDStreamNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetEventsNetworkIDStreamNameParamsWithContext creates a new GetEventsNetworkIDStreamNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetEventsNetworkIDStreamNameParamsWithContext(ctx context.Context) *GetEventsNetworkIDStreamNameParams {
-	var ()
 	return &GetEventsNetworkIDStreamNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetEventsNetworkIDStreamNameParamsWithHTTPClient creates a new GetEventsNetworkIDStreamNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetEventsNetworkIDStreamNameParamsWithHTTPClient(client *http.Client) *GetEventsNetworkIDStreamNameParams {
-	var ()
 	return &GetEventsNetworkIDStreamNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetEventsNetworkIDStreamNameParams contains all the parameters to send to the API endpoint
-for the get events network ID stream name operation typically these are written to a http.Request
+/* GetEventsNetworkIDStreamNameParams contains all the parameters to send to the API endpoint
+   for the get events network ID stream name operation.
+
+   Typically these are written to a http.Request.
 */
 type GetEventsNetworkIDStreamNameParams struct {
 
-	/*EventType
-	  The type of event to filter the query with.
+	/* EventType.
 
+	   The type of event to filter the query with.
 	*/
 	EventType *string
-	/*HardwareID
-	  The hardware ID to filter the query with.
 
+	/* HardwareID.
+
+	   The hardware ID to filter the query with.
 	*/
 	HardwareID *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*StreamName
-	  The user-specified string to categorize events
 
+	/* StreamName.
+
+	   The user-specified string to categorize events
 	*/
 	StreamName string
-	/*Tag
-	  The event tag to filter the query with.
 
+	/* Tag.
+
+	   The event tag to filter the query with.
 	*/
 	Tag *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get events network ID stream name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetEventsNetworkIDStreamNameParams) WithDefaults() *GetEventsNetworkIDStreamNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get events network ID stream name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetEventsNetworkIDStreamNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get events network ID stream name params
@@ -192,32 +209,34 @@ func (o *GetEventsNetworkIDStreamNameParams) WriteToRequest(r runtime.ClientRequ
 
 		// query param event_type
 		var qrEventType string
+
 		if o.EventType != nil {
 			qrEventType = *o.EventType
 		}
 		qEventType := qrEventType
 		if qEventType != "" {
+
 			if err := r.SetQueryParam("event_type", qEventType); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.HardwareID != nil {
 
 		// query param hardware_id
 		var qrHardwareID string
+
 		if o.HardwareID != nil {
 			qrHardwareID = *o.HardwareID
 		}
 		qHardwareID := qrHardwareID
 		if qHardwareID != "" {
+
 			if err := r.SetQueryParam("hardware_id", qHardwareID); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -234,16 +253,17 @@ func (o *GetEventsNetworkIDStreamNameParams) WriteToRequest(r runtime.ClientRequ
 
 		// query param tag
 		var qrTag string
+
 		if o.Tag != nil {
 			qrTag = *o.Tag
 		}
 		qTag := qrTag
 		if qTag != "" {
+
 			if err := r.SetQueryParam("tag", qTag); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDAlertsParams creates a new GetNetworksNetworkIDAlertsParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDAlertsParams creates a new GetNetworksNetworkIDAlertsParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDAlertsParams() *GetNetworksNetworkIDAlertsParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDAlertsParamsWithTimeout creates a new GetNetworksNetworkIDAlertsParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDAlertsParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDAlertsParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDAlertsParamsWithContext creates a new GetNetworksNetworkIDAlertsParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDAlertsParamsWithContext(ctx context.Context) *GetNetworksNetworkIDAlertsParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDAlertsParamsWithHTTPClient creates a new GetNetworksNetworkIDAlertsParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDAlertsParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDAlertsParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDAlertsParams contains all the parameters to send to the API endpoint
-for the get networks network ID alerts operation typically these are written to a http.Request
+/* GetNetworksNetworkIDAlertsParams contains all the parameters to send to the API endpoint
+   for the get networks network ID alerts operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDAlertsParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID alerts params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDAlertsParams) WithDefaults() *GetNetworksNetworkIDAlertsParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID alerts params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDAlertsParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID alerts params

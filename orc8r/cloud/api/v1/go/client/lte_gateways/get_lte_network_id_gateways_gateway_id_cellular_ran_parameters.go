@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDGatewaysGatewayIDCellularRanParams creates a new GetLTENetworkIDGatewaysGatewayIDCellularRanParams object
-// with the default values initialized.
+// NewGetLTENetworkIDGatewaysGatewayIDCellularRanParams creates a new GetLTENetworkIDGatewaysGatewayIDCellularRanParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDGatewaysGatewayIDCellularRanParams() *GetLTENetworkIDGatewaysGatewayIDCellularRanParams {
-	var ()
 	return &GetLTENetworkIDGatewaysGatewayIDCellularRanParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDGatewaysGatewayIDCellularRanParamsWithTimeout creates a new GetLTENetworkIDGatewaysGatewayIDCellularRanParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDGatewaysGatewayIDCellularRanParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDGatewaysGatewayIDCellularRanParams {
-	var ()
 	return &GetLTENetworkIDGatewaysGatewayIDCellularRanParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDGatewaysGatewayIDCellularRanParamsWithContext creates a new GetLTENetworkIDGatewaysGatewayIDCellularRanParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDGatewaysGatewayIDCellularRanParamsWithContext(ctx context.Context) *GetLTENetworkIDGatewaysGatewayIDCellularRanParams {
-	var ()
 	return &GetLTENetworkIDGatewaysGatewayIDCellularRanParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDGatewaysGatewayIDCellularRanParamsWithHTTPClient creates a new GetLTENetworkIDGatewaysGatewayIDCellularRanParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDGatewaysGatewayIDCellularRanParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDGatewaysGatewayIDCellularRanParams {
-	var ()
 	return &GetLTENetworkIDGatewaysGatewayIDCellularRanParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularRanParams contains all the parameters to send to the API endpoint
-for the get LTE network ID gateways gateway ID cellular ran operation typically these are written to a http.Request
+/* GetLTENetworkIDGatewaysGatewayIDCellularRanParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID gateways gateway ID cellular ran operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDGatewaysGatewayIDCellularRanParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID gateways gateway ID cellular ran params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanParams) WithDefaults() *GetLTENetworkIDGatewaysGatewayIDCellularRanParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID gateways gateway ID cellular ran params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID gateways gateway ID cellular ran params

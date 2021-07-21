@@ -7,12 +7,11 @@ package a_p_ns
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new a p ns API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,33 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPNNameParams, opts ...ClientOption) (*DeleteLTENetworkIDAPNSAPNNameNoContent, error)
+
+	GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams, opts ...ClientOption) (*GetLTENetworkIDAPNSOK, error)
+
+	GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNameParams, opts ...ClientOption) (*GetLTENetworkIDAPNSAPNNameOK, error)
+
+	PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams, opts ...ClientOption) (*PostLTENetworkIDAPNSCreated, error)
+
+	PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNameParams, opts ...ClientOption) (*PutLTENetworkIDAPNSAPNNameNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDAPNSAPNName removes an APN from the network
+  DeleteLTENetworkIDAPNSAPNName removes an APN from the network
 */
-func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPNNameParams) (*DeleteLTENetworkIDAPNSAPNNameNoContent, error) {
+func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPNNameParams, opts ...ClientOption) (*DeleteLTENetworkIDAPNSAPNNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDAPNSAPNNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDAPNSAPNName",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/apns/{apn_name}",
@@ -44,7 +60,12 @@ func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPN
 		Reader:             &DeleteLTENetworkIDAPNSAPNNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +79,14 @@ func (a *Client) DeleteLTENetworkIDAPNSAPNName(params *DeleteLTENetworkIDAPNSAPN
 }
 
 /*
-GetLTENetworkIDAPNS lists a p ns in the network
+  GetLTENetworkIDAPNS lists a p ns in the network
 */
-func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams) (*GetLTENetworkIDAPNSOK, error) {
+func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams, opts ...ClientOption) (*GetLTENetworkIDAPNSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDAPNSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDAPNS",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/apns",
@@ -77,7 +97,12 @@ func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams) (*GetLTE
 		Reader:             &GetLTENetworkIDAPNSReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +116,14 @@ func (a *Client) GetLTENetworkIDAPNS(params *GetLTENetworkIDAPNSParams) (*GetLTE
 }
 
 /*
-GetLTENetworkIDAPNSAPNName retrieves the APN info
+  GetLTENetworkIDAPNSAPNName retrieves the APN info
 */
-func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNameParams) (*GetLTENetworkIDAPNSAPNNameOK, error) {
+func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNameParams, opts ...ClientOption) (*GetLTENetworkIDAPNSAPNNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDAPNSAPNNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDAPNSAPNName",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/apns/{apn_name}",
@@ -110,7 +134,12 @@ func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNamePa
 		Reader:             &GetLTENetworkIDAPNSAPNNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +153,14 @@ func (a *Client) GetLTENetworkIDAPNSAPNName(params *GetLTENetworkIDAPNSAPNNamePa
 }
 
 /*
-PostLTENetworkIDAPNS adds a new APN to the network
+  PostLTENetworkIDAPNS adds a new APN to the network
 */
-func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams) (*PostLTENetworkIDAPNSCreated, error) {
+func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams, opts ...ClientOption) (*PostLTENetworkIDAPNSCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDAPNSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDAPNS",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/apns",
@@ -143,7 +171,12 @@ func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams) (*Post
 		Reader:             &PostLTENetworkIDAPNSReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +190,14 @@ func (a *Client) PostLTENetworkIDAPNS(params *PostLTENetworkIDAPNSParams) (*Post
 }
 
 /*
-PutLTENetworkIDAPNSAPNName updates an existing APN in the network
+  PutLTENetworkIDAPNSAPNName updates an existing APN in the network
 */
-func (a *Client) PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNameParams) (*PutLTENetworkIDAPNSAPNNameNoContent, error) {
+func (a *Client) PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNameParams, opts ...ClientOption) (*PutLTENetworkIDAPNSAPNNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDAPNSAPNNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDAPNSAPNName",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/apns/{apn_name}",
@@ -176,7 +208,12 @@ func (a *Client) PutLTENetworkIDAPNSAPNName(params *PutLTENetworkIDAPNSAPNNamePa
 		Reader:             &PutLTENetworkIDAPNSAPNNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteNetworksNetworkIDAlertsSilenceParams creates a new DeleteNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized.
+// NewDeleteNetworksNetworkIDAlertsSilenceParams creates a new DeleteNetworksNetworkIDAlertsSilenceParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteNetworksNetworkIDAlertsSilenceParams() *DeleteNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &DeleteNetworksNetworkIDAlertsSilenceParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDAlertsSilenceParamsWithTimeout creates a new DeleteNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteNetworksNetworkIDAlertsSilenceParamsWithTimeout(timeout time.Duration) *DeleteNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &DeleteNetworksNetworkIDAlertsSilenceParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDAlertsSilenceParamsWithContext creates a new DeleteNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteNetworksNetworkIDAlertsSilenceParamsWithContext(ctx context.Context) *DeleteNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &DeleteNetworksNetworkIDAlertsSilenceParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteNetworksNetworkIDAlertsSilenceParamsWithHTTPClient creates a new DeleteNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteNetworksNetworkIDAlertsSilenceParamsWithHTTPClient(client *http.Client) *DeleteNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &DeleteNetworksNetworkIDAlertsSilenceParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
-for the delete networks network ID alerts silence operation typically these are written to a http.Request
+/* DeleteNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
+   for the delete networks network ID alerts silence operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteNetworksNetworkIDAlertsSilenceParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*SilenceID
-	  ID of silencer to be deleted
 
+	/* SilenceID.
+
+	   ID of silencer to be deleted
 	*/
 	SilenceID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete networks network ID alerts silence params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDAlertsSilenceParams) WithDefaults() *DeleteNetworksNetworkIDAlertsSilenceParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete networks network ID alerts silence params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDAlertsSilenceParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete networks network ID alerts silence params
@@ -149,6 +163,7 @@ func (o *DeleteNetworksNetworkIDAlertsSilenceParams) WriteToRequest(r runtime.Cl
 	qrSilenceID := o.SilenceID
 	qSilenceID := qrSilenceID
 	if qSilenceID != "" {
+
 		if err := r.SetQueryParam("silence_id", qSilenceID); err != nil {
 			return err
 		}

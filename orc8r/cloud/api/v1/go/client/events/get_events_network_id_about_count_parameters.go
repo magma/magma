@@ -13,93 +13,112 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetEventsNetworkIDAboutCountParams creates a new GetEventsNetworkIDAboutCountParams object
-// with the default values initialized.
+// NewGetEventsNetworkIDAboutCountParams creates a new GetEventsNetworkIDAboutCountParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetEventsNetworkIDAboutCountParams() *GetEventsNetworkIDAboutCountParams {
-	var ()
 	return &GetEventsNetworkIDAboutCountParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetEventsNetworkIDAboutCountParamsWithTimeout creates a new GetEventsNetworkIDAboutCountParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetEventsNetworkIDAboutCountParamsWithTimeout(timeout time.Duration) *GetEventsNetworkIDAboutCountParams {
-	var ()
 	return &GetEventsNetworkIDAboutCountParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetEventsNetworkIDAboutCountParamsWithContext creates a new GetEventsNetworkIDAboutCountParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetEventsNetworkIDAboutCountParamsWithContext(ctx context.Context) *GetEventsNetworkIDAboutCountParams {
-	var ()
 	return &GetEventsNetworkIDAboutCountParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetEventsNetworkIDAboutCountParamsWithHTTPClient creates a new GetEventsNetworkIDAboutCountParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetEventsNetworkIDAboutCountParamsWithHTTPClient(client *http.Client) *GetEventsNetworkIDAboutCountParams {
-	var ()
 	return &GetEventsNetworkIDAboutCountParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetEventsNetworkIDAboutCountParams contains all the parameters to send to the API endpoint
-for the get events network ID about count operation typically these are written to a http.Request
+/* GetEventsNetworkIDAboutCountParams contains all the parameters to send to the API endpoint
+   for the get events network ID about count operation.
+
+   Typically these are written to a http.Request.
 */
 type GetEventsNetworkIDAboutCountParams struct {
 
-	/*End
-	  End time for the query, in RFC3339 or ISO8601 format
+	/* End.
 
+	   End time for the query, in RFC3339 or ISO8601 format
 	*/
 	End *string
-	/*Events
-	  Comma-separated list of event types to query
 
+	/* Events.
+
+	   Comma-separated list of event types to query
 	*/
 	Events *string
-	/*HwIds
-	  Comma-separated list of hardware IDs to query
 
+	/* HwIds.
+
+	   Comma-separated list of hardware IDs to query
 	*/
 	HwIds *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Start
-	  Start time for the query, in RFC3339 or ISO8601 format
 
+	/* Start.
+
+	   Start time for the query, in RFC3339 or ISO8601 format
 	*/
 	Start *string
-	/*Streams
-	  Comma-separated list of streams to query
 
+	/* Streams.
+
+	   Comma-separated list of streams to query
 	*/
 	Streams *string
-	/*Tags
-	  Comma-separated list of tags to query
 
+	/* Tags.
+
+	   Comma-separated list of tags to query
 	*/
 	Tags *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get events network ID about count params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetEventsNetworkIDAboutCountParams) WithDefaults() *GetEventsNetworkIDAboutCountParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get events network ID about count params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetEventsNetworkIDAboutCountParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get events network ID about count params
@@ -224,48 +243,51 @@ func (o *GetEventsNetworkIDAboutCountParams) WriteToRequest(r runtime.ClientRequ
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Events != nil {
 
 		// query param events
 		var qrEvents string
+
 		if o.Events != nil {
 			qrEvents = *o.Events
 		}
 		qEvents := qrEvents
 		if qEvents != "" {
+
 			if err := r.SetQueryParam("events", qEvents); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.HwIds != nil {
 
 		// query param hw_ids
 		var qrHwIds string
+
 		if o.HwIds != nil {
 			qrHwIds = *o.HwIds
 		}
 		qHwIds := qrHwIds
 		if qHwIds != "" {
+
 			if err := r.SetQueryParam("hw_ids", qHwIds); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -277,48 +299,51 @@ func (o *GetEventsNetworkIDAboutCountParams) WriteToRequest(r runtime.ClientRequ
 
 		// query param start
 		var qrStart string
+
 		if o.Start != nil {
 			qrStart = *o.Start
 		}
 		qStart := qrStart
 		if qStart != "" {
+
 			if err := r.SetQueryParam("start", qStart); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Streams != nil {
 
 		// query param streams
 		var qrStreams string
+
 		if o.Streams != nil {
 			qrStreams = *o.Streams
 		}
 		qStreams := qrStreams
 		if qStreams != "" {
+
 			if err := r.SetQueryParam("streams", qStreams); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Tags != nil {
 
 		// query param tags
 		var qrTags string
+
 		if o.Tags != nil {
 			qrTags = *o.Tags
 		}
 		qTags := qrTags
 		if qTags != "" {
+
 			if err := r.SetQueryParam("tags", qTags); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDPrometheusAlertConfigParams creates a new GetNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDPrometheusAlertConfigParams creates a new GetNetworksNetworkIDPrometheusAlertConfigParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDPrometheusAlertConfigParams() *GetNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusAlertConfigParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithTimeout creates a new GetNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusAlertConfigParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithContext creates a new GetNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithContext(ctx context.Context) *GetNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusAlertConfigParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient creates a new GetNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &GetNetworksNetworkIDPrometheusAlertConfigParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
-for the get networks network ID prometheus alert config operation typically these are written to a http.Request
+/* GetNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
+   for the get networks network ID prometheus alert config operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDPrometheusAlertConfigParams struct {
 
-	/*AlertName
-	  Name of alert to be retrieved
+	/* AlertName.
 
+	   Name of alert to be retrieved
 	*/
 	AlertName *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID prometheus alert config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPrometheusAlertConfigParams) WithDefaults() *GetNetworksNetworkIDPrometheusAlertConfigParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID prometheus alert config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPrometheusAlertConfigParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID prometheus alert config params
@@ -144,16 +158,17 @@ func (o *GetNetworksNetworkIDPrometheusAlertConfigParams) WriteToRequest(r runti
 
 		// query param alert_name
 		var qrAlertName string
+
 		if o.AlertName != nil {
 			qrAlertName = *o.AlertName
 		}
 		qAlertName := qrAlertName
 		if qAlertName != "" {
+
 			if err := r.SetQueryParam("alert_name", qAlertName); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id

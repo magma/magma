@@ -7,12 +7,11 @@ package wifi_meshes
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new wifi meshes API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,41 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteWifiNetworkIDMeshesMeshID(params *DeleteWifiNetworkIDMeshesMeshIDParams, opts ...ClientOption) (*DeleteWifiNetworkIDMeshesMeshIDNoContent, error)
+
+	GetWifiNetworkIDMeshes(params *GetWifiNetworkIDMeshesParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesOK, error)
+
+	GetWifiNetworkIDMeshesMeshID(params *GetWifiNetworkIDMeshesMeshIDParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesMeshIDOK, error)
+
+	GetWifiNetworkIDMeshesMeshIDConfig(params *GetWifiNetworkIDMeshesMeshIDConfigParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesMeshIDConfigOK, error)
+
+	GetWifiNetworkIDMeshesMeshIDName(params *GetWifiNetworkIDMeshesMeshIDNameParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesMeshIDNameOK, error)
+
+	PostWifiNetworkIDMeshes(params *PostWifiNetworkIDMeshesParams, opts ...ClientOption) (*PostWifiNetworkIDMeshesCreated, error)
+
+	PutWifiNetworkIDMeshesMeshID(params *PutWifiNetworkIDMeshesMeshIDParams, opts ...ClientOption) (*PutWifiNetworkIDMeshesMeshIDCreated, error)
+
+	PutWifiNetworkIDMeshesMeshIDConfig(params *PutWifiNetworkIDMeshesMeshIDConfigParams, opts ...ClientOption) (*PutWifiNetworkIDMeshesMeshIDConfigNoContent, error)
+
+	PutWifiNetworkIDMeshesMeshIDName(params *PutWifiNetworkIDMeshesMeshIDNameParams, opts ...ClientOption) (*PutWifiNetworkIDMeshesMeshIDNameNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteWifiNetworkIDMeshesMeshID deletes a wifi mesh
+  DeleteWifiNetworkIDMeshesMeshID deletes a wifi mesh
 */
-func (a *Client) DeleteWifiNetworkIDMeshesMeshID(params *DeleteWifiNetworkIDMeshesMeshIDParams) (*DeleteWifiNetworkIDMeshesMeshIDNoContent, error) {
+func (a *Client) DeleteWifiNetworkIDMeshesMeshID(params *DeleteWifiNetworkIDMeshesMeshIDParams, opts ...ClientOption) (*DeleteWifiNetworkIDMeshesMeshIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteWifiNetworkIDMeshesMeshIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteWifiNetworkIDMeshesMeshID",
 		Method:             "DELETE",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}",
@@ -44,7 +68,12 @@ func (a *Client) DeleteWifiNetworkIDMeshesMeshID(params *DeleteWifiNetworkIDMesh
 		Reader:             &DeleteWifiNetworkIDMeshesMeshIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +87,14 @@ func (a *Client) DeleteWifiNetworkIDMeshesMeshID(params *DeleteWifiNetworkIDMesh
 }
 
 /*
-GetWifiNetworkIDMeshes lists meshes in the network
+  GetWifiNetworkIDMeshes lists meshes in the network
 */
-func (a *Client) GetWifiNetworkIDMeshes(params *GetWifiNetworkIDMeshesParams) (*GetWifiNetworkIDMeshesOK, error) {
+func (a *Client) GetWifiNetworkIDMeshes(params *GetWifiNetworkIDMeshesParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDMeshesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDMeshes",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/meshes",
@@ -77,7 +105,12 @@ func (a *Client) GetWifiNetworkIDMeshes(params *GetWifiNetworkIDMeshesParams) (*
 		Reader:             &GetWifiNetworkIDMeshesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +124,14 @@ func (a *Client) GetWifiNetworkIDMeshes(params *GetWifiNetworkIDMeshesParams) (*
 }
 
 /*
-GetWifiNetworkIDMeshesMeshID gets a specific wifi mesh
+  GetWifiNetworkIDMeshesMeshID gets a specific wifi mesh
 */
-func (a *Client) GetWifiNetworkIDMeshesMeshID(params *GetWifiNetworkIDMeshesMeshIDParams) (*GetWifiNetworkIDMeshesMeshIDOK, error) {
+func (a *Client) GetWifiNetworkIDMeshesMeshID(params *GetWifiNetworkIDMeshesMeshIDParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesMeshIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDMeshesMeshIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDMeshesMeshID",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}",
@@ -110,7 +142,12 @@ func (a *Client) GetWifiNetworkIDMeshesMeshID(params *GetWifiNetworkIDMeshesMesh
 		Reader:             &GetWifiNetworkIDMeshesMeshIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +161,14 @@ func (a *Client) GetWifiNetworkIDMeshesMeshID(params *GetWifiNetworkIDMeshesMesh
 }
 
 /*
-GetWifiNetworkIDMeshesMeshIDConfig gets the config of a specific wifi mesh
+  GetWifiNetworkIDMeshesMeshIDConfig gets the config of a specific wifi mesh
 */
-func (a *Client) GetWifiNetworkIDMeshesMeshIDConfig(params *GetWifiNetworkIDMeshesMeshIDConfigParams) (*GetWifiNetworkIDMeshesMeshIDConfigOK, error) {
+func (a *Client) GetWifiNetworkIDMeshesMeshIDConfig(params *GetWifiNetworkIDMeshesMeshIDConfigParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesMeshIDConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDMeshesMeshIDConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDMeshesMeshIDConfig",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}/config",
@@ -143,7 +179,12 @@ func (a *Client) GetWifiNetworkIDMeshesMeshIDConfig(params *GetWifiNetworkIDMesh
 		Reader:             &GetWifiNetworkIDMeshesMeshIDConfigReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +198,14 @@ func (a *Client) GetWifiNetworkIDMeshesMeshIDConfig(params *GetWifiNetworkIDMesh
 }
 
 /*
-GetWifiNetworkIDMeshesMeshIDName gets the name of a specific wifi mesh
+  GetWifiNetworkIDMeshesMeshIDName gets the name of a specific wifi mesh
 */
-func (a *Client) GetWifiNetworkIDMeshesMeshIDName(params *GetWifiNetworkIDMeshesMeshIDNameParams) (*GetWifiNetworkIDMeshesMeshIDNameOK, error) {
+func (a *Client) GetWifiNetworkIDMeshesMeshIDName(params *GetWifiNetworkIDMeshesMeshIDNameParams, opts ...ClientOption) (*GetWifiNetworkIDMeshesMeshIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDMeshesMeshIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDMeshesMeshIDName",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}/name",
@@ -176,7 +216,12 @@ func (a *Client) GetWifiNetworkIDMeshesMeshIDName(params *GetWifiNetworkIDMeshes
 		Reader:             &GetWifiNetworkIDMeshesMeshIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +235,14 @@ func (a *Client) GetWifiNetworkIDMeshesMeshIDName(params *GetWifiNetworkIDMeshes
 }
 
 /*
-PostWifiNetworkIDMeshes adds a new mesh to the network
+  PostWifiNetworkIDMeshes adds a new mesh to the network
 */
-func (a *Client) PostWifiNetworkIDMeshes(params *PostWifiNetworkIDMeshesParams) (*PostWifiNetworkIDMeshesCreated, error) {
+func (a *Client) PostWifiNetworkIDMeshes(params *PostWifiNetworkIDMeshesParams, opts ...ClientOption) (*PostWifiNetworkIDMeshesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostWifiNetworkIDMeshesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostWifiNetworkIDMeshes",
 		Method:             "POST",
 		PathPattern:        "/wifi/{network_id}/meshes",
@@ -209,7 +253,12 @@ func (a *Client) PostWifiNetworkIDMeshes(params *PostWifiNetworkIDMeshesParams) 
 		Reader:             &PostWifiNetworkIDMeshesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +272,14 @@ func (a *Client) PostWifiNetworkIDMeshes(params *PostWifiNetworkIDMeshesParams) 
 }
 
 /*
-PutWifiNetworkIDMeshesMeshID updates a mesh in the network
+  PutWifiNetworkIDMeshesMeshID updates a mesh in the network
 */
-func (a *Client) PutWifiNetworkIDMeshesMeshID(params *PutWifiNetworkIDMeshesMeshIDParams) (*PutWifiNetworkIDMeshesMeshIDCreated, error) {
+func (a *Client) PutWifiNetworkIDMeshesMeshID(params *PutWifiNetworkIDMeshesMeshIDParams, opts ...ClientOption) (*PutWifiNetworkIDMeshesMeshIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDMeshesMeshIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDMeshesMeshID",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}",
@@ -242,7 +290,12 @@ func (a *Client) PutWifiNetworkIDMeshesMeshID(params *PutWifiNetworkIDMeshesMesh
 		Reader:             &PutWifiNetworkIDMeshesMeshIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +309,14 @@ func (a *Client) PutWifiNetworkIDMeshesMeshID(params *PutWifiNetworkIDMeshesMesh
 }
 
 /*
-PutWifiNetworkIDMeshesMeshIDConfig updates the wifi config of a mesh in the network
+  PutWifiNetworkIDMeshesMeshIDConfig updates the wifi config of a mesh in the network
 */
-func (a *Client) PutWifiNetworkIDMeshesMeshIDConfig(params *PutWifiNetworkIDMeshesMeshIDConfigParams) (*PutWifiNetworkIDMeshesMeshIDConfigNoContent, error) {
+func (a *Client) PutWifiNetworkIDMeshesMeshIDConfig(params *PutWifiNetworkIDMeshesMeshIDConfigParams, opts ...ClientOption) (*PutWifiNetworkIDMeshesMeshIDConfigNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDMeshesMeshIDConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDMeshesMeshIDConfig",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}/config",
@@ -275,7 +327,12 @@ func (a *Client) PutWifiNetworkIDMeshesMeshIDConfig(params *PutWifiNetworkIDMesh
 		Reader:             &PutWifiNetworkIDMeshesMeshIDConfigReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +346,14 @@ func (a *Client) PutWifiNetworkIDMeshesMeshIDConfig(params *PutWifiNetworkIDMesh
 }
 
 /*
-PutWifiNetworkIDMeshesMeshIDName updates the name of a mesh in the network
+  PutWifiNetworkIDMeshesMeshIDName updates the name of a mesh in the network
 */
-func (a *Client) PutWifiNetworkIDMeshesMeshIDName(params *PutWifiNetworkIDMeshesMeshIDNameParams) (*PutWifiNetworkIDMeshesMeshIDNameNoContent, error) {
+func (a *Client) PutWifiNetworkIDMeshesMeshIDName(params *PutWifiNetworkIDMeshesMeshIDNameParams, opts ...ClientOption) (*PutWifiNetworkIDMeshesMeshIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDMeshesMeshIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDMeshesMeshIDName",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/meshes/{mesh_id}/name",
@@ -308,7 +364,12 @@ func (a *Client) PutWifiNetworkIDMeshesMeshIDName(params *PutWifiNetworkIDMeshes
 		Reader:             &PutWifiNetworkIDMeshesMeshIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

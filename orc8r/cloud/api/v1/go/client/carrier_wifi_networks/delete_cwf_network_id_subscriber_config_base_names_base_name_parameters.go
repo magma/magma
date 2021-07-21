@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams creates a new DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized.
+// NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams creates a new DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams() *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithTimeout creates a new DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithTimeout(timeout time.Duration) *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithContext creates a new DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithContext(ctx context.Context) *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient creates a new DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient(client *http.Client) *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
-for the delete cwf network ID subscriber config base names base name operation typically these are written to a http.Request
+/* DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+   for the delete cwf network ID subscriber config base names base name operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams struct {
 
-	/*BaseName
-	  Charging Rule Base Name
+	/* BaseName.
 
+	   Charging Rule Base Name
 	*/
 	BaseName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete cwf network ID subscriber config base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams) WithDefaults() *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete cwf network ID subscriber config base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete cwf network ID subscriber config base names base name params

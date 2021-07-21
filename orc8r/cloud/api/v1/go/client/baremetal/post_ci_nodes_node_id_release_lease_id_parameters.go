@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewPostCiNodesNodeIDReleaseLeaseIDParams creates a new PostCiNodesNodeIDReleaseLeaseIDParams object
-// with the default values initialized.
+// NewPostCiNodesNodeIDReleaseLeaseIDParams creates a new PostCiNodesNodeIDReleaseLeaseIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostCiNodesNodeIDReleaseLeaseIDParams() *PostCiNodesNodeIDReleaseLeaseIDParams {
-	var ()
 	return &PostCiNodesNodeIDReleaseLeaseIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostCiNodesNodeIDReleaseLeaseIDParamsWithTimeout creates a new PostCiNodesNodeIDReleaseLeaseIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostCiNodesNodeIDReleaseLeaseIDParamsWithTimeout(timeout time.Duration) *PostCiNodesNodeIDReleaseLeaseIDParams {
-	var ()
 	return &PostCiNodesNodeIDReleaseLeaseIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostCiNodesNodeIDReleaseLeaseIDParamsWithContext creates a new PostCiNodesNodeIDReleaseLeaseIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostCiNodesNodeIDReleaseLeaseIDParamsWithContext(ctx context.Context) *PostCiNodesNodeIDReleaseLeaseIDParams {
-	var ()
 	return &PostCiNodesNodeIDReleaseLeaseIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostCiNodesNodeIDReleaseLeaseIDParamsWithHTTPClient creates a new PostCiNodesNodeIDReleaseLeaseIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostCiNodesNodeIDReleaseLeaseIDParamsWithHTTPClient(client *http.Client) *PostCiNodesNodeIDReleaseLeaseIDParams {
-	var ()
 	return &PostCiNodesNodeIDReleaseLeaseIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostCiNodesNodeIDReleaseLeaseIDParams contains all the parameters to send to the API endpoint
-for the post ci nodes node ID release lease ID operation typically these are written to a http.Request
+/* PostCiNodesNodeIDReleaseLeaseIDParams contains all the parameters to send to the API endpoint
+   for the post ci nodes node ID release lease ID operation.
+
+   Typically these are written to a http.Request.
 */
 type PostCiNodesNodeIDReleaseLeaseIDParams struct {
 
-	/*LeaseID
-	  Lease ID to release
+	/* LeaseID.
 
+	   Lease ID to release
 	*/
 	LeaseID string
-	/*NodeID
-	  CI node ID
 
+	/* NodeID.
+
+	   CI node ID
 	*/
 	NodeID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post ci nodes node ID release lease ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCiNodesNodeIDReleaseLeaseIDParams) WithDefaults() *PostCiNodesNodeIDReleaseLeaseIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post ci nodes node ID release lease ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCiNodesNodeIDReleaseLeaseIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post ci nodes node ID release lease ID params

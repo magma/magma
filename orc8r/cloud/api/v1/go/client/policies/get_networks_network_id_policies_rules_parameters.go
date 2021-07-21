@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDPoliciesRulesParams creates a new GetNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDPoliciesRulesParams creates a new GetNetworksNetworkIDPoliciesRulesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDPoliciesRulesParams() *GetNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &GetNetworksNetworkIDPoliciesRulesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPoliciesRulesParamsWithTimeout creates a new GetNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDPoliciesRulesParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &GetNetworksNetworkIDPoliciesRulesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDPoliciesRulesParamsWithContext creates a new GetNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDPoliciesRulesParamsWithContext(ctx context.Context) *GetNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &GetNetworksNetworkIDPoliciesRulesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDPoliciesRulesParamsWithHTTPClient creates a new GetNetworksNetworkIDPoliciesRulesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDPoliciesRulesParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDPoliciesRulesParams {
-	var ()
 	return &GetNetworksNetworkIDPoliciesRulesParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesRulesParams contains all the parameters to send to the API endpoint
-for the get networks network ID policies rules operation typically these are written to a http.Request
+/* GetNetworksNetworkIDPoliciesRulesParams contains all the parameters to send to the API endpoint
+   for the get networks network ID policies rules operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDPoliciesRulesParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID policies rules params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPoliciesRulesParams) WithDefaults() *GetNetworksNetworkIDPoliciesRulesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID policies rules params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDPoliciesRulesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID policies rules params

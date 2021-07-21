@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayNonEpsConfigs Non-EPS service configuration for a gateway
+//
 // swagger:model gateway_non_eps_configs
 type GatewayNonEpsConfigs struct {
 
@@ -23,11 +24,13 @@ type GatewayNonEpsConfigs struct {
 	Arfcn2g []uint32 `json:"arfcn_2g"`
 
 	// csfb mcc
+	// Example: 001
 	// Min Length: 1
 	// Pattern: ^(\d{3})$
 	CsfbMcc string `json:"csfb_mcc,omitempty"`
 
 	// csfb mnc
+	// Example: 01
 	// Min Length: 1
 	// Pattern: ^(\d{2,3})$
 	CsfbMnc string `json:"csfb_mnc,omitempty"`
@@ -37,6 +40,7 @@ type GatewayNonEpsConfigs struct {
 	CsfbRat *uint32 `json:"csfb_rat,omitempty"`
 
 	// lac
+	// Example: 1
 	Lac *uint32 `json:"lac,omitempty"`
 
 	// non eps service control
@@ -72,16 +76,15 @@ func (m *GatewayNonEpsConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *GatewayNonEpsConfigs) validateCsfbMcc(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.CsfbMcc) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("csfb_mcc", "body", string(m.CsfbMcc), 1); err != nil {
+	if err := validate.MinLength("csfb_mcc", "body", m.CsfbMcc, 1); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("csfb_mcc", "body", string(m.CsfbMcc), `^(\d{3})$`); err != nil {
+	if err := validate.Pattern("csfb_mcc", "body", m.CsfbMcc, `^(\d{3})$`); err != nil {
 		return err
 	}
 
@@ -89,16 +92,15 @@ func (m *GatewayNonEpsConfigs) validateCsfbMcc(formats strfmt.Registry) error {
 }
 
 func (m *GatewayNonEpsConfigs) validateCsfbMnc(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.CsfbMnc) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("csfb_mnc", "body", string(m.CsfbMnc), 1); err != nil {
+	if err := validate.MinLength("csfb_mnc", "body", m.CsfbMnc, 1); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("csfb_mnc", "body", string(m.CsfbMnc), `^(\d{2,3})$`); err != nil {
+	if err := validate.Pattern("csfb_mnc", "body", m.CsfbMnc, `^(\d{2,3})$`); err != nil {
 		return err
 	}
 
@@ -119,14 +121,13 @@ func init() {
 
 // prop value enum
 func (m *GatewayNonEpsConfigs) validateCsfbRatEnum(path, location string, value uint32) error {
-	if err := validate.Enum(path, location, value, gatewayNonEpsConfigsTypeCsfbRatPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gatewayNonEpsConfigsTypeCsfbRatPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *GatewayNonEpsConfigs) validateCsfbRat(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.CsfbRat) { // not required
 		return nil
 	}
@@ -153,7 +154,7 @@ func init() {
 
 // prop value enum
 func (m *GatewayNonEpsConfigs) validateNonEpsServiceControlEnum(path, location string, value uint32) error {
-	if err := validate.Enum(path, location, value, gatewayNonEpsConfigsTypeNonEpsServiceControlPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, gatewayNonEpsConfigsTypeNonEpsServiceControlPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -170,6 +171,11 @@ func (m *GatewayNonEpsConfigs) validateNonEpsServiceControl(formats strfmt.Regis
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this gateway non eps configs based on context it is used
+func (m *GatewayNonEpsConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

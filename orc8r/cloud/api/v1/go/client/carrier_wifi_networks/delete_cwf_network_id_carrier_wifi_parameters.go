@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteCwfNetworkIDCarrierWifiParams creates a new DeleteCwfNetworkIDCarrierWifiParams object
-// with the default values initialized.
+// NewDeleteCwfNetworkIDCarrierWifiParams creates a new DeleteCwfNetworkIDCarrierWifiParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteCwfNetworkIDCarrierWifiParams() *DeleteCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &DeleteCwfNetworkIDCarrierWifiParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteCwfNetworkIDCarrierWifiParamsWithTimeout creates a new DeleteCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteCwfNetworkIDCarrierWifiParamsWithTimeout(timeout time.Duration) *DeleteCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &DeleteCwfNetworkIDCarrierWifiParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteCwfNetworkIDCarrierWifiParamsWithContext creates a new DeleteCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteCwfNetworkIDCarrierWifiParamsWithContext(ctx context.Context) *DeleteCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &DeleteCwfNetworkIDCarrierWifiParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteCwfNetworkIDCarrierWifiParamsWithHTTPClient creates a new DeleteCwfNetworkIDCarrierWifiParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteCwfNetworkIDCarrierWifiParamsWithHTTPClient(client *http.Client) *DeleteCwfNetworkIDCarrierWifiParams {
-	var ()
 	return &DeleteCwfNetworkIDCarrierWifiParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
-for the delete cwf network ID carrier wifi operation typically these are written to a http.Request
+/* DeleteCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
+   for the delete cwf network ID carrier wifi operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteCwfNetworkIDCarrierWifiParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete cwf network ID carrier wifi params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteCwfNetworkIDCarrierWifiParams) WithDefaults() *DeleteCwfNetworkIDCarrierWifiParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete cwf network ID carrier wifi params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteCwfNetworkIDCarrierWifiParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete cwf network ID carrier wifi params

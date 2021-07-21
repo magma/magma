@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // E2eTestCaseState Test case execution state
+//
 // swagger:model e2e_test_case_state
 type E2eTestCaseState struct {
 
@@ -24,6 +26,7 @@ type E2eTestCaseState struct {
 	Error string `json:"error,omitempty"`
 
 	// is executing
+	// Example: false
 	// Required: true
 	IsExecuting *bool `json:"is_executing"`
 
@@ -68,7 +71,6 @@ func (m *E2eTestCaseState) validateIsExecuting(formats strfmt.Registry) error {
 }
 
 func (m *E2eTestCaseState) validateLastExecutionTime(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.LastExecutionTime) { // not required
 		return nil
 	}
@@ -81,7 +83,6 @@ func (m *E2eTestCaseState) validateLastExecutionTime(formats strfmt.Registry) er
 }
 
 func (m *E2eTestCaseState) validateNextScheduledTime(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.NextScheduledTime) { // not required
 		return nil
 	}
@@ -90,6 +91,11 @@ func (m *E2eTestCaseState) validateNextScheduledTime(formats strfmt.Registry) er
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this e2e test case state based on context it is used
+func (m *E2eTestCaseState) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

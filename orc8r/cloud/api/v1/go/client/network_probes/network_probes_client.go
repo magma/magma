@@ -7,12 +7,11 @@ package network_probes
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new network probes API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,43 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams, opts ...ClientOption) (*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error)
+
+	DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams, opts ...ClientOption) (*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent, error)
+
+	GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkIDNetworkProbeDestinationsParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeDestinationsOK, error)
+
+	GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *GetLTENetworkIDNetworkProbeDestinationsDestinationIDParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeDestinationsDestinationIDOK, error)
+
+	GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetworkProbeTasksParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeTasksOK, error)
+
+	GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDNetworkProbeTasksTaskIDParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeTasksTaskIDOK, error)
+
+	PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetworkIDNetworkProbeDestinationsParams, opts ...ClientOption) (*PostLTENetworkIDNetworkProbeDestinationsCreated, error)
+
+	PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetworkProbeTasksParams, opts ...ClientOption) (*PostLTENetworkIDNetworkProbeTasksCreated, error)
+
+	PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams, opts ...ClientOption) (*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error)
+
+	PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDNetworkProbeTasksTaskIDParams, opts ...ClientOption) (*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDNetworkProbeDestinationsDestinationID removes a network probe destination from the network
+  DeleteLTENetworkIDNetworkProbeDestinationsDestinationID removes a network probe destination from the network
 */
-func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams) (*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams, opts ...ClientOption) (*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDNetworkProbeDestinationsDestinationID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/network_probe/destinations/{destination_id}",
@@ -44,7 +70,12 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params 
 		Reader:             &DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +89,14 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeDestinationsDestinationID(params 
 }
 
 /*
-DeleteLTENetworkIDNetworkProbeTasksTaskID removes an network probe task from the network
+  DeleteLTENetworkIDNetworkProbeTasksTaskID removes an network probe task from the network
 */
-func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams) (*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams, opts ...ClientOption) (*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDNetworkProbeTasksTaskID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/network_probe/tasks/{task_id}",
@@ -77,7 +107,12 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetw
 		Reader:             &DeleteLTENetworkIDNetworkProbeTasksTaskIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +126,14 @@ func (a *Client) DeleteLTENetworkIDNetworkProbeTasksTaskID(params *DeleteLTENetw
 }
 
 /*
-GetLTENetworkIDNetworkProbeDestinations lists network probe destinations in the network
+  GetLTENetworkIDNetworkProbeDestinations lists network probe destinations in the network
 */
-func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkIDNetworkProbeDestinationsParams) (*GetLTENetworkIDNetworkProbeDestinationsOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkIDNetworkProbeDestinationsParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeDestinationsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeDestinationsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDNetworkProbeDestinations",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/network_probe/destinations",
@@ -110,7 +144,12 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkID
 		Reader:             &GetLTENetworkIDNetworkProbeDestinationsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +163,14 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinations(params *GetLTENetworkID
 }
 
 /*
-GetLTENetworkIDNetworkProbeDestinationsDestinationID retrieves a network probe destination
+  GetLTENetworkIDNetworkProbeDestinationsDestinationID retrieves a network probe destination
 */
-func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *GetLTENetworkIDNetworkProbeDestinationsDestinationIDParams) (*GetLTENetworkIDNetworkProbeDestinationsDestinationIDOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *GetLTENetworkIDNetworkProbeDestinationsDestinationIDParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeDestinationsDestinationIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeDestinationsDestinationIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDNetworkProbeDestinationsDestinationID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/network_probe/destinations/{destination_id}",
@@ -143,7 +181,12 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *Ge
 		Reader:             &GetLTENetworkIDNetworkProbeDestinationsDestinationIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +200,14 @@ func (a *Client) GetLTENetworkIDNetworkProbeDestinationsDestinationID(params *Ge
 }
 
 /*
-GetLTENetworkIDNetworkProbeTasks lists network probe task in the network
+  GetLTENetworkIDNetworkProbeTasks lists network probe task in the network
 */
-func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetworkProbeTasksParams) (*GetLTENetworkIDNetworkProbeTasksOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetworkProbeTasksParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeTasksOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeTasksParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDNetworkProbeTasks",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/network_probe/tasks",
@@ -176,7 +218,12 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetwork
 		Reader:             &GetLTENetworkIDNetworkProbeTasksReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +237,14 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasks(params *GetLTENetworkIDNetwork
 }
 
 /*
-GetLTENetworkIDNetworkProbeTasksTaskID retrieves the network probe task info
+  GetLTENetworkIDNetworkProbeTasksTaskID retrieves the network probe task info
 */
-func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDNetworkProbeTasksTaskIDParams) (*GetLTENetworkIDNetworkProbeTasksTaskIDOK, error) {
+func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDNetworkProbeTasksTaskIDParams, opts ...ClientOption) (*GetLTENetworkIDNetworkProbeTasksTaskIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDNetworkProbeTasksTaskIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDNetworkProbeTasksTaskID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/network_probe/tasks/{task_id}",
@@ -209,7 +255,12 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDN
 		Reader:             &GetLTENetworkIDNetworkProbeTasksTaskIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +274,14 @@ func (a *Client) GetLTENetworkIDNetworkProbeTasksTaskID(params *GetLTENetworkIDN
 }
 
 /*
-PostLTENetworkIDNetworkProbeDestinations adds a new network probe destination to the network
+  PostLTENetworkIDNetworkProbeDestinations adds a new network probe destination to the network
 */
-func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetworkIDNetworkProbeDestinationsParams) (*PostLTENetworkIDNetworkProbeDestinationsCreated, error) {
+func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetworkIDNetworkProbeDestinationsParams, opts ...ClientOption) (*PostLTENetworkIDNetworkProbeDestinationsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDNetworkProbeDestinationsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDNetworkProbeDestinations",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/network_probe/destinations",
@@ -242,7 +292,12 @@ func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetwork
 		Reader:             &PostLTENetworkIDNetworkProbeDestinationsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +311,14 @@ func (a *Client) PostLTENetworkIDNetworkProbeDestinations(params *PostLTENetwork
 }
 
 /*
-PostLTENetworkIDNetworkProbeTasks adds a new network probe task to the network
+  PostLTENetworkIDNetworkProbeTasks adds a new network probe task to the network
 */
-func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetworkProbeTasksParams) (*PostLTENetworkIDNetworkProbeTasksCreated, error) {
+func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetworkProbeTasksParams, opts ...ClientOption) (*PostLTENetworkIDNetworkProbeTasksCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDNetworkProbeTasksParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDNetworkProbeTasks",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/network_probe/tasks",
@@ -275,7 +329,12 @@ func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetwo
 		Reader:             &PostLTENetworkIDNetworkProbeTasksReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +348,14 @@ func (a *Client) PostLTENetworkIDNetworkProbeTasks(params *PostLTENetworkIDNetwo
 }
 
 /*
-PutLTENetworkIDNetworkProbeDestinationsDestinationID updates an existing network probe destination in the network
+  PutLTENetworkIDNetworkProbeDestinationsDestinationID updates an existing network probe destination in the network
 */
-func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams) (*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
+func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *PutLTENetworkIDNetworkProbeDestinationsDestinationIDParams, opts ...ClientOption) (*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDNetworkProbeDestinationsDestinationID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/network_probe/destinations/{destination_id}",
@@ -308,7 +366,12 @@ func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *Pu
 		Reader:             &PutLTENetworkIDNetworkProbeDestinationsDestinationIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +385,14 @@ func (a *Client) PutLTENetworkIDNetworkProbeDestinationsDestinationID(params *Pu
 }
 
 /*
-PutLTENetworkIDNetworkProbeTasksTaskID updates an existing network probe task in the network
+  PutLTENetworkIDNetworkProbeTasksTaskID updates an existing network probe task in the network
 */
-func (a *Client) PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDNetworkProbeTasksTaskIDParams) (*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
+func (a *Client) PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDNetworkProbeTasksTaskIDParams, opts ...ClientOption) (*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDNetworkProbeTasksTaskIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDNetworkProbeTasksTaskID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/network_probe/tasks/{task_id}",
@@ -341,7 +403,12 @@ func (a *Client) PutLTENetworkIDNetworkProbeTasksTaskID(params *PutLTENetworkIDN
 		Reader:             &PutLTENetworkIDNetworkProbeTasksTaskIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

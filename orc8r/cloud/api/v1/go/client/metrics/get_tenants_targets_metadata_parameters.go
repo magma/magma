@@ -13,73 +13,88 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetTenantsTargetsMetadataParams creates a new GetTenantsTargetsMetadataParams object
-// with the default values initialized.
+// NewGetTenantsTargetsMetadataParams creates a new GetTenantsTargetsMetadataParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetTenantsTargetsMetadataParams() *GetTenantsTargetsMetadataParams {
-	var ()
 	return &GetTenantsTargetsMetadataParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetTenantsTargetsMetadataParamsWithTimeout creates a new GetTenantsTargetsMetadataParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetTenantsTargetsMetadataParamsWithTimeout(timeout time.Duration) *GetTenantsTargetsMetadataParams {
-	var ()
 	return &GetTenantsTargetsMetadataParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetTenantsTargetsMetadataParamsWithContext creates a new GetTenantsTargetsMetadataParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetTenantsTargetsMetadataParamsWithContext(ctx context.Context) *GetTenantsTargetsMetadataParams {
-	var ()
 	return &GetTenantsTargetsMetadataParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetTenantsTargetsMetadataParamsWithHTTPClient creates a new GetTenantsTargetsMetadataParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetTenantsTargetsMetadataParamsWithHTTPClient(client *http.Client) *GetTenantsTargetsMetadataParams {
-	var ()
 	return &GetTenantsTargetsMetadataParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetTenantsTargetsMetadataParams contains all the parameters to send to the API endpoint
-for the get tenants targets metadata operation typically these are written to a http.Request
+/* GetTenantsTargetsMetadataParams contains all the parameters to send to the API endpoint
+   for the get tenants targets metadata operation.
+
+   Typically these are written to a http.Request.
 */
 type GetTenantsTargetsMetadataParams struct {
 
-	/*Limit
-	  Maximum number of targets to match
+	/* Limit.
 
+	   Maximum number of targets to match
 	*/
 	Limit *string
-	/*MatchTarget
-	  Label selectors like {job = "magma_pushgateway"} . All targets are selected if left empty
 
+	/* MatchTarget.
+
+	   Label selectors like {job = "magma_pushgateway"} . All targets are selected if left empty
 	*/
 	MatchTarget *string
-	/*Metric
-	  A metric name to retrieve metadata for. All metric metadata is retrieved if left empty
 
+	/* Metric.
+
+	   A metric name to retrieve metadata for. All metric metadata is retrieved if left empty
 	*/
 	Metric *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get tenants targets metadata params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTargetsMetadataParams) WithDefaults() *GetTenantsTargetsMetadataParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get tenants targets metadata params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTargetsMetadataParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get tenants targets metadata params
@@ -160,48 +175,51 @@ func (o *GetTenantsTargetsMetadataParams) WriteToRequest(r runtime.ClientRequest
 
 		// query param limit
 		var qrLimit string
+
 		if o.Limit != nil {
 			qrLimit = *o.Limit
 		}
 		qLimit := qrLimit
 		if qLimit != "" {
+
 			if err := r.SetQueryParam("limit", qLimit); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.MatchTarget != nil {
 
 		// query param match_target
 		var qrMatchTarget string
+
 		if o.MatchTarget != nil {
 			qrMatchTarget = *o.MatchTarget
 		}
 		qMatchTarget := qrMatchTarget
 		if qMatchTarget != "" {
+
 			if err := r.SetQueryParam("match_target", qMatchTarget); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Metric != nil {
 
 		// query param metric
 		var qrMetric string
+
 		if o.Metric != nil {
 			qrMetric = *o.Metric
 		}
 		qMetric := qrMetric
 		if qMetric != "" {
+
 			if err := r.SetQueryParam("metric", qMetric); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

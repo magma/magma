@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayDevice Information about the physical device corresponding to a gateway
+//
 // swagger:model gateway_device
 type GatewayDevice struct {
 
 	// hardware id
+	// Example: 22ffea10-7fc4-4427-975a-b9e4ce8f6f4d
 	// Required: true
 	// Min Length: 1
 	HardwareID string `json:"hardware_id"`
@@ -47,11 +50,11 @@ func (m *GatewayDevice) Validate(formats strfmt.Registry) error {
 
 func (m *GatewayDevice) validateHardwareID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("hardware_id", "body", string(m.HardwareID)); err != nil {
+	if err := validate.RequiredString("hardware_id", "body", m.HardwareID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("hardware_id", "body", string(m.HardwareID), 1); err != nil {
+	if err := validate.MinLength("hardware_id", "body", m.HardwareID, 1); err != nil {
 		return err
 	}
 
@@ -66,6 +69,34 @@ func (m *GatewayDevice) validateKey(formats strfmt.Registry) error {
 
 	if m.Key != nil {
 		if err := m.Key.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("key")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway device based on the context it is used
+func (m *GatewayDevice) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateKey(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayDevice) contextValidateKey(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Key != nil {
+		if err := m.Key.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("key")
 			}

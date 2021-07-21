@@ -8,8 +8,7 @@ package client
 import (
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 
 	"magma/orc8r/cloud/api/v1/go/client/a_p_ns"
 	"magma/orc8r/cloud/api/v1/go/client/alerts"
@@ -85,67 +84,36 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Magma {
 
 	cli := new(Magma)
 	cli.Transport = transport
-
 	cli.ApNs = a_p_ns.New(transport, formats)
-
 	cli.Alerts = alerts.New(transport, formats)
-
 	cli.Baremetal = baremetal.New(transport, formats)
-
 	cli.CallTracing = call_tracing.New(transport, formats)
-
 	cli.CarrierWifiGateways = carrier_wifi_gateways.New(transport, formats)
-
 	cli.CarrierWifiNetworks = carrier_wifi_networks.New(transport, formats)
-
 	cli.Commands = commands.New(transport, formats)
-
 	cli.E2e = e2e.New(transport, formats)
-
 	cli.EnodeBs = enode_bs.New(transport, formats)
-
 	cli.Events = events.New(transport, formats)
-
 	cli.FederatedLTENetworks = federated_lte_networks.New(transport, formats)
-
 	cli.FederationGateways = federation_gateways.New(transport, formats)
-
 	cli.FederationNetworks = federation_networks.New(transport, formats)
-
 	cli.Gateways = gateways.New(transport, formats)
-
 	cli.Logs = logs.New(transport, formats)
-
 	cli.LTEGateways = lte_gateways.New(transport, formats)
-
 	cli.LTENetworks = lte_networks.New(transport, formats)
-
 	cli.Metrics = metrics.New(transport, formats)
-
 	cli.NetworkProbes = network_probes.New(transport, formats)
-
 	cli.Networks = networks.New(transport, formats)
-
 	cli.Operations = operations.New(transport, formats)
-
 	cli.Policies = policies.New(transport, formats)
-
 	cli.RatingGroups = rating_groups.New(transport, formats)
-
 	cli.SMS = sms.New(transport, formats)
-
 	cli.Subscribers = subscribers.New(transport, formats)
-
 	cli.Tenants = tenants.New(transport, formats)
-
 	cli.Upgrades = upgrades.New(transport, formats)
-
 	cli.WifiGateways = wifi_gateways.New(transport, formats)
-
 	cli.WifiMeshes = wifi_meshes.New(transport, formats)
-
 	cli.WifiNetworks = wifi_networks.New(transport, formats)
-
 	return cli
 }
 
@@ -190,65 +158,65 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // Magma is a client for magma
 type Magma struct {
-	ApNs *a_p_ns.Client
+	ApNs a_p_ns.ClientService
 
-	Alerts *alerts.Client
+	Alerts alerts.ClientService
 
-	Baremetal *baremetal.Client
+	Baremetal baremetal.ClientService
 
-	CallTracing *call_tracing.Client
+	CallTracing call_tracing.ClientService
 
-	CarrierWifiGateways *carrier_wifi_gateways.Client
+	CarrierWifiGateways carrier_wifi_gateways.ClientService
 
-	CarrierWifiNetworks *carrier_wifi_networks.Client
+	CarrierWifiNetworks carrier_wifi_networks.ClientService
 
-	Commands *commands.Client
+	Commands commands.ClientService
 
-	E2e *e2e.Client
+	E2e e2e.ClientService
 
-	EnodeBs *enode_bs.Client
+	EnodeBs enode_bs.ClientService
 
-	Events *events.Client
+	Events events.ClientService
 
-	FederatedLTENetworks *federated_lte_networks.Client
+	FederatedLTENetworks federated_lte_networks.ClientService
 
-	FederationGateways *federation_gateways.Client
+	FederationGateways federation_gateways.ClientService
 
-	FederationNetworks *federation_networks.Client
+	FederationNetworks federation_networks.ClientService
 
-	Gateways *gateways.Client
+	Gateways gateways.ClientService
 
-	Logs *logs.Client
+	Logs logs.ClientService
 
-	LTEGateways *lte_gateways.Client
+	LTEGateways lte_gateways.ClientService
 
-	LTENetworks *lte_networks.Client
+	LTENetworks lte_networks.ClientService
 
-	Metrics *metrics.Client
+	Metrics metrics.ClientService
 
-	NetworkProbes *network_probes.Client
+	NetworkProbes network_probes.ClientService
 
-	Networks *networks.Client
+	Networks networks.ClientService
 
-	Operations *operations.Client
+	Operations operations.ClientService
 
-	Policies *policies.Client
+	Policies policies.ClientService
 
-	RatingGroups *rating_groups.Client
+	RatingGroups rating_groups.ClientService
 
-	SMS *sms.Client
+	SMS sms.ClientService
 
-	Subscribers *subscribers.Client
+	Subscribers subscribers.ClientService
 
-	Tenants *tenants.Client
+	Tenants tenants.ClientService
 
-	Upgrades *upgrades.Client
+	Upgrades upgrades.ClientService
 
-	WifiGateways *wifi_gateways.Client
+	WifiGateways wifi_gateways.ClientService
 
-	WifiMeshes *wifi_meshes.Client
+	WifiMeshes wifi_meshes.ClientService
 
-	WifiNetworks *wifi_networks.Client
+	WifiNetworks wifi_networks.ClientService
 
 	Transport runtime.ClientTransport
 }
@@ -256,65 +224,34 @@ type Magma struct {
 // SetTransport changes the transport on the client and all its subresources
 func (c *Magma) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
-
 	c.ApNs.SetTransport(transport)
-
 	c.Alerts.SetTransport(transport)
-
 	c.Baremetal.SetTransport(transport)
-
 	c.CallTracing.SetTransport(transport)
-
 	c.CarrierWifiGateways.SetTransport(transport)
-
 	c.CarrierWifiNetworks.SetTransport(transport)
-
 	c.Commands.SetTransport(transport)
-
 	c.E2e.SetTransport(transport)
-
 	c.EnodeBs.SetTransport(transport)
-
 	c.Events.SetTransport(transport)
-
 	c.FederatedLTENetworks.SetTransport(transport)
-
 	c.FederationGateways.SetTransport(transport)
-
 	c.FederationNetworks.SetTransport(transport)
-
 	c.Gateways.SetTransport(transport)
-
 	c.Logs.SetTransport(transport)
-
 	c.LTEGateways.SetTransport(transport)
-
 	c.LTENetworks.SetTransport(transport)
-
 	c.Metrics.SetTransport(transport)
-
 	c.NetworkProbes.SetTransport(transport)
-
 	c.Networks.SetTransport(transport)
-
 	c.Operations.SetTransport(transport)
-
 	c.Policies.SetTransport(transport)
-
 	c.RatingGroups.SetTransport(transport)
-
 	c.SMS.SetTransport(transport)
-
 	c.Subscribers.SetTransport(transport)
-
 	c.Tenants.SetTransport(transport)
-
 	c.Upgrades.SetTransport(transport)
-
 	c.WifiGateways.SetTransport(transport)
-
 	c.WifiMeshes.SetTransport(transport)
-
 	c.WifiNetworks.SetTransport(transport)
-
 }

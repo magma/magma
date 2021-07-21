@@ -6,22 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PrometheusTargetsMetadata prometheus targets metadata
+//
 // swagger:model prometheus_targets_metadata
 type PrometheusTargetsMetadata struct {
 
 	// help
+	// Example: Final number of samples on their first compaction
 	// Required: true
 	Help *string `json:"help"`
 
 	// metric
+	// Example: prometheus_tsdb_compaction_chunk_samples
 	// Required: true
 	Metric *string `json:"metric"`
 
@@ -30,10 +34,12 @@ type PrometheusTargetsMetadata struct {
 	Target *PrometheusTargetMetadata `json:"target"`
 
 	// type
+	// Example: histogram
 	// Required: true
 	Type *string `json:"type"`
 
 	// unit
+	// Example: string
 	// Required: true
 	Unit *string `json:"unit"`
 }
@@ -117,6 +123,34 @@ func (m *PrometheusTargetsMetadata) validateUnit(formats strfmt.Registry) error 
 
 	if err := validate.Required("unit", "body", m.Unit); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this prometheus targets metadata based on the context it is used
+func (m *PrometheusTargetsMetadata) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateTarget(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PrometheusTargetsMetadata) contextValidateTarget(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Target != nil {
+		if err := m.Target.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("target")
+			}
+			return err
+		}
 	}
 
 	return nil

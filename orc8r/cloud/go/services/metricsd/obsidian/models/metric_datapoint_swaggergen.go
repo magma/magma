@@ -6,13 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // MetricDatapoint metric datapoint
+// Example: [1548439790.115,"1"]
+//
 // swagger:model metric_datapoint
 type MetricDatapoint []string
 
@@ -33,5 +36,10 @@ func (m MetricDatapoint) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this metric datapoint based on context it is used
+func (m MetricDatapoint) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

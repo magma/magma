@@ -13,7 +13,7 @@ limitations under the License.
 syntax = "proto3";
 
 package feg;
-option go_package = "protos";
+option go_package = "feg/cloud/go/services/controller/protos";
 
 message DiamClientConfig {
   string protocol = 1; // tcp/sctp/...

@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteFegNetworkIDFederationParams creates a new DeleteFegNetworkIDFederationParams object
-// with the default values initialized.
+// NewDeleteFegNetworkIDFederationParams creates a new DeleteFegNetworkIDFederationParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteFegNetworkIDFederationParams() *DeleteFegNetworkIDFederationParams {
-	var ()
 	return &DeleteFegNetworkIDFederationParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteFegNetworkIDFederationParamsWithTimeout creates a new DeleteFegNetworkIDFederationParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteFegNetworkIDFederationParamsWithTimeout(timeout time.Duration) *DeleteFegNetworkIDFederationParams {
-	var ()
 	return &DeleteFegNetworkIDFederationParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteFegNetworkIDFederationParamsWithContext creates a new DeleteFegNetworkIDFederationParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteFegNetworkIDFederationParamsWithContext(ctx context.Context) *DeleteFegNetworkIDFederationParams {
-	var ()
 	return &DeleteFegNetworkIDFederationParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteFegNetworkIDFederationParamsWithHTTPClient creates a new DeleteFegNetworkIDFederationParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteFegNetworkIDFederationParamsWithHTTPClient(client *http.Client) *DeleteFegNetworkIDFederationParams {
-	var ()
 	return &DeleteFegNetworkIDFederationParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteFegNetworkIDFederationParams contains all the parameters to send to the API endpoint
-for the delete feg network ID federation operation typically these are written to a http.Request
+/* DeleteFegNetworkIDFederationParams contains all the parameters to send to the API endpoint
+   for the delete feg network ID federation operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteFegNetworkIDFederationParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete feg network ID federation params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteFegNetworkIDFederationParams) WithDefaults() *DeleteFegNetworkIDFederationParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete feg network ID federation params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteFegNetworkIDFederationParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete feg network ID federation params

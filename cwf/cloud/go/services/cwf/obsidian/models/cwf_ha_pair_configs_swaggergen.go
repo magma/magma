@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CwfHaPairConfigs Configuration for HA Gateway pair in a Carrier Wifi Network
+//
 // swagger:model cwf_ha_pair_configs
 type CwfHaPairConfigs struct {
 
 	// transport virtual ip
+	// Example: 192.168.128.0/32
 	// Required: true
 	// Max Length: 49
 	// Min Length: 5
@@ -40,18 +43,23 @@ func (m *CwfHaPairConfigs) Validate(formats strfmt.Registry) error {
 
 func (m *CwfHaPairConfigs) validateTransportVirtualIP(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("transport_virtual_ip", "body", string(m.TransportVirtualIP)); err != nil {
+	if err := validate.RequiredString("transport_virtual_ip", "body", m.TransportVirtualIP); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("transport_virtual_ip", "body", string(m.TransportVirtualIP), 5); err != nil {
+	if err := validate.MinLength("transport_virtual_ip", "body", m.TransportVirtualIP, 5); err != nil {
 		return err
 	}
 
-	if err := validate.MaxLength("transport_virtual_ip", "body", string(m.TransportVirtualIP), 49); err != nil {
+	if err := validate.MaxLength("transport_virtual_ip", "body", m.TransportVirtualIP, 49); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this cwf ha pair configs based on context it is used
+func (m *CwfHaPairConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

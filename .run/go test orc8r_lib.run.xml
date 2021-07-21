@@ -1,11 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="go test orc8r/lib" type="GoTestRunConfiguration" factoryName="Go Test">
     <module name="magma" />
-    <working_directory value="$PROJECT_DIR$/orc8r/lib/go" />
-    <framework value="gotest" />
+    <working_directory value="$USER_HOME$/magma/orc8r/lib/go" />
     <kind value="DIRECTORY" />
-    <directory value="$PROJECT_DIR$/orc8r/lib/go" />
+    <directory value="$USER_HOME$/magma/orc8r/lib/go" />
     <filePath value="$PROJECT_DIR$" />
+    <framework value="gotest" />
     <method v="2" />
   </configuration>
 </component>

@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams creates a new DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized.
+// NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams creates a new DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams() *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithTimeout creates a new DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithTimeout(timeout time.Duration) *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithContext creates a new DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithContext(ctx context.Context) *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient creates a new DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient(client *http.Client) *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
-for the delete feg LTE network ID subscriber config base names base name operation typically these are written to a http.Request
+/* DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+   for the delete feg LTE network ID subscriber config base names base name operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams struct {
 
-	/*BaseName
-	  Charging Rule Base Name
+	/* BaseName.
 
+	   Charging Rule Base Name
 	*/
 	BaseName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete feg LTE network ID subscriber config base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams) WithDefaults() *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete feg LTE network ID subscriber config base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete feg LTE network ID subscriber config base names base name params

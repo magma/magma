@@ -6,30 +6,41 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // Route route
+//
 // swagger:model route
 type Route struct {
 
 	// destination ip
+	// Example: 0.0.0.0
 	DestinationIP string `json:"destination_ip,omitempty" magma_alt_name:"DestinationIp"`
 
 	// gateway ip
+	// Example: 10.10.10.1
 	GatewayIP string `json:"gateway_ip,omitempty" magma_alt_name:"GatewayIp"`
 
 	// genmask
+	// Example: 255.255.255.0
 	Genmask string `json:"genmask,omitempty"`
 
 	// network interface id
+	// Example: gtp_br0
 	NetworkInterfaceID string `json:"network_interface_id,omitempty" magma_alt_name:"NetworkInterfaceId"`
 }
 
 // Validate validates this route
 func (m *Route) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this route based on context it is used
+func (m *Route) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

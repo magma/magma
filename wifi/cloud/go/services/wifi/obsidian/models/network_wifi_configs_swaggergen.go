@@ -6,32 +6,38 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkWifiConfigs Wifi configuration for a network
+//
 // swagger:model network_wifi_configs
 type NetworkWifiConfigs struct {
 
 	// additional props
+	// Example: {"netprop1":"netvalue1","netprop2":"netvalue2"}
 	AdditionalProps map[string]string `json:"additional_props,omitempty"`
 
 	// mgmt vpn enabled
+	// Example: false
 	MgmtVpnEnabled bool `json:"mgmt_vpn_enabled,omitempty"`
 
 	// mgmt vpn proto
+	// Example: impossible
 	MgmtVpnProto string `json:"mgmt_vpn_proto,omitempty"`
 
 	// mgmt vpn remote
+	// Example: server
 	MgmtVpnRemote string `json:"mgmt_vpn_remote,omitempty"`
 
 	// openr enabled
+	// Example: false
 	OpenrEnabled bool `json:"openr_enabled,omitempty"`
 
 	// ping host list
@@ -39,45 +45,59 @@ type NetworkWifiConfigs struct {
 	PingHostList []string `json:"ping_host_list"`
 
 	// ping num packets
+	// Example: 5
 	PingNumPackets int32 `json:"ping_num_packets,omitempty"`
 
 	// ping timeout secs
+	// Example: 6
 	PingTimeoutSecs int32 `json:"ping_timeout_secs,omitempty"`
 
 	// vl auth server addr
+	// Example: 192.168.1.1
 	VlAuthServerAddr string `json:"vl_auth_server_addr,omitempty"`
 
 	// vl auth server port
+	// Example: 1234
 	VlAuthServerPort int32 `json:"vl_auth_server_port,omitempty"`
 
 	// vl auth server shared secret
+	// Example: ssssh
 	VlAuthServerSharedSecret string `json:"vl_auth_server_shared_secret,omitempty"`
 
 	// xwf config
+	// Example: xwf config
 	XwfConfig string `json:"xwf_config,omitempty"`
 
 	// xwf dhcp dns1
+	// Example: 8.8.8.8
 	XwfDhcpDns1 string `json:"xwf_dhcp_dns1,omitempty"`
 
 	// xwf dhcp dns2
+	// Example: 8.8.4.4
 	XwfDhcpDns2 string `json:"xwf_dhcp_dns2,omitempty"`
 
 	// xwf partner name
+	// Example: xwfcfull
 	XwfPartnerName string `json:"xwf_partner_name,omitempty"`
 
 	// xwf radius acct port
+	// Example: 1813
 	XwfRadiusAcctPort int32 `json:"xwf_radius_acct_port,omitempty"`
 
 	// xwf radius auth port
+	// Example: 1812
 	XwfRadiusAuthPort int32 `json:"xwf_radius_auth_port,omitempty"`
 
 	// xwf radius server
+	// Example: gradius.example.com
 	XwfRadiusServer string `json:"xwf_radius_server,omitempty"`
 
 	// xwf radius shared secret
+	// Example: xwfisgood
 	XwfRadiusSharedSecret string `json:"xwf_radius_shared_secret,omitempty"`
 
 	// xwf uam secret
+	// Example: theuamsecret
 	XwfUamSecret string `json:"xwf_uam_secret,omitempty"`
 }
 
@@ -96,7 +116,6 @@ func (m *NetworkWifiConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *NetworkWifiConfigs) validatePingHostList(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PingHostList) { // not required
 		return nil
 	}
@@ -107,12 +126,17 @@ func (m *NetworkWifiConfigs) validatePingHostList(formats strfmt.Registry) error
 
 	for i := 0; i < len(m.PingHostList); i++ {
 
-		if err := validate.MinLength("ping_host_list"+"."+strconv.Itoa(i), "body", string(m.PingHostList[i]), 1); err != nil {
+		if err := validate.MinLength("ping_host_list"+"."+strconv.Itoa(i), "body", m.PingHostList[i], 1); err != nil {
 			return err
 		}
 
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network wifi configs based on context it is used
+func (m *NetworkWifiConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

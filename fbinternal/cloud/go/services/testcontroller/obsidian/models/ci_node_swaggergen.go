@@ -6,22 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CiNode Baremetal executor status
+//
 // swagger:model ci_node
 type CiNode struct {
 
 	// available
+	// Example: false
 	// Required: true
 	Available *bool `json:"available"`
 
 	// id
+	// Example: node1
 	// Required: true
 	// Min Length: 1
 	ID *string `json:"id"`
@@ -31,9 +35,11 @@ type CiNode struct {
 	LastLeaseTime strfmt.DateTime `json:"last_lease_time,omitempty"`
 
 	// tag
+	// Example: tagged
 	Tag string `json:"tag,omitempty"`
 
 	// vpn ip
+	// Example: 10.240.0.2
 	// Required: true
 	// Format: ipv4
 	VpnIP *strfmt.IPv4 `json:"vpn_ip"`
@@ -80,7 +86,7 @@ func (m *CiNode) validateID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("id", "body", string(*m.ID), 1); err != nil {
+	if err := validate.MinLength("id", "body", *m.ID, 1); err != nil {
 		return err
 	}
 
@@ -88,7 +94,6 @@ func (m *CiNode) validateID(formats strfmt.Registry) error {
 }
 
 func (m *CiNode) validateLastLeaseTime(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.LastLeaseTime) { // not required
 		return nil
 	}
@@ -110,6 +115,11 @@ func (m *CiNode) validateVpnIP(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this ci node based on context it is used
+func (m *CiNode) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

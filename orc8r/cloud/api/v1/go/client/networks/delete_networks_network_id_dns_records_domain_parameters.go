@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteNetworksNetworkIDDNSRecordsDomainParams creates a new DeleteNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized.
+// NewDeleteNetworksNetworkIDDNSRecordsDomainParams creates a new DeleteNetworksNetworkIDDNSRecordsDomainParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteNetworksNetworkIDDNSRecordsDomainParams() *DeleteNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &DeleteNetworksNetworkIDDNSRecordsDomainParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithTimeout creates a new DeleteNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithTimeout(timeout time.Duration) *DeleteNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &DeleteNetworksNetworkIDDNSRecordsDomainParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithContext creates a new DeleteNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithContext(ctx context.Context) *DeleteNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &DeleteNetworksNetworkIDDNSRecordsDomainParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient creates a new DeleteNetworksNetworkIDDNSRecordsDomainParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.Client) *DeleteNetworksNetworkIDDNSRecordsDomainParams {
-	var ()
 	return &DeleteNetworksNetworkIDDNSRecordsDomainParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
-for the delete networks network ID DNS records domain operation typically these are written to a http.Request
+/* DeleteNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+   for the delete networks network ID DNS records domain operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteNetworksNetworkIDDNSRecordsDomainParams struct {
 
-	/*Domain
-	  DNS record domain
+	/* Domain.
 
+	   DNS record domain
 	*/
 	Domain string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete networks network ID DNS records domain params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDDNSRecordsDomainParams) WithDefaults() *DeleteNetworksNetworkIDDNSRecordsDomainParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete networks network ID DNS records domain params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDDNSRecordsDomainParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete networks network ID DNS records domain params

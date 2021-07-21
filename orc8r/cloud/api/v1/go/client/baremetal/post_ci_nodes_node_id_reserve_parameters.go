@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewPostCiNodesNodeIDReserveParams creates a new PostCiNodesNodeIDReserveParams object
-// with the default values initialized.
+// NewPostCiNodesNodeIDReserveParams creates a new PostCiNodesNodeIDReserveParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostCiNodesNodeIDReserveParams() *PostCiNodesNodeIDReserveParams {
-	var ()
 	return &PostCiNodesNodeIDReserveParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostCiNodesNodeIDReserveParamsWithTimeout creates a new PostCiNodesNodeIDReserveParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostCiNodesNodeIDReserveParamsWithTimeout(timeout time.Duration) *PostCiNodesNodeIDReserveParams {
-	var ()
 	return &PostCiNodesNodeIDReserveParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostCiNodesNodeIDReserveParamsWithContext creates a new PostCiNodesNodeIDReserveParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostCiNodesNodeIDReserveParamsWithContext(ctx context.Context) *PostCiNodesNodeIDReserveParams {
-	var ()
 	return &PostCiNodesNodeIDReserveParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostCiNodesNodeIDReserveParamsWithHTTPClient creates a new PostCiNodesNodeIDReserveParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostCiNodesNodeIDReserveParamsWithHTTPClient(client *http.Client) *PostCiNodesNodeIDReserveParams {
-	var ()
 	return &PostCiNodesNodeIDReserveParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostCiNodesNodeIDReserveParams contains all the parameters to send to the API endpoint
-for the post ci nodes node ID reserve operation typically these are written to a http.Request
+/* PostCiNodesNodeIDReserveParams contains all the parameters to send to the API endpoint
+   for the post ci nodes node ID reserve operation.
+
+   Typically these are written to a http.Request.
 */
 type PostCiNodesNodeIDReserveParams struct {
 
-	/*NodeID
-	  CI node ID
+	/* NodeID.
 
+	   CI node ID
 	*/
 	NodeID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post ci nodes node ID reserve params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCiNodesNodeIDReserveParams) WithDefaults() *PostCiNodesNodeIDReserveParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post ci nodes node ID reserve params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostCiNodesNodeIDReserveParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post ci nodes node ID reserve params

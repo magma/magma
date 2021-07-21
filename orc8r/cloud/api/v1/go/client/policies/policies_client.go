@@ -7,12 +7,11 @@ package policies
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new policies API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,57 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, opts ...ClientOption) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
+
+	DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
+
+	DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
+
+	GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesOK, error)
+
+	GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error)
+
+	GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error)
+
+	GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error)
+
+	GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error)
+
+	GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesOK, error)
+
+	GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error)
+
+	GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error)
+
+	PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, opts ...ClientOption) (*PostLTENetworkIDPolicyQosProfilesCreated, error)
+
+	PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error)
+
+	PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesRulesCreated, error)
+
+	PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, opts ...ClientOption) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error)
+
+	PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error)
+
+	PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteLTENetworkIDPolicyQosProfilesProfileID deletes policy qo s profile in LTE network
+  DeleteLTENetworkIDPolicyQosProfilesProfileID deletes policy qo s profile in LTE network
 */
-func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
+func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTENetworkIDPolicyQosProfilesProfileIDParams, opts ...ClientOption) (*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDPolicyQosProfilesProfileIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDPolicyQosProfilesProfileID",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles/{profile_id}",
@@ -44,7 +84,12 @@ func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTEN
 		Reader:             &DeleteLTENetworkIDPolicyQosProfilesProfileIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +103,14 @@ func (a *Client) DeleteLTENetworkIDPolicyQosProfilesProfileID(params *DeleteLTEN
 }
 
 /*
-DeleteNetworksNetworkIDPoliciesBaseNamesBaseName deletes a charging rule base name
+  DeleteNetworksNetworkIDPoliciesBaseNamesBaseName deletes a charging rule base name
 */
-func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDPoliciesBaseNamesBaseName",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/policies/base_names/{base_name}",
@@ -77,7 +121,12 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *Delete
 		Reader:             &DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +140,14 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesBaseNamesBaseName(params *Delete
 }
 
 /*
-DeleteNetworksNetworkIDPoliciesRulesRuleID deletes a policy rule
+  DeleteNetworksNetworkIDPoliciesRulesRuleID deletes a policy rule
 */
-func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetworksNetworkIDPoliciesRulesRuleIDParams, opts ...ClientOption) (*DeleteNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDPoliciesRulesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDPoliciesRulesRuleID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/policies/rules/{rule_id}",
@@ -110,7 +158,12 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetwor
 		Reader:             &DeleteNetworksNetworkIDPoliciesRulesRuleIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +177,14 @@ func (a *Client) DeleteNetworksNetworkIDPoliciesRulesRuleID(params *DeleteNetwor
 }
 
 /*
-GetLTENetworkIDPolicyQosProfiles gets policy qo s profiles in LTE network
+  GetLTENetworkIDPolicyQosProfiles gets policy qo s profiles in LTE network
 */
-func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams) (*GetLTENetworkIDPolicyQosProfilesOK, error) {
+func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQosProfilesParams, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDPolicyQosProfilesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDPolicyQosProfiles",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles",
@@ -143,7 +195,12 @@ func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQ
 		Reader:             &GetLTENetworkIDPolicyQosProfilesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +214,14 @@ func (a *Client) GetLTENetworkIDPolicyQosProfiles(params *GetLTENetworkIDPolicyQ
 }
 
 /*
-GetLTENetworkIDPolicyQosProfilesProfileID gets policy qo s profile in LTE network
+  GetLTENetworkIDPolicyQosProfilesProfileID gets policy qo s profile in LTE network
 */
-func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error) {
+func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetworkIDPolicyQosProfilesProfileIDParams, opts ...ClientOption) (*GetLTENetworkIDPolicyQosProfilesProfileIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDPolicyQosProfilesProfileIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDPolicyQosProfilesProfileID",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles/{profile_id}",
@@ -176,7 +232,12 @@ func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetwork
 		Reader:             &GetLTENetworkIDPolicyQosProfilesProfileIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +251,14 @@ func (a *Client) GetLTENetworkIDPolicyQosProfilesProfileID(params *GetLTENetwork
 }
 
 /*
-GetNetworksNetworkIDPoliciesBaseNames lists charging rule base names
+  GetNetworksNetworkIDPoliciesBaseNames lists charging rule base names
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetworkIDPoliciesBaseNamesParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesBaseNames",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/base_names",
@@ -209,7 +269,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetwor
 		Reader:             &GetNetworksNetworkIDPoliciesBaseNamesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +288,14 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNames(params *GetNetworksNetwor
 }
 
 /*
-GetNetworksNetworkIDPoliciesBaseNamesBaseName gets charging rule base name
+  GetNetworksNetworkIDPoliciesBaseNamesBaseName gets charging rule base name
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesBaseNamesBaseName",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/base_names/{base_name}",
@@ -242,7 +306,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetwor
 		Reader:             &GetNetworksNetworkIDPoliciesBaseNamesBaseNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +325,14 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesBaseName(params *GetNetwor
 }
 
 /*
-GetNetworksNetworkIDPoliciesBaseNamesViewFull gets all base names
+  GetNetworksNetworkIDPoliciesBaseNamesViewFull gets all base names
 */
-func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetworksNetworkIDPoliciesBaseNamesViewFullParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesBaseNamesViewFullParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesBaseNamesViewFull",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/base_names?view=full",
@@ -275,7 +343,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetwor
 		Reader:             &GetNetworksNetworkIDPoliciesBaseNamesViewFullReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +362,14 @@ func (a *Client) GetNetworksNetworkIDPoliciesBaseNamesViewFull(params *GetNetwor
 }
 
 /*
-GetNetworksNetworkIDPoliciesRules lists policy rules
+  GetNetworksNetworkIDPoliciesRules lists policy rules
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams) (*GetNetworksNetworkIDPoliciesRulesOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDPoliciesRulesParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesRules",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/rules",
@@ -308,7 +380,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDP
 		Reader:             &GetNetworksNetworkIDPoliciesRulesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +399,14 @@ func (a *Client) GetNetworksNetworkIDPoliciesRules(params *GetNetworksNetworkIDP
 }
 
 /*
-GetNetworksNetworkIDPoliciesRulesRuleID gets policy rule
+  GetNetworksNetworkIDPoliciesRulesRuleID gets policy rule
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetworkIDPoliciesRulesRuleIDParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesRuleIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesRulesRuleID",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/rules/{rule_id}",
@@ -341,7 +417,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetw
 		Reader:             &GetNetworksNetworkIDPoliciesRulesRuleIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -355,15 +436,14 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesRuleID(params *GetNetworksNetw
 }
 
 /*
-GetNetworksNetworkIDPoliciesRulesViewFull gets all policy rules
+  GetNetworksNetworkIDPoliciesRulesViewFull gets all policy rules
 */
-func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error) {
+func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNetworkIDPoliciesRulesViewFullParams, opts ...ClientOption) (*GetNetworksNetworkIDPoliciesRulesViewFullOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDPoliciesRulesViewFullParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDPoliciesRulesViewFull",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/policies/rules?view=full",
@@ -374,7 +454,12 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNe
 		Reader:             &GetNetworksNetworkIDPoliciesRulesViewFullReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -388,15 +473,14 @@ func (a *Client) GetNetworksNetworkIDPoliciesRulesViewFull(params *GetNetworksNe
 }
 
 /*
-PostLTENetworkIDPolicyQosProfiles creates policy qo s profile in LTE network
+  PostLTENetworkIDPolicyQosProfiles creates policy qo s profile in LTE network
 */
-func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams) (*PostLTENetworkIDPolicyQosProfilesCreated, error) {
+func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolicyQosProfilesParams, opts ...ClientOption) (*PostLTENetworkIDPolicyQosProfilesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDPolicyQosProfilesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDPolicyQosProfiles",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles",
@@ -407,7 +491,12 @@ func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolic
 		Reader:             &PostLTENetworkIDPolicyQosProfilesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -421,15 +510,14 @@ func (a *Client) PostLTENetworkIDPolicyQosProfiles(params *PostLTENetworkIDPolic
 }
 
 /*
-PostNetworksNetworkIDPoliciesBaseNames creates charging rule base name
+  PostNetworksNetworkIDPoliciesBaseNames creates charging rule base name
 */
-func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error) {
+func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetworkIDPoliciesBaseNamesParams, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesBaseNamesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPoliciesBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDPoliciesBaseNames",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/policies/base_names",
@@ -440,7 +528,12 @@ func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetw
 		Reader:             &PostNetworksNetworkIDPoliciesBaseNamesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -454,15 +547,14 @@ func (a *Client) PostNetworksNetworkIDPoliciesBaseNames(params *PostNetworksNetw
 }
 
 /*
-PostNetworksNetworkIDPoliciesRules adds a new policy rule
+  PostNetworksNetworkIDPoliciesRules adds a new policy rule
 */
-func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams) (*PostNetworksNetworkIDPoliciesRulesCreated, error) {
+func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkIDPoliciesRulesParams, opts ...ClientOption) (*PostNetworksNetworkIDPoliciesRulesCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDPoliciesRulesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDPoliciesRules",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/policies/rules",
@@ -473,7 +565,12 @@ func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkI
 		Reader:             &PostNetworksNetworkIDPoliciesRulesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -487,15 +584,14 @@ func (a *Client) PostNetworksNetworkIDPoliciesRules(params *PostNetworksNetworkI
 }
 
 /*
-PutLTENetworkIDPolicyQosProfilesProfileID updates policy qo s profile in LTE network
+  PutLTENetworkIDPolicyQosProfilesProfileID updates policy qo s profile in LTE network
 */
-func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
+func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetworkIDPolicyQosProfilesProfileIDParams, opts ...ClientOption) (*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDPolicyQosProfilesProfileIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDPolicyQosProfilesProfileID",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/policy_qos_profiles/{profile_id}",
@@ -506,7 +602,12 @@ func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetwork
 		Reader:             &PutLTENetworkIDPolicyQosProfilesProfileIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -520,15 +621,14 @@ func (a *Client) PutLTENetworkIDPolicyQosProfilesProfileID(params *PutLTENetwork
 }
 
 /*
-PutNetworksNetworkIDPoliciesBaseNamesBaseName modifies a charging rule base name
+  PutNetworksNetworkIDPoliciesBaseNamesBaseName modifies a charging rule base name
 */
-func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDPoliciesBaseNamesBaseName",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/policies/base_names/{base_name}",
@@ -539,7 +639,12 @@ func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetwor
 		Reader:             &PutNetworksNetworkIDPoliciesBaseNamesBaseNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -553,15 +658,14 @@ func (a *Client) PutNetworksNetworkIDPoliciesBaseNamesBaseName(params *PutNetwor
 }
 
 /*
-PutNetworksNetworkIDPoliciesRulesRuleID modifies a policy rule
+  PutNetworksNetworkIDPoliciesRulesRuleID modifies a policy rule
 */
-func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetworkIDPoliciesRulesRuleIDParams, opts ...ClientOption) (*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDPoliciesRulesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDPoliciesRulesRuleID",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/policies/rules/{rule_id}",
@@ -572,7 +676,12 @@ func (a *Client) PutNetworksNetworkIDPoliciesRulesRuleID(params *PutNetworksNetw
 		Reader:             &PutNetworksNetworkIDPoliciesRulesRuleIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

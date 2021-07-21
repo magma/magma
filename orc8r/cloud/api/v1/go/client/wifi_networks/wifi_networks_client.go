@@ -7,12 +7,11 @@ package wifi_networks
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new wifi networks API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,49 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteWifiNetworkID(params *DeleteWifiNetworkIDParams, opts ...ClientOption) (*DeleteWifiNetworkIDNoContent, error)
+
+	GetWifi(params *GetWifiParams, opts ...ClientOption) (*GetWifiOK, error)
+
+	GetWifiNetworkID(params *GetWifiNetworkIDParams, opts ...ClientOption) (*GetWifiNetworkIDOK, error)
+
+	GetWifiNetworkIDDescription(params *GetWifiNetworkIDDescriptionParams, opts ...ClientOption) (*GetWifiNetworkIDDescriptionOK, error)
+
+	GetWifiNetworkIDFeatures(params *GetWifiNetworkIDFeaturesParams, opts ...ClientOption) (*GetWifiNetworkIDFeaturesOK, error)
+
+	GetWifiNetworkIDName(params *GetWifiNetworkIDNameParams, opts ...ClientOption) (*GetWifiNetworkIDNameOK, error)
+
+	GetWifiNetworkIDWifi(params *GetWifiNetworkIDWifiParams, opts ...ClientOption) (*GetWifiNetworkIDWifiOK, error)
+
+	PostWifi(params *PostWifiParams, opts ...ClientOption) (*PostWifiCreated, error)
+
+	PutWifiNetworkID(params *PutWifiNetworkIDParams, opts ...ClientOption) (*PutWifiNetworkIDNoContent, error)
+
+	PutWifiNetworkIDDescription(params *PutWifiNetworkIDDescriptionParams, opts ...ClientOption) (*PutWifiNetworkIDDescriptionNoContent, error)
+
+	PutWifiNetworkIDFeatures(params *PutWifiNetworkIDFeaturesParams, opts ...ClientOption) (*PutWifiNetworkIDFeaturesNoContent, error)
+
+	PutWifiNetworkIDName(params *PutWifiNetworkIDNameParams, opts ...ClientOption) (*PutWifiNetworkIDNameNoContent, error)
+
+	PutWifiNetworkIDWifi(params *PutWifiNetworkIDWifiParams, opts ...ClientOption) (*PutWifiNetworkIDWifiNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteWifiNetworkID deletes a wifi network
+  DeleteWifiNetworkID deletes a wifi network
 */
-func (a *Client) DeleteWifiNetworkID(params *DeleteWifiNetworkIDParams) (*DeleteWifiNetworkIDNoContent, error) {
+func (a *Client) DeleteWifiNetworkID(params *DeleteWifiNetworkIDParams, opts ...ClientOption) (*DeleteWifiNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteWifiNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteWifiNetworkID",
 		Method:             "DELETE",
 		PathPattern:        "/wifi/{network_id}",
@@ -44,7 +76,12 @@ func (a *Client) DeleteWifiNetworkID(params *DeleteWifiNetworkIDParams) (*Delete
 		Reader:             &DeleteWifiNetworkIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +95,14 @@ func (a *Client) DeleteWifiNetworkID(params *DeleteWifiNetworkIDParams) (*Delete
 }
 
 /*
-GetWifi lists all wifi network i ds
+  GetWifi lists all wifi network i ds
 */
-func (a *Client) GetWifi(params *GetWifiParams) (*GetWifiOK, error) {
+func (a *Client) GetWifi(params *GetWifiParams, opts ...ClientOption) (*GetWifiOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifi",
 		Method:             "GET",
 		PathPattern:        "/wifi",
@@ -77,7 +113,12 @@ func (a *Client) GetWifi(params *GetWifiParams) (*GetWifiOK, error) {
 		Reader:             &GetWifiReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +132,14 @@ func (a *Client) GetWifi(params *GetWifiParams) (*GetWifiOK, error) {
 }
 
 /*
-GetWifiNetworkID describes a wifi network
+  GetWifiNetworkID describes a wifi network
 */
-func (a *Client) GetWifiNetworkID(params *GetWifiNetworkIDParams) (*GetWifiNetworkIDOK, error) {
+func (a *Client) GetWifiNetworkID(params *GetWifiNetworkIDParams, opts ...ClientOption) (*GetWifiNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkID",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}",
@@ -110,7 +150,12 @@ func (a *Client) GetWifiNetworkID(params *GetWifiNetworkIDParams) (*GetWifiNetwo
 		Reader:             &GetWifiNetworkIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +169,14 @@ func (a *Client) GetWifiNetworkID(params *GetWifiNetworkIDParams) (*GetWifiNetwo
 }
 
 /*
-GetWifiNetworkIDDescription gets description of a wifi network
+  GetWifiNetworkIDDescription gets description of a wifi network
 */
-func (a *Client) GetWifiNetworkIDDescription(params *GetWifiNetworkIDDescriptionParams) (*GetWifiNetworkIDDescriptionOK, error) {
+func (a *Client) GetWifiNetworkIDDescription(params *GetWifiNetworkIDDescriptionParams, opts ...ClientOption) (*GetWifiNetworkIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDDescription",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/description",
@@ -143,7 +187,12 @@ func (a *Client) GetWifiNetworkIDDescription(params *GetWifiNetworkIDDescription
 		Reader:             &GetWifiNetworkIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +206,14 @@ func (a *Client) GetWifiNetworkIDDescription(params *GetWifiNetworkIDDescription
 }
 
 /*
-GetWifiNetworkIDFeatures gets feature flags for a wifi network
+  GetWifiNetworkIDFeatures gets feature flags for a wifi network
 */
-func (a *Client) GetWifiNetworkIDFeatures(params *GetWifiNetworkIDFeaturesParams) (*GetWifiNetworkIDFeaturesOK, error) {
+func (a *Client) GetWifiNetworkIDFeatures(params *GetWifiNetworkIDFeaturesParams, opts ...ClientOption) (*GetWifiNetworkIDFeaturesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDFeaturesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDFeatures",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/features",
@@ -176,7 +224,12 @@ func (a *Client) GetWifiNetworkIDFeatures(params *GetWifiNetworkIDFeaturesParams
 		Reader:             &GetWifiNetworkIDFeaturesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +243,14 @@ func (a *Client) GetWifiNetworkIDFeatures(params *GetWifiNetworkIDFeaturesParams
 }
 
 /*
-GetWifiNetworkIDName gets the name of a wifi network
+  GetWifiNetworkIDName gets the name of a wifi network
 */
-func (a *Client) GetWifiNetworkIDName(params *GetWifiNetworkIDNameParams) (*GetWifiNetworkIDNameOK, error) {
+func (a *Client) GetWifiNetworkIDName(params *GetWifiNetworkIDNameParams, opts ...ClientOption) (*GetWifiNetworkIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDName",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/name",
@@ -209,7 +261,12 @@ func (a *Client) GetWifiNetworkIDName(params *GetWifiNetworkIDNameParams) (*GetW
 		Reader:             &GetWifiNetworkIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +280,14 @@ func (a *Client) GetWifiNetworkIDName(params *GetWifiNetworkIDNameParams) (*GetW
 }
 
 /*
-GetWifiNetworkIDWifi gets wifi configuration of a wifi network
+  GetWifiNetworkIDWifi gets wifi configuration of a wifi network
 */
-func (a *Client) GetWifiNetworkIDWifi(params *GetWifiNetworkIDWifiParams) (*GetWifiNetworkIDWifiOK, error) {
+func (a *Client) GetWifiNetworkIDWifi(params *GetWifiNetworkIDWifiParams, opts ...ClientOption) (*GetWifiNetworkIDWifiOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetWifiNetworkIDWifiParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetWifiNetworkIDWifi",
 		Method:             "GET",
 		PathPattern:        "/wifi/{network_id}/wifi",
@@ -242,7 +298,12 @@ func (a *Client) GetWifiNetworkIDWifi(params *GetWifiNetworkIDWifiParams) (*GetW
 		Reader:             &GetWifiNetworkIDWifiReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +317,14 @@ func (a *Client) GetWifiNetworkIDWifi(params *GetWifiNetworkIDWifiParams) (*GetW
 }
 
 /*
-PostWifi creates a new wifi network
+  PostWifi creates a new wifi network
 */
-func (a *Client) PostWifi(params *PostWifiParams) (*PostWifiCreated, error) {
+func (a *Client) PostWifi(params *PostWifiParams, opts ...ClientOption) (*PostWifiCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostWifiParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostWifi",
 		Method:             "POST",
 		PathPattern:        "/wifi",
@@ -275,7 +335,12 @@ func (a *Client) PostWifi(params *PostWifiParams) (*PostWifiCreated, error) {
 		Reader:             &PostWifiReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +354,14 @@ func (a *Client) PostWifi(params *PostWifiParams) (*PostWifiCreated, error) {
 }
 
 /*
-PutWifiNetworkID updates an entire wifi network
+  PutWifiNetworkID updates an entire wifi network
 */
-func (a *Client) PutWifiNetworkID(params *PutWifiNetworkIDParams) (*PutWifiNetworkIDNoContent, error) {
+func (a *Client) PutWifiNetworkID(params *PutWifiNetworkIDParams, opts ...ClientOption) (*PutWifiNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkID",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}",
@@ -308,7 +372,12 @@ func (a *Client) PutWifiNetworkID(params *PutWifiNetworkIDParams) (*PutWifiNetwo
 		Reader:             &PutWifiNetworkIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +391,14 @@ func (a *Client) PutWifiNetworkID(params *PutWifiNetworkIDParams) (*PutWifiNetwo
 }
 
 /*
-PutWifiNetworkIDDescription updates the description of a wifi network
+  PutWifiNetworkIDDescription updates the description of a wifi network
 */
-func (a *Client) PutWifiNetworkIDDescription(params *PutWifiNetworkIDDescriptionParams) (*PutWifiNetworkIDDescriptionNoContent, error) {
+func (a *Client) PutWifiNetworkIDDescription(params *PutWifiNetworkIDDescriptionParams, opts ...ClientOption) (*PutWifiNetworkIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDDescription",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/description",
@@ -341,7 +409,12 @@ func (a *Client) PutWifiNetworkIDDescription(params *PutWifiNetworkIDDescription
 		Reader:             &PutWifiNetworkIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -355,15 +428,14 @@ func (a *Client) PutWifiNetworkIDDescription(params *PutWifiNetworkIDDescription
 }
 
 /*
-PutWifiNetworkIDFeatures updates feature flags for a wifi network
+  PutWifiNetworkIDFeatures updates feature flags for a wifi network
 */
-func (a *Client) PutWifiNetworkIDFeatures(params *PutWifiNetworkIDFeaturesParams) (*PutWifiNetworkIDFeaturesNoContent, error) {
+func (a *Client) PutWifiNetworkIDFeatures(params *PutWifiNetworkIDFeaturesParams, opts ...ClientOption) (*PutWifiNetworkIDFeaturesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDFeaturesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDFeatures",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/features",
@@ -374,7 +446,12 @@ func (a *Client) PutWifiNetworkIDFeatures(params *PutWifiNetworkIDFeaturesParams
 		Reader:             &PutWifiNetworkIDFeaturesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -388,15 +465,14 @@ func (a *Client) PutWifiNetworkIDFeatures(params *PutWifiNetworkIDFeaturesParams
 }
 
 /*
-PutWifiNetworkIDName updates the name of a wifi network
+  PutWifiNetworkIDName updates the name of a wifi network
 */
-func (a *Client) PutWifiNetworkIDName(params *PutWifiNetworkIDNameParams) (*PutWifiNetworkIDNameNoContent, error) {
+func (a *Client) PutWifiNetworkIDName(params *PutWifiNetworkIDNameParams, opts ...ClientOption) (*PutWifiNetworkIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDName",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/name",
@@ -407,7 +483,12 @@ func (a *Client) PutWifiNetworkIDName(params *PutWifiNetworkIDNameParams) (*PutW
 		Reader:             &PutWifiNetworkIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -421,15 +502,14 @@ func (a *Client) PutWifiNetworkIDName(params *PutWifiNetworkIDNameParams) (*PutW
 }
 
 /*
-PutWifiNetworkIDWifi updates the wifi configuration of a wifi network
+  PutWifiNetworkIDWifi updates the wifi configuration of a wifi network
 */
-func (a *Client) PutWifiNetworkIDWifi(params *PutWifiNetworkIDWifiParams) (*PutWifiNetworkIDWifiNoContent, error) {
+func (a *Client) PutWifiNetworkIDWifi(params *PutWifiNetworkIDWifiParams, opts ...ClientOption) (*PutWifiNetworkIDWifiNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutWifiNetworkIDWifiParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutWifiNetworkIDWifi",
 		Method:             "PUT",
 		PathPattern:        "/wifi/{network_id}/wifi",
@@ -440,7 +520,12 @@ func (a *Client) PutWifiNetworkIDWifi(params *PutWifiNetworkIDWifiParams) (*PutW
 		Reader:             &PutWifiNetworkIDWifiReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

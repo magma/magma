@@ -6,34 +6,40 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // DiameterServerConfigs Diameter Configuration of The Server
+//
 // swagger:model diameter_server_configs
 type DiameterServerConfigs struct {
 
 	// address
+	// Example: foo.bar.com:5555
 	// Pattern: [^\:]+(:[0-9]{1,5})?
 	Address string `json:"address,omitempty"`
 
 	// dest host
+	// Example: magma-fedgw.magma.com
 	DestHost string `json:"dest_host,omitempty"`
 
 	// dest realm
+	// Example: magma.com
 	DestRealm string `json:"dest_realm,omitempty"`
 
 	// local address
+	// Example: :56789
 	// Pattern: [0-9a-f\:\.]*(:[0-9]{1,5})?
 	LocalAddress string `json:"local_address,omitempty"`
 
 	// protocol
+	// Example: tcp
 	// Enum: [tcp tcp4 tcp6 sctp sctp4 sctp6]
 	Protocol string `json:"protocol,omitempty"`
 }
@@ -61,12 +67,11 @@ func (m *DiameterServerConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *DiameterServerConfigs) validateAddress(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Address) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("address", "body", string(m.Address), `[^\:]+(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("address", "body", m.Address, `[^\:]+(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
@@ -74,12 +79,11 @@ func (m *DiameterServerConfigs) validateAddress(formats strfmt.Registry) error {
 }
 
 func (m *DiameterServerConfigs) validateLocalAddress(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.LocalAddress) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("local_address", "body", string(m.LocalAddress), `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("local_address", "body", m.LocalAddress, `[0-9a-f\:\.]*(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
@@ -121,14 +125,13 @@ const (
 
 // prop value enum
 func (m *DiameterServerConfigs) validateProtocolEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, diameterServerConfigsTypeProtocolPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, diameterServerConfigsTypeProtocolPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *DiameterServerConfigs) validateProtocol(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Protocol) { // not required
 		return nil
 	}
@@ -138,6 +141,11 @@ func (m *DiameterServerConfigs) validateProtocol(formats strfmt.Registry) error 
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this diameter server configs based on context it is used
+func (m *DiameterServerConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

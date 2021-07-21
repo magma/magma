@@ -13,88 +13,106 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDLogsCountParams creates a new GetNetworksNetworkIDLogsCountParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDLogsCountParams creates a new GetNetworksNetworkIDLogsCountParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDLogsCountParams() *GetNetworksNetworkIDLogsCountParams {
-	var ()
 	return &GetNetworksNetworkIDLogsCountParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDLogsCountParamsWithTimeout creates a new GetNetworksNetworkIDLogsCountParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDLogsCountParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDLogsCountParams {
-	var ()
 	return &GetNetworksNetworkIDLogsCountParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDLogsCountParamsWithContext creates a new GetNetworksNetworkIDLogsCountParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDLogsCountParamsWithContext(ctx context.Context) *GetNetworksNetworkIDLogsCountParams {
-	var ()
 	return &GetNetworksNetworkIDLogsCountParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDLogsCountParamsWithHTTPClient creates a new GetNetworksNetworkIDLogsCountParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDLogsCountParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDLogsCountParams {
-	var ()
 	return &GetNetworksNetworkIDLogsCountParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDLogsCountParams contains all the parameters to send to the API endpoint
-for the get networks network ID logs count operation typically these are written to a http.Request
+/* GetNetworksNetworkIDLogsCountParams contains all the parameters to send to the API endpoint
+   for the get networks network ID logs count operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDLogsCountParams struct {
 
-	/*End
-	  Time to end searching
+	/* End.
 
+	   Time to end searching
 	*/
 	End *string
-	/*Fields
-	  Comma-separated list of fields to search with the simple query. Defaults to the log field.
 
+	/* Fields.
+
+	   Comma-separated list of fields to search with the simple query. Defaults to the log field.
 	*/
 	Fields *string
-	/*Filters
-	  Comma-separated list of key:value pairs to filter the query with.
 
+	/* Filters.
+
+	   Comma-separated list of key:value pairs to filter the query with.
 	*/
 	Filters *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*SimpleQuery
-	  Simple Query String to execute
 
+	/* SimpleQuery.
+
+	   Simple Query String to execute
 	*/
 	SimpleQuery *string
-	/*Start
-	  Time to start searching
 
+	/* Start.
+
+	   Time to start searching
 	*/
 	Start *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID logs count params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDLogsCountParams) WithDefaults() *GetNetworksNetworkIDLogsCountParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID logs count params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDLogsCountParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID logs count params
@@ -208,48 +226,51 @@ func (o *GetNetworksNetworkIDLogsCountParams) WriteToRequest(r runtime.ClientReq
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Fields != nil {
 
 		// query param fields
 		var qrFields string
+
 		if o.Fields != nil {
 			qrFields = *o.Fields
 		}
 		qFields := qrFields
 		if qFields != "" {
+
 			if err := r.SetQueryParam("fields", qFields); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Filters != nil {
 
 		// query param filters
 		var qrFilters string
+
 		if o.Filters != nil {
 			qrFilters = *o.Filters
 		}
 		qFilters := qrFilters
 		if qFilters != "" {
+
 			if err := r.SetQueryParam("filters", qFilters); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -261,32 +282,34 @@ func (o *GetNetworksNetworkIDLogsCountParams) WriteToRequest(r runtime.ClientReq
 
 		// query param simple_query
 		var qrSimpleQuery string
+
 		if o.SimpleQuery != nil {
 			qrSimpleQuery = *o.SimpleQuery
 		}
 		qSimpleQuery := qrSimpleQuery
 		if qSimpleQuery != "" {
+
 			if err := r.SetQueryParam("simple_query", qSimpleQuery); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Start != nil {
 
 		// query param start
 		var qrStart string
+
 		if o.Start != nil {
 			qrStart = *o.Start
 		}
 		qStart := qrStart
 		if qStart != "" {
+
 			if err := r.SetQueryParam("start", qStart); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

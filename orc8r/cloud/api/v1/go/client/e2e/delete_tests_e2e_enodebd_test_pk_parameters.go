@@ -13,64 +13,79 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewDeleteTestsE2eEnodebdTestPkParams creates a new DeleteTestsE2eEnodebdTestPkParams object
-// with the default values initialized.
+// NewDeleteTestsE2eEnodebdTestPkParams creates a new DeleteTestsE2eEnodebdTestPkParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteTestsE2eEnodebdTestPkParams() *DeleteTestsE2eEnodebdTestPkParams {
-	var ()
 	return &DeleteTestsE2eEnodebdTestPkParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteTestsE2eEnodebdTestPkParamsWithTimeout creates a new DeleteTestsE2eEnodebdTestPkParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteTestsE2eEnodebdTestPkParamsWithTimeout(timeout time.Duration) *DeleteTestsE2eEnodebdTestPkParams {
-	var ()
 	return &DeleteTestsE2eEnodebdTestPkParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteTestsE2eEnodebdTestPkParamsWithContext creates a new DeleteTestsE2eEnodebdTestPkParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteTestsE2eEnodebdTestPkParamsWithContext(ctx context.Context) *DeleteTestsE2eEnodebdTestPkParams {
-	var ()
 	return &DeleteTestsE2eEnodebdTestPkParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteTestsE2eEnodebdTestPkParamsWithHTTPClient creates a new DeleteTestsE2eEnodebdTestPkParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteTestsE2eEnodebdTestPkParamsWithHTTPClient(client *http.Client) *DeleteTestsE2eEnodebdTestPkParams {
-	var ()
 	return &DeleteTestsE2eEnodebdTestPkParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
-for the delete tests e2e enodebd test pk operation typically these are written to a http.Request
+/* DeleteTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
+   for the delete tests e2e enodebd test pk operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteTestsE2eEnodebdTestPkParams struct {
 
-	/*TestPk
-	  E2E test case PK
+	/* TestPk.
 
+	   E2E test case PK
+
+	   Format: int64
 	*/
 	TestPk int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete tests e2e enodebd test pk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteTestsE2eEnodebdTestPkParams) WithDefaults() *DeleteTestsE2eEnodebdTestPkParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete tests e2e enodebd test pk params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteTestsE2eEnodebdTestPkParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete tests e2e enodebd test pk params

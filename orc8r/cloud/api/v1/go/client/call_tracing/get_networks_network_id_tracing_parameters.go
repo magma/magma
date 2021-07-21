@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDTracingParams creates a new GetNetworksNetworkIDTracingParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDTracingParams creates a new GetNetworksNetworkIDTracingParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDTracingParams() *GetNetworksNetworkIDTracingParams {
-	var ()
 	return &GetNetworksNetworkIDTracingParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDTracingParamsWithTimeout creates a new GetNetworksNetworkIDTracingParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDTracingParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDTracingParams {
-	var ()
 	return &GetNetworksNetworkIDTracingParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDTracingParamsWithContext creates a new GetNetworksNetworkIDTracingParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDTracingParamsWithContext(ctx context.Context) *GetNetworksNetworkIDTracingParams {
-	var ()
 	return &GetNetworksNetworkIDTracingParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDTracingParamsWithHTTPClient creates a new GetNetworksNetworkIDTracingParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDTracingParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDTracingParams {
-	var ()
 	return &GetNetworksNetworkIDTracingParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDTracingParams contains all the parameters to send to the API endpoint
-for the get networks network ID tracing operation typically these are written to a http.Request
+/* GetNetworksNetworkIDTracingParams contains all the parameters to send to the API endpoint
+   for the get networks network ID tracing operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDTracingParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID tracing params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDTracingParams) WithDefaults() *GetNetworksNetworkIDTracingParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID tracing params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDTracingParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID tracing params

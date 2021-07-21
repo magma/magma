@@ -13,56 +13,69 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetTestsE2eEnodebdParams creates a new GetTestsE2eEnodebdParams object
-// with the default values initialized.
+// NewGetTestsE2eEnodebdParams creates a new GetTestsE2eEnodebdParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetTestsE2eEnodebdParams() *GetTestsE2eEnodebdParams {
-
 	return &GetTestsE2eEnodebdParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetTestsE2eEnodebdParamsWithTimeout creates a new GetTestsE2eEnodebdParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetTestsE2eEnodebdParamsWithTimeout(timeout time.Duration) *GetTestsE2eEnodebdParams {
-
 	return &GetTestsE2eEnodebdParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetTestsE2eEnodebdParamsWithContext creates a new GetTestsE2eEnodebdParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetTestsE2eEnodebdParamsWithContext(ctx context.Context) *GetTestsE2eEnodebdParams {
-
 	return &GetTestsE2eEnodebdParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetTestsE2eEnodebdParamsWithHTTPClient creates a new GetTestsE2eEnodebdParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetTestsE2eEnodebdParamsWithHTTPClient(client *http.Client) *GetTestsE2eEnodebdParams {
-
 	return &GetTestsE2eEnodebdParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetTestsE2eEnodebdParams contains all the parameters to send to the API endpoint
-for the get tests e2e enodebd operation typically these are written to a http.Request
+/* GetTestsE2eEnodebdParams contains all the parameters to send to the API endpoint
+   for the get tests e2e enodebd operation.
+
+   Typically these are written to a http.Request.
 */
 type GetTestsE2eEnodebdParams struct {
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get tests e2e enodebd params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTestsE2eEnodebdParams) WithDefaults() *GetTestsE2eEnodebdParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get tests e2e enodebd params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTestsE2eEnodebdParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get tests e2e enodebd params

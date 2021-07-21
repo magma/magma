@@ -6,15 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // EnodebdTestConfig Enodebd e2e test configuration
+//
 // swagger:model enodebd_test_config
 type EnodebdTestConfig struct {
 
@@ -32,11 +34,13 @@ type EnodebdTestConfig struct {
 	EnodebConfig *models2.EnodebConfig `json:"enodeb_config"`
 
 	// Network for the test case
+	// Example: mpk_dogfooding
 	// Required: true
 	// Min Length: 1
 	NetworkID *string `json:"network_id"`
 
 	// Toggle whether or not to run traffic test cases
+	// Example: false
 	// Required: true
 	RunTrafficTests *bool `json:"run_traffic_tests"`
 
@@ -49,6 +53,7 @@ type EnodebdTestConfig struct {
 	SsidPw string `json:"ssid_pw,omitempty"`
 
 	// Specify which testcontroller state to begin on
+	// Example: check_for_upgrade
 	// Min Length: 1
 	StartState string `json:"start_state,omitempty"`
 
@@ -137,7 +142,7 @@ func (m *EnodebdTestConfig) validateEnodebSN(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("enodeb_SN", "body", string(*m.EnodebSN), 1); err != nil {
+	if err := validate.MinLength("enodeb_SN", "body", *m.EnodebSN, 1); err != nil {
 		return err
 	}
 
@@ -168,7 +173,7 @@ func (m *EnodebdTestConfig) validateNetworkID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("network_id", "body", string(*m.NetworkID), 1); err != nil {
+	if err := validate.MinLength("network_id", "body", *m.NetworkID, 1); err != nil {
 		return err
 	}
 
@@ -185,12 +190,11 @@ func (m *EnodebdTestConfig) validateRunTrafficTests(formats strfmt.Registry) err
 }
 
 func (m *EnodebdTestConfig) validateSsid(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Ssid) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("ssid", "body", string(m.Ssid), 1); err != nil {
+	if err := validate.MinLength("ssid", "body", m.Ssid, 1); err != nil {
 		return err
 	}
 
@@ -198,12 +202,11 @@ func (m *EnodebdTestConfig) validateSsid(formats strfmt.Registry) error {
 }
 
 func (m *EnodebdTestConfig) validateSsidPw(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SsidPw) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("ssid_pw", "body", string(m.SsidPw), 1); err != nil {
+	if err := validate.MinLength("ssid_pw", "body", m.SsidPw, 1); err != nil {
 		return err
 	}
 
@@ -211,12 +214,11 @@ func (m *EnodebdTestConfig) validateSsidPw(formats strfmt.Registry) error {
 }
 
 func (m *EnodebdTestConfig) validateStartState(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.StartState) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("start_state", "body", string(m.StartState), 1); err != nil {
+	if err := validate.MinLength("start_state", "body", m.StartState, 1); err != nil {
 		return err
 	}
 
@@ -229,7 +231,7 @@ func (m *EnodebdTestConfig) validateSubscriberID(formats strfmt.Registry) error 
 		return err
 	}
 
-	if err := validate.MinLength("subscriberID", "body", string(*m.SubscriberID), 1); err != nil {
+	if err := validate.MinLength("subscriberID", "body", *m.SubscriberID, 1); err != nil {
 		return err
 	}
 
@@ -242,8 +244,54 @@ func (m *EnodebdTestConfig) validateTrafficGwID(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("traffic_gwID", "body", string(*m.TrafficGwID), 1); err != nil {
+	if err := validate.MinLength("traffic_gwID", "body", *m.TrafficGwID, 1); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this enodebd test config based on the context it is used
+func (m *EnodebdTestConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAgwConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateEnodebConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *EnodebdTestConfig) contextValidateAgwConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.AgwConfig != nil {
+		if err := m.AgwConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("agw_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *EnodebdTestConfig) contextValidateEnodebConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.EnodebConfig != nil {
+		if err := m.EnodebConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("enodeb_config")
+			}
+			return err
+		}
 	}
 
 	return nil

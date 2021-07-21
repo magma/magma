@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetWifiNetworkIDGatewaysParams creates a new GetWifiNetworkIDGatewaysParams object
-// with the default values initialized.
+// NewGetWifiNetworkIDGatewaysParams creates a new GetWifiNetworkIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetWifiNetworkIDGatewaysParams() *GetWifiNetworkIDGatewaysParams {
-	var ()
 	return &GetWifiNetworkIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetWifiNetworkIDGatewaysParamsWithTimeout creates a new GetWifiNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetWifiNetworkIDGatewaysParamsWithTimeout(timeout time.Duration) *GetWifiNetworkIDGatewaysParams {
-	var ()
 	return &GetWifiNetworkIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetWifiNetworkIDGatewaysParamsWithContext creates a new GetWifiNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetWifiNetworkIDGatewaysParamsWithContext(ctx context.Context) *GetWifiNetworkIDGatewaysParams {
-	var ()
 	return &GetWifiNetworkIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetWifiNetworkIDGatewaysParamsWithHTTPClient creates a new GetWifiNetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetWifiNetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *GetWifiNetworkIDGatewaysParams {
-	var ()
 	return &GetWifiNetworkIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetWifiNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
-for the get wifi network ID gateways operation typically these are written to a http.Request
+/* GetWifiNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the get wifi network ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type GetWifiNetworkIDGatewaysParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get wifi network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetWifiNetworkIDGatewaysParams) WithDefaults() *GetWifiNetworkIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get wifi network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetWifiNetworkIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get wifi network ID gateways params

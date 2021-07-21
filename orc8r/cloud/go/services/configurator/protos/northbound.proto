@@ -17,7 +17,7 @@ import "magma/orc8r/protos/common.proto";
 import "magma/orc8r/cloud/go/services/configurator/storage/storage.proto";
 
 package magma.orc8r.configurator;
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/configurator/protos";
 
 service NorthboundConfigurator {
     // ListNetworkIDs fetches the list of networkIDs registered

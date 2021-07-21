@@ -6,14 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // NextPageToken Base 64 encoded page token for subsequent paginated API requests
+//
 // swagger:model next_page_token
 type NextPageToken string
 
 // Validate validates this next page token
 func (m NextPageToken) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this next page token based on context it is used
+func (m NextPageToken) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

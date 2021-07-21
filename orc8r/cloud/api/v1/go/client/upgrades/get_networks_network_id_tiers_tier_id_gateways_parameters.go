@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDTiersTierIDGatewaysParams creates a new GetNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDTiersTierIDGatewaysParams creates a new GetNetworksNetworkIDTiersTierIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDTiersTierIDGatewaysParams() *GetNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &GetNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDTiersTierIDGatewaysParamsWithTimeout creates a new GetNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDTiersTierIDGatewaysParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &GetNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDTiersTierIDGatewaysParamsWithContext creates a new GetNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDTiersTierIDGatewaysParamsWithContext(ctx context.Context) *GetNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &GetNetworksNetworkIDTiersTierIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDTiersTierIDGatewaysParamsWithHTTPClient creates a new GetNetworksNetworkIDTiersTierIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDTiersTierIDGatewaysParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDTiersTierIDGatewaysParams {
-	var ()
 	return &GetNetworksNetworkIDTiersTierIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDTiersTierIDGatewaysParams contains all the parameters to send to the API endpoint
-for the get networks network ID tiers tier ID gateways operation typically these are written to a http.Request
+/* GetNetworksNetworkIDTiersTierIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the get networks network ID tiers tier ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDTiersTierIDGatewaysParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID tiers tier ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDTiersTierIDGatewaysParams) WithDefaults() *GetNetworksNetworkIDTiersTierIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID tiers tier ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDTiersTierIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID tiers tier ID gateways params

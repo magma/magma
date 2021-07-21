@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CellularGatewayPoolRecord Record in a gateway pool
+//
 // swagger:model cellular_gateway_pool_record
 type CellularGatewayPoolRecord struct {
 
@@ -22,12 +24,14 @@ type CellularGatewayPoolRecord struct {
 	GatewayPoolID GatewayPoolID `json:"gateway_pool_id"`
 
 	// mme code
+	// Example: 1
 	// Required: true
 	// Maximum: 65535
 	// Minimum: 0
 	MmeCode uint32 `json:"mme_code"`
 
 	// mme relative capacity
+	// Example: 10
 	// Required: true
 	// Maximum: 255
 	// Minimum: 0
@@ -58,6 +62,10 @@ func (m *CellularGatewayPoolRecord) Validate(formats strfmt.Registry) error {
 
 func (m *CellularGatewayPoolRecord) validateGatewayPoolID(formats strfmt.Registry) error {
 
+	if err := validate.Required("gateway_pool_id", "body", GatewayPoolID(m.GatewayPoolID)); err != nil {
+		return err
+	}
+
 	if err := m.GatewayPoolID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("gateway_pool_id")
@@ -74,11 +82,11 @@ func (m *CellularGatewayPoolRecord) validateMmeCode(formats strfmt.Registry) err
 		return err
 	}
 
-	if err := validate.MinimumInt("mme_code", "body", int64(m.MmeCode), 0, false); err != nil {
+	if err := validate.MinimumUint("mme_code", "body", uint64(m.MmeCode), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("mme_code", "body", int64(m.MmeCode), 65535, false); err != nil {
+	if err := validate.MaximumUint("mme_code", "body", uint64(m.MmeCode), 65535, false); err != nil {
 		return err
 	}
 
@@ -91,11 +99,37 @@ func (m *CellularGatewayPoolRecord) validateMmeRelativeCapacity(formats strfmt.R
 		return err
 	}
 
-	if err := validate.MinimumInt("mme_relative_capacity", "body", int64(m.MmeRelativeCapacity), 0, false); err != nil {
+	if err := validate.MinimumUint("mme_relative_capacity", "body", uint64(m.MmeRelativeCapacity), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("mme_relative_capacity", "body", int64(m.MmeRelativeCapacity), 255, false); err != nil {
+	if err := validate.MaximumUint("mme_relative_capacity", "body", uint64(m.MmeRelativeCapacity), 255, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this cellular gateway pool record based on the context it is used
+func (m *CellularGatewayPoolRecord) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateGatewayPoolID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *CellularGatewayPoolRecord) contextValidateGatewayPoolID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.GatewayPoolID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("gateway_pool_id")
+		}
 		return err
 	}
 

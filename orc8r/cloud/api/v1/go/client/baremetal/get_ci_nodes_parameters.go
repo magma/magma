@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetCiNodesParams creates a new GetCiNodesParams object
-// with the default values initialized.
+// NewGetCiNodesParams creates a new GetCiNodesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetCiNodesParams() *GetCiNodesParams {
-	var ()
 	return &GetCiNodesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetCiNodesParamsWithTimeout creates a new GetCiNodesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetCiNodesParamsWithTimeout(timeout time.Duration) *GetCiNodesParams {
-	var ()
 	return &GetCiNodesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetCiNodesParamsWithContext creates a new GetCiNodesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetCiNodesParamsWithContext(ctx context.Context) *GetCiNodesParams {
-	var ()
 	return &GetCiNodesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetCiNodesParamsWithHTTPClient creates a new GetCiNodesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetCiNodesParamsWithHTTPClient(client *http.Client) *GetCiNodesParams {
-	var ()
 	return &GetCiNodesParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetCiNodesParams contains all the parameters to send to the API endpoint
-for the get ci nodes operation typically these are written to a http.Request
+/* GetCiNodesParams contains all the parameters to send to the API endpoint
+   for the get ci nodes operation.
+
+   Typically these are written to a http.Request.
 */
 type GetCiNodesParams struct {
 
-	/*ListUntagged
-	  Set this to a non-empty value to filter for all untagged nodes
+	/* ListUntagged.
 
+	   Set this to a non-empty value to filter for all untagged nodes
 	*/
 	ListUntagged *string
-	/*Tag
-	  Optional tag to filter listed nodes by
 
+	/* Tag.
+
+	   Optional tag to filter listed nodes by
 	*/
 	Tag *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get ci nodes params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCiNodesParams) WithDefaults() *GetCiNodesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get ci nodes params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCiNodesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get ci nodes params
@@ -144,32 +158,34 @@ func (o *GetCiNodesParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Re
 
 		// query param list_untagged
 		var qrListUntagged string
+
 		if o.ListUntagged != nil {
 			qrListUntagged = *o.ListUntagged
 		}
 		qListUntagged := qrListUntagged
 		if qListUntagged != "" {
+
 			if err := r.SetQueryParam("list_untagged", qListUntagged); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Tag != nil {
 
 		// query param tag
 		var qrTag string
+
 		if o.Tag != nil {
 			qrTag = *o.Tag
 		}
 		qTag := qrTag
 		if qTag != "" {
+
 			if err := r.SetQueryParam("tag", qTag); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

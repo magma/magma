@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PolicyQosProfile policy qos profile
+//
 // swagger:model policy_qos_profile
 type PolicyQosProfile struct {
 
@@ -22,12 +24,13 @@ type PolicyQosProfile struct {
 
 	// class id
 	// Required: true
-	ClassID QosClassID `json:"class_id"`
+	ClassID *QosClassID `json:"class_id" magma_alt_name:"QCI"`
 
 	// gbr
 	Gbr *Gbr `json:"gbr,omitempty"`
 
 	// id
+	// Example: All ICMP
 	// Required: true
 	// Min Length: 1
 	ID string `json:"id"`
@@ -76,7 +79,6 @@ func (m *PolicyQosProfile) Validate(formats strfmt.Registry) error {
 }
 
 func (m *PolicyQosProfile) validateArp(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Arp) { // not required
 		return nil
 	}
@@ -95,18 +97,27 @@ func (m *PolicyQosProfile) validateArp(formats strfmt.Registry) error {
 
 func (m *PolicyQosProfile) validateClassID(formats strfmt.Registry) error {
 
-	if err := m.ClassID.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("class_id")
-		}
+	if err := validate.Required("class_id", "body", m.ClassID); err != nil {
 		return err
+	}
+
+	if err := validate.Required("class_id", "body", m.ClassID); err != nil {
+		return err
+	}
+
+	if m.ClassID != nil {
+		if err := m.ClassID.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("class_id")
+			}
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (m *PolicyQosProfile) validateGbr(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Gbr) { // not required
 		return nil
 	}
@@ -125,11 +136,11 @@ func (m *PolicyQosProfile) validateGbr(formats strfmt.Registry) error {
 
 func (m *PolicyQosProfile) validateID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("id", "body", string(m.ID)); err != nil {
+	if err := validate.RequiredString("id", "body", m.ID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("id", "body", string(m.ID), 1); err != nil {
+	if err := validate.MinLength("id", "body", m.ID, 1); err != nil {
 		return err
 	}
 
@@ -149,6 +160,70 @@ func (m *PolicyQosProfile) validateMaxReqBwUl(formats strfmt.Registry) error {
 
 	if err := validate.Required("max_req_bw_ul", "body", m.MaxReqBwUl); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this policy qos profile based on the context it is used
+func (m *PolicyQosProfile) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateArp(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateClassID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGbr(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PolicyQosProfile) contextValidateArp(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Arp != nil {
+		if err := m.Arp.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("arp")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *PolicyQosProfile) contextValidateClassID(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ClassID != nil {
+		if err := m.ClassID.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("class_id")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *PolicyQosProfile) contextValidateGbr(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Gbr != nil {
+		if err := m.Gbr.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("gbr")
+			}
+			return err
+		}
 	}
 
 	return nil

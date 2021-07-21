@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDEnodebsENODEBSerialStateParams creates a new GetLTENetworkIDEnodebsENODEBSerialStateParams object
-// with the default values initialized.
+// NewGetLTENetworkIDEnodebsENODEBSerialStateParams creates a new GetLTENetworkIDEnodebsENODEBSerialStateParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDEnodebsENODEBSerialStateParams() *GetLTENetworkIDEnodebsENODEBSerialStateParams {
-	var ()
 	return &GetLTENetworkIDEnodebsENODEBSerialStateParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDEnodebsENODEBSerialStateParamsWithTimeout creates a new GetLTENetworkIDEnodebsENODEBSerialStateParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDEnodebsENODEBSerialStateParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDEnodebsENODEBSerialStateParams {
-	var ()
 	return &GetLTENetworkIDEnodebsENODEBSerialStateParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDEnodebsENODEBSerialStateParamsWithContext creates a new GetLTENetworkIDEnodebsENODEBSerialStateParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDEnodebsENODEBSerialStateParamsWithContext(ctx context.Context) *GetLTENetworkIDEnodebsENODEBSerialStateParams {
-	var ()
 	return &GetLTENetworkIDEnodebsENODEBSerialStateParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDEnodebsENODEBSerialStateParamsWithHTTPClient creates a new GetLTENetworkIDEnodebsENODEBSerialStateParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDEnodebsENODEBSerialStateParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDEnodebsENODEBSerialStateParams {
-	var ()
 	return &GetLTENetworkIDEnodebsENODEBSerialStateParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDEnodebsENODEBSerialStateParams contains all the parameters to send to the API endpoint
-for the get LTE network ID enodebs ENODEB serial state operation typically these are written to a http.Request
+/* GetLTENetworkIDEnodebsENODEBSerialStateParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID enodebs ENODEB serial state operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDEnodebsENODEBSerialStateParams struct {
 
-	/*ENODEBSerial
-	  EnodeB serial number
+	/* ENODEBSerial.
 
+	   EnodeB serial number
 	*/
 	ENODEBSerial string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID enodebs ENODEB serial state params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDEnodebsENODEBSerialStateParams) WithDefaults() *GetLTENetworkIDEnodebsENODEBSerialStateParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID enodebs ENODEB serial state params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDEnodebsENODEBSerialStateParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID enodebs ENODEB serial state params

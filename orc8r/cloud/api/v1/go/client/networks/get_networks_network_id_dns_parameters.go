@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDDNSParams creates a new GetNetworksNetworkIDDNSParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDDNSParams creates a new GetNetworksNetworkIDDNSParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDDNSParams() *GetNetworksNetworkIDDNSParams {
-	var ()
 	return &GetNetworksNetworkIDDNSParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDDNSParamsWithTimeout creates a new GetNetworksNetworkIDDNSParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDDNSParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDDNSParams {
-	var ()
 	return &GetNetworksNetworkIDDNSParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDDNSParamsWithContext creates a new GetNetworksNetworkIDDNSParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDDNSParamsWithContext(ctx context.Context) *GetNetworksNetworkIDDNSParams {
-	var ()
 	return &GetNetworksNetworkIDDNSParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDDNSParamsWithHTTPClient creates a new GetNetworksNetworkIDDNSParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDDNSParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDDNSParams {
-	var ()
 	return &GetNetworksNetworkIDDNSParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDDNSParams contains all the parameters to send to the API endpoint
-for the get networks network ID DNS operation typically these are written to a http.Request
+/* GetNetworksNetworkIDDNSParams contains all the parameters to send to the API endpoint
+   for the get networks network ID DNS operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDDNSParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID DNS params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDDNSParams) WithDefaults() *GetNetworksNetworkIDDNSParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID DNS params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDDNSParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID DNS params

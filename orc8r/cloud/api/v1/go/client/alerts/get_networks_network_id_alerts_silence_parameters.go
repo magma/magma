@@ -13,84 +13,101 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDAlertsSilenceParams creates a new GetNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDAlertsSilenceParams creates a new GetNetworksNetworkIDAlertsSilenceParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDAlertsSilenceParams() *GetNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsSilenceParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDAlertsSilenceParamsWithTimeout creates a new GetNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDAlertsSilenceParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsSilenceParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDAlertsSilenceParamsWithContext creates a new GetNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDAlertsSilenceParamsWithContext(ctx context.Context) *GetNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsSilenceParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDAlertsSilenceParamsWithHTTPClient creates a new GetNetworksNetworkIDAlertsSilenceParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDAlertsSilenceParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDAlertsSilenceParams {
-	var ()
 	return &GetNetworksNetworkIDAlertsSilenceParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
-for the get networks network ID alerts silence operation typically these are written to a http.Request
+/* GetNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
+   for the get networks network ID alerts silence operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDAlertsSilenceParams struct {
 
-	/*Active
-	  Retrieve active alerts. Default true.
+	/* Active.
 
+	   Retrieve active alerts. Default true.
 	*/
 	Active *bool
-	/*Expired
-	  Retrieve expired alerts. Default true.
 
+	/* Expired.
+
+	   Retrieve expired alerts. Default true.
 	*/
 	Expired *bool
-	/*Filter
-	  {key="value",} pairs to filter the silences
 
+	/* Filter.
+
+	   {key="value",} pairs to filter the silences
 	*/
 	Filter *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*Pending
-	  Retrieve pending alerts. Default true.
 
+	/* Pending.
+
+	   Retrieve pending alerts. Default true.
 	*/
 	Pending *bool
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID alerts silence params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDAlertsSilenceParams) WithDefaults() *GetNetworksNetworkIDAlertsSilenceParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID alerts silence params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDAlertsSilenceParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID alerts silence params
@@ -193,48 +210,51 @@ func (o *GetNetworksNetworkIDAlertsSilenceParams) WriteToRequest(r runtime.Clien
 
 		// query param active
 		var qrActive bool
+
 		if o.Active != nil {
 			qrActive = *o.Active
 		}
 		qActive := swag.FormatBool(qrActive)
 		if qActive != "" {
+
 			if err := r.SetQueryParam("active", qActive); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Expired != nil {
 
 		// query param expired
 		var qrExpired bool
+
 		if o.Expired != nil {
 			qrExpired = *o.Expired
 		}
 		qExpired := swag.FormatBool(qrExpired)
 		if qExpired != "" {
+
 			if err := r.SetQueryParam("expired", qExpired); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Filter != nil {
 
 		// query param filter
 		var qrFilter string
+
 		if o.Filter != nil {
 			qrFilter = *o.Filter
 		}
 		qFilter := qrFilter
 		if qFilter != "" {
+
 			if err := r.SetQueryParam("filter", qFilter); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -246,16 +266,17 @@ func (o *GetNetworksNetworkIDAlertsSilenceParams) WriteToRequest(r runtime.Clien
 
 		// query param pending
 		var qrPending bool
+
 		if o.Pending != nil {
 			qrPending = *o.Pending
 		}
 		qPending := swag.FormatBool(qrPending)
 		if qPending != "" {
+
 			if err := r.SetQueryParam("pending", qPending); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableSMSMessage mutable sms message
+//
 // swagger:model mutable_sms_message
 type MutableSMSMessage struct {
 
@@ -22,11 +24,13 @@ type MutableSMSMessage struct {
 	Imsi SubscriberID `json:"imsi"`
 
 	// message
+	// Example: Hello world!
 	// Required: true
 	// Min Length: 1
 	Message string `json:"message"`
 
 	// source msisdn
+	// Example: 123456
 	// Required: true
 	// Min Length: 1
 	SourceMsisdn string `json:"source_msisdn"`
@@ -56,6 +60,10 @@ func (m *MutableSMSMessage) Validate(formats strfmt.Registry) error {
 
 func (m *MutableSMSMessage) validateImsi(formats strfmt.Registry) error {
 
+	if err := validate.Required("imsi", "body", SubscriberID(m.Imsi)); err != nil {
+		return err
+	}
+
 	if err := m.Imsi.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("imsi")
@@ -68,11 +76,11 @@ func (m *MutableSMSMessage) validateImsi(formats strfmt.Registry) error {
 
 func (m *MutableSMSMessage) validateMessage(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("message", "body", string(m.Message)); err != nil {
+	if err := validate.RequiredString("message", "body", m.Message); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("message", "body", string(m.Message), 1); err != nil {
+	if err := validate.MinLength("message", "body", m.Message, 1); err != nil {
 		return err
 	}
 
@@ -81,11 +89,37 @@ func (m *MutableSMSMessage) validateMessage(formats strfmt.Registry) error {
 
 func (m *MutableSMSMessage) validateSourceMsisdn(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("source_msisdn", "body", string(m.SourceMsisdn)); err != nil {
+	if err := validate.RequiredString("source_msisdn", "body", m.SourceMsisdn); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("source_msisdn", "body", string(m.SourceMsisdn), 1); err != nil {
+	if err := validate.MinLength("source_msisdn", "body", m.SourceMsisdn, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable sms message based on the context it is used
+func (m *MutableSMSMessage) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateImsi(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableSMSMessage) contextValidateImsi(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Imsi.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("imsi")
+		}
 		return err
 	}
 

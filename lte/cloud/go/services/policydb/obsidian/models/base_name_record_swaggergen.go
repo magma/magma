@@ -6,20 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // BaseNameRecord base name record
+//
 // swagger:model base_name_record
 type BaseNameRecord struct {
 
 	// Subscribers which have been assigned this policy base name
+	// Example: ["IMSI1234567890","IMSI0987654321"]
 	AssignedSubscribers []SubscriberID `json:"assigned_subscribers,omitempty"`
 
 	// name
@@ -54,7 +56,6 @@ func (m *BaseNameRecord) Validate(formats strfmt.Registry) error {
 }
 
 func (m *BaseNameRecord) validateAssignedSubscribers(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AssignedSubscribers) { // not required
 		return nil
 	}
@@ -75,6 +76,10 @@ func (m *BaseNameRecord) validateAssignedSubscribers(formats strfmt.Registry) er
 
 func (m *BaseNameRecord) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", BaseName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
@@ -92,6 +97,68 @@ func (m *BaseNameRecord) validateRuleNames(formats strfmt.Registry) error {
 	}
 
 	if err := m.RuleNames.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("rule_names")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this base name record based on the context it is used
+func (m *BaseNameRecord) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAssignedSubscribers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRuleNames(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *BaseNameRecord) contextValidateAssignedSubscribers(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.AssignedSubscribers); i++ {
+
+		if err := m.AssignedSubscribers[i].ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *BaseNameRecord) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *BaseNameRecord) contextValidateRuleNames(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.RuleNames.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("rule_names")
 		}

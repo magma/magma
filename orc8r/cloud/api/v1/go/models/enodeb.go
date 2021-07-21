@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ENODEB Representation of an enodeB
+//
 // swagger:model enodeb
 type ENODEB struct {
 
 	// attached gateway id
+	// Example: gw1
 	// Read Only: true
 	AttachedGatewayID string `json:"attached_gateway_id,omitempty"`
 
@@ -26,17 +29,20 @@ type ENODEB struct {
 	Config *ENODEBConfiguration `json:"config"`
 
 	// description
+	// Example: Description of this radio
 	Description string `json:"description,omitempty"`
 
 	// enodeb config
 	ENODEBConfig *ENODEBConfig `json:"enodeb_config,omitempty"`
 
 	// name
+	// Example: Foobar EnodeB
 	// Required: true
 	// Min Length: 1
 	Name string `json:"name"`
 
 	// serial
+	// Example: 1202000038269KP0037
 	// Required: true
 	// Min Length: 1
 	Serial string `json:"serial"`
@@ -87,7 +93,6 @@ func (m *ENODEB) validateConfig(formats strfmt.Registry) error {
 }
 
 func (m *ENODEB) validateENODEBConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ENODEBConfig) { // not required
 		return nil
 	}
@@ -106,11 +111,11 @@ func (m *ENODEB) validateENODEBConfig(formats strfmt.Registry) error {
 
 func (m *ENODEB) validateName(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("name", "body", string(m.Name)); err != nil {
+	if err := validate.RequiredString("name", "body", m.Name); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("name", "body", string(m.Name), 1); err != nil {
+	if err := validate.MinLength("name", "body", m.Name, 1); err != nil {
 		return err
 	}
 
@@ -119,12 +124,71 @@ func (m *ENODEB) validateName(formats strfmt.Registry) error {
 
 func (m *ENODEB) validateSerial(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("serial", "body", string(m.Serial)); err != nil {
+	if err := validate.RequiredString("serial", "body", m.Serial); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("serial", "body", string(m.Serial), 1); err != nil {
+	if err := validate.MinLength("serial", "body", m.Serial, 1); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this enodeb based on the context it is used
+func (m *ENODEB) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAttachedGatewayID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateENODEBConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *ENODEB) contextValidateAttachedGatewayID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.ReadOnly(ctx, "attached_gateway_id", "body", string(m.AttachedGatewayID)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *ENODEB) contextValidateConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Config != nil {
+		if err := m.Config.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ENODEB) contextValidateENODEBConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ENODEBConfig != nil {
+		if err := m.ENODEBConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("enodeb_config")
+			}
+			return err
+		}
 	}
 
 	return nil

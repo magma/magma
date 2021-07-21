@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDGatewaysParams creates a new GetLTENetworkIDGatewaysParams object
-// with the default values initialized.
+// NewGetLTENetworkIDGatewaysParams creates a new GetLTENetworkIDGatewaysParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDGatewaysParams() *GetLTENetworkIDGatewaysParams {
-	var ()
 	return &GetLTENetworkIDGatewaysParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDGatewaysParamsWithTimeout creates a new GetLTENetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDGatewaysParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDGatewaysParams {
-	var ()
 	return &GetLTENetworkIDGatewaysParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDGatewaysParamsWithContext creates a new GetLTENetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDGatewaysParamsWithContext(ctx context.Context) *GetLTENetworkIDGatewaysParams {
-	var ()
 	return &GetLTENetworkIDGatewaysParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDGatewaysParamsWithHTTPClient creates a new GetLTENetworkIDGatewaysParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDGatewaysParams {
-	var ()
 	return &GetLTENetworkIDGatewaysParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDGatewaysParams contains all the parameters to send to the API endpoint
-for the get LTE network ID gateways operation typically these are written to a http.Request
+/* GetLTENetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID gateways operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDGatewaysParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDGatewaysParams) WithDefaults() *GetLTENetworkIDGatewaysParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID gateways params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDGatewaysParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID gateways params

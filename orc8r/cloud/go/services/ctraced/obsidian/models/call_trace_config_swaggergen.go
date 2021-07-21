@@ -6,34 +6,39 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // CallTraceConfig Call Trace spec
+//
 // swagger:model call_trace_config
 type CallTraceConfig struct {
 
 	// Capture filter options for TShark as it would be typed out in shell. Only applies if trace_type is GATEWAY_CUSTOM.
 	//
+	// Example: tcp and port 80
 	CaptureFilters string `json:"capture_filters,omitempty"`
 
 	// Display filter options for TShark as it would be typed out in shell. Only applies if trace_type is GATEWAY_CUSTOM.
 	//
+	// Example: ip.addr == 10.0.0.1
 	DisplayFilters string `json:"display_filters,omitempty"`
 
 	// ID of gateway to run call tracing on
+	// Example: gateway_1
 	GatewayID string `json:"gateway_id,omitempty"`
 
 	// Timeout of call trace in seconds
 	Timeout uint32 `json:"timeout,omitempty"`
 
 	// trace id
+	// Example: gateway_trace_1
 	// Required: true
 	TraceID string `json:"trace_id"`
 
@@ -65,7 +70,7 @@ func (m *CallTraceConfig) Validate(formats strfmt.Registry) error {
 
 func (m *CallTraceConfig) validateTraceID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("trace_id", "body", string(m.TraceID)); err != nil {
+	if err := validate.RequiredString("trace_id", "body", m.TraceID); err != nil {
 		return err
 	}
 
@@ -92,7 +97,7 @@ const (
 
 // prop value enum
 func (m *CallTraceConfig) validateTraceTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, callTraceConfigTypeTraceTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, callTraceConfigTypeTraceTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -100,7 +105,7 @@ func (m *CallTraceConfig) validateTraceTypeEnum(path, location string, value str
 
 func (m *CallTraceConfig) validateTraceType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("trace_type", "body", string(m.TraceType)); err != nil {
+	if err := validate.RequiredString("trace_type", "body", m.TraceType); err != nil {
 		return err
 	}
 
@@ -109,6 +114,11 @@ func (m *CallTraceConfig) validateTraceType(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this call trace config based on context it is used
+func (m *CallTraceConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

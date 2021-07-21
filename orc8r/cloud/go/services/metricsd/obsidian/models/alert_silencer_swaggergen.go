@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AlertSilencer alert silencer
+//
 // swagger:model alert_silencer
 type AlertSilencer struct {
 
@@ -28,6 +29,7 @@ type AlertSilencer struct {
 	CreatedBy *string `json:"createdBy"`
 
 	// ends at
+	// Example: 2019-10-17T22:19:41.990Z
 	// Required: true
 	EndsAt *string `json:"endsAt"`
 
@@ -36,6 +38,7 @@ type AlertSilencer struct {
 	Matchers []*Matcher `json:"matchers"`
 
 	// starts at
+	// Example: 2019-10-17T22:19:41.990Z
 	// Required: true
 	StartsAt *string `json:"startsAt"`
 }
@@ -126,6 +129,38 @@ func (m *AlertSilencer) validateStartsAt(formats strfmt.Registry) error {
 
 	if err := validate.Required("startsAt", "body", m.StartsAt); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this alert silencer based on the context it is used
+func (m *AlertSilencer) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateMatchers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AlertSilencer) contextValidateMatchers(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Matchers); i++ {
+
+		if m.Matchers[i] != nil {
+			if err := m.Matchers[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("matchers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil

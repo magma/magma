@@ -7,12 +7,11 @@ package networks
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new networks API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,69 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams, opts ...ClientOption) (*DeleteNetworksNetworkIDNoContent, error)
+
+	DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*DeleteNetworksNetworkIDDNSRecordsDomainNoContent, error)
+
+	GetNetworks(params *GetNetworksParams, opts ...ClientOption) (*GetNetworksOK, error)
+
+	GetNetworksNetworkID(params *GetNetworksNetworkIDParams, opts ...ClientOption) (*GetNetworksNetworkIDOK, error)
+
+	GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams, opts ...ClientOption) (*GetNetworksNetworkIDDNSOK, error)
+
+	GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSRecordsParams, opts ...ClientOption) (*GetNetworksNetworkIDDNSRecordsOK, error)
+
+	GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*GetNetworksNetworkIDDNSRecordsDomainOK, error)
+
+	GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDescriptionParams, opts ...ClientOption) (*GetNetworksNetworkIDDescriptionOK, error)
+
+	GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeaturesParams, opts ...ClientOption) (*GetNetworksNetworkIDFeaturesOK, error)
+
+	GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams, opts ...ClientOption) (*GetNetworksNetworkIDNameOK, error)
+
+	GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams, opts ...ClientOption) (*GetNetworksNetworkIDSentryOK, error)
+
+	GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams, opts ...ClientOption) (*GetNetworksNetworkIDTypeOK, error)
+
+	PostNetworks(params *PostNetworksParams, opts ...ClientOption) (*PostNetworksCreated, error)
+
+	PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*PostNetworksNetworkIDDNSRecordsDomainCreated, error)
+
+	PutNetworksNetworkID(params *PutNetworksNetworkIDParams, opts ...ClientOption) (*PutNetworksNetworkIDNoContent, error)
+
+	PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams, opts ...ClientOption) (*PutNetworksNetworkIDDNSNoContent, error)
+
+	PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSRecordsParams, opts ...ClientOption) (*PutNetworksNetworkIDDNSRecordsNoContent, error)
+
+	PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*PutNetworksNetworkIDDNSRecordsDomainNoContent, error)
+
+	PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDescriptionParams, opts ...ClientOption) (*PutNetworksNetworkIDDescriptionNoContent, error)
+
+	PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeaturesParams, opts ...ClientOption) (*PutNetworksNetworkIDFeaturesNoContent, error)
+
+	PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams, opts ...ClientOption) (*PutNetworksNetworkIDNameNoContent, error)
+
+	PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams, opts ...ClientOption) (*PutNetworksNetworkIDSentryNoContent, error)
+
+	PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams, opts ...ClientOption) (*PutNetworksNetworkIDTypeNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteNetworksNetworkID deletes a network
+  DeleteNetworksNetworkID deletes a network
 */
-func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams) (*DeleteNetworksNetworkIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams, opts ...ClientOption) (*DeleteNetworksNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}",
@@ -44,7 +96,12 @@ func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams) 
 		Reader:             &DeleteNetworksNetworkIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +115,14 @@ func (a *Client) DeleteNetworksNetworkID(params *DeleteNetworksNetworkIDParams) 
 }
 
 /*
-DeleteNetworksNetworkIDDNSRecordsDomain deletes the DNS record for a specific domain
+  DeleteNetworksNetworkIDDNSRecordsDomain deletes the DNS record for a specific domain
 */
-func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksNetworkIDDNSRecordsDomainParams) (*DeleteNetworksNetworkIDDNSRecordsDomainNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*DeleteNetworksNetworkIDDNSRecordsDomainNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDDNSRecordsDomain",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/dns/records/{domain}",
@@ -77,7 +133,12 @@ func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksN
 		Reader:             &DeleteNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +152,14 @@ func (a *Client) DeleteNetworksNetworkIDDNSRecordsDomain(params *DeleteNetworksN
 }
 
 /*
-GetNetworks lists all network i ds
+  GetNetworks lists all network i ds
 */
-func (a *Client) GetNetworks(params *GetNetworksParams) (*GetNetworksOK, error) {
+func (a *Client) GetNetworks(params *GetNetworksParams, opts ...ClientOption) (*GetNetworksOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworks",
 		Method:             "GET",
 		PathPattern:        "/networks",
@@ -110,7 +170,12 @@ func (a *Client) GetNetworks(params *GetNetworksParams) (*GetNetworksOK, error) 
 		Reader:             &GetNetworksReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +189,14 @@ func (a *Client) GetNetworks(params *GetNetworksParams) (*GetNetworksOK, error) 
 }
 
 /*
-GetNetworksNetworkID gets a generic network description
+  GetNetworksNetworkID gets a generic network description
 */
-func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams) (*GetNetworksNetworkIDOK, error) {
+func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams, opts ...ClientOption) (*GetNetworksNetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkID",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}",
@@ -143,7 +207,12 @@ func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams) (*GetN
 		Reader:             &GetNetworksNetworkIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +226,14 @@ func (a *Client) GetNetworksNetworkID(params *GetNetworksNetworkIDParams) (*GetN
 }
 
 /*
-GetNetworksNetworkIDDNS gets DNS of network
+  GetNetworksNetworkIDDNS gets DNS of network
 */
-func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams) (*GetNetworksNetworkIDDNSOK, error) {
+func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams, opts ...ClientOption) (*GetNetworksNetworkIDDNSOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDNSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDDNS",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/dns",
@@ -176,7 +244,12 @@ func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams) 
 		Reader:             &GetNetworksNetworkIDDNSReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +263,14 @@ func (a *Client) GetNetworksNetworkIDDNS(params *GetNetworksNetworkIDDNSParams) 
 }
 
 /*
-GetNetworksNetworkIDDNSRecords gets the DNS config records for the network
+  GetNetworksNetworkIDDNSRecords gets the DNS config records for the network
 */
-func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSRecordsParams) (*GetNetworksNetworkIDDNSRecordsOK, error) {
+func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSRecordsParams, opts ...ClientOption) (*GetNetworksNetworkIDDNSRecordsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDNSRecordsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDDNSRecords",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/dns/records",
@@ -209,7 +281,12 @@ func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSR
 		Reader:             &GetNetworksNetworkIDDNSRecordsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +300,14 @@ func (a *Client) GetNetworksNetworkIDDNSRecords(params *GetNetworksNetworkIDDNSR
 }
 
 /*
-GetNetworksNetworkIDDNSRecordsDomain gets the DNS config record for a specific domain
+  GetNetworksNetworkIDDNSRecordsDomain gets the DNS config record for a specific domain
 */
-func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetworkIDDNSRecordsDomainParams) (*GetNetworksNetworkIDDNSRecordsDomainOK, error) {
+func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*GetNetworksNetworkIDDNSRecordsDomainOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDDNSRecordsDomain",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/dns/records/{domain}",
@@ -242,7 +318,12 @@ func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetwork
 		Reader:             &GetNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +337,14 @@ func (a *Client) GetNetworksNetworkIDDNSRecordsDomain(params *GetNetworksNetwork
 }
 
 /*
-GetNetworksNetworkIDDescription gets the description of a network
+  GetNetworksNetworkIDDescription gets the description of a network
 */
-func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDescriptionParams) (*GetNetworksNetworkIDDescriptionOK, error) {
+func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDescriptionParams, opts ...ClientOption) (*GetNetworksNetworkIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDDescription",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/description",
@@ -275,7 +355,12 @@ func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDes
 		Reader:             &GetNetworksNetworkIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +374,14 @@ func (a *Client) GetNetworksNetworkIDDescription(params *GetNetworksNetworkIDDes
 }
 
 /*
-GetNetworksNetworkIDFeatures gets feature flags for network
+  GetNetworksNetworkIDFeatures gets feature flags for network
 */
-func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeaturesParams) (*GetNetworksNetworkIDFeaturesOK, error) {
+func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeaturesParams, opts ...ClientOption) (*GetNetworksNetworkIDFeaturesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDFeaturesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDFeatures",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/features",
@@ -308,7 +392,12 @@ func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeatur
 		Reader:             &GetNetworksNetworkIDFeaturesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +411,14 @@ func (a *Client) GetNetworksNetworkIDFeatures(params *GetNetworksNetworkIDFeatur
 }
 
 /*
-GetNetworksNetworkIDName gets the name of a network
+  GetNetworksNetworkIDName gets the name of a network
 */
-func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams) (*GetNetworksNetworkIDNameOK, error) {
+func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams, opts ...ClientOption) (*GetNetworksNetworkIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDName",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/name",
@@ -341,7 +429,12 @@ func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams
 		Reader:             &GetNetworksNetworkIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -355,15 +448,14 @@ func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams
 }
 
 /*
-GetNetworksNetworkIDSentry gets the sentry io configuration for network
+  GetNetworksNetworkIDSentry gets the sentry io configuration for network
 */
-func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams) (*GetNetworksNetworkIDSentryOK, error) {
+func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams, opts ...ClientOption) (*GetNetworksNetworkIDSentryOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDSentryParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDSentry",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/sentry",
@@ -374,7 +466,12 @@ func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryPa
 		Reader:             &GetNetworksNetworkIDSentryReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -388,15 +485,14 @@ func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryPa
 }
 
 /*
-GetNetworksNetworkIDType gets the type of a network
+  GetNetworksNetworkIDType gets the type of a network
 */
-func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams) (*GetNetworksNetworkIDTypeOK, error) {
+func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams, opts ...ClientOption) (*GetNetworksNetworkIDTypeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDTypeParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDType",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/type",
@@ -407,7 +503,12 @@ func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams
 		Reader:             &GetNetworksNetworkIDTypeReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -421,15 +522,14 @@ func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams
 }
 
 /*
-PostNetworks registers a network
+  PostNetworks registers a network
 */
-func (a *Client) PostNetworks(params *PostNetworksParams) (*PostNetworksCreated, error) {
+func (a *Client) PostNetworks(params *PostNetworksParams, opts ...ClientOption) (*PostNetworksCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworks",
 		Method:             "POST",
 		PathPattern:        "/networks",
@@ -440,7 +540,12 @@ func (a *Client) PostNetworks(params *PostNetworksParams) (*PostNetworksCreated,
 		Reader:             &PostNetworksReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -454,15 +559,14 @@ func (a *Client) PostNetworks(params *PostNetworksParams) (*PostNetworksCreated,
 }
 
 /*
-PostNetworksNetworkIDDNSRecordsDomain creates a DNS record for a specific domain
+  PostNetworksNetworkIDDNSRecordsDomain creates a DNS record for a specific domain
 */
-func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetworkIDDNSRecordsDomainParams) (*PostNetworksNetworkIDDNSRecordsDomainCreated, error) {
+func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*PostNetworksNetworkIDDNSRecordsDomainCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDDNSRecordsDomain",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/dns/records/{domain}",
@@ -473,7 +577,12 @@ func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetwo
 		Reader:             &PostNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -487,15 +596,14 @@ func (a *Client) PostNetworksNetworkIDDNSRecordsDomain(params *PostNetworksNetwo
 }
 
 /*
-PutNetworksNetworkID updates an entire network
+  PutNetworksNetworkID updates an entire network
 */
-func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams) (*PutNetworksNetworkIDNoContent, error) {
+func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams, opts ...ClientOption) (*PutNetworksNetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkID",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}",
@@ -506,7 +614,12 @@ func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams) (*PutN
 		Reader:             &PutNetworksNetworkIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -520,15 +633,14 @@ func (a *Client) PutNetworksNetworkID(params *PutNetworksNetworkIDParams) (*PutN
 }
 
 /*
-PutNetworksNetworkIDDNS updates DNS of network
+  PutNetworksNetworkIDDNS updates DNS of network
 */
-func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams) (*PutNetworksNetworkIDDNSNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams, opts ...ClientOption) (*PutNetworksNetworkIDDNSNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDNSParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDDNS",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/dns",
@@ -539,7 +651,12 @@ func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams) 
 		Reader:             &PutNetworksNetworkIDDNSReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -553,15 +670,14 @@ func (a *Client) PutNetworksNetworkIDDNS(params *PutNetworksNetworkIDDNSParams) 
 }
 
 /*
-PutNetworksNetworkIDDNSRecords changes all the DNS records for the network
+  PutNetworksNetworkIDDNSRecords changes all the DNS records for the network
 */
-func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSRecordsParams) (*PutNetworksNetworkIDDNSRecordsNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSRecordsParams, opts ...ClientOption) (*PutNetworksNetworkIDDNSRecordsNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDNSRecordsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDDNSRecords",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/dns/records",
@@ -572,7 +688,12 @@ func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSR
 		Reader:             &PutNetworksNetworkIDDNSRecordsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -586,15 +707,14 @@ func (a *Client) PutNetworksNetworkIDDNSRecords(params *PutNetworksNetworkIDDNSR
 }
 
 /*
-PutNetworksNetworkIDDNSRecordsDomain updates a DNS record for a specific domain
+  PutNetworksNetworkIDDNSRecordsDomain updates a DNS record for a specific domain
 */
-func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetworkIDDNSRecordsDomainParams) (*PutNetworksNetworkIDDNSRecordsDomainNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetworkIDDNSRecordsDomainParams, opts ...ClientOption) (*PutNetworksNetworkIDDNSRecordsDomainNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDNSRecordsDomainParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDDNSRecordsDomain",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/dns/records/{domain}",
@@ -605,7 +725,12 @@ func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetwork
 		Reader:             &PutNetworksNetworkIDDNSRecordsDomainReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -619,15 +744,14 @@ func (a *Client) PutNetworksNetworkIDDNSRecordsDomain(params *PutNetworksNetwork
 }
 
 /*
-PutNetworksNetworkIDDescription updates the description of a network
+  PutNetworksNetworkIDDescription updates the description of a network
 */
-func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDescriptionParams) (*PutNetworksNetworkIDDescriptionNoContent, error) {
+func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDescriptionParams, opts ...ClientOption) (*PutNetworksNetworkIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDDescription",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/description",
@@ -638,7 +762,12 @@ func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDes
 		Reader:             &PutNetworksNetworkIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -652,15 +781,14 @@ func (a *Client) PutNetworksNetworkIDDescription(params *PutNetworksNetworkIDDes
 }
 
 /*
-PutNetworksNetworkIDFeatures updates feature flags for network
+  PutNetworksNetworkIDFeatures updates feature flags for network
 */
-func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeaturesParams) (*PutNetworksNetworkIDFeaturesNoContent, error) {
+func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeaturesParams, opts ...ClientOption) (*PutNetworksNetworkIDFeaturesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDFeaturesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDFeatures",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/features",
@@ -671,7 +799,12 @@ func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeatur
 		Reader:             &PutNetworksNetworkIDFeaturesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -685,15 +818,14 @@ func (a *Client) PutNetworksNetworkIDFeatures(params *PutNetworksNetworkIDFeatur
 }
 
 /*
-PutNetworksNetworkIDName updates the name of a network
+  PutNetworksNetworkIDName updates the name of a network
 */
-func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams) (*PutNetworksNetworkIDNameNoContent, error) {
+func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams, opts ...ClientOption) (*PutNetworksNetworkIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDName",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/name",
@@ -704,7 +836,12 @@ func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams
 		Reader:             &PutNetworksNetworkIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -718,15 +855,14 @@ func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams
 }
 
 /*
-PutNetworksNetworkIDSentry updates the sentry io configuration for network
+  PutNetworksNetworkIDSentry updates the sentry io configuration for network
 */
-func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams) (*PutNetworksNetworkIDSentryNoContent, error) {
+func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams, opts ...ClientOption) (*PutNetworksNetworkIDSentryNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDSentryParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDSentry",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/sentry",
@@ -737,7 +873,12 @@ func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryPa
 		Reader:             &PutNetworksNetworkIDSentryReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -751,15 +892,14 @@ func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryPa
 }
 
 /*
-PutNetworksNetworkIDType updates the type of a network
+  PutNetworksNetworkIDType updates the type of a network
 */
-func (a *Client) PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams) (*PutNetworksNetworkIDTypeNoContent, error) {
+func (a *Client) PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams, opts ...ClientOption) (*PutNetworksNetworkIDTypeNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDTypeParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDType",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/type",
@@ -770,7 +910,12 @@ func (a *Client) PutNetworksNetworkIDType(params *PutNetworksNetworkIDTypeParams
 		Reader:             &PutNetworksNetworkIDTypeReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

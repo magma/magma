@@ -13,84 +13,101 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetTenantsTenantIDMetricsQueryRangeParams creates a new GetTenantsTenantIDMetricsQueryRangeParams object
-// with the default values initialized.
+// NewGetTenantsTenantIDMetricsQueryRangeParams creates a new GetTenantsTenantIDMetricsQueryRangeParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetTenantsTenantIDMetricsQueryRangeParams() *GetTenantsTenantIDMetricsQueryRangeParams {
-	var ()
 	return &GetTenantsTenantIDMetricsQueryRangeParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsQueryRangeParamsWithTimeout creates a new GetTenantsTenantIDMetricsQueryRangeParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetTenantsTenantIDMetricsQueryRangeParamsWithTimeout(timeout time.Duration) *GetTenantsTenantIDMetricsQueryRangeParams {
-	var ()
 	return &GetTenantsTenantIDMetricsQueryRangeParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsQueryRangeParamsWithContext creates a new GetTenantsTenantIDMetricsQueryRangeParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetTenantsTenantIDMetricsQueryRangeParamsWithContext(ctx context.Context) *GetTenantsTenantIDMetricsQueryRangeParams {
-	var ()
 	return &GetTenantsTenantIDMetricsQueryRangeParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsQueryRangeParamsWithHTTPClient creates a new GetTenantsTenantIDMetricsQueryRangeParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetTenantsTenantIDMetricsQueryRangeParamsWithHTTPClient(client *http.Client) *GetTenantsTenantIDMetricsQueryRangeParams {
-	var ()
 	return &GetTenantsTenantIDMetricsQueryRangeParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetTenantsTenantIDMetricsQueryRangeParams contains all the parameters to send to the API endpoint
-for the get tenants tenant ID metrics query range operation typically these are written to a http.Request
+/* GetTenantsTenantIDMetricsQueryRangeParams contains all the parameters to send to the API endpoint
+   for the get tenants tenant ID metrics query range operation.
+
+   Typically these are written to a http.Request.
 */
 type GetTenantsTenantIDMetricsQueryRangeParams struct {
 
-	/*End
-	  end time of the requested range (UnixTime or RFC3339)
+	/* End.
 
+	   end time of the requested range (UnixTime or RFC3339)
 	*/
 	End *string
-	/*Query
-	  PromQL query to proxy to prometheus
 
+	/* Query.
+
+	   PromQL query to proxy to prometheus
 	*/
 	Query string
-	/*Start
-	  start time of the requested range (UnixTime or RFC3339)
 
+	/* Start.
+
+	   start time of the requested range (UnixTime or RFC3339)
 	*/
 	Start string
-	/*Step
-	  query range resolution step width
 
+	/* Step.
+
+	   query range resolution step width
 	*/
 	Step *string
-	/*TenantID
-	  Tenant ID
 
+	/* TenantID.
+
+	   Tenant ID
 	*/
 	TenantID int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get tenants tenant ID metrics query range params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTenantIDMetricsQueryRangeParams) WithDefaults() *GetTenantsTenantIDMetricsQueryRangeParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get tenants tenant ID metrics query range params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTenantIDMetricsQueryRangeParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get tenants tenant ID metrics query range params
@@ -193,22 +210,24 @@ func (o *GetTenantsTenantIDMetricsQueryRangeParams) WriteToRequest(r runtime.Cli
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// query param query
 	qrQuery := o.Query
 	qQuery := qrQuery
 	if qQuery != "" {
+
 		if err := r.SetQueryParam("query", qQuery); err != nil {
 			return err
 		}
@@ -218,6 +237,7 @@ func (o *GetTenantsTenantIDMetricsQueryRangeParams) WriteToRequest(r runtime.Cli
 	qrStart := o.Start
 	qStart := qrStart
 	if qStart != "" {
+
 		if err := r.SetQueryParam("start", qStart); err != nil {
 			return err
 		}
@@ -227,16 +247,17 @@ func (o *GetTenantsTenantIDMetricsQueryRangeParams) WriteToRequest(r runtime.Cli
 
 		// query param step
 		var qrStep string
+
 		if o.Step != nil {
 			qrStep = *o.Step
 		}
 		qStep := qrStep
 		if qStep != "" {
+
 			if err := r.SetQueryParam("step", qStep); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param tenant_id

@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetCwfNetworkIDNameParams creates a new GetCwfNetworkIDNameParams object
-// with the default values initialized.
+// NewGetCwfNetworkIDNameParams creates a new GetCwfNetworkIDNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetCwfNetworkIDNameParams() *GetCwfNetworkIDNameParams {
-	var ()
 	return &GetCwfNetworkIDNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetCwfNetworkIDNameParamsWithTimeout creates a new GetCwfNetworkIDNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetCwfNetworkIDNameParamsWithTimeout(timeout time.Duration) *GetCwfNetworkIDNameParams {
-	var ()
 	return &GetCwfNetworkIDNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetCwfNetworkIDNameParamsWithContext creates a new GetCwfNetworkIDNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetCwfNetworkIDNameParamsWithContext(ctx context.Context) *GetCwfNetworkIDNameParams {
-	var ()
 	return &GetCwfNetworkIDNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetCwfNetworkIDNameParamsWithHTTPClient creates a new GetCwfNetworkIDNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetCwfNetworkIDNameParamsWithHTTPClient(client *http.Client) *GetCwfNetworkIDNameParams {
-	var ()
 	return &GetCwfNetworkIDNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetCwfNetworkIDNameParams contains all the parameters to send to the API endpoint
-for the get cwf network ID name operation typically these are written to a http.Request
+/* GetCwfNetworkIDNameParams contains all the parameters to send to the API endpoint
+   for the get cwf network ID name operation.
+
+   Typically these are written to a http.Request.
 */
 type GetCwfNetworkIDNameParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get cwf network ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDNameParams) WithDefaults() *GetCwfNetworkIDNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get cwf network ID name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get cwf network ID name params

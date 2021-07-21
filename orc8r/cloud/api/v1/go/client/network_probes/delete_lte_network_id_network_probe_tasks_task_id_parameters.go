@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParams creates a new DeleteLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized.
+// NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParams creates a new DeleteLTENetworkIDNetworkProbeTasksTaskIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParams() *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &DeleteLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParamsWithTimeout creates a new DeleteLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParamsWithTimeout(timeout time.Duration) *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &DeleteLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParamsWithContext creates a new DeleteLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParamsWithContext(ctx context.Context) *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &DeleteLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient creates a new DeleteLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient(client *http.Client) *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &DeleteLTENetworkIDNetworkProbeTasksTaskIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
-for the delete LTE network ID network probe tasks task ID operation typically these are written to a http.Request
+/* DeleteLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
+   for the delete LTE network ID network probe tasks task ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteLTENetworkIDNetworkProbeTasksTaskIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*TaskID
-	  Network Probe Task ID
 
+	/* TaskID.
+
+	   Network Probe Task ID
 	*/
 	TaskID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete LTE network ID network probe tasks task ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams) WithDefaults() *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete LTE network ID network probe tasks task ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteLTENetworkIDNetworkProbeTasksTaskIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete LTE network ID network probe tasks task ID params

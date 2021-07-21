@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteNetworksNetworkIDPrometheusAlertConfigParams creates a new DeleteNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized.
+// NewDeleteNetworksNetworkIDPrometheusAlertConfigParams creates a new DeleteNetworksNetworkIDPrometheusAlertConfigParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteNetworksNetworkIDPrometheusAlertConfigParams() *DeleteNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &DeleteNetworksNetworkIDPrometheusAlertConfigParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithTimeout creates a new DeleteNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithTimeout(timeout time.Duration) *DeleteNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &DeleteNetworksNetworkIDPrometheusAlertConfigParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithContext creates a new DeleteNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithContext(ctx context.Context) *DeleteNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &DeleteNetworksNetworkIDPrometheusAlertConfigParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient creates a new DeleteNetworksNetworkIDPrometheusAlertConfigParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient(client *http.Client) *DeleteNetworksNetworkIDPrometheusAlertConfigParams {
-	var ()
 	return &DeleteNetworksNetworkIDPrometheusAlertConfigParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
-for the delete networks network ID prometheus alert config operation typically these are written to a http.Request
+/* DeleteNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
+   for the delete networks network ID prometheus alert config operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteNetworksNetworkIDPrometheusAlertConfigParams struct {
 
-	/*AlertName
-	  Name of alert to be deleted
+	/* AlertName.
 
+	   Name of alert to be deleted
 	*/
 	AlertName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete networks network ID prometheus alert config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDPrometheusAlertConfigParams) WithDefaults() *DeleteNetworksNetworkIDPrometheusAlertConfigParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete networks network ID prometheus alert config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDPrometheusAlertConfigParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete networks network ID prometheus alert config params
@@ -144,6 +158,7 @@ func (o *DeleteNetworksNetworkIDPrometheusAlertConfigParams) WriteToRequest(r ru
 	qrAlertName := o.AlertName
 	qAlertName := qrAlertName
 	if qAlertName != "" {
+
 		if err := r.SetQueryParam("alert_name", qAlertName); err != nil {
 			return err
 		}

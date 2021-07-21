@@ -7,12 +7,11 @@ package tenants
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new tenants API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,33 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, opts ...ClientOption) (*DeleteTenantsTenantIDNoContent, error)
+
+	GetTenants(params *GetTenantsParams, opts ...ClientOption) (*GetTenantsOK, error)
+
+	GetTenantsTenantID(params *GetTenantsTenantIDParams, opts ...ClientOption) (*GetTenantsTenantIDOK, error)
+
+	PostTenants(params *PostTenantsParams, opts ...ClientOption) (*PostTenantsCreated, error)
+
+	PutTenantsTenantID(params *PutTenantsTenantIDParams, opts ...ClientOption) (*PutTenantsTenantIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteTenantsTenantID deletes tenant
+  DeleteTenantsTenantID deletes tenant
 */
-func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams) (*DeleteTenantsTenantIDNoContent, error) {
+func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams, opts ...ClientOption) (*DeleteTenantsTenantIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteTenantsTenantIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteTenantsTenantID",
 		Method:             "DELETE",
 		PathPattern:        "/tenants/{tenant_id}",
@@ -44,7 +60,12 @@ func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams) (*De
 		Reader:             &DeleteTenantsTenantIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +79,14 @@ func (a *Client) DeleteTenantsTenantID(params *DeleteTenantsTenantIDParams) (*De
 }
 
 /*
-GetTenants retrieves all tenants
+  GetTenants retrieves all tenants
 */
-func (a *Client) GetTenants(params *GetTenantsParams) (*GetTenantsOK, error) {
+func (a *Client) GetTenants(params *GetTenantsParams, opts ...ClientOption) (*GetTenantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenants",
 		Method:             "GET",
 		PathPattern:        "/tenants",
@@ -77,7 +97,12 @@ func (a *Client) GetTenants(params *GetTenantsParams) (*GetTenantsOK, error) {
 		Reader:             &GetTenantsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +116,14 @@ func (a *Client) GetTenants(params *GetTenantsParams) (*GetTenantsOK, error) {
 }
 
 /*
-GetTenantsTenantID retrieves tenant info by tenant ID
+  GetTenantsTenantID retrieves tenant info by tenant ID
 */
-func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams) (*GetTenantsTenantIDOK, error) {
+func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams, opts ...ClientOption) (*GetTenantsTenantIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetTenantsTenantIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetTenantsTenantID",
 		Method:             "GET",
 		PathPattern:        "/tenants/{tenant_id}",
@@ -110,7 +134,12 @@ func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams) (*GetTenan
 		Reader:             &GetTenantsTenantIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +153,14 @@ func (a *Client) GetTenantsTenantID(params *GetTenantsTenantIDParams) (*GetTenan
 }
 
 /*
-PostTenants creates an tenant
+  PostTenants creates an tenant
 */
-func (a *Client) PostTenants(params *PostTenantsParams) (*PostTenantsCreated, error) {
+func (a *Client) PostTenants(params *PostTenantsParams, opts ...ClientOption) (*PostTenantsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostTenantsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostTenants",
 		Method:             "POST",
 		PathPattern:        "/tenants",
@@ -143,7 +171,12 @@ func (a *Client) PostTenants(params *PostTenantsParams) (*PostTenantsCreated, er
 		Reader:             &PostTenantsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +190,14 @@ func (a *Client) PostTenants(params *PostTenantsParams) (*PostTenantsCreated, er
 }
 
 /*
-PutTenantsTenantID sets tenant info
+  PutTenantsTenantID sets tenant info
 */
-func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams) (*PutTenantsTenantIDNoContent, error) {
+func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams, opts ...ClientOption) (*PutTenantsTenantIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutTenantsTenantIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutTenantsTenantID",
 		Method:             "PUT",
 		PathPattern:        "/tenants/{tenant_id}",
@@ -176,7 +208,12 @@ func (a *Client) PutTenantsTenantID(params *PutTenantsTenantIDParams) (*PutTenan
 		Reader:             &PutTenantsTenantIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

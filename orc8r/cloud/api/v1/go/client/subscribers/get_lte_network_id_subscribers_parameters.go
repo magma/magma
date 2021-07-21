@@ -13,73 +13,88 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDSubscribersParams creates a new GetLTENetworkIDSubscribersParams object
-// with the default values initialized.
+// NewGetLTENetworkIDSubscribersParams creates a new GetLTENetworkIDSubscribersParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDSubscribersParams() *GetLTENetworkIDSubscribersParams {
-	var ()
 	return &GetLTENetworkIDSubscribersParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDSubscribersParamsWithTimeout creates a new GetLTENetworkIDSubscribersParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDSubscribersParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDSubscribersParams {
-	var ()
 	return &GetLTENetworkIDSubscribersParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDSubscribersParamsWithContext creates a new GetLTENetworkIDSubscribersParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDSubscribersParamsWithContext(ctx context.Context) *GetLTENetworkIDSubscribersParams {
-	var ()
 	return &GetLTENetworkIDSubscribersParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDSubscribersParamsWithHTTPClient creates a new GetLTENetworkIDSubscribersParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDSubscribersParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDSubscribersParams {
-	var ()
 	return &GetLTENetworkIDSubscribersParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
-for the get LTE network ID subscribers operation typically these are written to a http.Request
+/* GetLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID subscribers operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDSubscribersParams struct {
 
-	/*IP
-	  Filter to subscribers assigned the passed IP address
+	/* IP.
 
+	   Filter to subscribers assigned the passed IP address
 	*/
 	IP *string
-	/*Msisdn
-	  Filter to subscribers with the passed MSISDN
 
+	/* Msisdn.
+
+	   Filter to subscribers with the passed MSISDN
 	*/
 	Msisdn *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID subscribers params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDSubscribersParams) WithDefaults() *GetLTENetworkIDSubscribersParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID subscribers params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDSubscribersParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID subscribers params
@@ -160,32 +175,34 @@ func (o *GetLTENetworkIDSubscribersParams) WriteToRequest(r runtime.ClientReques
 
 		// query param ip
 		var qrIP string
+
 		if o.IP != nil {
 			qrIP = *o.IP
 		}
 		qIP := qrIP
 		if qIP != "" {
+
 			if err := r.SetQueryParam("ip", qIP); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Msisdn != nil {
 
 		// query param msisdn
 		var qrMsisdn string
+
 		if o.Msisdn != nil {
 			qrMsisdn = *o.Msisdn
 		}
 		qMsisdn := qrMsisdn
 		if qMsisdn != "" {
+
 			if err := r.SetQueryParam("msisdn", qMsisdn); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id

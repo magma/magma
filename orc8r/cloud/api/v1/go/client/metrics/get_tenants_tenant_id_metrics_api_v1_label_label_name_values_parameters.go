@@ -13,79 +13,95 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams creates a new GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams object
-// with the default values initialized.
+// NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams creates a new GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams() *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithTimeout creates a new GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithTimeout(timeout time.Duration) *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithContext creates a new GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithContext(ctx context.Context) *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithHTTPClient creates a new GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithHTTPClient(client *http.Client) *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams {
-	var ()
 	return &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams contains all the parameters to send to the API endpoint
-for the get tenants tenant ID metrics API v1 label label name values operation typically these are written to a http.Request
+/* GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams contains all the parameters to send to the API endpoint
+   for the get tenants tenant ID metrics API v1 label label name values operation.
+
+   Typically these are written to a http.Request.
 */
 type GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams struct {
 
-	/*End
-	  end time of the requested range (UnixTime or RFC3339)
+	/* End.
 
+	   end time of the requested range (UnixTime or RFC3339)
 	*/
 	End *string
-	/*LabelName
-	  Label name to get values of
 
+	/* LabelName.
+
+	   Label name to get values of
 	*/
 	LabelName string
-	/*Start
-	  start time of the requested range (UnixTime or RFC3339)
 
+	/* Start.
+
+	   start time of the requested range (UnixTime or RFC3339)
 	*/
 	Start *string
-	/*TenantID
-	  Tenant ID
 
+	/* TenantID.
+
+	   Tenant ID
 	*/
 	TenantID int64
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get tenants tenant ID metrics API v1 label label name values params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams) WithDefaults() *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get tenants tenant ID metrics API v1 label label name values params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get tenants tenant ID metrics API v1 label label name values params
@@ -177,16 +193,17 @@ func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams) WriteToReques
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param label_name
@@ -198,16 +215,17 @@ func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams) WriteToReques
 
 		// query param start
 		var qrStart string
+
 		if o.Start != nil {
 			qrStart = *o.Start
 		}
 		qStart := qrStart
 		if qStart != "" {
+
 			if err := r.SetQueryParam("start", qStart); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param tenant_id

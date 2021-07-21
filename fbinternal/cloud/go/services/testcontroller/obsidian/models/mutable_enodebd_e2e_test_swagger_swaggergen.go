@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableEnodebdE2eTest mutable enodebd e2e test
+//
 // swagger:model mutable_enodebd_e2e_test
 type MutableEnodebdE2eTest struct {
 
@@ -22,6 +24,7 @@ type MutableEnodebdE2eTest struct {
 	Config *EnodebdTestConfig `json:"config"`
 
 	// pk
+	// Example: 42
 	// Required: true
 	Pk *int64 `json:"pk"`
 }
@@ -66,6 +69,34 @@ func (m *MutableEnodebdE2eTest) validatePk(formats strfmt.Registry) error {
 
 	if err := validate.Required("pk", "body", m.Pk); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable enodebd e2e test based on the context it is used
+func (m *MutableEnodebdE2eTest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableEnodebdE2eTest) contextValidateConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Config != nil {
+		if err := m.Config.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config")
+			}
+			return err
+		}
 	}
 
 	return nil

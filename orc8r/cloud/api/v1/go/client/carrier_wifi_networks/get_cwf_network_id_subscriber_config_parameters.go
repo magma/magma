@@ -13,63 +13,76 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetCwfNetworkIDSubscriberConfigParams creates a new GetCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized.
+// NewGetCwfNetworkIDSubscriberConfigParams creates a new GetCwfNetworkIDSubscriberConfigParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetCwfNetworkIDSubscriberConfigParams() *GetCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &GetCwfNetworkIDSubscriberConfigParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetCwfNetworkIDSubscriberConfigParamsWithTimeout creates a new GetCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetCwfNetworkIDSubscriberConfigParamsWithTimeout(timeout time.Duration) *GetCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &GetCwfNetworkIDSubscriberConfigParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetCwfNetworkIDSubscriberConfigParamsWithContext creates a new GetCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetCwfNetworkIDSubscriberConfigParamsWithContext(ctx context.Context) *GetCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &GetCwfNetworkIDSubscriberConfigParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetCwfNetworkIDSubscriberConfigParamsWithHTTPClient creates a new GetCwfNetworkIDSubscriberConfigParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetCwfNetworkIDSubscriberConfigParamsWithHTTPClient(client *http.Client) *GetCwfNetworkIDSubscriberConfigParams {
-	var ()
 	return &GetCwfNetworkIDSubscriberConfigParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetCwfNetworkIDSubscriberConfigParams contains all the parameters to send to the API endpoint
-for the get cwf network ID subscriber config operation typically these are written to a http.Request
+/* GetCwfNetworkIDSubscriberConfigParams contains all the parameters to send to the API endpoint
+   for the get cwf network ID subscriber config operation.
+
+   Typically these are written to a http.Request.
 */
 type GetCwfNetworkIDSubscriberConfigParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get cwf network ID subscriber config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDSubscriberConfigParams) WithDefaults() *GetCwfNetworkIDSubscriberConfigParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get cwf network ID subscriber config params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetCwfNetworkIDSubscriberConfigParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get cwf network ID subscriber config params

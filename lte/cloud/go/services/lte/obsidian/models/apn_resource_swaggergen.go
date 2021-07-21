@@ -6,20 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ApnResource apn resource
+//
 // swagger:model apn_resource
 type ApnResource struct {
 
 	// apn name
 	// Required: true
-	ApnName ApnName `json:"apn_name"`
+	ApnName ApnName `json:"apn_name" magma_alt_name:"service_selection"`
 
 	// gateway ip
 	// Format: ipv4
@@ -66,6 +68,10 @@ func (m *ApnResource) Validate(formats strfmt.Registry) error {
 
 func (m *ApnResource) validateApnName(formats strfmt.Registry) error {
 
+	if err := validate.Required("apn_name", "body", ApnName(m.ApnName)); err != nil {
+		return err
+	}
+
 	if err := m.ApnName.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("apn_name")
@@ -77,7 +83,6 @@ func (m *ApnResource) validateApnName(formats strfmt.Registry) error {
 }
 
 func (m *ApnResource) validateGatewayIP(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.GatewayIP) { // not required
 		return nil
 	}
@@ -90,7 +95,6 @@ func (m *ApnResource) validateGatewayIP(formats strfmt.Registry) error {
 }
 
 func (m *ApnResource) validateGatewayMac(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.GatewayMac) { // not required
 		return nil
 	}
@@ -104,11 +108,37 @@ func (m *ApnResource) validateGatewayMac(formats strfmt.Registry) error {
 
 func (m *ApnResource) validateID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("id", "body", string(m.ID)); err != nil {
+	if err := validate.RequiredString("id", "body", m.ID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("id", "body", string(m.ID), 1); err != nil {
+	if err := validate.MinLength("id", "body", m.ID, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this apn resource based on the context it is used
+func (m *ApnResource) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateApnName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *ApnResource) contextValidateApnName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ApnName.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("apn_name")
+		}
 		return err
 	}
 

@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetLTENetworkIDNetworkProbeTasksTaskIDParams creates a new GetLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized.
+// NewGetLTENetworkIDNetworkProbeTasksTaskIDParams creates a new GetLTENetworkIDNetworkProbeTasksTaskIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetLTENetworkIDNetworkProbeTasksTaskIDParams() *GetLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &GetLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetLTENetworkIDNetworkProbeTasksTaskIDParamsWithTimeout creates a new GetLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetLTENetworkIDNetworkProbeTasksTaskIDParamsWithTimeout(timeout time.Duration) *GetLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &GetLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetLTENetworkIDNetworkProbeTasksTaskIDParamsWithContext creates a new GetLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetLTENetworkIDNetworkProbeTasksTaskIDParamsWithContext(ctx context.Context) *GetLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &GetLTENetworkIDNetworkProbeTasksTaskIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient creates a new GetLTENetworkIDNetworkProbeTasksTaskIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient(client *http.Client) *GetLTENetworkIDNetworkProbeTasksTaskIDParams {
-	var ()
 	return &GetLTENetworkIDNetworkProbeTasksTaskIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
-for the get LTE network ID network probe tasks task ID operation typically these are written to a http.Request
+/* GetLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
+   for the get LTE network ID network probe tasks task ID operation.
+
+   Typically these are written to a http.Request.
 */
 type GetLTENetworkIDNetworkProbeTasksTaskIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*TaskID
-	  Network Probe Task ID
 
+	/* TaskID.
+
+	   Network Probe Task ID
 	*/
 	TaskID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get LTE network ID network probe tasks task ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDNetworkProbeTasksTaskIDParams) WithDefaults() *GetLTENetworkIDNetworkProbeTasksTaskIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get LTE network ID network probe tasks task ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetLTENetworkIDNetworkProbeTasksTaskIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get LTE network ID network probe tasks task ID params

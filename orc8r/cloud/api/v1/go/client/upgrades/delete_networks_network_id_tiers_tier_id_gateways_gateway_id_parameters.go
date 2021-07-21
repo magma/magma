@@ -13,73 +13,88 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams creates a new DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams object
-// with the default values initialized.
+// NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams creates a new DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams() *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParamsWithTimeout creates a new DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParamsWithTimeout(timeout time.Duration) *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParamsWithContext creates a new DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParamsWithContext(ctx context.Context) *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParamsWithHTTPClient creates a new DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParamsWithHTTPClient(client *http.Client) *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
-for the delete networks network ID tiers tier ID gateways gateway ID operation typically these are written to a http.Request
+/* DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
+   for the delete networks network ID tiers tier ID gateways gateway ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams struct {
 
-	/*GatewayID
-	  Gateway ID
+	/* GatewayID.
 
+	   Gateway ID
 	*/
 	GatewayID string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*TierID
-	  Tier ID
 
+	/* TierID.
+
+	   Tier ID
 	*/
 	TierID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete networks network ID tiers tier ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams) WithDefaults() *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete networks network ID tiers tier ID gateways gateway ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete networks network ID tiers tier ID gateways gateway ID params

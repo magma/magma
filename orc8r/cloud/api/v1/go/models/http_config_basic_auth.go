@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // HTTPConfigBasicAuth http config basic auth
+//
 // swagger:model http_config_basic_auth
 type HTTPConfigBasicAuth struct {
 
@@ -59,6 +61,11 @@ func (m *HTTPConfigBasicAuth) validateUsername(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this http config basic auth based on context it is used
+func (m *HTTPConfigBasicAuth) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

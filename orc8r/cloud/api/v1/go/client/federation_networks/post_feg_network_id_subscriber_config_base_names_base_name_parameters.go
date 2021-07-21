@@ -13,68 +13,82 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams creates a new PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized.
+// NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams creates a new PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams() *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithTimeout creates a new PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithTimeout(timeout time.Duration) *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithContext creates a new PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithContext(ctx context.Context) *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient creates a new PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient(client *http.Client) *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams {
-	var ()
 	return &PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
-for the post feg network ID subscriber config base names base name operation typically these are written to a http.Request
+/* PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+   for the post feg network ID subscriber config base names base name operation.
+
+   Typically these are written to a http.Request.
 */
 type PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams struct {
 
-	/*BaseName
-	  Charging Rule Base Name
+	/* BaseName.
 
+	   Charging Rule Base Name
 	*/
 	BaseName string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post feg network ID subscriber config base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams) WithDefaults() *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post feg network ID subscriber config base names base name params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post feg network ID subscriber config base names base name params

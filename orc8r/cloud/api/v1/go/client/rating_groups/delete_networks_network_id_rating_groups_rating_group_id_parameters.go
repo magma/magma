@@ -13,69 +13,85 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams creates a new DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized.
+// NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams creates a new DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams() *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithTimeout creates a new DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithTimeout(timeout time.Duration) *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithContext creates a new DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithContext(ctx context.Context) *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithHTTPClient creates a new DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithHTTPClient(client *http.Client) *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams {
-	var ()
 	return &DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
-for the delete networks network ID rating groups rating group ID operation typically these are written to a http.Request
+/* DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
+   for the delete networks network ID rating groups rating group ID operation.
+
+   Typically these are written to a http.Request.
 */
 type DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*RatingGroupID
-	  Rating Group Id
 
+	/* RatingGroupID.
+
+	   Rating Group Id
+
+	   Format: uint32
 	*/
 	RatingGroupID uint32
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the delete networks network ID rating groups rating group ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams) WithDefaults() *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the delete networks network ID rating groups rating group ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the delete networks network ID rating groups rating group ID params

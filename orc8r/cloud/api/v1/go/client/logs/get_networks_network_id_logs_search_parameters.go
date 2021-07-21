@@ -13,98 +13,118 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
-// NewGetNetworksNetworkIDLogsSearchParams creates a new GetNetworksNetworkIDLogsSearchParams object
-// with the default values initialized.
+// NewGetNetworksNetworkIDLogsSearchParams creates a new GetNetworksNetworkIDLogsSearchParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewGetNetworksNetworkIDLogsSearchParams() *GetNetworksNetworkIDLogsSearchParams {
-	var ()
 	return &GetNetworksNetworkIDLogsSearchParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewGetNetworksNetworkIDLogsSearchParamsWithTimeout creates a new GetNetworksNetworkIDLogsSearchParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewGetNetworksNetworkIDLogsSearchParamsWithTimeout(timeout time.Duration) *GetNetworksNetworkIDLogsSearchParams {
-	var ()
 	return &GetNetworksNetworkIDLogsSearchParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewGetNetworksNetworkIDLogsSearchParamsWithContext creates a new GetNetworksNetworkIDLogsSearchParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewGetNetworksNetworkIDLogsSearchParamsWithContext(ctx context.Context) *GetNetworksNetworkIDLogsSearchParams {
-	var ()
 	return &GetNetworksNetworkIDLogsSearchParams{
-
 		Context: ctx,
 	}
 }
 
 // NewGetNetworksNetworkIDLogsSearchParamsWithHTTPClient creates a new GetNetworksNetworkIDLogsSearchParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewGetNetworksNetworkIDLogsSearchParamsWithHTTPClient(client *http.Client) *GetNetworksNetworkIDLogsSearchParams {
-	var ()
 	return &GetNetworksNetworkIDLogsSearchParams{
 		HTTPClient: client,
 	}
 }
 
-/*GetNetworksNetworkIDLogsSearchParams contains all the parameters to send to the API endpoint
-for the get networks network ID logs search operation typically these are written to a http.Request
+/* GetNetworksNetworkIDLogsSearchParams contains all the parameters to send to the API endpoint
+   for the get networks network ID logs search operation.
+
+   Typically these are written to a http.Request.
 */
 type GetNetworksNetworkIDLogsSearchParams struct {
 
-	/*End
-	  Time to end searching
+	/* End.
 
+	   Time to end searching
 	*/
 	End *string
-	/*Fields
-	  Comma-separated list of fields to search with the simple query. Defaults to the log field.
 
+	/* Fields.
+
+	   Comma-separated list of fields to search with the simple query. Defaults to the log field.
 	*/
 	Fields *string
-	/*Filters
-	  Comma-separated list of key:value pairs to filter the query with.
 
+	/* Filters.
+
+	   Comma-separated list of key:value pairs to filter the query with.
 	*/
 	Filters *string
-	/*From
-	  The starting offset to fetch from the search hits. This param along with size can be used for pagination.
 
+	/* From.
+
+	   The starting offset to fetch from the search hits. This param along with size can be used for pagination.
 	*/
 	From *string
-	/*NetworkID
-	  Network ID
 
+	/* NetworkID.
+
+	   Network ID
 	*/
 	NetworkID string
-	/*SimpleQuery
-	  Simple Query String to execute
 
+	/* SimpleQuery.
+
+	   Simple Query String to execute
 	*/
 	SimpleQuery *string
-	/*Size
-	  Maximum number of hits returned. Defaults to 10.
 
+	/* Size.
+
+	   Maximum number of hits returned. Defaults to 10.
 	*/
 	Size *string
-	/*Start
-	  Time to start searching
 
+	/* Start.
+
+	   Time to start searching
 	*/
 	Start *string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the get networks network ID logs search params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDLogsSearchParams) WithDefaults() *GetNetworksNetworkIDLogsSearchParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the get networks network ID logs search params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *GetNetworksNetworkIDLogsSearchParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the get networks network ID logs search params
@@ -240,64 +260,68 @@ func (o *GetNetworksNetworkIDLogsSearchParams) WriteToRequest(r runtime.ClientRe
 
 		// query param end
 		var qrEnd string
+
 		if o.End != nil {
 			qrEnd = *o.End
 		}
 		qEnd := qrEnd
 		if qEnd != "" {
+
 			if err := r.SetQueryParam("end", qEnd); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Fields != nil {
 
 		// query param fields
 		var qrFields string
+
 		if o.Fields != nil {
 			qrFields = *o.Fields
 		}
 		qFields := qrFields
 		if qFields != "" {
+
 			if err := r.SetQueryParam("fields", qFields); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Filters != nil {
 
 		// query param filters
 		var qrFilters string
+
 		if o.Filters != nil {
 			qrFilters = *o.Filters
 		}
 		qFilters := qrFilters
 		if qFilters != "" {
+
 			if err := r.SetQueryParam("filters", qFilters); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.From != nil {
 
 		// query param from
 		var qrFrom string
+
 		if o.From != nil {
 			qrFrom = *o.From
 		}
 		qFrom := qrFrom
 		if qFrom != "" {
+
 			if err := r.SetQueryParam("from", qFrom); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	// path param network_id
@@ -309,48 +333,51 @@ func (o *GetNetworksNetworkIDLogsSearchParams) WriteToRequest(r runtime.ClientRe
 
 		// query param simple_query
 		var qrSimpleQuery string
+
 		if o.SimpleQuery != nil {
 			qrSimpleQuery = *o.SimpleQuery
 		}
 		qSimpleQuery := qrSimpleQuery
 		if qSimpleQuery != "" {
+
 			if err := r.SetQueryParam("simple_query", qSimpleQuery); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Size != nil {
 
 		// query param size
 		var qrSize string
+
 		if o.Size != nil {
 			qrSize = *o.Size
 		}
 		qSize := qrSize
 		if qSize != "" {
+
 			if err := r.SetQueryParam("size", qSize); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.Start != nil {
 
 		// query param start
 		var qrStart string
+
 		if o.Start != nil {
 			qrStart = *o.Start
 		}
 		qStart := qrStart
 		if qStart != "" {
+
 			if err := r.SetQueryParam("start", qStart); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if len(res) > 0 {

@@ -83,6 +83,6 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 		actual := &protos.GatewayConfigs{}
 		err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual.ConfigsByKey)
+		assert.Equal(t, expected["some_service"].String(), actual.ConfigsByKey["some_service"].String())
 	})
 }

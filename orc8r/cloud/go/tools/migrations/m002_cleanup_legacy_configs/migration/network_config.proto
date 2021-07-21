@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 package magma.migrations;
-option go_package = "migration";
+option go_package = "magma/orc8r/cloud/go/tools/migrations/m002_cleanup_legacy_configs/migration";
 
 // Container message type for namespaced network configs.
 message Config {

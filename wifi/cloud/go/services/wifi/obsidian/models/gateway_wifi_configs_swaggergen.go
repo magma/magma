@@ -6,83 +6,107 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // GatewayWifiConfigs Wifi configuration for a gateway
+//
 // swagger:model gateway_wifi_configs
 type GatewayWifiConfigs struct {
 
 	// additional props
+	// Example: {"gwprop1":"gwvalue1","gwprop2":"gwvalue2"}
 	AdditionalProps map[string]string `json:"additional_props,omitempty"`
 
 	// client channel
+	// Example: 11
 	ClientChannel string `json:"client_channel,omitempty"`
 
 	// info
+	// Example: GatewayInfo
 	Info string `json:"info,omitempty"`
 
 	// is production
+	// Example: false
 	IsProduction bool `json:"is_production,omitempty"`
 
 	// latitude
+	// Example: 37.48497
 	Latitude float64 `json:"latitude,omitempty"`
 
 	// longitude
+	// Example: -122.148284
 	Longitude float64 `json:"longitude,omitempty"`
 
 	// mesh id
 	MeshID MeshID `json:"mesh_id,omitempty"`
 
 	// mesh rssi threshold
+	// Example: -80
 	MeshRssiThreshold int32 `json:"mesh_rssi_threshold,omitempty"`
 
 	// override password
+	// Example: password
 	OverridePassword string `json:"override_password,omitempty"`
 
 	// override ssid
+	// Example: SuperFastWifiNetwork
 	OverrideSsid string `json:"override_ssid,omitempty"`
 
 	// override xwf config
+	// Example: xwf config
 	OverrideXwfConfig string `json:"override_xwf_config,omitempty"`
 
 	// override xwf dhcp dns1
+	// Example: 8.8.8.8
 	OverrideXwfDhcpDns1 string `json:"override_xwf_dhcp_dns1,omitempty"`
 
 	// override xwf dhcp dns2
+	// Example: 8.8.4.4
 	OverrideXwfDhcpDns2 string `json:"override_xwf_dhcp_dns2,omitempty"`
 
 	// override xwf enabled
+	// Example: false
 	OverrideXwfEnabled bool `json:"override_xwf_enabled,omitempty"`
 
 	// override xwf partner name
+	// Example: xwfcfull
 	OverrideXwfPartnerName string `json:"override_xwf_partner_name,omitempty"`
 
 	// override xwf radius acct port
+	// Example: 1813
 	OverrideXwfRadiusAcctPort int32 `json:"override_xwf_radius_acct_port,omitempty"`
 
 	// override xwf radius auth port
+	// Example: 1812
 	OverrideXwfRadiusAuthPort int32 `json:"override_xwf_radius_auth_port,omitempty"`
 
 	// override xwf radius server
+	// Example: gradius.example.com
 	OverrideXwfRadiusServer string `json:"override_xwf_radius_server,omitempty"`
 
 	// override xwf radius shared secret
+	// Example: xwfisgood
 	OverrideXwfRadiusSharedSecret string `json:"override_xwf_radius_shared_secret,omitempty"`
 
 	// override xwf uam secret
+	// Example: theuamsecret
 	OverrideXwfUamSecret string `json:"override_xwf_uam_secret,omitempty"`
 
 	// use override ssid
+	// Example: false
 	UseOverrideSsid bool `json:"use_override_ssid,omitempty"`
 
 	// use override xwf
+	// Example: false
 	UseOverrideXwf bool `json:"use_override_xwf,omitempty"`
 
 	// wifi disabled
+	// Example: false
 	WifiDisabled bool `json:"wifi_disabled,omitempty"`
 }
 
@@ -101,12 +125,37 @@ func (m *GatewayWifiConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *GatewayWifiConfigs) validateMeshID(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.MeshID) { // not required
 		return nil
 	}
 
 	if err := m.MeshID.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("mesh_id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway wifi configs based on the context it is used
+func (m *GatewayWifiConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateMeshID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayWifiConfigs) contextValidateMeshID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.MeshID.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("mesh_id")
 		}

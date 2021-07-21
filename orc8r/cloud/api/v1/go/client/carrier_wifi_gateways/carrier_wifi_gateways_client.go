@@ -7,12 +7,11 @@ package carrier_wifi_gateways
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new carrier wifi gateways API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,61 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteCwfNetworkIDGatewaysGatewayID(params *DeleteCwfNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*DeleteCwfNetworkIDGatewaysGatewayIDNoContent, error)
+
+	GetCwfNetworkIDGateways(params *GetCwfNetworkIDGatewaysParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayID(params *GetCwfNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDDescription(params *GetCwfNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDDescriptionOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDDevice(params *GetCwfNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDDeviceOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDHealthStatus(params *GetCwfNetworkIDGatewaysGatewayIDHealthStatusParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDHealthStatusOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDMagmad(params *GetCwfNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDMagmadOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDName(params *GetCwfNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDNameOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDStatus(params *GetCwfNetworkIDGatewaysGatewayIDStatusParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDStatusOK, error)
+
+	GetCwfNetworkIDGatewaysGatewayIDTier(params *GetCwfNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDTierOK, error)
+
+	PostCwfNetworkIDGateways(params *PostCwfNetworkIDGatewaysParams, opts ...ClientOption) (*PostCwfNetworkIDGatewaysCreated, error)
+
+	PutCwfNetworkIDGatewaysGatewayID(params *PutCwfNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDNoContent, error)
+
+	PutCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *PutCwfNetworkIDGatewaysGatewayIDCarrierWifiParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent, error)
+
+	PutCwfNetworkIDGatewaysGatewayIDDescription(params *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDDescriptionNoContent, error)
+
+	PutCwfNetworkIDGatewaysGatewayIDDevice(params *PutCwfNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDDeviceNoContent, error)
+
+	PutCwfNetworkIDGatewaysGatewayIDMagmad(params *PutCwfNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDMagmadNoContent, error)
+
+	PutCwfNetworkIDGatewaysGatewayIDName(params *PutCwfNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDNameNoContent, error)
+
+	PutCwfNetworkIDGatewaysGatewayIDTier(params *PutCwfNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDTierNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
-DeleteCwfNetworkIDGatewaysGatewayID deletes a carrier wifi gateway
+  DeleteCwfNetworkIDGatewaysGatewayID deletes a carrier wifi gateway
 */
-func (a *Client) DeleteCwfNetworkIDGatewaysGatewayID(params *DeleteCwfNetworkIDGatewaysGatewayIDParams) (*DeleteCwfNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteCwfNetworkIDGatewaysGatewayID(params *DeleteCwfNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*DeleteCwfNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteCwfNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteCwfNetworkIDGatewaysGatewayID",
 		Method:             "DELETE",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}",
@@ -44,7 +88,12 @@ func (a *Client) DeleteCwfNetworkIDGatewaysGatewayID(params *DeleteCwfNetworkIDG
 		Reader:             &DeleteCwfNetworkIDGatewaysGatewayIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +107,14 @@ func (a *Client) DeleteCwfNetworkIDGatewaysGatewayID(params *DeleteCwfNetworkIDG
 }
 
 /*
-GetCwfNetworkIDGateways lists all gateways for a carrier wifi network
+  GetCwfNetworkIDGateways lists all gateways for a carrier wifi network
 */
-func (a *Client) GetCwfNetworkIDGateways(params *GetCwfNetworkIDGatewaysParams) (*GetCwfNetworkIDGatewaysOK, error) {
+func (a *Client) GetCwfNetworkIDGateways(params *GetCwfNetworkIDGatewaysParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGateways",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways",
@@ -77,7 +125,12 @@ func (a *Client) GetCwfNetworkIDGateways(params *GetCwfNetworkIDGatewaysParams) 
 		Reader:             &GetCwfNetworkIDGatewaysReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +144,14 @@ func (a *Client) GetCwfNetworkIDGateways(params *GetCwfNetworkIDGatewaysParams) 
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayID gets a specific carrier wifi gateway
+  GetCwfNetworkIDGatewaysGatewayID gets a specific carrier wifi gateway
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayID(params *GetCwfNetworkIDGatewaysGatewayIDParams) (*GetCwfNetworkIDGatewaysGatewayIDOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayID(params *GetCwfNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayID",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}",
@@ -110,7 +162,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayID(params *GetCwfNetworkIDGateway
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +181,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayID(params *GetCwfNetworkIDGateway
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDCarrierWifi gets gateway carrier wifi configuration
+  GetCwfNetworkIDGatewaysGatewayIDCarrierWifi gets gateway carrier wifi configuration
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiParams) (*GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *GetCwfNetworkIDGatewaysGatewayIDCarrierWifiParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDCarrierWifiOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDCarrierWifiParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDCarrierWifi",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/carrier_wifi",
@@ -143,7 +199,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *GetCwfNetwo
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDCarrierWifiReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +218,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *GetCwfNetwo
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDDescription gets the description of a carrier wifi gateway
+  GetCwfNetworkIDGatewaysGatewayIDDescription gets the description of a carrier wifi gateway
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDescription(params *GetCwfNetworkIDGatewaysGatewayIDDescriptionParams) (*GetCwfNetworkIDGatewaysGatewayIDDescriptionOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDescription(params *GetCwfNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDDescriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDDescription",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/description",
@@ -176,7 +236,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDescription(params *GetCwfNetwo
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -190,15 +255,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDescription(params *GetCwfNetwo
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDDevice gets the physical device for a carrier wifi gateway
+  GetCwfNetworkIDGatewaysGatewayIDDevice gets the physical device for a carrier wifi gateway
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDevice(params *GetCwfNetworkIDGatewaysGatewayIDDeviceParams) (*GetCwfNetworkIDGatewaysGatewayIDDeviceOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDevice(params *GetCwfNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDDeviceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDDeviceParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDDevice",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/device",
@@ -209,7 +273,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDevice(params *GetCwfNetworkIDG
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDDeviceReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -223,15 +292,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDDevice(params *GetCwfNetworkIDG
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDHealthStatus retrieves health status of a carrier wifi gateway
+  GetCwfNetworkIDGatewaysGatewayIDHealthStatus retrieves health status of a carrier wifi gateway
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDHealthStatus(params *GetCwfNetworkIDGatewaysGatewayIDHealthStatusParams) (*GetCwfNetworkIDGatewaysGatewayIDHealthStatusOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDHealthStatus(params *GetCwfNetworkIDGatewaysGatewayIDHealthStatusParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDHealthStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDHealthStatusParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDHealthStatus",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/health_status",
@@ -242,7 +310,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDHealthStatus(params *GetCwfNetw
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDHealthStatusReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +329,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDHealthStatus(params *GetCwfNetw
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDMagmad gets magmad agent configuration
+  GetCwfNetworkIDGatewaysGatewayIDMagmad gets magmad agent configuration
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDMagmad(params *GetCwfNetworkIDGatewaysGatewayIDMagmadParams) (*GetCwfNetworkIDGatewaysGatewayIDMagmadOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDMagmad(params *GetCwfNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDMagmadOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDMagmadParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDMagmad",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/magmad",
@@ -275,7 +347,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDMagmad(params *GetCwfNetworkIDG
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDMagmadReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -289,15 +366,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDMagmad(params *GetCwfNetworkIDG
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDName gets the name of a carrier wifi gateway
+  GetCwfNetworkIDGatewaysGatewayIDName gets the name of a carrier wifi gateway
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDName(params *GetCwfNetworkIDGatewaysGatewayIDNameParams) (*GetCwfNetworkIDGatewaysGatewayIDNameOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDName(params *GetCwfNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDName",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/name",
@@ -308,7 +384,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDName(params *GetCwfNetworkIDGat
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +403,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDName(params *GetCwfNetworkIDGat
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDStatus gets the status of a gateway
+  GetCwfNetworkIDGatewaysGatewayIDStatus gets the status of a gateway
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDStatus(params *GetCwfNetworkIDGatewaysGatewayIDStatusParams) (*GetCwfNetworkIDGatewaysGatewayIDStatusOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDStatus(params *GetCwfNetworkIDGatewaysGatewayIDStatusParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDStatusParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDStatus",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/status",
@@ -341,7 +421,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDStatus(params *GetCwfNetworkIDG
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDStatusReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -355,15 +440,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDStatus(params *GetCwfNetworkIDG
 }
 
 /*
-GetCwfNetworkIDGatewaysGatewayIDTier gets the ID of the upgrade tier a gateway belongs to
+  GetCwfNetworkIDGatewaysGatewayIDTier gets the ID of the upgrade tier a gateway belongs to
 */
-func (a *Client) GetCwfNetworkIDGatewaysGatewayIDTier(params *GetCwfNetworkIDGatewaysGatewayIDTierParams) (*GetCwfNetworkIDGatewaysGatewayIDTierOK, error) {
+func (a *Client) GetCwfNetworkIDGatewaysGatewayIDTier(params *GetCwfNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*GetCwfNetworkIDGatewaysGatewayIDTierOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetCwfNetworkIDGatewaysGatewayIDTierParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetCwfNetworkIDGatewaysGatewayIDTier",
 		Method:             "GET",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/tier",
@@ -374,7 +458,12 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDTier(params *GetCwfNetworkIDGat
 		Reader:             &GetCwfNetworkIDGatewaysGatewayIDTierReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -388,15 +477,14 @@ func (a *Client) GetCwfNetworkIDGatewaysGatewayIDTier(params *GetCwfNetworkIDGat
 }
 
 /*
-PostCwfNetworkIDGateways registers a new carrier wifi gateway
+  PostCwfNetworkIDGateways registers a new carrier wifi gateway
 */
-func (a *Client) PostCwfNetworkIDGateways(params *PostCwfNetworkIDGatewaysParams) (*PostCwfNetworkIDGatewaysCreated, error) {
+func (a *Client) PostCwfNetworkIDGateways(params *PostCwfNetworkIDGatewaysParams, opts ...ClientOption) (*PostCwfNetworkIDGatewaysCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostCwfNetworkIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostCwfNetworkIDGateways",
 		Method:             "POST",
 		PathPattern:        "/cwf/{network_id}/gateways",
@@ -407,7 +495,12 @@ func (a *Client) PostCwfNetworkIDGateways(params *PostCwfNetworkIDGatewaysParams
 		Reader:             &PostCwfNetworkIDGatewaysReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -421,15 +514,14 @@ func (a *Client) PostCwfNetworkIDGateways(params *PostCwfNetworkIDGatewaysParams
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayID updates an entire carrier wifi gateway record
+  PutCwfNetworkIDGatewaysGatewayID updates an entire carrier wifi gateway record
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayID(params *PutCwfNetworkIDGatewaysGatewayIDParams) (*PutCwfNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayID(params *PutCwfNetworkIDGatewaysGatewayIDParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayID",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}",
@@ -440,7 +532,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayID(params *PutCwfNetworkIDGateway
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -454,15 +551,14 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayID(params *PutCwfNetworkIDGateway
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayIDCarrierWifi updates gateway carrier wifi configuration
+  PutCwfNetworkIDGatewaysGatewayIDCarrierWifi updates gateway carrier wifi configuration
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *PutCwfNetworkIDGatewaysGatewayIDCarrierWifiParams) (*PutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *PutCwfNetworkIDGatewaysGatewayIDCarrierWifiParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDCarrierWifiNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDCarrierWifiParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayIDCarrierWifi",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/carrier_wifi",
@@ -473,7 +569,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *PutCwfNetwo
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDCarrierWifiReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -487,15 +588,14 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDCarrierWifi(params *PutCwfNetwo
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayIDDescription updates the description of a carrier wifi gateway
+  PutCwfNetworkIDGatewaysGatewayIDDescription updates the description of a carrier wifi gateway
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDescription(params *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams) (*PutCwfNetworkIDGatewaysGatewayIDDescriptionNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDescription(params *PutCwfNetworkIDGatewaysGatewayIDDescriptionParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDDescriptionNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDDescriptionParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayIDDescription",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/description",
@@ -506,7 +606,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDescription(params *PutCwfNetwo
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDDescriptionReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -520,15 +625,14 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDescription(params *PutCwfNetwo
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayIDDevice updates the physical device for a carrier wifi gateway
+  PutCwfNetworkIDGatewaysGatewayIDDevice updates the physical device for a carrier wifi gateway
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDevice(params *PutCwfNetworkIDGatewaysGatewayIDDeviceParams) (*PutCwfNetworkIDGatewaysGatewayIDDeviceNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDevice(params *PutCwfNetworkIDGatewaysGatewayIDDeviceParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDDeviceNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDDeviceParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayIDDevice",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/device",
@@ -539,7 +643,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDevice(params *PutCwfNetworkIDG
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDDeviceReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -553,15 +662,14 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDDevice(params *PutCwfNetworkIDG
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayIDMagmad reconfigures magmad agent
+  PutCwfNetworkIDGatewaysGatewayIDMagmad reconfigures magmad agent
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayIDMagmad(params *PutCwfNetworkIDGatewaysGatewayIDMagmadParams) (*PutCwfNetworkIDGatewaysGatewayIDMagmadNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayIDMagmad(params *PutCwfNetworkIDGatewaysGatewayIDMagmadParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDMagmadNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDMagmadParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayIDMagmad",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/magmad",
@@ -572,7 +680,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDMagmad(params *PutCwfNetworkIDG
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDMagmadReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -586,15 +699,14 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDMagmad(params *PutCwfNetworkIDG
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayIDName updates the name of a carrier wifi gateway
+  PutCwfNetworkIDGatewaysGatewayIDName updates the name of a carrier wifi gateway
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayIDName(params *PutCwfNetworkIDGatewaysGatewayIDNameParams) (*PutCwfNetworkIDGatewaysGatewayIDNameNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayIDName(params *PutCwfNetworkIDGatewaysGatewayIDNameParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayIDName",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/name",
@@ -605,7 +717,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDName(params *PutCwfNetworkIDGat
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDNameReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -619,15 +736,14 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDName(params *PutCwfNetworkIDGat
 }
 
 /*
-PutCwfNetworkIDGatewaysGatewayIDTier updates the ID of the upgrade tier a gateway belongs to
+  PutCwfNetworkIDGatewaysGatewayIDTier updates the ID of the upgrade tier a gateway belongs to
 */
-func (a *Client) PutCwfNetworkIDGatewaysGatewayIDTier(params *PutCwfNetworkIDGatewaysGatewayIDTierParams) (*PutCwfNetworkIDGatewaysGatewayIDTierNoContent, error) {
+func (a *Client) PutCwfNetworkIDGatewaysGatewayIDTier(params *PutCwfNetworkIDGatewaysGatewayIDTierParams, opts ...ClientOption) (*PutCwfNetworkIDGatewaysGatewayIDTierNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutCwfNetworkIDGatewaysGatewayIDTierParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutCwfNetworkIDGatewaysGatewayIDTier",
 		Method:             "PUT",
 		PathPattern:        "/cwf/{network_id}/gateways/{gateway_id}/tier",
@@ -638,7 +754,12 @@ func (a *Client) PutCwfNetworkIDGatewaysGatewayIDTier(params *PutCwfNetworkIDGat
 		Reader:             &PutCwfNetworkIDGatewaysGatewayIDTierReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
