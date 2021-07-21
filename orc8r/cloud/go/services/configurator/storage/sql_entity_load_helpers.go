@@ -124,7 +124,7 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 	// LIMIT $page_size ;
 
 	pageSize := store.getEntityLoadPageSize(criteria)
-	pageToken, err := deserializePageToken(criteria.PageToken)
+	pageToken, err := DeserializePageToken(criteria.PageToken)
 	if err != nil {
 		return sq.SelectBuilder{}, err
 	}
@@ -382,10 +382,10 @@ func calculateIDsNotFound(entsByTK EntitiesByTK, requestedIDs []*EntityID) []*En
 func getNextPageToken(entities []*NetworkEntity) (string, error) {
 	lastEntity := entities[len(entities)-1]
 	nextPageToken := &EntityPageToken{LastIncludedEntity: lastEntity.Key}
-	return serializePageToken(nextPageToken)
+	return SerializePageToken(nextPageToken)
 }
 
-func serializePageToken(token *EntityPageToken) (string, error) {
+func SerializePageToken(token *EntityPageToken) (string, error) {
 	marshalledToken, err := proto.Marshal(token)
 	if err != nil {
 		return "", err
@@ -393,7 +393,7 @@ func serializePageToken(token *EntityPageToken) (string, error) {
 	return base64.StdEncoding.EncodeToString(marshalledToken), nil
 }
 
-func deserializePageToken(encodedToken string) (*EntityPageToken, error) {
+func DeserializePageToken(encodedToken string) (*EntityPageToken, error) {
 	marshalledToken, err := base64.StdEncoding.DecodeString(encodedToken)
 	if err != nil {
 		return nil, err

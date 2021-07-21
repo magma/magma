@@ -14,9 +14,12 @@
 package subscriberdb
 
 type Config struct {
-	// FlatDigestEnabled is a feature flag for the flat digest functionality.
-	FlatDigestEnabled bool `yaml:"flatDigestEnabled"`
-	// ChangesetSizeTheshold specifies the max size of the cloud-agw changeset
-	// past which a resync signal will be sent back to the agw.
-	ChangesetSizeTheshold int `yaml:"changesetSizeTheshold"`
+	// DigestsEnabled is a feature flag for the flat digest functionality.
+	DigestsEnabled bool `yaml:"digestsEnabled"`
+	// ChangesetSizeThreshold specifies the max size of the cloud-AGW changeset
+	// past which a resync signal will be sent back to the AGW.
+	ChangesetSizeThreshold int `yaml:"changesetSizeThreshold"`
+	// MaxProtosLoadSize specifies the max size of cached subscriber protos that
+	// can be loaded for a page.
+	MaxProtosLoadSize uint64 `yaml:"maxProtosLoadSize"`
 }
