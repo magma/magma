@@ -21,7 +21,7 @@ import threading
 
 import aioeventlet
 from lte.protos.mconfig import mconfigs_pb2
-from magma.common.misc_utils import call_process, get_ip_from_if
+from magma.common.misc_utils import get_ip_from_if
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import environment
@@ -41,7 +41,7 @@ from ryu.base.app_manager import AppManager
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from scapy.arch import get_if_hwaddr
 from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
-
+from magma.pipelined.datapath_setup import setup_masquerade_rule
 
 def main():
     """
@@ -115,26 +115,11 @@ def main():
         mtr_ip = get_ip_from_if(mtr_interface)
         service.config['mtr_ip'] = mtr_ip
 
+    setup_masquerade_rule(service.config, service.loop)
+
     # Load the ryu apps
     service_manager = ServiceManager(service)
     service_manager.load()
-
-    def callback(returncode):
-        if returncode != 0:
-            logging.error(
-                "Failed to set MASQUERADE: %d", returncode
-            )
-
-    # TODO fix this hack for XWF
-    if enable_nat is True or service.config.get('setup_type') == 'XWF':
-        ip_table_rule = 'POSTROUTING -o %s -j MASQUERADE' % service.config['nat_iface']
-        check_and_add = 'iptables -t nat -C %s || iptables -t nat -A %s' % \
-                        (ip_table_rule, ip_table_rule)
-        logging.debug("check_and_add: %s", check_and_add)
-        call_process(check_and_add,
-                     callback,
-                     service.loop
-                     )
 
     service.loop.create_task(monitor_ifaces(
         service.config['monitored_ifaces']),
