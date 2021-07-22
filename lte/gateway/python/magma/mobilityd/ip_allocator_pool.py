@@ -62,7 +62,6 @@ class IpAllocatorPool(IPAllocator):
         """
         for blk in self._store.assigned_ip_blocks:
             if ipblock.overlaps(blk):
-                logging.warning("Overlapped IP block: %s", ipblock)
                 raise OverlappedIPBlocksError(ipblock)
 
         self._store.assigned_ip_blocks.add(ipblock)
@@ -111,11 +110,11 @@ class IpAllocatorPool(IPAllocator):
         """
 
         remove_blocks = set(ipblocks) & self._store.assigned_ip_blocks
-        logging.warning(
-            "_assigned_ip_blocks %s",
+        logging.debug(
+            "Current assigned IP blocks: %s",
             self._store.assigned_ip_blocks,
         )
-        logging.warning("arg ipblocks %s", ipblocks)
+        logging.debug("IP blocks to remove: %s", ipblocks)
 
         extraneous_blocks = set(ipblocks) ^ remove_blocks
         # check unknown ip blocks
@@ -126,7 +125,7 @@ class IpAllocatorPool(IPAllocator):
             )
         del extraneous_blocks
 
-        # "soft" removal does not remove blocks have IPs allocated
+        # "soft" removal does not remove blocks which have IPs allocated
         if not force:
             allocated_ip_block_set = self._store.ip_state_map.get_allocated_ip_block_set()
             remove_blocks -= allocated_ip_block_set
