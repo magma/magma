@@ -39,6 +39,8 @@
 namespace magma {
 using std::experimental::optional;
 
+using shards_ = std::vector<int>;
+
 using ImsiAndSessionID = std::pair<std::string, std::string>;
 
 struct RuleRecord_equal {

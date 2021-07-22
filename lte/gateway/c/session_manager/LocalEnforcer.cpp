@@ -39,7 +39,11 @@ bool LocalEnforcer::SEND_IPFIX             = true;
 
 using google::protobuf::RepeatedPtrField;
 
+
+
 using namespace std::placeholders;
+
+
 
 static void handle_command_level_result_code_for_monitors(
     const std::string& imsi, const std::string& session_id,
@@ -1051,6 +1055,8 @@ bool LocalEnforcer::update_tunnel_ids(
     session->receive_monitor(monitor, nullptr);
   }
 
+  add_ue_to_shard(imsi, session_map, session);
+
   handle_session_activate_rule_updates(
       *session, csr, charging_credits_received);
 
@@ -1111,6 +1117,46 @@ bool LocalEnforcer::update_tunnel_ids(
       imsi, session_id, session->get_config(), session);
   return true;
 }
+
+
+
+
+
+
+void LocalEnforcer::add_ue_to_shard(const std::string imsi, SessionMap& session_map, SessionState& session){
+    // Check if UE has other sessions and reuse shard_id if so
+    auto sm_it = session_map.find(imsi);
+    auto& sessions = sm_it->second;
+    for (auto it = sessions.begin(); it != sessions.end(); ++it) {
+        if ((*it)->get_session_id() != session.get_session_id()){
+            session.set_shard_id( (*it)->get_shard_id() );
+        }
+    }
+
+    // if no other sessions add a new shard
+    for (int shard_id = 0; shard_id < shards_.size(); shard_id++){
+        if (shards_[shard_id].size() < max_shard_size_) {
+            shards_[shard_id]++  ;
+            session.set_shard_id(shard_id);
+        }
+    }
+}
+
+
+
+void LocalEnforcer::remove_ue_to_shard(const std::string imsi, SessionMap& session_map, SessionState& session){
+    // Check if this is the last session for this UE
+    auto sm_it = session_map.find(imsi);
+    auto& sessions = sm_it->second;
+
+    // If there is one session left that means this is the last session
+    if (sessions.size() == 1){
+        shards_[session.get_shard_id()]--;
+    }
+}
+
+
+
 
 bool LocalEnforcer::terminate_on_wallet_exhaust() {
   return mconfig_.has_wallet_exhaust_detection() &&
@@ -1210,6 +1256,8 @@ void LocalEnforcer::complete_termination(
 
   // clear all metrics associated with this session
   session->clear_session_metrics();
+
+  remove_ue_to_shard(imsi, session_map, session);
 
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;

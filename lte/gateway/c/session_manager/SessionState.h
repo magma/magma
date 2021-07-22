@@ -267,6 +267,9 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
+  int get_shard_id() { return shard_id_; }
+  void set_shard_id(int shard_id) { shard_id_ = shard_id;}
+
   std::string get_session_id() const { return session_id_; }
 
   uint32_t get_pdu_id() const;
@@ -740,6 +743,7 @@ class SessionState {
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */
   uint32_t current_version_;  // To compare with incoming session version
+  int shard_id_;
   /**
    *  Counter to keep track of number of retries in case of SMF-UPF version
    *  mismatch

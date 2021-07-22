@@ -37,15 +37,15 @@ class ShardTracker {
   bool remove_ue(int shard_id);
 
  private:
-  /* 
-  * a vector of quantities, where the indices represent
-  * the shard id and the values represent the number of
-  * UEs held in each shard
-  */
+  /*
+   * a vector of quantities, where the indices represent
+   * the shard id and the values represent the number of
+   * UEs held in each shard
+   */
   std::vector<uint16_t> ue_count_per_shard_;
   /*
-  * largest number of UEs that can fill a shard
-  */
+   * largest number of UEs that can fill a shard
+   */
   const uint16_t max_shard_size_ = 100;
 };
 
