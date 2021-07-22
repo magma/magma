@@ -1630,7 +1630,7 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
-  quentintest:
+  quentintest2:
     jobs:
       - lte-agw-deploy
 
