@@ -176,13 +176,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install SwaggerHub CLI
+        run: npm install --global swaggerhub-cli
       - name: Publish SwaggerHub API
+        if: github.ref == 'refs/heads/master'
         env:
           MAGMA_ROOT: "${{ github.workspace }}"
           SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
         run: |
-          cd ${MAGMA_ROOT}
-          npm i -g swaggerhub-cli
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --publish --visibility=public --setdefault
       - name: Extract commit title
