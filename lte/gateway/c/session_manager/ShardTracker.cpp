@@ -20,15 +20,10 @@
 namespace magma {
 
 int ShardTracker::add_ue(std::string imsi) {
-  /**
-   * If there are no shards, add a single entry set
-   * to shards list containing the IMSI
-   * */
   if (shards_.empty()) {
     std::set<std::string> new_shard = {imsi};
     shards_.push_back(new_shard);
   }
-
   for (size_t shard_id = 0; shard_id < shards_.size(); shard_id++) {
     /**
      * If the UE is already in the shard, return the shard id. This check
