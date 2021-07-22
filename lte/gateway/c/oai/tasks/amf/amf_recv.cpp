@@ -59,7 +59,6 @@ int amf_handle_service_request(
       sizeof(tmsi_t));
   memset(&amf_sap, 0, sizeof(amf_sap_s));
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  tmsi_rcv   = ntohl(tmsi_rcv);
 
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
@@ -91,7 +90,7 @@ int amf_handle_service_request(
        */
       amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
       amf_sap.u.amf_as.u.establish.guti.m_tmsi =
-          htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+          amf_sap.u.amf_as.u.establish.guti.m_tmsi;
       rc                   = amf_sap_send(&amf_sap);
       ue_context->mm_state = REGISTERED_CONNECTED;
     } else if (msg->service_type.service_type_value == SERVICE_TYPE_DATA) {
@@ -138,7 +137,7 @@ int amf_handle_service_request(
      */
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     amf_sap.u.amf_as.u.establish.guti.m_tmsi =
-        htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+        amf_sap.u.amf_as.u.establish.guti.m_tmsi;
     rc = amf_sap_send(&amf_sap);
   }
 
