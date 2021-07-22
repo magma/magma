@@ -29,6 +29,7 @@ extern "C" {
 #include "amf_identity.h"
 
 #define AMF_CAUSE_SUCCESS (1)
+#define AMF_CAUSE_CONDITIONAL_IE_ERROR (100)
 namespace magma5g {
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
@@ -102,7 +103,7 @@ int amf_handle_registration_request(
    * Handle message checking error
    */
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
-  if (amf_cause == AMF_CAUSE_SUCCESS) {
+  if (amf_cause != AMF_CAUSE_SUCCESS) {
     amf_cause = AMF_CAUSE_SUCCESS;
     OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT  message\n");
     rc = amf_proc_registration_reject(ue_id, amf_cause);
@@ -155,6 +156,20 @@ int amf_handle_registration_request(
       LOG_NAS_AMF, "m5gs_reg_type.type_val :%d", msg->m5gs_reg_type.type_val);
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
+
+    // Check integrity and ciphering algorithm bits
+    // If all bits are zero it means integrity and ciphering algorithms are not
+    // valid, AMF should reject the initial registration. Note : amf_cause is
+    // upto network provider for invalid algorithms, here we considering
+    // CONDITIONAL_IE_ERROR as amf cause.
+    if (ue_context->amf_context.ue_sec_capability.ia == 0 ||
+        ue_context->amf_context.ue_sec_capability.ea == 0) {
+      amf_cause = AMF_CAUSE_CONDITIONAL_IE_ERROR;
+      OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT  message\n");
+      rc = amf_proc_registration_reject(ue_id, amf_cause);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    }
+
     /*
      * Get the AMF mobile identity. For new registration
      * mobility type suppose to be SUCI

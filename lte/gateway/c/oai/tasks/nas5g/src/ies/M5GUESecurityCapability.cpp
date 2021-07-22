@@ -45,6 +45,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   MLOG(MDEBUG) << " length = " << hex << int(ue_sec_capability->length) << endl;
 
   // 5GS encryption algorithms
+  ea                     = *(buffer + decoded);
   ue_sec_capability->ea0 = (*(buffer + decoded) >> 7) & 0x1;
   ue_sec_capability->ea1 = (*(buffer + decoded) >> 6) & 0x1;
   ue_sec_capability->ea2 = (*(buffer + decoded) >> 5) & 0x1;
@@ -56,6 +57,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   decoded++;
 
   // 5GS integrity algorithm
+  ia                     = *(buffer + decoded);
   ue_sec_capability->ia0 = (*(buffer + decoded) >> 7) & 0x1;
   ue_sec_capability->ia1 = (*(buffer + decoded) >> 6) & 0x1;
   ue_sec_capability->ia2 = (*(buffer + decoded) >> 5) & 0x1;
