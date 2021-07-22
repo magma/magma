@@ -36,7 +36,7 @@ func TestLastResyncTimeStore(t *testing.T) {
 	})
 
 	t.Run("set and get", func(t *testing.T) {
-		expectedLastResyncTime := uint64(time.Now().Unix())
+		expectedLastResyncTime := uint32(time.Now().Unix())
 		err := s.Set("n0", "g0", expectedLastResyncTime)
 		assert.NoError(t, err)
 		lastResyncTime, err := s.Get("n0", "g0")
@@ -45,7 +45,7 @@ func TestLastResyncTimeStore(t *testing.T) {
 	})
 
 	t.Run("multiple set and get", func(t *testing.T) {
-		expectedLastResyncTime := uint64(time.Now().Unix())
+		expectedLastResyncTime := uint32(time.Now().Unix())
 
 		err := s.Set("n0", "g0", expectedLastResyncTime+1)
 		assert.NoError(t, err)

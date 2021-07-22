@@ -29,6 +29,7 @@ import (
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	lte_servicers "magma/lte/cloud/go/services/lte/servicers"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
@@ -38,7 +39,7 @@ type subscriberdbServicer struct {
 	digestsEnabled         bool
 	changesetSizeThreshold int
 	maxProtosLoadSize      uint64
-	resyncIntervalSecs     uint64
+	resyncIntervalSecs     uint32
 	digestStore            storage.DigestStore
 	perSubDigestStore      *storage.PerSubDigestStore
 	subStore               *storage.SubStore
@@ -83,7 +84,7 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 
 	networkID := gateway.NetworkId
 	gatewayID := gateway.LogicalId
-	if s.shouldCloudDirectedResync(networkID, gatewayID) {
+	if s.shouldResync(networkID, gatewayID) {
 		return &lte_protos.CheckSubscribersInSyncResponse{InSync: false}, nil
 	}
 
@@ -110,7 +111,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 
 	networkID := gateway.NetworkId
 	gatewayID := gateway.LogicalId
-	if s.shouldCloudDirectedResync(networkID, gatewayID) {
+	if s.shouldResync(networkID, gatewayID) {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
 
@@ -195,11 +196,11 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		}
 	}
 
-	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current time
-	// NOTE: Since the resync is orc8r-directed, and orc8r doesn't track the request status on the AGW side,
-	// orc8r takes the AGW request for the last page as an approximate indication of the completion of a resync
+	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current time.
+	// NOTE: Since the resync is Orc8r-directed, and Orc8r doesn't track the request status on the AGW side,
+	// Orc8r takes the AGW request for the last page as an approximate indication of the completion of a resync.
 	if nextToken == "" {
-		err := s.lastResyncTimeStore.Set(networkID, gatewayID, uint64(time.Now().Unix()))
+		err := s.lastResyncTimeStore.Set(networkID, gatewayID, uint32(time.Now().Unix()))
 		if err != nil {
 			glog.Errorf("Failed to set last resync time for gateway %+v of network %+v: %+v", gatewayID, networkID, err)
 		}
@@ -266,16 +267,18 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 	return digestProto, noUpdates
 }
 
-// shouldCloudDirectedResync returns whether a gateway requires a orc8r-directed resync by checking its
+// shouldResync returns whether a gateway requires an Orc8r-directed resync by checking its
 // last resync time.
-func (l *subscriberdbServicer) shouldCloudDirectedResync(network string, gateway string) bool {
+func (l *subscriberdbServicer) shouldResync(network string, gateway string) bool {
 	lastResyncTime, err := l.lastResyncTimeStore.Get(network, gateway)
 	// If check last resync time in store fails, swallow the error and stick to the original callpath
 	if err != nil {
 		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gateway, network, err)
 		return false
 	}
-	shouldResync := uint64(time.Now().Unix())-lastResyncTime > l.resyncIntervalSecs
+	// Add a deterministic jitter to AGW sync intervals to ameliorate the thundering herd effect
+	resyncIntervalJitter := lte_servicers.GetSyncIntervalDelta(gateway, l.resyncIntervalSecs)
+	shouldResync := uint32(time.Now().Unix())-lastResyncTime > l.resyncIntervalSecs+resyncIntervalJitter
 	return shouldResync
 }
 

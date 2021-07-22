@@ -563,7 +563,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	err = digestStore.SetDigest("n1", "digest_apple")
 	assert.NoError(t, err)
 
-	err = lastResyncStore.Set("n1", "g1", uint64(time.Now().Unix()))
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix()))
 	assert.NoError(t, err)
 	// Requests with blank digests should get an update signal in return
 	req := &lte_protos.CheckSubscribersInSyncRequest{
@@ -593,7 +593,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 
 	// Requests from gateways that haven't been resynced for more than the specified
 	// resync interval should get an update signal in return
-	err = lastResyncStore.Set("n1", "g1", uint64(time.Now().Unix())-5000)
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix())-5000)
 	assert.NoError(t, err)
 	req = &lte_protos.CheckSubscribersInSyncRequest{
 		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_apple2"},
@@ -631,7 +631,7 @@ func TestSyncSubscribers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, res.Resync)
 
-	err = lastResyncStore.Set("n1", "g1", uint64(time.Now().Unix()))
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix()))
 	assert.NoError(t, err)
 	// Initially no digests
 	req = &lte_protos.SyncSubscribersRequest{
@@ -760,7 +760,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
 
-	err = lastResyncStore.Set("n1", "g1", uint64(time.Now().Unix()))
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix()))
 	assert.NoError(t, err)
 	// When changeset is no larger than ChangesetSizeThreshold, the servicer should return the full changeset
 	expectedToRenewData := []*lte_protos.SubscriberData{

@@ -35,27 +35,27 @@ func NewLastResyncTimeStore(fact blobstore.BlobStorageFactory) *LastResyncTimeSt
 	return &LastResyncTimeStore{fact: fact}
 }
 
-func (l *LastResyncTimeStore) Get(network string, gateway string) (uint64, error) {
+func (l *LastResyncTimeStore) Get(network string, gateway string) (uint32, error) {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return uint64(0), errors.Wrapf(err, "error starting transaction")
+		return uint32(0), errors.Wrapf(err, "error starting transaction")
 	}
 	defer store.Rollback()
 
 	blob, err := store.Get(network, storage.TypeAndKey{Type: lastResyncTimeBlobstoreType, Key: gateway})
 	if err == merrors.ErrNotFound {
 		// If this store has never been resynced, return 0 to enforce first resync
-		return uint64(0), nil
+		return uint32(0), nil
 	}
 	if err != nil {
-		return uint64(0), errors.Wrapf(err, "get last resync time of network %+v, gateway %+v from blobstore", network, gateway)
+		return uint32(0), errors.Wrapf(err, "get last resync time of network %+v, gateway %+v from blobstore", network, gateway)
 	}
 
-	lastResyncTime := binary.LittleEndian.Uint64(blob.Value)
+	lastResyncTime := binary.LittleEndian.Uint32(blob.Value)
 	return lastResyncTime, store.Commit()
 }
 
-func (l *LastResyncTimeStore) Set(network string, gateway string, unixTime uint64) error {
+func (l *LastResyncTimeStore) Set(network string, gateway string, unixTime uint32) error {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return errors.Wrapf(err, "error starting transaction")
@@ -63,7 +63,7 @@ func (l *LastResyncTimeStore) Set(network string, gateway string, unixTime uint6
 	defer store.Rollback()
 
 	lastResyncTimeBytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(lastResyncTimeBytes, unixTime)
+	binary.LittleEndian.PutUint32(lastResyncTimeBytes, unixTime)
 	err = store.CreateOrUpdate(network, blobstore.Blobs{{
 		Type:  lastResyncTimeBlobstoreType,
 		Key:   gateway,

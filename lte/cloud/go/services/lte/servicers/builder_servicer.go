@@ -661,12 +661,18 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 	return minSyncInterval
 }
 
-// getRandomizedSyncInterval returns the interval received from getSyncInterval as seconds and increases it by a random
-// delta in the range [0, getSyncInterval() / 5.0]. Increased sync interval ameliorates the thundering herd effect at
-// the orc8r. Delta is deterministic based on gwKey
+// getRandomizedSyncInterval returns the interval received from getSyncInterval
+// as seconds and increases it by a random delta. Increased sync interval
+// ameliorates the thundering herd effect at the orc8r.
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
+	delta := GetSyncIntervalDelta(gwKey, syncInterval)
+	return syncInterval + delta
+}
 
+// GetSyncIntervalDelta returns a delta of the given sync interval in the range
+// [0, syncInterval / 5.0]. Delta is deterministic based on gwKey.
+func GetSyncIntervalDelta(gwKey string, syncInterval uint32) uint32 {
 	// FNV-1 is a non-cryptographic hash function that is fast and very simple to implement
 	h := fnv.New32a()
 	_, err := h.Write([]byte(gwKey))
@@ -675,5 +681,5 @@ func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_mod
 	}
 	multiplier := float32(h.Sum32()%100) / 100.0
 	delta := multiplier * (float32(syncInterval) / 5.0)
-	return syncInterval + uint32(delta)
+	return uint32(delta)
 }
