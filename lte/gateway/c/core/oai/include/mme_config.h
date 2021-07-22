@@ -328,7 +328,7 @@ typedef struct e_dns_config_s {
   struct in_addr sgw_ip_addr[MME_CONFIG_MAX_SGW];
 } e_dns_config_t;
 
-typedef struct sentry_config {
+typedef struct sentry_config_s {
   float sample_rate;
   bool upload_mme_log;
   bstring url_native;
