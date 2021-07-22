@@ -203,6 +203,8 @@ void amf_ue_context_update_coll_keys(
             amf_ue_ngap_id);
       }
       ue_context_p->amf_context.m5_guti = *guti_p;
+      OAILOG_INFO(LOG_AMF_APP, " Tmsi in ue context %x \n",
+		      ue_context_p->amf_context.m5_guti.m_tmsi);
     }
   }
 }
@@ -617,7 +619,7 @@ void amf_app_handle_pdu_session_response(
         (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     amf_sap.u.amf_as.u.establish.guti.m_tmsi =
-        htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+        amf_sap.u.amf_as.u.establish.guti.m_tmsi;
     rc = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
       ue_context->mm_state == REGISTERED_CONNECTED;

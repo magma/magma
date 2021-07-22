@@ -629,11 +629,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
         amf_sap.u.amf_as.u.data.ue_id    = ue_id;
         amf_sap.u.amf_as.u.data.nas_info = AMF_AS_NAS_DATA_REGISTRATION_ACCEPT;
         amf_sap.u.amf_as.u.data.guti     = new (guti_m5_t)();
-        memcpy(
-            amf_sap.u.amf_as.u.data.guti, &(amf_context->m5_guti),
-            sizeof(guti_m5_t));
-        amf_sap.u.amf_as.u.data.guti->m_tmsi =
-            htonl(amf_sap.u.amf_as.u.data.guti->m_tmsi);
+	*(amf_sap.u.amf_as.u.data.guti) = amf_context->m5_guti;
+	OAILOG_INFO(LOG_AMF_APP, " VINAY tmsi %x \n", amf_sap.u.amf_as.u.data.guti->m_tmsi);
       } else {
         /*
          * Notify AMF-AS SAP that Registaration Accept message together
@@ -650,8 +647,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
          * response complete, now assign to amf_sap
          */
         amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
-        amf_sap.u.amf_as.u.establish.guti.m_tmsi =
-            htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+	OAILOG_INFO(LOG_AMF_APP, " VINAY tmsi %x \n", amf_sap.u.amf_as.u.establish.guti.m_tmsi);
       }
 
       rc = amf_sap_send(&amf_sap);
