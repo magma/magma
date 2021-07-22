@@ -156,6 +156,7 @@ def activate_flows(client, args):
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GX),
+        shard_id=args.shard_id,
     )
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.policy_results)
@@ -182,6 +183,7 @@ def activate_gy_redirect(client, args):
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GY),
+        shard_id = args.shard_id
     )
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.policy_results)
@@ -558,6 +560,9 @@ def create_enforcement_parser(apps):
     subcmd.add_argument('--cookie', type=int, default=0)
     subcmd.add_argument('--cookie_mask', type=int, default=0)
     subcmd.set_defaults(func=get_stats_rpc)
+    subcmd = subparsers.add_parser('activate_flows',help='Activate Flows')
+    subcmd.add_argument('--shard_id', type=int, default=0, help = 'desired cookie to query for')
+    subcmd.set_defaults(func=activate_flows)
 
 
 # -------------
