@@ -5,6 +5,7 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - swaggerhub-test
     paths:
       - 'cwf/cloud/**'
       - 'fbinternal/cloud/**'
@@ -16,6 +17,7 @@ on:  # yamllint disable-line rule:truthy
   pull_request:
     branches:
       - master
+      - swaggerhub-test
     paths:
       - 'cwf/cloud/**'
       - 'fbinternal/cloud/**'
@@ -172,6 +174,25 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
+  cloud-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish SwaggerHub API
+        env:
+          MAGMA_ROOT: "${{ github.workspace }}"
+          SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
+        run: |
+          cd ${MAGMA_ROOT}
+          swaggerhub configure
+          swaggerhub api:unpublish MagmaCore/Magma/1.0.0
+          swaggerhub api:create MagmaCore/Magma/1.0.0 --file orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --publish --visibility=public --setdefault
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+
   orc8r-build:
     runs-on: ubuntu-latest
     needs:
