@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/.. --go_out=plugins=grpc,paths=source_relative:./protos *.proto"
+//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/.. --go_out=plugins=grpc,paths=source_relative:. *.proto"
 
 // DB migration script to clean up old magmad config tables.
 // Entries in the network table are migrated from the old network configuration
