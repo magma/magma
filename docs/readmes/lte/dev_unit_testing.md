@@ -1,10 +1,10 @@
 ---
 id: dev_unit_testing
-title: Unit Testing
+title: Test AGW
 hide_title: true
 ---
 
-# Testing Tips
+# Test Access Gateway
 
 This guide covers tips for quickly validating AGW changes.
 
@@ -45,4 +45,39 @@ To run tests for those services, run
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make test_<service_directory_name> # Ex: make test_session_manager
+```
+
+## Format AGW
+
+### Format Python
+
+Docker is required for running the steps below. 
+To use the `--diff` flag, the script will have to be on your host machine where the Magma repository lives.
+Refer to the script at `lte/gateway/python/precommit.py` for all available commands, but the main ones are as follows.
+
+```bash
+cd $MAGMA/lte/gateway/python
+# build the base image
+./precommit.py --build
+
+# un the flake8 linter by specifying paths
+./precommit.py --lint -p PATH1 PATH2
+# run the flake8 linter on all modified files in HEAD vs master
+# this command can only be run on your host
+./precommit.py --lint --diff
+
+# run all available formatters by specifying paths
+./precommit.py --format -p PATH1 PATH2
+# run all available formatters on all modified files in HEAD vs master
+# this command can only be run on your host
+./precommit.py --format --diff
+```
+
+### Format C/C++
+
+To run formatting for each C/C++ services, run
+
+```bash
+[VM] cd magma/lte/gateway
+[VM] make format_<service_directory_name> # Ex: make format_session_manager
 ```
