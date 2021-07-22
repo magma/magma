@@ -42,6 +42,7 @@ jobs:
             python3 build.py --generate
             sudo chown -R $USER $MAGMA_ROOT/*
             git add .
+            echo GIT_STATUS=$(git status) >> $GITHUB_ENV
             git status
             git diff-index --quiet HEAD
       - name: Notify failure to Slack
@@ -51,6 +52,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
           SLACK_USERNAME: "Cloud workflow"
+          SLACK_MESSAGE: "COMMIT MESSAGE:\n ${{github.event.head_commit.message}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
   # Fail if terraform variables, helm charts and orcl is out of sync
