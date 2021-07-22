@@ -171,16 +171,103 @@ class MilenageTests(unittest.TestCase):
             b'\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e'
             b'\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2'
         )
-
         crypto = Milenage(amf)
         self.assertEqual(crypto.generate_opc(key, op), op_c)
         (rand_, xres_, autn_, kasme_) = \
             crypto.generate_eutran_vector(key, op_c, sqn, plmn)
+        
         self.assertEqual(self.rand, rand_)
         self.assertEqual(xres, xres_)
         self.assertEqual(autn, autn_)
         self.assertEqual(kasme, kasme_)
 
+    def test_m5g_xres_star_vector(self):
+        """Can we compute the vector that OAI generates?"""
+        self.rand = (b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b'
+                     b'\x0c\r\x0e\x0f')
+
+        # Inputs extracted from OAI logs
+        key = b'F[\\\xe8\xb1\x99\xb4\x9f\xaa_\n.\xe28\xa6\xbc'
+        sqn = 20672
+        op = 16 * b'\x11'
+        amf = b'\x80\x00'
+        serving_network = "5G:mnc456.mcc222.3gppnetwork.org"
+
+        # Outputs extracted from OAI logs
+        op_c = b'\xc4\xd5\xe49\x91\xb0\xc5Q\xaf\xf8\xb9%<\x131\xab'
+        autn = b'\xba\xb4\x99\xbe\xd2"\x80\x00\xfa)\x93+?1\xde\x05'
+        
+        xres_star = (
+                      b'\x99\xd5\x9fA\xdf\xae2\xbd\xcdG\x13\x94\x0e'
+                      b'\x11svg4\xc2\x0c\xd9\xb8|";.\x07A\xf42\x07\xb5'
+        )
+        crypto = Milenage(amf)
+        self.assertEqual(crypto.generate_opc(key, op), op_c)
+        fiveg_ran_auth_vectors = \
+            crypto.generate_m5gran_vector(key, op_c, sqn, serving_network.encode('utf-8'))
+        self.assertEqual(self.rand, fiveg_ran_auth_vectors.rand)
+        self.assertEqual(xres_star, fiveg_ran_auth_vectors.xres_star)
+        self.assertEqual(autn, fiveg_ran_auth_vectors.autn)
+
+    def test_m5g_kausf_vector(self):
+        """Can we compute the vector that OAI generates?"""
+        self.rand = (b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b'
+                     b'\x0c\r\x0e\x0f')
+
+        # Inputs extracted from OAI logs
+        key = b'F[\\\xe8\xb1\x99\xb4\x9f\xaa_\n.\xe28\xa6\xbc'
+        sqn = 20672
+        op = 16 * b'\x11'
+        amf = b'\x80\x00'
+        serving_network = "5G:mnc456.mcc222.3gppnetwork.org"
+        snni = serving_network.encode('utf-8')
+
+        # Outputs extracted from OAI logs
+        op_c = b'\xc4\xd5\xe49\x91\xb0\xc5Q\xaf\xf8\xb9%<\x131\xab'
+        autn = b'\xba\xb4\x99\xbe\xd2"\x80\x00\xfa)\x93+?1\xde\x05'
+        kausf= (
+                b'\xed\x08\xc3Z\x0b\x93\x88\xdfr\x9a\x9a6\x80e\xd91'
+                b'\x9a\x12\x14\x95g\x9c1\xe6\xcd\x14(\xd0W$\x10\xac'
+        )        
+        crypto = Milenage(amf)
+        self.assertEqual(crypto.generate_opc(key, op), op_c)
+        fiveg_ran_auth_vectors = \
+            crypto.generate_m5gran_vector(key, op_c, sqn, snni)
+        self.assertEqual(self.rand, fiveg_ran_auth_vectors.rand)
+        self.assertEqual(autn, fiveg_ran_auth_vectors.autn)
+
+        ck = Milenage.f3(key, self.rand, op_c) 
+        ik = Milenage.f4(key, self.rand, op_c) 
+
+        kausf_ = crypto.generate_m5g_kausf(ck + ik, snni, autn)
+        self.assertEqual(kausf, kausf_)
+
+    def test_m5g_kseaf_vector(self):
+        """Can we compute the vector that OAI generates?"""
+        self.rand = (b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b'
+                     b'\x0c\r\x0e\x0f')
+
+        # Inputs extracted from OAI logs
+        key = b'F[\\\xe8\xb1\x99\xb4\x9f\xaa_\n.\xe28\xa6\xbc'
+        sqn = 20672
+        op = 16 * b'\x11'
+        amf = b'\x80\x00'
+        serving_network = "5G:mnc456.mcc222.3gppnetwork.org"
+
+        # Outputs extracted from OAI logs
+        op_c = b'\xc4\xd5\xe49\x91\xb0\xc5Q\xaf\xf8\xb9%<\x131\xab'
+        autn = b'\xba\xb4\x99\xbe\xd2"\x80\x00\xfa)\x93+?1\xde\x05'
+        kseaf = (
+                  b'\x15\xb9\xf0 M\\C\xcbJt\xc9\xa3\xf8\xab\xa5\xafNV'
+                  b'\xc4\xc6eG\xf4\x13\xa7\x99\xcc\xf0\xd6[T`'
+        )
+        crypto = Milenage(amf)
+        self.assertEqual(crypto.generate_opc(key, op), op_c)
+        fiveg_ran_auth_vectors = \
+            crypto.generate_m5gran_vector(key, op_c, sqn, serving_network.encode('utf-8'))
+        self.assertEqual(self.rand, fiveg_ran_auth_vectors.rand)
+        self.assertEqual(autn, fiveg_ran_auth_vectors.autn)
+        self.assertEqual(kseaf, fiveg_ran_auth_vectors.kseaf)
 
 if __name__ == "__main__":
     unittest.main()
