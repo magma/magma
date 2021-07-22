@@ -86,7 +86,7 @@ func (m *Network) Validate(formats strfmt.Registry) error {
 
 func (m *Network) validateDescription(formats strfmt.Registry) error {
 
-	if err := validate.Required("description", "body", NetworkDescription(m.Description)); err != nil {
+	if err := validate.Required("description", "body", models1.NetworkDescription(m.Description)); err != nil {
 		return err
 	}
 
@@ -137,7 +137,7 @@ func (m *Network) validateFeatures(formats strfmt.Registry) error {
 
 func (m *Network) validateID(formats strfmt.Registry) error {
 
-	if err := validate.Required("id", "body", NetworkID(m.ID)); err != nil {
+	if err := validate.Required("id", "body", models1.NetworkID(m.ID)); err != nil {
 		return err
 	}
 
@@ -153,7 +153,7 @@ func (m *Network) validateID(formats strfmt.Registry) error {
 
 func (m *Network) validateName(formats strfmt.Registry) error {
 
-	if err := validate.Required("name", "body", NetworkName(m.Name)); err != nil {
+	if err := validate.Required("name", "body", models1.NetworkName(m.Name)); err != nil {
 		return err
 	}
 

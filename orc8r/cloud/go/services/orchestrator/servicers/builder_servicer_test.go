@@ -64,6 +64,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				Images:                  nil,
 				DynamicServices:         nil,
 				FeatureFlags:            nil,
+				TierId:                  "",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -71,6 +72,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				ThrottleRate:     1000,
 				ThrottleWindow:   5,
 				ThrottleInterval: "1m",
+				FilesByTag:       nil,
 			},
 			"eventd": &mconfig_protos.EventD{
 				LogLevel:       protos.LogLevel_INFO,
@@ -80,7 +82,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected["control_proxy"].String(), actual["control_proxy"].String())
+		assert.Equal(t, expected["magmad"].String(), actual["magmad"].String())
+		assert.Equal(t, expected["metricsd"].String(), actual["metricsd"].String())
+		assert.Equal(t, expected["td-agent-bit"].String(), actual["td-agent-bit"].String())
+		assert.Equal(t, expected["eventd"].String(), actual["eventd"].String())
 	})
 
 	// Put a tier in the graph
@@ -98,12 +104,14 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				FeatureFlags:            map[string]bool{},
 			},
 		}
+
+		tierVersion := models.TierVersion("1.0.0-0")
 		tier := configurator.NetworkEntity{
 			Type: orc8r.UpgradeTierEntityType,
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &tierVersion,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},
@@ -148,7 +156,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected["control_proxy"].String(), actual["control_proxy"].String())
+		assert.Equal(t, expected["magmad"].String(), actual["magmad"].String())
+		assert.Equal(t, expected["metricsd"].String(), actual["metricsd"].String())
+		assert.Equal(t, expected["td-agent-bit"].String(), actual["td-agent-bit"].String())
+		assert.Equal(t, expected["eventd"].String(), actual["eventd"].String())
 	})
 
 	t.Run("set list of files for log aggregation", func(t *testing.T) {
@@ -181,12 +193,13 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 			},
 		}
+		tierVersion := models.TierVersion("1.0.0-0")
 		tier := configurator.NetworkEntity{
 			Type: orc8r.UpgradeTierEntityType,
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &tierVersion,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},
@@ -235,7 +248,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected["control_proxy"].String(), actual["control_proxy"].String())
+		assert.Equal(t, expected["magmad"].String(), actual["magmad"].String())
+		assert.Equal(t, expected["metricsd"].String(), actual["metricsd"].String())
+		assert.Equal(t, expected["td-agent-bit"].String(), actual["td-agent-bit"].String())
+		assert.Equal(t, expected["eventd"].String(), actual["eventd"].String())
 	})
 
 	t.Run("check default values for log throttling", func(t *testing.T) {
@@ -261,12 +278,13 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 			},
 		}
+		tierVersion := models.TierVersion("1.0.0-0")
 		tier := configurator.NetworkEntity{
 			Type: orc8r.UpgradeTierEntityType,
 			Key:  "default",
 			Config: &models.Tier{
 				Name:    "default",
-				Version: "1.0.0-0",
+				Version: &tierVersion,
 				Images: []*models.TierImage{
 					{Name: swag.String("Image1"), Order: swag.Int64(42)},
 					{Name: swag.String("Image2"), Order: swag.Int64(1)},
@@ -315,7 +333,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected["control_proxy"].String(), actual["control_proxy"].String())
+		assert.Equal(t, expected["magmad"].String(), actual["magmad"].String())
+		assert.Equal(t, expected["metricsd"].String(), actual["metricsd"].String())
+		assert.Equal(t, expected["td-agent-bit"].String(), actual["td-agent-bit"].String())
+		assert.Equal(t, expected["eventd"].String(), actual["eventd"].String())
 	})
 }
 

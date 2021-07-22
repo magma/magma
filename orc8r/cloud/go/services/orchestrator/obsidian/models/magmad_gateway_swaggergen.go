@@ -88,7 +88,7 @@ func (m *MagmadGateway) Validate(formats strfmt.Registry) error {
 
 func (m *MagmadGateway) validateDescription(formats strfmt.Registry) error {
 
-	if err := validate.Required("description", "body", GatewayDescription(m.Description)); err != nil {
+	if err := validate.Required("description", "body", models1.GatewayDescription(m.Description)); err != nil {
 		return err
 	}
 
@@ -122,7 +122,7 @@ func (m *MagmadGateway) validateDevice(formats strfmt.Registry) error {
 
 func (m *MagmadGateway) validateID(formats strfmt.Registry) error {
 
-	if err := validate.Required("id", "body", GatewayID(m.ID)); err != nil {
+	if err := validate.Required("id", "body", models1.GatewayID(m.ID)); err != nil {
 		return err
 	}
 
@@ -156,7 +156,7 @@ func (m *MagmadGateway) validateMagmad(formats strfmt.Registry) error {
 
 func (m *MagmadGateway) validateName(formats strfmt.Registry) error {
 
-	if err := validate.Required("name", "body", GatewayName(m.Name)); err != nil {
+	if err := validate.Required("name", "body", models1.GatewayName(m.Name)); err != nil {
 		return err
 	}
 

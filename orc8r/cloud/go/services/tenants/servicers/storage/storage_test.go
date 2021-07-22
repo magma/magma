@@ -91,10 +91,11 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 
 	retTenants, err := s.GetAllTenants()
 	assert.NoError(t, err)
-	assert.Equal(t, &protos.TenantList{Tenants: []*protos.IDAndTenant{
+	expected := &protos.TenantList{Tenants: []*protos.IDAndTenant{
 		{Id: 0, Tenant: &sampleTenant0},
 		{Id: 1, Tenant: &sampleTenant1},
-	}}, retTenants)
+	}}
+	assert.Equal(t, expected.String(), retTenants.String())
 
 	// Error in ListKeys
 	txStore, s = setupTestStore()

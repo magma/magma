@@ -117,7 +117,7 @@ func Test_CreateReleaseChannel(t *testing.T) {
 		Payload:        tests.JSONMarshaler(&models.ReleaseChannel{ID: "", SupportedVersions: []string{"1-2-3-4"}}),
 		Handler:        createChannel,
 		ExpectedStatus: 400,
-		ExpectedError:  "validation failure list:\nid in body should be at least 1 chars long",
+		ExpectedError:  "validation failure list:\nid in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -222,6 +222,7 @@ func Test_Tiers(t *testing.T) {
 	e := echo.New()
 	tiersRoot := "/magma/v1/networks/:network_id/tiers"
 	manageTiers := tiersRoot + "/:tier_id"
+	tierVersion := models.TierVersion("1.2.3.4")
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	listTiers := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, tiersRoot, obsidian.GET).HandlerFunc
 	createTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, tiersRoot, obsidian.POST).HandlerFunc
@@ -252,30 +253,25 @@ func Test_Tiers(t *testing.T) {
 		URL:            tiersRoot,
 		Handler:        createTier,
 		ExpectedStatus: 400,
-		ExpectedError: "validation failure list:\n" +
-			"gateways in body is required\n" +
-			"id in body should match '^[a-z][\\da-z_]+$'\n" +
-			"images in body is required\n" +
-			"version in body should be at least 1 chars long",
+		ExpectedError:  "validation failure list:\ngateways in body is required\nid in body should match '^[a-z][\\da-z_]+$'\nimages in body is required\nversion in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
-
 	// gateway does not exist
 	tc = tests.Test{
 		Method:         "POST",
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Payload:        &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: "1.2.3.4"},
+		Payload:        &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: &tierVersion},
 		URL:            tiersRoot,
 		Handler:        createTier,
 		ExpectedStatus: 500,
-		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\" key:\"g1\" ]",
+		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\"  key:\"g1\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// happy case create
 	test_utils.RegisterGateway(t, "n1", "g1", nil)
-	tier := &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: "1.2.3.4"}
+	tier := &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: &tierVersion}
 	tc = tests.Test{
 		Method:         "POST",
 		ParamNames:     []string{"network_id"},
@@ -438,6 +434,7 @@ func TestPartialTierReads(t *testing.T) {
 	e := echo.New()
 	tiersRoot := "/magma/v1/networks/:network_id/tiers"
 	manageTiers := tiersRoot + "/:tier_id"
+	tierVersion := models.TierVersion("1-1-1-1")
 
 	// register a network, gateways and a tier
 	test_utils.RegisterNetwork(t, "n1", "network 1")
@@ -447,7 +444,7 @@ func TestPartialTierReads(t *testing.T) {
 		ID:       models.TierID("tier1"),
 		Images:   models.TierImages{{Name: swag.String("image1"), Order: swag.Int64(0)}},
 		Name:     "tier 1",
-		Version:  "1-1-1-1",
+		Version:  &tierVersion,
 	}
 
 	_, err := configurator.CreateEntity(
@@ -535,6 +532,7 @@ func TestPartialTierUpdates(t *testing.T) {
 	e := echo.New()
 	tiersRoot := "/magma/v1/networks/:network_id/tiers"
 	manageTiers := tiersRoot + "/:tier_id"
+	tierVersion := models.TierVersion("1-1-1-1")
 
 	// register a network, gateways and a tier
 	test_utils.RegisterNetwork(t, "n1", "network 1")
@@ -546,7 +544,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		ID:       models.TierID("tier1"),
 		Images:   models.TierImages{{Name: swag.String("image1"), Order: swag.Int64(0)}},
 		Name:     "tier 1",
-		Version:  "1-1-1-1",
+		Version:  &tierVersion,
 	}
 
 	_, err := configurator.CreateEntity(
@@ -612,7 +610,8 @@ func TestPartialTierUpdates(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	tier.Version = "2-2-2-2"
+	tierVersion2 := models.TierVersion("2-2-2-2")
+	tier.Version = &tierVersion2
 	expectedTier = configurator.NetworkEntity{
 		NetworkID: "n1",
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
@@ -778,7 +777,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		ParamNames:     []string{"network_id", "tier_id"},
 		ParamValues:    []string{"n1", "tier1"},
 		ExpectedStatus: 500,
-		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\" key:\"g4\" ]",
+		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\"  key:\"g4\"]",
 	}
 	tests.RunUnitTest(t, e, tc)
 

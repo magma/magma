@@ -235,9 +235,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1),
 		Handler:        createNetwork,
 		ExpectedStatus: 400,
-		ExpectedError: "validation failure list:\n" +
-			"description in body should be at least 1 chars long\n" +
-			"name in body should be at least 1 chars long",
+		ExpectedError:  "validation failure list:\ndescription in body is required\nname in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 

@@ -43,7 +43,7 @@ func TestJSONMapToProtobufStruct(t *testing.T) {
 	actualProtobufStruct, err := models.JSONMapToProtobufStruct(jsonMap)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtobufStruct, actualProtobufStruct)
+	assert.Equal(t, expectedProtobufStruct.String(), actualProtobufStruct.String())
 }
 
 func TestProtobufStructToJSONMap(t *testing.T) {
