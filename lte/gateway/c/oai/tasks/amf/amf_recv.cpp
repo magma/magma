@@ -74,8 +74,11 @@ int amf_handle_service_request(
           ue_id);
     }
   } else {
-    OAILOG_INFO(LOG_NAS_AMF, "TMSI not matched for "
-		"(ue_id=" AMF_UE_NGAP_ID_FMT ")\n", ue_id);
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "TMSI not matched for "
+        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+        ue_id);
 
     // Send prepare and send reject message.
   }
@@ -99,9 +102,11 @@ int amf_handle_registration_request(
    * Handle message checking error
    */
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
-  if (amf_cause != AMF_CAUSE_SUCCESS) {
+  if (amf_cause == AMF_CAUSE_SUCCESS) {
+    amf_cause = AMF_CAUSE_SUCCESS;
+    OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT  message\n");
     rc = amf_proc_registration_reject(ue_id, amf_cause);
-    OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   amf_registration_request_ies_t* params =
       new (amf_registration_request_ies_t)();

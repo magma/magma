@@ -244,12 +244,12 @@ int amf_proc_registration_reject(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc                 = RETURNerror;
   amf_context_t* amf_ctx = amf_context_get(ue_id);
-  nas_amf_registration_proc_t* registration_proc =
-      (nas_amf_registration_proc_t*) (amf_ctx->amf_procedures
-                                          ->amf_specific_proc);
-  registration_proc->amf_cause = amf_cause;
   if (amf_ctx) {
     if (is_nas_specific_procedure_registration_running(amf_ctx)) {
+      nas_amf_registration_proc_t* registration_proc =
+          (nas_amf_registration_proc_t*) (amf_ctx->amf_procedures
+                                              ->amf_specific_proc);
+      registration_proc->amf_cause = amf_cause;
       rc = amf_registration_reject(amf_ctx, registration_proc);
       amf_sap_t amf_sap;
       amf_sap.primitive                   = AMFREG_REGISTRATION_REJ;
@@ -260,7 +260,11 @@ int amf_proc_registration_reject(
       amf_sap.u.amf_reg.u.registered.proc = registration_proc;
       rc                                  = amf_sap_send(&amf_sap);
     } else {
-      rc = amf_registration_reject(amf_ctx, registration_proc);
+      nas_amf_registration_proc_t no_registration_proc = {0};
+      no_registration_proc.ue_id                       = ue_id;
+      no_registration_proc.amf_cause                   = amf_cause;
+      no_registration_proc.amf_msg_out                 = NULL;
+      rc = amf_registration_reject(amf_ctx, &no_registration_proc);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -287,7 +291,7 @@ static int amf_registration_reject(
    * Notify AMF-AS SAP that Registration Reject message has to be sent
    * onto the network
    */
-  amf_sap.primitive                      = AMFREG_REGISTRATION_REJ;
+  amf_sap.primitive                      = AMFAS_ESTABLISH_REJ;
   amf_sap.u.amf_as.u.establish.ue_id     = registration_proc->ue_id;
   amf_sap.u.amf_as.u.establish.amf_cause = registration_proc->amf_cause;
   amf_sap.u.amf_as.u.establish.nas_info  = AMF_AS_NAS_INFO_REGISTERD;
@@ -705,8 +709,9 @@ static int registration_accept_t3550_handler(
 
   if (registration_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3550: timer id: %d expired for"
-	"ue_id=" AMF_UE_NGAP_ID_FMT "\n",
+        LOG_AMF_APP,
+        "T3550: timer id: %d expired for"
+        "ue_id=" AMF_UE_NGAP_ID_FMT "\n",
         registration_proc->T3550.id, registration_proc->ue_id);
 
     registration_proc->retransmission_count += 1;
@@ -779,8 +784,11 @@ int amf_proc_registration_complete(amf_context_t* amf_ctx) {
       amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_GUTI);
     }
   } else {
-    OAILOG_WARNING(LOG_NAS_AMF, "UE Context not found for "
-		                "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n", ue_id);
+    OAILOG_WARNING(
+        LOG_NAS_AMF,
+        "UE Context not found for "
+        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+        ue_id);
     OAILOG_DEBUG(
         LOG_NAS_AMF, " REGISTRATION COMPLETE discarded (context not found)\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
