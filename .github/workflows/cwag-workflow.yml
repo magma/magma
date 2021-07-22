@@ -150,12 +150,32 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run docker compose
+        id: cwag-docker-compose
+        continue-on-error: true
         # yamllint disable rule:line-length
         env:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
           docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+      - name: Retry docker compose on failure
+        id: retry-cwag-docker-compose
+        continue-on-error: true
+        if: steps.cwag-docker-compose.outcome=='failure'
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+      - name: Set the job status
+        if: always()
+        run: |
+          if ${{ steps.cwag-docker-compose.outcome=='success' || steps.retry-cwag-docker-compose.outcome=='success' }}; then
+             echo "Docker compose completed successfully"
+          else
+             echo "Docker compose failed"
+             exit 1
+          fi
       - name: Tag and push to Docker Registry
         if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         env:
