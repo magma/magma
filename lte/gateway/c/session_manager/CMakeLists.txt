@@ -177,8 +177,8 @@ add_library(SESSION_MANAGER
     AmfServiceClient.cpp
     Utilities.cpp
     Utilities.h
-    UEShard.cpp
-    UEShard.h
+    ShardTracker.cpp
+    ShardTracker.h
     OperationalStatesHandler.cpp
     OperationalStatesHandler.h
     Types.h

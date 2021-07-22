@@ -210,7 +210,7 @@ class PipelinedClient {
   virtual uint32_t get_current_teid() = 0;
 
   virtual void poll_stats(
-      std::vector<int> shard_ids,
+      int cookie, int cookie_mask,
       std::function<void(Status, RuleRecordTable)> callback) = 0;
 };
 
@@ -301,7 +301,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * */
 
   void poll_stats(
-      std::vector<int> shard_ids,
+      int cookie, int cookie_mask,
       std::function<void(Status, RuleRecordTable)> callback);
 
   uint32_t get_next_teid();

@@ -19,6 +19,7 @@
 #include "ProtobufCreators.h"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
+#define OVS_COOKIE_MATCH_ALL 0xffffffff
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -118,13 +119,30 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
 
   local_enforcer->aggregate_records(session_map, table, update);
 
-  std::vector<int> shard_ids{0};
-  EXPECT_CALL(*pipelined_client, poll_stats(shard_ids, testing::_)).Times(1);
-  local_enforcer->poll_stats_enforcer(shard_ids);
+  int cookie      = 0;
+  int cookie_mask = 0;
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
+      .Times(1);
+  local_enforcer->poll_stats_enforcer({});
 
-  std::vector<int> shard_ids2{1};
-  EXPECT_CALL(*pipelined_client, poll_stats(shard_ids2, testing::_)).Times(1);
-  local_enforcer->poll_stats_enforcer(shard_ids2);
+  cookie      = 1;
+  cookie_mask = OVS_COOKIE_MATCH_ALL;
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
+      .Times(1);
+  local_enforcer->poll_stats_enforcer({1});
+
+  cookie      = 0;
+  cookie_mask = OVS_COOKIE_MATCH_ALL;
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
+      .Times(1);
+  local_enforcer->poll_stats_enforcer({0});
+
+  std::vector<int> shards = {0, 1, 4};
+  for (size_t i = 0; i < shards.size(); i++){
+    EXPECT_CALL(*pipelined_client, poll_stats(shards[i], OVS_COOKIE_MATCH_ALL, testing::_))
+      .Times(1);
+  }
+  local_enforcer->poll_stats_enforcer(shards);
 }
 
 int main(int argc, char** argv) {
