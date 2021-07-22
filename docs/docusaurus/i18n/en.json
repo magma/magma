@@ -253,6 +253,9 @@
       "nms/dev_spacing": {
         "title": "Spacing Guidelines"
       },
+      "nms/dev_testing": {
+        "title": "Test NMS"
+      },
       "nms/dev_themes": {
         "title": "Themes"
       },

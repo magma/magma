@@ -220,6 +220,12 @@
 #define MME_CONFIG_STRING_TAC_LIST_PER_SAC "TACS_PER_SAC"
 #define MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP "SRVC_AREA_CODE_2_TACS_MAP"
 
+// SENTRY CONFIGURATION
+#define MME_CONFIG_STRING_SENTRY_CONFIG "SENTRY_CONFIG"
+#define MME_CONFIG_STRING_SAMPLE_RATE "SAMPLE_RATE"
+#define MME_CONFIG_STRING_UPLOAD_MME_LOG "UPLOAD_MME_LOG"
+#define MME_CONFIG_STRING_URL_NATIVE "URL_NATIVE"
+
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
 typedef struct eps_network_feature_config_s {
@@ -322,6 +328,12 @@ typedef struct e_dns_config_s {
   struct in_addr sgw_ip_addr[MME_CONFIG_MAX_SGW];
 } e_dns_config_t;
 
+typedef struct sentry_config_s {
+  float sample_rate;
+  bool upload_mme_log;
+  bstring url_native;
+} sentry_config_t;
+
 typedef struct gummei_config_s {
   int nb;
   gummei_t gummei[MAX_GUMMEI];
@@ -402,6 +414,7 @@ typedef struct mme_config_s {
   sgs_config_t sgs_config;
   log_config_t log_config;
   e_dns_config_t e_dns_emulation;
+  sentry_config_t sentry_config;
 
   ip_t ip;
 

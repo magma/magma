@@ -24,10 +24,10 @@ from lte.protos.subscriberdb_pb2 import (
 from magma.subscriberdb import processor
 from magma.subscriberdb.crypto.milenage import BaseLTEAuthAlgo, Milenage
 from magma.subscriberdb.crypto.utils import CryptoError
+from magma.subscriberdb.crypto.lte import FiveGRanAuthVector
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 from magma.subscriberdb.store.sqlite import SqliteStore
-
 
 def _dummy_auth_tuple():
     rand = b'ni\x89\xbel\xeeqTT7p\xae\x80\xb1\xef\r'
@@ -56,6 +56,19 @@ def _dummy_resync_vector():
 def _dummy_opc():
     return b'\x66\xe9\x4b\xd4\xef\x8a\x2c\x3b\x88\x4c\xfa\x59\xca\x34\x2b\x2e'
 
+def _dummy_m5gran_vector():
+    rand = b'u\x96=\x9d\xef\xa4\x15\x0e\x95\x852\xcd\xb8$\xb1\xc1'
+    xres_star = (
+        b'\xe5\xf2u\x80\\M\xaf}\x82P\xfe?\xb7\xd6\x80jkX8a\x8bP'
+        b'\x07\x05\xcbY\xdd}]\xf4\xb2%'
+    )
+    autn = b'Y\xa5o\x867\xff\x80\x00~kI\x8e\xd4\xab\x0f\xee'
+    kseaf = (
+        b'\t\xc1,\x15\x14%\xbe\xe1/\xe4IT\x7f\xae\xa6\xecT\xcf'
+        b'\xacm#\xbbf|\xebu\rG#\x8b\x04\xd3'
+    )    
+       
+    return FiveGRanAuthVector(rand, xres_star, autn, kseaf)
 
 class FakeMilenage(BaseLTEAuthAlgo):
     # pylint:disable=unused-argument
@@ -66,6 +79,10 @@ class FakeMilenage(BaseLTEAuthAlgo):
         # AMF should be zeros for resync
         assert self.amf == b'\x00\x00'
         return _dummy_resync_vector()
+
+    # pylint:disable=unused-argument
+    def generate_m5gran_vector(self, key, opc, sqn, snni):
+        return _dummy_m5gran_vector()
 
     @classmethod
     def generate_opc(cls, key, op):
@@ -370,6 +387,32 @@ class ProcessorTests(unittest.TestCase):
             self._default_sub_profile,
         )
 
+    def test_m5g_auth_success(self):
+        """
+        Test if we get the auth vector
+        """
+        m5Gran_vector = _dummy_m5gran_vector()
+        self.assertEqual(
+            self._processor.generate_m5g_auth_vector(
+                '11111',
+                3 * b'\x00',
+            ),
+            m5Gran_vector,
+        )
+
+    def test_m5g_auth_success_opc(self):
+        """
+        Test if we get the auth vector using passed OPc
+        """
+        m5Gran_vector = _dummy_m5gran_vector()
+        self.assertEqual(
+            self._processor.generate_m5g_auth_vector(
+                '44444',
+                3 * b'\x00',
+            ),
+            m5Gran_vector,
+        )
 
 if __name__ == "__main__":
     unittest.main()
+

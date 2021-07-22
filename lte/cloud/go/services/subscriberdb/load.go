@@ -67,7 +67,7 @@ func LoadSubProtosByID(
 	sids []string, networkID string,
 	apnsByName map[string]*lte_models.ApnConfiguration,
 	apnResourcesByAPN lte_models.ApnResources,
-) (map[string]*lte_protos.SubscriberData, error) {
+) ([]*lte_protos.SubscriberData, error) {
 	lc := configurator.EntityLoadCriteria{
 		LoadConfig:         true,
 		LoadAssocsToThis:   true,
@@ -80,21 +80,19 @@ func LoadSubProtosByID(
 		lc, serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Load added/modified subscriber entities")
+		return nil, errors.Wrap(err, "load added/modified subscriber entities")
 	}
 
-	subProtosById := map[string]*lte_protos.SubscriberData{}
+	subProtos := []*lte_protos.SubscriberData{}
 	for _, subEnt := range subEnts {
 		subProto, err := ConvertSubEntsToProtos(subEnt, apnsByName, apnResourcesByAPN)
 		if err != nil {
-			return nil, errors.Wrapf(err, "convert subscriber entity into proto object")
+			return nil, errors.Wrap(err, "convert subscriber entity into proto object")
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
-
-		sid := lte_protos.SidString(subProto.Sid)
-		subProtosById[sid] = subProto
+		subProtos = append(subProtos, subProto)
 	}
-	return subProtosById, nil
+	return subProtos, nil
 }
 
 func LoadApnsByName(networkID string) (map[string]*lte_models.ApnConfiguration, error) {

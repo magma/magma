@@ -62,7 +62,7 @@ func (l *PerSubDigestStore) GetDigest(network string) ([]*lte_protos.SubscriberD
 	perSubDigests := &protos.SubscriberDigestWithIDs{}
 	err = proto.Unmarshal(blob.Value, perSubDigests)
 	if err != nil {
-		return nil, errors.Wrapf(err, "deserialize per-sub digests")
+		return nil, errors.Wrapf(err, "deserialize per-sub digests of network %+v from blobstore", network)
 	}
 
 	return perSubDigests.Digests, store.Commit()
@@ -72,7 +72,7 @@ func (l *PerSubDigestStore) GetDigest(network string) ([]*lte_protos.SubscriberD
 func (l *PerSubDigestStore) SetDigest(network string, digests []*lte_protos.SubscriberDigestWithID) error {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return errors.Wrapf(err, "error starting transaction")
+		return errors.Wrap(err, "error starting transaction")
 	}
 	defer store.Rollback()
 
@@ -81,7 +81,7 @@ func (l *PerSubDigestStore) SetDigest(network string, digests []*lte_protos.Subs
 	// of writes to the store.
 	blobValueSerialized, err := proto.Marshal(&protos.SubscriberDigestWithIDs{Digests: digests})
 	if err != nil {
-		return errors.Wrapf(err, "serialize per-sub digests")
+		return errors.Wrapf(err, "serialize per-sub digests of network %+v", network)
 	}
 	err = store.CreateOrUpdate(perSubDigestBlobstoreNetworkKey, blobstore.Blobs{{
 		Type:  perSubDigestBlobstoreType,
@@ -99,7 +99,7 @@ func (l *PerSubDigestStore) SetDigest(network string, digests []*lte_protos.Subs
 func (l *PerSubDigestStore) DeleteDigests(networks []string) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrapf(err, "error starting transaction")
+		return errors.Wrap(err, "error starting transaction")
 	}
 	defer store.Rollback()
 
@@ -115,7 +115,7 @@ func (l *PerSubDigestStore) DeleteDigests(networks []string) error {
 	}
 
 	if errs.ErrorOrNil() != nil {
-		return errors.Wrapf(errs, "delete per-sub digests from blobstore")
+		return errors.Wrapf(errs, "delete per-sub digests of networks %+v from blobstore", networks)
 	}
 	return store.Commit()
 }
