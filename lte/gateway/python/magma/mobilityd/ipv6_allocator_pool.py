@@ -49,7 +49,6 @@ class IPv6AllocatorPool(IPAllocator):
         if self._assigned_ip_block and ipblock.overlaps(
                 self._assigned_ip_block,
         ):
-            logging.warning("Overlapped IP block: %s", ipblock)
             raise OverlappedIPBlocksError(ipblock)
 
         if ipblock.prefixlen > MAX_IPV6_CONF_PREFIX_LEN:
