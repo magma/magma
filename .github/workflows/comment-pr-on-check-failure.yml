@@ -53,14 +53,14 @@ jobs:
         run: |
           echo "Oops! Looks like you failed the \`Python Format Check\`.
           ### Howto
-          - [Instructions on running the formatter locally are provided](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit).
+          - [Instructions on running the formatter locally are provided](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Semantic PR comment message
         if: ${{ github.event.workflow.name == 'Semantic PR' }}
         run: |
           echo "Oops! Looks like you failed the \`Semantic PR check\`.
           ### Howto
-          - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines).
+          - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Comment on PR
         uses: actions/github-script@v3
