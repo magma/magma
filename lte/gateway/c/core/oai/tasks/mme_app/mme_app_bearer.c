@@ -903,7 +903,6 @@ void mme_app_handle_delete_session_rsp(
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
 
-#if EMBEDDED_SGW
   pdn_cid_t pid =
       ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
           ->pdn_cx_id;
@@ -918,11 +917,7 @@ void mme_app_handle_delete_session_rsp(
         (pdn_context)->paa.ipv4_address.s_addr,
         ue_context_p->emm_context._imsi64);
   }
-#endif
   if (ue_context_p->emm_context.new_attach_info) {
-    pdn_cid_t pid =
-        ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
-            ->pdn_cx_id;
     int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
     eps_bearer_release(
         &ue_context_p->emm_context, delete_sess_resp_pP->lbi, &pid,
@@ -1173,7 +1168,6 @@ status_code_e mme_app_handle_create_sess_resp(
             &ue_context_p->pdn_contexts[pdn_cx_id]->paa,
             &create_sess_resp_pP->paa, sizeof(paa_t));
         // TODO Add Ipv6 support for initiating paging
-#if EMBEDDED_SGW
         if ((create_sess_resp_pP->paa.pdn_type == IPv4) ||
             (create_sess_resp_pP->paa.pdn_type == IPv4_AND_v6) ||
             (create_sess_resp_pP->paa.pdn_type == IPv4_OR_v6)) {
@@ -1185,7 +1179,6 @@ status_code_e mme_app_handle_create_sess_resp(
               create_sess_resp_pP->paa.ipv4_address.s_addr,
               ue_context_p->emm_context._imsi64);
         }
-#endif
       }
       transaction_identifier = current_bearer_p->transaction_identifier;
     }
