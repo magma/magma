@@ -6,101 +6,101 @@ services:
   # "-" is used as a delimiter in dispatcher to parse out service names.
 
   hello:
-    ip_address: 127.0.0.1
+    ip_address: hello
     port: 50050
   magmad:
-    ip_address: 127.0.0.1
+    ip_address: magmad
     port: 50052
   control_proxy:
-    ip_address: 127.0.0.1
+    ip_address: control_proxy
     port: 50053
   subscriberdb:
-    ip_address: 127.0.0.1
+    ip_address: subscriberdb
     port: 50051
   mobilityd:
-    ip_address: 127.0.0.1
+    ip_address: mobilityd
     port: 60051
   enodebd:
-    ip_address: 127.0.0.1
+    ip_address: enodebd
     port: 60055
   mme:
-    ip_address: 127.0.0.1
+    ip_address: mme
     port: 50061
   spgw:
-    ip_address: 127.0.0.1
+    ip_address: spgw
     port: 50062
   pipelined:
-    ip_address: 127.0.0.1
+    ip_address: pipelined
     port: 50063
   sessiond:
-    ip_address: 127.0.0.1
+    ip_address: sessiond
     port: 50065
   abort_session_service:
-    ip_address: 127.0.0.1
+    ip_address: abort_session_service
     port: 50065
   test_service:
-    ip_address: 127.0.0.1
+    ip_address: test_service
     port: 50066
   directoryd:
-    ip_address: 127.0.0.1
+    ip_address: directoryd
     port: 50067
   policydb:
-    ip_address: 127.0.0.1
+    ip_address: policydb
     port: 50068
   vpnservice:
-    ip_address: 127.0.0.1
+    ip_address: vpnservice
     port: 50070
   redirectd:
-    ip_address: 127.0.0.1
+    ip_address: redirectd
     port: 50071
   sgs_service:
-    ip_address: 127.0.0.1
+    ip_address: sgs_service
     port: 50073
   sms_mme_service:
-    ip_address: 127.0.0.1
+    ip_address: sms_mme_service
     port: 50073
   s1ap_service:
-    ip_address: 127.0.0.1
+    ip_address: s1ap_service
     port: 50073
   s6a_service:
-    ip_address: 127.0.0.1
+    ip_address: s6a_service
     port: 50073
   spgw_service:
-    ip_address: 127.0.0.1
+    ip_address: spgw_service
     port: 50073
   amf_service:
-    ip_address: 127.0.0.1
+    ip_address: amf_service
     port: 50073
   ha_service:
-    ip_address: 127.0.0.1
+    ip_address: ha_service
     port: 50073
   state:
-    ip_address: 127.0.0.1
+    ip_address: state
     port: 50074
   eventd:
-    ip_address: 127.0.0.1
+    ip_address: eventd
     port: 50075
   monitord:
-    ip_address: 127.0.0.1
+    ip_address: monitord
     port: 50076
   dpid:
-    ip_address: 127.0.0.1
+    ip_address: dpid
     port: 50077
   smsd:
-    ip_address: 127.0.0.1
+    ip_address: smsd
     port: 50078
   ctraced:
-    ip_address: 127.0.0.1
+    ip_address: ctraced
     port: 50079
   health:
-    ip_address: 127.0.0.1
+    ip_address: health
     port: 50080
   envoy_controller:
-    ip_address: 127.0.0.1
+    ip_address: envoy_controller
     port: 50081
   connectiond:
-    ip_address: 127.0.0.1
+    ip_address: connectiond
     port: 50082
   liagentd:
-    ip_address: 127.0.0.1
+    ip_address: liagentd
     port: 50083

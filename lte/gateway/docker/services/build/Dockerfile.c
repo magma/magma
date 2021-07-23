@@ -8,4 +8,4 @@ RUN git clone https://github.com/magma/magma.git && \
 
 WORKDIR /magma/lte/gateway
 
-RUN make build_common build_oai build_sctpd build_session_manager
+RUN make build_common build_oai build_sctpd build_session_manager build_envoy_controller
