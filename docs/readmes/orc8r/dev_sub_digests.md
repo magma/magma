@@ -33,7 +33,7 @@ The subscriber digests pattern specifically generates and utilizes two types of 
 1. **Flat digests**: a digest of the entire set of subscriber configs of a network
 2. **Per-subscriber digests**: a digest of a single subscriber config object. For a network, the list of per-subscriber digests is tracked and distributed en masse
 
-NOTE: currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to ensure the generated digests are representative and also network-general. See [additional notes](#apn-resource-handling) for more details.
+NOTE: currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to ensure the generated digests are representative and also network-general. See [additional notes](#apn-resource-configs-handling) for more details.
 
 ### Subscriber digests cache
 

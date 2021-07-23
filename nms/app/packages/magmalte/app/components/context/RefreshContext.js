@@ -15,16 +15,28 @@
  */
 'use strict';
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
+import {
+  FetchFegGateways,
+  getActiveFegGatewayId,
+  getFegGatewaysHealthStatus,
+} from '../../state/feg/EquipmentState';
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
 import type {EnqueueSnackbarOptions} from 'notistack';
 
 export const REFRESH_INTERVAL = 30000;
 
+export const RefreshTypeEnum = Object.freeze({
+  SUBSCRIBER: 'subscriber',
+  GATEWAY: 'gateway',
+  FEG_GATEWAY: 'feg_gateway',
+  ENODEB: 'enodeb',
+});
+
 type Props = {
   context: typeof React.Context,
   networkId: string,
-  type: refreshType,
+  type: RefreshType,
   interval?: number,
   id?: string,
   enqueueSnackbar?: (
@@ -35,13 +47,23 @@ type Props = {
   lastRefreshTime?: string,
 };
 
-type refreshType = 'subscriber' | 'gateway' | 'enodeb';
+type RefreshType = $Values<typeof RefreshTypeEnum>;
 
 export function useRefreshingContext(props: Props) {
   const ctx = useContext(props.context);
-  const [state, setState] = useState(
-    props.type === 'subscriber' ? {sessionState: ctx.sessionState} : ctx.state,
-  );
+  const initState = () => {
+    if (props.type === RefreshTypeEnum.FEG_GATEWAY) {
+      return {
+        fegGateways: ctx?.state,
+        health: ctx?.health,
+        activeFegGatewayId: ctx?.activeFegGatewayId,
+      };
+    } else if (props.type === 'subscriber') {
+      return {sessionState: ctx.sessionState};
+    }
+    return ctx.state;
+  };
+  const [state, setState] = useState(initState());
 
   const [autoRefreshTime, setAutoRefreshTime] = useState(props.lastRefreshTime);
   async function fetchState(props: FetchProps) {
@@ -69,18 +91,23 @@ export function useRefreshingContext(props: Props) {
     if (id !== null && id !== undefined) {
       if (props.type === 'subscriber') {
         newState = {
-          // $FlowIgnore
+          // $FlowIgnore because state may not contain sessionState for other refresh type like enodeb
           sessionState: Object.keys(state.sessionState || {}).length
             ? {
                 ...ctx.sessionState,
-                // $FlowIgnore
+                // $FlowIgnore because state may not contain sessionState for other refresh type like enodeb
                 [id]: state.sessionState?.[id],
               }
             : {},
         };
       } else if (props.type === 'enodeb') {
-        // $FlowIgnore
+        // $FlowIgnore because state may not contain enbInfo for other refresh type like feg_gateway
         newState = {...ctx.state, [id]: state.enbInfo?.[id]};
+      } else if (props.type === RefreshTypeEnum.FEG_GATEWAY) {
+        newState = {
+          // $FlowIgnore because state may not contain fegGateways for other refresh type like subscriber
+          fegGateways: {...ctx.fegGateways, [id]: state?.fegGateways?.[id]},
+        };
       } else {
         newState = {...ctx.state, [id]: state?.[id]};
       }
@@ -88,6 +115,8 @@ export function useRefreshingContext(props: Props) {
     if (props.type === 'subscriber') {
       // update subscriber session state
       return ctx.setState(null, null, null, newState);
+    } else if (props.type === RefreshTypeEnum.FEG_GATEWAY) {
+      return ctx.setState(null, null, newState?.fegGateways || {});
     }
     return ctx.setState(null, null, newState);
   }
@@ -134,7 +163,7 @@ export function useRefreshingContext(props: Props) {
 }
 
 type FetchProps = {
-  type: refreshType,
+  type: RefreshType,
   networkId: string,
   id?: string,
   enqueueSnackbar?: (
@@ -164,6 +193,17 @@ async function fetchRefreshState(props: FetchProps) {
     });
 
     return gateways;
+  } else if (type === RefreshTypeEnum.FEG_GATEWAY) {
+    const fegGateways = await FetchFegGateways({
+      id: id,
+      networkId,
+      enqueueSnackbar,
+    });
+    const [health, activeFegGatewayId] = await Promise.all([
+      getFegGatewaysHealthStatus(networkId, fegGateways, enqueueSnackbar),
+      getActiveFegGatewayId(networkId, fegGateways, enqueueSnackbar),
+    ]);
+    return {fegGateways, health, activeFegGatewayId};
   } else {
     const enodebs = await FetchEnodebs({
       id: id,
