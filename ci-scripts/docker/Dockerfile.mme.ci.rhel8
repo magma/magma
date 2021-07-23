@@ -22,9 +22,7 @@ RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
     make build_sctpd
 
 # Prepare config file
-RUN yum install -y python3-pip && \
-    pip3 install jinja2-cli && \
-    cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
+RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
     echo -e '{ \n' \
     '"realm": "magma.com",	 \n'\
     '"use_stateless": "", \n'\
