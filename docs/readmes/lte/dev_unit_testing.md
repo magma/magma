@@ -12,6 +12,7 @@ This guide covers tips for quickly validating AGW changes.
 
 In general, all unit testing for AGW is done on the magma dev VM. 
 To SSH into the VM, run
+
 ```bash
 [HOST] cd $MAGMA_ROOT/lte/gateway
 [HOST] vagrant up magma
@@ -19,25 +20,27 @@ To SSH into the VM, run
 ```
 
 To run all existing unit tests, run
+
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make test
 ```
 Note: Running all unit tests can take close to 15 minutes.
 
-
-### Run Python unit tests on the dev VM
+### Test Python AGW services
 
 To run only the Python unit tests, run
+
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make test_python
 ```
+
 The list of services to test are configured in the following files. 
 * `orc8r/gateway/python/defs.mk`
 * `lte/gateway/python/defs.mk`
 
-### Run C/C++ unit tests on the dev VM
+### Test C/C++ AGW services
 
 We have several C/C++ services that live in `lte/gateway/c/`. 
 To run tests for those services, run
@@ -45,6 +48,16 @@ To run tests for those services, run
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make test_<service_directory_name> # Ex: make test_session_manager
+```
+
+### Test Go AGW services
+
+We have several Go implementations of AGW services that live in `orc8r/gateway/go`.
+To test any changes, run
+
+```bash
+[VM] cd magma/orc8r/gateway/go
+[VM] go test ./...
 ```
 
 ## Format AGW
