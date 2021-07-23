@@ -294,11 +294,12 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   /**
    * @brief Retrieves relevant records from Pipelined stats enforcements table
-   * based on cookie and cookie mask
+   * based on shard id
    *
-   * @param cookie require matching entries to contain the cookie value
-   * @param cookie_mask mask that restricts the cookie bits that must match
-   */
+   * @param shard id matches shard that UE is contained in. This maps to a
+   * cookie in pipelined
+   * */
+
   void poll_stats(
       int cookie, int cookie_mask,
       std::function<void(Status, RuleRecordTable)> callback);

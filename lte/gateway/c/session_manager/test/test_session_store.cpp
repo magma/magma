@@ -25,6 +25,9 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
+#include "math.h"
+#include <sstream>
+#include <time.h>
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;
@@ -297,6 +300,7 @@ TEST_F(SessionStoreTest, test_metering_reporting) {
  * 11) Delete the session for IMSI1
  * 12) Verify IMSI1 no longer has any sessions
  */
+
 TEST_F(SessionStoreTest, test_read_and_write) {
   // 2) Create bare-bones session for IMSI1
   auto session = get_session(IMSI1, SESSION_ID_1);
@@ -337,6 +341,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
+
   EXPECT_EQ(session_map[IMSI1].size(), 2);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(

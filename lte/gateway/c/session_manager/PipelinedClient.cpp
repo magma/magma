@@ -434,7 +434,9 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
 void AsyncPipelinedClient::poll_stats(
     int cookie, int cookie_mask,
     std::function<void(Status, RuleRecordTable)> callback) {
-  auto req = make_stat_req(cookie, cookie_mask);
+  // make reqs per shard id and send API calls
+  magma::GetStatsRequest req;
+  req = make_stat_req(cookie, cookie_mask);
   poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not poll stats " << status.error_message();

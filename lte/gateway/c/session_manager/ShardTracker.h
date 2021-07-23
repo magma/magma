@@ -13,39 +13,37 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <set>
 
 namespace magma {
 
 /* Shards represent groups of UEs placed into buckets of
 a certain size, to make polling more manageable*/
 class ShardTracker {
-  ShardTracker();
-
+ public:
   /**
    * Add UE to shards based on availability
    * @return index(shard id) where UE was placed
-   * TODO(veshkemburu): Store IMSI as well for easier subscriber reallocation
-   * (GH8167)
    */
-  int add_ue();
+  int add_ue(std::string imsi);
 
   /**
    * Remove UE from shard
    * @param shard_id location of UE to be removed
    * @return true for successful removal, false for failed removal
    */
-  bool remove_ue(int shard_id);
+  bool remove_ue(std::string imsi, int shard_id);
 
  private:
-  /* 
-  * a vector of quantities, where the indices represent
-  * the shard id and the values represent the number of
-  * UEs held in each shard
-  */
-  std::vector<uint16_t> ue_count_per_shard_;
   /*
-  * largest number of UEs that can fill a shard
-  */
+   * a vector of quantities, where the indices represent
+   * the shard id and the values are the UEs(IMSIs) assigned
+   * to that shard id
+   */
+  std::vector<std::set<std::string>> shards_;
+  /*
+   * largest number of UEs that can fill a shard
+   */
   const uint16_t max_shard_size_ = 100;
 };
 

@@ -505,6 +505,7 @@ std::string serialize_stored_session(StoredSessionState& stored) {
       serialize_stored_usage_monitor_map(stored.monitor_map);
   marshaled["session_level_key"] = stored.session_level_key;
   marshaled["imsi"]              = stored.imsi;
+  marshaled["shard_id"]          = stored.shard_id;
   marshaled["session_id"]        = stored.session_id;
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
@@ -577,6 +578,7 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
       marshaled["monitor_map"].getString());
   stored.session_level_key = marshaled["session_level_key"].getString();
   stored.imsi              = marshaled["imsi"].getString();
+  stored.shard_id          = marshaled["shard_id"].getInt();
   stored.session_id        = marshaled["session_id"].getString();
   stored.subscriber_quota_state =
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
