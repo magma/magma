@@ -30,7 +30,10 @@ import type {
   network_type,
 } from '@fbcnms/magma-api';
 
-import {InitGatewayState} from '../../state/feg/EquipmentState';
+import {
+  InitGatewayState,
+  SetGatewayState,
+} from '../../state/feg/EquipmentState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -81,6 +84,20 @@ export function FEGGatewayContextProvider(props: Props) {
     <FEGGatewayContext.Provider
       value={{
         state: fegGateways,
+        setState: (key, value?, newState?) => {
+          return SetGatewayState({
+            networkId,
+            fegGateways,
+            fegGatewaysHealthStatus,
+            setFegGateways,
+            setFegGatewaysHealthStatus,
+            setActiveFegGatewayId,
+            key,
+            value,
+            newState,
+            enqueueSnackbar,
+          });
+        },
         health: fegGatewaysHealthStatus,
         activeFegGatewayId,
       }}>
