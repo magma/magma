@@ -34,7 +34,7 @@ class ShardTracker {
    * @param shard_id location of UE to be removed
    * @return true for successful removal, false for failed removal
    */
-  bool remove_ue(const std::string imsi, uint16_t shard_id);
+  bool remove_ue(const std::string imsi, const uint16_t shard_id);
 
  private:
   /*

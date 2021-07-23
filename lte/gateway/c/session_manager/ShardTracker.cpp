@@ -43,7 +43,7 @@ uint16_t ShardTracker::add_ue(const std::string imsi) {
   return imsis_per_shard_.size() - 1;
 }
 
-bool ShardTracker::remove_ue(const std::string imsi, uint16_t shard_id) {
+bool ShardTracker::remove_ue(const std::string imsi, const uint16_t shard_id) {
   // Check if there are any shards, any UEs at a particular shard,
   // and whether the UE is actually part of the shard, before removal
   if (imsis_per_shard_.empty() || imsis_per_shard_[shard_id].empty()) {
