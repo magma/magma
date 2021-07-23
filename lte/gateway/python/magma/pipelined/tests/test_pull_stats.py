@@ -180,8 +180,6 @@ class PullStatsTest(unittest.TestCase):
             self.assertEqual(rule_record_cookie.rule_id, "rule1")
             self.assertEqual(rule_record_cookie.bytes_tx, 0)
             self.assertEqual(rule_record_cookie.bytes_rx, 0)
-            rule_map_cookie_and_mask = self.enforcement_stats_controller.get_stats(1, 1)
-            self.assertEqual(len(rule_map_cookie_and_mask.records), 0)
 
 
 if __name__ == "__main__":

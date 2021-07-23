@@ -164,7 +164,7 @@ class PolicyMixin(metaclass=ABCMeta):
                     passthrough_actions,
                     hard_timeout=hard_timeout,
                     priority=Utils.UNCLASSIFIED_ALLOW_PRIORITY,
-                    cookie=shard_id,
+                    cookie=rule_num,
                     copy_table=copy_table,
                     resubmit_table=next_table)
             )
@@ -185,7 +185,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 flow_match_actions,
                 hard_timeout=hard_timeout,
                 priority=priority,
-                cookie=shard_id,
+                cookie=rule_num,
                 resubmit_table=copy_table)
             )
         else:
@@ -197,7 +197,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 instructions=instructions,
                 hard_timeout=hard_timeout,
                 priority=priority,
-                cookie=shard_id,
+                cookie=rule_num,
                 copy_table=copy_table,
                 resubmit_table=next_table)
             )
