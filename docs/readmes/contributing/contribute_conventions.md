@@ -25,6 +25,7 @@ Follow these conventions when making changes to the Magma codebase.
 - Unit tests should default to being placed in the same directory as the files they're testing, except for the following
     - Python: directly-adjacent `tests` directory
     - C/C++: directly-adjacent `tests` directory
+    - JavaScript: directly-adjacent `__tests__` directory
 - Integration tests should be placed as close to the code-under-test as possible
 - If you're not sure how to test a change, reach out on the community Slack workspace for input
 
@@ -224,13 +225,13 @@ def foo(arg1: str) -> int:
 ```
 
 **Logging**
-- Use the [logging](https://docs.python.org/3/library/logging.html) module for all logging 
+- Use the [logging](https://docs.python.org/3/library/logging.html) module for all logging
 - Refer to the Go logging section for deciding between log levels
 
 
 **Linter**
 
-- For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services 
+- For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services
   - On CI, the check gets run as part of the `lte-test` job
 - Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
   - To run the linter locally, use the [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py)
@@ -238,9 +239,9 @@ def foo(arg1: str) -> int:
 **Formatters**
 
 - We recommend [autopep8](https://pypi.org/project/autopep8/) as it conforms to [pep8](https://www.python.org/dev/peps/pep-0008/)
-  - The above-mentioned [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py) also has an option to format your changes with 
+  - The above-mentioned [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py) also has an option to format your changes with
   [isort](https://pypi.org/project/isort/), [autopep8](https://pypi.org/project/autopep8/), and [add-trailing-comma](https://pypi.org/project/add-trailing-comma/)
-- We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.   
+- We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.
 
 
 ### C++
@@ -255,7 +256,7 @@ The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) 
 **Types**
 - Be mindful when choosing input / output types when writing new functions
   - Opt for return values over output parameters
-  - Non-optional input parameters should be values or const references 
+  - Non-optional input parameters should be values or const references
   - Use non-const pointers to represent optional outputs and optional input/output parameters
 
 **Headers**
@@ -280,6 +281,31 @@ The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) 
     - `.bash` for bash
     - Default to `.bash` except with specific reason
 - When a shell script passes around 100 lines, it's time to re-write it in Python or Go
+
+### Javascript
+
+**General**
+- Import order should be: types, default components, and named components with each separated by a newline
+- Use `TitleCase` for component file names
+- Favor `map` and `forEach` functions in place of regular `for` loops
+- Refrain from using literal strings/numbers without defining them
+- Use strict equality(`===`) when comparing values
+
+**Type annotations**
+- All new code should be fully type anotatated
+- We have a mandatory unit test that runs the [Flow](https://docs.magmacore.org/docs/next/nms/dev_testing#pre-commit-tests#flow) type checker on the NMS codebase
+    - On CI, the check gets run as part of the `nms-flow-test` job
+
+**Documentation**
+- Document all the components and functions you create
+- Keep the docs up to date when you make changes
+- Use [JSDoc](https://jsdoc.app/index.html) tags to document your code
+- Use `//` to comment line of code, if it is not clear in what it is doing
+
+**Linter**
+- Run [ESLint](https://docs.magmacore.org/docs/next/nms/dev_testing#pre-commit-tests#eslint) to lint your changes locally
+- For mandatory lint checks, we have a unit test that runs `eslint` on JS code
+    - On CI, the check gets run as part of the `eslint` job
 
 ## Tools
 
@@ -318,4 +344,3 @@ The [Google Protocol Buffer style guide](https://developers.google.com/protocol-
 ### CLIs
 
 - Consolidate related functionality into a single CLI
-
