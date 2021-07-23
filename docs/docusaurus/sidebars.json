@@ -253,6 +253,7 @@
         "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
+          "orc8r/dev_rest_api",
           "orc8r/dev_build",
           "orc8r/dev_testing",
           "orc8r/dev_minikube",
