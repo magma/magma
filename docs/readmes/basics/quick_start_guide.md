@@ -90,7 +90,7 @@ You can monitor what happens in the other tab now:
 Once the Orchestrator build finishes, we can start the development Orchestrator
 cloud for the first time. We'll also use this time to register the local
 client certificate you'll need to access the local API gateway for your
-development stack. Although you could visit [our public SwaggerHub page](https://app.swaggerhub.com/apis/MagmaCore/Magma/1.0.0) to view a listing of our most up-to-date REST API endpoints, this certificate could also be used to launch a more dynamic and organized view of the API.
+development stack.
 
 To start Orchestrator (without metrics) is as simple as:
 
