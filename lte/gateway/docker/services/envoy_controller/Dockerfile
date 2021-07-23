@@ -1,5 +1,5 @@
 FROM cbuilder:latest
 
-# COPY --from=cbuilder:latest /build/c/core/oai/oai_mme/mme /usr/local/bin
+ENV PATH="/root/go/bin/:$PATH"
 
-ENTRYPOINT /build/c/sctpd/src/sctpd
+ENTRYPOINT envoy_controller
