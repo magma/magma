@@ -14,7 +14,6 @@ limitations under the License.
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
-
 from magma.kernsnoopd.snooper import Snooper
 
 # MIN_COLLECT_INTERVAL overrides counter collection interval received from
@@ -23,7 +22,10 @@ MIN_COLLECT_INTERVAL = 5
 
 
 def main():
-    """ main() for kernsnoopd """
+    """
+    Main routine for kernsnoopd service reads configuration and runs the
+    Snooper job
+    """
     # There is no mconfig for kernsnoopd
     service = MagmaService('kernsnoopd', None)
 
@@ -35,7 +37,7 @@ def main():
         service.config['ebpf_programs'],
         max(MIN_COLLECT_INTERVAL, service.config['collect_interval']),
         ServiceRegistry,
-        service.loop
+        service.loop,
     )
     snooper.start()
 

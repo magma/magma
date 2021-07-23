@@ -78,7 +78,7 @@ class ServiceRegistry:
         """
         return ServiceRegistry.get_registry()["services"]
 
-    @staticmethod
+    @staticmethod  # noqa: WPS602
     def get_service_name(host, port):
         """
         Returns the name of service listening on the host, port pair
@@ -89,8 +89,10 @@ class ServiceRegistry:
         Returns:
             service name (string) of the service
         Raises:
+            ValueError: No known service listening on (host, port)
         """
-        for service, config in ServiceRegistry.get_registry()["services"].items():
+        for service, config in ServiceRegistry.get_registry()[
+            "services"].items():
             if (config["ip_address"], config["port"]) == (host, port):
                 return service
         raise ValueError("No service found for %s:%d" % (host, port))
@@ -126,8 +128,8 @@ class ServiceRegistry:
 
     @staticmethod
     def get_rpc_channel(
-        service, destination, proxy_cloud_connections=True,
-        grpc_options=None,
+            service, destination, proxy_cloud_connections=True,
+            grpc_options=None,
     ):
         """
         Returns a RPC channel to the service. The connection params
@@ -154,13 +156,13 @@ class ServiceRegistry:
             authority = '%s-%s' % (service, proxy_config['cloud_address'])
 
         should_use_proxy = proxy_config['proxy_cloud_connections'] and \
-            proxy_cloud_connections
+                           proxy_cloud_connections
 
         # If speaking to a local service or to the proxy, the grpc channel
         # can be reused. If speaking to the cloud directly, the client cert
         # could become stale after the next bootstrapper run.
         should_reuse_channel = should_use_proxy or \
-            (destination == ServiceRegistry.LOCAL)
+                               (destination == ServiceRegistry.LOCAL)
         if should_reuse_channel:
             channel = ServiceRegistry._CHANNELS_CACHE.get(authority, None)
             if channel is not None:
@@ -249,12 +251,12 @@ def set_grpc_cipher_suites():
         and delete this. The current nghttpx version doesn't support the
         ciphers needed by default for gRPC.
     """
-    os.environ["GRPC_SSL_CIPHER_SUITES"] = "ECDHE-ECDSA-AES256-GCM-SHA384:"\
-        "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:"\
-        "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:"\
-        "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:"\
-        "ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:"\
-        "ECDHE-RSA-AES128-SHA256"
+    os.environ["GRPC_SSL_CIPHER_SUITES"] = "ECDHE-ECDSA-AES256-GCM-SHA384:" \
+                                           "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:" \
+                                           "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:" \
+                                           "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:" \
+                                           "ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:" \
+                                           "ECDHE-RSA-AES128-SHA256"
 
 
 def get_ssl_creds():

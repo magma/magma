@@ -16,7 +16,6 @@ import os
 from bcc import BPF
 from jinja2 import Template
 from magma.common.job import Job
-
 from magma.kernsnoopd.handlers import ebpf_handlers
 
 # TODO: what's the right way to look for these files?
@@ -92,9 +91,6 @@ class Snooper(Job):
 
         Returns:
             Rendered source contents
-
-        Raises:
-            FileNotFoundError: file 'filename' does not exist
         """
         with open(filename, 'r') as src_f:
             src = src_f.read()

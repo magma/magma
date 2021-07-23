@@ -113,8 +113,7 @@ class PacketCounter(EBPFHandler):
             # e.g. "python3 -m magma.state.main"
             cmdline = psutil.Process(pid=key.pid).cmdline()
             if cmdline[2].startswith('magma.'):
-                service_name = cmdline[2].split('.')[1]
-                return service_name
+                return cmdline[2].split('.')[1]
         # key.pid process has exited or was not a Python service
         except (psutil.NoSuchProcess, IndexError):
             binary_name = key.comm.decode()
