@@ -176,7 +176,7 @@ static void udp_server_receive_and_process(
   }
 }
 
-static void udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
+static int udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
   struct udp_socket_desc_s* udp_sock_p = NULL;
 
   pthread_mutex_lock(&udp_socket_list_mutex);
@@ -190,6 +190,8 @@ static void udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
   }
 
   pthread_mutex_unlock(&udp_socket_list_mutex);
+
+  return 0;
 }
 
 //------------------------------------------------------------------------------
