@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/services/subscriberdb"
+	"magma/orc8r/cloud/go/orc8r"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -29,7 +30,6 @@ import (
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	lte_servicers "magma/lte/cloud/go/services/lte/servicers"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
@@ -276,8 +276,9 @@ func (l *subscriberdbServicer) shouldResync(network string, gateway string) bool
 		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gateway, network, err)
 		return false
 	}
-	// Add a deterministic jitter to AGW sync intervals to ameliorate the thundering herd effect
-	resyncIntervalJitter := lte_servicers.GetSyncIntervalDelta(gateway, l.resyncIntervalSecs)
+	// Add a deterministic jitter to AGW sync intervals in the range of
+	// [0, 0.5 * resyncIntervalSecs] to ameliorate the thundering herd effect
+	resyncIntervalJitter := orc8r.JitterUint32(l.resyncIntervalSecs, gateway, 0.5)
 	shouldResync := uint32(time.Now().Unix())-lastResyncTime > l.resyncIntervalSecs+resyncIntervalJitter
 	return shouldResync
 }

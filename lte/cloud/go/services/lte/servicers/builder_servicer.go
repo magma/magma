@@ -16,7 +16,6 @@ package servicers
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"sort"
 
 	feg "magma/feg/cloud/go/feg"
@@ -662,24 +661,11 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 }
 
 // getRandomizedSyncInterval returns the interval received from getSyncInterval
-// as seconds and increases it by a random delta. Increased sync interval
-// ameliorates the thundering herd effect at the orc8r.
+// as seconds and increases it by a random jitter in the range of
+// [0, 0.2 * getSyncInterval()]. Increased sync interval ameliorates the thundering
+// herd effect at the Orc8r.
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
-	delta := GetSyncIntervalDelta(gwKey, syncInterval)
-	return syncInterval + delta
-}
-
-// GetSyncIntervalDelta returns a delta of the given sync interval in the range
-// [0, syncInterval / 5.0]. Delta is deterministic based on gwKey.
-func GetSyncIntervalDelta(gwKey string, syncInterval uint32) uint32 {
-	// FNV-1 is a non-cryptographic hash function that is fast and very simple to implement
-	h := fnv.New32a()
-	_, err := h.Write([]byte(gwKey))
-	if err != nil {
-		return syncInterval
-	}
-	multiplier := float32(h.Sum32()%100) / 100.0
-	delta := multiplier * (float32(syncInterval) / 5.0)
-	return uint32(delta)
+	jitter := orc8r.JitterUint32(syncInterval, gwKey, 0.2)
+	return syncInterval + jitter
 }
