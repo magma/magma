@@ -14,7 +14,6 @@
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <string.h>
-#include <time.h>
 
 #include <chrono>
 #include <future>
@@ -3574,8 +3573,8 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
                << std::to_string(i);
     std::string imsi_id = imsiStream.str();
     imsiStream.clear();
-    // generate random amount of sessions for each IMSI between 1 and 5
-    int session_count = rand() % 5 + 1;
+    // have each UE generate 3 session
+    int session_count = 3;
     auto sessions     = SessionVector{};
     EXPECT_EQ(session_map[imsi_id].size(), 0);
     for (int i = 1; i <= session_count; i++) {
