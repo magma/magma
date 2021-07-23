@@ -734,7 +734,6 @@ class SessionState {
  private:
   std::string imsi_;
   std::string session_id_;
-  uint16_t shard_id_;
   uint32_t local_teid_;
   uint32_t request_number_;
   SessionFsmState curr_state_;
@@ -798,6 +797,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  uint16_t shard_id_;
 
  private:
   /**

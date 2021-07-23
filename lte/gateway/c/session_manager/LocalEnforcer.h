@@ -343,11 +343,12 @@ class LocalEnforcer {
  private:
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
+  SessionStore& session_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  SessionStore& session_store_;
+  std::shared_ptr<ShardTracker> shard_tracker_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a
@@ -356,7 +357,6 @@ class LocalEnforcer {
   std::chrono::milliseconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
   std::unique_ptr<Timezone> access_timezone_;
-  std::shared_ptr<ShardTracker> shard_tracker_;
 
  private:
   /**

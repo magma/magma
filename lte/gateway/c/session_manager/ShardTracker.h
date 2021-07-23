@@ -27,14 +27,14 @@ class ShardTracker {
    * an addition
    * @return index(shard id) where UE was placed
    */
-  uint16_t add_ue(std::string imsi);
+  uint16_t add_ue(const std::string imsi);
 
   /**
    * Remove UE from shard
    * @param shard_id location of UE to be removed
    * @return true for successful removal, false for failed removal
    */
-  bool remove_ue(std::string imsi, int shard_id);
+  bool remove_ue(const std::string imsi, uint16_t shard_id);
 
  private:
   /*

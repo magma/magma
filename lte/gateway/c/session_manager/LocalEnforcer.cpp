@@ -68,12 +68,12 @@ LocalEnforcer::LocalEnforcer(
     magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
+      session_store_(session_store),
       pipelined_client_(pipelined_client),
       events_reporter_(events_reporter),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
       shard_tracker_(shard_tracker),
-      session_store_(session_store),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
@@ -1016,7 +1016,7 @@ void LocalEnforcer::init_session(
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
   const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
-  int shard_id                = shard_tracker_->add_ue(imsi);
+  unsigned shard_id           = shard_tracker_->add_ue(imsi);
   auto session                = std::make_unique<SessionState>(
       imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
       time_since_epoch, response, shard_id);

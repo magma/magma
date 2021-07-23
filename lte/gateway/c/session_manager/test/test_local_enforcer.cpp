@@ -3594,11 +3594,11 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
   // have the same shard id per IMSI
   for (int i = 1; i <= 501; i++) {
     // check the sessions to make sure they have the right shard id and all the
-    std::stringstream imsiStream;
-    imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
-               << std::to_string(i);
-    std::string imsi_id = imsiStream.str();
-    imsiStream.clear();
+    std::stringstream imsi_stream;
+    imsi_stream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
+                << std::to_string(i);
+    std::string imsi_id = imsi_stream.str();
+    imsi_stream.clear();
     SessionRead read_req = {};
     read_req.insert(imsi_id);
     auto session_map = session_store->read_sessions(read_req);
