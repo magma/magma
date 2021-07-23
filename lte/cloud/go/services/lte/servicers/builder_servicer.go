@@ -28,6 +28,7 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/orc8r/math"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -666,6 +667,6 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 // herd effect at the Orc8r.
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
-	jitter := orc8r.JitterUint32(syncInterval, gwKey, 0.2)
+	jitter := math.JitterUint32(syncInterval, gwKey, 0.2)
 	return syncInterval + jitter
 }
