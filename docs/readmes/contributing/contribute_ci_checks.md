@@ -44,7 +44,7 @@ Merge blocking CI checks are listed below.
 | cwag-precommit         | Run CWAG unit tests                           | approvers-cwf          | [CWAG tests](../cwf/dev_testing)                                             |
 | Magma-OAI-Jenkins      | OAI's MME integration test run on OAI Jenkins | rdefosse               | N/A                                                                          |
 | cwf-operator-build     | Validate CWF deployer builds                  | approvers-cwf          | TODO                                                                         |
-| cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |                                                              |        |
+| cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
 
 ## Non-blocking Checks
 
