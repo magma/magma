@@ -92,7 +92,7 @@ message ActivateFlowsRequest {
   uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
   repeated VersionedPolicy policies = 11; // Policy + version pairs
-  uint32 shard_id = 12; // shard id for UE
+  uint32 shard_id_for_ue = 12;
   reserved 3, 4;
 }
 

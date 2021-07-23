@@ -319,7 +319,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies, request.shard_id
+            request.policies, request.shard_id_for_ue
         )
 
         failed_policies_results = \
@@ -330,7 +330,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         enforcement_res = self._activate_rules_in_enforcement(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            policies, request.shard_id, 
+            policies, request.shard_id_for_ue, 
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -355,7 +355,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies, request.shard_id,
+            request.policies, request.shard_id_for_ue,
         )
 
         failed_policies_results = \
