@@ -31,7 +31,6 @@
 #include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
 #include "GrpcMagmaUtils.h"
-#define OVS_COOKIE_MATCH_ALL 0xffffffff
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
@@ -263,22 +262,14 @@ void LocalEnforcer::handle_pipelined_response(
   }
 }
 
-void LocalEnforcer::poll_stats_enforcer(std::vector<int> shard_ids) {
+void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
   // we need to pass in a function pointer. Binding is required because
   // the function is part of the LocalEnforcer class and has arguments
   // so we bind to the object and the two arguments the function needs
   // which are the status and RuleRecordTable response
-  if (shard_ids.empty()) {
-    pipelined_client_->poll_stats(
-        0, 0,
-        std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
-  } else {
-    for (size_t i = 0; i < shard_ids.size(); i++) {
-      pipelined_client_->poll_stats(
-          shard_ids[i], OVS_COOKIE_MATCH_ALL,
-          std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
-    }
-  }
+  pipelined_client_->poll_stats(
+      cookie, cookie_mask,
+      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {

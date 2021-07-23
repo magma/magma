@@ -123,26 +123,19 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
   int cookie_mask = 0;
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
       .Times(1);
-  local_enforcer->poll_stats_enforcer({});
+  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
   cookie      = 1;
   cookie_mask = OVS_COOKIE_MATCH_ALL;
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
       .Times(1);
-  local_enforcer->poll_stats_enforcer({1});
+  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
   cookie      = 0;
   cookie_mask = OVS_COOKIE_MATCH_ALL;
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
       .Times(1);
-  local_enforcer->poll_stats_enforcer({0});
-
-  std::vector<int> shards = {0, 1, 4};
-  for (size_t i = 0; i < shards.size(); i++){
-    EXPECT_CALL(*pipelined_client, poll_stats(shards[i], OVS_COOKIE_MATCH_ALL, testing::_))
-      .Times(1);
-  }
-  local_enforcer->poll_stats_enforcer(shards);
+  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 }
 
 int main(int argc, char** argv) {

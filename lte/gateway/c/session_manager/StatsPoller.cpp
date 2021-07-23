@@ -15,6 +15,7 @@
 #include <memory>
 #include <vector>
 #include "StatsPoller.h"
+#define OVS_COOKIE_MATCH_ALL 0xffffffff
 
 namespace magma {
 
@@ -22,8 +23,14 @@ void StatsPoller::start_loop(
     std::shared_ptr<magma::LocalEnforcer> local_enforcer,
     uint32_t loop_interval_seconds) {
   while (true) {
-    std::vector<int> vect{};
-    local_enforcer->poll_stats_enforcer(vect);
+    std::vector<int> shard_ids{};
+    if (shard_ids.size() == 0) {
+      local_enforcer->poll_stats_enforcer(0, 0);
+    } else {
+      for (size_t i = 0; i < shard_ids.size(); i++) {
+        local_enforcer->poll_stats_enforcer(shard_ids[i], OVS_COOKIE_MATCH_ALL);
+      }
+    }
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
   }
 }
