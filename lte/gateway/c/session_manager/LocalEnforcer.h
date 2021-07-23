@@ -121,7 +121,8 @@ class LocalEnforcer {
       std::shared_ptr<aaa::AAAClient> aaa_client,
       long session_force_termination_timeout_ms,
       long quota_exhaustion_termination_on_init_ms,
-      magma::mconfig::SessionD mconfig, std::shared_ptr<ShardTracker> shards);
+      magma::mconfig::SessionD mconfig,
+      std::shared_ptr<ShardTracker> shard_tracker);
 
   void attachEventBase(folly::EventBase* evb);
 
@@ -355,7 +356,7 @@ class LocalEnforcer {
   std::chrono::milliseconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
   std::unique_ptr<Timezone> access_timezone_;
-  std::shared_ptr<ShardTracker> shards_;
+  std::shared_ptr<ShardTracker> shard_tracker_;
 
  private:
   /**

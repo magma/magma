@@ -64,7 +64,8 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
     long quota_exhaustion_termination_on_init_ms,
-    magma::mconfig::SessionD mconfig, std::shared_ptr<ShardTracker> shards)
+    magma::mconfig::SessionD mconfig,
+    std::shared_ptr<ShardTracker> shard_tracker)
     : reporter_(reporter),
       rule_store_(rule_store),
       pipelined_client_(pipelined_client),
@@ -79,7 +80,7 @@ LocalEnforcer::LocalEnforcer(
       retry_timeout_(2000),
       mconfig_(mconfig),
       access_timezone_(compute_access_timezone()),
-      shards_(shards) {}
+      shard_tracker_(shard_tracker) {}
 
 void LocalEnforcer::start() {
   evb_->loopForever();
@@ -1015,9 +1016,8 @@ void LocalEnforcer::init_session(
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
   const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
-  // avoid duplicate sessions having multiple shard entries
-  int shard_id = shards_->add_ue(imsi);
-  auto session = std::make_unique<SessionState>(
+  int shard_id                = shard_tracker_->add_ue(imsi);
+  auto session                = std::make_unique<SessionState>(
       imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
       time_since_epoch, response, shard_id);
   session_map[imsi].push_back(std::move(session));

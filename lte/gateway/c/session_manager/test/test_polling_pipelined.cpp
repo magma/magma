@@ -43,10 +43,10 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     aaa_client           = std::make_shared<MockAAAClient>();
     events_reporter      = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
-    auto shards          = std::make_shared<ShardTracker>();
+    auto shard_tracker   = std::make_shared<ShardTracker>();
     local_enforcer       = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig, shards);
+        spgw_client, aaa_client, 0, 0, default_mconfig, shard_tracker);
     session_map = SessionMap{};
     test_cfg_   = get_default_config("");
 
