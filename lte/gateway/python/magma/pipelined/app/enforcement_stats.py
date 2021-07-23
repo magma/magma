@@ -30,9 +30,8 @@ from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
                                                  MagmaOFError)
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow.registers import (DIRECTION_REG, IMSI_REG,
-                                                RULE_VERSION_REG, SCRATCH_REGS,
-                                                RULE_NUM_REG, Direction)
+from magma.pipelined.openflow.registers import (Direction, DIRECTION_REG, IMSI_REG,
+                                                RULE_VERSION_REG, RULE_NUM_REG, SCRATCH_REGS)
 from magma.pipelined.policy_converters import (get_eth_type,
                                                get_ue_ip_match_args,
                                                convert_ipv4_str_to_ip_proto,

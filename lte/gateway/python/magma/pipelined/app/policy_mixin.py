@@ -137,7 +137,7 @@ class PolicyMixin(metaclass=ABCMeta):
     def _get_classify_rule_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr,
-                                     copy_table, shard_id: int, urls:List[str] = None):
+                                     copy_table, shard_id: int, urls: List[str] = None):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with

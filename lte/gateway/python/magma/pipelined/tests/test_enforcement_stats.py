@@ -730,11 +730,11 @@ class EnforcementStatsTest(unittest.TestCase):
             policy.version = 2
             self.enforcement_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy], 0
+                [policy], 0,
             )
             self.enforcement_stats_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy], 0
+                [policy], 0,
             )
             pkt_sender.send(packet)
 
