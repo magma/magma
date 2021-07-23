@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Dependencies
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -28,11 +29,14 @@ set(MME_APP_EMM_DECODE_SRC
     )
 set(MME_APP_CONFIG_SRC
     test_mme_app_config_partial_tai_list.cpp
+set(MME_APP_PROC_SRC
+    test_mme_procedures.cpp
     )
 
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
 add_executable(test_mme_app_emm_decode ${MME_APP_EMM_DECODE_SRC})
 add_executable(test_mme_app_config ${MME_APP_CONFIG_SRC})
+add_executable(test_mme_app_procedures ${MME_APP_PROC_SRC})
 
 target_link_libraries(test_mme_app_ue_context_imsi
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
@@ -41,6 +45,10 @@ target_link_libraries(test_mme_app_ue_context_imsi
 target_link_libraries(test_mme_app_emm_decode
     TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR gtest gtest_main
+    )
+target_link_libraries(test_mme_app_procedures
+    TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main
     )
 
 target_link_libraries(test_mme_app_config
@@ -56,6 +64,10 @@ target_include_directories(test_mme_app_emm_decode PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CHECK_INCLUDE_DIRS}
     )
+target_include_directories(test_mme_app_procedures PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CHECK_INCLUDE_DIRS}
+    )
 
 target_include_directories(test_mme_app_config PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -64,4 +76,8 @@ target_include_directories(test_mme_app_config PUBLIC
 
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_emm_decode COMMAND test_mme_app_emm_decode)
+<<<<<<< HEAD
 add_test(NAME test_mme_app_config COMMAND test_mme_app_config)
+=======
+add_test(NAME test_mme_app_procedures COMMAND test_mme_app_procedures)
+>>>>>>> b415d316a (Initial boilerplate)

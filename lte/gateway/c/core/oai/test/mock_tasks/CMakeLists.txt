@@ -13,19 +13,18 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(mme_app_task)
-add_subdirectory(mobility_client)
-add_subdirectory(ngap)
-add_subdirectory(itti)
-add_subdirectory(amf)
-add_subdirectory(n11)
-add_subdirectory(s1ap_task)
-add_subdirectory(mock_tasks)
-if (EMBEDDED_SGW)
-  add_subdirectory(openflow)
-  add_subdirectory(spgw_task)
-  add_subdirectory(pipelined_client)
-else (EMBEDDED_SGW)
-  add_subdirectory(gtpv2-c)
-endif (EMBEDDED_SGW)
+add_library(MOCK_TASKS
+    ha_mock.cpp
+    s1ap_mock.cpp
+    s6a_mock.cpp
+    s11_mock.cpp
+    service303_mock.cpp
+    sgs_mock.cpp
+    sgw_s8_mock.cpp
+    spgw_mock.cpp
+    sms_orc8r_mock.cpp
+)
 
+target_link_libraries(MOCK_TASKS
+    LIB_ITTI
+)
