@@ -315,14 +315,13 @@ int main(int argc, char* argv[]) {
 
   // Some setup work for the SessionCredit class
   set_consts(config);
-  // initialize shard tracker object
   auto shard_tracker = std::make_shared<magma::ShardTracker>();
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
       reporter, rule_store, *session_store, pipelined_client, events_reporter,
-      spgw_client, aaa_client,
+      spgw_client, aaa_client, shard_tracker,
       config["session_force_termination_timeout_ms"].as<long>(),
-      get_quota_exhaust_termination_time(config), mconfig, shard_tracker);
+      get_quota_exhaust_termination_time(config), mconfig);
 
   // RestartHandler will cleanup sessions from previous SessionD run. We do not
   // care about the return value of this thread.

@@ -108,8 +108,8 @@ class SessiondTest : public ::testing::Test {
     auto shard_tracker   = std::make_shared<ShardTracker>();
     enforcer             = std::make_shared<LocalEnforcer>(
         session_reporter, rule_store, *session_store, pipelined_client,
-        events_reporter, spgw_client, nullptr, SESSION_TERMINATION_TIMEOUT_MS,
-        0, default_mconfig, shard_tracker);
+        events_reporter, spgw_client, nullptr, shard_tracker,
+        SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
     session_map = SessionMap{};
 
     local_service =

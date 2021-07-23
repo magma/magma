@@ -62,7 +62,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     auto shard_tracker   = std::make_shared<ShardTracker>();
     local_enforcer       = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig, shard_tracker);
+        spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(

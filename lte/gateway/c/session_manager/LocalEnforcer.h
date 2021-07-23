@@ -119,10 +119,10 @@ class LocalEnforcer {
       std::shared_ptr<EventsReporter> events_reporter,
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
+      std::shared_ptr<ShardTracker> shard_tracker,
       long session_force_termination_timeout_ms,
       long quota_exhaustion_termination_on_init_ms,
-      magma::mconfig::SessionD mconfig,
-      std::shared_ptr<ShardTracker> shard_tracker);
+      magma::mconfig::SessionD mconfig);
 
   void attachEventBase(folly::EventBase* evb);
 

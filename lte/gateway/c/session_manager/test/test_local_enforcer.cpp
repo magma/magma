@@ -59,7 +59,7 @@ class LocalEnforcerTest : public ::testing::Test {
     auto shard_tracker   = std::make_shared<ShardTracker>();
     local_enforcer       = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig, shard_tracker);
+        spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map   = SessionMap{};
