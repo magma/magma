@@ -10,8 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# flatDigestEnabled is a feature flag for the flat digest functionality.
-flatDigestEnabled: true
-# changesetSizeTheshold specifies the max size of the cloud-agw changeset
-# past which a resync signal will be sent back to the agw.
-changesetSizeTheshold: 500
+# digestsEnabled is a feature flag for the flat digest functionality.
+digestsEnabled: true
+# changesetSizeThreshold specifies the max size of the cloud-AGW changeset
+# past which a resync signal will be sent back to the AGW.
+changesetSizeThreshold: 500
+# maxProtosLoadSize specifies the max size of cached subscriber protos that
+# can be loaded for a page.
+maxProtosLoadSize: 15000

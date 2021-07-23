@@ -61,9 +61,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param apn:  APN string
    * @param addr (out): contains the IP address allocated upon returning in
    * "network byte order"
-   * @return status of gRPC call
    */
-  int AllocateIPv4AddressAsync(
+  void AllocateIPv4AddressAsync(
       const std::string& imsi, const std::string& apn,
       const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
           callback);
@@ -73,9 +72,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param imsi: IMSI string
    * @param apn:  APN string
    * @param addr (out): contains the IP address allocated upon returning
-   * @return status of gRPC call
    */
-  int AllocateIPv6AddressAsync(
+  void AllocateIPv6AddressAsync(
       const std::string& imsi, const std::string& apn,
       const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
           callback);
@@ -85,9 +83,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param imsi: IMSI string
    * @param apn:  APN string
    * @param addr (out): contains the IP address allocated upon returning
-   * @return status of gRPC call
    */
-  int AllocateIPv4v6AddressAsync(
+  void AllocateIPv4v6AddressAsync(
       const std::string& imsi, const std::string& apn,
       const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
           callback);
@@ -101,10 +98,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param imsi: IMSI string
    * @param apn:  APN string
    * @param addr: IP address to release in "network byte order"
-   * @return 0 on success
-   * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
    */
-  int ReleaseIPv4Address(
+  void ReleaseIPv4Address(
       const std::string& imsi, const std::string& apn,
       const struct in_addr& addr);
 
@@ -117,10 +112,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param imsi: IMSI string
    * @param apn:  APN string
    * @param addr: IPv6 address to release
-   * @return 0 on success
-   * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
    */
-  int ReleaseIPv6Address(
+  void ReleaseIPv6Address(
       const std::string& imsi, const std::string& apn,
       const struct in6_addr& addr);
 
@@ -134,10 +127,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param apn:  APN string
    * @param ipv4_addr: IPv4 address to release in "network byte order"
    * @param ipv6_addr: IPv6 address to release
-   * @return 0 on success
-   * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
    */
-  int ReleaseIPv4v6Address(
+  void ReleaseIPv4v6Address(
       const std::string& imsi, const std::string& apn,
       const struct in_addr& ipv4_addr, const struct in6_addr& ipv6_addr);
 

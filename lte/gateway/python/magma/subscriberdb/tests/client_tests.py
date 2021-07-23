@@ -102,14 +102,14 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         client_per_sub_digest_ids = [
             SIDUtils.to_str(digest.sid) for digest in request.per_sub_digests
         ]
-        to_renew = {}
+        to_renew = []
         deleted = []
         if 'IMSI11111' not in client_per_sub_digest_ids:
-            to_renew['IMSI11111'] = subscriber_data_by_id('IMSI11111')
+            to_renew.append(subscriber_data_by_id('IMSI11111'))
         if 'IMSI22222' not in client_per_sub_digest_ids:
-            to_renew['IMSI22222'] = subscriber_data_by_id('IMSI22222')
+            to_renew.append(subscriber_data_by_id('IMSI22222'))
         if 'IMSI33333' not in client_per_sub_digest_ids:
-            to_renew['IMSI33333'] = subscriber_data_by_id('IMSI33333')
+            to_renew.append(subscriber_data_by_id('IMSI33333'))
         if 'IMSI00000' in client_per_sub_digest_ids:
             deleted.append('IMSI00000')
         resync = len(to_renew) >= 3

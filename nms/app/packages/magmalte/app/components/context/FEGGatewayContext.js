@@ -15,12 +15,21 @@
  */
 
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
-import type {federation_gateway, gateway_id} from '@fbcnms/magma-api';
+import type {
+  federation_gateway,
+  gateway_id,
+  mutable_federation_gateway,
+} from '@fbcnms/magma-api';
 
 import React from 'react';
 
 export type FEGGatewayContextType = {
   state: {[string]: federation_gateway},
+  setState: (
+    key: gateway_id,
+    val?: mutable_federation_gateway,
+    newState?: {[string]: federation_gateway},
+  ) => Promise<void>,
   health: {[gateway_id]: FederationGatewayHealthStatus},
   activeFegGatewayId: gateway_id,
 };

@@ -90,6 +90,7 @@ class PullStatsTest(unittest.TestCase):
                 'enforcement': {
                     'poll_interval': 2,
                     'default_drop_flow_name': self.DEFAULT_DROP_FLOW_NAME,
+                    'periodic_stats_reporting': False,
                 },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',

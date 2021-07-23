@@ -160,6 +160,12 @@ def disable_stateless_agw():
 
 
 def ovs_reset_bridges():
+    service_config = load_service_config('pipelined')
+    sgi_interface = service_config['nat_iface']
+    if_up_cmd = "ip link set dev %s up" % sgi_interface
+    subprocess.call(if_up_cmd.split())
+    print("ip up cmd %s", if_up_cmd)
+
     subprocess.call(
         "ovs-vsctl --all destroy Flow_Sample_Collector_Set".split(),
     )
