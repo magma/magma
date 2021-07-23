@@ -334,6 +334,9 @@
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
+      "orc8r/dev_rest_api": {
+        "title": "REST API"
+      },
       "orc8r/dev_security": {
         "title": "Security"
       },
