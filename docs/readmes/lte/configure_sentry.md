@@ -15,7 +15,7 @@ There are two main ways to deploy the platform: [self-hosting](https://develop.s
 ## Enabling error reporting on an AGW
 Reporting for Python services, MME, and SessionD will *only* be enabled if the corresponding URL fields are non-empty.
 
-The URL fields can be set in a network-wide configuration through the Orc8r. You can also set or override Sentry configuration for specific gateways through the Orc8r. Finally, you can set them locally on a gateway in the `control_proxy.yml` file by filling out the following fields.
+The URL fields can be set in a network-wide configuration through the Orc8r's Swagger endpoint at `/networks/{network_id}`. You can also set or override Sentry configuration for specific gateways through the Orc8r's `/networks/{network_id}/gateways/{gateway_id}` endpoint. Finally, you can set them locally on a gateway in the `control_proxy.yml` file by filling out the following fields.
 
 ```
 # [Experimental] Sentry related configs
