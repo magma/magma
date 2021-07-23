@@ -174,12 +174,12 @@ jobs:
           SLACK_FOOTER: ' '
   cloud-upload:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v2
       - name: Install SwaggerHub CLI
         run: npm install --global swaggerhub-cli
       - name: Publish SwaggerHub API
-        if: github.ref == 'refs/heads/master'
         env:
           MAGMA_ROOT: "${{ github.workspace }}"
           SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
