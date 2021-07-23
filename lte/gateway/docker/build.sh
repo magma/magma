@@ -19,7 +19,6 @@ build (){
 # build container for python services
 docker build . -f services/build/Dockerfile.python -t pythonbuilder:latest
 
-
 # python services
 build mobilityd
 build enodebd
@@ -32,6 +31,8 @@ build magmad
 build state
 build directoryd
 build pipelined
+build eventd
+build control_proxy
 
 # build container for C services
 cd ../../../
@@ -43,3 +44,4 @@ docker build . -f services/build/Dockerfile.c -t cbuilder:latest
 build mme
 build sctpd
 build sessiond
+build envoy_controller

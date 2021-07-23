@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as directoryd
+FROM ubuntu:20.04 as eventd
 
 ENV VIRTUAL_ENV=/build
 RUN apt-get update \
@@ -11,4 +11,4 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=pythonbuilder:latest /build /build
 COPY --from=pythonbuilder:latest /magma /magma
 
-ENTRYPOINT /usr/bin/env python3 -m magma.directoryd.main
+ENTRYPOINT /usr/bin/env python3 -m magma.eventd.main

@@ -11,4 +11,4 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=pythonbuilder:latest /build /build
 COPY --from=pythonbuilder:latest /magma /magma
 
-ENTRYPOINT /usr/bin/env python3 -m magma.health.main
+ENTRYPOINT /usr/bin/env python3 -m magma.smsd.main
