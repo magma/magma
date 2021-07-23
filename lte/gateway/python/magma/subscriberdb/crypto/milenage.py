@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 import hmac
-
 from Crypto.Cipher import AES
 from Crypto.Random import random
-
-from .lte import BaseLTEAuthAlgo
-
+from .lte import (
+    BaseLTEAuthAlgo,
+    FiveGRanAuthVector,
+)
 
 class Milenage(BaseLTEAuthAlgo):
     """
@@ -54,7 +54,39 @@ class Milenage(BaseLTEAuthAlgo):
         kasme = Milenage.generate_kasme(ck, ik, plmn, sqn_bytes, ak)
         return rand, xres, autn, kasme
 
-    def generate_auts(self, key, opc, rand, sqn):
+    def generate_m5gran_vector(self, key: bytes, opc: bytes, sqn: int, snni: bytes) -> FiveGRanAuthVector:
+        """
+        Generate the NGRAN key vector.
+        Args:
+            key : bytes 
+                128 bit subscriber key
+            opc : bytes 
+                128 bit operator variant algorithm configuration field
+            sqn : int 
+                48 bit sequence number
+            snni : bytes 
+                32 bit serving network name consisting of MCC and MNC
+        Returns:
+            FiveGRanAuthVector : NamedTuple 
+                 Consists of (rand, xres_star, autn, kseaf)
+        """
+        sqn_bytes = bytearray.fromhex('{:012x}'.format(sqn))
+        rand = Milenage.generate_rand()
+
+        mac_a, _ = Milenage.f1(key, sqn_bytes, rand, opc, self.amf)
+        xres, ak = Milenage.f2_f5(key, rand, opc)
+        ck = Milenage.f3(key, rand, opc)
+        ik = Milenage.f4(key, rand, opc)
+
+        autn = Milenage.generate_autn(sqn_bytes, ak, mac_a, self.amf)
+        xres_star = Milenage.generate_m5g_xres_star(ck + ik, snni, rand, xres)
+        kausf = Milenage.generate_m5g_kausf(ck + ik, snni, autn)
+        kseaf = Milenage.generate_m5g_kseaf(kausf, snni)
+
+        return FiveGRanAuthVector(rand, xres_star, autn, kseaf)
+
+    def generate_auts(self, key: bytes, opc: bytes, rand: bytes,
+                      sqn: int) -> bytes:
         """
         Compute AUTS for re-synchronization using the formula
             AUTS = SQN_MS ^ AK || f1*(SQN_MS || RAND || AMF*)
@@ -317,6 +349,77 @@ class Milenage(BaseLTEAuthAlgo):
         aes_cipher = AES.new(k, AES.MODE_CBC, IV)
         return aes_cipher.encrypt(buf)
 
+    @classmethod
+    def generate_m5g_xres_star(cls, key: bytes, snni: bytes, rand: bytes,
+                               xres: bytes) -> bytes:
+        """
+        Compute XRES_STAR = K + FC + P0 + L0 + P1 + L1 + P2 + L2
+        Args:
+            key (bytes): key for xres calculation ck+ik
+            snni: Serving network name
+            rand (bytes): 128 bit random challenge
+            xres (bytes): 64 bit response to challenge
+        Returns:
+            xres_star (bytes)
+        """
+
+        snni_len=len(snni)
+        rand_len=len(rand)
+        xres_len=len(xres)
+
+        K  =  key
+        FC =  bytes.fromhex('6B')
+        P0 =  snni
+        L0 =  snni_len.to_bytes(2, 'big')
+        P1 =  rand
+        L1 =  rand_len.to_bytes(2, 'big')
+        P2 =  xres
+        L2 =  xres_len.to_bytes(2, 'big')
+
+        S = FC + P0 + L0 + P1 + L1 + P2 + L2
+
+        return cls.KDF(K, S)
+
+    @classmethod
+    def generate_m5g_kausf(cls, key: bytes, snni: bytes, autn: bytes) -> bytes:
+        """
+        Compute KAUSF = K + FC + P0 + L0i + P1 + L1
+        Args:
+            key (bytes) : key combination of ck and ik
+            snni (bytes): serving network name
+            autn (bytes): 128 bit authentication token
+        Returns:
+            kausf (bytes) : Key from Authentication server function
+        """
+        K  =  key
+        FC =  bytes.fromhex('6A')
+        P0 =  snni
+        L0 =  len(snni).to_bytes(2, 'big')
+        P1 =  autn[:6]
+        L1 =  len(P1).to_bytes(2, 'big')
+
+        S = FC + P0 + L0 + P1 + L1
+
+        return cls.KDF(K, S)
+
+    @classmethod
+    def generate_m5g_kseaf(cls, kausf: bytes, snni: bytes) -> bytes:
+        """
+        Compute KSEAF = K + FC + P0 + L0
+        Args:
+            key (bytes) : key from authentication server function
+            snni (bytes) : serving network name
+        Returns:
+            kseaf (bytes) : keys from security anchor function
+        """
+        K  =  kausf
+        FC =  bytes.fromhex('6C')
+        P0 =  snni
+        L0 =  len(snni).to_bytes(2, 'big')
+
+        S = FC + P0 + L0
+
+        return cls.KDF(K, S)
 
 def xor(s1, s2):
     """
@@ -352,3 +455,4 @@ def rotate(input_s, bytes_):
             ),
         )
     )
+    

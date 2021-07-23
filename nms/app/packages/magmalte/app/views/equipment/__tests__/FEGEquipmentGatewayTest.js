@@ -26,16 +26,51 @@ import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {
+  csfb,
   federation_gateway,
   federation_gateway_health_status,
   federation_network_cluster_status,
+  gx,
+  gy,
   promql_return_object,
+  s6a,
+  swx,
 } from '@fbcnms/magma-api';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
+
+const mockGx: gx = {
+  server: {
+    address: '174.16.1.14:3868',
+  },
+};
+
+const mockGy: gy = {
+  server: {
+    address: '174.18.1.0:3868',
+  },
+};
+
+const mockSwx: swx = {
+  server: {
+    address: '174.18.1.0:3869',
+  },
+};
+
+const mockS6a: s6a = {
+  server: {
+    address: '174.18.1.0:2000',
+  },
+};
+
+const mockCsfb: csfb = {
+  client: {
+    server_address: '174.18.1.0:2200',
+  },
+};
 
 const mockGw0: federation_gateway = {
   id: 'test_feg_gw0',
@@ -58,30 +93,13 @@ const mockGw0: federation_gateway = {
     eap_aka: {
       plmn_ids: [],
     },
-    gx: {
-      server: {
-        protocol: 'tcp',
-      },
-      servers: [],
-      virtual_apn_rules: [],
-    },
-    gy: {
-      server: {
-        protocol: 'tcp',
-      },
-      servers: [],
-      virtual_apn_rules: [],
-    },
+    gx: mockGx,
+    gy: mockGy,
     health: {
       health_services: [],
     },
     hss: {},
-    s6a: {
-      plmn_ids: [],
-      server: {
-        protocol: 'tcp',
-      },
-    },
+    s6a: mockS6a,
     served_network_ids: [],
     swx: {
       hlr_plmn_ids: [],
@@ -90,6 +108,7 @@ const mockGw0: federation_gateway = {
       },
       servers: [],
     },
+    csfb: mockCsfb,
   },
   status: {
     checkin_time: 0,
@@ -137,6 +156,18 @@ const mockGw1: federation_gateway = {
   ...mockGw0,
   id: 'test_gw1',
   name: 'test_gateway1',
+  federation: {
+    aaa_server: {},
+    eap_aka: {},
+    health: {},
+    hss: {},
+    served_network_ids: [],
+    gx: {},
+    gy: {},
+    swx: mockSwx,
+    s6a: {},
+    csfb: {},
+  },
 };
 
 const fegGateways = {
@@ -217,5 +248,38 @@ describe('<FEGEquipmentGateway />', () => {
       '1',
     );
     expect(getByTestId('% Healthy Gateways')).toHaveTextContent('50');
+  });
+
+  it('renders federation gateway table correctly', async () => {
+    const {getByTestId, getAllByRole, queryByTestId} = render(<Wrapper />);
+    await wait();
+    const rowItems = await getAllByRole('row');
+    // first row is the header
+    expect(rowItems[0]).toHaveTextContent('Name');
+    expect(rowItems[0]).toHaveTextContent('Primary');
+    expect(rowItems[0]).toHaveTextContent('Health');
+    expect(rowItems[0]).toHaveTextContent('Gx');
+    expect(rowItems[0]).toHaveTextContent('Gy');
+    expect(rowItems[0]).toHaveTextContent('SWx');
+    expect(rowItems[0]).toHaveTextContent('S6a');
+    expect(rowItems[0]).toHaveTextContent('CSFB');
+
+    expect(rowItems[1]).toHaveTextContent('test_gateway');
+    expect(getByTestId('test_feg_gw0 is primary')).toBeVisible();
+    expect(rowItems[1]).toHaveTextContent('Good');
+    expect(rowItems[1]).toHaveTextContent('174.16.1.14:3868');
+    expect(rowItems[1]).toHaveTextContent('174.18.1.0:3868');
+    expect(rowItems[1]).toHaveTextContent('-');
+    expect(rowItems[1]).toHaveTextContent('174.18.1.0:2000');
+    expect(rowItems[1]).toHaveTextContent('174.18.1.0:2200');
+
+    expect(rowItems[2]).toHaveTextContent('test_gateway1');
+    expect(queryByTestId('test_gw1 is primary')).toBeNull();
+    expect(rowItems[2]).toHaveTextContent('Bad');
+    expect(rowItems[2]).toHaveTextContent('-');
+    expect(rowItems[2]).toHaveTextContent('-');
+    expect(rowItems[2]).toHaveTextContent('174.18.1.0:3869');
+    expect(rowItems[2]).toHaveTextContent('-');
+    expect(rowItems[2]).toHaveTextContent('-');
   });
 });

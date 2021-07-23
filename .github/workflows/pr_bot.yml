@@ -19,7 +19,7 @@ jobs:
 
             A couple initial guidelines
             - [All commits must be signed off](https://docs.magmacore.org/docs/contributing/contribute_workflow#guidelines). This is enforced by \`DCO check\`.
-            - [All PR titles must follow the semantic commits format](https://docs.magmacore.org/docs/contributing/contribute_workflow#guidelines). This is enforced by \`Semantic Pull Request\`.
+            - [All PR titles must follow the semantic commits format](https://docs.magmacore.org/docs/contributing/contribute_workflow#guidelines). This is enforced by \`Semantic PR\`.
 
             ### Howto
             - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.

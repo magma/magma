@@ -29,17 +29,25 @@ jobs:
           else
             orc8r/tools/helm/package.sh --deployment-type all
           fi
+      - name: Extract commit title
+        if: failure()
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure()
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Push helm charts to artifactory failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Helm charts push to Artifactory "
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
       - name: Only keep the last 20 uploaded versions
         run: |
           pip install artifactory

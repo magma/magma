@@ -32,10 +32,7 @@ import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {FetchGateways} from '../../state/lte/EquipmentState';
-import {
-  HEALTHY_GATEWAY,
-  UNHEALTHY_GATEWAY,
-} from '../../components/GatewayUtils';
+import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -85,8 +82,8 @@ async function getServicedAccessGatewaysInfo(
         gatewayHealth: isGatewayHealthy(
           servicedAccessGateways[servicedAccessGatewayId] || {},
         )
-          ? HEALTHY_GATEWAY
-          : UNHEALTHY_GATEWAY,
+          ? GatewayTypeEnum.HEALTHY_GATEWAY
+          : GatewayTypeEnum.UNHEALTHY_GATEWAY,
       };
       newServicedAccessGatewaysInfo.push(newServicedAccessGatewayInfo);
     });

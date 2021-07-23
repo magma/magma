@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include "mme_config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,7 +23,7 @@ extern "C" {
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is
  * configured in control_proxy.yml
  */
-void initialize_sentry(void);
+void initialize_sentry(const sentry_config_t* sentry_config);
 
 /**
  * @brief Shutdown sentry if SENTRY_ENABLED flag is set
