@@ -31,7 +31,7 @@ services:
   magmad:
     <<: *pyservice
     container_name: magmad
-    image: magmad:latest
+    image: magmad:${IMAGE_VERSION}
   #   environment:
   #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
   #     DOCKER_USERNAME: ${DOCKER_USERNAME}
@@ -39,69 +39,69 @@ services:
   mobilityd:
     <<: *pyservice
     container_name: mobilityd
-    image: mobilityd:latest
+    image: mobilityd:${IMAGE_VERSION}
     depends_on:
       - redis
   directoryd:
     <<: *pyservice
     container_name: directoryd
-    image: directoryd:latest
+    image: directoryd:${IMAGE_VERSION}
     depends_on:
       - redis
   subscriberdb:
     <<: *pyservice
     container_name: subscriberdb
-    image: subscriberdb:latest
+    image: subscriberdb:${IMAGE_VERSION}
   policydb:
     <<: *pyservice
     container_name: policydb
-    image: policydb:latest
+    image: policydb:${IMAGE_VERSION}
     depends_on:
       - redis
   pipelined:
     <<: *pyservice
     container_name: pipelined
-    image: pipelined:latest
+    image: pipelined:${IMAGE_VERSION}
 
   state:
     <<: *pyservice
     container_name: state
-    image: state:latest
+    image: state:${IMAGE_VERSION}
     depends_on:
       - redis
   eventd:
     <<: *pyservice
     container_name: eventd
-    image: eventd:latest
+    image: eventd:${IMAGE_VERSION}
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
-    image: control_proxy:latest
+    image: control_proxy:${IMAGE_VERSION}
   ctraced:
     <<: *pyservice
     container_name: ctraced
-    image: ctraced:latest
+    image: ctraced:${IMAGE_VERSION}
 
 
   sctpd:
     <<: *cservice
     container_name: sctpd
-    image: sctpd:latest
+    image: sctpd:${IMAGE_VERSION}
   sessiond:
     <<: *cservice
     container_name: sessiond
-    image: sessiond:latest
+    image: sessiond:${IMAGE_VERSION}
     depends_on:
       - directoryd
   mme:
     <<: *cservice
     container_name: mme
-    image: mme:latest
+    image: mme:${IMAGE_VERSION}
 
   envoy_controller:
     <<: *cservice
     container_name: envoy_controller
-    image: envoy_controller:latest
+    image: envoy_controller:${IMAGE_VERSION}
 
 
   # pipelined:
@@ -114,7 +114,7 @@ services:
   #   container_name: ovs
 
   redis:
-    image: 'bitnami/redis:latest'
+    image: 'bitnami/redis:${IMAGE_VERSION}'
     container_name: redis
     networks:
       - agw
