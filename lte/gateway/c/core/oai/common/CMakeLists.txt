@@ -63,16 +63,6 @@ add_subdirectory(redis_utils)
 
 add_library(COMMON ${COMMON_SRC})
 
-## Find + link sentry if it exists
-## TODO we can enable by default after we migrate to ubuntu 20.04
-find_library(SENTRY_LIB NAMES sentry sentry-native)
-if (SENTRY_LIB)
-  target_link_libraries(COMMON ${SENTRY_LIB})
-endif ()
-
-set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
-link_directories(${MAGMA_LIB_DIR}/sentry)
-
 target_link_libraries(COMMON
         lfds710
         LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY

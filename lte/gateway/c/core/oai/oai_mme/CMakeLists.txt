@@ -29,9 +29,6 @@ if ("${LFDS}" STREQUAL "LFDS-NOTFOUND")
   message(FATAL_ERROR "LIB LFDS not found, please install it")
 endif ()
 
-set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
-link_directories(${MAGMA_LIB_DIR}/sentry)
-
 add_executable(mme
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
     ${PROJECT_SOURCE_DIR}/common/common_types.c
@@ -43,7 +40,7 @@ add_executable(mme
 
 target_link_libraries(mme
     -Wl,--start-group
-    COMMON MAGMA_SENTRY
+    COMMON
     LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
     LIB_HASHTABLE LIB_S6A_PROXY
     TASK_S1AP TASK_NGAP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R

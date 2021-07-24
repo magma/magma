@@ -77,10 +77,9 @@ static int main_init(void) {
   // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
-      (task_id_t[]){
-          TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER, TASK_S6A,
-          TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8, TASK_GRPC_SERVICE,
-          TASK_LOG, TASK_SHARED_TS_LOG},
+      (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
+                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
       11, NULL, &main_zmq_ctx);
 
   return RETURNok;

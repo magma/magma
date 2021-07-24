@@ -13,9 +13,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
-link_directories(${MAGMA_LIB_DIR}/sentry)
-
 add_subdirectory(mme_app_task)
 add_subdirectory(mobility_client)
 add_subdirectory(openflow)

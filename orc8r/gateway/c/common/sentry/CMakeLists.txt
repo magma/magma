@@ -23,23 +23,13 @@ find_package(MAGMA_CONFIG REQUIRED)
 ## Find + link sentry if it exists
 find_library(SENTRY_LIB NAMES sentry sentry-native)
 if (SENTRY_LIB)
-    # Include dir
-    message("Building with sentry!")
-    find_path(SENTRY_INCLUDE_DIR NAMES sentry.h )
-    target_link_libraries(MAGMA_SENTRY ${SENTRY_LIB} MAGMA_CONFIG)
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
-    set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
+  # Include dir
+  message("Building with sentry!")
+  find_path(SENTRY_INCLUDE_DIR NAMES sentry.h )
+  target_link_libraries(MAGMA_SENTRY ${SENTRY_LIB} MAGMA_CONFIG)
+  set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
+  set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
 endif()
-
-
-# copy headers to build directory so they can be shared with OAI,
-# session_manager, etc.
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
-add_custom_command(TARGET MAGMA_SENTRY POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
-add_custom_command(TARGET MAGMA_SENTRY POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.h ${MAGMA_INCLUDE_DIR})
 
 target_include_directories(MAGMA_SENTRY PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"

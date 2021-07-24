@@ -148,7 +148,7 @@ build_python: stop ## Build Python environment
 build_common: format_common ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-build_oai: build_common format_core ## Build OAI
+build_oai: format_core ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS))
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
@@ -204,7 +204,7 @@ scan_oai: ## Scan OAI
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-test_oai: build_common ## Run all OAI-specific tests
+test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
 
 test_sctpd: ## Run all OAI-specific tests

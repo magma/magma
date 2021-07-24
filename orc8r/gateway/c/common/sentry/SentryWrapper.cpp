@@ -45,7 +45,7 @@ bool should_upload_mme_log(
 }
 
 optional<std::string> get_sentry_url(
-    bstring sentry_url_native, YAML::Node control_proxy_config) {
+    const char* sentry_url_native, YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
     const std::string dns_override =
         control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
@@ -53,7 +53,7 @@ optional<std::string> get_sentry_url(
       return dns_override;
     }
   }
-  const std::string sentry_url(bdata(sentry_url_native));
+  const std::string sentry_url(sentry_url_native);
   if (!sentry_url.empty()) {
     return sentry_url;
   }

@@ -108,7 +108,6 @@ link_directories(
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
   ${MAGMA_LIB_DIR}/eventd
-  ${MAGMA_LIB_DIR}/sentry
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(SESSION_MANAGER
@@ -193,11 +192,7 @@ add_library(SESSION_MANAGER
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
-## Find + link sentry if it exists
-find_library(SENTRY_LIB NAMES sentry sentry-native)
-if (SENTRY_LIB)
-  target_link_libraries(SESSION_MANAGER ${SENTRY_LIB})
-endif()
+find_package(MAGMA_SENTRY REQUIRED)
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG EVENTD MAGMA_SENTRY
@@ -216,7 +211,7 @@ if (CLANG_FORMAT)
 endif ()
 
 add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
-target_link_libraries(sessiond SESSION_MANAGER MAGMA_SENTRY)
+target_link_libraries(sessiond SESSION_MANAGER)
 
 
 if (BUILD_TESTS)
