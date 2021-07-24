@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
   strncpy(
       sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
       MAX_URL_LENGTH);
-  initialize_sentry(&sentry_config);
+  initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool converged_access          = false;
   uint32_t session_max_rtx_count = 0;

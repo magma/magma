@@ -18,6 +18,9 @@ extern "C" {
 #endif
 
 #define MAX_URL_LENGTH 255
+#define SENTRY_TAG_MME "MME"
+#define SENTRY_TAG_SESSIOND "SessionD"
+#define SENTRY_TAG_LEN 16
 
 /**
  * @brief Struct to contain Sentry configuration relevant for C/C++ services
@@ -32,7 +35,8 @@ typedef struct sentry_config {
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is
  * configured in control_proxy.yml
  */
-void initialize_sentry(const sentry_config_t* sentry_config);
+void initialize_sentry(
+    const char* service_tag, const sentry_config_t* sentry_config);
 
 /**
  * @brief Shutdown sentry if SENTRY_ENABLED flag is set

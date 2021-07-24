@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <cstring>
 
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"
@@ -82,7 +83,8 @@ std::string get_snowflake() {
   return buffer.str();
 }
 
-void initialize_sentry(const sentry_config_t* sentry_config) {
+void initialize_sentry(
+    const char* service_tag, const sentry_config_t* sentry_config) {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
   auto op_sentry_url =
@@ -96,14 +98,15 @@ void initialize_sentry(const sentry_config_t* sentry_config) {
     if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
       sentry_options_set_release(options, commit_hash_p);
     }
-    if (should_upload_mme_log(
+    if (strncmp(service_tag, SENTRY_TAG_MME, SENTRY_TAG_LEN) == 0 &&
+        should_upload_mme_log(
             sentry_config->upload_mme_log, control_proxy_config)) {
       sentry_options_add_attachment(options, MME_LOG_PATH);
     }
 
     sentry_init(options);
 
-    sentry_set_tag(SERVICE_NAME, "MME");
+    sentry_set_tag(SERVICE_NAME, service_tag);
     sentry_set_tag(HWID, get_snowflake().c_str());
   }
 }
@@ -117,8 +120,13 @@ void set_sentry_transaction(const char* name) {
 }
 
 #else
-void initialize_sentry(__attribute__((unused))
-                       const sentry_config_t* sentry_config) {}
+
+void initialize_sentry(
+    __attribute__((unused)) const char* service_tag,
+    __attribute__((unused)) const sentry_config_t* sentry_config) {}
+
 void shutdown_sentry(void) {}
+
 void set_sentry_transaction(__attribute__((unused)) const char* name) {}
+
 #endif

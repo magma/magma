@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
   // Ubuntu 20.04)
   // We have to initialize here for now since itti_init asserts on there being
   // only 1 thread
-  initialize_sentry(&mme_config.sentry_config);
+  initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
 
   CHECK_INIT_RETURN(timer_init());
   // Could not be launched before ITTI initialization
