@@ -47,6 +47,10 @@ int send_mme_app_stats_to_service303(
       stats_msg->nb_ue_attached;
   message_p->ittiMsg.application_mme_app_stats_msg.nb_ue_connected =
       stats_msg->nb_ue_connected;
+  message_p->ittiMsg.application_mme_app_stats_msg.nb_default_eps_bearers =
+      stats_msg->nb_default_eps_bearers;
+  message_p->ittiMsg.application_mme_app_stats_msg.nb_s1u_bearers =
+      stats_msg->nb_s1u_bearers;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 
