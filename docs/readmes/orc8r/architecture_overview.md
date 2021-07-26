@@ -16,7 +16,7 @@ Magma’s Orchestrator is a centralized controller for a set of networks.
 Orchestrator handles the control plane for various types of gateways in Magma.
 Orchestrator functionality is composed of two primary components
 
-- A standardized, vendor-agnostic **northbound REST API** which exposes
+- A standardized, vendor-agnostic [**northbound REST API**](https://app.swaggerhub.com/apis/MagmaCore/Magma/1.0.0) which exposes
 configuration and metrics for network devices
 - **A southbound interface** which applies device configuration and reports
 device status

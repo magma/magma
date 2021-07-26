@@ -186,9 +186,11 @@ export type FederationGatewayHealthStatus = {
 
 const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
 
-export const HEALTHY_GATEWAY = 'Good';
-
-export const UNHEALTHY_GATEWAY = 'Bad';
+export const GatewayTypeEnum = Object.freeze({
+  HEALTHY_GATEWAY: 'Good',
+  UNHEALTHY_GATEWAY: 'Bad',
+  UNKNOWN: '-',
+});
 
 // health status used for federation gateways
 export const HEALTHY_STATUS = 'HEALTHY';

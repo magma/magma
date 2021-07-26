@@ -1473,18 +1473,20 @@ jobs:
       - run:
           name: Propagate AWS credentials to ansible and create version
           command: |
-            GIT_TAG="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)"
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="$GIT_TAG$CIRCLE_BUILD_NUM" >> $BASH_ENV
+              echo export VERSION="1.6.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
+              echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
+              # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="$GIT_TAG" >> $BASH_ENV
+              echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
+              echo export VERSION="1.7.0" >> $BASH_ENV
             fi
-            echo export GIT_TAG="$GIT_TAG" >> $BASH_ENV
-            echo export PACKAGE_VERSION="${GIT_TAG:1}" >> $BASH_ENV
+            echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian" >> $BASH_ENV
+            echo export GIT_REF="${CIRCLE_SHA1}" >> $BASH_ENV
       - run:
           name: Propagate AWS region information
           command: |
@@ -1514,8 +1516,9 @@ jobs:
             sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
             sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"$GIT_TAG"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"$GIT_REF"'/' $VARS_DIR/build.yaml
             sed -i -e '/^buildAgwPackage: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^taggedVersion: /s/:.*$/: '"$VERSION"'/' $VARS_DIR/build.yaml
       - run:
           name: Generate Cloudstrapper AMI
           no_output_timeout: 30m
@@ -1533,6 +1536,7 @@ jobs:
           command: |
             sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
             sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
+            sed -i -e '/^packageRepoHost: /s/:.*$/: '"$PACKAGE_REPO_HOST"'/' $VARS_DIR/build.yaml
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
       - run:
           name: Generate AGW AMI
@@ -1605,6 +1609,9 @@ workflows:
       - release-hold:
           <<: *only_release
           type: approval
+      - ami-hold:
+          <<: *only_release
+          type: approval
       - lte-agw-deploy:
           <<: *only_release
           requires:
@@ -1629,11 +1636,13 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
+      # Debian Packages need to be promoted to production repo before releasing to Linux Foundation AWS
       - publish-amis-to-marketplace:
           aws_account: "LF"
           <<: *only_release
           requires:
             - release-hold
+            - ami-hold
   feg:
     jobs:
       - feg-lint

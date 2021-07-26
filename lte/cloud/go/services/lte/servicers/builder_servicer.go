@@ -178,6 +178,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
 			SentryConfig:             getNetworkSentryConfig(&network),
+			EnableConvergedCore:      swag.BoolValue(nwEpc.EnableConvergedCore),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
