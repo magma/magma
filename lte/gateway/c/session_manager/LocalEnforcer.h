@@ -713,6 +713,29 @@ class LocalEnforcer {
    * @param dead_sessions_to_cleanup
    */
   void cleanup_dead_sessions(const RuleRecordSet dead_sessions_to_cleanup);
+
+  /**
+   * Given a UE id and session, add the session to the session map,
+   * and invoke API that adds shard to shard tracker if the UE doesn't already
+   * exist in the session map. If the UE already exists, set the shard id of
+   * the session to the same as that of another session of the UE.
+   * @param imsi id of UE
+   * @param session_map map of UE to vector of session states
+   * @param session a single session state initialized for a particular UE
+   */
+  void add_ue_to_shard(
+      const std::string imsi, SessionMap& session_map, SessionState& session);
+
+  /**
+   *  Given an IMSI and session, remove the session from the tracker, only if
+   *  there is one session left for a UE.
+   * @param imsi id of UE
+   * @param session_map map of UE to vector of session states
+   * @param session a single session state initialized for a particular UE
+   * @return true for a successful removal, false if removal fails
+   */
+  bool remove_ue_from_shard(
+      const std::string imsi, SessionMap& session_map, SessionState& session);
 };
 
 }  // namespace magma

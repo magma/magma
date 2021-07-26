@@ -195,7 +195,7 @@ SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
     const SessionConfig& cfg, StaticRuleStore& rule_store,
     const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
-    const CreateSessionResponse& csr, const uint16_t shard_id)
+    const CreateSessionResponse& csr)
     : imsi_(imsi),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
@@ -208,8 +208,7 @@ SessionState::SessionState(
       tgpp_context_(tgpp_context),
       create_session_response_(csr),
       static_rules_(rule_store),
-      credit_map_(4, &ccHash, &ccEqual),
-      shard_id_(shard_id) {
+      credit_map_(4, &ccHash, &ccEqual) {
   // other default initializations
   current_version_        = 0;
   session_level_key_      = "";
@@ -229,8 +228,7 @@ SessionState::SessionState(
       config_(cfg),
       current_version_(0),
       rtx_counter_(0),
-      static_rules_(rule_store),
-      shard_id_(0) {}
+      static_rules_(rule_store) {}
 
 /* get-set methods of new messages  for 5G*/
 uint32_t SessionState::get_current_version() {

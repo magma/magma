@@ -136,7 +136,7 @@ class SessionState {
       const std::string& imsi, const std::string& session_id,
       const SessionConfig& cfg, StaticRuleStore& rule_store,
       const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
-      const CreateSessionResponse& csr, const uint16_t shard_id);
+      const CreateSessionResponse& csr);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -268,6 +268,8 @@ class SessionState {
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
   uint16_t get_shard_id() { return shard_id_; }
+
+  void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }
 
   std::string get_session_id() const { return session_id_; }
 

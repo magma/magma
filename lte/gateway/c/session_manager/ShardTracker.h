@@ -21,6 +21,7 @@ namespace magma {
 a certain size, to make polling more manageable*/
 class ShardTracker {
  public:
+  ShardTracker();
   /**
    * Add UE to shards based on availability, if the UE already has an
    * existing shard, return the existing shard id and don't perform

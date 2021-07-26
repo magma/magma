@@ -18,6 +18,7 @@
 #include <chrono>
 #include <future>
 #include <memory>
+#include <stdio.h>
 
 #include "Consts.h"
 #include "DiameterCodes.h"
@@ -1146,7 +1147,7 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
       IMSI1, SESSION_ID_1, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state = std::make_unique<SessionState>(
       IMSI1, SESSION_ID_1, default_cfg_1, *rule_store, tgpp_ctx, pdp_start_time,
-      response, 0);
+      response);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;
@@ -3566,7 +3567,7 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
   // six, add random amounts of sessions between 1 and 4
   srand(time(NULL));
   CreateSessionResponse response;
-  for (int i = 1; i <= 501; i++) {
+  for (int i = 1; i <= 1001; i++) {
     // construct random IMSIs
     std::stringstream imsiStream;
     imsiStream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')
@@ -3577,6 +3578,7 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
     int session_count = 3;
     auto sessions     = SessionVector{};
     EXPECT_EQ(session_map[imsi_id].size(), 0);
+    std::cout << "Creating sessions" << std::endl;
     for (int i = 1; i <= session_count; i++) {
       std::stringstream sessionStream;
       sessionStream << imsi_id << "-" << std::to_string(i + 1);
@@ -3584,6 +3586,9 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
       sessionStream.clear();
       local_enforcer->init_session(
           session_map, imsi_id, session_id, test_cfg_, response);
+      std::cout << "Updating tunnel id" << std::endl;
+      local_enforcer->update_tunnel_ids(
+          session_map, create_update_tunnel_ids_request(imsi_id, 0, teids0));
       EXPECT_EQ(session_map[imsi_id].size(), i);
     }
     EXPECT_EQ(session_map[imsi_id].size(), session_count);
@@ -3592,7 +3597,7 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
   }
   // check shards for all 501 UEs to make share there are 6, all sessions should
   // have the same shard id per IMSI
-  for (int i = 1; i <= 501; i++) {
+  for (int i = 1; i <= 1001; i++) {
     // check the sessions to make sure they have the right shard id and all the
     std::stringstream imsi_stream;
     imsi_stream << "IMSI" << std::string(16 - std::to_string(i).length(), '0')

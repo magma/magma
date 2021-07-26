@@ -37,7 +37,7 @@ class SessionStateTest : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
         IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_ctx, pdp_start_time,
-        CreateSessionResponse{}, 0);
+        CreateSessionResponse{});
     update_criteria = get_default_update_criteria();
   }
 
