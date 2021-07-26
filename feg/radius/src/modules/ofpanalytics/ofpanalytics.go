@@ -17,16 +17,18 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"time"
+
+	"fbc/cwf/radius/modules"
+	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2865"
+
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 type (
@@ -136,6 +138,9 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 		zap.String("XWF-C-Version", analyticsVersion))
 
 	if resp.StatusCode != http.StatusOK {
+		rc.Logger.Error("bad status code",
+			zap.Int("status", resp.StatusCode),
+			zap.String("url", resp.Request.URL.String()))
 		return nil, fmt.Errorf("error processing message by endpoint. Response status %d", resp.StatusCode)
 	}
 	var endPointResponse EndpointResponse
