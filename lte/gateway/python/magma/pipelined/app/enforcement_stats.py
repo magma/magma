@@ -10,8 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import concurrent.futures
 import os
 from collections import defaultdict
+from concurrent.futures import Future
 from datetime import datetime, timedelta
 
 from lte.protos.pipelined_pb2 import RuleModResult
@@ -40,8 +42,6 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-import ryu.app.ofctl.api as ofctl_api
-from ryu.app.ofctl.exception import (InvalidDatapath, OFError, UnexpectedMultiReply)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -64,6 +64,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
     INIT_SLEEP_TIME = 3
     MAX_DELAY_INTERVALS = 20
+    DEFAULT_STATS_WAIT_TIMEOUT = 5
 
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -94,6 +95,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._last_report_timestamp = datetime.now()
         self._bridge_name = kwargs['config']['bridge_name']
         self._periodic_stats_reporting = kwargs['config']['enforcement'].get('periodic_stats_reporting', True)
+        self._stats_wait_timeout = kwargs['config']['enforcement'].get('stats_wait_timeout', self.DEFAULT_STATS_WAIT_TIMEOUT)
+        self._poll_futures = {}
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -113,7 +116,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         """
         Install the default flows on datapath connect event.
-        
+
         Args:
             datapath: ryu datapath struct
         """
@@ -277,7 +280,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic.
-        
+
         Args:
             imsi (string): subscriber id
             ip_addr (string): subscriber ip_addr
@@ -346,12 +349,18 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Schedule the flow stats handling in the main event loop, so as to
         unblock the ryu event loop
         """
-        if not self.init_finished:
-            self.logger.debug('Setup not finished, skipping stats reply')
-            return
-
         if self._datapath_id != ev.msg.datapath.id:
             self.logger.debug('Ignoring stats from different bridge')
+            return
+
+        if not self._periodic_stats_reporting:
+            if ev.msg.xid not in self._poll_futures:
+                self.logger.debug('Invalid stats reply with xid %d', ev.msg.xid)
+                return
+            self._poll_futures[ev.msg.xid].set_result(ev.msg.body)
+
+        if not self.init_finished:
+            self.logger.debug('Setup not finished, skipping stats reply')
             return
 
         self.unhandled_stats_msgs.append(ev.msg.body)
@@ -574,29 +583,32 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
-        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
+        Send a stats request containing cookie and cookie mask,
+        wait for response from OVS using a future, retrieve a response and
         convert to a Rule Record Table and remove old flows
         """
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
             return RuleRecordTable()
-        parser = self._datapath.ofproto_parser
-        message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
         try:
-            response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
-                    reply_multi=False)
-            if response == None:
+            xid = flows.send_stats_request(self._datapath, self.tbl_num, cookie,
+                                           cookie_mask)
+            self._poll_futures[xid] = Future()
+            res = self._poll_futures[xid].result(timeout=self._stats_wait_timeout)
+            del self._poll_futures[xid]
+
+            if not res:
                 self.logger.error("No rule records match the specified cookie and cookie mask")
                 return RuleRecordTable()
-            else:
-                usage = self._get_usage_from_flow_stat(response.body)
-                self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
-                record_table = RuleRecordTable(
-                    records=usage.values(),
-                    epoch=global_epoch)
-                return record_table
-        except (InvalidDatapath, OFError, UnexpectedMultiReply):
-            self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
+
+            usage = self._get_usage_from_flow_stat(res)
+            self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
+            record_table = RuleRecordTable(
+                records=usage.values(),
+                epoch=global_epoch)
+            return record_table
+        except concurrent.futures.TimeoutError:
+            self.logger.error("Could not obtain stats for cookie %d, processing timed out", cookie)
             return RuleRecordTable()
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):

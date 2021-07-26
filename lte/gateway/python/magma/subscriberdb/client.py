@@ -170,8 +170,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             self._update_per_sub_digests(res.per_sub_digests)
 
             # TODO(hcgatewood): switch to bulk editing subscriber data rows
-            for item in res.to_renew.items():
-                subscriber_data = item[1]
+            for subscriber_data in res.to_renew:
                 self._store.upsert_subscriber(subscriber_data)
             for sid in res.deleted:
                 self._store.delete_subscriber(sid)

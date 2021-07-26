@@ -322,4 +322,13 @@ MME :
      }{% if not loop.last %},{% endif %}
      {% endfor %}
    );
+
+   SENTRY_CONFIG = {
+     {% if sentry_config %}
+       # Sentry.io configuration sent from the Orc8r
+       SAMPLE_RATE      = {{ sentry_config.sample_rate }};
+       UPLOAD_MME_LOG   = "{{ sentry_config.upload_mme_log }}";
+       URL_NATIVE       = "{{ sentry_config.url_native }}"
+     {%- endif %}
+   }
 };

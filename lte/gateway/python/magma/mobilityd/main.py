@@ -160,19 +160,17 @@ def main():
     # Load IPAddressManager
     ip_address_man = IPAddressManager(ipv4_allocator, ipv6_allocator, store)
 
-    # Add all servicers to the server
-    mobility_service_servicer = MobilityServiceRpcServicer(
-        ip_address_man, config.get('print_grpc_payload', False),
-    )
-    mobility_service_servicer.add_to_server(service.rpc_server)
-
     # Load IPv4 and IPv6 blocks from the configurable mconfig file
     # No dynamic reloading support for now, assume restart after updates
     ipv4_block = _get_ip_block(mconfig.ip_block, "IPv4")
     if ipv4_block is not None:
         logging.info('Adding IPv4 block')
         try:
-            mobility_service_servicer.add_ip_block(ipv4_block)
+            allocated_ip_blocks = ip_address_man.list_added_ip_blocks()
+            if ipv4_block not in allocated_ip_blocks:
+                # Cleanup previously allocated IP blocks
+                ip_address_man.remove_ip_blocks(*allocated_ip_blocks, force=True)
+                ip_address_man.add_ip_block(ipv4_block)
         except OverlappedIPBlocksError:
             logging.warning("Overlapped IPv4 block: %s", ipv4_block)
 
@@ -180,11 +178,17 @@ def main():
     if ipv6_block is not None:
         logging.info('Adding IPv6 block')
         try:
-            mobility_service_servicer.add_ip_block(ipv6_block)
+            allocated_ipv6_block = ip_address_man.get_assigned_ipv6_block()
+            if ipv6_block != allocated_ipv6_block:
+                ip_address_man.add_ip_block(ipv6_block)
         except OverlappedIPBlocksError:
             logging.warning("Overlapped IPv6 block: %s", ipv6_block)
 
-    # Run the service loop
+    # Add all servicers to the server
+    mobility_service_servicer = MobilityServiceRpcServicer(
+        ip_address_man, config.get('print_grpc_payload', False),
+    )
+    mobility_service_servicer.add_to_server(service.rpc_server)
     service.run()
 
     # Cleanup the service

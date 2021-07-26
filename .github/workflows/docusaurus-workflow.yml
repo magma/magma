@@ -29,14 +29,22 @@ jobs:
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
             # yamllint enable
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Docusaurus update failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Docusaurus update "
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

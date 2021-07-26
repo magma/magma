@@ -49,17 +49,25 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action feg-lint update failed"
-          SLACK_USERNAME: "Feg workflow"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_TITLE: "FeG-lint tests failed"
+          SLACK_USERNAME: "FeG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
   feg-precommit:
     runs-on: ubuntu-latest
     env:
@@ -89,17 +97,25 @@ jobs:
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action feg-precommit update failed"
-          SLACK_USERNAME: "Feg workflow"
+          SLACK_TITLE: "FeG-precommit tests failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_USERNAME: "FeG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
   feg-build:
     needs: feg-precommit
     runs-on: ubuntu-latest
@@ -149,26 +165,36 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project feg
+      - name: Extract commit title
+        if: github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
       - name: Notify failure to slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action feg-precommit update failed"
+          SLACK_TITLE: "FeG-precommit tests failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Feg workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
       # Notify ci channel when push succeeds
       - name: Notify success to slack
         if: success() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*FeG Artifact Has Been Published*"
-          SLACK_USERNAME: "Feg workflow"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_USERNAME: "FeG workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '

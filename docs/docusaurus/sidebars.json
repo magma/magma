@@ -253,11 +253,13 @@
         "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
+          "orc8r/dev_rest_api",
           "orc8r/dev_build",
           "orc8r/dev_testing",
           "orc8r/dev_minikube",
           "orc8r/dev_security",
           "orc8r/dev_indexers",
+          "orc8r/dev_sub_digests",
           "orc8r/dev_dependencies",
           "orc8r/dev_aws_stack"
         ]
@@ -267,6 +269,7 @@
         "label": "NMS",
         "ids": [
           "nms/dev_spacing",
+          "nms/dev_testing",
           "nms/dev_themes",
           "nms/dev_components"
         ]
@@ -276,6 +279,13 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/dev_testing"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "cwf/dev_testing"
         ]
       }
     ],

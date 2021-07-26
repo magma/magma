@@ -44,6 +44,9 @@
       "cwf/deploy_intro": {
         "title": "Introduction"
       },
+      "cwf/dev_testing": {
+        "title": "Test CWAG"
+      },
       "cwf/healthchecker": {
         "title": "Health Checker",
         "sidebar_label": "Health Checker"
@@ -167,7 +170,7 @@
         "title": "Developer Notes"
       },
       "lte/dev_unit_testing": {
-        "title": "Unit Testing"
+        "title": "Test AGW"
       },
       "lte/eventd": {
         "title": "Event Reporting"
@@ -253,6 +256,9 @@
       "nms/dev_spacing": {
         "title": "Spacing Guidelines"
       },
+      "nms/dev_testing": {
+        "title": "Test NMS"
+      },
       "nms/dev_themes": {
         "title": "Themes"
       },
@@ -328,8 +334,14 @@
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
+      "orc8r/dev_rest_api": {
+        "title": "REST API"
+      },
       "orc8r/dev_security": {
         "title": "Security"
+      },
+      "orc8r/dev_sub_digests": {
+        "title": "Subscriber Digests"
       },
       "orc8r/dev_testing": {
         "title": "Test Orchestrator"

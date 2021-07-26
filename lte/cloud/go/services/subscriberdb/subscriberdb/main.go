@@ -66,6 +66,17 @@ func main() {
 	}
 	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(perSubDigestFact)
 
+	subStore := subscriberdb_storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	if err := subStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing subscriber proto storage: %+v", err)
+	}
+
+	lastResyncTimeFact := blobstore.NewEntStorage(subscriberdb.LastResyncTimeTableBlobstore, db, sqorc.GetSqlBuilder())
+	if err := lastResyncTimeFact.InitializeFactory(); err != nil {
+		glog.Fatalf("Error initializing last resync time storage: %+v", err)
+	}
+	lastResyncTimeStore := subscriberdb_storage.NewLastResyncTimeStore(lastResyncTimeFact)
+
 	var serviceConfig subscriberdb.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
@@ -74,7 +85,7 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subStore, lastResyncTimeStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 

@@ -69,15 +69,24 @@ jobs:
       env:
         NODE_OPTIONS: --max-old-space-size=5120
 
+    - name: Extract commit title
+      if: failure() && github.ref == 'refs/heads/master'
+      env:
+        COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+      run: |
+        echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+
     # Notify ci-info channel when failing
     # Plugin info: https://github.com/marketplace/actions/slack-notify
 
     - name: Notify failure to slack
       if: failure() && github.ref == 'refs/heads/master'
-      uses: rtCamp/action-slack-notify@v2.0.2
+      uses: rtCamp/action-slack-notify@v2.2.0
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_TITLE: "Github action CodeQL-analysis ${{ matrix.language }} failed"
+        SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
         SLACK_USERNAME: "CodeQL-analysis ${{ matrix.language }} "
         SLACK_ICON_EMOJI: ":boom:"
         SLACK_COLOR: "#FF0000"
+        SLACK_FOOTER: ' '

@@ -22,7 +22,7 @@
 #include "GrpcMagmaUtils.h"
 #include "LocalSessionManagerHandler.h"
 #include "magma_logging.h"
-#include "SentryWrappers.h"
+#include "includes/SentryWrapper.h"
 #include "Utilities.h"
 
 using grpc::Status;

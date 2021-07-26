@@ -42,17 +42,26 @@ jobs:
             python3 build.py --generate
             sudo chown -R $USER $MAGMA_ROOT/*
             git add .
+            echo GIT_STATUS=$(git status) >> $GITHUB_ENV
             git status
             git diff-index --quiet HEAD
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
           SLACK_USERNAME: "Cloud workflow"
+          SLACK_MESSAGE: "COMMIT TITLE:\n ${{env.COMMIT_TITLE}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
   # Fail if terraform variables, helm charts and orcl is out of sync
   # Ensure all Helm chart values are in-sync across Orc8r deployment mechanisms
   deploy-sync-checkin:
@@ -68,15 +77,23 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
             ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action deploy-sync-checkin failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
   # Fail if code doesn't pass formatting requirements.
   # Upload test coverage statistics.
   cloud-lint:
@@ -100,15 +117,23 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
           flags: cloud_lint
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-lint failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
   cloud-test:
     runs-on: ubuntu-latest
     env:
@@ -130,15 +155,54 @@ jobs:
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+  cloud-upload:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install SwaggerHub CLI
+        run: npm install --global swaggerhub-cli
+      - name: Publish SwaggerHub API
+        env:
+          MAGMA_ROOT: "${{ github.workspace }}"
+          SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
+        run: |
+          swaggerhub api:unpublish MagmaCore/Magma/1.0.0
+          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --publish --visibility=public --setdefault
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+      - name: Notify failure to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-upload failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
   orc8r-build:
     runs-on: ubuntu-latest
     needs:
@@ -175,24 +239,34 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
+      - name: Extract commit title
+        if: github.ref == 'refs/heads/master'
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         # yamllint enable
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action orc8r-build failed"
           SLACK_USERNAME: "Cloud workflow"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Orchestrator images have been published*"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
