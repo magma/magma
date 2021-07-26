@@ -3496,7 +3496,7 @@ TEST_F(LocalEnforcerTest, test_receiving_stats_for_subset_of_rules) {
   EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule1"));
   EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule2"));
 }
-/**
+
 TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
   // create 501 UEs and check whether they are sharded in to
   // six, add random amounts of sessions between 1 and 4
@@ -3519,8 +3519,8 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
       sessionStream << imsi_id << "-" << std::to_string(i + 1);
       std::string session_id = sessionStream.str();
       sessionStream.clear();
-      local_enforcer->init_session_with_policy_response(
-          session_map, imsi_id, session_id, test_cfg_, response);
+      auto cfg = get_default_config(imsi_id);
+      initialize_session(session_map, session_id, cfg, response);
       std::cout << "Updating tunnel id" << std::endl;
       local_enforcer->update_tunnel_ids(
           session_map, create_update_tunnel_ids_request(imsi_id, 0, teids0));
@@ -3547,7 +3547,7 @@ TEST_F(LocalEnforcerTest, test_sharding_of_sessions) {
     }
   }
 }
-**/
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;

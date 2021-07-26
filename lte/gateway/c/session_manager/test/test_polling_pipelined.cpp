@@ -78,6 +78,16 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
+  void initialize_session(
+      SessionMap& session_map, const std::string& session_id,
+      const SessionConfig& cfg, const CreateSessionResponse& response) {
+    const std::string imsi = cfg.get_imsi();
+    auto session = local_enforcer->create_initializing_session(session_id, cfg);
+    local_enforcer->update_session_with_policy_response(
+        session, response, nullptr);
+    session_map[imsi].push_back(std::move(session));
+  }
+
  protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
@@ -91,7 +101,7 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
   SessionMap session_map;
   SessionConfig test_cfg_;
 };
-/**
+
 TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
   // insert some rules to retrieve
   insert_static_rule(1, "", "rule1");
@@ -100,8 +110,8 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
   insert_static_rule(1, "", "rule4");
 
   CreateSessionResponse response;
-  local_enforcer->init_session_with_policy_response(
-      session_map, IMSI1, SESSION_ID_1, get_default_config(IMSI1), response);
+  initialize_session(
+      session_map, SESSION_ID_1, get_default_config(IMSI1), response);
   local_enforcer->update_tunnel_ids(
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
@@ -136,7 +146,7 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
       .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 }
-**/
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
