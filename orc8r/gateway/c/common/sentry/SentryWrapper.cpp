@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "sentry_wrapper.h"
+#include "includes/SentryWrapper.h"
 
 #if SENTRY_ENABLED
 #include <experimental/optional>
@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <cstring>
 
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"
@@ -45,7 +46,7 @@ bool should_upload_mme_log(
 }
 
 optional<std::string> get_sentry_url(
-    bstring sentry_url_native, YAML::Node control_proxy_config) {
+    const char* sentry_url_native, YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
     const std::string dns_override =
         control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
@@ -53,7 +54,7 @@ optional<std::string> get_sentry_url(
       return dns_override;
     }
   }
-  const std::string sentry_url(bdata(sentry_url_native));
+  const std::string sentry_url(sentry_url_native);
   if (!sentry_url.empty()) {
     return sentry_url;
   }
@@ -82,7 +83,8 @@ std::string get_snowflake() {
   return buffer.str();
 }
 
-void initialize_sentry(const sentry_config_t* sentry_config) {
+void initialize_sentry(
+    const char* service_tag, const sentry_config_t* sentry_config) {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
   auto op_sentry_url =
@@ -96,14 +98,15 @@ void initialize_sentry(const sentry_config_t* sentry_config) {
     if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
       sentry_options_set_release(options, commit_hash_p);
     }
-    if (should_upload_mme_log(
+    if (strncmp(service_tag, SENTRY_TAG_MME, SENTRY_TAG_LEN) == 0 &&
+        should_upload_mme_log(
             sentry_config->upload_mme_log, control_proxy_config)) {
       sentry_options_add_attachment(options, MME_LOG_PATH);
     }
 
     sentry_init(options);
 
-    sentry_set_tag(SERVICE_NAME, "MME");
+    sentry_set_tag(SERVICE_NAME, service_tag);
     sentry_set_tag(HWID, get_snowflake().c_str());
   }
 }
@@ -111,7 +114,19 @@ void initialize_sentry(const sentry_config_t* sentry_config) {
 void shutdown_sentry(void) {
   sentry_shutdown();
 }
+
+void set_sentry_transaction(const char* name) {
+  sentry_set_transaction(name);
+}
+
 #else
-void initialize_sentry(const sentry_config_t* sentry_config) {}
+
+void initialize_sentry(
+    __attribute__((unused)) const char* service_tag,
+    __attribute__((unused)) const sentry_config_t* sentry_config) {}
+
 void shutdown_sentry(void) {}
+
+void set_sentry_transaction(__attribute__((unused)) const char* name) {}
+
 #endif
