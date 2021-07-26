@@ -458,6 +458,7 @@ RUN yum update -y && \
       libasan \
       liblsan \
       psmisc \
+      procps-ng \
       tcpdump \
       openssl \
       net-tools \
