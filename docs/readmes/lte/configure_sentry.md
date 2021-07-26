@@ -15,7 +15,7 @@ There are two main ways to deploy the platform: [self-hosting](https://develop.s
 ## Enabling error reporting on an AGW
 Reporting for Python services, MME, and SessionD will *only* be enabled if the corresponding URL fields are non-empty.
 
-Fill out the following fields in `control_proxy.yml` to enable Sentry reporting.
+The URL fields can be set in a network-wide configuration through the Orc8r's Swagger endpoint at `/networks/{network_id}`. You can also set or override Sentry configuration for specific gateways through the Orc8r's `/networks/{network_id}/gateways/{gateway_id}` endpoint. Finally, you can set them locally on a gateway in the `control_proxy.yml` file by filling out the following fields.
 
 ```
 # [Experimental] Sentry related configs
@@ -29,6 +29,9 @@ sentry_upload_mme_log: false
 # events, and a value of 1.0 will send all events (default).
 sentry_sample_rate: 1.0
 ```
+
+Note that Sentry configuration set in `control_proxy.yml` takes highest precedence followed by gateway-specific Orc8r configuration and, finally network-wide Orc8r configuration.
+
 
 ## Uploading debug information files for SessionD and MME
 To fully enable stacktrace analysis for any services running with the Native SDK, you will need to upload the corresponding debug information files for the stacktraces to be readable in Sentry.

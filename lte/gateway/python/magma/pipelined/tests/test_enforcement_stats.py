@@ -730,11 +730,11 @@ class EnforcementStatsTest(unittest.TestCase):
             policy.version = 2
             self.enforcement_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy],
+                [policy], 0,
             )
             self.enforcement_stats_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy],
+                [policy], 0,
             )
             pkt_sender.send(packet)
 
@@ -825,7 +825,7 @@ class EnforcementStatsTest(unittest.TestCase):
             flows.send_stats_request(
                 self.enforcement_stats_controller._datapath,
                 self.enforcement_stats_controller.tbl_num,
-                1,
+                0,
                 flows.OVS_COOKIE_MATCH_ALL,
             )
             wait_for_enforcement_stats(
@@ -837,7 +837,7 @@ class EnforcementStatsTest(unittest.TestCase):
         )
         self.assertEqual(stats[enf_stat_name].rule_id, 'rule1')
         self.enforcement_stats_controller._poll_stats = original
-        self.assertEqual(len(stats), 1)
+        self.assertEqual(len(stats), 2)
 
 
 if __name__ == "__main__":

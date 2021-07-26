@@ -40,11 +40,11 @@ Merge blocking CI checks are listed below.
 | lte-test               | Run AGW Python unit tests                     | approvers-agw          | [AGW tests](../lte/dev_unit_testing)                                         |
 | mme_test               | Run MME and sctpd unit tests                  | approvers-agw-mme      | [AGW tests](../lte/dev_unit_testing)                                         |
 | session_manager_test   | Run SessionD unit tests                       | approvers-agw-sessiond | [AGW tests](../lte/dev_unit_testing)                                         |
-| orc8r-gateway-test     | Run Golang unit tests for orc8r/gateway       | approvers-agw          | TODO                                                                         |
+| orc8r-gateway-test     | Run Golang unit tests for orc8r/gateway       | approvers-agw          | [AGW tests](../lte/dev_unit_testing)                                         |
 | cwag-precommit         | Run CWAG unit tests                           | approvers-cwf          | [CWAG tests](../cwf/dev_testing)                                             |
 | Magma-OAI-Jenkins      | OAI's MME integration test run on OAI Jenkins | rdefosse               | N/A                                                                          |
 | cwf-operator-build     | Validate CWF deployer builds                  | approvers-cwf          | TODO                                                                         |
-| cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |        |
+| cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
 
 ## Non-blocking Checks
 
