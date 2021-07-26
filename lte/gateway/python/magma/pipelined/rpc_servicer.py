@@ -389,7 +389,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, shard_id, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id,
         )
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
