@@ -10,39 +10,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-from concurrent.futures import Future
 import asyncio
+import unittest
 import warnings
+from collections import defaultdict
+from concurrent.futures import Future
+from unittest.mock import MagicMock
+
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
-    PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
-    fake_controller_setup
-from unittest.mock import MagicMock
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    flow_match_to_magma_match,
+)
 from magma.pipelined.qos.common import QosImplType, QosManager
 from magma.pipelined.qos.types import QosInfo
-from collections import defaultdict
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-from lte.protos.pipelined_pb2 import VersionedPolicy
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    PktsToSend,
+    SnapshotVerifier,
+    SubTest,
+    create_service_manager,
+    fake_controller_setup,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
+
 
 class EnforcementTableTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     MAC_2 = "0a:00:27:00:00:02"
-    
+
     @classmethod
     def setUpClass(cls):
         """
@@ -57,14 +72,17 @@ class EnforcementTableTest(unittest.TestCase):
         cls._static_rule_dict = {}
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         cls._tbl_num = cls.service_manager.get_table_num(
-            EnforcementController.APP_NAME)
+            EnforcementController.APP_NAME,
+        )
 
         enforcement_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.Enforcement,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.Enforcement,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
@@ -88,7 +106,7 @@ class EnforcementTableTest(unittest.TestCase):
             mconfig=PipelineD(),
             loop=None,
             service_manager=cls.service_manager,
-            integ_test=False
+            integ_test=False,
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
@@ -112,21 +130,38 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.30'
-        flow_list1 = [FlowDescription(match=FlowMatch(
-                            direction=FlowMatch.UPLINK),
-                            action=FlowDescription.PERMIT),
-                            FlowDescription(match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
-                            direction=FlowMatch.DOWNLINK),
-                            action=FlowDescription.PERMIT)]
- 
-        self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		   None,  policies = [VersionedPolicy(
-                                                   rule=PolicyRule(id='rule1', priority=65530,flow_list=flow_list1),
-                                                   version=1,),],local_f_teid_ng=100)
- 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        flow_list1 = [
+            FlowDescription(
+                match=FlowMatch(
+                direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+            FlowDescription(
+                match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
+                direction=FlowMatch.DOWNLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+        ]
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), "rule1", 1,
+        )
+        self.enforcement_controller.activate_rules(
+            imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
+            None, policies=[
+                VersionedPolicy(
+                rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list1),
+                version=1,
+                ),
+            ], local_f_teid_ng=100,
+        )
+
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with snapshot_verifier:
             pass
@@ -138,38 +173,75 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI001000000000088'
         sub_ip = '192.168.128.40'
-        flow_list = [FlowDescription(match=FlowMatch(
-                            direction=FlowMatch.UPLINK),
-                            action=FlowDescription.PERMIT),
-                            FlowDescription(match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
-                            direction=FlowMatch.DOWNLINK),
-                            action=FlowDescription.PERMIT)]
+        flow_list = [
+            FlowDescription(
+                match=FlowMatch(
+                direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+            FlowDescription(
+                match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
+                direction=FlowMatch.DOWNLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+        ]
 
-        self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		   None, policies = [VersionedPolicy(
-                                                   rule=PolicyRule(id='rule1', priority=65530,flow_list=flow_list),
-                                                   version=2,),],local_f_teid_ng=555)
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), "rule1", 2,
+        )
+
+        self.enforcement_controller.activate_rules(
+            imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
+            None, policies=[
+                VersionedPolicy(
+                rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list),
+                version=2,
+                ),
+            ], local_f_teid_ng=555,
+        )
         imsi = 'IMSI001000000100088'
         sub_ip = '192.168.128.150'
-        flow_list = [FlowDescription(match=FlowMatch(
-                            direction=FlowMatch.UPLINK),
-                            action=FlowDescription.PERMIT),
-                            FlowDescription(match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
-                            direction=FlowMatch.DOWNLINK),
-                            action=FlowDescription.PERMIT)]
+        flow_list = [
+            FlowDescription(
+                match=FlowMatch(
+                direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+            FlowDescription(
+                match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
+                direction=FlowMatch.DOWNLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+        ]
 
-        self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		   None, policies = [VersionedPolicy(
-                                                   rule=PolicyRule(id='rule2', priority=65536,flow_list=flow_list),
-                                                   version=3,),],local_f_teid_ng=5000)
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), "rule2", 3,
+        )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        self.enforcement_controller.activate_rules(
+            imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
+            None, policies=[
+                VersionedPolicy(
+                rule=PolicyRule(id='rule2', priority=65536, flow_list=flow_list),
+                version=3,
+                ),
+            ], local_f_teid_ng=5000,
+        )
+
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with snapshot_verifier:
             pass
- 
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -180,7 +180,9 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version, shard_id)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel,
+                                                       ip_addr, apn_ambr, rule,
+                                                       version, shard_id, local_f_teid_ng)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -262,7 +264,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version, shard_id: int):
+    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule,
+                                  version, shard_id: int, local_f_teid_ng: int):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -284,7 +287,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
                     rule.app_service_type, self.next_service_table,
-                    version, self._qos_mgr, self._enforcement_stats_tbl, shard_id))
+                    version, self._qos_mgr, self._enforcement_stats_tbl, shard_id, local_f_teid_ng))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(

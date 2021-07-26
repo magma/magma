@@ -68,7 +68,7 @@ class PolicyMixin(metaclass=ABCMeta):
             self.proxy_controller_fut = None
         self.proxy_controller = None
 
-    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies, shard_id: int, local_f_teid_ng=0):
+    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies, shard_id: int, local_f_teid_ng):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -293,7 +293,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
             if self._setup_type == 'CWF' or add_flow_req.ip_addr:
                 ipv4 = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
-                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv4)
+                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv4, 0)
                 if msgs:
                     msg_list.extend(msgs)
 
@@ -301,7 +301,7 @@ class PolicyMixin(metaclass=ABCMeta):
                     msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv4, apn_ambr, policy, shard_id))
             if add_flow_req.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(add_flow_req.ipv6_addr)
-                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6)
+                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6, 0)
                 if msgs:
                     msg_list.extend(msgs)
 
@@ -319,7 +319,7 @@ class PolicyMixin(metaclass=ABCMeta):
         try:
             if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
                 return msg_list
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version, shard_id)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version, shard_id, 0)
             msg_list.extend(flow_adds)
         except FlowMatchError:
             self.logger.error("Failed to verify rule_id: %s", policy.rule.id)
