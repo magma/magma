@@ -1027,7 +1027,6 @@ bool SessionState::is_5g_session() const {
 SessionState::SessionInfo SessionState::get_session_info() {
   SessionState::SessionInfo info;
   info.imsi      = get_imsi();
-  info.shard_id  = get_shard_id();
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
   info.teids     = config_.common_context.teids();

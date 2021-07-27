@@ -48,11 +48,6 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction& set_shard_id(int shard_id) {
-    shard_id_ = shard_id;
-    return *this;
-  }
-
   ServiceAction& set_session_id(const std::string& session_id) {
     session_id_ = std::make_unique<std::string>(session_id);
     return *this;

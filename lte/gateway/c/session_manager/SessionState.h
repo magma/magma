@@ -105,7 +105,6 @@ class SessionState {
       NodeId Nid;
     } FSid;
     std::string imsi;
-    int shard_id;
     std::string ip_addr;
     std::string ipv6_addr;
     Teids teids;
@@ -737,7 +736,6 @@ class SessionState {
  private:
   std::string imsi_;
   std::string session_id_;
-  int shard_id_;
   uint32_t local_teid_;
   uint32_t request_number_;
   SessionFsmState curr_state_;

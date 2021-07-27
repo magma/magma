@@ -148,7 +148,6 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
   return session_map;
 }
 
-// maybe add shard id upon session creations!
 bool SessionStore::create_sessions(
     const std::string& subscriber_id, SessionVector sessions) {
   auto session_map           = SessionMap{};
