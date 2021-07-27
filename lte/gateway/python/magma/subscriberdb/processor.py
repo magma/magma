@@ -1,4 +1,3 @@
-
 """
 Copyright 2020 The Magma Authors.
 
@@ -109,8 +108,8 @@ class Processor(GSMProcessor, LTEProcessor):
     """
 
     def __init__(
-        self, store, default_sub_profile,
-        sub_profiles, op=None, amf=None,
+            self, store, default_sub_profile,
+            sub_profiles, op=None, amf=None,
     ):
         """
         Init the Processor with all the components.
@@ -310,8 +309,10 @@ class Processor(GSMProcessor, LTEProcessor):
             raise CryptoError("LTE service not active for %s" % sid)
 
         if subs.lte.auth_algo != LTESubscription.MILENAGE:
-            raise CryptoError("Unknown crypto (%s) for %s" %
-                              (subs.lte.auth_algo, sid))
+            raise CryptoError(
+                "Unknown crypto (%s) for %s" %
+                (subs.lte.auth_algo, sid),
+            )
 
         if len(subs.lte.auth_key) != 16:
             raise CryptoError("Subscriber key not valid for %s" % sid)
@@ -325,8 +326,10 @@ class Processor(GSMProcessor, LTEProcessor):
 
         sqn = self.seq_to_sqn(self.get_next_lte_auth_seq(imsi))
         milenage = Milenage(self._amf)
-        return milenage.generate_m5gran_vector(subs.lte.auth_key,
-                                              opc, sqn, snni)
+        return milenage.generate_m5gran_vector(
+            subs.lte.auth_key,
+            opc, sqn, snni,
+        )
 
     @classmethod
     def seq_to_sqn(cls, seq, ind=0):
@@ -354,4 +357,3 @@ class Processor(GSMProcessor, LTEProcessor):
             seq (int): the sequence number
         """
         return sqn >> 5
-
