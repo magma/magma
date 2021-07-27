@@ -234,13 +234,11 @@ def foo(arg1: str) -> int:
 - For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services
   - On CI, the check gets run as part of the `lte-test` job
 - Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
-  - To run the linter locally, use the [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py)
+  - Instructions on running the linter locally is provided [here](../lte/dev_unit_testing#format-agw)
 
 **Formatters**
 
-- We recommend [autopep8](https://pypi.org/project/autopep8/) as it conforms to [pep8](https://www.python.org/dev/peps/pep-0008/)
-  - The above-mentioned [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py) also has an option to format your changes with
-  [isort](https://pypi.org/project/isort/), [autopep8](https://pypi.org/project/autopep8/), and [add-trailing-comma](https://pypi.org/project/add-trailing-comma/)
+- Instructions on formatting Python locally is provided [here](../lte/dev_unit_testing#format-agw)
 - We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.
 
 
