@@ -21,16 +21,22 @@ namespace magma {
 
 void StatsPoller::start_loop(
     std::shared_ptr<magma::LocalEnforcer> local_enforcer,
-    uint32_t loop_interval_seconds, std::vector<int> shard_ids) {
+    uint32_t loop_interval_seconds) {
   // when no shard ids are available poll all UEs
   // to poll by cookie pass in a vector of shard ids, where
   // each element is a shard id that maps directly to a cookie
+  auto shard_tracker = local_enforcer->get_shard_tracker();
   while (true) {
-    if (shard_ids.size() == 0) {
+    // TODO(veshkemburu): add smart polling function to determine which
+    // shard ids to poll
+    if (shard_tracker.get_size_of_tracker() == 0) {
       local_enforcer->poll_stats_enforcer(0, 0);
     } else {
-      for (size_t i = 0; i < shard_ids.size(); i++) {
-        local_enforcer->poll_stats_enforcer(shard_ids[i], OVS_COOKIE_MATCH_ALL);
+      // iterate through all shard ids, but only poll shard IDs that have UEs
+      for (size_t i = 0; i < shard_tracker.get_size_of_tracker(); i++) {
+        if (!shard_tracker.get_imsis_per_shard().at(i).empty()) {
+          local_enforcer->poll_stats_enforcer(i, OVS_COOKIE_MATCH_ALL);
+        }
       }
     }
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));

@@ -98,6 +98,10 @@ folly::EventBase& LocalEnforcer::get_event_base() {
   return *evb_;
 }
 
+ShardTracker& LocalEnforcer::get_shard_tracker() {
+  return *shard_tracker_;
+}
+
 void LocalEnforcer::setup(
     SessionMap& session_map, const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {

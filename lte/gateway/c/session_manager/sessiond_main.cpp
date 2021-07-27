@@ -348,13 +348,6 @@ int main(int argc, char* argv[]) {
   // every fixed interval of time
   std::thread periodic_stats_requester_thread;
   uint32_t interval;
-  std::vector<int> shard_ids;
-  // TODO(veshkemburu): add smart polling function to determine which
-  // shard ids to poll
-  // populate shard id array to poll for all shard ids
-  for (size_t i = 0; i < shard_tracker->get_size_of_tracker(); i++) {
-    shard_ids.push_back(i);
-  }
   if (config["enable_pull_stats"].IsDefined() &&
       config["enable_pull_stats"].as<bool>()) {
     auto periodic_stats_requester   = std::make_shared<magma::StatsPoller>();
@@ -365,7 +358,7 @@ int main(int argc, char* argv[]) {
       if (config["poll_stats_interval"].IsDefined()) {
         interval = config["poll_stats_interval"].as<uint32_t>();
       }
-      periodic_stats_requester->start_loop(local_enforcer, interval, shard_ids);
+      periodic_stats_requester->start_loop(local_enforcer, interval);
     });
   }
 

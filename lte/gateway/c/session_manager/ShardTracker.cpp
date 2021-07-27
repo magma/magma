@@ -57,4 +57,8 @@ uint16_t ShardTracker::get_size_of_tracker() {
   return imsis_per_shard_.size();
 }
 
+std::vector<std::set<std::string>> ShardTracker::get_imsis_per_shard() {
+  return imsis_per_shard_;
+}
+
 }  // namespace magma

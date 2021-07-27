@@ -43,6 +43,11 @@ class ShardTracker {
    */
   uint16_t get_size_of_tracker();
 
+  /**
+   * Retrieve the UEs stored in each shard
+   */
+  std::vector<std::set<std::string>> get_imsis_per_shard();
+
  private:
   /*
    * a vector of quantities, where the indices represent
