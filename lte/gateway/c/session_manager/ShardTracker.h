@@ -37,6 +37,12 @@ class ShardTracker {
    */
   bool remove_ue(const std::string imsi, const uint16_t shard_id);
 
+  /**
+   * Retrieve number of shards currently in shard tracker
+   * @return int representing number of shards that have been generated
+   */
+  uint16_t get_size_of_tracker();
+
  private:
   /*
    * a vector of quantities, where the indices represent

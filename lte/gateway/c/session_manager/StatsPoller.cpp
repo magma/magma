@@ -21,12 +21,11 @@ namespace magma {
 
 void StatsPoller::start_loop(
     std::shared_ptr<magma::LocalEnforcer> local_enforcer,
-    uint32_t loop_interval_seconds) {
-  // for now poll all shards by passing in an empty vector
+    uint32_t loop_interval_seconds, std::vector<int> shard_ids) {
+  // when no shard ids are available poll all UEs
   // to poll by cookie pass in a vector of shard ids, where
   // each element is a shard id that maps directly to a cookie
   while (true) {
-    std::vector<int> shard_ids{};
     if (shard_ids.size() == 0) {
       local_enforcer->poll_stats_enforcer(0, 0);
     } else {

@@ -53,4 +53,8 @@ bool ShardTracker::remove_ue(const std::string imsi, const uint16_t shard_id) {
   return true;
 }
 
+uint16_t ShardTracker::get_size_of_tracker() {
+  return imsis_per_shard_.size();
+}
+
 }  // namespace magma

@@ -14,6 +14,7 @@
 #include <atomic>
 #include <memory>
 #include "LocalEnforcer.h"
+#include <vector>
 namespace magma {
 
 class StatsPoller {
@@ -25,6 +26,6 @@ class StatsPoller {
    */
   void start_loop(
       std::shared_ptr<LocalEnforcer> local_enforcer,
-      uint32_t loop_interval_seconds);
+      uint32_t loop_interval_seconds, std::vector<int> shard_ids);
 };
 }  // namespace magma
