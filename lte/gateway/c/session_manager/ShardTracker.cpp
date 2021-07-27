@@ -53,12 +53,18 @@ bool ShardTracker::remove_ue(const std::string imsi, const uint16_t shard_id) {
   return true;
 }
 
-uint16_t ShardTracker::get_size_of_tracker() {
+uint16_t ShardTracker::get_shard_list_size() {
   return imsis_per_shard_.size();
 }
 
-std::vector<std::set<std::string>> ShardTracker::get_imsis_per_shard() {
-  return imsis_per_shard_;
+std::vector<int> ShardTracker::get_active_shards() {
+  std::vector<int> active_shard_ids;
+  for (size_t i = 0; i < imsis_per_shard_.size(); i++) {
+    if (!imsis_per_shard_[i].empty()) {
+      active_shard_ids.push_back(i);
+    }
+  }
+  return active_shard_ids;
 }
 
 }  // namespace magma

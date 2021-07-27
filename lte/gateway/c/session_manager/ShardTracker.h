@@ -41,12 +41,13 @@ class ShardTracker {
    * Retrieve number of shards currently in shard tracker
    * @return int representing number of shards that have been generated
    */
-  uint16_t get_size_of_tracker();
+  uint16_t get_shard_list_size();
 
   /**
-   * Retrieve the UEs stored in each shard
+   * Retrieve a list of active shard ids
+   * @return vector<int> representing shard IDs of shards that have UEs
    */
-  std::vector<std::set<std::string>> get_imsis_per_shard();
+  std::vector<int> get_active_shards();
 
  private:
   /*

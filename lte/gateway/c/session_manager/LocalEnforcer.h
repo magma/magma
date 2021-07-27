@@ -133,8 +133,6 @@ class LocalEnforcer {
 
   folly::EventBase& get_event_base();
 
-  ShardTracker& get_shard_tracker();
-
   /**
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state

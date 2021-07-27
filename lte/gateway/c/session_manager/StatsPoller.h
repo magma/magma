@@ -26,6 +26,7 @@ class StatsPoller {
    */
   void start_loop(
       std::shared_ptr<LocalEnforcer> local_enforcer,
-      uint32_t loop_interval_seconds);
+      uint32_t loop_interval_seconds,
+      std::shared_ptr<magma::ShardTracker> shard_tracker);
 };
 }  // namespace magma
