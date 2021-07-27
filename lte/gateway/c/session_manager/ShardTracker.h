@@ -47,7 +47,7 @@ class ShardTracker {
   /*
    * largest number of UEs that can fill a shard
    */
-  const uint16_t max_shard_size_ = 100;
+  uint32_t max_shard_size_;
 };
 
 }  // namespace magma

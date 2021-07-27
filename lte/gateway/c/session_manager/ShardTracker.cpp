@@ -14,7 +14,8 @@
 #include <string>
 #include <vector>
 #include <set>
-
+#include "includes/ServiceConfigLoader.h"
+#define SESSIOND_SERVICE "sessiond"
 #include "ShardTracker.h"
 
 namespace magma {
@@ -22,6 +23,14 @@ namespace magma {
 ShardTracker::ShardTracker() {
   // initialize with at least one empty vector to avoid checking for empty
   imsis_per_shard_.push_back({});
+  // read max shard size config value from sessiond.yml
+  auto config =
+      magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
+  if (!config["max_shard_size"].IsDefined()) {
+    max_shard_size_ = 100;
+  } else {
+    max_shard_size_ = config["max_shard_size"].as<uint32_t>();
+  }
 }
 
 uint16_t ShardTracker::add_ue(const std::string imsi) {
