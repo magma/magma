@@ -21,18 +21,21 @@ namespace magma {
 a certain size, to make polling more manageable*/
 class ShardTracker {
  public:
+  ShardTracker();
   /**
-   * Add UE to shards based on availability
+   * Add UE to shards based on availability, if the UE already has an
+   * existing shard, return the existing shard id and don't perform
+   * an addition
    * @return index(shard id) where UE was placed
    */
-  int add_ue(std::string imsi);
+  uint16_t add_ue(const std::string imsi);
 
   /**
    * Remove UE from shard
    * @param shard_id location of UE to be removed
    * @return true for successful removal, false for failed removal
    */
-  bool remove_ue(std::string imsi, int shard_id);
+  bool remove_ue(const std::string imsi, const uint16_t shard_id);
 
  private:
   /*
@@ -40,7 +43,7 @@ class ShardTracker {
    * the shard id and the values are the UEs(IMSIs) assigned
    * to that shard id
    */
-  std::vector<std::set<std::string>> shards_;
+  std::vector<std::set<std::string>> imsis_per_shard_;
   /*
    * largest number of UEs that can fill a shard
    */

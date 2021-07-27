@@ -268,9 +268,9 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
-  void set_shard_id(int shard_id) { shard_id_ = shard_id; }
+  uint16_t get_shard_id() const { return shard_id_; }
 
-  int get_shard_id() { return shard_id_; }
+  void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }
 
   std::string get_session_id() const { return session_id_; }
 
@@ -801,6 +801,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  uint16_t shard_id_;
 
  private:
   /**

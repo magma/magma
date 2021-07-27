@@ -29,6 +29,7 @@
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
+#include "ShardTracker.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -68,7 +69,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
-  marshaled.shard_id   = get_shard_id();
+  marshaled.shard_id   = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;

@@ -33,7 +33,7 @@
 #include "mme_config.h"
 #include "amf_config.h"
 #include "shared_ts_log.h"
-#include "sentry_wrapper.h"
+#include "includes/SentryWrapper.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
@@ -77,10 +77,9 @@ static int main_init(void) {
   // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
-      (task_id_t[]){
-          TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER, TASK_S6A,
-          TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8, TASK_GRPC_SERVICE,
-          TASK_LOG, TASK_SHARED_TS_LOG},
+      (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
+                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
       11, NULL, &main_zmq_ctx);
 
   return RETURNok;
@@ -110,12 +109,11 @@ int main(int argc, char* argv[]) {
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
-
   // Initialize Sentry error collection (Currently only supported on
   // Ubuntu 20.04)
   // We have to initialize here for now since itti_init asserts on there being
   // only 1 thread
-  initialize_sentry(&mme_config.sentry_config);
+  initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
 
   CHECK_INIT_RETURN(timer_init());
   // Could not be launched before ITTI initialization

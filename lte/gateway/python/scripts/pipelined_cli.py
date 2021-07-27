@@ -156,7 +156,6 @@ def activate_flows(client, args):
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GX),
-        shard_id_for_ue=args.shard_id,
     )
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.policy_results)
@@ -183,7 +182,6 @@ def activate_gy_redirect(client, args):
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GY),
-        shard_id_for_ue = args.shard_id
     )
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.policy_results)
@@ -480,7 +478,6 @@ def create_enforcement_parser(apps):
         '--hard_timeout', help='hard timeout for rule',
         type=int, default=0,
     )
-    subcmd.add_argument('--shard_id', type=int, default=0, help = 'desired cookie to query for')
     subcmd.set_defaults(func=activate_flows)
 
     subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
@@ -503,7 +500,6 @@ def create_enforcement_parser(apps):
         '--redirect_addr', help='Webpage to redirect to',
         default='http://about.sha.ddih.org/',
     )
-    subcmd.add_argument('--shard_id', type=int, default=0, help = 'desired cookie to query for')
     subcmd.set_defaults(func=activate_gy_redirect)
 
     subcmd = subparsers.add_parser(

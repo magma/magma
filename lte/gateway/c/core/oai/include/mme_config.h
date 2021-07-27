@@ -49,6 +49,7 @@
 #include "service303.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
+#include "includes/SentryWrapper.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -327,12 +328,6 @@ typedef struct e_dns_config_s {
   bstring sgw_id[MME_CONFIG_MAX_SGW];
   struct in_addr sgw_ip_addr[MME_CONFIG_MAX_SGW];
 } e_dns_config_t;
-
-typedef struct sentry_config_s {
-  float sample_rate;
-  bool upload_mme_log;
-  bstring url_native;
-} sentry_config_t;
 
 typedef struct gummei_config_s {
   int nb;

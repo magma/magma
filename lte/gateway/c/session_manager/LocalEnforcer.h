@@ -35,6 +35,7 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "SpgwServiceClient.h"
+#include "ShardTracker.h"
 
 namespace magma {
 using std::experimental::optional;
@@ -118,6 +119,7 @@ class LocalEnforcer {
       std::shared_ptr<EventsReporter> events_reporter,
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
+      std::shared_ptr<ShardTracker> shard_tracker,
       long session_force_termination_timeout_ms,
       long quota_exhaustion_termination_on_init_ms,
       magma::mconfig::SessionD mconfig);
@@ -342,11 +344,12 @@ class LocalEnforcer {
  private:
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
+  SessionStore& session_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  SessionStore& session_store_;
+  std::shared_ptr<ShardTracker> shard_tracker_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a
@@ -711,6 +714,29 @@ class LocalEnforcer {
    * @param dead_sessions_to_cleanup
    */
   void cleanup_dead_sessions(const RuleRecordSet dead_sessions_to_cleanup);
+
+  /**
+   * Given a UE id and session, add the session to the session map,
+   * and invoke API that adds shard to shard tracker if the UE doesn't already
+   * exist in the session map. If the UE already exists, set the shard id of
+   * the session to the same as that of another session of the UE.
+   * @param imsi id of UE
+   * @param session_map map of UE to vector of session states
+   * @param session a single session state initialized for a particular UE
+   */
+  void add_ue_to_shard(
+      const std::string imsi, SessionMap& session_map, SessionState& session);
+
+  /**
+   *  Given an IMSI and session, remove the session from the tracker, only if
+   *  there is one session left for a UE.
+   * @param imsi id of UE
+   * @param session_map map of UE to vector of session states
+   * @param session a single session state initialized for a particular UE
+   * @return true for a successful removal, false if removal fails
+   */
+  bool remove_ue_from_shard(
+      const std::string imsi, SessionMap& session_map, SessionState& session);
 };
 
 }  // namespace magma
