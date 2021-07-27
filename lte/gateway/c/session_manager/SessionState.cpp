@@ -135,7 +135,6 @@ SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
-      shard_id_(marshaled.shard_id),
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
@@ -153,7 +152,8 @@ SessionState::SessionState(
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
       credit_map_(4, &ccHash, &ccEqual),
-      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy),
+      shard_id_(marshaled.shard_id) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
