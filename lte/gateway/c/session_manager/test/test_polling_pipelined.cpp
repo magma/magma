@@ -14,7 +14,6 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <memory>
 #include "Consts.h"
-#include <vector>
 #include "LocalEnforcer.h"
 #include "ProtobufCreators.h"
 #include "SessiondMocks.h"

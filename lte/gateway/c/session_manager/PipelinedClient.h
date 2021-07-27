@@ -298,8 +298,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    *
    * @param cookie require matching entries to contain the cookie value
    * @param cookie_mask mask that restricts the cookie bits that must match
-   * */
-
+   */
   void poll_stats(
       int cookie, int cookie_mask,
       std::function<void(Status, RuleRecordTable)> callback);
