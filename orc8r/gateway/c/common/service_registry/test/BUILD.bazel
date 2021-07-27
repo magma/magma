@@ -1,0 +1,11 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "service_registry_test",
+    size = "small",
+    srcs = ["test_service_registry.cpp"],
+    deps = [
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

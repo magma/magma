@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "magma_service_test",
+    size = "small",
+    srcs = ["test_magma_service.cpp"],
+    deps = [
+        "//orc8r/gateway/c/common/service303",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "metrics_test",
+    size = "small",
+    srcs = ["test_metrics.cpp"],
+    deps = [
+        "//orc8r/gateway/c/common/service303",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "service303_test",
+    size = "small",
+    srcs = ["test_service303.cpp"],
+    deps = [
+        "//orc8r/gateway/c/common/config:service_config_loader",
+        "//orc8r/gateway/c/common/service303",
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

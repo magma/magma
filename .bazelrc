@@ -1,0 +1,2 @@
+build --repository_cache=.bazel-cache/repo
+build --cxxopt=-std=c++14

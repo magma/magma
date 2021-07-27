@@ -1,0 +1,14 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "sentry_wrapper",
+    srcs = [
+        "SentryWrapper.cpp",
+    ],
+    hdrs = [
+        "includes/SentryWrapper.h",
+    ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
+    strip_include_prefix = "/orc8r/gateway/c/common/sentry",
+    # TODO(@themarwhal): Add dependency for sentry-native
+)

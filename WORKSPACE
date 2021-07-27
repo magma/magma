@@ -1,5 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("//:third_party_repositories.bzl", "boost", "cpp_testing_deps", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yamlcpp", "zlib")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -71,26 +72,13 @@ load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 rules_cc_dependencies()
 
 ### PROTO / GRPC DEPENDENCIES ###
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-git_repository(
-    name = "com_google_protobuf",
-    commit = "0770434ff0ab33ce68a647c311bbe38be03a73c1",
-    remote = "https://github.com/protocolbuffers/protobuf",
-    shallow_since = "1624681439 -0700",
-)
+protobuf()
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 protobuf_deps()
 
-# see https://rules-proto-grpc.aliddell.com/en/latest/index.html
-http_archive(
-    name = "rules_proto_grpc",
-    sha256 = "7954abbb6898830cd10ac9714fbcacf092299fda00ed2baf781172f545120419",
-    strip_prefix = "rules_proto_grpc-3.1.1",
-    urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/3.1.1.tar.gz"],
-)
+grpc()
 
 load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_repos", "rules_proto_grpc_toolchains")
 
@@ -112,3 +100,22 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
 ### PROTO / GRPC DEPENDENCIES ###
+
+### Dependencies for orc8r/gateway/c/common
+boost()
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+
+boost_deps()
+
+yamlcpp()
+
+nlohmann_json()
+
+prometheus_cpp_deps()
+
+### Dependencies for orc8r/gateway/c/common
+
+### DEPENDENCY FOR TESTING
+cpp_testing_deps()
+### DEPENDENCY FOR TESTING
