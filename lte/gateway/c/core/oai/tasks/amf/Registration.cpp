@@ -30,6 +30,7 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_sap.h"
 #include "amf_recv.h"
+#include "amf_app_state_manager.h"
 #include "amf_app_timer_management.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
@@ -624,11 +625,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
         amf_sap.u.amf_as.u.data.ue_id    = ue_id;
         amf_sap.u.amf_as.u.data.nas_info = AMF_AS_NAS_DATA_REGISTRATION_ACCEPT;
         amf_sap.u.amf_as.u.data.guti     = new (guti_m5_t)();
-        memcpy(
-            amf_sap.u.amf_as.u.data.guti, &(amf_context->m5_guti),
-            sizeof(guti_m5_t));
-        amf_sap.u.amf_as.u.data.guti->m_tmsi =
-            htonl(amf_sap.u.amf_as.u.data.guti->m_tmsi);
+        *(amf_sap.u.amf_as.u.data.guti)  = amf_context->m5_guti;
       } else {
         /*
          * Notify AMF-AS SAP that Registaration Accept message together
@@ -643,8 +640,6 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
          * response complete, now assign to amf_sap
          */
         amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
-        amf_sap.u.amf_as.u.establish.guti.m_tmsi =
-            htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
       }
 
       rc = amf_sap_send(&amf_sap);
@@ -935,7 +930,9 @@ int amf_reg_send(amf_sap_t* const msg) {
         }
 
         /* Update the state */
-        // ue_amf_context->mm_state = REGISTERED_CONNECTED;
+        ue_amf_context->mm_state = REGISTERED_CONNECTED;
+        OAILOG_INFO(
+            LOG_NAS_AMF, "UE current state is %u\n", ue_amf_context->mm_state);
       } break;
       case AMFREG_COMMON_PROC_REJ: {
       }

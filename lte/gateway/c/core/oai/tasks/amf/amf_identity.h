@@ -49,7 +49,7 @@ typedef struct amf_guamfi_s {
 
 // 5G-GUTI
 typedef struct amf_guti_m5g_s {
-  amf_guamfi_t guamfi;
+  guamfi_t guamfi;
   uint32_t m_tmsi;
 } amf_guti_m5g_t;
 

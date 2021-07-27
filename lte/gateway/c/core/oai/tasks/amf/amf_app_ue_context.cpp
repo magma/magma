@@ -162,6 +162,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_ULR_RESPONSE_TIMER_VALUE};
   new_p->m5_ue_context_modification_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
+  new_p->mm_state = DEREGISTERED;
 
   new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
   new_p->mm_state                   = DEREGISTERED;
@@ -523,17 +524,19 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
  ***************************************************************************/
 int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_m5gmm_context_p =
+  ue_m5gmm_context_s* ue_context_p =
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
-  amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
+  amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
-  smf_context_t* smf_ctx = nullptr;
+  smf_context_t smf_ctx;
 
-  smf_ctx = &amf_ctx->smf_context;
+  for (auto it = ue_context_p->amf_context.smf_ctxt_vector.begin();
+       it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++) {
+    smf_ctx                   = *it;
+    smf_ctx.pdu_session_state = INACTIVE;
+  }
 
-  smf_ctx->pdu_session_state = INACTIVE;
-
-  amf_smf_notification_send(ue_id, ue_m5gmm_context_p, UE_IDLE_MODE_NOTIFY);
+  amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
