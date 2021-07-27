@@ -99,9 +99,13 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case APPLICATION_UNHEALTHY_MSG: {
       service303_set_application_health(APP_UNHEALTHY);
     } break;
-    case APPLICATION_STATS_MSG: {
-      service303_mme_statistics_read(
-          &received_message_p->ittiMsg.application_mme_stats_msg);
+    case APPLICATION_MME_APP_STATS_MSG: {
+      service303_mme_app_statistics_read(
+              &received_message_p->ittiMsg.application_mme_app_stats_msg);
+    } break;
+    case APPLICATION_S1AP_STATS_MSG: {
+      service303_s1ap_statistics_read(
+              &received_message_p->ittiMsg.application_s1ap_stats_msg);
     }
     case TERMINATE_MESSAGE:
       free(received_message_p);

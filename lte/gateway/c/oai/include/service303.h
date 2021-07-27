@@ -29,7 +29,9 @@
 #define NO_LABELS 0
 #define EPC_STATS_TIMER_VALUE 60  // In seconds
 
-void service303_mme_statistics_read(application_mme_stats_msg_t* stats_msg_p);
+void service303_mme_app_statistics_read(
+        application_mme_app_stats_msg_t* stats_msg_p);
+void service303_s1ap_statistics_read(application_s1ap_stats_msg_t* stats_msg_p);
 
 // service303 conf type added to be able to use same task interface for MME and
 // SPGW while passing configs from mme_config and spgw_config types

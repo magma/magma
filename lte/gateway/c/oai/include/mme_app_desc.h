@@ -38,7 +38,6 @@ typedef struct mme_app_desc_s {
    * number of S1_U bearers,number of PDN sessions
    */
 
-  uint32_t nb_enb_connected;
   uint32_t nb_ue_attached;
   uint32_t nb_ue_connected;
   uint32_t nb_default_eps_bearers;
@@ -52,8 +51,6 @@ typedef struct mme_app_desc_s {
   uint32_t nb_ue_disconnected_since_last_stat;
   uint32_t nb_eps_bearers_established_since_last_stat;
   uint32_t nb_eps_bearers_released_since_last_stat;
-  uint32_t nb_enb_connected_since_last_stat;
-  uint32_t nb_enb_released_since_last_stat;
   uint32_t nb_s1u_bearers_released_since_last_stat;
   uint32_t nb_s1u_bearers_established_since_last_stat;
   uint32_t nb_ue_managed;
