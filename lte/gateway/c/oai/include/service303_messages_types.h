@@ -34,8 +34,7 @@ typedef struct application_unhealthy_msg {
 } application_unhealthy_msg_t;
 
 // Message capturing stats as communicated by the mme_app
-typedef struct application_mme_stats_msg {
-  uint32_t nb_enb_connected;
+typedef struct application_mme_app_stats_msg {
   uint32_t nb_ue_attached;
   uint32_t nb_ue_connected;
   uint32_t nb_default_eps_bearers;

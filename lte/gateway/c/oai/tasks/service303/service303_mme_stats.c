@@ -20,9 +20,9 @@
 #include "log.h"
 #include "service303.h"
 
-void service303_mme_statistics_read(application_mme_stats_msg_t* stats_msg_p) {
+void service303_mme_app_statistics_read(
+    application_mme_app_stats_msg_t* stats_msg_p) {
   size_t label = 0;
-  set_gauge("enb_connected", stats_msg_p->nb_enb_connected, label);
   set_gauge("ue_registered", stats_msg_p->nb_ue_attached, label);
   set_gauge("ue_connected", stats_msg_p->nb_ue_connected, label);
   set_gauge("default_eps_bearers", stats_msg_p->nb_default_eps_bearers, label);
@@ -62,4 +62,11 @@ void service303_statistics_display(void) {
       LOG_SERVICE303,
       "======================================= STATISTICS "
       "============================================\n\n");
+}
+
+void service303_s1ap_statistics_read(
+    application_s1ap_stats_msg_t* stats_msg_p) {
+  size_t label = 0;
+  set_gauge("enb_connected", stats_msg_p->nb_enb_connected, label);
+  return;
 }

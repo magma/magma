@@ -22,25 +22,6 @@
 /*********************************** Utility Functions to update
  * Statistics**************************************/
 
-// Number of Connected eNBs
-void update_mme_app_stats_connected_enb_add(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  // These stats will be persisted by mme_app task clocked
-  // by its incoming messages
-  (mme_app_desc_p->nb_enb_connected)++;
-  (mme_app_desc_p->nb_enb_connected_since_last_stat)++;
-  return;
-}
-void update_mme_app_stats_connected_enb_sub(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  // These stats will be persisted by mme_app task clocked
-  // by its incoming messages
-  if (mme_app_desc_p->nb_enb_connected != 0)
-    (mme_app_desc_p->nb_enb_connected)--;
-  (mme_app_desc_p->nb_enb_released_since_last_stat)++;
-  return;
-}
-
 /*****************************************************/
 // Number of Connected UEs
 void update_mme_app_stats_connected_ue_add(void) {
