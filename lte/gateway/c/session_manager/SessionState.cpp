@@ -198,7 +198,6 @@ SessionState::SessionState(
     const CreateSessionResponse& csr)
     : imsi_(imsi),
       session_id_(session_id),
-      shard_id_(0),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),

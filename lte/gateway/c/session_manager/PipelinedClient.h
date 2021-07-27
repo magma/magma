@@ -294,10 +294,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   /**
    * @brief Retrieves relevant records from Pipelined stats enforcements table
-   * based on shard id
+   * based on cookie and cookie mask
    *
-   * @param shard id matches shard that UE is contained in. This maps to a
-   * cookie in pipelined
+   * @param cookie require matching entries to contain the cookie value
+   * @param cookie_mask mask that restricts the cookie bits that must match
    * */
 
   void poll_stats(

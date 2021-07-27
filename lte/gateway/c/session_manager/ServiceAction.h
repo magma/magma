@@ -121,7 +121,6 @@ class ServiceAction {
  private:
   ServiceActionType action_type_;
   std::unique_ptr<std::string> imsi_;
-  int shard_id_;
   std::unique_ptr<std::string> session_id_;
   std::unique_ptr<std::string> ip_addr_;
   std::unique_ptr<std::string> ipv6_addr_;
