@@ -13,12 +13,7 @@ module magma/cwf/gateway
 
 replace (
 	fbc/cwf/radius => ../../feg/radius/src/
-	fbc/lib/go => ../../feg/radius/lib/go
-	fbc/lib/go/http => ../../feg/radius/lib/go/http
-	fbc/lib/go/libgraphql => ../../feg/radius/lib/go/libgraphql
-	fbc/lib/go/log => ../../feg/radius/lib/go/log
 	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
-	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
 	magma/cwf/cloud/go => ../../cwf/cloud/go
@@ -46,7 +41,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/net v0.0.0-20210501142056-aec3718b3fa0
