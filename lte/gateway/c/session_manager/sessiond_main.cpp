@@ -320,7 +320,14 @@ int main(int argc, char* argv[]) {
 
   // Some setup work for the SessionCredit class
   set_consts(config);
-  auto shard_tracker = std::make_shared<magma::ShardTracker>();
+
+  uint32_t max_shard_size;
+  if (!config["max_shard_size"].IsDefined()) {
+    max_shard_size = 100;
+  } else {
+    max_shard_size = config["max_shard_size"].as<uint32_t>();
+  }
+  auto shard_tracker = std::make_shared<magma::ShardTracker>(max_shard_size);
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
       reporter, rule_store, *session_store, pipelined_client, events_reporter,
