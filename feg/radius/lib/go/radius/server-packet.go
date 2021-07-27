@@ -22,8 +22,6 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
-
-	"go.uber.org/zap"
 )
 
 type packetResponseWriter struct {
@@ -117,9 +115,6 @@ type PacketServer struct {
 	// Channel to indicate when server is listenning and ready to serve requests
 	Ready chan bool
 
-	// Logger to write log
-	Logger *zap.Logger
-
 	mu           sync.Mutex
 	shuttingDown bool
 	ctx          context.Context
@@ -128,6 +123,8 @@ type PacketServer struct {
 	listeners    map[net.PacketConn]int
 	activeCount  int32
 }
+
+// TODO: logger on PacketServer
 
 // Serve accepts incoming connections on conn.
 func (s *PacketServer) Serve(conn net.PacketConn) error {
@@ -210,11 +207,10 @@ func (s *PacketServer) Serve(conn net.PacketConn) error {
 		go func(buff []byte, remoteAddr net.Addr) {
 			secret, err := s.SecretSource.RADIUSSecret(ctx, remoteAddr)
 			if err != nil {
-				s.Logger.Error("failed to read secret from context", zap.Error(err))
+				// TODO: log only if server is not shutting down?
 				return
 			}
 			if len(secret) == 0 {
-				s.Logger.Error("missing secret in context")
 				return
 			}
 

@@ -15,16 +15,15 @@ package server
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
-	"sync/atomic"
-
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
 	"fbc/lib/go/radius"
+	"fmt"
+	"math/rand"
 
 	"fbc/cwf/radius/session"
+	"sync/atomic"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/patrickmn/go-cache"
@@ -73,7 +72,6 @@ func (l *UDPListener) Init(
 		SecretSource: radius.StaticSecretSource([]byte(serverConfig.Secret)),
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Ready:        make(chan bool),
-		Logger:       server.logger,
 	}
 	return nil
 }
