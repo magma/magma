@@ -62,16 +62,18 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<EventsReporter> events_reporter,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
+    std::shared_ptr<ShardTracker> shard_tracker,
     long session_force_termination_timeout_ms,
     long quota_exhaustion_termination_on_init_ms,
     magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
+      session_store_(session_store),
       pipelined_client_(pipelined_client),
       events_reporter_(events_reporter),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
-      session_store_(session_store),
+      shard_tracker_(shard_tracker),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
@@ -1020,6 +1022,37 @@ void LocalEnforcer::init_session(
   session_map[imsi].push_back(std::move(session));
 }
 
+void LocalEnforcer::add_ue_to_shard(
+    const std::string imsi, SessionMap& session_map, SessionState& session) {
+  auto sm_it     = session_map.find(imsi);
+  auto& sessions = sm_it->second;
+  // Check if UE has other sessions and reuse shard_id if so
+  for (auto session_it = sessions.begin(); session_it != sessions.end();
+       ++session_it) {
+    if ((*session_it)->get_session_id() != session.get_session_id()) {
+      session.set_shard_id((*session_it)->get_shard_id());
+      return;
+    }
+  }
+  // if the UE doesn't have any other sessions, add to shard tracker and set id
+  int shard_id = shard_tracker_->add_ue(imsi);
+  session.set_shard_id(shard_id);
+}
+
+bool LocalEnforcer::remove_ue_from_shard(
+    const std::string imsi, SessionMap& session_map, SessionState& session) {
+  auto session_map_it = session_map.find(imsi);
+  auto& sessions      = session_map_it->second;
+
+  // check if this is the last session for the UE, because a UE is only fully
+  // gone once all instances of the session are gone
+  if (sessions.size() == 1) {
+    shard_tracker_->remove_ue(imsi, session.get_shard_id());
+    return true;
+  }
+  return false;
+}
+
 bool LocalEnforcer::update_tunnel_ids(
     SessionMap& session_map, const UpdateTunnelIdsRequest& request) {
   const auto imsi             = request.sid().id();
@@ -1050,6 +1083,8 @@ bool LocalEnforcer::update_tunnel_ids(
     auto uc = get_default_update_criteria();
     session->receive_monitor(monitor, nullptr);
   }
+
+  add_ue_to_shard(imsi, session_map, *session);
 
   handle_session_activate_rule_updates(
       *session, csr, charging_credits_received);
@@ -1210,6 +1245,9 @@ void LocalEnforcer::complete_termination(
 
   // clear all metrics associated with this session
   session->clear_session_metrics();
+
+  // remove UE from shard tracker
+  remove_ue_from_shard(imsi, session_map, *session);
 
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
