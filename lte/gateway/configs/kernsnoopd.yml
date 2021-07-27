@@ -18,4 +18,5 @@ collect_interval: 10
 
 # ebpf_programs are the ebpf source filenames that kernsnoopd will load.
 ebpf_programs:
-  - packet_count
+  -
+#  - packet_count

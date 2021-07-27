@@ -126,6 +126,7 @@ metricsd:
     - pipelined
     - state
     - sessiond
+    - kernsnoopd
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

@@ -26,19 +26,18 @@ TRACEPOINT_PROBE(net, net_dev_start_xmit) {
   struct sk_buff* skb = (struct sk_buff*) args->skbaddr;
   struct sock* sk     = skb->sk;
 
-  // read binary name, pid, destination IP address, port
   struct key_t key = {};
-  bpf_get_current_comm(key.comm, TASK_COMM_LEN);
-  key.pid = bpf_get_current_pid_tgid() >> 32;
   bpf_probe_read(&key.daddr, sizeof(sk->sk_daddr), &sk->sk_daddr);
-  bpf_probe_read(&key.dport, sizeof(sk->sk_dport), &sk->sk_dport);
-
-  // only record packets destined for localhost if they are going to control_proxy
+  // ignore packets destined for localhost
   // IPv4 127.0.0.1 == 16777343, 0.0.0.0 == 0
-  if ((key.daddr == 16777343 || key.daddr == 0) &&
-      ({{PROXY_PORT}} > 0 && key.dport != {{PROXY_PORT}})) {
+  if ((key.daddr == 16777343 || key.daddr == 0)) {
     return 0;
   }
+
+  // read binary name, pid, destination IP address, port
+  bpf_get_current_comm(key.comm, TASK_COMM_LEN);
+  key.pid = bpf_get_current_pid_tgid() >> 32;
+  bpf_probe_read(&key.dport, sizeof(sk->sk_dport), &sk->sk_dport);
 
   // lookup or initialize item in dest_counters
   struct counters_t empty;

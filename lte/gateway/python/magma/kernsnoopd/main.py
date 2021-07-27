@@ -23,8 +23,7 @@ MIN_COLLECT_INTERVAL = 5
 
 def main():
     """
-    Main routine for kernsnoopd service reads configuration and runs the
-    Snooper job
+    Read configuration and run the Snooper job
     """
     # There is no mconfig for kernsnoopd
     service = MagmaService('kernsnoopd', None)
@@ -33,13 +32,12 @@ def main():
     sentry_init(service_name=service.name)
 
     # Initialize and run the Snooper job
-    snooper = Snooper(
+    Snooper(
         service.config['ebpf_programs'],
         max(MIN_COLLECT_INTERVAL, service.config['collect_interval']),
         ServiceRegistry,
         service.loop,
     )
-    snooper.start()
 
     # Run the service loop
     service.run()

@@ -78,17 +78,16 @@ class PacketCounter(EBPFHandler):
             service_name = None
 
             try:
-                # TODO: destination service name inference does not work when
-                # control_proxy is enabled
                 service_name = self._get_source_service(key)
+                # TODO: destination service name inference does not work
                 # get destination service from host and port
-                dest_service = self._registry.get_service_name(d_host,
-                                                               d_port)
-                _inc_service_counters(service_name, dest_service, counters)
+                logging.info(f'{service_name} sent {counters.bytes} bytes to '
+                             f'({d_host}, {d_port})')
+                _inc_service_counters(service_name, "", counters)
             except ValueError:
                 # use binary name if source service name was not inferred
-                _inc_linux_counters(service_name or key.comm.decode(),
-                                    counters)
+                binary_name = service_name or key.comm.decode()
+                _inc_linux_counters(binary_name, counters)
 
         # clear eBPF counters
         bpf['dest_counters'].clear()
@@ -133,10 +132,6 @@ def _inc_service_counters(source_service, dest_service, counters) -> None:
         dest_service: traffic destination service name used as label
         counters: byte and packet count values for incrementing
     """
-    logging.info(
-        f'service: {source_service} sent {counters.bytes} '
-        f'bytes to {dest_service}',
-    )
     metrics.MAGMA_PACKETS_SENT_TOTAL.labels(
         service_name=source_service,
         dest_service=dest_service,
@@ -156,7 +151,6 @@ def _inc_linux_counters(binary_name, counters) -> None:
         binary_name: traffic source binary name used as label
         counters: byte and packet count values for incrementing
     """
-    logging.info(f'linux: {binary_name} sent {counters.bytes} bytes')
     metrics.LINUX_PACKETS_SENT_TOTAL.labels(binary_name).inc(
         counters.packets)
     metrics.LINUX_BYTES_SENT_TOTAL.labels(binary_name).inc(counters.bytes)
