@@ -44,11 +44,14 @@ class PacketCounterTests(unittest.TestCase):
         Test _get_source_service Python service happy path
         """
         cmdline_mock.return_value = 'python3 -m magma.subscriberdb.main'.split(
-            ' ')
+            ' ',
+        )
         key = MagicMock()
         key.pid = 0
-        self.assertEqual('subscriberdb',
-                         self.packet_counter._get_source_service(key))
+        self.assertEqual(
+            'subscriberdb',
+            self.packet_counter._get_source_service(key),
+        )
 
     @unittest.mock.patch('psutil.Process.cmdline')
     def test_get_source_service_native(self, cmdline_mock):
@@ -58,8 +61,10 @@ class PacketCounterTests(unittest.TestCase):
         cmdline_mock.return_value = 'sessiond'.split(' ')
         key = MagicMock()
         key.pid, key.comm = 0, b'sessiond'
-        self.assertEqual('sessiond',
-                         self.packet_counter._get_source_service(key))
+        self.assertEqual(
+            'sessiond',
+            self.packet_counter._get_source_service(key),
+        )
 
     @unittest.mock.patch('psutil.Process.cmdline')
     def test_get_source_service_fail(self, cmdline_mock):
@@ -69,8 +74,10 @@ class PacketCounterTests(unittest.TestCase):
         cmdline_mock.return_value = 'sshd'.split(' ')
         key = MagicMock()
         key.pid, key.comm = 0, b'sshd'
-        self.assertRaises(ValueError, self.packet_counter._get_source_service,
-                          key)
+        self.assertRaises(
+            ValueError, self.packet_counter._get_source_service,
+            key,
+        )
 
     @unittest.mock.patch('magma.kernsnoopd.metrics.MAGMA_BYTES_SENT_TOTAL')
     @unittest.mock.patch('magma.kernsnoopd.metrics.MAGMA_PACKETS_SENT_TOTAL')
@@ -93,10 +100,12 @@ class PacketCounterTests(unittest.TestCase):
         self.packet_counter.handle(bpf)
 
         packets_count_mock.labels.assert_called_once_with(
-            service_name='subscriberdb', dest_service='sessiond')
+            service_name='subscriberdb', dest_service='sessiond',
+        )
         packets_count_mock.labels.return_value.inc.assert_called_once_with(10)
         bytes_count_mock.labels.assert_called_once_with(
-            service_name='subscriberdb', dest_service='sessiond')
+            service_name='subscriberdb', dest_service='sessiond',
+        )
         bytes_count_mock.labels.return_value.inc.assert_called_once_with(100)
 
     @unittest.mock.patch('magma.kernsnoopd.metrics.LINUX_BYTES_SENT_TOTAL')

@@ -54,8 +54,10 @@ class Snooper(Job):
     front-end programs as handlers, and periodically calls their handle methods
     """
 
-    def __init__(self, programs: list, collect_interval: int,
-                 service_registry, service_loop):
+    def __init__(
+        self, programs: list, collect_interval: int,
+        service_registry, service_loop,
+    ):
 
         super().__init__(interval=collect_interval, loop=service_loop)
         self._bpf = None
@@ -65,7 +67,8 @@ class Snooper(Job):
         self._service_registry = service_registry
         self._context = {
             'PROXY_PORT': service_registry.get_proxy_config().get(
-                'local_port'),
+                'local_port',
+            ),
         }
         try:
             self._load_ebpf_programs()

@@ -81,8 +81,10 @@ class PacketCounter(EBPFHandler):
                 service_name = self._get_source_service(key)
                 # TODO: destination service name inference does not work
                 # get destination service from host and port
-                logging.info(f'{service_name} sent {counters.bytes} bytes to '
-                             f'({d_host}, {d_port})')
+                logging.info(
+                    f'{service_name} sent {counters.bytes} bytes to '
+                    f'({d_host}, {d_port})',
+                )
                 _inc_service_counters(service_name, "", counters)
             except ValueError:
                 # use binary name if source service name was not inferred
@@ -152,7 +154,8 @@ def _inc_linux_counters(binary_name, counters) -> None:
         counters: byte and packet count values for incrementing
     """
     metrics.LINUX_PACKETS_SENT_TOTAL.labels(binary_name).inc(
-        counters.packets)
+        counters.packets,
+    )
     metrics.LINUX_BYTES_SENT_TOTAL.labels(binary_name).inc(counters.bytes)
 
 
