@@ -93,6 +93,8 @@ tags:
     description: Provision and manage gateways
   - name: Upgrades
     description: Configuration to manage upgrades
+  - name: About
+    description: Version info
 
 basePath: /magma/v1
 
@@ -1258,6 +1260,20 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /about/version:
+    get:
+      summary: Get version
+      tags:
+        - About
+      responses:
+        '200':
+          description: Version
+          schema:
+            $ref: '#/definitions/version_info'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
 parameters:
   channel_id:
     in: path
@@ -2023,3 +2039,13 @@ definitions:
 
   elastic_hit_count:
     type: number
+
+  version_info:
+    type: object
+    properties:
+      container_image_version:
+        type: string
+        example: 1.6.0
+      helm_chart_version:
+        type: string
+        example: 1.5.21

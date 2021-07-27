@@ -61,6 +61,10 @@ const (
 	ManageTierImagePath    = ManageTierImagesPath + obsidian.UrlSep + ":image_name"
 	ManageTierGatewaysPath = ManageTiersPath + obsidian.UrlSep + "gateways"
 	ManageTierGatewayPath  = ManageTierGatewaysPath + obsidian.UrlSep + ":gateway_id"
+
+	About          = "about"
+	Version        = "version"
+	GetVersionPath = obsidian.V1Root + About + obsidian.UrlSep + Version
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -108,6 +112,9 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: GatewayPingV1, Methods: obsidian.POST, HandlerFunc: gatewayPing},
 		{Path: GatewayGenericCommandV1, Methods: obsidian.POST, HandlerFunc: gatewayGenericCommand},
 		{Path: TailGatewayLogsV1, Methods: obsidian.POST, HandlerFunc: tailGatewayLogs},
+
+		// Version Info
+		{Path: GetVersionPath, Methods: obsidian.GET, HandlerFunc: getVersionHandler},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "", serdes.Network)...)
