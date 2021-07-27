@@ -283,7 +283,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
                     rule.app_service_type, self.next_service_table,
-                    version, self._qos_mgr, shard_id, self._enforcement_stats_tbl))
+                    version, self._qos_mgr, self._enforcement_stats_tbl, shard_id))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(

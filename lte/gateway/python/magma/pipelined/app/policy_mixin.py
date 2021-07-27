@@ -278,11 +278,11 @@ class PolicyMixin(metaclass=ABCMeta):
         msg_list = []
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
-            shard_id = add_flow_req.shard_id
             apn_ambr = add_flow_req.apn_ambr
             policies = add_flow_req.policies
             msisdn = add_flow_req.msisdn
             uplink_tunnel = add_flow_req.uplink_tunnel
+            shard_id = add_flow_req.shard_id
 
             if self._setup_type == 'CWF' or add_flow_req.ip_addr:
                 ipv4 = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)

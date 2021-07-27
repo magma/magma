@@ -367,7 +367,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         gy_res = self._activate_rules_in_gy(
             request.sid.id, request.msisdn, request.uplink_tunnel,
             ip_address, request.apn_ambr,
-            policies,
+            policies, request.shard_id,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -419,7 +419,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
-        shard_id: int
+        shard_id: int,
     ) -> ActivateFlowsResult:
         gy_res = self._gy_app.activate_rules(
             imsi, msisdn, uplink_tunnel,
