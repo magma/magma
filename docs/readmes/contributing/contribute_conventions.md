@@ -270,8 +270,24 @@ The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) 
 
 **Logging**
 - For non-OAI C++ services, use the `MLOG` macros defined in `orc8r/gateway/c/common/logging/magma_logging.h`
-- For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/oai/common/log/h`
+- For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/core/oai/common/log.h`
 - Refer to the Go logging section for deciding between log levels
+
+
+### C
+
+Where applicable, the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) should be followed.
+
+**Exceptions, errors, and assertions**
+- As an exception mechanism is not provided in C, any error handling should be done either with assertions or error codes
+- As a principle, library functions should never cause crashes, and higher level callers should be responsible for handling errors
+- When exception handling is required, prefer returning error codes over using assertions
+    - A standard `status_code_e` enum and `status_or` structs should be used as the return value
+    - Error codes and `status_or` structs can be found in `lte/gateway/c/core/oai/common/common_defs.h`
+- Assertions should be reserved for unrecoverable errors
+    - Eg. a valid use is in MME service when out of memory, and there is no way to recover
+    - Eg. an invalid use is a misformatted input message received by MME. MME should respond with an error and not crash.
+    - Eg. an invalid use is for TODOs in unimplemented code. MME should respond with an error instead of crashing.
 
 ### Shell
 
