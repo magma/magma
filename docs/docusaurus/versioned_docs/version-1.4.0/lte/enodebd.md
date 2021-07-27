@@ -7,10 +7,8 @@ original_id: enodebd
 # eNodeB Configuration
 ## Prerequisites
 
-Make sure you follow the instructions in "[Deploying Orchestrator](
-https://magma.github.io/magma/docs/orc8r/deploying)" for successful
-installation of Orchestrator and the instructions in "[AGW Configuration](
-https://magma.github.io/magma/docs/lte/config_agw)" to provision and
+Make sure you follow the instructions in "[Deploying Orchestrator](../orc8r/deploy_intro)" for successful
+installation of Orchestrator and the instructions in "[AGW Configuration](config_agw)" to provision and
 configure your Access Gateway (AGW).
 
 ## S1 interface
@@ -131,16 +129,16 @@ journalctl -u magma@enodebd -f
 Manual configuration of connected eNodeB(s) is always possible. Magma was tested
 with multiple Airspan eNodeB models configured through NetSpan management
 software.
-Magma also includes first-class support to track the state and data usage of 
-manually provisioned eNodeBs. 
+Magma also includes first-class support to track the state and data usage of
+manually provisioned eNodeBs.
 
 To register your eNodeB, first make sure to disable
 the DHCP server provided on the Gateway on the NMS configuration panel.
 
 ![Disabling Gateway DHCP server](assets/nms/disable_dhcp_gw.png)
 
-After this, you can add the eNodeB basic information under the RAN section 
-of the eNodeB configuration, select `eNodeB Managed Externally` and add the 
+After this, you can add the eNodeB basic information under the RAN section
+of the eNodeB configuration, select `eNodeB Managed Externally` and add the
 fields based on the provisioning of the radio.
 
 ![Register unmanaged eNodeB](assets/nms/register_unmanaged_enb.png)

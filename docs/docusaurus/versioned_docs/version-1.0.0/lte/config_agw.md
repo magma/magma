@@ -11,11 +11,10 @@ original_id: config_agw
 Before beginning to configure your Magma Access Gateway, you will need to make
 sure that it is running all services without crashing. You will also need a
 working Orchestrator setup. Please follow the instructions in
-"[Deploying Orchestrator](
-https://magma.github.io/magma/docs/orc8r/deploying)" for a
+"[Deploying Orchestrator](../orc8r/deploy_intro)" for a
 successful Orchestrator installation.
 
-You also should have completed all the steps in "[Access Gateway Setup (On Bare Metal)](https://magma.github.io/magma/docs/lte/setup_deb)".
+You also should have completed all the steps in "[Access Gateway Setup (On Bare Metal)](setup_deb)".
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
 

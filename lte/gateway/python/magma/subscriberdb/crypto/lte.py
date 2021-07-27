@@ -23,6 +23,7 @@ FiveGRanAuthVector = NamedTuple(
     ],
 )
 
+
 class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):
     """
     Abstract class for LTE EUTRAN auth vector
@@ -61,22 +62,23 @@ class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def generate_m5gran_vector(self, key: bytes, opc: bytes, sqn: int, 
-                               snni: bytes) -> FiveGRanAuthVector:
+    def generate_m5gran_vector(
+        self, key: bytes, opc: bytes, sqn: int,
+        snni: bytes,
+    ) -> FiveGRanAuthVector:
         """
         Generate the NGRAN key vector.
         Args:
-            key : bytes 
+            key : bytes
                 128 bit subscriber key
-            opc : bytes 
+            opc : bytes
                 128 bit operator variant algorithm configuration field
-            sqn : int 
+            sqn : int
                 48 bit sequence number
-            snni : bytes 
-                32 bit serving network name consisting of MCC and MNC
+            snni : bytes
+                32 bytes serving network name consisting of MCC and MNC
         Returns:
-            FiveGRanAuthVector : NamedTuple 
+            FiveGRanAuthVector : NamedTuple
                  Consists of (rand, xres_star, autn, kseaf)
         """
         return FiveGRanAuthVector(rand=b'', xres_star=b'', autn=b'', kseaf=b'')
-   

@@ -14,10 +14,11 @@ limitations under the License.
 import logging
 
 from google.protobuf.json_format import MessageToJson
+from lte.protos import subscriberauth_pb2, subscriberauth_pb2_grpc
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import SubscriberNotFoundError
-from lte.protos import subscriberauth_pb2_grpc, subscriberauth_pb2
+
 
 class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServicer):
     """
@@ -50,7 +51,12 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
                 self.lte_processor.resync_lte_auth_seq(imsi, rand, auts)
 
             m5g_ran_auth_vectors = \
-                self.lte_processor.generate_m5g_auth_vector(imsi, request.serving_network_name.encode('utf-8'))
+                self.lte_processor.generate_m5g_auth_vector(
+                    imsi,
+                    request.serving_network_name.encode(
+                        'utf-8',
+                    ),
+                )
 
             metrics.M5G_AUTH_SUCCESS_TOTAL.inc()
 
@@ -66,14 +72,16 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
         except CryptoError as e:
             logging.error("Auth error for %s: %s", imsi, e)
             metrics.M5G_AUTH_FAILURE_TOTAL.labels(
-                code=metrics.DIAMETER_AUTHENTICATION_REJECTED).inc()
+                code=metrics.DIAMETER_AUTHENTICATION_REJECTED,
+            ).inc()
             aia.error_code = metrics.DIAMETER_AUTHENTICATION_REJECTED
             return aia
 
         except SubscriberNotFoundError as e:
             logging.warning("Subscriber not found: %s", e)
             metrics.M5G_AUTH_FAILURE_TOTAL.labels(
-                code=metrics.DIAMETER_ERROR_USER_UNKNOWN).inc()
+                code=metrics.DIAMETER_ERROR_USER_UNKNOWN,
+            ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
             return aia
 

@@ -16,7 +16,6 @@ package servicers
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"sort"
 
 	feg "magma/feg/cloud/go/feg"
@@ -29,6 +28,7 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/orc8r/math"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -661,19 +661,12 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 	return minSyncInterval
 }
 
-// getRandomizedSyncInterval returns the interval received from getSyncInterval as seconds and increases it by a random
-// delta in the range [0, getSyncInterval() / 5.0]. Increased sync interval ameliorates the thundering herd effect at
-// the orc8r. Delta is deterministic based on gwKey
+// getRandomizedSyncInterval returns the interval received from getSyncInterval
+// as seconds and increases it by a random jitter in the range of
+// [0, 0.2 * getSyncInterval()]. Increased sync interval ameliorates the thundering
+// herd effect at the Orc8r.
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
-
-	// FNV-1 is a non-cryptographic hash function that is fast and very simple to implement
-	h := fnv.New32a()
-	_, err := h.Write([]byte(gwKey))
-	if err != nil {
-		return syncInterval
-	}
-	multiplier := float32(h.Sum32()%100) / 100.0
-	delta := multiplier * (float32(syncInterval) / 5.0)
-	return syncInterval + uint32(delta)
+	jitter := math.JitterUint32(syncInterval, gwKey, 0.2)
+	return syncInterval + jitter
 }
