@@ -95,7 +95,7 @@ This section lists some of the commonly asked questions related to Magma operati
   - Login to Gateway, then run `sudo checkin_cli.py`.
 
 ### Where can I find API endpoint?
-  - If you have followed the [install guide](https://magma.github.io/magma/docs/orc8r/deploy_install), it'll be at `https://api.youdomain.com/swagger/v1/ui/`.
+  - If you have followed the [install guide](../orc8r/deploy_install.md), it'll be at `https://api.youdomain.com/swagger/v1/ui/`.
   - You will need to load the `admin_operator.pfx` certificate into your keychain/browser, otherwise, API access will be blocked.
 
 ### How can I use Swagger UI to trigger API request?
