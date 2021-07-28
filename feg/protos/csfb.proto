@@ -19,7 +19,7 @@ package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
 
 // service held in FedGW, receiving messages from gateway
-// messages reveiced will be sent to VLR through SCTP
+// messages received will be sent to VLR through SCTP
 service CSFBFedGWService {
     rpc AlertAc (AlertAck) returns (magma.orc8r.Void) {}
     rpc AlertRej (AlertReject) returns (magma.orc8r.Void) {}
