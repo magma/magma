@@ -193,7 +193,7 @@ void amf_app_generate_guti_on_supi(
   amf_guti->guamfi.plmn.mnc_digit3 = supi_imsi->plmn.mnc_digit3;
 
   // tmsi value is 4 octet random value.
-  amf_guti->m_tmsi = (uint32_t) rand();
+  amf_guti->m_tmsi = htonl((uint32_t) rand());
 
   // Filling data from amf_config file considering only one gNB
   amf_config_read_lock(&amf_config);
@@ -202,6 +202,12 @@ void amf_app_generate_guti_on_supi(
   // TODO: Temp hardcoded change to remove later
   amf_guti->guamfi.amf_set_id  = amf_config.guamfi.guamfi[0].amf_set_id;
   amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "amf_region_id %u amf_set_id %u amf_pointer %u",
+      amf_config.guamfi.guamfi[0].amf_regionid,
+      amf_config.guamfi.guamfi[0].amf_set_id,
+      amf_config.guamfi.guamfi[0].amf_pointer);
 
   amf_config_unlock(&amf_config);
   return;

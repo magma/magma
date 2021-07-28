@@ -24,8 +24,8 @@
 #include "log.h"
 #include "service303.h"
 
-#define MIN_GUMMEI 1
-#define MAX_GUMMEI 5
+#define MIN_GUAMI 1
+#define MAX_GUAMI 5
 #define MAX_APN_CORRECTION_MAP_LIST 10
 
 extern char buf_plmn[3];
@@ -99,7 +99,7 @@ typedef struct ngap_config_s {
 
 typedef struct guamfi_config_s {
   int nb;
-  guamfi_t guamfi[MAX_GUMMEI];
+  guamfi_t guamfi[MAX_GUAMI];
 #define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
 #define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
