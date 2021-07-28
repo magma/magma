@@ -168,8 +168,48 @@ func TestSyncStore(t *testing.T) {
 		assert.EqualError(t, err, "attempt to insert into network n0 with invalid cache writer")
 	})
 
+	t.Run("concurrent updates to cache", func(t *testing.T) {
+		updateFunc := func(t *testing.T, objs map[string][]byte) {
+			writer, err := store.UpdateCache("n0")
+			assert.NoError(t, err)
+			err = writer.InsertMany(objs)
+			assert.NoError(t, err)
+			err = writer.Apply()
+			assert.NoError(t, err)
+		}
+		for i := 0; i <= 5; i++ {
+			objs := map[string][]byte{
+				string(i):     []byte("apple"),
+				string(i + 1): []byte("banana"),
+			}
+			go updateFunc(t, objs)
+		}
+		time.Sleep(500 * time.Millisecond)
+
+		// The store should only contain 2 objs
+		page, token, err := store.GetCachedByPage("n0", "", 5)
+		assert.NoError(t, err)
+		assert.Empty(t, token)
+		assert.Len(t, page, 2)
+
+		// The two objs should have IDs i and i+1, and values "apple" and "banana"
+		for i := 0; i <= 5; i++ {
+			objs1, err := store.GetCachedByID("n0", []string{string(i)})
+			assert.NoError(t, err)
+			if len(objs1) == 0 {
+				continue
+			}
+			assert.Equal(t, []byte("apple"), objs1[0])
+			objs2, err := store.GetCachedByID("n0", []string{string(i + 1)})
+			assert.NoError(t, err)
+			assert.Len(t, objs2, 1)
+			assert.Equal(t, []byte("banana"), objs2[0])
+			break
+		}
+	})
+
 	t.Run("last resync set and get", func(t *testing.T) {
-		expectedLastResyncTime := uint32(time.Now().Unix())
+		expectedLastResyncTime := uint64(time.Now().Unix())
 
 		err := store.RecordResync("n0", "g0", expectedLastResyncTime+1)
 		assert.NoError(t, err)
@@ -214,11 +254,11 @@ func TestSyncStore(t *testing.T) {
 		assert.NoError(t, err)
 		err = writer.Apply()
 		assert.NoError(t, err)
-		err = store.RecordResync("n0", "g0", uint32(clock.Now().Unix()))
+		err = store.RecordResync("n0", "g0", uint64(clock.Now().Unix()))
 		assert.NoError(t, err)
-		err = store.RecordResync("n0", "g1", uint32(clock.Now().Unix()))
+		err = store.RecordResync("n0", "g1", uint64(clock.Now().Unix()))
 		assert.NoError(t, err)
-		err = store.RecordResync("n1", "g0", uint32(clock.Now().Unix()))
+		err = store.RecordResync("n1", "g0", uint64(clock.Now().Unix()))
 		assert.NoError(t, err)
 
 		digestTrees, err := store.GetDigests([]string{}, clock.Now().Unix(), true)
@@ -258,5 +298,27 @@ func TestSyncStore(t *testing.T) {
 		lastResync, err = store.GetLastResync("n1", "g0")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, lastResync)
+	})
+
+	t.Run("garbage collection with expired cacheWriters", func(t *testing.T) {
+		writer1, err := store.UpdateCache("n0")
+		assert.NoError(t, err)
+		clock.SetAndFreezeClock(t, clock.Now().Add(400*time.Second))
+		writer2, err := store.UpdateCache("n0")
+		assert.NoError(t, err)
+
+		err = store.CollectGarbage([]string{"n0"})
+		assert.NoError(t, err)
+
+		// No actions can be performed with an expired cacheWriter
+		err = writer1.InsertMany(objs1)
+		assert.EqualError(t, err, "attempt to insert into network n0 with invalid cache writer")
+		err = writer1.Apply()
+		assert.EqualError(t, err, "attempt to apply updates to network n0 with invalid cache writer")
+
+		err = writer2.InsertMany(objs1)
+		assert.NoError(t, err)
+		err = writer2.Apply()
+		assert.NoError(t, err)
 	})
 }

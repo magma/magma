@@ -16,6 +16,8 @@ package syncstore
 import (
 	"database/sql"
 	"encoding/binary"
+	"fmt"
+	"strings"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
@@ -32,14 +34,15 @@ import (
 
 type syncStore struct {
 	SyncStoreReader
-	db         *sql.DB
-	builder    sqorc.StatementBuilder
-	resyncFact blobstore.BlobStorageFactory
+	cacheWriters map[string]CacheWriter
+	db           *sql.DB
+	builder      sqorc.StatementBuilder
+	fact         blobstore.BlobStorageFactory
 }
 
-func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, resyncFact blobstore.BlobStorageFactory) SyncStore {
-	reader := NewSyncStoreReader(db, builder, resyncFact)
-	return &syncStore{SyncStoreReader: reader, db: db, builder: builder, resyncFact: resyncFact}
+func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory) SyncStore {
+	reader := NewSyncStoreReader(db, builder, fact)
+	return &syncStore{SyncStoreReader: reader, cacheWriters: map[string]CacheWriter{}, db: db, builder: builder, fact: fact}
 }
 
 func (l *syncStore) CollectGarbage(trackedNetworks []string) error {
@@ -57,6 +60,10 @@ func (l *syncStore) CollectGarbage(trackedNetworks []string) error {
 				return nil, errors.Wrap(err, "get all networks in store, SQL rows scan error")
 			}
 			inStoreNetworks = append(inStoreNetworks, network)
+		}
+		err = rows.Err()
+		if err != nil {
+			return nil, errors.Wrap(err, "get all networks in store, SQL rows error")
 		}
 		// Need to remove all networks that are in store but no longer tracked
 		deletedNetworks, _ = funk.DifferenceString(inStoreNetworks, trackedNetworks)
@@ -84,7 +91,7 @@ func (l *syncStore) CollectGarbage(trackedNetworks []string) error {
 		return err
 	}
 
-	store, err := l.resyncFact.StartTransaction(nil)
+	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "error starting transaction")
 	}
@@ -92,15 +99,43 @@ func (l *syncStore) CollectGarbage(trackedNetworks []string) error {
 
 	errs := &multierror.Error{}
 	for _, network := range deletedNetworks {
-		keys, err := blobstore.ListKeys(store, network, lastResyncBlobstoreType)
-		tks := storage.MakeTKs(lastResyncBlobstoreType, keys)
-		err = store.Delete(network, tks)
+		filter := blobstore.CreateSearchFilter(&network, []string{lastResyncBlobstoreType, cacheWriterBlobstoreType}, nil, nil)
+		criteria := blobstore.LoadCriteria{LoadValue: false}
+		networkBlobs, err := store.Search(filter, criteria)
+		if err != nil {
+			multierror.Append(errs, err)
+			continue
+		}
+		err = store.Delete(network, networkBlobs[network].TKs())
 		if err != nil {
 			multierror.Append(errs, err)
 		}
+		for _, tk := range networkBlobs[network].TKs() {
+			if tk.Type == cacheWriterBlobstoreType {
+				l.cacheWriters[tk.Key].SetInvalid()
+				delete(l.cacheWriters, tk.Key)
+			}
+		}
 	}
 	if errs.ErrorOrNil() != nil {
-		return errors.Wrapf(errs.ErrorOrNil(), "delete last resync time of networks %+v from blobstore", deletedNetworks)
+		return errors.Wrapf(errs.ErrorOrNil(), "delete info of networks %+v from blobstore", deletedNetworks)
+	}
+
+	// A cacheWriter expires after a configurable interval, and is removed from the tracked list
+	for _, network := range trackedNetworks {
+		filter := blobstore.CreateSearchFilter(&network, []string{cacheWriterBlobstoreType}, nil, nil)
+		criteria := blobstore.LoadCriteria{LoadValue: true}
+		networkBlobs, err := store.Search(filter, criteria)
+		if err != nil {
+			multierror.Append(errs, err)
+		}
+		for _, blob := range networkBlobs[network] {
+			creationTime := binary.LittleEndian.Uint64(blob.Value)
+			if clock.Now().Unix()-int64(creationTime) > cacheWriterValidIntervalSecs {
+				l.cacheWriters[blob.Key].SetInvalid()
+				delete(l.cacheWriters, blob.Key)
+			}
+		}
 	}
 	return store.Commit()
 }
@@ -139,33 +174,59 @@ func (l *syncStore) SetDigest(network string, digests *protos.DigestTree) error 
 }
 
 func (l *syncStore) UpdateCache(network string) (CacheWriter, error) {
-	// prepare the rows associated with the network for a batch update.
+	// the temporary table is namespaced with the unique id of the cacheWriter
+	writerId := fmt.Sprintf("cache_writer_%s", strings.Replace((&storage.UUIDGenerator{}).New(), "-", "_", -1))
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := l.builder.
-			Delete(cacheTmpTableName).
-			Where(squirrel.Eq{nidCol: network}).
+		_, err := l.builder.CreateTable(writerId).
+			IfNotExists().
+			Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			Column(idCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			Column(objCol).Type(sqorc.ColumnTypeBytes).NotNull().EndColumn().
+			PrimaryKey(nidCol, idCol).
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "clear cached objs tmp table")
+		return nil, errors.Wrap(err, "create cached objs tmp table")
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO(wangyyt1013): add concurrency protection
-	return NewCacheWriter(network, l.db, l.builder), nil
+	// The creation time of cacheWriters is tracked by the store for garbage collection
+	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error starting transaction")
+	}
+	defer store.Rollback()
+
+	creationTime := make([]byte, 8)
+	binary.LittleEndian.PutUint64(creationTime, uint64(clock.Now().Unix()))
+	err = store.CreateOrUpdate(network, blobstore.Blobs{{
+		Type:  cacheWriterBlobstoreType,
+		Key:   writerId,
+		Value: creationTime,
+	}})
+	if err != nil {
+		return nil, errors.Wrapf(err, "set start time of network %+v, cachewriter %+v in blobstore", network, writerId)
+	}
+	err = store.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	l.cacheWriters[writerId] = NewCacheWriter(network, writerId, l.db, l.builder)
+	return l.cacheWriters[writerId], nil
 }
 
-func (l *syncStore) RecordResync(network string, gateway string, t uint32) error {
-	store, err := l.resyncFact.StartTransaction(&storage.TxOptions{ReadOnly: true})
+func (l *syncStore) RecordResync(network string, gateway string, t uint64) error {
+	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return errors.Wrapf(err, "error starting transaction")
 	}
 	defer store.Rollback()
 
 	lastResyncBytes := make([]byte, 8)
-	binary.LittleEndian.PutUint32(lastResyncBytes, t)
+	binary.LittleEndian.PutUint64(lastResyncBytes, t)
 	err = store.CreateOrUpdate(network, blobstore.Blobs{{
 		Type:  lastResyncBlobstoreType,
 		Key:   gateway,

@@ -30,13 +30,13 @@ import (
 )
 
 type syncStoreReader struct {
-	db         *sql.DB
-	builder    sqorc.StatementBuilder
-	resyncFact blobstore.BlobStorageFactory
+	db      *sql.DB
+	builder sqorc.StatementBuilder
+	fact    blobstore.BlobStorageFactory
 }
 
-func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, resyncFact blobstore.BlobStorageFactory) SyncStoreReader {
-	return &syncStoreReader{db: db, builder: builder, resyncFact: resyncFact}
+func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory) SyncStoreReader {
+	return &syncStoreReader{db: db, builder: builder, fact: fact}
 }
 
 func (l *syncStoreReader) Initialize() error {
@@ -62,19 +62,7 @@ func (l *syncStoreReader) Initialize() error {
 			PrimaryKey(nidCol, idCol).
 			RunWith(tx).
 			Exec()
-		if err != nil {
-			return nil, errors.Wrap(err, "initialize cached obj store table")
-		}
-
-		_, err = l.builder.CreateTable(cacheTmpTableName).
-			IfNotExists().
-			Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			Column(idCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			Column(objCol).Type(sqorc.ColumnTypeBytes).NotNull().EndColumn().
-			PrimaryKey(nidCol, idCol).
-			RunWith(tx).
-			Exec()
-		return nil, errors.Wrap(err, "initialize cached obj store tmp table")
+		return nil, errors.Wrap(err, "initialize cached obj store table")
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
@@ -189,23 +177,23 @@ func (l *syncStoreReader) GetCachedByPage(network string, token string, pageSize
 	return info.objects, info.token, nil
 }
 
-func (l *syncStoreReader) GetLastResync(network string, gateway string) (uint32, error) {
-	store, err := l.resyncFact.StartTransaction(&storage.TxOptions{ReadOnly: true})
+func (l *syncStoreReader) GetLastResync(network string, gateway string) (uint64, error) {
+	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return uint32(0), errors.Wrapf(err, "error starting transaction")
+		return uint64(0), errors.Wrapf(err, "error starting transaction")
 	}
 	defer store.Rollback()
 
 	blob, err := store.Get(network, storage.TypeAndKey{Type: lastResyncBlobstoreType, Key: gateway})
 	if err == merrors.ErrNotFound {
 		// If this gw has never been resynced, return 0 to enforce first resync
-		return uint32(0), nil
+		return uint64(0), nil
 	}
 	if err != nil {
-		return uint32(0), errors.Wrapf(err, "get last resync time of network %+v, gateway %+v from blobstore", network, gateway)
+		return uint64(0), errors.Wrapf(err, "get last resync time of network %+v, gateway %+v from blobstore", network, gateway)
 	}
 
-	lastResync := binary.LittleEndian.Uint32(blob.Value)
+	lastResync := binary.LittleEndian.Uint64(blob.Value)
 	return lastResync, store.Commit()
 }
 
@@ -243,6 +231,10 @@ func parseRows(rows *sql.Rows) ([][]byte, string, error) {
 		}
 		objs = append(objs, obj)
 		lastIncludedId = id
+	}
+	err := rows.Err()
+	if err != nil {
+		return nil, "", errors.Wrap(err, "parse cached objs in store, SQL rows error")
 	}
 	return objs, lastIncludedId, nil
 }

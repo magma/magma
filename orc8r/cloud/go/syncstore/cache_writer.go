@@ -26,15 +26,18 @@ import (
 
 type cacheWriter struct {
 	network       string
+	id            string
 	db            *sql.DB
 	builder       sqorc.StatementBuilder
 	invalidWriter bool
 }
 
-func NewCacheWriter(network string, db *sql.DB, builder sqorc.StatementBuilder) CacheWriter {
-	return &cacheWriter{network: network, db: db, builder: builder, invalidWriter: false}
+func NewCacheWriter(network string, id string, db *sql.DB, builder sqorc.StatementBuilder) CacheWriter {
+	return &cacheWriter{network: network, id: id, db: db, builder: builder, invalidWriter: false}
 }
 
+// InsertMany inserts a batch of objects into the temporary table of the
+// CacheWriter object.
 func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 	if l.invalidWriter {
 		return errors.Errorf("attempt to insert into network %+v with invalid cache writer", l.network)
@@ -44,7 +47,7 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 	}
 
 	insertQuery := l.builder.
-		Insert(cacheTmpTableName).
+		Insert(l.id).
 		Columns(nidCol, idCol, objCol)
 	errs := &multierror.Error{}
 	for id, obj := range objects {
@@ -63,6 +66,9 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 }
 
 func (l *cacheWriter) Apply() error {
+	if l.invalidWriter {
+		return errors.Errorf("attempt to apply updates to network %+v with invalid cache writer", l.network)
+	}
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		// HACK: hard coding part of this sql query because there currently doesn't exist good support
 		// for "WHERE (row NOT IN other_table)" with squirrel
@@ -79,7 +85,7 @@ func (l *cacheWriter) Apply() error {
 				squirrel.Expr(fmt.Sprintf(
 					"(%s, %s) NOT IN (SELECT %s, %s FROM %s)",
 					nidCol, idCol,
-					nidCol, idCol, cacheTmpTableName,
+					nidCol, idCol, l.id,
 				)),
 			}).
 			RunWith(tx).
@@ -94,13 +100,13 @@ func (l *cacheWriter) Apply() error {
 		// 	   WHERE network_id = ${network}
 		// ON CONFLICT (network_id, id)
 		// 	   DO UPDATE SET obj = cached_objs_tmp.obj
-		conflictUpdateTarget := sqorc.FmtConflictUpdateTarget(cacheTmpTableName, objCol)
+		conflictUpdateTarget := sqorc.FmtConflictUpdateTarget(l.id, objCol)
 		_, err = l.builder.
 			Insert(cacheTableName).
 			Select(
 				l.builder.
 					Select(nidCol, idCol, objCol).
-					From(cacheTmpTableName).
+					From(l.id).
 					Where(squirrel.Eq{nidCol: l.network}),
 			).
 			OnConflict(
@@ -117,8 +123,7 @@ func (l *cacheWriter) Apply() error {
 		}
 
 		_, err = l.builder.
-			Delete(cacheTmpTableName).
-			Where(squirrel.Eq{nidCol: l.network}).
+			Delete(l.id).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -133,4 +138,8 @@ func (l *cacheWriter) Apply() error {
 
 	l.invalidWriter = true
 	return nil
+}
+
+func (l *cacheWriter) SetInvalid() {
+	l.invalidWriter = true
 }

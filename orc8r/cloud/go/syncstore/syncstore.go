@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	digestTableName   = "digests"
-	cacheTableName    = "cached_objs"
-	cacheTmpTableName = "cached_objs_tmp"
+	digestTableName = "digests"
+	cacheTableName  = "cached_objs"
 
 	// idCol contains the network-wide unique identifiers of the objects.
 	idCol              = "id"
@@ -30,7 +29,11 @@ const (
 	objCol             = "obj"
 	lastUpdatedTimeCol = "last_updated_at"
 
-	lastResyncBlobstoreType = "gateway_last_resync_time"
+	lastResyncBlobstoreType  = "gateway_last_resync_time"
+	cacheWriterBlobstoreType = "cache_writer_creation_time"
+	// cacheWriterValidIntervalSecs specifies the time duration (in secs) after
+	// which a cacheWriter object is subject to garbage collection.
+	cacheWriterValidIntervalSecs = 300 // 5 minutes
 )
 
 type SyncStore interface {
@@ -48,7 +51,7 @@ type SyncStore interface {
 	UpdateCache(network string) (CacheWriter, error)
 
 	// RecordResync tracks the last resync time of a gateway.
-	RecordResync(network string, gateway string, t uint32) error
+	RecordResync(network string, gateway string, t uint64) error
 }
 
 type SyncStoreReader interface {
@@ -68,17 +71,17 @@ type SyncStoreReader interface {
 	GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error)
 
 	// GetLastResync returns the last resync time of a particular gateway.
-	GetLastResync(network string, gateway string) (uint32, error)
+	GetLastResync(network string, gateway string) (uint64, error)
 }
 
 type CacheWriter interface {
-	// InsertMany inserts a batch of objects into the temporary table of the
-	// CacheWriter object.
+	// InsertMany adds objects to the list staged for the batch update.
 	// NOTE: Caller of the function should enforce that the max size of the
 	// insertion aligns reasonably with the max page size of its corresponding
 	// load source.
 	InsertMany(objects map[string][]byte) error
-	// Apply applies all data updates onto the db table and completes the batch
-	// update.
+	// Apply completes the batch cache update.
 	Apply() error
+	// SetInvalid sets this writer to be invalid for future writes.
+	SetInvalid()
 }
