@@ -18,10 +18,10 @@
 
 namespace magma {
 
-ShardTracker::ShardTracker(uint32_t max_shard_size) {
+ShardTracker::ShardTracker(uint32_t max_shard_size)
+    : max_shard_size_(max_shard_size) {
   // initialize with at least one empty vector to avoid checking for empty
   imsis_per_shard_.push_back({});
-  max_shard_size_ = max_shard_size;
 }
 
 uint16_t ShardTracker::add_ue(const std::string imsi) {

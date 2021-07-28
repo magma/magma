@@ -44,6 +44,7 @@
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
 #define DEFAULT_SESSION_MAX_RTX_COUNT 3
 #define DEFAULT_POLL_INTERVAL_TIME 5
+#define DEFAULT_MAX_SHARD_SIZE 100
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -323,7 +324,8 @@ int main(int argc, char* argv[]) {
 
   uint32_t max_shard_size;
   if (!config["max_shard_size"].IsDefined()) {
-    max_shard_size = 100;
+    MLOG(MINFO) << "Using default max shard size";
+    max_shard_size = DEFAULT_MAX_SHARD_SIZE;
   } else {
     max_shard_size = config["max_shard_size"].as<uint32_t>();
   }

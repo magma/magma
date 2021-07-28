@@ -80,5 +80,5 @@ poll_stats_interval: 5
 # set to true to enable pull model for stats(polling pipelined from sessiond)
 enable_pull_stats: false
 
-# set to the maximum amount of UEs that can be assigned a particular shard id
+# maximum number of UEs that can be assigned a particular shard id
 max_shard_size: 100

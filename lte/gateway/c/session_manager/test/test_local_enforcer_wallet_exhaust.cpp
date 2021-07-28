@@ -51,7 +51,7 @@ class LocalEnforcerTest : public ::testing::Test {
     spgw_client        = std::make_shared<MockSpgwServiceClient>();
     aaa_client         = std::make_shared<MockAAAClient>();
     events_reporter    = std::make_shared<MockEventsReporter>();
-    auto shard_tracker = std::make_shared<ShardTracker>(100);
+    auto shard_tracker = std::make_shared<ShardTracker>(DEFAULT_MAX_SHARD_SIZE);
     local_enforcer     = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, shard_tracker, 0, 0, mconfig);

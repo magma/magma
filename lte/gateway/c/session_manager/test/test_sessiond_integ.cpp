@@ -105,8 +105,8 @@ class SessiondTest : public ::testing::Test {
 
     session_reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
-    auto shard_tracker   = std::make_shared<ShardTracker>(100);
-    enforcer             = std::make_shared<LocalEnforcer>(
+    auto shard_tracker = std::make_shared<ShardTracker>(DEFAULT_MAX_SHARD_SIZE);
+    enforcer           = std::make_shared<LocalEnforcer>(
         session_reporter, rule_store, *session_store, pipelined_client,
         events_reporter, spgw_client, nullptr, shard_tracker,
         SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);

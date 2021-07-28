@@ -43,3 +43,4 @@
 #define BEARER_ID_1 0
 #define BEARER_ID_2 2
 #define BEARER_ID_3 3
+#define DEFAULT_MAX_SHARD_SIZE 100
