@@ -111,7 +111,7 @@ def send_policy_rar(client, args):
             print("%s is not valid" % flow_fields[0])
             raise ValueError(
                 "UL or DL are the only valid"
-                " values for first parameter of flow match"
+                " values for first parameter of flow match",
             )
         ip_protocol = int(flow_fields[1])
         if flow_fields[1] == FlowMatch.IPPROTO_TCP:
@@ -155,7 +155,7 @@ def send_policy_rar(client, args):
                     udp_dst=udp_dst_port,
                 ),
                 action=FlowDescription.PERMIT,
-            )
+            ),
         )
 
     qos_parameter_list = args.qos.split(",")
@@ -205,7 +205,7 @@ def send_policy_rar(client, args):
             revalidation_time=None,
             usage_monitoring_credits=[],
             qos_info=qos,
-        )
+        ),
     )
     print(reauth_result)
 
@@ -246,18 +246,18 @@ def create_parser():
 
     # PolicyReAuth
     create_session_parser = subparsers.add_parser(
-        "policy_rar", help="Send Policy Reauthorization Request to sessiond"
+        "policy_rar", help="Send Policy Reauthorization Request to sessiond",
     )
     create_session_parser.add_argument("imsi", help="e.g., IMSI001010000088888")
     create_session_parser.add_argument(
-        "session_id", help="e.g., IMSI001010000088888-910385"
+        "session_id", help="e.g., IMSI001010000088888-910385",
     )
     create_session_parser.add_argument("policy_id", help="e.g., ims-voice")
     create_session_parser.add_argument(
-        "priority", help="e.g., precedence value in the range [0-255]"
+        "priority", help="e.g., precedence value in the range [0-255]",
     )
     create_session_parser.add_argument(
-        "qci", help="e.g., 9 for default, 1 for VoIP data, 5 for IMS signaling"
+        "qci", help="e.g., 9 for default, 1 for VoIP data, 5 for IMS signaling",
     )
     create_session_parser.add_argument(
         "flow_rules",

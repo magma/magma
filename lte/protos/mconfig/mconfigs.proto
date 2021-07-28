@@ -354,6 +354,8 @@ message MME {
 
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 45;
+    
+    bool enable_converged_core = 46;
 }
 
 message FederatedModeMap {
@@ -397,6 +399,9 @@ message SubscriberDB {
 
     // Enable relaying S6a messages via FeG RPC
     bool hss_relay_enabled = 6;
+
+    // Interval in seconds between gateway and cloud sync
+    uint32 sync_interval = 7;
 }
 
 //------------------------------------------------------------------------------

@@ -3,7 +3,7 @@ name: "Push Helm Charts to Artifactory"
 
 on:  # yamllint disable-line rule:truthy
   push:
-    branches: [master, v1.*]  # Running on v1.* to tag official release with branch name
+    branches: [master, v1.*]  # Running on v1.* to tag official release
 jobs:
   build_publish_helm_charts:
     env:
@@ -21,20 +21,34 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          else
-            echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
           fi
       - name: Launch build and publish script
         run: |
-          orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+          else
+            orc8r/tools/helm/package.sh --deployment-type all
+          fi
+      - name: Extract commit title
+        if: failure()
+        env:
+          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        run: |
+          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.0.2
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Push helm charts to artifactory failed"
+          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
           SLACK_USERNAME: "Helm charts push to Artifactory "
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Only keep the last 20 uploaded versions
+        run: |
+          pip install artifactory
+          python ci-scripts/helm_repo_rotation.py

@@ -15,6 +15,7 @@ package npmanager
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"magma/lte/cloud/go/lte"
@@ -44,8 +45,7 @@ const (
 type NProbeManager struct {
 	ElasticClient    *elastic.Client
 	Storage          storage.NProbeStorage
-	Exporter         *exporter.RecordExporter
-	OperatorID       uint32
+	Exporters        map[string]*exporter.RecordExporter
 	MaxExportRetries uint32
 }
 
@@ -53,17 +53,16 @@ type NProbeManager struct {
 func NewNProbeManager(
 	config nprobe.Config,
 	storage storage.NProbeStorage,
-	exporter *exporter.RecordExporter,
 ) (*NProbeManager, error) {
 	client, err := eventdC.GetElasticClient()
 	if err != nil {
 		return nil, err
 	}
+	exporters := make(map[string]*exporter.RecordExporter)
 	return &NProbeManager{
 		ElasticClient:    client,
 		Storage:          storage,
-		Exporter:         exporter,
-		OperatorID:       config.OperatorID,
+		Exporters:        exporters,
 		MaxExportRetries: config.MaxExportRetries,
 	}, nil
 }
@@ -85,6 +84,27 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 		ret[ent.Key] = (&models.NetworkProbeTask{}).FromBackendModels(ent)
 	}
 	return ret, nil
+}
+
+// createNewRecordExporter retrieves the first destination provisioned
+// for a specific network and creates a record exporter
+func createNewRecordExporter(networkID string) (*exporter.RecordExporter, error) {
+	ents, _, err := configurator.LoadAllEntitiesOfType(
+		networkID,
+		lte.NetworkProbeDestinationEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ents) == 0 {
+		return nil, fmt.Errorf("Could not find a destination for network  %v", networkID)
+	}
+
+	destination := (&models.NetworkProbeDestination{}).FromBackendModels(ents[0])
+	return exporter.NewRecordExporter(destination)
 }
 
 // getEvents retrieves all events since start_time from fluentd
@@ -145,15 +165,16 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 	var nerr error
 	seq := state.SequenceNumber
 	for _, event := range events {
-		record, err := encoding.MakeRecord(&event, task, np.OperatorID, seq)
+		record, err := encoding.MakeRecord(&event, task, seq)
 		if err != nil {
 			glog.Errorf("Failed to build record from event %v: %s\n", event, err)
 			continue
 		}
 
-		nerr = np.Exporter.SendMessageWithRetries(record, np.MaxExportRetries)
+		nerr = np.Exporters[networkID].SendMessageWithRetries(record, np.MaxExportRetries)
 		if nerr != nil {
 			glog.Errorf("Failed to export record for targetID %s: %s\n", state.TargetID, nerr)
+			np.Exporters[networkID] = nil
 			break
 		}
 		seq++
@@ -181,6 +202,15 @@ func (np *NProbeManager) ProcessNProbeTasks() error {
 	}
 
 	for _, networkID := range networks {
+		if np.Exporters[networkID] == nil {
+			exporter, err := createNewRecordExporter(networkID)
+			if err != nil || exporter == nil {
+				glog.Infof("Could not create an exporter for network %s: %s", networkID, err)
+				continue
+			}
+			np.Exporters[networkID] = exporter
+		}
+
 		tasks, err := getNetworkProbeTasks(networkID)
 		if err != nil {
 			glog.Errorf("Failed to retrieve nprobe task for network %s: %s", networkID, err)

@@ -26,10 +26,13 @@
 # of the authors and should not be interpreted as representing official policies,
 # either expressed or implied, of the FreeBSD Project.
 
-import re, os, sys, string
 import datetime
 import getopt
 import getpass
+import os
+import re
+import string
+import sys
 
 version = "1.0.2"
 
@@ -51,15 +54,19 @@ ENDC = '\033[0m'
 fileprefix = ""
 fileprefix_first_upper = ""
 
+
 def printFail(string):
     sys.stderr.write(FAIL + string + ENDC + "\n")
+
 
 def printWarning(string):
     print(WARN + string + ENDC)
 
+
 def printDebug(string):
     if verbosity > 0:
         print(string)
+
 
 def outputHeaderToFile(f, filename):
     now = datetime.datetime.now()
@@ -99,6 +106,7 @@ def outputHeaderToFile(f, filename):
     f.write(" * Created on: %s by %s\n * from %s\n" % (str(now), getpass.getuser(), filenames))
     f.write(" ******************************************************************************/\n")
 
+
 def lowerFirstCamelWord(word):
     """ puts the first word in a CamelCase Word in lowercase.
 
@@ -117,15 +125,16 @@ def lowerFirstCamelWord(word):
     for c in swapped:
         if c in string.ascii_lowercase:
             newstr += c
-            idx    += 1
+            idx += 1
         else:
             break
     if idx < 2:
         newstr += word[idx:]
     else:
-        newstr = newstr[:-1]+ word[idx-1:]
+        newstr = newstr[:-1] + word[idx - 1:]
 
     return newstr
+
 
 def usage():
     print("Python parser for asn1 v%s" % (version))
@@ -135,6 +144,7 @@ def usage():
     print("-f [file] Input file to parse")
     print("-o [dir]  Output files to given directory")
     print("-h        Print this help and return")
+
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "df:ho:", ["debug", "file", "help", "outdir"])
@@ -188,7 +198,7 @@ for filename in filenames:
                 ies.append(k)
 
         if len(ies) > 0:
-            iesDefs[i[0]] = { "length": maxLength, "ies": ies }
+            iesDefs[i[0]] = {"length": maxLength, "ies": ies}
         else:
             printWarning("Didn't find any information element for message: " + i[0])
     for i in re.findall(r'([a-zA-Z0-9-]+)\s*::=\s*CHOICE\s*\{\s+([\,\|\t\n\.{3}\ \-a-zA-Z0-9]+)\s+}\n', lines, re.MULTILINE):
@@ -199,7 +209,7 @@ for filename in filenames:
                 choiceies.append(k)
 
         if len(choiceies) > 0:
-            choiceiesDefs[i[0]] = { "ies": choiceies }
+            choiceiesDefs[i[0]] = {"ies": choiceies}
         else:
             printWarning("Didn't find any information element for message: " + i[0])
 
@@ -242,8 +252,12 @@ for key in iesDefs:
         ieupperunderscore = re.sub('-', '_', re.sub('id-', '', ie[0])).upper()
 
         if ie[3] == "optional" or ie[3] == "conditional":
-            f.write("#define {0:<{pad}} {1}\n".format("%s_%s_PRESENT" % (keyupperunderscore, ieupperunderscore), "(1 << %d)" % shift,
-            pad=iesDefs[key]["length"] + len(keyupperunderscore) + 9))
+            f.write(
+                "#define {0:<{pad}} {1}\n".format(
+                    "%s_%s_PRESENT" % (keyupperunderscore, ieupperunderscore), "(1 << %d)" % shift,
+                    pad=iesDefs[key]["length"] + len(keyupperunderscore) + 9,
+                ),
+            )
             shift += 1
     if (shift > 0):
         f.write("\n")
@@ -341,7 +355,7 @@ for key in choiceiesDefs:
     keyname = re.sub('IEs', '', key)
     f.write("/** \\brief Decode function for %s ies.\n" % (key))
     f.write(" *  \\param %s_p pointer to buffer to decode.\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
-    f.write(" *  \\param %s pointer to store the value after decode.\n" %(lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write(" *  \\param %s pointer to store the value after decode.\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
     f.write(" **/\n")
     f.write("int %s_decode_%s(\n" % (fileprefix, re.sub('-', '_', keyname).lower()))
     f.write("    %s_t *%s,\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '', keyname))))
@@ -385,7 +399,7 @@ for key in iesDefs:
     f.write("    %s_t *%s);\n\n" % (prefix + re.sub('-', '_', key), lowerFirstCamelWord(re.sub('-', '_', key))))
 f.write("#endif /* %s_IES_DEFS_H_ */\n\n" % (fileprefix.upper()))
 
-#Generate Decode functions
+# Generate Decode functions
 f = open(outdir + fileprefix + '_decoder.c', 'w')
 outputHeaderToFile(f, filename)
 f.write("#include \"%s_common.h\"\n#include \"%s_ies_defs.h\"\n#include \"log.h\"\n\n" % (fileprefix, fileprefix))
@@ -461,14 +475,18 @@ for key in iesDefs:
                 f.write("                if (%s_decode_%s(&%s->%s, %s_p) < 0) {\n" % (fileprefix, ietypeunderscore.lower(), lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst)))
                 f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ietypesubst)))
                 f.write("                }\n")
-                f.write("                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
-                       (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
+                f.write(
+                    "                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
+                    (ietypeunderscore, lowerFirstCamelWord(ietypesubst)),
+                )
             elif ie[2] in ieofielist.keys():
                 f.write("                if (%s_decode_%s(&%s->%s, %s_p) < 0) {\n" % (fileprefix, ietypeunderscore.lower(), lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst)))
                 f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ietypesubst)))
                 f.write("                }\n")
-                f.write("                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
-                       (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
+                f.write(
+                    "                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
+                    (ietypeunderscore, lowerFirstCamelWord(ietypesubst)),
+                )
         else:
             f.write("                memcpy(&%s->%s, %s_p, sizeof(%s_t));\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst), ietypeunderscore))
             f.write("                FREEMEM(%s_p);\n" % (lowerFirstCamelWord(ietypesubst)))
@@ -497,19 +515,28 @@ for key in iesDefs:
     f.write("int free_%s(\n" % (re.sub('-', '_', keyname).lower()))
     f.write("    %sIEs_t *%s) {\n\n" % (re.sub('-', '_', keyname), iesStructName))
     f.write("    assert(%s != NULL);\n\n" % (iesStructName))
-    f.write("    for (int i = 0; i < %s->%s.count; i++) {\n" %
-            (iesStructName,
-             re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key)))))
-    f.write("       ASN_STRUCT_FREE(asn_DEF_%s, %s->%s.array[i]);\n" %
-            (ietypeunderscore,
-             iesStructName,
-             re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key)))))
+    f.write(
+        "    for (int i = 0; i < %s->%s.count; i++) {\n" %
+        (
+            iesStructName,
+            re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key))),
+        ),
+    )
+    f.write(
+        "       ASN_STRUCT_FREE(asn_DEF_%s, %s->%s.array[i]);\n" %
+        (
+            ietypeunderscore,
+            iesStructName,
+            re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key))),
+        ),
+    )
     f.write("    }\n")
-    f.write("    free(%s->%s.array);\n" %
-            (iesStructName, re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key)))))
+    f.write(
+        "    free(%s->%s.array);\n" %
+        (iesStructName, re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key)))),
+    )
     f.write("    return 0;\n")
     f.write("}\n\n")
-
 
 
 for key in iesDefs:
@@ -519,10 +546,13 @@ for key in iesDefs:
     keylowerunderscore = re.sub('-', '_', key.lower())
     structName = re.sub('ies', '', key, flags=re.IGNORECASE)
 
-
     f.write("int free_%s(\n" % (re.sub('-', '_', structName.lower())))
-    f.write("    %s_t *%s) {\n\n" % (prefix + re.sub('-', '_', key),
-                                     lowerFirstCamelWord(re.sub('-', '_', key))))
+    f.write(
+        "    %s_t *%s) {\n\n" % (
+            prefix + re.sub('-', '_', key),
+            lowerFirstCamelWord(re.sub('-', '_', key)),
+        ),
+    )
 
     for ie in iesDefs[key]["ies"]:
         ietypeunderscore = prefix + re.sub('-', '_', ie[2])
@@ -540,8 +570,12 @@ for key in iesDefs:
         # Check if this is an encapsulated IE, if so call the free function.
         if ie[2] in ieofielist.keys():
             keyname = re.sub('IEs', '', re.sub('Item', 'List', ie[2]))
-            f.write("    free_%s(&%s->%s);\n" % (re.sub('-', '_', keyname).lower(),
-                                                 lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore))
+            f.write(
+                "    free_%s(&%s->%s);\n" % (
+                    re.sub('-', '_', keyname).lower(),
+                    lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore,
+                ),
+            )
         else:
             f.write("    ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_%s, &%s->%s);\n" % (ietypeunderscore, lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore))
     f.write("    return 0;\n")
@@ -580,8 +614,12 @@ for key in iesDefs:
         f.write("                decoded += tempDecoded;\n")
         f.write("                if (asn1_xer_print)\n")
         f.write("                    xer_fprint(stdout, &asn_DEF_%s, %s_p);\n" % (re.sub('-', '_', ie[2]), lowerFirstCamelWord(re.sub('-', '', ie[2]))))
-        f.write("                ASN_SEQUENCE_ADD(&%sIEs->%s, %s_p);\n" % (lowerFirstCamelWord(re.sub('-', '_', keyname)),
-        re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key))), lowerFirstCamelWord(re.sub('-', '', ie[2]))))
+        f.write(
+            "                ASN_SEQUENCE_ADD(&%sIEs->%s, %s_p);\n" % (
+                lowerFirstCamelWord(re.sub('-', '_', keyname)),
+                re.sub('IEs', '', lowerFirstCamelWord(re.sub('-', '_', key))), lowerFirstCamelWord(re.sub('-', '', ie[2])),
+            ),
+        )
         f.write("            } break;\n")
     f.write("            default:\n")
     f.write("               OAILOG_ERROR (LOG_%s, \"Unknown protocol IE id (%%d) for message %s\\n\", (int)ie_p->id);\n" % (fileprefix.upper(), re.sub('-', '_', structName.lower())))
@@ -604,7 +642,7 @@ for key in choiceiesDefs:
     f.write("    assert(%s != NULL);\n\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
     f.write("    OAILOG_DEBUG (LOG_%s, \"Decoding choice %s (%%s:%%d)\\n\", __FILE__, __LINE__);\n" % (fileprefix.upper(), re.sub('-', '_', keyname)))
     f.write("    %s->present = %s_p->present;\n\n" % (lowerFirstCamelWord(re.sub('-', '', keyname)), lowerFirstCamelWord(re.sub('-', '', keyname))))
-    f.write("    switch (%s_p->present) {\n" %(lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("    switch (%s_p->present) {\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
     for ie in choiceiesDefs[key]["ies"]:
         iename = re.sub('-', '_', ie[0])
         f.write("            case %s_PR_%s:\n" % (re.sub('-', '_', keyname), iename))
@@ -627,9 +665,9 @@ for key in choiceiesDefs:
     f.write("}\n\n")
 
 
-#Generate IES Encode functions
+# Generate IES Encode functions
 f = open(outdir + fileprefix + '_encoder.c', 'w')
-outputHeaderToFile(f,filename)
+outputHeaderToFile(f, filename)
 f.write("#include \"%s_common.h\"\n" % (fileprefix))
 f.write("#include \"%s_ies_defs.h\"\n\n" % (fileprefix))
 for key in iesDefs:
@@ -755,7 +793,7 @@ for (key, value) in iesDefs.items():
     f.write("    return 0;\n")
     f.write("}\n\n")
 
-#Generate xer print functions
+# Generate xer print functions
 f = open(outdir + fileprefix + '_xer_print.c', 'w')
 outputHeaderToFile(f, filename)
 f.write("#include <stdlib.h>\n")
@@ -764,7 +802,8 @@ f.write("#include <asn_application.h>\n#include <asn_internal.h>\n\n")
 f.write("#include \"%s_common.h\"\n#include \"%s_ies_defs.h\"\n\n" % (fileprefix, fileprefix))
 
 f.write("size_t %s_string_total_size = 0;\n\n" % (fileprefix.lower()))
-f.write("""int
+f.write(
+    """int
 %s_xer__print2fp(const void *buffer, size_t size, void *app_key) {
     FILE *stream = (FILE *)app_key;
 
@@ -774,9 +813,11 @@ f.write("""int
     return 0;
 }
 
-""" % (fileprefix.lower()))
+""" % (fileprefix.lower()),
+)
 
-f.write("""int %s_xer__print2sp(const void *buffer, size_t size, void *app_key) {
+f.write(
+    """int %s_xer__print2sp(const void *buffer, size_t size, void *app_key) {
     char *string = (char *)app_key;
 
     /* Copy buffer to the formatted string */
@@ -787,7 +828,8 @@ f.write("""int %s_xer__print2sp(const void *buffer, size_t size, void *app_key) 
     return 0;
 }
 
-""" % (fileprefix.lower(), fileprefix.lower(), fileprefix.lower()))
+""" % (fileprefix.lower(), fileprefix.lower(), fileprefix.lower()),
+)
 
 f.write("""static asn_enc_rval_t
 xer_encode_local(asn_TYPE_descriptor_t *td, void *sptr,
@@ -883,7 +925,7 @@ for (key, value) in iesDefs.items():
         f.write("    cb(\"</%s-PDU>\\n\", %d, app_key);\n" % (key, len("</%s-PDU>\n" % (key))))
 
     f.write("    _ASN_ENCODED_OK(er);\n")
-    #if key not in ieofielist.values():
-        #f.write("cb_failed:\n")
+    # if key not in ieofielist.values():
+        # f.write("cb_failed:\n")
         #f.write("    return er;\n")
     f.write("}\n\n")

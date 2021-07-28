@@ -49,6 +49,7 @@
 #include "service303.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
+#include "includes/SentryWrapper.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -76,6 +77,7 @@
 #define MME_CONFIG_STRING_MAXENB "MAXENB"
 #define MME_CONFIG_STRING_MAXUE "MAXUE"
 #define MME_CONFIG_STRING_RELATIVE_CAPACITY "RELATIVE_CAPACITY"
+#define MME_CONFIG_STRING_STATS_TIMER "STATS_TIMER_SEC"
 
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
 #define MME_CONFIG_STRING_ENABLE_CONVERGED_CORE "ENABLE_CONVERGED_CORE"
@@ -218,6 +220,12 @@
 #define MME_CONFIG_STRING_SERVICE_AREA_CODE "SAC"
 #define MME_CONFIG_STRING_TAC_LIST_PER_SAC "TACS_PER_SAC"
 #define MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP "SRVC_AREA_CODE_2_TACS_MAP"
+
+// SENTRY CONFIGURATION
+#define MME_CONFIG_STRING_SENTRY_CONFIG "SENTRY_CONFIG"
+#define MME_CONFIG_STRING_SAMPLE_RATE "SAMPLE_RATE"
+#define MME_CONFIG_STRING_UPLOAD_MME_LOG "UPLOAD_MME_LOG"
+#define MME_CONFIG_STRING_URL_NATIVE "URL_NATIVE"
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
@@ -374,6 +382,8 @@ typedef struct mme_config_s {
 
   uint8_t relative_capacity;
 
+  uint32_t stats_timer_sec;
+
   bstring ip_capability;
   bstring non_eps_service_control;
 
@@ -399,6 +409,7 @@ typedef struct mme_config_s {
   sgs_config_t sgs_config;
   log_config_t log_config;
   e_dns_config_t e_dns_emulation;
+  sentry_config_t sentry_config;
 
   ip_t ip;
 

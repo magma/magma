@@ -41,8 +41,10 @@ def get_context():
     # We get the gateway cert after bootstrapping, but we do want nghttpx
     # to run before that for communication locally. Update the flag for
     # jinja to act upon.
-    gateway_cert = get_service_config_value('control_proxy',
-                                            'gateway_cert', None)
+    gateway_cert = get_service_config_value(
+        'control_proxy',
+        'gateway_cert', None,
+    )
     if gateway_cert and os.path.exists(gateway_cert):
         context['use_gateway_cert'] = True
     else:
@@ -52,7 +54,8 @@ def get_context():
     context['docker_network_mode'] = is_docker_network_mode()
 
     context['allow_http_proxy'] = get_service_config_value(
-        'control_proxy', 'allow_http_proxy', False)
+        'control_proxy', 'allow_http_proxy', False,
+    )
     context['http_proxy'] = os.getenv('http_proxy', '')
     return context
 
@@ -60,9 +63,12 @@ def get_context():
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
-    generate_template_config('control_proxy', 'nghttpx',
-                             CONFIG_OVERRIDE_DIR, get_context())
+        format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+    )
+    generate_template_config(
+        'control_proxy', 'nghttpx',
+        CONFIG_OVERRIDE_DIR, get_context(),
+    )
 
 
 if __name__ == "__main__":

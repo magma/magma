@@ -79,3 +79,11 @@ ExternalProject_Add(Eventd
     DEPENDS AsyncGrpc
     DEPENDS ServiceRegistry
     CMAKE_ARGS ${CL_ARGS})
+
+ExternalProject_Add(MagmaSentry
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/sentry
+    BINARY_DIR ${CMAKE_BINARY_DIR}/sentry
+    BUILD_ALWAYS 1
+    INSTALL_COMMAND ""
+    DEPENDS MagmaConfig
+    CMAKE_ARGS ${CL_ARGS})

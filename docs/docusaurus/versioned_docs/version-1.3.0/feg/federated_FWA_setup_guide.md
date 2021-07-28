@@ -9,9 +9,9 @@ original_id: federated_FWA_setup_guide
 
 ## Basic Configuration Steps
 
-Basic installation steps: [_https://magma.github.io/magma/docs/feg/deploy_install_](https://magma.github.io/magma/docs/feg/deploy_install)
+For Basic installation instructions follow "[Installing Federation Gateway](../feg/deploy_install)"
 
-There are a few configuration steps that are not yet exposed in NMS that must be done manually via the REST API. 
+There are a few configuration steps that are not yet exposed in NMS that must be done manually via the REST API.
 
 Magma has two important concepts on federation:
 
@@ -22,13 +22,13 @@ When configuring an integration with LTE nodes, it is necessary to link these tw
 
 ### Associating FederatedLTE network to a Federation network
 
-In the **Federated LTE** **Network**’s NMS page, the Federation config should be the **Federation** **Network**’s network ID. 
+In the **Federated LTE** **Network**’s NMS page, the Federation config should be the **Federation** **Network**’s network ID.
 
 ![NMS-FederatedLTE-Config.png](assets/feg/NMS-FederatedLTE-Config.png)
 
 ### Associating Federation network to a FederatedLTE network
 
-In order to complete the association, we also need to modify the **Federation Network**‘s federation configuration. 
+In order to complete the association, we also need to modify the **Federation Network**‘s federation configuration.
 
 ![API-Federation-Network-Config.png](assets/feg/API-Federation-Network-Config.png)
 
@@ -56,7 +56,7 @@ The NMS page for  **Federated LTE Network** has the following policy configurati
 
 ![NMS-Policy-Config.png](assets/feg/NMS-Policy-Config.png)
 
-### Configuring Omnipresent/Network-Wide Policies 
+### Configuring Omnipresent/Network-Wide Policies
 
 Omnipresent rules or Network-Wide polices are policies that do not require a PCRF to install. On Session creation, all network wide policies will be installed for the session along with any other policies configured by the PCRF.
 In the policy configuration’s edit dialogue, use the **Network Wide** check box to toggle the configuration.
@@ -123,7 +123,7 @@ This feature is disabled by default (so any session request from any IMSI will b
 * Here are the steps to test the FeG <-> Gx/Gy/S6a connections
     * Exec into `session_proxy` container: `docker exec -it session_proxy bash`
     * Run `/var/opt/magma/bin/gx_client_cli `with the following parameters
-        * --commands=IT 
+        * --commands=IT
         * --dest_host
         * --dest_realm
         * --addr
@@ -161,9 +161,8 @@ This feature is disabled by default (so any session request from any IMSI will b
 * SessionD’s log level at ‘DEBUG’ level to get granular insight on data usage tracking
 * Enabling logging for GRPC messages between services
     * For AGW, modify `/etc/environment` to include `MAGMA_PRINT_GRPC_PAYLOAD="1"` and restart all services. This flag will only work for the SessionD service on the AGW.
-    * For FeG, add the environment variable in the docker-compose file as the following. 
+    * For FeG, add the environment variable in the docker-compose file as the following.
 ```
-environment: 
-    MAGMA_PRINT_GRPC_PAYLOAD: 1 
+environment:
+    MAGMA_PRINT_GRPC_PAYLOAD: 1
 ```
-

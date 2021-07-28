@@ -340,6 +340,8 @@ status_code_e s11_mme_delete_session_request(
   gtpv2c_ebi_ie_set(
       &(ulp_req.hMsg), (unsigned) req_p->lbi, NW_GTPV2C_IE_INSTANCE_ZERO);
 
+  ulp_req.proc_context.ebi = req_p->lbi;
+
   if ((req_p->indication_flags.oi) || (req_p->indication_flags.si)) {
     gtpv2c_indication_flags_ie_set(&(ulp_req.hMsg), &req_p->indication_flags);
   }
@@ -364,6 +366,9 @@ status_code_e s11_mme_handle_delete_session_response(
   message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_S11, S11_DELETE_SESSION_RESPONSE);
   resp_p = &message_p->ittiMsg.s11_delete_session_response;
+
+  // procedure lbi data
+  resp_p->lbi = pUlpApi->proc_context.ebi;
 
   resp_p->teid           = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
   resp_p->internal_flags = pUlpApi->u_api_info.triggeredRspIndInfo.trx_flags;

@@ -23,10 +23,10 @@
 #include "includes/MagmaService.h"
 #include "includes/MConfigLoader.h"
 #include "OperationalStatesHandler.h"
-#include "includes/PolicyLoader.h"
+#include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
-#include "SentryWrappers.h"
+#include "includes/SentryWrapper.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "SessionCredit.h"
 #include "SessionManagerServer.h"
@@ -208,7 +208,12 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  initialize_sentry(mconfig.sentry_config());
+  sentry_config_t sentry_config;
+  sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
+  strncpy(
+      sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
+      MAX_URL_LENGTH);
+  initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool converged_access          = false;
   uint32_t session_max_rtx_count = 0;
@@ -260,6 +265,12 @@ int main(int argc, char* argv[]) {
     eventd_client.rpc_response_loop();
   });
 
+  auto mobilityd_client = std::make_shared<magma::AsyncMobilitydClient>();
+  std::thread mobilityd_response_handling_thread([&]() {
+    MLOG(MINFO) << "Started MobilityD response thread";
+    mobilityd_client->rpc_response_loop();
+  });
+
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
   std::shared_ptr<magma::AsyncAmfServiceClient> amf_srv_client;
@@ -309,10 +320,11 @@ int main(int argc, char* argv[]) {
 
   // Some setup work for the SessionCredit class
   set_consts(config);
+  auto shard_tracker = std::make_shared<magma::ShardTracker>();
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
       reporter, rule_store, *session_store, pipelined_client, events_reporter,
-      spgw_client, aaa_client,
+      spgw_client, aaa_client, shard_tracker,
       config["session_force_termination_timeout_ms"].as<long>(),
       get_quota_exhaust_termination_time(config), mconfig);
 
@@ -334,18 +346,21 @@ int main(int argc, char* argv[]) {
 
   // Start off a thread to periodically poll stats from Pipelined
   // every fixed interval of time
-  auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
-  std::thread periodic_stats_requester_thread([&]() {
-    // random value assigned for interval period, the value will be loaded
-    // from a config field later
-    uint32_t interval = DEFAULT_POLL_INTERVAL_TIME;
-    if (config["poll_stats_interval"].IsDefined()) {
-      interval = config["poll_stats_interval"].as<uint32_t>();
-    }
-    periodic_stats_requester->start_loop(
-          local_enforcer, interval);
-    periodic_stats_requester->stop();
-  });
+  std::thread periodic_stats_requester_thread;
+  uint32_t interval;
+  if (config["enable_pull_stats"].IsDefined() &&
+      config["enable_pull_stats"].as<bool>()) {
+    auto periodic_stats_requester   = std::make_shared<magma::StatsPoller>();
+    periodic_stats_requester_thread = std::thread([&]() {
+      // random value assigned for interval period, the value will be loaded
+      // from a config field later
+      interval = DEFAULT_POLL_INTERVAL_TIME;
+      if (config["poll_stats_interval"].IsDefined()) {
+        interval = config["poll_stats_interval"].as<uint32_t>();
+      }
+      periodic_stats_requester->start_loop(local_enforcer, interval);
+    });
+  }
 
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler
   // and the SessionProxyHandler (RARs)
@@ -404,7 +419,7 @@ int main(int argc, char* argv[]) {
     // 5G related upf  async service framework creation
     auto conv_upf_message_handler =
         std::make_unique<magma::UpfMsgManageHandler>(
-            conv_session_enforcer, *session_store);
+            conv_session_enforcer, mobilityd_client, *session_store);
     // 5G  upf converged service to handler set message from UPF
     conv_upf_message_service = new magma::SetInterfaceForUserPlaneAsyncService(
         server.GetNewCompletionQueue(), std::move(conv_upf_message_handler));
@@ -480,6 +495,9 @@ int main(int argc, char* argv[]) {
 
   // Clean up threads & resources
   policy_response_handler.join();
+  if (periodic_stats_requester_thread.joinable()) {
+    periodic_stats_requester_thread.join();
+  }
   local_thread.join();
   proxy_thread.join();
   pipelined_response_handling_thread.join();
@@ -498,6 +516,7 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     free(conv_upf_message_service);
   }
+  mobilityd_response_handling_thread.join();
   delete session_store;
 
   shutdown_sentry();

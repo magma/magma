@@ -39,38 +39,51 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
-        description = textwrap.dedent('''\
+        description=textwrap.dedent('''\
             Management CLI for ctraced
             --------------------------
             Use to start and end call traces.
             Options are provided for the type of trace to record.
             Only a single trace can be captured at a time.
-        '''))
+        '''),
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
     # Add StartCallTrace subcommand
-    parser_start_trace = subparsers.add_parser('start_call_trace',
-                                               help='Start a call trace')
+    parser_start_trace = subparsers.add_parser(
+        'start_call_trace',
+        help='Start a call trace',
+    )
     trace_types = list(StartTraceRequest.TraceType.DESCRIPTOR.values_by_name)
     supported_protocols =\
         list(StartTraceRequest.ProtocolName.DESCRIPTOR.values_by_name)
     supported_interfaces =\
         list(StartTraceRequest.InterfaceName.DESCRIPTOR.values_by_name)
-    parser_start_trace.add_argument('--type', type=str, choices=trace_types,
-                                    help='Trace type', required=True)
-    parser_start_trace.add_argument('--imsi', type=str, choices=trace_types,
-                                    help='Trace type')
-    parser_start_trace.add_argument('--protocol', type=str,
-                                    choices=supported_protocols)
-    parser_start_trace.add_argument('--interface', type=str,
-                                    choices=supported_interfaces)
+    parser_start_trace.add_argument(
+        '--type', type=str, choices=trace_types,
+        help='Trace type', required=True,
+    )
+    parser_start_trace.add_argument(
+        '--imsi', type=str, choices=trace_types,
+        help='Trace type',
+    )
+    parser_start_trace.add_argument(
+        '--protocol', type=str,
+        choices=supported_protocols,
+    )
+    parser_start_trace.add_argument(
+        '--interface', type=str,
+        choices=supported_interfaces,
+    )
     parser_start_trace.set_defaults(func=start_call_trace)
 
     # Add EndCallTrace subcommand
-    parser_end_trace = subparsers.add_parser('end_call_trace',
-                                             help='End a call trace')
+    parser_end_trace = subparsers.add_parser(
+        'end_call_trace',
+        help='End a call trace',
+    )
     parser_end_trace.set_defaults(func=end_call_trace)
 
     return parser

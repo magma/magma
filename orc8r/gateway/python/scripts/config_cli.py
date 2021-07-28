@@ -37,6 +37,7 @@ def load_override_config(_, args):
 # Log level commands
 LOG_LEVEL_KEY = 'log_level'
 
+
 @grpc_wrapper
 def get_log_level(_, args):
     cfg = service_configs.load_service_config(args.service)
@@ -101,8 +102,11 @@ def set_streamer_status(_, args):
 
     invalid_keys = set(keys) - set(STREAMER_KEYS_BY_SERVICE.get(service, []))
     if invalid_keys:
-        print('%s does not have the following streamer config keys: %s' % (
-            service, invalid_keys))
+        print(
+            '%s does not have the following streamer config keys: %s' % (
+            service, invalid_keys,
+            ),
+        )
         return
 
     cfg = service_configs.load_override_config(service)
@@ -121,8 +125,10 @@ def set_streamer_status(_, args):
         elif args.enabled == 'False':
             cfg[key] = False
         else:
-            print('Invalid argument: %s. '
-                  'Expected one of "True", "False", "default"' % args.enabled)
+            print(
+                'Invalid argument: %s. '
+                'Expected one of "True", "False", "default"' % args.enabled,
+            )
             return
 
     try:
@@ -140,8 +146,10 @@ def set_streamer_status(_, args):
 def _reload_service_config(client, service):
     response = client.ReloadServiceConfig(Void())
     if response.result == ReloadConfigResponse.RELOAD_SUCCESS:
-        print('Config successfully reloaded. '
-              'Some config may require a service restart to take effect')
+        print(
+            'Config successfully reloaded. '
+            'Some config may require a service restart to take effect',
+        )
     else:
         print('Config cannot be reloaded. Service restart required.')
         should_restart = input('Restart %s? (y/N) ' % service).lower() == 'y'
@@ -175,53 +183,78 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for configs',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
-    load_override_cmd = subparsers.add_parser('load_override_config',
-                                              help='Load the config overrides '
-                                                   'of the specified service')
-    load_override_cmd.add_argument('service', type=str,
-                                   help='Name of the service')
+    load_override_cmd = subparsers.add_parser(
+        'load_override_config',
+        help='Load the config overrides '
+             'of the specified service',
+    )
+    load_override_cmd.add_argument(
+        'service', type=str,
+        help='Name of the service',
+    )
 
-    get_log_level_cmd = subparsers.add_parser('get_log_level',
-                                              help='Get the log level of a '
-                                                   'service')
-    get_log_level_cmd.add_argument('service', type=str,
-                                   help='Name of the service')
+    get_log_level_cmd = subparsers.add_parser(
+        'get_log_level',
+        help='Get the log level of a '
+             'service',
+    )
+    get_log_level_cmd.add_argument(
+        'service', type=str,
+        help='Name of the service',
+    )
 
-    set_log_level_cmd = subparsers.add_parser('set_log_level',
-                                              help='Set the log level of a '
-                                                   'service by updating the '
-                                                   'config overrides')
-    set_log_level_cmd.add_argument('service', type=str,
-                                   help='Name of the service')
-    set_log_level_cmd.add_argument('log_level', type=str,
-                                   help='Log level to be set. '
-                                        'Specify "default" to use the default '
-                                        'log level')
+    set_log_level_cmd = subparsers.add_parser(
+        'set_log_level',
+        help='Set the log level of a '
+             'service by updating the '
+             'config overrides',
+    )
+    set_log_level_cmd.add_argument(
+        'service', type=str,
+        help='Name of the service',
+    )
+    set_log_level_cmd.add_argument(
+        'log_level', type=str,
+        help='Log level to be set. '
+             'Specify "default" to use the default '
+             'log level',
+    )
 
-    get_streamer_status_cmd = subparsers.add_parser('get_streamer_status',
-                                                    help='Get the streamer '
-                                                         'status of a service')
-    get_streamer_status_cmd.add_argument('service', type=str,
-                                         help='Name of the service')
+    get_streamer_status_cmd = subparsers.add_parser(
+        'get_streamer_status',
+        help='Get the streamer '
+             'status of a service',
+    )
+    get_streamer_status_cmd.add_argument(
+        'service', type=str,
+        help='Name of the service',
+    )
 
-    set_streamer_status_cmd = subparsers.add_parser('set_streamer_status',
-                                                    help='Set the streamer '
-                                                         'status of a service')
-    set_streamer_status_cmd.add_argument('service', type=str,
-                                         help='Name of the service')
+    set_streamer_status_cmd = subparsers.add_parser(
+        'set_streamer_status',
+        help='Set the streamer '
+             'status of a service',
+    )
+    set_streamer_status_cmd.add_argument(
+        'service', type=str,
+        help='Name of the service',
+    )
     set_streamer_status_cmd.add_argument(
         '--keys', type=str,
         help='Comma separated config keys used to control specific streamers '
              'for the service. If this is not set, then all streamers for the '
-             'service will be modified.')
+             'service will be modified.',
+    )
     set_streamer_status_cmd.add_argument(
         'enabled', type=str,
         help='"True" to enable the streamer. "False" to disable the streamer. '
-             '"default" to use the default config')
+             '"default" to use the default config',
+    )
 
     # Add function callbacks
     load_override_cmd.set_defaults(func=load_override_config)

@@ -27,7 +27,7 @@ def upgrade(ctx):
     tf_cmds = [
         ["terraform", "init", "--upgrade"],
         ["terraform", "refresh"],
-        ["terraform", "apply", "-auto-approve"]
+        ["terraform", "apply", "-auto-approve"],
     ]
 
     if ctx.invoked_subcommand is None:
@@ -39,10 +39,13 @@ def upgrade(ctx):
         click.echo(
             "Following commands will be run during upgrade\n%s" % (
                 "\n".join((map(" ".join, tf_cmds)))
-            ))
+            ),
+        )
         for cmd in tf_cmds:
-            if click.confirm('Do you want to continue with %s?' %
-                             " ".join(cmd)):
+            if click.confirm(
+                'Do you want to continue with %s?' %
+                " ".join(cmd),
+            ):
                 rc = execute_command(cmd)
                 if rc != 0:
                     print_error_msg("Upgrade Failed!!!")
@@ -59,7 +62,8 @@ def precheck_cmd(constants: dict) -> list:
     return AnsiblePlay(
         playbook=f"{playbook_dir}/main.yml",
         tags=['upgrade_precheck'],
-        extra_vars=constants)
+        extra_vars=constants,
+    )
 
 
 @upgrade.command()

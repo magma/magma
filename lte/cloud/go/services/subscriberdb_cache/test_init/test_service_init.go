@@ -17,8 +17,10 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 
@@ -34,12 +36,17 @@ func StartTestService(t *testing.T) {
 
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, digestStore.Initialize())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	perSubDigestStore := storage.NewPerSubDigestStore(fact)
+	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subStore.Initialize())
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(digestStore, serviceConfig)
+	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
 	srv.RunTest(lis)
 }

@@ -141,6 +141,7 @@ class ScapyPacket:
 
 class PacketBuilder(abc.ABC):
     """Interface for packet Builder"""
+
     def __init__(self, packet):
         self.packet = packet
 
@@ -224,6 +225,7 @@ class PacketBuilder(abc.ABC):
 
 class ScapyPacketBuilder(PacketBuilder):
     """Scapy packet builder implementation of PacketBuilder"""
+
     def __init__(self):
         super().__init__(ScapyPacket())
 

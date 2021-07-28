@@ -489,3 +489,14 @@ void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id) {
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
+
+void create_new_attach_info(
+    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  emm_context_p->new_attach_info = calloc(1, sizeof(new_attach_info_t));
+  emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
+  emm_context_p->new_attach_info->ies            = ies;
+  emm_context_p->new_attach_info->is_mm_ctx_new  = is_mm_ctx_new;
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+}

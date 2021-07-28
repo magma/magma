@@ -10,9 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import subprocess
-import os
 import logging
+import os
+import subprocess
 
 irq_utility = '/usr/local/bin/set_irq_affinity'
 ethtool_utility = '/usr/sbin/ethtool'
@@ -69,8 +69,10 @@ def tune_datapath(config_dict):
 
     # ethtool -G eth1 rx 1024 tx 1024
     s1_queue_size = tune_dp_irqs['S1_queue_size']
-    set_s1_queue_sz = [ethtool_utility, '-G', s1_interface,
-                       'rx', str(s1_queue_size), 'tx', str(s1_queue_size)]
+    set_s1_queue_sz = [
+        ethtool_utility, '-G', s1_interface,
+        'rx', str(s1_queue_size), 'tx', str(s1_queue_size),
+    ]
     logging.debug("cmd: %s", set_s1_queue_sz)
     try:
         subprocess.check_call(set_s1_queue_sz)
@@ -78,8 +80,10 @@ def tune_datapath(config_dict):
         logging.debug('%s failed with: %s', set_s1_queue_sz, ex)
 
     sgi_queue_size = tune_dp_irqs['SGi_queue_size']
-    set_sgi_queue_sz = [ethtool_utility, '-G', sgi_interface,
-                        'rx', str(sgi_queue_size), 'tx', str(sgi_queue_size)]
+    set_sgi_queue_sz = [
+        ethtool_utility, '-G', sgi_interface,
+        'rx', str(sgi_queue_size), 'tx', str(sgi_queue_size),
+    ]
     logging.debug("cmd: %s", set_sgi_queue_sz)
     try:
         subprocess.check_call(set_sgi_queue_sz)
@@ -89,8 +93,10 @@ def tune_datapath(config_dict):
 
 def _check_util_failed(path: str):
     if not os.path.isfile(path) or not os.access(path, os.X_OK):
-        logging.info("missing %s: path: %s perm: %s", path,
-                     os.path.isfile(path),
-                     os.access(path, os.X_OK))
+        logging.info(
+            "missing %s: path: %s perm: %s", path,
+            os.path.isfile(path),
+            os.access(path, os.X_OK),
+        )
         return True
     return False

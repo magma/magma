@@ -13,10 +13,11 @@ limitations under the License.
 """
 import argparse
 import socket
+import subprocess
+
+import jsonpickle
 import requests
 import urllib3
-import subprocess
-import jsonpickle
 
 admin_cert = (
     "/var/opt/magma/certs/rest_admin.crt",
@@ -25,6 +26,7 @@ admin_cert = (
 
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def cloud_get(url: str):
     resp = requests.get(url, verify=False, cert=admin_cert)
@@ -46,7 +48,7 @@ def get_gateway_id(url: str, network_id: str, hw_id: str):
             if hw_id == gw['device']['hardware_id']:
                 gw_id = gw['id'].split("_")[2]
                 return gw_id
-    return str(len(gateways)+1)
+    return str(len(gateways) + 1)
 
 
 def create_parser():
@@ -58,16 +60,16 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--partner", dest="partner", action="store", help="Partner Short Name"
+        "--partner", dest="partner", action="store", help="Partner Short Name",
     )
     parser.add_argument(
-        "--hwid", dest="hwid", action="store", help="Gateway Hardware ID"
+        "--hwid", dest="hwid", action="store", help="Gateway Hardware ID",
     )
     parser.add_argument(
-        "--url", dest="url", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address",
     )
     parser.add_argument(
-        "--env", dest="env", action="store", help="Environment type: QA/Prod"
+        "--env", dest="env", action="store", help="Environment type: QA/Prod",
     )
     return parser
 

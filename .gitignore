@@ -40,14 +40,6 @@ var/
 orc8r/gateway/python/build
 lte/gateway/python/build
 
-# Ignore test certs
-orc8r/cloud/test_certs/*.csr
-orc8r/cloud/test_certs/*.crt
-orc8r/cloud/test_certs/*.key
-orc8r/cloud/test_certs/*.pem
-orc8r/cloud/test_certs/*.srl
-orc8r/cloud/test_certs/*.pfx
-
 # Ignore generated Swagger files
 orc8r/cloud/swagger/specs
 
@@ -76,9 +68,6 @@ orc8r/cloud/helm/**/.secrets/
 # Certs for accessing the cloud
 .certs
 
-# CMake debug files
-lte/gateway/c/session_manager/cmake-build-debug/
-
 # Log files
 *.log
 
@@ -98,7 +87,7 @@ orc8r/cloud/test-results/
 .vscode/
 .venv/
 
-# Internal
+# FB internal
 fb
 
 # MacOS artifacts

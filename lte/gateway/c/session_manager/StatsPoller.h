@@ -26,13 +26,5 @@ class StatsPoller {
   void start_loop(
       std::shared_ptr<LocalEnforcer> local_enforcer,
       uint32_t loop_interval_seconds);
-
-  /**
-   * Stop the config loop on the next loop
-   */
-  void stop();
-
- private:
-  std::atomic<bool> is_running_;
 };
 }  // namespace magma

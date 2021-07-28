@@ -33,7 +33,7 @@
 #include "mme_config.h"
 #include "amf_config.h"
 #include "shared_ts_log.h"
-#include "sentry_wrapper.h"
+#include "includes/SentryWrapper.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
@@ -100,18 +100,6 @@ int main(int argc, char* argv[]) {
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL));
 
-  // Initialize Sentry error collection (Currently only supported on
-  // Ubuntu 20.04)
-  // We have to initialize here for now since itti_init asserts on there being
-  // only 1 thread
-  initialize_sentry();
-
-  CHECK_INIT_RETURN(timer_init());
-  // Could not be launched before ITTI initialization
-  shared_log_itti_connect();
-  OAILOG_ITTI_CONNECT();
-  CHECK_INIT_RETURN(main_init());
-
   /*
    * Parse the command line for options and set the mme_config accordingly.
    */
@@ -121,6 +109,17 @@ int main(int argc, char* argv[]) {
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
+  // Initialize Sentry error collection (Currently only supported on
+  // Ubuntu 20.04)
+  // We have to initialize here for now since itti_init asserts on there being
+  // only 1 thread
+  initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
+
+  CHECK_INIT_RETURN(timer_init());
+  // Could not be launched before ITTI initialization
+  shared_log_itti_connect();
+  OAILOG_ITTI_CONNECT();
+  CHECK_INIT_RETURN(main_init());
 
   pid_file_name = get_pid_file_name(mme_config.pid_dir);
 

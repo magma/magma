@@ -12,13 +12,18 @@
 ################################################################################
 
 locals {
-  dockercfg = {
+  dockercfg_without_cred = {
+    (var.docker_registry) = {
+
+    }
+  }
+  dockercfg_with_cred = {
     (var.docker_registry) = {
       username = var.docker_user
       password = var.docker_pass
     }
   }
-
+  dockercfg = var.docker_user != "" ? local.dockercfg_with_cred : local.dockercfg_without_cred
   stable_helm_repo    = "https://charts.helm.sh/stable"
   incubator_helm_repo = "https://charts.helm.sh/incubator"
 }

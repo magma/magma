@@ -17,7 +17,7 @@
 #include "EnumToString.h"
 #include "GrpcMagmaUtils.h"
 #include "magma_logging.h"
-#include "SentryWrappers.h"
+#include "includes/SentryWrapper.h"
 #include "SessionProxyResponderHandler.h"
 
 using grpc::Status;

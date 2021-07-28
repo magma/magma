@@ -29,6 +29,7 @@
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
+#include "ShardTracker.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -68,6 +69,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
+  marshaled.shard_id   = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
@@ -133,6 +135,7 @@ SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
+      shard_id_(marshaled.shard_id),
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
@@ -233,7 +236,7 @@ uint32_t SessionState::get_current_version() {
 }
 
 void SessionState::set_current_version(
-    int new_session_version, SessionStateUpdateCriteria* session_uc) {
+    uint32_t new_session_version, SessionStateUpdateCriteria* session_uc) {
   current_version_ = new_session_version;
   if (session_uc) {
     session_uc->is_current_version_updated = true;
@@ -244,7 +247,7 @@ void SessionState::set_current_version(
 
 /* Add PDR rule to this rules session list */
 void SessionState::insert_pdr(
-    SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc) {
+    SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc) {
   // Check if it already exists
   int32_t Pdr_index;
   Pdr_index = get_pdr_index(rule->pdr_id());
@@ -256,7 +259,9 @@ void SessionState::insert_pdr(
     pdr_list_.push_back(*rule);
   }
   // update criteria to be updated
-  if (crit_add) session_uc->pdrs_to_install.push_back(*rule);
+  if (session_uc) {
+    session_uc->pdrs_to_install.push_back(*rule);
+  }
 }
 
 /* method to change the PDR state */
@@ -902,8 +907,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    SessionCreditUpdateCriteria* credit_uc =
-        get_credit_uc(credit_pair.first, session_uc);
+    auto credit_uc    = get_credit_uc(credit_pair.first, session_uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
@@ -1003,12 +1007,21 @@ void SessionState::set_upf_teid_endpoint(
   return;
 }
 
-void SessionState::set_config(const SessionConfig& config) {
+void SessionState::set_config(
+    const SessionConfig& config, SessionStateUpdateCriteria* session_uc) {
   config_ = config;
+  if (session_uc) {
+    session_uc->is_config_updated = true;
+    session_uc->updated_config    = config;
+  }
 }
 
 bool SessionState::is_radius_cwf_session() const {
   return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
+}
+
+bool SessionState::is_5g_session() const {
+  return (config_.common_context.rat_type() == RATType::TGPP_NR);
 }
 
 SessionState::SessionInfo SessionState::get_session_info_for_setup() {
@@ -1560,11 +1573,16 @@ bool SessionState::is_active() {
 void SessionState::set_fsm_state(
     SessionFsmState new_state, SessionStateUpdateCriteria* session_uc) {
   // Only log and reflect change into update criteria if the state is new
+  uint32_t local_teid_ = get_upf_local_teid();
   if (curr_state_ != new_state) {
-    MLOG(MDEBUG) << "Session " << session_id_ << " Teid " << local_teid_
+    MLOG(MDEBUG) << "Session: " << session_id_ << " Teid: " << local_teid_
                  << " FSM state change from "
                  << session_fsm_state_to_str(curr_state_) << " to "
-                 << session_fsm_state_to_str(new_state);
+                 << session_fsm_state_to_str(new_state)
+                 << " of imsi: " << get_imsi();
+    if (is_5g_session()) {
+      MLOG(MDEBUG) << " 5G specific-PDU Id: " << get_pdu_id();
+    }
     curr_state_ = new_state;
     if (session_uc) {
       session_uc->is_fsm_updated    = true;

@@ -109,7 +109,7 @@ class SessionStateTest : public ::testing::Test {
     const auto& lte_context =
         build_lte_context(IP2, "", "", "", "", BEARER_ID_1, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
-    session_state->set_config(cfg);
+    session_state->set_config(cfg, nullptr);
   }
 
   // TODO: make session_manager.proto and policydb.proto to use common field

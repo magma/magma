@@ -38,7 +38,9 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			GxGyRelayEnabled:         swag.Bool(false),
 			CloudSubscriberdbEnabled: false,
 			CongestionControlEnabled: swag.Bool(true),
+			EnableConvergedCore:      swag.Bool(false),
 			DefaultRuleID:            "",
+			SubscriberdbSyncInterval: SubscriberdbSyncInterval(300),
 		},
 	}
 }
@@ -64,6 +66,7 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 			GxGyRelayEnabled:         swag.Bool(false),
 			CloudSubscriberdbEnabled: false,
 			DefaultRuleID:            "",
+			SubscriberdbSyncInterval: SubscriberdbSyncInterval(300),
 		},
 	}
 }

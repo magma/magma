@@ -190,6 +190,7 @@ typedef struct nw_gtpv2c_trxn_s {
   nw_gtpv2c_msg_t* pMsg;
   bool pt_trx; /**< Make the transaction passthrough, such that the message is
                   forwarded, if no msg is appended to the trx. */
+  proc_context_t proc_context;
 
   nw_gtpv2c_stack_t* pStack;
   nw_gtpv2c_timer_handle_t hRspTmr;  /**< Handle to reponse timer            */

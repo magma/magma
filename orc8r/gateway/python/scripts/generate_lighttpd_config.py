@@ -50,10 +50,13 @@ def get_context():
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+        format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+    )
 
-    generate_template_config('lighttpd', 'lighttpd',
-                             CONFIG_OVERRIDE_DIR, get_context())
+    generate_template_config(
+        'lighttpd', 'lighttpd',
+        CONFIG_OVERRIDE_DIR, get_context(),
+    )
 
 
 if __name__ == '__main__':

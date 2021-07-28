@@ -3,7 +3,10 @@ id: p014_proposal_process
 title: Magma Proposals
 hide_title: true
 ---
+
 # Magma Proposals
+
+> **NOTE**: you actually want [How to Open a Proposal](../contributing/contribute_proposals.md) for the current process. This document describes the process as it was originally proposed.
 
 As an open source project, it is important that all contributors are able to
 observe substantitive Proposals, comment on them, and be able to discover

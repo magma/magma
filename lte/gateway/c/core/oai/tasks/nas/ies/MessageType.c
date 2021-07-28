@@ -22,11 +22,13 @@
 //------------------------------------------------------------------------------
 int decode_message_type(
     message_type_t* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  return 0;
+  Fatal("TODO Implement decode_message_type");
+  return -1;
 }
 
 //------------------------------------------------------------------------------
 int encode_message_type(
     message_type_t* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  return 0;
+  Fatal("TODO Implement encode_message_type");
+  return -1;
 }

@@ -11,10 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-import hashlib
 import logging
 
-import snowflake
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBCloudStub
 from magma.common.grpc_client_manager import GRPCClientManager
@@ -24,6 +22,7 @@ from magma.subscriberdb.client import SubscriberDBCloudClient
 from magma.subscriberdb.processor import Processor
 from magma.subscriberdb.protocols.diameter.application import base, s6a
 from magma.subscriberdb.protocols.diameter.server import S6aServer
+from magma.subscriberdb.protocols.m5g_auth_servicer import M5GAuthRpcServicer
 from magma.subscriberdb.protocols.s6a_proxy_servicer import S6aProxyRpcServicer
 from magma.subscriberdb.rpc_servicer import SubscriberDBRpcServicer
 from magma.subscriberdb.store.sqlite import SqliteStore
@@ -66,9 +65,7 @@ def main():
             service_stub=SubscriberDBCloudStub,
             max_client_reuse=60,
         )
-        sync_interval = _randomize_sync_interval(
-            service.config.get('subscriberdb_sync_interval'),
-        )
+        sync_interval = service.mconfig.sync_interval
         subscriber_page_size = service.config.get('subscriber_page_size')
         subscriberdb_cloud_client = SubscriberDBCloudClient(
             service.loop,
@@ -91,6 +88,14 @@ def main():
         if not store.list_subscribers():
             # Waiting for subscribers to be added to store
             await store.on_ready()
+
+        if service.config.get('m5g_auth_proc'):
+            logging.info('Cater to 5G Authentication')
+            m5g_subs_auth_servicer = M5GAuthRpcServicer(
+                processor,
+                service.config.get('print_grpc_payload', False),
+            )
+            m5g_subs_auth_servicer.add_to_server(service.rpc_server)
 
         if service.config.get('s6a_over_grpc'):
             logging.info('Running s6a over grpc')
@@ -118,9 +123,11 @@ def main():
                     service.config.get('mme_host_name'),
                     loop=service.loop,
                 ),
-                service.config.get('host_address'), service.config.get('mme_port'),
+                service.config.get('host_address'),
+                service.config.get('mme_port'),
             )
             asyncio.ensure_future(s6a_server, loop=service.loop)
+
     asyncio.ensure_future(serve(), loop=service.loop)
 
     # Run the service loop
@@ -138,19 +145,6 @@ def _get_s6a_manager(service, processor):
         service.config.get('mme_host_address'),
         service.loop,
     )
-
-
-def _randomize_sync_interval(interval: int) -> int:
-    """_randomize_sync_interval increases sync interval by random amount.
-
-    Increased sync interval ameliorates the thundering herd effect at Orc8r.
-    "Random" increase is deterministic based on the gateway's HWID.
-    """
-    h = hashlib.md5()
-    h.update(bytes(snowflake.snowflake(), 'utf8'))  # digest of hwid
-    multiplier = (hash(h.hexdigest()) % 100) / 100  # to interval [0, 1]
-    delta = multiplier * (interval / 5)  # up to 1/5 of target interval
-    return int(interval + delta)
 
 
 if __name__ == "__main__":

@@ -154,11 +154,12 @@ class SessionState {
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
 
+  /* method to set update the session current version */
   void set_current_version(
-      int new_session_version, SessionStateUpdateCriteria* session_uc);
+      uint32_t new_session_version, SessionStateUpdateCriteria* session_uc);
 
-  void insert_pdr(
-      SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc);
+  /* method to add new PDR rules to session */
+  void insert_pdr(SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc);
 
   /* method to change the PDR state */
   void set_all_pdrs(enum PdrState);
@@ -266,6 +267,10 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
+  uint16_t get_shard_id() const { return shard_id_; }
+
+  void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }
+
   std::string get_session_id() const { return session_id_; }
 
   uint32_t get_pdu_id() const;
@@ -292,7 +297,8 @@ class SessionState {
       const magma::lte::TgppContext& tgpp_context,
       SessionStateUpdateCriteria* session_uc);
 
-  void set_config(const SessionConfig& config);
+  void set_config(
+      const SessionConfig& config, SessionStateUpdateCriteria* session_uc);
 
   SessionConfig get_config() const { return config_; }
 
@@ -793,6 +799,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  uint16_t shard_id_;
 
  private:
   /**

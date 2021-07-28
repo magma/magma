@@ -10,8 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import concurrent.futures
 import os
 from collections import defaultdict
+from concurrent.futures import Future
 from datetime import datetime, timedelta
 from subprocess import check_output
 
@@ -36,9 +38,8 @@ from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
                                                  MagmaOFError)
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow.registers import (DIRECTION_REG, IMSI_REG,
-                                                RULE_VERSION_REG, SCRATCH_REGS,
-                                                Direction)
+from magma.pipelined.openflow.registers import (Direction, DIRECTION_REG, IMSI_REG,
+                                                RULE_VERSION_REG, RULE_NUM_REG, SCRATCH_REGS)
 from magma.pipelined.policy_converters import (get_eth_type,
                                                get_ue_ip_match_args,
                                                convert_ipv4_str_to_ip_proto,
@@ -48,8 +49,6 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-import ryu.app.ofctl.api as ofctl_api
-from ryu.app.ofctl.exception import (InvalidDatapath, OFError, UnexpectedMultiReply)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -72,7 +71,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
     INIT_SLEEP_TIME = 3
     MAX_DELAY_INTERVALS = 20
+<<<<<<< HEAD
     REDIS_STORE_HASH = "enforcement_stats_info"
+=======
+    DEFAULT_STATS_WAIT_TIMEOUT = 5
+>>>>>>> 7bba297ba5bec335276969578b8f14807b14296b
 
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -103,6 +106,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._last_report_timestamp = datetime.now()
         self._bridge_name = kwargs['config']['bridge_name']
         self._periodic_stats_reporting = kwargs['config']['enforcement'].get('periodic_stats_reporting', True)
+        self._stats_wait_timeout = kwargs['config']['enforcement'].get('stats_wait_timeout', self.DEFAULT_STATS_WAIT_TIMEOUT)
+        self._poll_futures = {}
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -157,7 +162,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version, shard_id):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -175,7 +180,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
+        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version, shard_id)
 
         try:
             chan = self._msg_hub.send(msgs, self._datapath)
@@ -202,7 +207,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
     # pylint: disable=protected-access,unused-argument
-    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule, version):
+    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule, version, shard_id):
         """
         Returns flow add messages used for rule matching.
         """
@@ -226,13 +231,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     self.tbl_num,
                     inbound_rule_match,
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num),
+                    cookie=shard_id),
                 flows.get_add_drop_flow_msg(
                     self._datapath,
                     self.tbl_num,
                     outbound_rule_match,
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num),
+                    cookie=shard_id),
             ])
         else:
             inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = DROP_FLOW_STATS
@@ -243,13 +248,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     self.tbl_num,
                     inbound_rule_match,
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num),
+                    cookie=shard_id),
                 flows.get_add_drop_flow_msg(
                     self._datapath,
                     self.tbl_num,
                     outbound_rule_match,
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num),
+                    cookie=shard_id),
             ])
 
         if rule.app_name:
@@ -261,13 +266,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     self.tbl_num,
                     inbound_rule_match,
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num),
+                    cookie=shard_id),
                 flows.get_add_drop_flow_msg(
                     self._datapath,
                     self.tbl_num,
                     outbound_rule_match,
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num),
+                    cookie=shard_id),
             ])
         return msgs
 
@@ -357,12 +362,18 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Schedule the flow stats handling in the main event loop, so as to
         unblock the ryu event loop
         """
-        if not self.init_finished:
-            self.logger.debug('Setup not finished, skipping stats reply')
-            return
-
         if self._datapath_id != ev.msg.datapath.id:
             self.logger.debug('Ignoring stats from different bridge')
+            return
+
+        if not self._periodic_stats_reporting:
+            if ev.msg.xid not in self._poll_futures:
+                self.logger.debug('Invalid stats reply with xid %d', ev.msg.xid)
+                return
+            self._poll_futures[ev.msg.xid].set_result(ev.msg.body)
+
+        if not self.init_finished:
+            self.logger.debug('Setup not finished, skipping stats reply')
             return
 
         self.unhandled_stats_msgs.append(ev.msg.body)
@@ -553,21 +564,16 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def _delete_flow(self, imsi, ip_addr, rule_id, rule_version):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule_id)
-        cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
-        match_in = _generate_rule_match(imsi, ip_addr, cookie, rule_version,
+        match_in = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
                                         Direction.IN)
-        match_out = _generate_rule_match(imsi, ip_addr, cookie, rule_version,
+        match_out = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
                                          Direction.OUT)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
-                          match_in,
-                          cookie=cookie,
-                          cookie_mask=mask)
+                          match_in)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
-                          match_out,
-                          cookie=cookie,
-                          cookie_mask=mask)
+                          match_out)
 
     def _was_ovs_restarted(self):
         try:
@@ -586,7 +592,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Return the rule id from the rule cookie
         """
         # the default rule will have a cookie of 0
-        rule_num = flow.cookie
+        rule_num = flow.match.get(RULE_NUM_REG, 0)
         if rule_num == 0 or rule_num == self.DEFAULT_FLOW_COOKIE:
             return ""
         try:
@@ -598,28 +604,32 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
-        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and
-        convert to a Rule Record Table
+        Send a stats request containing cookie and cookie mask,
+        wait for response from OVS using a future, retrieve a response and
+        convert to a Rule Record Table and remove old flows
         """
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
             return RuleRecordTable()
-        parser = self._datapath.ofproto_parser
-        message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
         try:
-            response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
-                    reply_multi=False)
-            if response == None:
+            xid = flows.send_stats_request(self._datapath, self.tbl_num, cookie,
+                                           cookie_mask)
+            self._poll_futures[xid] = Future()
+            res = self._poll_futures[xid].result(timeout=self._stats_wait_timeout)
+            del self._poll_futures[xid]
+
+            if not res:
                 self.logger.error("No rule records match the specified cookie and cookie mask")
                 return RuleRecordTable()
-            else:
-                usage = self._get_usage_from_flow_stat(response.body)
-                record_table = RuleRecordTable(
-                    records=usage.values(),
-                    epoch=global_epoch)
-                return record_table
-        except (InvalidDatapath, OFError, UnexpectedMultiReply):
-            self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
+
+            usage = self._get_usage_from_flow_stat(res)
+            self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
+            record_table = RuleRecordTable(
+                records=usage.values(),
+                epoch=global_epoch)
+            return record_table
+        except concurrent.futures.TimeoutError:
+            self.logger.error("Could not obtain stats for cookie %d, processing timed out", cookie)
             return RuleRecordTable()
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):

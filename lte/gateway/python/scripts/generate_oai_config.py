@@ -202,18 +202,12 @@ def _get_restricted_imeis(service_mconfig):
 
 
 def _get_service_area_maps(service_mconfig):
-    if service_mconfig.service_area_maps:
-      service_area_map = []
-      for sac in service_mconfig.service_area_maps:
-        tac_list = []
-        service_area_maps_dict = {}
-        for idx in service_mconfig.service_area_maps[sac].tac :
-          tac_list.append(idx)
-        service_area_maps_dict['sac'] = sac
-        service_area_maps_dict['tac'] = tac_list
-        service_area_map.append(service_area_maps_dict)
-      return service_area_map
-    return {}
+    if not service_mconfig.service_area_maps:
+        return {}
+    service_area_map = []
+    for sac, sam in service_mconfig.service_area_maps.items():
+        service_area_map.append({'sac': sac, 'tac': sam.tac.copy()})
+    return service_area_map
 
 
 def _get_congestion_control_config(service_mconfig):
@@ -226,7 +220,8 @@ def _get_congestion_control_config(service_mconfig):
     Returns: congestion control flag
     """
     congestion_control_enabled = get_service_config_value(
-        'mme', 'congestion_control_enabled', None)
+        'mme', 'congestion_control_enabled', None,
+    )
 
     if congestion_control_enabled is not None:
         return congestion_control_enabled
@@ -235,6 +230,17 @@ def _get_congestion_control_config(service_mconfig):
         return service_mconfig.congestion_control_enabled
 
     return True
+
+
+def _get_converged_core_config(service_mconfig: object) -> bool:
+    """
+    Retrieves enable_converged_core config value,If it does not exist
+    it defaults to False. It gives precedence to the service_mconfig file.
+    """
+    if service_mconfig.enable_converged_core is not None:
+        return service_mconfig.enable_converged_core
+
+    return False
 
 
 def _get_context():
@@ -266,7 +272,8 @@ def _get_context():
         "identity": _get_identity(),
         "relay_enabled": _get_relay_enabled(mme_service_config),
         "non_eps_service_control": _get_non_eps_service_control(
-            mme_service_config),
+            mme_service_config,
+        ),
         "csfb_mcc": _get_csfb_mcc(mme_service_config),
         "csfb_mnc": _get_csfb_mnc(mme_service_config),
         "lac": _get_lac(mme_service_config),
@@ -277,12 +284,15 @@ def _get_context():
         "restricted_plmns": _get_restricted_plmns(mme_service_config),
         "restricted_imeis": _get_restricted_imeis(mme_service_config),
         "congestion_control_enabled": _get_congestion_control_config(
-            mme_service_config),
+            mme_service_config,
+        ),
         "service_area_map": _get_service_area_maps(mme_service_config),
+        "sentry_config": mme_service_config.sentry_config,
+        "enable_converged_core": _get_converged_core_config(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(
-        "spgw", "s1u_iface_name"
+        "spgw", "s1u_iface_name",
     )
 
     try:
@@ -306,10 +316,10 @@ def _get_context():
     ):
         context[key] = get_service_config_value("spgw", key, "")
     context["enable_apn_correction"] = get_service_config_value(
-        "mme", "enable_apn_correction", ""
+        "mme", "enable_apn_correction", "",
     )
     context["apn_correction_map_list"] = _get_apn_correction_map_list(
-        mme_service_config
+        mme_service_config,
     )
 
     return context
@@ -318,14 +328,18 @@ def _get_context():
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format="[%(asctime)s %(levelname)s %(name)s] %(message)s"
+        format="[%(asctime)s %(levelname)s %(name)s] %(message)s",
     )
     context = _get_context()
-    generate_template_config("spgw", "spgw", CONFIG_OVERRIDE_DIR,
-                             context.copy())
+    generate_template_config(
+        "spgw", "spgw", CONFIG_OVERRIDE_DIR,
+        context.copy(),
+    )
     generate_template_config("mme", "mme", CONFIG_OVERRIDE_DIR, context.copy())
-    generate_template_config("mme", "mme_fd", CONFIG_OVERRIDE_DIR,
-                             context.copy())
+    generate_template_config(
+        "mme", "mme_fd", CONFIG_OVERRIDE_DIR,
+        context.copy(),
+    )
     cert_dir = get_service_config_value("mme", "cert_dir", "")
     generate_mme_certs(os.path.join(cert_dir, "freeDiameter"))
 

@@ -18,6 +18,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"time"
 
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	eventdM "magma/orc8r/cloud/go/services/eventd/obsidian/models"
@@ -73,14 +74,14 @@ func (r *EpsIRIRecord) Decode(b []byte) error {
 // ETSI TS 103 221-2
 func makeConditionalAttributes(
 	streamName, targetID string,
-	timestamp []byte,
+	timestamp time.Time,
 	seqNbr uint32,
 ) ([]Attribute, uint32) {
 	attrs := []Attribute{}
 	attrs = append(attrs, NewAttribute(AttributeNetworkFn, []byte(streamName)))
 	attrs = append(attrs, NewAttribute(AttributeTargetID, []byte(targetID)))
-	attrs = append(attrs, NewAttribute(AttributeTimestamp, timestamp))
 	attrs = append(attrs, NewAttribute(AttributeSeqNumber, convertUint32ToBytes(seqNbr)))
+	attrs = append(attrs, NewAttribute(AttributeTimestamp, encodeUnixTime(timestamp)))
 
 	attrs_len := uint32(0)
 	for _, attr := range attrs {
@@ -96,11 +97,12 @@ func makeEpsIRIContent(
 	eventID asn1.Enumerated,
 	correlationID uint64,
 	operatorID uint32,
-	timestamp []byte,
+	timestamp time.Time,
 ) EpsIRIContent {
 	// build iri content
 	return EpsIRIContent{
 		Hi2epsDomainID:        GetOID(),
+		LawInterceptID:        []byte{0x0}, // not used but required by ASN1 schema
 		TimeStamp:             makeTimestamp(timestamp),
 		Initiator:             InitiatorNotAvailable,
 		PartyInformation:      makePartyInformation(event),
@@ -115,7 +117,7 @@ func makeEpsIRIContent(
 func MakeRecord(
 	event *eventdM.Event,
 	task *models.NetworkProbeTask,
-	operatorID, sequenceNbr uint32,
+	sequenceNbr uint32,
 ) ([]byte, error) {
 
 	// map event type to 3gpp event id
@@ -124,7 +126,7 @@ func MakeRecord(
 		return []byte{}, fmt.Errorf("Unsupported event type %s\n", event.EventType)
 	}
 
-	bTimestamp, err := encodeGeneralizedTime(event.Timestamp)
+	timestamp, err := time.Parse(time.RFC3339Nano, event.Timestamp)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -132,7 +134,7 @@ func MakeRecord(
 	attrs, attrs_len := makeConditionalAttributes(
 		event.StreamName,
 		task.TaskDetails.TargetID,
-		bTimestamp,
+		timestamp,
 		sequenceNbr,
 	)
 
@@ -144,7 +146,7 @@ func MakeRecord(
 	correlationID := task.TaskDetails.CorrelationID
 	record := EpsIRIRecord{
 		Header:  NewEpsIRIHeader(uuid, correlationID, attrs, attrs_len),
-		Payload: makeEpsIRIContent(event, eventID, correlationID, operatorID, bTimestamp),
+		Payload: makeEpsIRIContent(event, eventID, correlationID, task.TaskDetails.OperatorID, timestamp),
 	}
 	return record.Encode()
 }

@@ -81,40 +81,55 @@ class ConntrackController(MagmaController):
     def _install_default_flows(self, datapath):
         parser = datapath.ofproto_parser
 
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           ct_state=(0x0, self.CT_TRK))
-        actions = [parser.NXActionCT(
-            flags=0x0,
-            zone_src=None,
-            zone_ofs_nbits=self.zone,
-            recirc_table=self.conntrack_scratch,
-            alg=0,
-            actions=[]
-        )]
-        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
-                                             match, actions,
-                                             priority=flows.DEFAULT_PRIORITY,
-                                             resubmit_table=self.next_table)
+        match = MagmaMatch(
+            eth_type=ether_types.ETH_TYPE_IP,
+            ct_state=(0x0, self.CT_TRK),
+        )
+        actions = [
+            parser.NXActionCT(
+                flags=0x0,
+                zone_src=None,
+                zone_ofs_nbits=self.zone,
+                recirc_table=self.conntrack_scratch,
+                alg=0,
+                actions=[],
+            ),
+        ]
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num,
+            match, actions,
+            priority=flows.DEFAULT_PRIORITY,
+            resubmit_table=self.next_table,
+        )
 
         # Match all new connections on scratch table
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           ct_zone=self.zone,
-                           ct_state=(self.CT_NEW | self.CT_TRK,
-                                     self.CT_NEW | self.CT_TRK))
-        actions = [parser.NXActionCT(
-            flags=0x1,
-            zone_src=None,
-            zone_ofs_nbits=self.zone,
-            recirc_table=self.connection_event_table,
-            alg=0,
-            actions=[]
-        )]
-        flows.add_drop_flow(datapath, self.conntrack_scratch,
-                            match, actions,
-                            priority=flows.DEFAULT_PRIORITY)
+        match = MagmaMatch(
+            eth_type=ether_types.ETH_TYPE_IP,
+            ct_zone=self.zone,
+            ct_state=(
+                self.CT_NEW | self.CT_TRK,
+                self.CT_NEW | self.CT_TRK,
+            ),
+        )
+        actions = [
+            parser.NXActionCT(
+                flags=0x1,
+                zone_src=None,
+                zone_ofs_nbits=self.zone,
+                recirc_table=self.connection_event_table,
+                alg=0,
+                actions=[],
+            ),
+        ]
+        flows.add_drop_flow(
+            datapath, self.conntrack_scratch,
+            match, actions,
+            priority=flows.DEFAULT_PRIORITY,
+        )
 
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP)
         flows.add_resubmit_next_service_flow(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_table)
+            resubmit_table=self.next_table,
+        )

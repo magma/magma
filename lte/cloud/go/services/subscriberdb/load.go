@@ -22,8 +22,10 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
@@ -59,6 +61,38 @@ func LoadSubProtosPage(
 	}
 
 	return subProtos, nextToken, nil
+}
+
+func LoadSubProtosByID(
+	sids []string, networkID string,
+	apnsByName map[string]*lte_models.ApnConfiguration,
+	apnResourcesByAPN lte_models.ApnResources,
+) ([]*lte_protos.SubscriberData, error) {
+	lc := configurator.EntityLoadCriteria{
+		LoadConfig:         true,
+		LoadAssocsToThis:   true,
+		LoadAssocsFromThis: true,
+	}
+
+	subEnts, _, err := configurator.LoadEntities(networkID,
+		swag.String(lte.SubscriberEntityType), nil, nil,
+		storage.MakeTKs(lte.SubscriberEntityType, sids),
+		lc, serdes.Entity,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "load added/modified subscriber entities")
+	}
+
+	subProtos := []*lte_protos.SubscriberData{}
+	for _, subEnt := range subEnts {
+		subProto, err := ConvertSubEntsToProtos(subEnt, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return nil, errors.Wrap(err, "convert subscriber entity into proto object")
+		}
+		subProto.NetworkId = &protos.NetworkID{Id: networkID}
+		subProtos = append(subProtos, subProto)
+	}
+	return subProtos, nil
 }
 
 func LoadApnsByName(networkID string) (map[string]*lte_models.ApnConfiguration, error) {
@@ -135,10 +169,10 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 				MaxBandwidthDl: *(apnConfig.Ambr.MaxBandwidthDl),
 			},
 			QosProfile: &lte_protos.APNConfiguration_QoSProfile{
-				ClassId:                 *(apnConfig.QosProfile.ClassID),
-				PriorityLevel:           *(apnConfig.QosProfile.PriorityLevel),
-				PreemptionCapability:    *(apnConfig.QosProfile.PreemptionCapability),
-				PreemptionVulnerability: *(apnConfig.QosProfile.PreemptionVulnerability),
+				ClassId:                 swag.Int32Value(apnConfig.QosProfile.ClassID),
+				PriorityLevel:           swag.Uint32Value(apnConfig.QosProfile.PriorityLevel),
+				PreemptionCapability:    swag.BoolValue(apnConfig.QosProfile.PreemptionCapability),
+				PreemptionVulnerability: swag.BoolValue(apnConfig.QosProfile.PreemptionVulnerability),
 			},
 			Resource: apnResource,
 		}

@@ -30,13 +30,16 @@ class TcOpsPyRoute2(TcOpsBase):
     """
     Create TC scheduler and corresponding filter
     """
+
     def __init__(self):
         self._ipr = IPRoute()
         self._iface_if_index = {}
         LOG.info("initialized")
 
-    def create_htb(self, iface: str, qid: str, max_bw: int, rate: str,
-                   parent_qid: str = None) -> int:
+    def create_htb(
+        self, iface: str, qid: str, max_bw: int, rate: str,
+        parent_qid: str = None,
+    ) -> int:
         """
         Create HTB class for a UE session.
 
@@ -57,9 +60,11 @@ class TcOpsPyRoute2(TcOpsBase):
             max_bw = max_bw / 8
             if_index = self._get_if_index(iface)
             htb_queue = QUEUE_PREFIX + qid
-            ret = self._ipr.tc("add-class", "htb", if_index,
-                               htb_queue, parent=parent_qid,
-                               rate=str(rate).lower(), ceil=max_bw, prio=1)
+            ret = self._ipr.tc(
+                "add-class", "htb", if_index,
+                htb_queue, parent=parent_qid,
+                rate=str(rate).lower(), ceil=max_bw, prio=1,
+            )
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
             LOG.error("create-htb error : %s", ex.code)
@@ -101,11 +106,13 @@ class TcOpsPyRoute2(TcOpsBase):
             if_index = self._get_if_index(iface)
 
             class_id = int(PARENT_ID) | int(qid, 16)
-            ret = self._ipr.tc("add-filter", "fw", if_index, int(mark, 16),
-                               parent=PARENT_ID,
-                               prio=1,
-                               protocol=proto,
-                               classid=class_id)
+            ret = self._ipr.tc(
+                "add-filter", "fw", if_index, int(mark, 16),
+                parent=PARENT_ID,
+                prio=1,
+                protocol=proto,
+                classid=class_id,
+            )
             LOG.debug("Return: %s", ret)
 
         except (ValueError, NetlinkError) as ex:
@@ -125,11 +132,13 @@ class TcOpsPyRoute2(TcOpsBase):
 
             class_id = int(PARENT_ID) | int(qid, 16)
 
-            ret = self._ipr.tc("del-filter", "fw", if_index, int(mark, 16),
-                               parent=PARENT_ID,
-                               prio=1,
-                               protocol=proto,
-                               classid=class_id)
+            ret = self._ipr.tc(
+                "del-filter", "fw", if_index, int(mark, 16),
+                parent=PARENT_ID,
+                prio=1,
+                protocol=proto,
+                classid=class_id,
+            )
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
             LOG.error("del-filter error : %s", ex.code)
@@ -137,8 +146,10 @@ class TcOpsPyRoute2(TcOpsBase):
             return ex.code
         return 0
 
-    def create(self, iface: str, qid: str, max_bw: int, rate=None,
-               parent_qid: str = None, proto=PROTOCOL) -> int:
+    def create(
+        self, iface: str, qid: str, max_bw: int, rate=None,
+        parent_qid: str = None, proto=PROTOCOL,
+    ) -> int:
         err = self.create_htb(iface, qid, max_bw, rate, parent_qid)
         if err:
             return err

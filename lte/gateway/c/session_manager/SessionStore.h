@@ -13,7 +13,6 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include <memory>
@@ -111,7 +110,7 @@ class SessionStore {
    * storage interface.
    * @param req
    * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * for subscribers that do not have active sessions.
    */
   SessionMap read_sessions(const SessionRead& req);
 
@@ -119,7 +118,7 @@ class SessionStore {
    * Read the last written values for all existing sessions through the
    * storage interface.
    * @return Last written values for all sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * for subscribers that do not have active sessions.
    */
   SessionMap read_all_sessions();
 
@@ -158,8 +157,8 @@ class SessionStore {
    * NOTE: Here, it is expected that the caller will use one additional
    *       request_number for each session.
    * @param req
-   * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * @return Last written values for requested sessions. Returns an empty
+   * vector for subscribers that do not have active sessions.
    */
   SessionMap read_sessions_for_deletion(const SessionRead& req);
 
@@ -175,7 +174,7 @@ class SessionStore {
   /**
    * Attempt to update sessions with update criteria. If any update to any of
    * the sessions is invalid, the whole update request is assumed to be invalid,
-   * and nothing in storage will be overwritten.
+   * and nothing in storage will be overwritten. 
    * NOTE: Will not update request_number. Use sync_request_numbers.
    * @param update_criteria
    * @return true if successful, otherwise the update to storage is discarded.
@@ -185,7 +184,7 @@ class SessionStore {
   /**
    * @param session_map
    * @param id
-   * @return If the session that meets the criteria is found, then it returns an
+   * @return If the session that meets the criteria is found, then it returns an 
    * optional of the iterator. Otherwise, it returns an empty value.
    *
    * Usage Example
@@ -201,7 +200,7 @@ class SessionStore {
 
   // TODO move this logic outside of this class into MeteringReporter
   /**
-   * This function loops through all sessions and propagates the total usage to
+   * This function loops through all sessions and propagates the total usage to 
    * metering_reporter
    */
   void initialize_metering_counter();

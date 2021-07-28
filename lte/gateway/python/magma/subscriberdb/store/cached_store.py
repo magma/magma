@@ -16,6 +16,7 @@ import threading
 from collections import OrderedDict
 from contextlib import contextmanager
 
+from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
 
 from .base import BaseStore, DuplicateSubscriberError
@@ -64,7 +65,7 @@ class CachedStore(BaseStore):
             self._persistent_store.update_subscriber(subscriber_data)
             self._cache_put(subscriber_id, subscriber_data)
 
-    def delete_subscriber(self, subscriber_id):
+    def delete_subscriber(self, subscriber_id) -> None:
         """
         Method that deletes a subscriber, if present.
         """
@@ -73,6 +74,7 @@ class CachedStore(BaseStore):
                 del self._cache[subscriber_id]
 
             self._persistent_store.delete_subscriber(subscriber_id)
+        self._on_ready.delete_subscriber(subscriber_id)
 
     def delete_all_subscribers(self):
         """
@@ -95,6 +97,23 @@ class CachedStore(BaseStore):
             self._cache_clear()
             self._persistent_store.resync(subscribers)
         self._on_ready.resync(subscribers)
+
+    def upsert_subscriber(self, subscriber_data: SubscriberData) -> None:
+        """
+        Check if the given subscriber exists in store. If so, update subscriber
+        data; otherwise, add subscriber.
+
+        Args:
+            subscriber_data: the data of the subscriber to be upserted.
+        """
+        with self._lock:
+            self._persistent_store.upsert_subscriber(subscriber_data)
+
+            sid = SIDUtils.to_str(subscriber_data.sid)
+            if sid in self._cache:
+                self._cache_pop(sid)
+            self._cache_put(sid, subscriber_data)
+        self._on_ready.upsert_subscriber(subscriber_data)
 
     def get_subscriber_data(self, subscriber_id):
         """
@@ -134,6 +153,14 @@ class CachedStore(BaseStore):
         if self._cache_capacity == len(self._cache):
             self._cache.popitem(last=False)
         self._cache[k] = v
+
+    def _cache_pop(self, k):
+        """
+        Pop an item off the LRU cache.
+        """
+        self._cache.move_to_end(k)
+        _, v = self._cache.popitem()
+        return v
 
     def _cache_list(self):
         return list(self._cache.keys())

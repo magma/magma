@@ -19,6 +19,9 @@
     tags:
       Name: "{{ buildAgwAmiName }}"
       Service: BuildAgwAMI
+      imageName: "Magma Access Gateway"
+      imageVersion: "{{ taggedVersion }}"
+      imageOwner: "Magma Core Foundation"
   register: result
   failed_when:
     - result.stderr is defined and 'FAILED' in result.stderr

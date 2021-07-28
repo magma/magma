@@ -50,16 +50,22 @@ def _simple_get(args):
 
 
 def _simple_add(args):
-        fields = {"dpid": datapath, "table_id": args.table_start,
-                  "priority": args.priority, "instructions":
-                  [{"type": "GOTO_TABLE", "table_id": args.table_end}]}
+        fields = {
+            "dpid": datapath, "table_id": args.table_start,
+            "priority": args.priority, "instructions":
+            [{"type": "GOTO_TABLE", "table_id": args.table_end}],
+        }
         if args.cookie:
             fields["cookie"] = args.cookie
         if args.reg1:
             reg1 = int(args.reg1, 0)
-            fields["instructions"].append({"type": "APPLY_ACTIONS", "actions":
-                                          [{"type": "SET_FIELD", "field":
-                                            "reg1", "value": reg1}]})
+            fields["instructions"].append({
+                "type": "APPLY_ACTIONS", "actions":
+                [{
+                    "type": "SET_FIELD", "field":
+                    "reg1", "value": reg1,
+                }],
+            })
         add_flowentry(fields)
 
 
@@ -78,7 +84,8 @@ def create_parser():
     parser = argparse.ArgumentParser(
         description='CLI for testing packet movement through pipelined,\
                      using RYU REST API & Scapy',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
@@ -89,27 +96,43 @@ def create_parser():
     parser_send.add_argument('iface', help='iface to send to')
     parser_send.add_argument('-ipd', '--ipv4_dst', help='ipv4 dst for pkt')
     parser_send.add_argument('-ips', '--ipv4_src', help='ipv4 src for pkt')
-    parser_send.add_argument('-n', '--num', help='number of packets to send',
-                             default=5, type=int)
+    parser_send.add_argument(
+        '-n', '--num', help='number of packets to send',
+        default=5, type=int,
+    )
 
     parser_skip = subparsers.add_parser('skip', help='Add flowentry')
-    parser_skip.add_argument('table_start', type=int,
-                             help='table to insert flowentry')
-    parser_skip.add_argument('table_end', type=int,
-                             help='table to forward to')
-    parser_skip.add_argument('-c', '--cookie', default=0, type=int,
-                             help='flowentry cookie value')
+    parser_skip.add_argument(
+        'table_start', type=int,
+        help='table to insert flowentry',
+    )
+    parser_skip.add_argument(
+        'table_end', type=int,
+        help='table to forward to',
+    )
+    parser_skip.add_argument(
+        '-c', '--cookie', default=0, type=int,
+        help='flowentry cookie value',
+    )
     parser_skip.add_argument('-r1', '--reg1', help='flowentry reg1 value')
-    parser_skip.add_argument('-p', '--priority', help='flowentry priority',
-                             type=int, default=65535)
+    parser_skip.add_argument(
+        '-p', '--priority', help='flowentry priority',
+        type=int, default=65535,
+    )
 
     parser_rem = subparsers.add_parser('rem', help='Remove flowentry')
-    parser_rem.add_argument('-tid', '--table_id', type=int,
-                            help='table to remove flowentry from')
-    parser_rem.add_argument('-p', '--priority', default=65535, type=int,
-                            help='rm flowentry matching priority value')
-    parser_rem.add_argument('-c', '--cookie',
-                            help='rm flowentry matching cookie value')
+    parser_rem.add_argument(
+        '-tid', '--table_id', type=int,
+        help='table to remove flowentry from',
+    )
+    parser_rem.add_argument(
+        '-p', '--priority', default=65535, type=int,
+        help='rm flowentry matching priority value',
+    )
+    parser_rem.add_argument(
+        '-c', '--cookie',
+        help='rm flowentry matching cookie value',
+    )
 
     # Add function callbacks
     parser_dump.set_defaults(func=_simple_get)

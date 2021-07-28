@@ -1839,12 +1839,23 @@ void mme_app_handle_s1ap_ue_context_release_complete(
       update_mme_app_stats_connected_ue_sub();
       OAILOG_FUNC_OUT(LOG_MME_APP);
     } else {
+      // delete gtpv2c tunnel on last PDN
+      bool no_delete_gtpv2c_tunnel = true;
+      pdn_cid_t last_cid_to_delete = 0;
+      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+        if (ue_context_p->pdn_contexts[i]) {
+          // save the last connection id to be deleted
+          last_cid_to_delete = i;
+        }
+      }
       // Send a DELETE_SESSION_REQUEST message to the SGW
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
         if (ue_context_p->pdn_contexts[i]) {
           // Send a DELETE_SESSION_REQUEST message to the SGW
+          no_delete_gtpv2c_tunnel = (last_cid_to_delete == i) ? false : true;
           mme_app_send_delete_session_request(
-              ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i);
+              ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i,
+              no_delete_gtpv2c_tunnel);
         }
       }
       // Move the UE to Idle state

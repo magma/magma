@@ -19,8 +19,12 @@ from integ_tests.s1aptests.ovs import LOCALHOST
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from ryu.lib import hub
 
-FlowStats = namedtuple('FlowData', ['packets', 'bytes', 'duration_sec',
-                                    'cookie'])
+FlowStats = namedtuple(
+    'FlowData', [
+        'packets', 'bytes', 'duration_sec',
+        'cookie',
+    ],
+)
 
 
 def _generate_ryu_req(table_id, match, cookie):
@@ -67,11 +71,11 @@ class RyuRestFlowQuery(FlowQuery):
         return [
             FlowStats(
                 flow["packet_count"], flow["byte_count"], flow["duration_sec"],
-                flow["cookie"]
+                flow["cookie"],
             ) for flow in get_flows(
                 self._datapath,
                 _generate_ryu_req(self._table_id, self._match, self._cookie),
-                self._ovs_ip
+                self._ovs_ip,
             )
         ]
 
@@ -97,14 +101,18 @@ class RyuDirectFlowQuery(FlowQuery):
         def get_stats():
             self._tc.ryu_query_lookup(
                 _generate_ryu_req(self._table_id, self._match, self._cookie),
-                queue
+                queue,
             )
 
         hub.joinall([hub.spawn(get_stats)])
         flows = queue.get(block=True)
-        return [FlowStats(flow.packet_count, flow.byte_count,
-                flow.duration_sec, flow.cookie)
-                for flow in flows]
+        return [
+            FlowStats(
+                flow.packet_count, flow.byte_count,
+                flow.duration_sec, flow.cookie,
+            )
+            for flow in flows
+        ]
 
     @staticmethod
     def get_table_stats(test_controller):
@@ -115,7 +123,7 @@ class RyuDirectFlowQuery(FlowQuery):
 
         def request_table_stats():
             test_controller.table_stats_lookup(
-                queue
+                queue,
             )
         hub.joinall([hub.spawn(request_table_stats)])
         return queue.get(block=True)

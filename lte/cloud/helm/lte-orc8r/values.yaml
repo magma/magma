@@ -32,8 +32,8 @@ controller:
   spec:
     # Postgres/mysql configuration
     database:
-      driver: postgres      # mysql/postgres
-      sql_dialect: psql # maria/psql
+      driver: postgres   # mysql/postgres
+      sql_dialect: psql  # maria/psql
       db: magma          # DB Name
       protocol: tcp
       host: postgresql
@@ -142,3 +142,12 @@ subscriberdb_cache:
   service:
     labels: {}
     annotations: {}
+
+nprobe:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/lte/:network_id/network_probe,

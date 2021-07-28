@@ -244,17 +244,19 @@ void mme_config_init(mme_config_t* config) {
 
   pthread_rwlock_init(&config->rw_lock, NULL);
 
-  config->config_file                    = NULL;
-  config->max_enbs                       = 2;
-  config->max_ues                        = 2;
-  config->unauthenticated_imsi_supported = 0;
-  config->relative_capacity              = RELATIVE_CAPACITY;
-  config->enable_congestion_control      = true;
-  config->s1ap_zmq_th                    = LONG_MAX;
-  config->mme_app_zmq_congest_th         = LONG_MAX;
-  config->mme_app_zmq_auth_th            = LONG_MAX;
-  config->mme_app_zmq_ident_th           = LONG_MAX;
-  config->mme_app_zmq_smc_th             = LONG_MAX;
+  config->config_file                               = NULL;
+  config->max_enbs                                  = 2;
+  config->max_ues                                   = 2;
+  config->unauthenticated_imsi_supported            = 0;
+  config->relative_capacity                         = RELATIVE_CAPACITY;
+  config->stats_timer_sec                           = 60;
+  config->service303_config.stats_display_timer_sec = 60;
+  config->enable_congestion_control                 = true;
+  config->s1ap_zmq_th                               = LONG_MAX;
+  config->mme_app_zmq_congest_th                    = LONG_MAX;
+  config->mme_app_zmq_auth_th                       = LONG_MAX;
+  config->mme_app_zmq_ident_th                      = LONG_MAX;
+  config->mme_app_zmq_smc_th                        = LONG_MAX;
 
   log_config_init(&config->log_config);
   eps_network_feature_config_init(&config->eps_network_feature_support);
@@ -313,6 +315,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   config_setting_t* sub2setting = NULL;
   config_setting_t* sub3setting = NULL;
   int aint                      = 0;
+  double adouble                = 0.0;
   int i = 0, n = 0, stop_index = 0, num = 0;
   const char* astring  = NULL;
   const char* tac      = NULL;
@@ -519,6 +522,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     if ((config_setting_lookup_int(
             setting_mme, MME_CONFIG_STRING_RELATIVE_CAPACITY, &aint))) {
       config_pP->relative_capacity = (uint8_t) aint;
+    }
+
+    if ((config_setting_lookup_int(
+            setting_mme, MME_CONFIG_STRING_STATS_TIMER, &aint))) {
+      config_pP->stats_timer_sec                           = (uint32_t) aint;
+      config_pP->service303_config.stats_display_timer_sec = (uint32_t) aint;
     }
 
     if ((config_setting_lookup_string(
@@ -1521,6 +1530,28 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    // Parsing Sentry Config
+    setting =
+        config_setting_get_member(setting_mme, MME_CONFIG_STRING_SENTRY_CONFIG);
+    memset(&config_pP->sentry_config, 0, sizeof(sentry_config_t));
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_SENTRY_CONFIG \n");
+    if (setting != NULL) {
+      if ((config_setting_lookup_float(
+              setting, MME_CONFIG_STRING_SAMPLE_RATE, &adouble))) {
+        config_pP->sentry_config.sample_rate = (float) adouble;
+      }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_UPLOAD_MME_LOG,
+              (const char**) &astring))) {
+        config_pP->sentry_config.upload_mme_log = parse_bool(astring);
+      }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_URL_NATIVE,
+              (const char**) &astring))) {
+        strncpy(config_pP->sentry_config.url_native, astring, MAX_URL_LENGTH);
+      }
+    }
+
     // SGS TIMERS
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGS_CONFIG);
@@ -1663,6 +1694,9 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "- Relative capa ........................: %u\n",
       config_pP->relative_capacity);
   OAILOG_INFO(
+      LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
+      config_pP->stats_timer_sec);
+  OAILOG_INFO(
       LOG_CONFIG, "- Congestion control enabled ........................: %s\n",
       config_pP->enable_congestion_control ? "true" : "false");
   OAILOG_INFO(
@@ -1739,6 +1773,17 @@ void mme_config_display(mme_config_t* config_pP) {
         LOG_CONFIG, "  Address : Unknown address family %d\n",
         config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr);
   }
+
+  OAILOG_INFO(LOG_CONFIG, "- Sentry:\n");
+  OAILOG_INFO(
+      LOG_CONFIG, "    sample rate ......: %f\n",
+      config_pP->sentry_config.sample_rate);
+  OAILOG_INFO(
+      LOG_CONFIG, "    upload MME log ...: %d\n",
+      config_pP->sentry_config.upload_mme_log);
+  OAILOG_INFO(
+      LOG_CONFIG, "    URL native .......: %s\n",
+      config_pP->sentry_config.url_native);
 
   OAILOG_INFO(LOG_CONFIG, "- ITTI:\n");
   OAILOG_INFO(
@@ -2016,7 +2061,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
    * Parse the configuration file using libconfig
    */
   if (!config_pP->config_file) {
-    config_pP->config_file = bfromcstr("/usr/local/etc/oai/mme.conf");
+    config_pP->config_file = bfromcstr("/var/opt/magma/tmp/mme.conf");
   }
   if (mme_config_parse_file(config_pP) != 0) {
     return -1;

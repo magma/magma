@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  docusaurus:
+    # Don't install or start anything, will do that manually during publish
+    command: bash -c 'while true ; do echo $$(date) ; sleep 10 ; done'

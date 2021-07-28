@@ -20,6 +20,7 @@ import subprocess
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 
+
 class DpProbe:
     """Class for dp_probe cli"""
 
@@ -51,7 +52,7 @@ class DpProbe:
                 exit(1)
 
             data = self.get_egress_tunid_and_port(self.ue_ip, self.ingress_tun_id)
-            if  data:
+            if data:
                 self.egress_tun_id = data["tun_id"]
                 self.egress_in_port = data["in_port"]
             else:
@@ -122,8 +123,7 @@ class DpProbe:
         parser_get_stats.set_defaults(func=self.get_stats)
         return parser
 
-
-    def find_ue_ip(self,imsi: str):
+    def find_ue_ip(self, imsi: str):
         """Find the UE IP address corresponding to the imsi"""
         cmd = ["mobility_cli.py", "get_subscriber_table"]
         output = subprocess.check_output(cmd)
@@ -134,7 +134,6 @@ class DpProbe:
         if match:
             return match.group(1)
         return
-
 
     def output_datapath_actions(
         self,
@@ -179,7 +178,6 @@ class DpProbe:
             cmd.append(cmd_append)
             self.get_ingress_stats(ue_ip)
 
-
         elif direction == "UL":
 
             cmd_append = (
@@ -221,7 +219,6 @@ class DpProbe:
         else:
             return
 
-
     def get_ingress_tunid(self, ue_ip: str, in_port: str):
         pattern = (
             ".*?in_port="
@@ -235,7 +232,6 @@ class DpProbe:
             return match[0]
         return
 
-
     def get_egress_tunid_and_port(self, ue_ip: str, ingress_tun: str):
         pattern = pattern = (
             "tun_id=(0x(?:[a-z]|[0-9]){1,}),in_port=([a-z]|[0-9]).*?load:"
@@ -246,7 +242,6 @@ class DpProbe:
         if match:
             return {"tun_id": match[0][0], "in_port": match[0][1]}
         return
-
 
     def get_enforced_rules(self, args):
         """Output enforced rules in pipelined using ue_ip obtained from args"""
@@ -271,7 +266,6 @@ class DpProbe:
             else:
                 print("No uplink rules found for UE")
 
-
     def get_stats(self, args):
         """Output dowlink or uplink stats"""
 
@@ -280,14 +274,13 @@ class DpProbe:
         elif args.direction == "UL":
             return self.get_egress_stats(self.egress_tun_id)
 
-
     def get_ingress_stats(self, ue_ip: str):
         """Output ingress Downlink stats using ue_ip obtained from args"""
 
-        pattern_local = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=LOCAL,nw_dst=" + ue_ip  +  ".*actions.*"
+        pattern_local = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=LOCAL,nw_dst=" + ue_ip + ".*actions.*"
         match_local = re.findall(pattern_local, self.output_flow_table_zero)
 
-        pattern_mtr0 =  "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port="+self.mtr_port+",nw_dst=" + ue_ip  +  ".*actions.*"
+        pattern_mtr0 = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=" + self.mtr_port + ",nw_dst=" + ue_ip + ".*actions.*"
         match_mtr0 = re.findall(pattern_mtr0, self.output_flow_table_zero)
 
         if match_local:
@@ -296,14 +289,12 @@ class DpProbe:
         if match_mtr0:
             print("mtr0: " + match_mtr0[0])
 
-
     def get_egress_stats(self, tun_id: str):
         """Output egress Uplink stats using ue_ip obtained from args"""
 
-        pattern = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*tun_id="+ tun_id +",in_port.*"
+        pattern = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*tun_id=" + tun_id + ",in_port.*"
         match = re.findall(pattern, self.output_flow_table_zero)
         print("UL stats: " + match[0])
-
 
     def get_mtr0_port(self):
         """Output mtr0 port number"""
@@ -314,7 +305,6 @@ class DpProbe:
         match_mtr0 = re.findall(pattern, output)
         if match_mtr0:
             return match_mtr0[0]
-
 
     def get_ovs_dump_flow_table_zero(self):
         """Output ovs dump flow table zero"""
