@@ -37,6 +37,22 @@ proto_library(
     deps = [":common_proto"],
 )
 
+cpp_grpc_library(
+    name = "directoryd_cpp_grpc",
+    protos = [":directoryd_proto"],
+    deps = [
+        ":common_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "directoryd_proto",
+    srcs = ["directoryd.proto"],
+    deps = [
+        ":common_proto",
+    ],
+)
+
 cpp_proto_library(
     name = "redis_cpp_proto",
     protos = [":redis_proto"],

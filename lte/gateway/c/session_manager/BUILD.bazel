@@ -1,0 +1,334 @@
+package(default_visibility = ["//visibility:public"])
+
+USE_GLOG = "-DLOG_WITH_GLOG"
+
+cc_library(
+    name = "diameter_codes",
+    srcs = ["DiameterCodes.cpp"],
+    hdrs = ["DiameterCodes.h"],
+)
+
+cc_library(
+    name = "grpc_magma_utils",
+    srcs = ["GrpcMagmaUtils.cpp"],
+    hdrs = ["GrpcMagmaUtils.h"],
+    deps = [
+        "//orc8r/gateway/c/common/logging",
+        "@com_github_google_glog//:glog",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "session_id",
+    srcs = ["SessionID.cpp"],
+    hdrs = ["SessionID.h"],
+)
+
+cc_library(
+    name = "utilities",
+    srcs = ["Utilities.cpp"],
+    hdrs = ["Utilities.h"],
+    deps = ["@com_google_protobuf//:protobuf"],
+)
+
+cc_library(
+    name = "credit_key",
+    hdrs = ["CreditKey.h"],
+    deps = [
+        "//lte/protos:policydb_cpp_proto",
+        "//lte/protos:session_manager_cpp_proto",
+    ],
+)
+
+cc_library(
+    name = "types",
+    hdrs = ["Types.h"],
+    deps = [
+        ":credit_key",
+        "//lte/protos:pipelined_cpp_proto",
+        "//lte/protos:session_manager_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "service_action",
+    hdrs = ["ServiceAction.h"],
+    deps = [
+        ":credit_key",
+        ":types",
+        "//lte/protos:session_manager_cpp_proto",
+    ],
+)
+
+cc_library(
+    name = "policy_loader",
+    srcs = ["PolicyLoader.cpp"],
+    hdrs = [
+        "ObjectMap.h",
+        "PolicyLoader.h",
+        "RedisMap.hpp",
+        "Serializers.h",
+    ],
+    deps = [
+        "//lte/protos:policydb_cpp_proto",
+        "//orc8r/gateway/c/common/config:service_config_loader",
+        "//orc8r/gateway/c/common/logging",
+        "//orc8r/protos:redis_cpp_proto",
+        "@com_github_google_glog//:glog",
+        "@cpp_redis",
+        "@yaml-cpp//:yaml-cpp",
+    ],
+)
+
+cc_library(
+    name = "session_reporter",
+    srcs = ["SessionReporter.cpp"],
+    hdrs = ["SessionReporter.h"],
+    deps = [
+        ":grpc_magma_utils",
+        "//:folly",
+        "//lte/protos:session_manager_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_github_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "stored_state",
+    srcs = ["StoredState.cpp"],
+    hdrs = ["StoredState.h"],
+    deps = [
+        ":credit_key",
+        ":types",
+        "//:folly",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//lte/protos:session_manager_cpp_grpc",
+        "//orc8r/gateway/c/common/logging",
+        "@com_github_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "rule_store",
+    srcs = ["RuleStore.cpp"],
+    hdrs = ["RuleStore.h"],
+    deps = [
+        ":credit_key",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_github_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "session_credit",
+    srcs = [
+        "ChargingGrant.cpp",
+        "EnumToString.cpp",
+        "SessionCredit.cpp",
+    ],
+    hdrs = [
+        "ChargingGrant.h",
+        "EnumToString.h",
+        "Monitor.h",
+        "SessionCredit.h",
+    ],
+    deps = [
+        ":utilities",
+        ":diameter_codes",
+        ":service_action",
+        ":stored_state",
+        "//lte/protos:abort_session_cpp_proto",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//lte/protos:session_manager_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "shard_tracker",
+    srcs = ["ShardTracker.cpp"],
+    hdrs = ["ShardTracker.h"],
+)
+
+cc_library(
+    name = "session_state",
+    srcs = ["SessionState.cpp"],
+    hdrs = ["SessionState.h"],
+    deps = [
+        ":utilities",
+        ":rule_store",
+        ":session_credit",
+        ":session_reporter",
+        ":shard_tracker",
+        "//lte/protos:spgw_service_cpp_grpc",
+        "//orc8r/gateway/c/common/service303",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "metering_reporter",
+    srcs = ["MeteringReporter.cpp"],
+    hdrs = ["MeteringReporter.h"],
+    deps = [
+        ":session_credit",
+        ":stored_state",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)
+
+cc_library(
+    name = "session_store",
+    srcs = [
+        "MemoryStoreClient.cpp",
+        "RedisStoreClient.cpp",
+        "SessionStore.cpp",
+    ],
+    hdrs = [
+        "MemoryStoreClient.h",
+        "RedisStoreClient.h",
+        "SessionStore.h",
+        "StoreClient.h",
+    ],
+    deps = [
+        ":metering_reporter",
+        ":session_state",
+        "//orc8r/gateway/c/common/logging",
+        "@com_github_google_glog//:glog",
+        "@cpp_redis",
+    ],
+)
+
+cc_library(
+    name = "aaa_client",
+    srcs = ["AAAClient.cpp"],
+    hdrs = ["AAAClient.h"],
+    deps = [
+        ":session_state",
+        ":session_store",
+        "//feg/gateway/services/aaa/protos:accounting_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+    ],
+)
+
+cc_library(
+    name = "directoryd_client",
+    srcs = ["DirectorydClient.cpp"],
+    hdrs = ["DirectorydClient.h"],
+    deps = [
+        ":session_state",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/protos:directoryd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "mobilityd_client",
+    srcs = ["MobilitydClient.cpp"],
+    hdrs = ["MobilitydClient.h"],
+    deps = [
+        ":session_state",
+        ":types",
+        "//lte/protos:mobilityd_cpp_grpc",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+    ],
+)
+
+cc_library(
+    name = "pipelined_client",
+    srcs = ["PipelinedClient.cpp"],
+    hdrs = ["PipelinedClient.h"],
+    deps = [
+        ":session_credit",
+        ":session_state",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+    ],
+)
+
+cc_library(
+    name = "spgw_service_client",
+    srcs = ["SpgwServiceClient.cpp"],
+    hdrs = ["SpgwServiceClient.h"],
+    deps = [
+        "//lte/protos:spgw_service_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/logging",
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_github_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "session_events",
+    srcs = ["SessionEvents.cpp"],
+    hdrs = ["SessionEvents.h"],
+    deps = [
+        ":session_credit",
+        ":session_state",
+        "//orc8r/gateway/c/common/eventd:eventd_client",
+    ],
+)
+
+cc_library(
+    name = "local_enforcer",
+    srcs = ["LocalEnforcer.cpp"],
+    hdrs = ["LocalEnforcer.h"],
+    deps = [
+        ":aaa_client",
+        ":directoryd_client",
+        ":pipelined_client",
+        ":session_events",
+        ":session_state",
+        ":spgw_service_client",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//lte/protos:session_manager_cpp_proto",
+    ],
+)
+
+cc_library(
+    name = "operational_states_handler",
+    srcs = ["OperationalStatesHandler.cpp"],
+    hdrs = ["OperationalStatesHandler.h"],
+    deps = [":session_store"],
+)
+
+cc_library(
+    name = "restart_handler",
+    srcs = ["RestartHandler.cpp"],
+    hdrs = ["RestartHandler.h"],
+    deps = [":local_enforcer"],
+)
+
+cc_library(
+    name = "session_proxy_responder_handler",
+    srcs = ["SessionProxyResponderHandler.cpp"],
+    hdrs = ["SessionProxyResponderHandler.h"],
+    deps = [
+        ":local_enforcer",
+        "//lte/protos:abort_session_cpp_grpc",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+    ],
+)
+
+cc_library(
+    name = "local_session_manager_handler",
+    srcs = ["LocalSessionManagerHandler.cpp"],
+    hdrs = ["LocalSessionManagerHandler.h"],
+    deps = [
+        ":session_id",
+        ":local_enforcer",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+    ],
+)
+
+cc_library(
+    name = "stats_poller",
+    srcs = ["StatsPoller.cpp"],
+    hdrs = ["StatsPoller.h"],
+    deps = [":local_enforcer"],
+)

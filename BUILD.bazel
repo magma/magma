@@ -11,6 +11,65 @@
 
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
+package(default_visibility = ["//visibility:public"])
+
 buildifier(
     name = "buildifier",
+)
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+## Requires all these dependencies
+# sudo apt-get install \
+#     g++ \
+#     cmake \
+#     libboost-all-dev \
+#     libevent-dev \
+#     libdouble-conversion-dev \
+#     libgoogle-glog-dev \
+#     libgflags-dev \
+#     libiberty-dev \
+#     liblz4-dev \
+#     liblzma-dev \
+#     libsnappy-dev \
+#     make \
+#     zlib1g-dev \
+#     binutils-dev \
+#     libjemalloc-dev \
+#     libssl-dev \
+#     pkg-config \
+#     libunwind-dev
+
+cmake(
+    name = "folly",
+    # Values to be passed as -Dkey=value on the CMake command line;
+    # here are serving to provide some CMake script configuration options
+    cache_entries = {
+        "CMAKE_INCLUDE_PATH": "$EXT_BUILD_DEPS/include",
+        "CMAKE_LIBRARY_PATH": "$EXT_BUILD_DEPS/lib",
+        "GLOG_INCLUDE_DIR": "$EXT_BUILD_DEPS/include/glog",
+        "GLOG_LIBRARY": "$EXT_BUILD_DEPS/lib/libglog.a",
+        "LIBGFLAGS_INCLUDE_DIR": "$EXT_BUILD_DEPS/include/gflags",
+        "LIBGFLAGS_LIBRARY": "$EXT_BUILD_DEPS/lib/libgflags.a",
+        "LIBFMT_LIBRARY": "$EXT_BUILD_DEPS/lib/liblibfmt.a",
+    },
+    lib_source = "@folly//:all_srcs",
+
+    # We are selecting the resulting static library to be passed in C/C++ provider
+    # as the result of the build;
+    # However, the cmake_external dependants could use other artefacts provided by the build,
+    # according to their CMake script
+    out_static_libs = ["libfolly.a"],
+    deps = [
+        "@com_github_google_glog//:glog",
+        "@com_github_gflags_gflags//:gflags",
+        "@com_github_fmtlib_fmt//:libfmt",
+        # TODO(@themarwhal) should be able to load boost as deps.. Getting complaints about finding
+        # "@boost//:context",
+        # "@boost//:filesystem",
+        # "@boost//:program_options",
+        # "@boost//:regex",
+        # "@boost//:system",
+        # "@boost//:thread",
+    ],
 )

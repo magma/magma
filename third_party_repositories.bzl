@@ -99,3 +99,35 @@ def prometheus_cpp_deps():
         commit = "d8326b2bba945a435f299e7526c403d7a1f68c1f",
         remote = "https://github.com/jupp0r/prometheus-cpp.git",
     )
+
+def cpp_redis():
+    http_archive(
+        name = "tacopie",
+        sha256 = "bbdebecdb68d5f9eb64170217000daf844e0aee18b8c4d3dd373d07efd9f7316",
+        strip_prefix = "tacopie-master",
+        url = "https://github.com/cylix/tacopie/archive/master.zip",
+    )
+
+    new_git_repository(
+        name = "cpp_redis",
+        commit = "bbe38a7f83de943ffcc90271092d689ae02b3489",
+        remote = "https://github.com/cpp-redis/cpp_redis.git",
+        shallow_since = "1590000158 -0500",
+        # TODO(@themarwhal): We do not need a custom BUILD file if we upgrade to a more recent version of cpp_redis - GH8321
+        build_file = "//third_party:cpp_redis.BUILD",
+    )
+
+def glog():
+    http_archive(
+        name = "com_github_gflags_gflags",
+        sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
+        strip_prefix = "gflags-2.2.2",
+        urls = ["https://github.com/gflags/gflags/archive/v2.2.2.tar.gz"],
+    )
+
+    http_archive(
+        name = "com_github_google_glog",
+        sha256 = "21bc744fb7f2fa701ee8db339ded7dce4f975d0d55837a97be7d46e8382dea5a",
+        strip_prefix = "glog-0.5.0",
+        urls = ["https://github.com/google/glog/archive/v0.5.0.zip"],
+    )

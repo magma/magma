@@ -1,0 +1,32 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cpp_proto_library(
+    name = "context_cpp_proto",
+    protos = [":context_proto"],
+)
+
+proto_library(
+    name = "context_proto",
+    srcs = ["context.proto"],
+    strip_import_prefix = "/feg/gateway/services/aaa/protos",
+)
+
+cpp_grpc_library(
+    name = "accounting_cpp_grpc",
+    protos = [":accounting_proto"],
+    deps = [
+        ":context_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "accounting_proto",
+    srcs = ["accounting.proto"],
+    deps = [
+        ":context_proto",
+    ],
+)
