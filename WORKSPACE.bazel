@@ -11,7 +11,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("//:third_party_repositories.bzl", "boost", "cpp_testing_deps", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp", "zlib")
+load("//:third_party_repositories.bzl", "boost", "cpp_redis", "cpp_testing_deps", "folly", "folly_deps", "gflags", "glog", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp", "zlib")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -112,6 +112,10 @@ grpc_deps()
 ### PROTO / GRPC DEPENDENCIES ###
 
 ### Dependencies for orc8r/gateway/c/common
+gflags()
+
+glog()
+
 boost()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
@@ -125,6 +129,31 @@ nlohmann_json()
 prometheus_cpp_deps()
 ### Dependencies for orc8r/gateway/c/common
 
+### CPP_REDIS DEPENDENCIES ###
+cpp_redis()
+### CPP_REDIS DEPENDENCIES ###
+
 ### DEPENDENCY FOR TESTING
 cpp_testing_deps()
 ### DEPENDENCY FOR TESTING
+
+### Folly dependencies ###
+git_repository(
+    name = "rules_foreign_cc",
+    commit = "a7f1c9e6046a98b6006e183f0112f4815bf2ebc0",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+)
+
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+
+# Don't use preinstalled tools to ensure builds are as hermetic as possible
+rules_foreign_cc_dependencies(
+    cmake_version = "3.20.4",
+    ninja_version = "1.10.2",
+    register_preinstalled_tools = False,
+)
+
+folly_deps()
+
+folly()
+### Folly dependencies ###

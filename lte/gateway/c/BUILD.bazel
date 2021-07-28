@@ -1,0 +1,46 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+package(default_visibility = ["//visibility:public"])
+
+cmake(
+    name = "folly",
+    # Values to be passed as -Dkey=value on the CMake command line;
+    # here are serving to provide some CMake script configuration options
+    cache_entries = {
+        "CMAKE_INCLUDE_PATH": "$EXT_BUILD_DEPS/include",
+        "CMAKE_LIBRARY_PATH": "$EXT_BUILD_DEPS/lib",
+        "GLOG_INCLUDE_DIR": "$EXT_BUILD_DEPS/include/glog",
+        "GLOG_LIBRARY": "$EXT_BUILD_DEPS/lib/libglog.a",
+        "LIBGFLAGS_INCLUDE_DIR": "$EXT_BUILD_DEPS/include/gflags",
+        "LIBGFLAGS_LIBRARY": "$EXT_BUILD_DEPS/lib/libgflags.a",
+        "LIBFMT_LIBRARY": "$EXT_BUILD_DEPS/lib/liblibfmt.a",
+    },
+    lib_source = "@folly//:all_srcs",
+    # These are needed for Folly to be used as a dependency
+    linkopts = [
+        "-ldl",
+        "-levent",
+        "-ldouble-conversion",
+        "-liberty",
+    ],
+
+    # Unfortunately, aside from glog, gflags, and libfmt we pull all Folly dependencies from the Docker container.
+    # See experimental/bazel-base/Dockerfile for the list of dependencies installed for this purpose - GH8577
+    out_static_libs = ["libfolly.a"],
+    deps = [
+        "@com_github_gflags_gflags//:gflags",
+        "@com_github_google_glog//:glog",
+        "@libfmt",
+    ],
+)

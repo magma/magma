@@ -36,9 +36,7 @@ def nlohmann_json():
         name = "github_nlohmann_json",
         build_file = "//third_party:nlohmann_json.BUILD",
         sha256 = "69cc88207ce91347ea530b227ff0776db82dcb8de6704e1a3d74f4841bc651cf",
-        urls = [
-            "https://github.com/nlohmann/json/releases/download/v3.6.1/include.zip",
-        ],
+        urls = ["https://github.com/nlohmann/json/releases/download/v3.6.1/include.zip"],
     )
 
 def boost():
@@ -98,4 +96,63 @@ def prometheus_cpp_deps():
         name = "prometheus_cpp",
         commit = "d8326b2bba945a435f299e7526c403d7a1f68c1f",
         remote = "https://github.com/jupp0r/prometheus-cpp.git",
+    )
+
+def cpp_redis():
+    http_archive(
+        name = "tacopie",
+        sha256 = "bbdebecdb68d5f9eb64170217000daf844e0aee18b8c4d3dd373d07efd9f7316",
+        strip_prefix = "tacopie-master",
+        url = "https://github.com/cylix/tacopie/archive/master.zip",
+    )
+
+    new_git_repository(
+        name = "cpp_redis",
+        commit = "bbe38a7f83de943ffcc90271092d689ae02b3489",
+        remote = "https://github.com/cpp-redis/cpp_redis.git",
+        shallow_since = "1590000158 -0500",
+        # TODO(@themarwhal): We do not need a custom BUILD file if we upgrade to a more recent version of cpp_redis - GH8321
+        build_file = "//third_party:cpp_redis.BUILD",
+    )
+
+def gflags():
+    http_archive(
+        name = "com_github_gflags_gflags",
+        sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
+        strip_prefix = "gflags-2.2.2",
+        urls = ["https://github.com/gflags/gflags/archive/v2.2.2.tar.gz"],
+    )
+
+def glog():
+    http_archive(
+        name = "com_github_google_glog",
+        strip_prefix = "glog-0.4.0",
+        urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
+    )
+
+def folly_deps():
+    # glog and gflags are covered elsewhere
+    # See GH8577 on how the other dependencies are handled
+    http_archive(
+        name = "libfmt",
+        build_file = "//:third_party/fmtlib.BUILD",
+        sha256 = "5d98c504d0205f912e22449ecdea776b78ce0bb096927334f80781e720084c9f",
+        strip_prefix = "fmt-7.1.3",
+        urls = ["https://github.com/fmtlib/fmt/releases/download/7.1.3/fmt-7.1.3.zip"],
+    )
+
+_ALL_CONTENT = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
+def folly():
+    http_archive(
+        name = "folly",
+        build_file_content = _ALL_CONTENT,
+        sha256 = "c2022c509a63b5a370fb3e45709ada7a02183b95fc456c6510a523d4d6e92eb6",
+        urls = ["https://github.com/facebook/folly/releases/download/v2021.07.22.00/folly-v2021.07.22.00.tar.gz"],
     )
