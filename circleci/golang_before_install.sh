@@ -16,7 +16,7 @@ sudo apt-get update -qq
 sudo apt-get install -y bzr parallel build-essential unzip default-jre
 
 # Install protobuf compiler
-sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+sudo curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
 sudo unzip protoc3.zip -d protoc3
 sudo mv protoc3/bin/protoc /bin/protoc
 sudo chmod a+rx /bin/protoc
