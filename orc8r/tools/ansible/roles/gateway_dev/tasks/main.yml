@@ -67,7 +67,7 @@
 - name: Install protobuf compiler
   command: "{{ item }}"
   with_items:
-    - curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+    - curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
     - unzip protoc3.zip -d protoc3
     - mv protoc3/bin/protoc /usr/bin/protoc
     - chmod a+rx /usr/bin/protoc
