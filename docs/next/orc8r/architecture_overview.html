@@ -55,20 +55,15 @@
               }
             });
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="architecture-overview"></a><a href="#architecture-overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture Overview</h1>
-<p>This document serves as an introduction to Orchestrator functionality and
-architecture. Operators may find this useful to better understand their
-deployment.</p>
+<p>This document provides an introduction to Orchestrator functionality and architecture.</p>
 <h2><a class="anchor" aria-hidden="true" id="functionality"></a><a href="#functionality" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Functionality</h2>
-<p>Magma’s Orchestrator is a centralized controller for a set of networks.
-Orchestrator handles the control plane for various types of gateways in Magma.
-Orchestrator functionality is composed of two primary components</p>
+<p>Magma's Orchestrator is a centralized controller for a set of networks. Orchestrator handles the control plane for various types of gateways in Magma. Orchestrator functionality is composed of two primary components</p>
 <ul>
 <li>A standardized, vendor-agnostic <a href="https://app.swaggerhub.com/apis/MagmaCore/Magma/1.0.0"><strong>northbound REST API</strong></a> which exposes
 configuration and metrics for network devices</li>
-<li><strong>A southbound interface</strong> which applies device configuration and reports
-device status</li>
+<li><strong>A southbound interface</strong> which applies device configuration and reports device status</li>
 </ul>
-<p><img src="/magma/docs/assets/orc8r/orc8r_overview.png" alt="Orc8r Overview"></p>
+<p><img src="../assets/orc8r/orc8r_overview.png" alt="Orc8r Overview"></p>
 <p>At a lower level, Orchestrator supports the following functionality</p>
 <ul>
 <li>Network entity configuration (networks, gateway, subscribers, policies, etc.)</li>
@@ -79,125 +74,68 @@ device status</li>
 <li>Request relaying between access gateways and federated gateways</li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h2>
-<p>Orchestrator follows a modular design. Core Orchestrator services
-(located at <code>orc8r/cloud/go</code>) provide domain-agnostic implementations of
-the functionality described above. Orchestrator modules, such as <code>lte</code>
-(located at <code>lte/cloud/go</code>), provide domain-specific knowledge to the
-core services. This modularity allows Orchestrator to remain flexible to new
-use-cases while allowing operators to only deploy the services needed for their
-specific use-case.</p>
-<h3><a class="anchor" aria-hidden="true" id="controller-supercontainer-pre-v13"></a><a href="#controller-supercontainer-pre-v13" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Controller Supercontainer (pre-v1.3)</h3>
-<p>Prior to v1.4, the Orchestrator application was deployed in a single
-“supercontainer” on Kubernetes.</p>
-<p><img src="/magma/docs/assets/orc8r/orc8r_plugin.png" alt="Orc8r Plugin Architecture"></p>
-<p>Modularity was achieved via the following plugin interface</p>
-<pre><code class="hljs css language-go"><span class="hljs-keyword">type</span> OrchestratorPlugin <span class="hljs-keyword">interface</span> {
-  GetName()
-  GetServices()
-  GetSerdes()
-  GetMconfigBuilders()
-  GetMetricsProfiles()
-  GetObsidianHandlers()
-  GetStreamerProviders()
-  GetStateIndexers()
-}
-</code></pre>
-<p>Each Orchestrator module (e.g. <code>lte</code>, <code>feg</code>, <code>cwf</code>) implemented this interface.
-Plugins were built into the controller container image and loaded into memory for
-each service at runtime.</p>
-<h3><a class="anchor" aria-hidden="true" id="service-mesh-v14"></a><a href="#service-mesh-v14" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service Mesh (v1.4+)</h3>
-<p>Starting in v1.4, Orchestrator is deployed as a service mesh. Every
-Orchestrator service is now deployed with its own Kubernetes service and pod.</p>
-<p><img src="/magma/docs/assets/orc8r/orc8r_service_mesh.png" alt="Orc8r Service Mesh Architecture"></p>
-<p>The service mesh changes provide the following benefits</p>
-<ul>
-<li>Major memory reduction from the removal of the Orchestrator plugins</li>
-<li>Better monitoring via open source tooling</li>
-<li>Ability to horizontally scale specific services</li>
-</ul>
-<p>To achieve the same modularity described above, the in-memory plugin has been
-decomposed into strictly RPC interfaces. Individual services in an Orchestrator
-module register labels and annotations in its Kubernetes service definition to
-declare what functionality the service provides. Core Orchestrator services
-then query the Kubernetes API to discover service functionality.</p>
+<p>Orchestrator follows a modular design. Core Orchestrator services (located at <code>orc8r/cloud/go</code>) provide domain-agnostic implementations of the functionality described above. <a href="/magma/docs/next/orc8r/dev_dependencies">Orchestrator modules</a>, such as <code>lte</code> (located at <code>lte/cloud/go</code>), provide domain-specific knowledge to the core services. This modularity allows Orchestrator to remain flexible to new use-cases while allowing operators to deploy only the services needed for their specific use-case.</p>
+<h3><a class="anchor" aria-hidden="true" id="service-mesh"></a><a href="#service-mesh" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service Mesh</h3>
+<p>Every Orchestrator service is deployed with its own Kubernetes service and pod.</p>
+<p><img src="../assets/orc8r/orc8r_service_mesh.png" alt="Orc8r Service Mesh Architecture"></p>
 <h3><a class="anchor" aria-hidden="true" id="configuration"></a><a href="#configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration</h3>
 <p>The following diagram displays an example call flow for LTE gateway
 configuration</p>
-<p><img src="/magma/docs/assets/orc8r/orc8r_configuration.png" alt="Orc8r Configuration"></p>
+<p><img src="../assets/orc8r/orc8r_configuration.png" alt="Orc8r Configuration"></p>
 <h3><a class="anchor" aria-hidden="true" id="metrics"></a><a href="#metrics" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metrics</h3>
 <p>The following diagram displays the call flow for the metrics pipeline</p>
-<p><img src="/magma/docs/assets/orc8r/orc8r_metrics.png" alt="Orc8r Metrics"></p>
+<p><img src="../assets/orc8r/orc8r_metrics.png" alt="Orc8r Metrics"></p>
 <h3><a class="anchor" aria-hidden="true" id="services"></a><a href="#services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Services</h3>
 <p>This section outlines the functionality of each service in the core
 Orchestrator, LTE, and FeG modules.</p>
 <p><strong>Orchestrator</strong></p>
 <ul>
-<li><em>accessd</em> stores, manages and verifies operator identity objects and their
-rights to access (read/write) entities</li>
-<li><em>analytics</em> periodically fetches and aggregates metrics for all deployed
-Orchestrator modules, exporting the aggregations to Prometheus</li>
-<li><em>bootstrapper</em> manages the certificate bootstrapping process for newly
-registered gateways and gateways whose cert has expired</li>
-<li><em>certifier</em> maintains and verifies signed client certificates and their
-associated identities</li>
-<li><em>configurator</em> maintains configurations and metadata for networks and
-network entity structures</li>
-<li><em>ctraced</em> handles gateway call traces, exposing this functionality via a
-CRUD API</li>
-<li><em>device</em> maintains configurations and metadata for devices in the network
-(e.g. gateways)</li>
-<li><em>directoryd</em> stores subscriber identity (e.g. IMSI, IP address,
-MAC address) and location (gateway hardware ID)</li>
-<li><em>dispatcher</em> maintains SyncRPC connections (HTTP2 bidirectional streams)
-with gateways</li>
-<li><em>metricsd</em> collects runtime metrics from gateways and Orchestrator
-services</li>
-<li><em>obsidian</em> verifies API request access control and reverse proxies
-requests to Orchestrator services with the appropriate API handlers</li>
+<li><em>accessd</em> stores, manages and verifies operator identity objects and their rights to access (read/write) entities</li>
+<li><em>analytics</em> periodically fetches and aggregates metrics for all deployed Orchestrator modules, exporting the aggregations to Prometheus</li>
+<li><em>bootstrapper</em> manages the certificate bootstrapping process for newly registered gateways and gateways whose cert has expired</li>
+<li><em>certifier</em> maintains and verifies signed client certificates and their associated identities</li>
+<li><em>configurator</em> maintains configurations and metadata for networks and network entity structures</li>
+<li><em>ctraced</em> handles gateway call traces, exposing this functionality via a CRUD API</li>
+<li><em>device</em> maintains configurations and metadata for devices in the network (e.g. gateways)</li>
+<li><em>directoryd</em> stores subscriber identity (e.g. IMSI, IP address, MAC address) and location (gateway hardware ID)</li>
+<li><em>dispatcher</em> maintains SyncRPC connections (HTTP2 bidirectional streams) with gateways</li>
+<li><em>metricsd</em> collects runtime metrics from gateways and Orchestrator services</li>
+<li><em>obsidian</em> verifies API request access control and reverse proxies requests to Orchestrator services with the appropriate API handlers</li>
 <li><em>orchestrator</em> provides
 <ul>
-<li>Mconfigs for configuration of core gateway service configurations
-(e.g. magmad, eventd, state)</li>
+<li>Mconfigs for configuration of core gateway service configurations (e.g. magmad, eventd, state)</li>
 <li>Metrics exporting to Prometheus</li>
-<li>CRUD API for core Orchestrator network entities (networks, gateways,
-upgrade tiers, events, etc.)</li>
+<li>CRUD API for core Orchestrator network entities (networks, gateways, upgrade tiers, events, etc.)</li>
 </ul></li>
 <li><em>service_registry</em> provides service discovery for all services in the
 Orchestrator by querying Kubernetes's API server</li>
 <li><em>state</em> maintains reported state from devices in the network</li>
-<li><em>streamer</em> fetches updates for various data streams (e.g. mconfig,
-subscribers, etc.) from the appropriate Orchestrator service, returning these
-to the gateways</li>
+<li><em>streamer</em> fetches updates for various data streams (e.g. mconfig, subscribers, etc.) from the appropriate Orchestrator service, returning these to the gateways</li>
 <li><em>tenants</em> provides CRUD interface for managing NMS tenants</li>
 </ul>
 <p><strong>LTE</strong></p>
 <ul>
-<li><em>ha</em> provides interface for secondary gateways in an HA deployment to find
-offload status for UEs</li>
+<li><em>ha</em> provides interface for secondary gateways in an HA deployment to find offload status for UEs</li>
 <li><em>lte</em> provides
 <ul>
-<li>Mconfigs for configuration of LTE-related gateway service configurations
-(e.g. mme, pipelined, policydb)</li>
+<li>Mconfigs for configuration of LTE-related gateway service configurations (e.g. mme, pipelined, policydb)</li>
 <li>CRUD API for LTE network entities (LTE networks, LTE gateways, eNodeBs, etc.)</li>
 </ul></li>
-<li><em>policydb</em> manages subscriber policies via a northbound CRUD API and
-a southbound policy stream</li>
+<li><em>policydb</em> manages subscriber policies via a northbound CRUD API and a southbound policy stream</li>
 <li><em>smsd</em> provides CRUD support for SMS messages to be fetched by LTE gateways</li>
-<li><em>subscriberdb</em> manages subscribers via a northbound CRUD API and
-a southbound subscriber stream</li>
+<li><em>subscriberdb</em> manages subscribers via a northbound CRUD API and a southbound subscriber stream</li>
 </ul>
 <p><strong>FeG</strong></p>
 <ul>
 <li><em>feg</em> provides
 <ul>
-<li>Mconfigs for configuration of FeG-related gateway service configurations
-(e.g. s6a_proxy, session_proxy)</li>
+<li>Mconfigs for configuration of FeG-related gateway service configurations (e.g. s6a_proxy, session_proxy)</li>
 <li>CRUD API for LTE network entities (FeG networks, federated gateways, etc.)</li>
 </ul></li>
 <li><em>feg relay</em> relays requests between access gateways and federated gateways</li>
 <li><em>health</em> manages active/standby clusters of federated gateways</li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/lte/architecture_overview"><span class="arrow-prev">← </span><span>Overview</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/architecture_modularity"><span>Modularity</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#functionality">Functionality</a></li><li><a href="#architecture">Architecture</a><ul class="toc-headings"><li><a href="#controller-supercontainer-pre-v13">Controller Supercontainer (pre-v1.3)</a></li><li><a href="#service-mesh-v14">Service Mesh (v1.4+)</a></li><li><a href="#configuration">Configuration</a></li><li><a href="#metrics">Metrics</a></li><li><a href="#services">Services</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/lte/architecture_overview"><span class="arrow-prev">← </span><span>Overview</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/architecture_modularity"><span>Modularity</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#functionality">Functionality</a></li><li><a href="#architecture">Architecture</a><ul class="toc-headings"><li><a href="#service-mesh">Service Mesh</a></li><li><a href="#configuration">Configuration</a></li><li><a href="#metrics">Metrics</a></li><li><a href="#services">Services</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
