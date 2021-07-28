@@ -234,13 +234,11 @@ def foo(arg1: str) -> int:
 - For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services
   - On CI, the check gets run as part of the `lte-test` job
 - Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
-  - To run the linter locally, use the [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py)
+  - Instructions on running the linter locally is provided [here](../lte/dev_unit_testing#format-agw)
 
 **Formatters**
 
-- We recommend [autopep8](https://pypi.org/project/autopep8/) as it conforms to [pep8](https://www.python.org/dev/peps/pep-0008/)
-  - The above-mentioned [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py) also has an option to format your changes with
-  [isort](https://pypi.org/project/isort/), [autopep8](https://pypi.org/project/autopep8/), and [add-trailing-comma](https://pypi.org/project/add-trailing-comma/)
+- Instructions on formatting Python locally is provided [here](../lte/dev_unit_testing#format-agw)
 - We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.
 
 
@@ -270,8 +268,24 @@ The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) 
 
 **Logging**
 - For non-OAI C++ services, use the `MLOG` macros defined in `orc8r/gateway/c/common/logging/magma_logging.h`
-- For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/oai/common/log/h`
+- For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/core/oai/common/log.h`
 - Refer to the Go logging section for deciding between log levels
+
+
+### C
+
+Where applicable, the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) should be followed.
+
+**Exceptions, errors, and assertions**
+- As an exception mechanism is not provided in C, any error handling should be done either with assertions or error codes
+- As a principle, library functions should never cause crashes, and higher level callers should be responsible for handling errors
+- When exception handling is required, prefer returning error codes over using assertions
+    - A standard `status_code_e` enum and `status_or` structs should be used as the return value
+    - Error codes and `status_or` structs can be found in `lte/gateway/c/core/oai/common/common_defs.h`
+- Assertions should be reserved for unrecoverable errors
+    - Eg. a valid use is in MME service when out of memory, and there is no way to recover
+    - Eg. an invalid use is a misformatted input message received by MME. MME should respond with an error and not crash.
+    - Eg. an invalid use is for TODOs in unimplemented code. MME should respond with an error instead of crashing.
 
 ### Shell
 

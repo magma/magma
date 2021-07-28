@@ -21,6 +21,7 @@ services:
     environment:
       - RADIUSSERVERURL=radiusserver
       - AUTHPORT=1812
+      - SECRET=${XWF_SECRET:-123456}
     networks:
       - control
     logging: *logging_anchor
@@ -29,9 +30,9 @@ services:
     container_name: radiusserver
     privileged: true
     environment:
-      - AAA_ENDPOINT=${APPURL:-https://graph.expresswifi.com}/radius/authorization
+      - AAA_ENDPOINT=${ANALYTIC_URL:-https://us-west-2-qa.apdata.xwf.internet.org/radius/authorization/}
       - AAA_ACCESS_TOKEN=${XWF_ACCESSTOKEN}
-      - RADIUS_SECRET=${XWF_SECRET}
+      - RADIUS_SECRET=${XWF_SECRET:-123456}
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
       - PARTNER_SHORTNAME=${XWF_PARTNER_SHORT_NAME}
       - SCUBA_ACCESS_TOKEN=${XWF_SCUBA_ACCESS_TOKEN:-}
@@ -111,7 +112,6 @@ services:
       - AWS_ACCOUNT_ID=${XWF_AWS_ACCOUNT_ID:-}
       - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
       - CPURL=${XWF_CPURL}
-      - VPCEndPointID=${XWF_VPCEndPointID}
       - BACKEND=${BACKEND:-WWW}
       - TEST_CONFIG=${TEST_CONFIG:-xwfm}
     logging: *logging_anchor

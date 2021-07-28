@@ -21,6 +21,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
+import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -152,6 +153,29 @@ const mockKPIMetric: promql_return_object = {
   },
 };
 
+const lastFalloverTimeResponse1 = moment().unix();
+
+const lastFalloverTimeResponse2 = moment().unix();
+
+const lastFalloverTime = `${moment.unix(lastFalloverTimeResponse2).calendar()}`;
+
+const mockFalloverStatus: promql_return_object = {
+  status: 'success',
+  data: {
+    resultType: 'matrix',
+    result: [
+      {
+        metric: {},
+        value: ['1625079646.98', `${lastFalloverTimeResponse1}`],
+      },
+      {
+        metric: {},
+        value: ['1625079647.98', `${lastFalloverTimeResponse2}`],
+      },
+    ],
+  },
+};
+
 const mockGw1: federation_gateway = {
   ...mockGw0,
   id: 'test_gw1',
@@ -211,9 +235,21 @@ describe('<FEGEquipmentGateway />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockCheckinMetric,
     );
-    // called when getting max, min and average latency
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
+    // called when getting max latency
+    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
       mockKPIMetric,
+    );
+    // called when getting min latency
+    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
+      mockKPIMetric,
+    );
+    // called when getting avg latency
+    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
+      mockKPIMetric,
+    );
+    // called when getting the last fallover time
+    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
+      mockFalloverStatus,
     );
   });
 
@@ -281,5 +317,21 @@ describe('<FEGEquipmentGateway />', () => {
     expect(rowItems[2]).toHaveTextContent('174.18.1.0:3869');
     expect(rowItems[2]).toHaveTextContent('-');
     expect(rowItems[2]).toHaveTextContent('-');
+  });
+
+  it('renders cluster status correctly', async () => {
+    const {getByTestId} = render(<Wrapper />);
+    await wait();
+    // verify health status of the primary and secondary gateways
+    expect(getByTestId('Primary Health')).toHaveTextContent('Good');
+    expect(getByTestId('Secondary Health')).toHaveTextContent('Bad');
+    // verify that primary/active gateway's name is rendered
+    expect(getByTestId('Primary Gateway Name')).toHaveTextContent(
+      'test_gateway',
+    );
+    // verify that correct fallover time is displayed
+    expect(getByTestId('Last Fallover Time')).toHaveTextContent(
+      lastFalloverTime,
+    );
   });
 });
