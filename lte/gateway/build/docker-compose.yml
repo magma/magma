@@ -1,0 +1,65 @@
+version: "3.7"
+
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: ${LOG_DRIVER}
+
+# Standard volumes mounted
+x-standard-volumes: &volumes_anchor
+  - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  - /etc/snowflake:/etc/snowflake
+
+x-generic-service: &service
+  volumes: *volumes_anchor
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Generic python anchor to avoid repetition for lte c services
+x-lte-cservice: &ltecservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_c:${IMAGE_VERSION}
+
+services:
+  sessiond:
+    <<: *ltecservice
+    container_name: sessiond
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50065"]
+      timeout: "4s"
+      retries: 3
+    command: >
+      sh -c "mkdir -p /var/opt/magma/cores &&
+        sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
+        /usr/local/bin/sessiond"
+
+  sctpd:
+    <<: *ltecservice
+    container_name: sctpd
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
+    command: /usr/local/bin/sctpd
+
+  connectiond:
+    <<: *ltecservice
+    container_name: connectiond
+    privileged: true
+    command: /usr/local/bin/connectiond
+
+  liagentd:
+    <<: *ltecservice
+    container_name: liagentd
+    privileged: true
+    command: /usr/local/bin/liagentd
