@@ -14,7 +14,7 @@ import unittest
 from socket import htons
 from unittest.mock import MagicMock
 
-from magma.kernsnoopd.handlers import PacketCounter
+from magma.kernsnoopd.handlers import ByteCounter
 
 
 class MockServiceRegistry:
@@ -31,12 +31,12 @@ class MockServiceRegistry:
         return service_map[(host, port)]
 
 
-class PacketCounterTests(unittest.TestCase):
-    """Tests for PacketCounter eBPF handler class"""
+class ByteCounterTests(unittest.TestCase):
+    """Tests for ByteCounter eBPF handler class"""
 
     def setUp(self) -> None:
         registry = MockServiceRegistry()
-        self.packet_counter = PacketCounter(registry)
+        self.byte_counter = ByteCounter(registry)
 
     @unittest.mock.patch('psutil.Process.cmdline')
     def test_get_source_service_python(self, cmdline_mock):
@@ -50,7 +50,7 @@ class PacketCounterTests(unittest.TestCase):
         key.pid = 0
         self.assertEqual(
             'subscriberdb',
-            self.packet_counter._get_source_service(key),
+            self.byte_counter._get_source_service(key),
         )
 
     @unittest.mock.patch('psutil.Process.cmdline')
@@ -63,7 +63,7 @@ class PacketCounterTests(unittest.TestCase):
         key.pid, key.comm = 0, b'sessiond'
         self.assertEqual(
             'sessiond',
-            self.packet_counter._get_source_service(key),
+            self.byte_counter._get_source_service(key),
         )
 
     @unittest.mock.patch('psutil.Process.cmdline')
@@ -75,17 +75,15 @@ class PacketCounterTests(unittest.TestCase):
         key = MagicMock()
         key.pid, key.comm = 0, b'sshd'
         self.assertRaises(
-            ValueError, self.packet_counter._get_source_service,
+            ValueError, self.byte_counter._get_source_service,
             key,
         )
 
     @unittest.mock.patch('magma.kernsnoopd.metrics.MAGMA_BYTES_SENT_TOTAL')
-    @unittest.mock.patch('magma.kernsnoopd.metrics.MAGMA_PACKETS_SENT_TOTAL')
-    def test_handle_magma_counters(self, packets_count_mock, bytes_count_mock):
+    def test_handle_magma_counters(self, bytes_count_mock):
         """
         Test handle with Magma service to Magma service traffic
         """
-        packets_count_mock.labels = MagicMock(return_value=MagicMock())
         bytes_count_mock.labels = MagicMock(return_value=MagicMock())
 
         key = MagicMock()
@@ -93,28 +91,20 @@ class PacketCounterTests(unittest.TestCase):
         # 16777343 is "127.0.0.1" packed as a 4 byte int
         key.daddr, key.dport = 16777343, htons(80)
 
-        counter = MagicMock()
-        counter.bytes, counter.packets = 100, 10
-        bpf = {'dest_counters': {key: counter}}
+        bpf = {'dest_counters': {key: 100}}
 
-        self.packet_counter.handle(bpf)
+        self.byte_counter.handle(bpf)
 
-        packets_count_mock.labels.assert_called_once_with(
-            service_name='subscriberdb', dest_service='sessiond',
-        )
-        packets_count_mock.labels.return_value.inc.assert_called_once_with(10)
         bytes_count_mock.labels.assert_called_once_with(
-            service_name='subscriberdb', dest_service='sessiond',
+            service_name='subscriberdb', dest_service='',
         )
         bytes_count_mock.labels.return_value.inc.assert_called_once_with(100)
 
     @unittest.mock.patch('magma.kernsnoopd.metrics.LINUX_BYTES_SENT_TOTAL')
-    @unittest.mock.patch('magma.kernsnoopd.metrics.LINUX_PACKETS_SENT_TOTAL')
-    def test_handle_linux_counters(self, packets_count_mock, bytes_count_mock):
+    def test_handle_linux_counters(self, bytes_count_mock):
         """
         Test handle with Linux binary traffic
         """
-        packets_count_mock.labels = MagicMock(return_value=MagicMock())
         bytes_count_mock.labels = MagicMock(return_value=MagicMock())
 
         key = MagicMock()
@@ -122,13 +112,9 @@ class PacketCounterTests(unittest.TestCase):
         # 16777343 is "127.0.0.1" packed as a 4 byte int
         key.daddr, key.dport = 16777343, htons(443)
 
-        counter = MagicMock()
-        counter.bytes, counter.packets = 100, 10
-        bpf = {'dest_counters': {key: counter}}
+        bpf = {'dest_counters': {key: 100}}
 
-        self.packet_counter.handle(bpf)
+        self.byte_counter.handle(bpf)
 
-        packets_count_mock.labels.assert_called_once_with('sshd')
-        packets_count_mock.labels.return_value.inc.assert_called_once_with(10)
         bytes_count_mock.labels.assert_called_once_with('sshd')
         bytes_count_mock.labels.return_value.inc.assert_called_once_with(100)

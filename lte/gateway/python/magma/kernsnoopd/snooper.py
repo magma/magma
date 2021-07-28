@@ -18,8 +18,10 @@ from jinja2 import Template
 from magma.common.job import Job
 from magma.kernsnoopd.handlers import ebpf_handlers
 
-# TODO: what's the right way to look for these files?
-EBPF_SRC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ebpf')
+EBPF_SRC_DIR = "/etc/magma/ebpf"
+if not os.path.isdir(EBPF_SRC_DIR):
+    EBPF_SRC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'ebpf')
 EBPF_COMMON_FILE = 'common.bpf.h'
 
 
@@ -86,6 +88,9 @@ class Snooper(Job):
             NoSourcesFoundError: self._ebpf_programs was empty or no source in
             self._ebpf_programs could be loaded
         """
+        if not self._ebpf_programs:
+            raise NoSourcesFoundError()
+
         sources = []
         for basename in self._ebpf_programs:
             filename = os.path.join(EBPF_SRC_DIR, f'{basename}.bpf.c')

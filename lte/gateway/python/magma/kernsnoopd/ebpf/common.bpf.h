@@ -19,18 +19,17 @@
 
 #include <bcc/proto.h>
 #include <linux/sched.h>
-#include <net/inet_sock.h>
+#include <uapi/linux/ptrace.h>
+#include <net/sock.h>
 
-struct counters_t {
-  u64 bytes;
-  u64 packets;
-};
 
 struct key_t {
   // binary name (task->comm in the kernel)
   char comm[TASK_COMM_LEN];
   u32 pid;
-  // destination IP address and port
+  // source and destination addresses and ports
+  u32 saddr;
   u32 daddr;
+  u16 lport;
   u16 dport;
 };
