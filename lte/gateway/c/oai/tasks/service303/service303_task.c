@@ -21,21 +21,21 @@
 
 #include "log.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "common_defs.h"
 #include "service303.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "timer_messages_types.h"
 #include "itti_free_defined_msg.h"
 
 static void service303_server_exit(void);
 static void service303_message_exit(void);
 
-static long service303_epc_stats_timer_id;
 task_zmq_ctx_t service303_server_task_zmq_ctx;
 task_zmq_ctx_t service303_message_task_zmq_ctx;
+static long display_stats_timer_id;
+static int handle_display_timer(zloop_t*, int, void*);
+static void start_display_stats_timer(void);
 
 static int handle_service303_server_message(
     zloop_t* loop, zsock_t* reader, void* arg) {
@@ -68,7 +68,6 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
   init_task_context(
       TASK_SERVICE303_SERVER, (task_id_t[]){}, 0,
       handle_service303_server_message, &service303_server_task_zmq_ctx);
-
   zloop_start(service303_server_task_zmq_ctx.event_loop);
   service303_server_exit();
   return NULL;
@@ -78,27 +77,19 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TIMER_HAS_EXPIRED: {
-      /*
-       * Check statistic timer
-       */
-      if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-        break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          service303_epc_stats_timer_id) {
-        service303_statistics_read();
-      }
-      timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-      break;
-    }
     case APPLICATION_HEALTHY_MSG: {
       service303_set_application_health(APP_HEALTHY);
     } break;
     case APPLICATION_UNHEALTHY_MSG: {
       service303_set_application_health(APP_UNHEALTHY);
+    } break;
+    case APPLICATION_MME_APP_STATS_MSG: {
+      service303_mme_app_statistics_read(
+          &received_message_p->ittiMsg.application_mme_app_stats_msg);
+    } break;
+    case APPLICATION_S1AP_STATS_MSG: {
+      service303_s1ap_statistics_read(
+          &received_message_p->ittiMsg.application_s1ap_stats_msg);
     } break;
     case TERMINATE_MESSAGE:
       free(received_message_p);
@@ -116,41 +107,11 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 static void* service303_thread(void* args) {
-  bstring pkg_name                   = bfromcstr(SERVICE303_MME_PACKAGE_NAME);
-  service303_data_t* service303_data = (service303_data_t*) args;
-
   itti_mark_task_ready(TASK_SERVICE303);
   init_task_context(
       TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
       &service303_message_task_zmq_ctx);
-
-  if (bstricmp(service303_data->name, pkg_name) == 0) {
-    /* NOTE : Above check for MME package is added since SPGW does not support
-     * stats at present
-     * TODO : Whenever SPGW implements stats,remove the above "if" check so that
-     * timer is started in SPGW also and SPGW stats can also be read as part of
-     * timer expiry handling
-     */
-
-    /*
-     * Check if this thread is started by MME service if so start a timer
-     * to trigger reading the mme stats so that it cen be sent to server
-     * for display
-     * Start periodic timer
-     */
-    if (timer_setup(
-            EPC_STATS_TIMER_VALUE, 0, TASK_SERVICE303, INSTANCE_DEFAULT,
-            TIMER_PERIODIC, NULL, 0, &service303_epc_stats_timer_id) < 0) {
-      OAILOG_ALERT(
-          LOG_UTIL,
-          " TASK SERVICE303_MESSAGE for EPC: Periodic Stat Timer Start: "
-          "ERROR\n");
-      service303_epc_stats_timer_id = 0;
-    }
-  }
-
-  bdestroy(pkg_name);
-
+  start_display_stats_timer();
   zloop_start(service303_message_task_zmq_ctx.event_loop);
   service303_message_exit();
   return NULL;
@@ -186,8 +147,19 @@ static void service303_server_exit(void) {
 }
 
 static void service303_message_exit(void) {
-  timer_remove(service303_epc_stats_timer_id, NULL);
+  stop_timer(&service303_message_task_zmq_ctx, display_stats_timer_id);
   destroy_task_context(&service303_message_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_SERVICE303 terminated\n");
   pthread_exit(NULL);
+}
+
+static int handle_display_timer(zloop_t* loop, int id, void* arg) {
+  service303_statistics_display();
+  return 0;
+}
+
+static void start_display_stats_timer(void) {
+  display_stats_timer_id = start_timer(
+      &service303_message_task_zmq_ctx, EPC_STATS_DISPLAY_TIMER_MSEC,
+      TIMER_REPEAT_FOREVER, handle_display_timer, NULL);
 }

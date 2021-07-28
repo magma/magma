@@ -17,20 +17,49 @@
 #define SERVICE303
 
 #include <stddef.h>
-
-#include "mme_app_state.h"
+#include "log.h"
 #include "service303.h"
 
-static void service303_mme_statistics_read(void) {
-  size_t label                   = 0;
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  set_gauge("enb_connected", mme_app_desc_p->nb_enb_connected, label);
-  set_gauge("ue_registered", mme_app_desc_p->nb_ue_attached, label);
-  set_gauge("ue_connected", mme_app_desc_p->nb_ue_connected, label);
-  return;
+void service303_mme_app_statistics_read(
+    application_mme_app_stats_msg_t* stats_msg_p) {
+  size_t label = 0;
+  set_gauge("ue_registered", stats_msg_p->nb_ue_attached, label);
+  set_gauge("ue_connected", stats_msg_p->nb_ue_connected, label);
+  set_gauge("default_eps_bearers", stats_msg_p->nb_default_eps_bearers, label);
+  set_gauge("s1u_bearers", stats_msg_p->nb_s1u_bearers, label);
 }
 
-void service303_statistics_read(void) {
-  service303_mme_statistics_read();
-  return;
+void service303_s1ap_statistics_read(
+    application_s1ap_stats_msg_t* stats_msg_p) {
+  size_t label = 0;
+  set_gauge("enb_connected", stats_msg_p->nb_enb_connected, label);
+}
+
+void service303_statistics_display(void) {
+  size_t label = 0;
+  OAILOG_DEBUG(
+      LOG_SERVICE303,
+      "======================================= STATISTICS "
+      "============================================\n\n");
+  OAILOG_DEBUG(LOG_SERVICE303, "               |   Current Status|\n");
+  OAILOG_DEBUG(
+      LOG_SERVICE303, "Attached UEs   | %10u      |\n",
+      (uint32_t) get_gauge("ue_registered", label));
+  OAILOG_DEBUG(
+      LOG_SERVICE303, "Connected UEs  | %10u      |\n",
+      (uint32_t) get_gauge("ue_connected", label));
+  OAILOG_DEBUG(
+      LOG_SERVICE303, "Connected eNBs | %10u      |\n",
+      (uint32_t) get_gauge("enb_connected", label));
+  OAILOG_DEBUG(
+      LOG_SERVICE303, "Default Bearers| %10u      |\n",
+      (uint32_t) get_gauge("default_eps_bearers", label));
+  OAILOG_DEBUG(
+      LOG_SERVICE303, "S1-U Bearers   | %10u      |\n\n",
+      (uint32_t) get_gauge("s1u_bearers", label));
+
+  OAILOG_DEBUG(
+      LOG_SERVICE303,
+      "======================================= STATISTICS "
+      "============================================\n\n");
 }

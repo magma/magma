@@ -78,7 +78,6 @@ class MmeNasStateManager
   ~MmeNasStateManager();
 
   int max_ue_htbl_lists_;
-  uint32_t mme_statistic_timer_;
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
   void mme_nas_state_init_local_state();
