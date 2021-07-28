@@ -43,7 +43,7 @@ RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linu
     cp -r go/bin/* /usr/local/bin/
 
 # Install protobuf compiler.
-RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
+RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
     unzip protoc3.zip -d protoc3 && \
     mv protoc3/bin/protoc /bin/protoc && \
     chmod a+rx /bin/protoc && \
