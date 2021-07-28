@@ -69,6 +69,10 @@ func TestSyncStore(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, page)
 		assert.Empty(t, nextToken)
+
+		lastResync, err := store.GetLastResync("n0", "g0")
+		assert.NoError(t, err)
+		assert.Empty(t, lastResync)
 	})
 
 	t.Run("basic insert digests", func(t *testing.T) {
@@ -164,6 +168,39 @@ func TestSyncStore(t *testing.T) {
 		assert.EqualError(t, err, "attempt to insert into network n0 with invalid cache writer")
 	})
 
+	t.Run("last resync set and get", func(t *testing.T) {
+		expectedLastResyncTime := uint32(time.Now().Unix())
+
+		err := store.RecordResync("n0", "g0", expectedLastResyncTime+1)
+		assert.NoError(t, err)
+		err = store.RecordResync("n0", "g1", expectedLastResyncTime+2)
+		assert.NoError(t, err)
+		err = store.RecordResync("n1", "g0", expectedLastResyncTime+3)
+		assert.NoError(t, err)
+		err = store.RecordResync("n1", "g1", expectedLastResyncTime+4)
+		assert.NoError(t, err)
+
+		lastResyncTime1, err := store.GetLastResync("n0", "g0")
+		assert.NoError(t, err)
+		assert.Equal(t, expectedLastResyncTime+1, lastResyncTime1)
+		lastResyncTime2, err := store.GetLastResync("n0", "g1")
+		assert.NoError(t, err)
+		assert.Equal(t, expectedLastResyncTime+2, lastResyncTime2)
+		lastResyncTime3, err := store.GetLastResync("n1", "g0")
+		assert.NoError(t, err)
+		assert.Equal(t, expectedLastResyncTime+3, lastResyncTime3)
+		lastResyncTime4, err := store.GetLastResync("n1", "g1")
+		assert.NoError(t, err)
+		assert.Equal(t, expectedLastResyncTime+4, lastResyncTime4)
+
+		// Test upserting value to the store
+		err = store.RecordResync("n0", "g0", expectedLastResyncTime+5)
+		assert.NoError(t, err)
+		lastResyncTime5, err := store.GetLastResync("n0", "g0")
+		assert.NoError(t, err)
+		assert.Equal(t, expectedLastResyncTime+5, lastResyncTime5)
+	})
+
 	t.Run("garbage collection", func(t *testing.T) {
 		err = store.SetDigest("n0", expectedDigestTree)
 		assert.NoError(t, err)
@@ -177,6 +214,12 @@ func TestSyncStore(t *testing.T) {
 		assert.NoError(t, err)
 		err = writer.Apply()
 		assert.NoError(t, err)
+		err = store.RecordResync("n0", "g0", uint32(clock.Now().Unix()))
+		assert.NoError(t, err)
+		err = store.RecordResync("n0", "g1", uint32(clock.Now().Unix()))
+		assert.NoError(t, err)
+		err = store.RecordResync("n1", "g0", uint32(clock.Now().Unix()))
+		assert.NoError(t, err)
 
 		digestTrees, err := store.GetDigests([]string{}, clock.Now().Unix(), true)
 		assert.NoError(t, err)
@@ -185,6 +228,15 @@ func TestSyncStore(t *testing.T) {
 		objs, _, err := store.GetCachedByPage("n0", "", 10)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, objs)
+		lastResync, err := store.GetLastResync("n0", "g0")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, lastResync)
+		lastResync, err = store.GetLastResync("n0", "g1")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, lastResync)
+		lastResync, err = store.GetLastResync("n1", "g0")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, lastResync)
 
 		// Only track data from network n1
 		err = store.CollectGarbage([]string{"n1"})
@@ -197,5 +249,14 @@ func TestSyncStore(t *testing.T) {
 		objs, _, err = store.GetCachedByPage("n0", "", 10)
 		assert.NoError(t, err)
 		assert.Empty(t, objs)
+		lastResync, err = store.GetLastResync("n0", "g0")
+		assert.NoError(t, err)
+		assert.Empty(t, lastResync)
+		lastResync, err = store.GetLastResync("n0", "g1")
+		assert.NoError(t, err)
+		assert.Empty(t, lastResync)
+		lastResync, err = store.GetLastResync("n1", "g0")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, lastResync)
 	})
 }

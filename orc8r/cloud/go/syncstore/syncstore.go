@@ -29,6 +29,8 @@ const (
 	leafDigestsCol     = "leaf_digests"
 	objCol             = "obj"
 	lastUpdatedTimeCol = "last_updated_at"
+
+	lastResyncBlobstoreType = "gateway_last_resync_time"
 )
 
 type SyncStore interface {
@@ -46,7 +48,7 @@ type SyncStore interface {
 	UpdateCache(network string) (CacheWriter, error)
 
 	// RecordResync tracks the last resync time of a gateway.
-	RecordResync(network string, gatewayID string, t int64) error
+	RecordResync(network string, gateway string, t uint32) error
 }
 
 type SyncStoreReader interface {
@@ -66,11 +68,12 @@ type SyncStoreReader interface {
 	GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error)
 
 	// GetLastResync returns the last resync time of a particular gateway.
-	GetLastResync(network string, gatewayID string) (int64, error)
+	GetLastResync(network string, gateway string) (uint32, error)
 }
 
 type CacheWriter interface {
-	// InsertMany inserts a batch of objects into the temporary table.
+	// InsertMany inserts a batch of objects into the temporary table of the
+	// CacheWriter object.
 	// NOTE: Caller of the function should enforce that the max size of the
 	// insertion aligns reasonably with the max page size of its corresponding
 	// load source.

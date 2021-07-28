@@ -15,10 +15,13 @@ package syncstore
 
 import (
 	"database/sql"
+	"encoding/binary"
 
 	"magma/orc8r/cloud/go/blobstore"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/Masterminds/squirrel"
@@ -27,13 +30,13 @@ import (
 )
 
 type syncStoreReader struct {
-	db      *sql.DB
-	builder sqorc.StatementBuilder
-	fact    blobstore.BlobStorageFactory
+	db         *sql.DB
+	builder    sqorc.StatementBuilder
+	resyncFact blobstore.BlobStorageFactory
 }
 
-func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory) SyncStoreReader {
-	return &syncStoreReader{db: db, builder: builder, fact: fact}
+func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, resyncFact blobstore.BlobStorageFactory) SyncStoreReader {
+	return &syncStoreReader{db: db, builder: builder, resyncFact: resyncFact}
 }
 
 func (l *syncStoreReader) Initialize() error {
@@ -186,9 +189,24 @@ func (l *syncStoreReader) GetCachedByPage(network string, token string, pageSize
 	return info.objects, info.token, nil
 }
 
-func (l *syncStoreReader) GetLastResync(network string, gatewayID string) (int64, error) {
-	// TODO(wangyyt1013)
-	return int64(0), nil
+func (l *syncStoreReader) GetLastResync(network string, gateway string) (uint32, error) {
+	store, err := l.resyncFact.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return uint32(0), errors.Wrapf(err, "error starting transaction")
+	}
+	defer store.Rollback()
+
+	blob, err := store.Get(network, storage.TypeAndKey{Type: lastResyncBlobstoreType, Key: gateway})
+	if err == merrors.ErrNotFound {
+		// If this gw has never been resynced, return 0 to enforce first resync
+		return uint32(0), nil
+	}
+	if err != nil {
+		return uint32(0), errors.Wrapf(err, "get last resync time of network %+v, gateway %+v from blobstore", network, gateway)
+	}
+
+	lastResync := binary.LittleEndian.Uint32(blob.Value)
+	return lastResync, store.Commit()
 }
 
 // parsePage parses the list of cached serialized objs, as well as returns the next
