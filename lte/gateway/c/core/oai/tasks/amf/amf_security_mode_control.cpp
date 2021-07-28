@@ -301,9 +301,8 @@ int amf_proc_security_mode_control(
   int amf_eia       = 0;  // Integrity Algorithm 2
   uint8_t snni[32]  = {0};
   uint8_t ak_sqn[6] = {0};
-  /*
-   * Get the UE context
-   */
+  amf_plmn_t plmn   = {0};
+
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Initiating security mode control procedure, "
@@ -361,6 +360,8 @@ int amf_proc_security_mode_control(
       // NAS Integrity key is calculated as specified in TS 33501, Annex A
       char imsi[IMSI_BCD_DIGITS_MAX + 1];
       IMSI64_TO_STRING(amf_ctx->imsi64, imsi, 15);
+      memcpy(&plmn, amf_ctx->imsi.u.value, 3);
+      format_plmn(&plmn);
 
       /* Building 32 bytes of string with serving network SN
        * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
@@ -372,8 +373,8 @@ int amf_proc_security_mode_control(
       PLMN_T_TO_MCC_MNC(
           amf_ctx->originating_tai.plmn, mcc, mnc, mnc_digit_length);
       uint32_t snni_buf_len = snprintf(
-          (char*) snni, sizeof(snni) - 1, "%s%03d%s%03d%s",
-	  "5G:mnc",mnc,".mcc",mcc,".3gppnetwork.org");
+          (char*) snni, sizeof(snni) - 1, "%s%03d%s%03d%s", "5G:mnc", mnc,
+          ".mcc", mcc, ".3gppnetwork.org");
       if (snni_buf_len != 32) {
         OAILOG_ERROR(
             LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);

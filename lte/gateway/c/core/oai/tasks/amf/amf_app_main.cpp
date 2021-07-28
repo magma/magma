@@ -73,6 +73,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           AMF_APP_UL_DATA_IND(received_message_p).ue_id,
           AMF_APP_UL_DATA_IND(received_message_p).tai);
       break;
+    case AMF_APP_INITIAL_CONTEXT_SETUP_RSP:
+      amf_app_handle_initial_context_setup_rsp(
+          amf_app_desc_p,
+          &AMF_APP_INITIAL_CONTEXT_SETUP_RSP(received_message_p));
+      break;
     /* Handle PDU session Response from UE */
     case N11_CREATE_PDU_SESSION_RESPONSE:
       OAILOG_DEBUG(LOG_AMF_APP, "PDU SESSION RESPONSE received\n");
