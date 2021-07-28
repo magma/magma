@@ -157,7 +157,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
     def _get_rule_match_flow_msgs(
         self, imsi, msisdn: bytes, uplink_tunnel: int,
-        ip_addr, apn_ambr, rule, version,
+        ip_addr, apn_ambr, rule, version, shard_id,
         local_f_teid_ng,
     ):
         """
@@ -198,7 +198,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
     def _install_flow_for_rule(
         self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version,
-        local_f_teid_ng: int,
+        shard_id: int, local_f_teid_ng: int,
     ):
         """
         Install a flow to get stats for a particular rule. Flows will match on
@@ -227,7 +227,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
                 version = self._session_rule_version_mapper.get_version(imsi, ip_addr, rule.id)
             flow_adds = self._get_rule_match_flow_msgs(
                 imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule,
-                version, local_f_teid_ng,
+                version, shard_id, local_f_teid_ng,
             )
         except FlowMatchError:
             return RuleModResult.FAILURE

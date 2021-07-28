@@ -578,6 +578,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             ipv4_addr = _get_ipv4(flow_stat)
             ipv6_addr = _get_ipv6(flow_stat)
 
+            local_f_teid_ng = _get_ng_local_f_id(flow_stat)
+
             # use a compound key to separate flows for the same rule but for
             # different subscribers
             key = sid + "|" + rule_id
@@ -602,6 +604,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 current_usage[key].ue_ipv4 = ipv4_addr
             elif ipv6_addr:
                 current_usage[key].ue_ipv6 = ipv6_addr
+            if local_f_teid_ng:
+                current_usage[key].teid = local_f_teid_ng
+
             bytes_rx = 0
             bytes_tx = 0
             if flow_stat.match[DIRECTION_REG] == Direction.IN:
@@ -636,6 +641,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             current_ver = self._session_rule_version_mapper.get_version(
                     record.sid, ip_addr, record.rule_id,
             )
+            local_f_teid_ng = 0
+            if record.teid:
+                local_f_teid_ng = record.teid
 
             if current_ver == record.rule_version:
                 continue
@@ -643,7 +651,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             try:
                 self._delete_flow(
                     record.sid, ip_addr,
-                    record.rule_id, record.rule_version,
+                    record.rule_id, record.rule_version, local_f_teid_ng,
                 )
             except MagmaOFError as e:
                 self.logger.error(
@@ -652,18 +660,23 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     record.sid, record.rule_version, e,
                 )
 
-    def _delete_flow(self, imsi, ip_addr, rule_id, rule_version):
+    def _delete_flow(self, imsi, ip_addr, rule_id, rule_version, local_f_teid_ng=0):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule_id)
-        match_in = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
+        cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
+        match_in = _generate_rule_match(imsi, ip_addr, cookie, rule_version,
                                         Direction.IN, local_f_teid_ng)
-        match_out = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
+        match_out = _generate_rule_match(imsi, ip_addr, cookie, rule_version,
                                          Direction.OUT, local_f_teid_ng)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
-                          match_in)
+                          match_in,
+                          cookie=cookie,
+                          cookie_mask=mask)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
-                          match_out)
+                          match_out,
+                          cookie=cookie,
+                          cookie_mask=mask)
 
     def _was_ovs_restarted(self):
         try:

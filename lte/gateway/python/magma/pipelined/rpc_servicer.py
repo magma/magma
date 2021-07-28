@@ -1082,37 +1082,34 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             ip, session_version,
         )
 
-        # Install rules in enforcement stats
-        enforcement_stats_res = self._activate_rules_in_enforcement_stats(
+        # Install rules in enforcement
+        enforcement_res = self._activate_rules_in_enforcement(
                                          qos_enforce_rule.sid.id, qos_enforce_rule.msisdn,
                                          qos_enforce_rule.uplink_tunnel,
                                          ip, qos_enforce_rule.apn_ambr,
-                                         qos_enforce_rule.policies, local_f_teid_ng,
+                                         qos_enforce_rule.policies, 0, local_f_teid_ng,
         )
 
         failed_policies_results = \
-             _retrieve_failed_results(enforcement_stats_res)
+             _retrieve_failed_results(enforcement_res)
 
-        logging.info(qos_enforce_rule.policies)
         # Do not install any rules that failed to install in enforcement_stats.
         policy_rules = \
              _filter_failed_policies(qos_enforce_rule, failed_policies_results)
-        logging.info("policy_rules")
-        logging.info(policy_rules)
-        enforcement_res = \
-               self._activate_rules_in_enforcement(
+        enforcement_stats_res = \
+               self._activate_rules_in_enforcement_stats(
                     qos_enforce_rule.sid.id, qos_enforce_rule.msisdn,
 					qos_enforce_rule.uplink_tunnel,
                     ip, qos_enforce_rule.apn_ambr,
-                    policy_rules, local_f_teid_ng,
+                    policy_rules, 0, local_f_teid_ng,
                )
 
         # Include the failed rules from enforcement_stats in the response.
-        enforcement_res.policy_results.extend(
+        enforcement_stats_res.policy_results.extend(
              failed_policies_results,
         )
 
-        return enforcement_res
+        return enforcement_stats_res
 
     def _ng_deactivate_qer_flows(
         self, ip: IPAddress, local_f_teid_ng,
