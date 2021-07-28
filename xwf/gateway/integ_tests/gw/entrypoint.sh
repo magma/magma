@@ -63,5 +63,9 @@ dnsmasq
 echo "run DHCP server"
 /usr/sbin/dhcpd -f -cf /etc/dhcp/dhcpd.conf -user dhcpd -group dhcpd --no-pid gw0 &
 
+echo "set mss"
+iptables -t mangle -A FORWARD -o gw0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+iptables -t mangle -A FORWARD -i gw0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+
 echo "loop forever"
 tail -f /dev/null

@@ -38,6 +38,9 @@
     - role: test_certs
     - role: ovs
     - role: golang
+      vars:
+        golang_tar: go1.13.4.linux-amd64.tar.gz
+        golang_tar_checksum: 'sha256:692d17071736f74be04a72a06dab9cac1cd759377bd85316e52b2227604c004c'
     - role: cwag
 
   tasks:

@@ -67,6 +67,7 @@ typedef struct ngap_ue_aggregate_maximum_bit_rate_s {
   bit_rate_t ul;
 } ngap_ue_aggregate_maximum_bit_rate_t;
 
+typedef uint32_t amf_ue_ngap_id_t;
 typedef uint32_t amf_ue_ngap_id_ty;
 typedef uint32_t ran_ue_ngap_id_t;
 
