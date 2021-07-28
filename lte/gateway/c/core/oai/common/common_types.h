@@ -405,6 +405,11 @@ typedef struct authentication_info_s {
   eutran_vector_t eutran_vector[MAX_EPS_AUTH_VECTORS];
 } authentication_info_t;
 
+typedef struct m5g_authentication_info_s {
+  uint8_t nb_of_vectors;
+  m5gauth_vector_t m5gauth_vector[MAX_EPS_AUTH_VECTORS];
+} m5g_authentication_info_t;
+
 typedef enum {
   DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE = 4181,
   DIAMETER_ERROR_USER_UNKNOWN              = 5001,
