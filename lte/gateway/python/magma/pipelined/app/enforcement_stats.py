@@ -19,23 +19,40 @@ from datetime import datetime, timedelta
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
-from magma.pipelined.app.base import (ControllerType, MagmaController,
-                                      global_epoch)
-from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
-                                              PROCESS_STATS, PolicyMixin)
+from magma.pipelined.app.base import (
+    ControllerType,
+    MagmaController,
+    global_epoch,
+)
+from magma.pipelined.app.policy_mixin import (
+    DROP_FLOW_STATS,
+    IGNORE_STATS,
+    PROCESS_STATS,
+    PolicyMixin,
+)
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
 from magma.pipelined.openflow import flows
-from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
-                                                 MagmaOFError)
+from magma.pipelined.openflow.exceptions import (
+    MagmaDPDisconnectedError,
+    MagmaOFError,
+)
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow.registers import (Direction, DIRECTION_REG, IMSI_REG,
-                                                RULE_VERSION_REG, RULE_NUM_REG, SCRATCH_REGS)
-from magma.pipelined.policy_converters import (get_eth_type,
-                                               get_ue_ip_match_args,
-                                               convert_ipv4_str_to_ip_proto,
-                                               convert_ipv6_str_to_ip_proto)
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    RULE_NUM_REG,
+    RULE_VERSION_REG,
+    SCRATCH_REGS,
+    Direction,
+)
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    convert_ipv6_str_to_ip_proto,
+    get_eth_type,
+    get_ue_ip_match_args,
+)
 from magma.pipelined.utils import Utils
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -319,7 +336,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     self._last_poll_time.strftime("%H:%M:%S")
                 )
                 self._last_report_timestamp = now
-                hub.sleep(poll_interval/2)
+                hub.sleep(poll_interval / 2)
                 continue
             if delta < poll_interval:
                 continue
@@ -339,7 +356,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                                      cookie, cookie_mask)
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
             self.logger.warning("Couldn't poll datapath stats: %s", e)
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
@@ -605,6 +622,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error("Could not obtain stats for cookie %d, processing timed out", cookie)
             return RuleRecordTable()
 
+
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
     Return a MagmaMatch that matches on the rule num and the version.
@@ -613,6 +631,7 @@ def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     return MagmaMatch(imsi=encode_imsi(imsi), eth_type=get_eth_type(ip_addr),
                       direction=direction, rule_num=rule_num,
                       rule_version=version, **ip_match)
+
 
 def _get_sid(flow):
     if IMSI_REG not in flow.match:

@@ -334,7 +334,7 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
 
-        #There is no sessiond report callback in testing so manually reset var
+        # There is no sessiond report callback in testing so manually reset var
         if times_called != len(controller._report_usage.call_args_list):
             times_called = len(controller._report_usage.call_args_list)
             controller._last_report_timestamp = datetime.now()
