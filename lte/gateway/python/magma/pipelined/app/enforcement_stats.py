@@ -71,11 +71,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
     INIT_SLEEP_TIME = 3
     MAX_DELAY_INTERVALS = 20
-<<<<<<< HEAD
     REDIS_STORE_HASH = "enforcement_stats_info"
-=======
     DEFAULT_STATS_WAIT_TIMEOUT = 5
->>>>>>> 7bba297ba5bec335276969578b8f14807b14296b
 
     _CONTEXTS = {
         'dpset': dpset.DPSet,
