@@ -65,7 +65,7 @@ module "orc8r-app" {
   orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   # Note that this can be any container registry provider
-  docker_registry = "https://docker.artifactory.magmacore.org/artifactory/docker"
+  docker_registry = "docker.artifactory.magmacore.org"
   docker_user     = ""
   docker_pass     = ""
 
