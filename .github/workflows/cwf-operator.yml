@@ -37,11 +37,10 @@ jobs:
             cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
             make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        id: commit
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -50,7 +49,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-precommit tests failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWF workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -86,11 +85,11 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Extract commit title
+        id: commit
         if: github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -100,7 +99,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-build failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWF workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -112,7 +111,7 @@ jobs:
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_TITLE: "*CWF Artifact Has Been Published*"
           SLACK_USERNAME: "CWF workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"

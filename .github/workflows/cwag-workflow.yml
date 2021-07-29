@@ -44,10 +44,10 @@ jobs:
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - name: Extract commit title
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        id: commit
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -56,7 +56,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG-precommit tests failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -128,11 +128,11 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Extract commit title
+        id: commit
         if: github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -142,7 +142,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG-deploy failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -155,7 +155,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*CWAG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -193,11 +193,11 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${GITHUB_SHA:0:8}" --tag-latest true
       - name: Extract commit title
+        id: commit
         if: github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -207,7 +207,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action xwfm-deploy-latest failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -220,7 +220,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*xwfm Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
