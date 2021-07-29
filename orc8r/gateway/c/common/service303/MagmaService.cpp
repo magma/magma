@@ -31,9 +31,9 @@
 #include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
 #include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
 #include "magma_logging_init.h"                    // for set_verbosity
-#include "orc8r/protos/metrics.pb.h"               // for MetricFamily
+#include <prometheus/metrics.pb.h>                 // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
-#include "registry.h"                              // for Registry
+#include <prometheus/registry.h>                   // for Registry
 namespace grpc {
 class ServerContext;
 }
