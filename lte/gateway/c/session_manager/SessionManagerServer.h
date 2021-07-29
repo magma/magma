@@ -615,5 +615,4 @@ class SetSmfNotificationCallData
  private:
   SetMessageManager& handler_;
 };
-
 }  // namespace magma
