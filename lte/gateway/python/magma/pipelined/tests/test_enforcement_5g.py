@@ -155,7 +155,7 @@ class EnforcementTableTest(unittest.TestCase):
                 rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list1),
                 version=1,
                 ),
-            ], local_f_teid_ng=100,
+            ], shard_id=0, local_f_teid_ng=100,
         )
 
         snapshot_verifier = SnapshotVerifier(
@@ -200,7 +200,7 @@ class EnforcementTableTest(unittest.TestCase):
                 rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list),
                 version=2,
                 ),
-            ], local_f_teid_ng=555,
+            ], shard_id=0, local_f_teid_ng=555,
         )
         imsi = 'IMSI001000000100088'
         sub_ip = '192.168.128.150'
@@ -231,7 +231,7 @@ class EnforcementTableTest(unittest.TestCase):
                 rule=PolicyRule(id='rule2', priority=65536, flow_list=flow_list),
                 version=3,
                 ),
-            ], local_f_teid_ng=5000,
+            ], shard_id=0, local_f_teid_ng=5000,
         )
 
         snapshot_verifier = SnapshotVerifier(

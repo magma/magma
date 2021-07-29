@@ -286,6 +286,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
             if request.request_origin.type == RequestOriginType.GX:
+                self._update_version(request, ipv4)
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
@@ -294,6 +295,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
             if request.request_origin.type == RequestOriginType.GX:
+                self._update_version(request, ipv6)
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
@@ -309,6 +311,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _install_flows_gx(
         self, request: ActivateFlowsRequest,
         ip_address: IPAddress,
+        local_f_teid_ng: int = 0,
     ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
@@ -318,11 +321,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GX flows for %s', request.sid.id)
-        self._update_version(request, ip_address)
+        #self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies, request.shard_id,
+            request.policies, request.shard_id, local_f_teid_ng,
         )
 
         failed_policies_results = \
@@ -333,7 +336,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         enforcement_res = self._activate_rules_in_enforcement(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            policies, request.shard_id,
+            policies, request.shard_id, local_f_teid_ng,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -1081,35 +1084,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             qos_enforce_rule.sid.id, qos_enforce_rule,
             ip, session_version,
         )
-
-        # Install rules in enforcement
-        enforcement_res = self._activate_rules_in_enforcement(
-                                         qos_enforce_rule.sid.id, qos_enforce_rule.msisdn,
-                                         qos_enforce_rule.uplink_tunnel,
-                                         ip, qos_enforce_rule.apn_ambr,
-                                         qos_enforce_rule.policies, 0, local_f_teid_ng,
-        )
-
-        failed_policies_results = \
-             _retrieve_failed_results(enforcement_res)
-
-        # Do not install any rules that failed to install in enforcement_stats.
-        policy_rules = \
-             _filter_failed_policies(qos_enforce_rule, failed_policies_results)
-        enforcement_stats_res = \
-               self._activate_rules_in_enforcement_stats(
-                    qos_enforce_rule.sid.id, qos_enforce_rule.msisdn,
-					qos_enforce_rule.uplink_tunnel,
-                    ip, qos_enforce_rule.apn_ambr,
-                    policy_rules, 0, local_f_teid_ng,
-               )
-
-        # Include the failed rules from enforcement_stats in the response.
-        enforcement_stats_res.policy_results.extend(
-             failed_policies_results,
-        )
-
-        return enforcement_stats_res
+        enforcement_res = self._install_flows_gx(qos_enforce_rule, ip, local_f_teid_ng)
+        return enforcement_res
 
     def _ng_deactivate_qer_flows(
         self, ip: IPAddress, local_f_teid_ng,

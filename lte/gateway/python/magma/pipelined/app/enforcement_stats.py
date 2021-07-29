@@ -753,6 +753,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     continue
                 # Already present
                 if local_f_teid_ng in session_config_dict:
+                    if local_f_teid_ng != session_config_dict[local_f_teid_ng].local_f_teid:
+                        self.logger.error("Mismatch local TEID value. Need to investigate")
+
                     continue
 
                 sid = _get_sid(stat)
