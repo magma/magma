@@ -196,6 +196,11 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
     case SEC_MODE_COMPLETE:
       rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
       break;
+    case SEC_MODE_REJECT:
+      rc = amf_handle_security_mode_reject(
+          msg->ue_id, &amf_msg->msg.securitymodereject, *amf_cause,
+          decode_status);
+      break;
     case REG_COMPLETE:
       rc = amf_handle_registration_complete_response(
           msg->ue_id, &amf_msg->msg.registrationcompletemsg, *amf_cause,

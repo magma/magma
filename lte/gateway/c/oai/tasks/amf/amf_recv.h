@@ -39,6 +39,10 @@ int amf_handle_authentication_failure(
     amf_nas_message_decode_status_t status);
 int amf_handle_security_complete_response(
     amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status);
+int amf_handle_security_mode_reject(
+    const amf_ue_ngap_id_t ueid, SecurityModeRejectMsg* msg,
+    int const amf_cause, const amf_nas_message_decode_status_t decode_status);
+
 int amf_handle_registration_complete_response(
     amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);

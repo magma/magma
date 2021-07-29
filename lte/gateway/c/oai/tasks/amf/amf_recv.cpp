@@ -29,6 +29,7 @@ extern "C" {
 #include "amf_identity.h"
 
 #define AMF_CAUSE_SUCCESS (1)
+#define AMF_CAUSE_UE_SECURITY_CAP_MISMATCH (23)
 namespace magma5g {
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
@@ -74,8 +75,11 @@ int amf_handle_service_request(
           ue_id);
     }
   } else {
-    OAILOG_INFO(LOG_NAS_AMF, "TMSI not matched for "
-		"(ue_id=" AMF_UE_NGAP_ID_FMT ")\n", ue_id);
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "TMSI not matched for "
+        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+        ue_id);
 
     // Send prepare and send reject message.
   }
@@ -594,6 +598,65 @@ ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
     return amf_ue_context_exists_amf_ue_ngap_id(
         found_imsi->second.amf_ue_ngap_id);
   }
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_handle_security_mode_reject()                               **
+ **                                                                        **
+ ** Description: Processes Security Mode Reject message                    **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      msg:       The received AMF message                               **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     amf_cause: AMF cause code                                 **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_handle_security_mode_reject(
+    amf_ue_ngap_id_t ue_id, SecurityModeRejectMsg* msg, int amf_cause,
+    const amf_nas_message_decode_status_t status) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int rc = RETURNok;
+
+  OAILOG_WARNING(
+      LOG_NAS_AMF,
+      "AMFAS-SAP - Received Security Mode Reject message "
+      "(cause=%d)\n",
+      msg->m5gmm_cause.m5gmm_cause);
+
+  /*
+   * Message checking
+   */
+  if (msg->m5gmm_cause.m5gmm_cause == AMF_CAUSE_SUCCESS) {
+    amf_cause = AMF_CAUSE_INVALID_MANDATORY_INFO;
+  }
+
+  /*
+   * Handle message checking error
+   */
+  if (amf_cause != AMF_CAUSE_SUCCESS) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  if (msg->m5gmm_cause.m5gmm_cause == AMF_CAUSE_UE_SECURITY_CAP_MISMATCH) {
+    increment_counter(
+        "security_mode_reject_received", 1, 1, "cause", "ue_sec_cap_mismatch");
+  } else {
+    increment_counter(
+        "security_mode_reject_received", 1, 1, "cause", "unspecified");
+  }
+
+  /*
+   * Message processing
+   */
+  /*
+   * Execute the NAS security mode coamfnd not accepted by the UE
+   */
+  rc = amf_proc_security_mode_reject(ue_id);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 }  // namespace magma5g
