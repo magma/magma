@@ -720,6 +720,8 @@ class Classifier(MagmaController):
             session_state == PdrState.Value('INSTALL')
             or session_state == UESessionState.ACTIVE
         ):
+            # TODO: Will make same priority value for paging as active session
+            # then probably not required remove_paging_flow call.
             self.remove_paging_flow(ue_ip_addr)
             self.add_tunnel_flows(
                 precedence, local_f_teid,
