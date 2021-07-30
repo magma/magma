@@ -234,11 +234,11 @@ def foo(arg1: str) -> int:
 - For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services
   - On CI, the check gets run as part of the `lte-test` job
 - Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
-  - Instructions on running the linter locally is provided [here](../lte/dev_unit_testing#format-agw)
+  - [Instructions on running the linter locally](../lte/dev_unit_testing#format-agw)
 
 **Formatters**
 
-- Instructions on formatting Python locally is provided [here](../lte/dev_unit_testing#format-agw)
+- Always [format Python changes locally](../lte/dev_unit_testing#format-agw)
 - We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.
 
 
