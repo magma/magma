@@ -81,7 +81,7 @@ def sync(self, service_name):
 
 ### C/C++ services
 
-Each C/C++ service also exposes the `GetMetrics` method that the _magmad_ service uses to fetch collected metrics over gRPC. The [`MetricsSingleton`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/c/common/service303/MetricsSingleton.cpp) class provides helpers and wrappers around the Prometheus C++ client. [`service303.cpp`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/lte/gateway/c/core/oai/tasks/service303/service303.cpp) and [`MetricsHelpers.cpp`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/c/common/service303/MetricsHelpers.cpp) further wrap `MetricsSingleton` methods to make it even more convenient for Magma services to set and upload Prometheus metrics. There is significant duplication across `service303.cpp` and `MetricsHelpers.cpp` that should be cleaned up in the near future.
+Each C/C++ service also exposes the `GetMetrics` method that the _magmad_ service uses to fetch collected metrics over gRPC. The [`MetricsSingleton`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/c/common/service303/MetricsSingleton.cpp) class provides helpers and wrappers around the Prometheus C++ client. [`MetricsHelpers.cpp`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/c/common/service303/MetricsHelpers.cpp) further wraps `MetricsSingleton` methods to make it even more convenient for Magma services to set and upload Prometheus metrics.
 
 Similar to Python services, _magmad_ divides the metrics collected from C++ services into chunks of 1 MB or less, and uploads them over gRPC to _metricsd_ in the Orc8r.
 
