@@ -198,11 +198,11 @@ would presumably have to be compiled for various kernel versions. Pre-compiling
 is not necessary though as `gobf` allows the front-end Go program to trigger
 compilation just like the Python program above does.
 
-If we choose **C/C++**, we should switch from BCC to
-[`libbpf`](https://github.com/libbpf/libbpf) as BCC does not provide C bindings
-to write simple front-end programs. `libbpf` is simpler than BCC, which means
-the API is not as convenient, but it also supports compiling both the eBPF
-program and the front-end program into a small binary and remove clang as a
+If we choose **C/C++**, we should consider switching from BCC to
+[`libbpf`](https://github.com/libbpf/libbpf). While BCC provides C bindings to
+write front-end programs, `libbpf` is a simpler alternative. This means that
+the `libbpf` API is not as convenient, but it supports compiling both the eBPF
+program, and the front-end program into a small binary and remove clang as a
 dependency on the AGW.
 
 We have tools to translate Prometheus metrics for consumption at the `magmad`
@@ -366,6 +366,32 @@ AGW capacity in terms of number of UEs, varying attach/detach rates, data path
 traffic. We will also aim to compensate statistically for the jitter in AGW
 capacity measurements.
 
+## Updates
+
+After further discussion and feedback from team members, we decided to make the
+following changes to the design above
+
+- Instead of instrumenting the `net_dev_start_xmit` event, which is on the L2
+network path, we will attach a _kprobe_ to the `tcp_sendmsg` syscall. This will
+lower the performance impact of the instrumentation. As a result, we will lose
+the ability to observe L3 traffic such as that generated from the ping and
+traceroute probes that _magmad_ sends periodically. But since those probes
+should not be consuming much bandwidth, we are willing to ignore them.
+
+- We will not have packet counters. It is not possible to get accurate packet
+counts even with `net_dev_start_xmit` because of [NIC
+offloading](https://en.wikipedia.org/wiki/TCP_offload_engine).
+
+- We will not have destination IP address and port labels on Prometheus
+counters. This is because each distinct value for a label results in a separate
+Prometheus time series, and since destination IP addresses and ports have very
+large domains, the overhead of having separate time-series would be too high.
+
+- We will instead label Magma traffic by destination cloud service. All traffic
+from the AGW to the Orc8r will be going to the same destination port, so we will
+have to look at the [HTTP authority
+header](https://sourcegraph.com/github.com/magma/magma@v1.6/-/blob/orc8r/gateway/python/magma/common/service_registry.py?L165)
+to infer the destination service.
 
 ## References
 
