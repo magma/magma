@@ -15,12 +15,15 @@
  */
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
 import FEGGatewaySummary from './FEGGatewaySummary';
+import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
@@ -32,7 +35,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {EVENT_STREAM} from '../../views/events/EventsTable';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -106,6 +109,16 @@ function FEGGatewayOverview() {
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const gwCtx = useContext(FEGGatewayContext);
   const gwInfo = gwCtx.state[gatewayId];
+  const [refresh, setRefresh] = useState(true);
+
+  const filter = (refresh: boolean, setRefresh) => {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  };
 
   return (
     <div className={classes.dashboardRoot}>
@@ -123,6 +136,18 @@ function FEGGatewayOverview() {
                 hardwareId={gwInfo.device.hardware_id}
                 sz="sm"
               />
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction="column">
+            <Grid item>
+              <CardTitleRow
+                icon={GraphicEqIcon}
+                label="Status"
+                filter={() => filter(refresh, setRefresh)}
+              />
+              <FEGGatewayDetailStatus refresh={refresh} />
             </Grid>
           </Grid>
         </Grid>
