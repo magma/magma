@@ -73,6 +73,14 @@ void decrement_gauge(const char* name, double decrement, size_t n_labels, ...);
 void set_gauge(const char* name, double value, size_t n_labels, ...);
 
 /**
+ * Returns value for Gauge metric
+ * @param name
+ * @param n_labels number of labels
+ * @param ... label args (name, value)
+ */
+double get_gauge(const char* name, size_t n_labels, ...);
+
+/**
  * Updates value of Histogram metric
  * @param name
  * @param value to observe
