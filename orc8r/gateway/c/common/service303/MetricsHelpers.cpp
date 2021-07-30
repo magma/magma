@@ -15,8 +15,7 @@
 #include <stdarg.h>                     // for va_end, va_list, va_start
 #include "includes/MetricsSingleton.h"  // for MetricsSingleton
 
-namespace magma {
-namespace service303 {
+using namespace magma::service303;
 
 void remove_counter(const char* name, size_t n_labels, ...) {
   va_list ap;
@@ -69,6 +68,3 @@ void observe_histogram(
       name, observation, n_labels, ap);
   va_end(ap);
 }
-
-}  // namespace service303
-}  // namespace magma

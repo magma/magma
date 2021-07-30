@@ -15,8 +15,9 @@
 
 #include <stdio.h>  // for size_t
 
-namespace magma {
-namespace service303 {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Remove the counter metric that matches name+labels given
@@ -81,5 +82,6 @@ void set_gauge(const char* name, double value, size_t n_labels, ...);
 void observe_histogram(
     const char* name, double observation, size_t n_labels, ...);
 
-}  // namespace service303
-}  // namespace magma
+#ifdef __cplusplus
+}
+#endif
