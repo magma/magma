@@ -71,9 +71,10 @@ metrics from the access gateway to the orchestrator and NMS</strong>.</p>
 existing Magma metrics pipeline.</p>
 <h3><a class="anchor" aria-hidden="true" id="goals"></a><a href="#goals" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Goals</h3>
 <ol>
-<li><p>On the access gateway, record byte and packet counts grouped by service,
-destination IP address, and destination port.</p></li>
-<li><p>Export these counters as Prometheus metrics on the NMS UI.</p></li>
+<li><p>On the access gateway, record byte counts grouped by AGW source service and
+destination cloud service. For non-Magma traffic, only record the Linux binary
+that sends traffic.</p></li>
+<li><p>Export byte counts as Prometheus metrics on the NMS UI.</p></li>
 <li><p>Minimize performance penalty on the gateway for network metrics collection.</p></li>
 <li><p>Minimize required infrastructure changes for metrics export and for
 deployment.</p></li>
@@ -84,8 +85,8 @@ deployment.</p></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="proposal"></a><a href="#proposal" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal</h2>
 <p><img src="/magma/docs/assets/orc8r/control_network_metrics.png" alt="Network metrics path"></p>
-<p>To collect relevant metrics, i.e., byte and packet counters, we propose using
-an <a href="https://ebpf.io/what-is-ebpf/">eBPF</a> program. eBPF is a modern Linux kernel
+<p>To collect relevant byte count metrics, we propose using an
+<a href="https://ebpf.io/what-is-ebpf/">eBPF</a> program. eBPF is a modern Linux kernel
 feature that allows running sandboxed programs inside the kernel without having
 to change kernel source code or loading privileged/risky kernel modules. The
 Linux kernel verifies eBPF programs to ensure safety and termination, and
@@ -93,29 +94,34 @@ provide certain performance guarantees [1].</p>
 <p>We will use the <a href="https://github.com/iovisor/bcc/">BCC toolkit</a> for writing and
 loading our eBPF monitoring program. BCC makes it easier to write eBPF programs
 by providing clean abstractions for kernel instrumentation, and Python and Lua
-libraries for writing user-space front-end programs that communicate with the
-kernel-space eBPF program. We will write a Python front-end since many of our
+libraries for writing user space front-end programs that communicate with the
+kernel space eBPF program. We will write a Python front-end since many of our
 existing services already use Python, and we have convenient infrastructure for
 exporting Prometheus metrics from Python services.</p>
-<p>We will create a new Python service called <code>kernsnoopd</code> (not <code>netsnoopd</code> as
-this service can later become a home for more observability through eBPF). Upon
-service start, <code>kernsnoopd</code> will compile the eBPF kernel instrumentation
-program and load it. It will read <code>sampling_period</code> from its configuration.
-Every <code>sampling_period</code> seconds, <code>kernsnoopd</code> will read the counters from the
-eBPF program into Prometheus counters and clear the eBPF counters.</p>
-<p>The byte and packet counts read from eBPF will be stored into Prometheus
-counters <code>network_bytes_sent_total</code> and <code>network_packets_sent_total</code>. Each
-counter will also have labels indicating <code>source_process</code>, <code>dest_ip</code> and
-<code>dest_port</code>. On the loopback interface, only the port on which <code>control_proxy</code>
-is listening for traffic will be observed. This port and and other information
-related to Magma services can be read from the
+<p>We will create a new Python service called <code>kernsnoopd</code> (not <code>netsnoopd</code> as this
+service can later become a home for more observability through eBPF). Upon
+service start, <code>kernsnoopd</code> will compile the eBPF kernel instrumentation program
+and load it. It will read <code>collect_interval</code> from its configuration. Every
+<code>collect_interval</code> seconds, <code>kernsnoopd</code> will read the counters from the eBPF
+program into Prometheus counters and clear the eBPF counters.</p>
+<p>The byte counts read from eBPF will be stored into Prometheus counters
+<code>magma_bytes_sent_total</code> and <code>linux_bytes_sent_total</code>. The
+<code>magma_bytes_sent_total</code> counter will have the label <code>service_name</code> indicating
+AGW source service, and <code>dest_service</code> indicating the cloud destination service.
+The <code>linux_bytes_sent_total</code> counter will only have a <code>binary_name</code> label. On
+the loopback interface, only the port on which <code>control_proxy</code> is listening for
+traffic will be observed. This port and other information related to Magma
+services can be read from the
 <a href="https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/python/magma/common/service_registry.py"><code>ServiceRegistry</code></a>.
 On other interfaces (see <a href="#open-issues">Open Issues</a>), all traffic will be
-observed. <code>source_process</code> will just be the binary name (<code>task-&gt;comm</code> in the
-kernel) of the process triggering the packet transmission. In case of Python
-services, the binary name is <code>python3</code> so command line arguments (e.g.
-<code>magma.main.subscriberdb</code>) will be used to infer the service name and
-<code>source_process</code> will be set to the service name.</p>
+observed. <code>task-&gt;comm</code> from the kernel will be used to identify the binary
+triggering traffic. In case of Python services, the binary name is <code>python3</code> so
+command line arguments (e.g. <code>magma.main.subscriberdb</code>) will be used to infer
+the source service name.
+All traffic from the AGW to the Orc8r will be going to
+the same destination port, so we may have to look at the <a href="https://sourcegraph.com/github.com/magma/magma@v1.6/-/blob/orc8r/gateway/python/magma/common/service_registry.py?L165">HTTP authority
+header</a>
+to infer destination service.</p>
 <p>Once Prometheus counter values have been set, they will follow the existing
 Magma metrics path: the <code>magmad</code> service will read the counters from
 <code>kernsnoopd</code> and upload them to <code>metricsd</code> at the orchestrator every
@@ -129,55 +135,53 @@ metrics plumbing for Python services.</p>
 <p>Now we show a prototype of the eBPF program <code>kernsnoopd</code> will use:</p>
 <pre><code class="hljs css language-c"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;bcc/proto.h&gt;</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;linux/sched.h&gt;</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;net/inet_sock.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;uapi/linux/ptrace.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;net/sock.h&gt;</span></span>
 
-<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">counters_t</span> {</span>
-    u64 bytes;
-    u64 packets;
-};
 
 <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">key_t</span> {</span>
-    u32 pid;
-    u32 daddr;
-    u16 dport;
+  <span class="hljs-comment">// binary name (task-&gt;comm in the kernel)</span>
+  <span class="hljs-keyword">char</span> comm[TASK_COMM_LEN];
+  u32 pid;
+  <span class="hljs-comment">// source port and destination IP address, port</span>
+  u32 daddr;
+  u16 dport;
 };
 
-<span class="hljs-comment">// Create a hash map with `key_t` as key type and `counters_t` as value type</span>
-BPF_HASH(dest_counters, struct <span class="hljs-keyword">key_t</span>, struct <span class="hljs-keyword">counters_t</span>, <span class="hljs-number">1000</span>);
 
-<span class="hljs-comment">// Attach hook for the `net_dev_start_xmit` kernel trace event</span>
-TRACEPOINT_PROBE(net, net_dev_start_xmit)
-{
-    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sk_buff</span>* <span class="hljs-title">skb</span> = (<span class="hljs-title">struct</span> <span class="hljs-title">sk_buff</span>*) <span class="hljs-title">args</span>-&gt;<span class="hljs-title">skbaddr</span>;</span>
-    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sock</span>* <span class="hljs-title">sk</span> = <span class="hljs-title">skb</span>-&gt;<span class="hljs-title">sk</span>;</span>
+<span class="hljs-comment">// Create a hash map with `key_t` as key type and u64 as value type</span>
+BPF_HASH(dest_counters, struct <span class="hljs-keyword">key_t</span>);
 
-    <span class="hljs-comment">// read destination IP address, port and current pid</span>
-    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">key_t</span> <span class="hljs-title">key</span> = {</span>};
-    bpf_probe_read(&amp;key.daddr, <span class="hljs-keyword">sizeof</span>(sk-&gt;sk_daddr), &amp;sk-&gt;sk_daddr);
-    bpf_probe_read(&amp;key.dport, <span class="hljs-keyword">sizeof</span>(sk-&gt;sk_dport), &amp;sk-&gt;sk_dport);
-    key.pid = bpf_get_current_pid_tgid() &gt;&gt; <span class="hljs-number">32</span>;
+<span class="hljs-comment">// Attach kprobe for the `tcp_sendmsg` syscall</span>
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">kprobe__tcp_sendmsg</span><span class="hljs-params">(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg, <span class="hljs-keyword">size_t</span> <span class="hljs-built_in">size</span>)</span> </span>{
+  u16 dport = <span class="hljs-number">0</span>, family = sk-&gt;__sk_common.skc_family;
 
-    <span class="hljs-comment">// lookup or initialize item in dest_counters</span>
-    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">counters_t</span> <span class="hljs-title">empty</span>;</span>
-    __builtin_memset(&amp;empty, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(empty));
-    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">counters_t</span> *<span class="hljs-title">data</span> = <span class="hljs-title">dest_counters</span>.<span class="hljs-title">lookup_or_try_init</span>(&amp;<span class="hljs-title">key</span>, &amp;<span class="hljs-title">empty</span>);</span>
+  <span class="hljs-comment">// only IPv4</span>
+  <span class="hljs-keyword">if</span> (family == AF_INET) {
+    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">key_t</span> <span class="hljs-title">key</span>;</span>
+
+    <span class="hljs-comment">// read binary name, pid, source and destination IP address and port</span>
+    bpf_get_current_comm(key.comm, TASK_COMM_LEN);
+    key.pid = bpf_get_current_pid_tgid() &gt;&gt; <span class="hljs-number">32</span>;;
+    key.daddr = sk-&gt;__sk_common.skc_daddr;
+    dport = sk-&gt;__sk_common.skc_dport;
+    key.dport = ntohs(dport);
 
     <span class="hljs-comment">// increment the counters</span>
-    <span class="hljs-keyword">if</span> (data) {
-        data-&gt;bytes += skb-&gt;len;
-        data-&gt;packets++;
-    }
-    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    dest_counters.increment(key, <span class="hljs-built_in">size</span>);
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
 }
+
 </code></pre>
 <p>This program is written in restricted C (prevents direct memory access, for
-example) that is suitable for LLVM compilation into BPF bytecode. It uses
-macros from BCC to create a hash map data structure (<code>dest_counters</code>), and
-attach a callback function to kernel trace event
-<a href="https://patchwork.ozlabs.org/project/netdev/patch/1389392223.2025.125.camel@bwh-desktop.uk.level5networks.com/"><code>net_dev_start_xmit</code></a>.
-The kernel fires this event just before it starts a packet transmission. Our
-callback function reads the appropriate context and increments relevant
-counters in the hash map.</p>
+example) that is suitable for LLVM compilation into BPF bytecode. It uses macros
+from BCC to create a hash map data structure (<code>dest_counters</code>), and attach a
+<code>kprobe</code> to the
+<a href="https://elixir.bootlin.com/linux/latest/source/net/ipv4/tcp.c#L1456"><code>tcp_sendmsg</code></a>
+function. This probe gets triggered just before a TCP segment transmission. Our
+callback function reads the appropriate context and increments relevant counters
+in the hash map.</p>
 <p>Below is an example of a front-end Python program that retrieves and displays
 the counters aggregated in the kernel:</p>
 <pre><code class="hljs css language-python"><span class="hljs-keyword">import</span> time
@@ -194,7 +198,7 @@ TASK_COMM_LEN = <span class="hljs-number">16</span> <span class="hljs-comment">#
     <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> table.items():
         daddr = inet_ntop(AF_INET, pack(<span class="hljs-string">"I"</span>, k.daddr))
         dport = ntohs(k.dport)
-        print(<span class="hljs-string">f"<span class="hljs-subst">{k.pid}</span> <span class="hljs-subst">{daddr}</span>:<span class="hljs-subst">{dport}</span> <span class="hljs-subst">{v.bytes}</span> <span class="hljs-subst">{v.packets}</span>"</span>)
+        print(<span class="hljs-string">f"<span class="hljs-subst">{k.pid}</span> sent <span class="hljs-subst">{v.value}</span> bytes to (<span class="hljs-subst">{daddr}</span>:<span class="hljs-subst">{dport}</span>)"</span>)
     print(<span class="hljs-string">"----------------------------"</span>)
 
 <span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">"__main__"</span>:
@@ -219,11 +223,11 @@ compiled programs to the AGW and remove clang as a dependency. However, programs
 would presumably have to be compiled for various kernel versions. Pre-compiling
 is not necessary though as <code>gobf</code> allows the front-end Go program to trigger
 compilation just like the Python program above does.</p>
-<p>If we choose <strong>C/C++</strong>, we should switch from BCC to
-<a href="https://github.com/libbpf/libbpf"><code>libbpf</code></a> as BCC does not provide C bindings
-to write simple front-end programs. <code>libbpf</code> is simpler than BCC, which means
-the API is not as convenient, but it also supports compiling both the eBPF
-program and the front-end program into a small binary and remove clang as a
+<p>If we choose <strong>C/C++</strong>, we should consider switching from BCC to
+<a href="https://github.com/libbpf/libbpf"><code>libbpf</code></a>. While BCC provides C bindings to
+write front-end programs, <code>libbpf</code> is a simpler alternative. This means
+the <code>libbpf</code> API is not as convenient, but it supports compiling both the eBPF
+program, and the front-end program into a small binary and remove clang as a
 dependency on the AGW.</p>
 <p>We have tools to translate Prometheus metrics for consumption at the <code>magmad</code>
 service in the AGW for both Python and C/C++. Such tools don't exist in Go, but
@@ -243,13 +247,13 @@ significant overhead. Moreover, we do not see any advantages of <code>libpcap</c
 eBPF.</p></li>
 <li><p><a href="https://nghttp2.org"><strong><code>nghttpx</code></strong></a>: We use <code>control_proxy</code> to proxy TLS
 connections from individual services to the orchestrator. However, <code>nghttpx</code>,
-the proxy implementation we use does not collect per-process or per-destination
-byte and packet counters. <code>nghttpx</code> could probably be modified to collect these
-statistics, but that would probably be higher development effort and may yield
-worse performance. Also, it will not work if <code>proxy_cloud_connections</code> is set to
-<code>False</code> and services are connecting to the cloud directly. Even if
-<code>proxy_cloud_connections</code> is set to <code>True</code>, <code>nghttpx</code> will not be able to
-capture general traffic outside of Magma daemons.</p></li>
+the proxy implementation we use does not collect per-service byte counters.
+<code>nghttpx</code> could probably be modified to collect these statistics, but that would
+probably be higher development effort and may yield worse performance. Also, it
+will not work if <code>proxy_cloud_connections</code> is set to <code>False</code> and services are
+connecting to the cloud directly. Even if <code>proxy_cloud_connections</code> is set to
+<code>True</code>, <code>nghttpx</code> will not be able to capture general traffic outside of Magma
+daemons.</p></li>
 <li><p><a href="https://github.com/cilium/ebpf"><strong><code>cilium/epbf</code></strong></a>: This is a pure Go eBPF
 library alternative to BCC. <code>cilium/ebpf</code> has minimal external dependencies and
 delivers a single binary that will contain the eBPF program, its loader and the
@@ -286,32 +290,25 @@ extendable.</p>
 <h2><a class="anchor" aria-hidden="true" id="cross-cutting-concerns"></a><a href="#cross-cutting-concerns" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cross-cutting concerns</h2>
 <p>There are several concerns that this proposal attempts to address:</p>
 <h3><a class="anchor" aria-hidden="true" id="performance"></a><a href="#performance" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Performance</h3>
-<p>Performance is a major concern for this proposal as we are putting code into
-the kernel's network path on the access gateway. Although we have not
-benchmarked the prototype above, there is a similar tool included in the BCC
-distribution called <code>netqtop</code>. The authors of <code>netqtop</code> have benchmarked their
-tool and observe 1.17 usec increase in packet &quot;pingpong&quot; latency [2]. When they
-benchmark bandwidth on the loopback interface, they observe a drop of around
-27% in packets per second (PPS). Since <code>netqtop</code> instruments both transmit and
-receive network paths, and does more processing than we need, we expect the
-performance penalty of <code>kernsnoopd</code> to be less than half of <code>netqtop</code>. We think
-the performance penalty will be closer to the <code>getpid()</code> benchmark from
-<code>ebpf_exporter</code> [8]: a few hundred nanoseconds per call. However, even that on
-the network path may be significant and would warrant concern if network
-utilization on our gateways is very high and if they are CPU-bottlenecked (see
-<a href="#open-issues">Open Issues</a>).
-It will be important to count bytes/packets only on the relevant interfaces and
-relevant ports on the loopback interface. We want to observe traffic on loopback
-as we use <code>control_proxy</code> to funnel traffic from Magma daemons, but we want to
-ignore traffic on loopback that isn't destined for <code>control_proxy</code> such as
-<code>redis</code> traffic or communication between <code>magmad</code> and other daemons.</p>
-<p>One way to slash the performance penalty is to take the instrumentation out of
-the network path. We could, for example, use the TCP tracepoint
-<code>sock:inet_sock_set_state</code> instead of <code>net_dev_start_xmit</code>.
-<code>sock:inet_sock_set_state</code> is fired when the kernel changes the state of a
-socket [3]. We could use this event to collect metrics before a socket closes.
-However, this means that we will not be able to observe non-TCP traffic and
-there might be precision issues for long-running TCP streams.</p>
+<p>Performance is a major concern for this proposal as we are putting code into the
+kernel's network path on the access gateway. We benchmarked the eBPF code above
+using the Spirent lab setup. Four tests were run in total, each with 600 user
+devices, 5 MB download rate per device, and an attach rate of 10. The tests ran
+for 30 minutes each. The <code>tcp_sendmsg</code> instrumentation was enabled for two tests
+and disabled for the other two. No distinguishable downgrade in throughput was
+observed when <code>tcp_sendmsg</code> instrumentation was enabled. The mean download
+throughput for each of the four cases hovered around 530 Mbps.</p>
+<p>For deployment, it will be important to count bytes only on the relevant
+interfaces and relevant ports on the loopback interface. We want to observe
+traffic on loopback as we use <code>control_proxy</code> to funnel traffic from Magma
+daemons, but we want to ignore traffic on loopback that isn't destined for
+<code>control_proxy</code> such as <code>redis</code> traffic or communication between <code>magmad</code> and
+other daemons.</p>
+<p>One way to further reduce the performance penalty is to use the TCP tracepoint
+<code>sock:inet_sock_set_state</code> instead of <code>tcp_sendmsg</code>. <code>sock:inet_sock_set_state</code>
+is fired when the kernel changes the state of a socket [3]. We could use this
+event to collect metrics before a socket closes. However, this means that there
+might be precision issues for long-running TCP streams.</p>
 <p>A minor performance concern relates to compiling the kernel instrumentation
 code from C to BPF bytecode and loading it onto the kernel. We have benchmarked
 the prototype program above on <code>magma</code> AGW VM and across 50 runs, it takes an
@@ -361,6 +358,30 @@ AGW capacity in terms of number of UEs, varying attach/detach rates, data path
 traffic. We will also aim to compensate statistically for the jitter in AGW
 capacity measurements.</p></li>
 </ul>
+<h2><a class="anchor" aria-hidden="true" id="original-design"></a><a href="#original-design" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Original Design</h2>
+<p>We have arrived at the above design after a few rounds of discussion and
+feedback from the team. In the original design, we had planned to</p>
+<ul>
+<li><p>Instrument the <code>net_dev_start_xmit</code> event, which is on the L2 network path.
+The authors of <code>netqtop</code>, a similar tool included in the BCC distribution, have
+benchmarked their tool and observe 1.17 usec increase in packet &quot;pingpong&quot;
+latency [2]. When they benchmark bandwidth on the loopback interface, they
+observe a drop of around 27% in packets per second (PPS). To avoid this high
+penalty, we switched to attaching a <em>kprobe</em> to the <code>tcp_sendmsg</code> syscall as an
+L2 hook would have higher performance impact. As a consequence, we lost the
+ability to observe L3 traffic such as that generated from the ping and
+traceroute probes that <em>magmad</em> sends periodically. But since those probes
+should not be consuming much bandwidth, we are willing to ignore them.</p></li>
+<li><p>Have packet counters in addition to byte counters. We dropped packet counters
+as it is not possible to get accurate packet counts even with
+<code>net_dev_start_xmit</code> because of <a href="https://en.wikipedia.org/wiki/TCP_offload_engine">NIC
+offloading</a>.</p></li>
+<li><p>Put destination IP address and port as labels on Prometheus counters. Each
+distinct value for a label results in a separate Prometheus time series, and
+since destination IP addresses and ports have very large domains, the overhead
+of having separate time-series would be too high. We instead decided to label
+Magma traffic by destination cloud service.</p></li>
+</ul>
 <h2><a class="anchor" aria-hidden="true" id="references"></a><a href="#references" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>References</h2>
 <p>[1]: Jay Schulist, Daniel Borkmann, Alexei Starovoitov. 2018. Linux Socket
 Filtering aka Berkeley Packet Filter (BPF).
@@ -380,7 +401,7 @@ Debugging QUIC, Local CI Runs, MTU Checks, but No Pancakes.
 <a href="https://ebpf.io/blog/ebpf-updates-2021-02">https://ebpf.io/blog/ebpf-updates-2021-02</a></p>
 <p>[8]: Ivan Babrou. 2018. eBPF overhead benchmark.
 <a href="https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark">https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark</a></p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/proposals/p017_apn_refactoring"><span class="arrow-prev">← </span><span>APN Refactoring Proposal</span></a><a class="docs-next button" href="/magma/docs/next/faq/faq_magma"><span>Frequently Asked Questions</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#context--scope">Context &amp; scope</a><ul class="toc-headings"><li><a href="#goals">Goals</a></li><li><a href="#non-goals">Non-goals</a></li></ul></li><li><a href="#proposal">Proposal</a><ul class="toc-headings"><li><a href="#a-python-free-future">A Python-free Future</a></li></ul></li><li><a href="#alternatives-considered">Alternatives considered</a></li><li><a href="#cross-cutting-concerns">Cross-cutting concerns</a><ul class="toc-headings"><li><a href="#performance">Performance</a></li><li><a href="#deployment">Deployment</a></li><li><a href="#compatibility">Compatibility</a></li><li><a href="#observability-and-debug">Observability and Debug</a></li><li><a href="#security--privacy">Security &amp; privacy</a></li></ul></li><li><a href="#open-issues">Open issues</a></li><li><a href="#references">References</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/proposals/p017_apn_refactoring"><span class="arrow-prev">← </span><span>APN Refactoring Proposal</span></a><a class="docs-next button" href="/magma/docs/next/faq/faq_magma"><span>Frequently Asked Questions</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#context--scope">Context &amp; scope</a><ul class="toc-headings"><li><a href="#goals">Goals</a></li><li><a href="#non-goals">Non-goals</a></li></ul></li><li><a href="#proposal">Proposal</a><ul class="toc-headings"><li><a href="#a-python-free-future">A Python-free Future</a></li></ul></li><li><a href="#alternatives-considered">Alternatives considered</a></li><li><a href="#cross-cutting-concerns">Cross-cutting concerns</a><ul class="toc-headings"><li><a href="#performance">Performance</a></li><li><a href="#deployment">Deployment</a></li><li><a href="#compatibility">Compatibility</a></li><li><a href="#observability-and-debug">Observability and Debug</a></li><li><a href="#security--privacy">Security &amp; privacy</a></li></ul></li><li><a href="#open-issues">Open issues</a></li><li><a href="#original-design">Original Design</a></li><li><a href="#references">References</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
