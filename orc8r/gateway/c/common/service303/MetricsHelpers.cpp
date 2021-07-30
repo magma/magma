@@ -15,7 +15,7 @@
 #include <stdarg.h>                     // for va_end, va_list, va_start
 #include "includes/MetricsSingleton.h"  // for MetricsSingleton
 
-using namespace magma::service303;
+using magma::service303::MetricsSingleton;
 
 void remove_counter(const char* name, size_t n_labels, ...) {
   va_list ap;

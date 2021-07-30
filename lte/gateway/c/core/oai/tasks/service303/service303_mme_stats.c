@@ -19,6 +19,7 @@
 #include <stddef.h>
 #include "log.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 
 void service303_mme_app_statistics_read(
     application_mme_app_stats_msg_t* stats_msg_p) {
