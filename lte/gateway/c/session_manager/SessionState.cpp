@@ -46,11 +46,6 @@ const char* DIRECTION_DOWN          = "down";
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
 
-using magma::service303::increment_counter;
-using magma::service303::remove_counter;
-using magma::service303::remove_gauge;
-using magma::service303::set_gauge;
-
 namespace magma {
 
 template<class T>
