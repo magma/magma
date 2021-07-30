@@ -17,8 +17,6 @@
 #include "MeteringReporter.h"
 #include "includes/MetricsHelpers.h"
 
-using magma::service303::increment_counter;
-
 namespace magma {
 namespace lte {
 
