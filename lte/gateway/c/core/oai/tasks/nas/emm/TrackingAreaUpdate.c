@@ -34,6 +34,7 @@
 #include "emm_sap.h"
 #include "emm_cause.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "conversions.h"
 #include "EmmCommon.h"
 #include "3gpp_23.003.h"

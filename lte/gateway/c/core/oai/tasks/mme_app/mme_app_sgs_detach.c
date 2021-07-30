@@ -40,6 +40,7 @@
 #include "timer.h"
 #include "conversions.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "3gpp_36.401.h"
 #include "common_defs.h"
 #include "common_types.h"

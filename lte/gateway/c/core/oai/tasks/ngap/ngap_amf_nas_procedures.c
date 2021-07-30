@@ -28,6 +28,7 @@
 #include "ngap_amf_nas_procedures.h"
 #include "ngap_amf_itti_messaging.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_38.413.h"

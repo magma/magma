@@ -28,6 +28,7 @@
 #include "ngap_amf_nas_procedures.h"
 #include "ngap_amf_itti_messaging.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
 #include "mme_config.h"

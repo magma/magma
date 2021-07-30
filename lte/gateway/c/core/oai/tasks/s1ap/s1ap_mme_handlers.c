@@ -97,6 +97,7 @@
 #include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "s1ap_state.h"
 
 struct S1ap_E_RABItem_s;

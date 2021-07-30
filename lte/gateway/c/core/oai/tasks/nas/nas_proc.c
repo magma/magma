@@ -58,6 +58,7 @@
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "sgs_messages_types.h"
 
 /****************************************************************************/

@@ -25,6 +25,7 @@
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "3gpp_36.401.h"
 #include "EmmCause.h"
 #include "emm_asDef.h"

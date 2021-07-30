@@ -49,6 +49,7 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "sgs_messages_types.h"
 #include "esm_proc.h"
 #include "nas_proc.h"

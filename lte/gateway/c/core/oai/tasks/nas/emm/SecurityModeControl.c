@@ -59,6 +59,7 @@
 #include "emm_sap.h"
 #include "secu_defs.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "EmmCommon.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.301.h"

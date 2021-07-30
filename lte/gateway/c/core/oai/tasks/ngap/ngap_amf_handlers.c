@@ -74,6 +74,7 @@
 #include "itti_types.h"
 #include "amf_app_messages_types.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "ngap_state.h"
 
 struct Ngap_IE;

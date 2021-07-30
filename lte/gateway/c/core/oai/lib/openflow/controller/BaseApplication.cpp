@@ -19,6 +19,7 @@
 
 #include "BaseApplication.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 
 extern "C" {
 #include "log.h"

@@ -44,6 +44,7 @@
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "service303_message_utils.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"

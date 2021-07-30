@@ -30,6 +30,7 @@
 #include "emm_cause.h"
 #include "mme_app_itti_messaging.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "conversions.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.301.h"

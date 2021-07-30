@@ -30,6 +30,7 @@
 #include "log.h"
 #include "MobilityServiceClient.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "spgw_types.h"
 
 using grpc::Channel;
