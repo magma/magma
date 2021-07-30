@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/clock"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -89,7 +90,7 @@ func (l *syncStore) Initialize() error {
 	return err
 }
 
-func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (map[string]*protos.DigestTree, error) {
+func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (DigestTrees, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		filters := squirrel.And{squirrel.LtOrEq{lastUpdatedTimeCol: lastUpdatedBefore}}
 		if len(networks) > 0 {
@@ -106,7 +107,7 @@ func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadL
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetDigests")
 
-		digestTrees := map[string]*protos.DigestTree{}
+		digestTrees := DigestTrees{}
 		for rows.Next() {
 			network, rootDigest, leafDigestsMarshaled, lastUpdatedTime := "", "", []byte{}, int64(0)
 			err = rows.Scan(&network, &rootDigest, &leafDigestsMarshaled, &lastUpdatedTime)
@@ -136,7 +137,7 @@ func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadL
 	if err != nil {
 		return nil, err
 	}
-	ret := txRet.(map[string]*protos.DigestTree)
+	ret := txRet.(DigestTrees)
 	return ret, nil
 }
 
@@ -218,6 +219,22 @@ func (l *syncStore) GetLastResync(network string, gateway string) (uint64, error
 
 	lastResync := binary.LittleEndian.Uint64(blob.Value)
 	return lastResync, store.Commit()
+}
+
+// GetDigestTree returns the full digest tree of a single network.
+func GetDigestTree(store SyncStore, network string) (*protos.DigestTree, error) {
+	digestTrees, err := store.GetDigests([]string{network}, clock.Now().Unix(), true)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := digestTrees[network]; !ok {
+		emptyTree := &protos.DigestTree{
+			RootDigest:  &protos.Digest{Md5Base64Digest: ""},
+			LeafDigests: []*protos.LeafDigest{},
+		}
+		return emptyTree, nil
+	}
+	return digestTrees[network], nil
 }
 
 // parsePage parses the list of cached serialized objs, as well as returns the next

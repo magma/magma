@@ -15,6 +15,8 @@ package syncstore
 
 import (
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/thoas/go-funk"
 )
 
 type SyncStore interface {
@@ -43,7 +45,7 @@ type SyncStoreReader interface {
 	// 1. If networks is empty, returns digests for all networks.
 	// 2. lastUpdatedBefore is recorded in unix seconds. Filters for all digests that
 	// were last updated earlier than this time.
-	GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (map[string]*protos.DigestTree, error)
+	GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (DigestTrees, error)
 
 	// GetCachedByID and GetCachedByPage return cached objects by their IDs or
 	// the page specified by the token. The returned objects are ordered by their
@@ -64,4 +66,10 @@ type CacheWriter interface {
 	InsertMany(objects map[string][]byte) error
 	// Apply completes the batch cache update.
 	Apply() error
+}
+
+type DigestTrees map[string]*protos.DigestTree
+
+func (digestTrees DigestTrees) Networks() []string {
+	return funk.Keys(digestTrees).([]string)
 }

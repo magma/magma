@@ -22,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/mproto"
 	mproto_protos "magma/orc8r/cloud/go/mproto/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
@@ -55,7 +56,7 @@ func GetDigest(network string) (string, error) {
 }
 
 // GetPerSubscriberDigests generates a set of individual subscriber digests ordered by their IDs.
-func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWithID, error) {
+func GetPerSubscriberDigests(network string) ([]*orc8r_protos.LeafDigest, error) {
 	// HACK: apn resources digest is concatenated to every individual subscriber digest
 	// so that the entire set of per-sub digests would capture changes in apn resources
 	apnDigest, err := getApnResourcesDigest(network)
@@ -68,7 +69,7 @@ func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWith
 	if err != nil {
 		return nil, err
 	}
-	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
+	leafDigests := []*orc8r_protos.LeafDigest{}
 	token := ""
 	foundEmptyToken := false
 	for !foundEmptyToken {
@@ -83,18 +84,17 @@ func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWith
 			if err != nil {
 				return nil, errors.Wrapf(err, "Failed to generate digest for subscriber %+v of network %+v", subProto.Sid.Id, network)
 			}
-			fullDigest := digest + apnDigest
-			perSubDigest := &lte_protos.SubscriberDigestWithID{
-				Digest: &lte_protos.Digest{Md5Base64Digest: fullDigest},
-				Sid:    subProto.Sid,
+			leafDigest := &orc8r_protos.LeafDigest{
+				Id:     lte_protos.SidString(subProto.Sid),
+				Digest: &orc8r_protos.Digest{Md5Base64Digest: digest + apnDigest},
 			}
-			perSubDigests = append(perSubDigests, perSubDigest)
+			leafDigests = append(leafDigests, leafDigest)
 		}
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 	}
 
-	return perSubDigests, nil
+	return leafDigests, nil
 }
 
 // GetPerSubscriberDigestsDiff computes the changeset between two lists of per-subscriber digests,

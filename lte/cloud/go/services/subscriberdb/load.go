@@ -27,6 +27,7 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
@@ -61,6 +62,32 @@ func LoadSubProtosPage(
 	}
 
 	return subProtos, nextToken, nil
+}
+
+func SerializeSubProtos(subProtos []*lte_protos.SubscriberData) (map[string][]byte, error) {
+	subProtosSerialized := map[string][]byte{}
+	for _, subProto := range subProtos {
+		sid := lte_protos.SidString(subProto.Sid)
+		serialized, err := proto.Marshal(subProto)
+		if err != nil {
+			return nil, errors.Wrap(err, "serialize subscriber proto")
+		}
+		subProtosSerialized[sid] = serialized
+	}
+	return subProtosSerialized, nil
+}
+
+func DeserializeSubProtos(subProtosSerialized [][]byte) ([]*lte_protos.SubscriberData, error) {
+	subProtos := []*lte_protos.SubscriberData{}
+	for _, serialized := range subProtosSerialized {
+		subProto := &lte_protos.SubscriberData{}
+		err := proto.Unmarshal(serialized, subProto)
+		if err != nil {
+			return nil, errors.Wrap(err, "deserialize subscriber proto")
+		}
+		subProtos = append(subProtos, subProto)
+	}
+	return subProtos, nil
 }
 
 func LoadSubProtosByID(
