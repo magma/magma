@@ -1,0 +1,6 @@
+# Intro: https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes
+# Ref: https://git-scm.com/docs/gitattributes
+# GitHub-specific: https://github.com/github/linguist/blob/master/docs/overrides.md
+
+# Monolithic swagger.yml is generated
+/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml linguist-generated
