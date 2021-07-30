@@ -57,7 +57,6 @@
 #include "emm_data.h"
 #include "conversions.h"
 #include "esm_sap.h"
-#include "service303.h"
 #include "includes/MetricsHelpers.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_apn_selection.h"

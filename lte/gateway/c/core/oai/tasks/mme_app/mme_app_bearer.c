@@ -68,7 +68,6 @@
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "nas/securityDef.h"
-#include "service303.h"
 #include "includes/MetricsHelpers.h"
 #include "sgs_messages_types.h"
 #include "secu_defs.h"

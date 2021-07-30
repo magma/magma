@@ -29,7 +29,6 @@
 
 #include "conversions.h"
 #include "log.h"
-#include "service303.h"
 #include "includes/MetricsHelpers.h"
 #include "intertask_interface.h"
 #include "mme_app_defs.h"
