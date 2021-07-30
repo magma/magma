@@ -1424,7 +1424,7 @@ int amf_send_registration_reject(
 static int amf_as_establish_rej(
     const amf_as_establish_t* msg, nas5g_establish_rsp_t* as_msg) {
   int size = 0;
-  amf_nas_message_t nas_msg;
+  amf_nas_message_t nas_msg = {0};
 
   // Setting-up the AS message
   as_msg->ue_id = msg->ue_id;
