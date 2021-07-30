@@ -1,6 +1,4 @@
-set(NGAP_C_DIR ${PROJECT_BINARY_DIR}/ngap/r16.0)
 set(NAS5G_C_DIR ${PROJECT_SOURCE_DIR}/tasks/nas5g)
-set(NAS_DIR ${PROJECT_SOURCE_DIR}/tasks/nas)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
