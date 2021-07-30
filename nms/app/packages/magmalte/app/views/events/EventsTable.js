@@ -70,12 +70,14 @@ function getEventDescription(event) {
       return 'Subscriber session was created';
     case 'session_terminated':
       return 'Subscriber session was terminated';
+    case 'attach_success':
+      return 'UE attaches successfully';
+    case 'detach_success':
+      return 'UE detaches successfully';
     default:
       return event.event_type;
   }
 }
-
-const streamNameSessiond = 'sessiond';
 
 export type magmaEventStream = 'NETWORK' | 'GATEWAY' | 'SUBSCRIBER';
 type EventRowType = {
@@ -218,13 +220,23 @@ type EventTableProps = {
 };
 
 export default function EventsTable(props: EventTableProps) {
-  const {hardwareId, eventStream, tags, sz} = props;
+  const {hardwareId, eventStream, sz} = props;
   const classes = useStyles();
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);
-  const streams = eventStream === 'SUBSCRIBER' ? streamNameSessiond : '';
+  const streams = '';
+  const buildTags = (tags: string) => {
+    let allTags = tags;
+    const tagsDelimter = ',';
+    if (eventStream == EVENT_STREAM.SUBSCRIBER) {
+      // sessionD requires tag to include the prefix IMSI together with n digits but mme doesn't require the prefix IMSI
+      allTags = [tags, tags.replace(/IMSI/, '')].join(tagsDelimter);
+    }
+    return allTags;
+  };
+  const tags = buildTags(props.tags ?? '');
 
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(
     props.isAutoRefreshing ?? false,
