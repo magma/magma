@@ -14,9 +14,6 @@ import logging
 import os
 import subprocess
 
-from magma.common.misc_utils import call_process
-from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
-
 irq_utility = '/usr/local/bin/set_irq_affinity'
 ethtool_utility = '/usr/sbin/ethtool'
 
@@ -92,42 +89,6 @@ def tune_datapath(config_dict):
         subprocess.check_call(set_sgi_queue_sz)
     except subprocess.CalledProcessError as ex:
         logging.debug('%s failed with: %s', set_sgi_queue_sz, ex)
-
-
-def setup_masquerade_rule(config, loop):
-    if config.get('setup_type') == 'CWF':
-        return
-    # Figure out right egress device
-    if config.get('setup_type') == 'LTE':
-        enable_nat = config['enable_nat']
-
-        if enable_nat is False:
-            add_dev = config.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
-            del_dev = config['nat_iface']
-        else:
-            add_dev = config['nat_iface']
-            del_dev = config.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
-    else:
-        add_dev = config['nat_iface']
-        del_dev = None
-
-    # update iptable rules
-    def callback(returncode):
-        if returncode != 0:
-            logging.error(
-                "Failed to set MASQUERADE: %d", returncode,
-            )
-    if del_dev:
-        ip_table_rule_del = 'POSTROUTING -o %s -j MASQUERADE' % del_dev
-        rule_del = 'iptables -t nat -D %s || true' % ip_table_rule_del
-        logging.debug("Del Masquerade rule: %s", rule_del)
-        call_process(rule_del, callback, loop)
-
-    ip_table_rule = 'POSTROUTING -o %s -j MASQUERADE' % add_dev
-    check_and_add = 'iptables -t nat -C %s || iptables -t nat -A %s' % \
-                    (ip_table_rule, ip_table_rule)
-    logging.debug("Add Masquerade rule: %s", check_and_add)
-    call_process(check_and_add, callback, loop)
 
 
 def _check_util_failed(path: str):
