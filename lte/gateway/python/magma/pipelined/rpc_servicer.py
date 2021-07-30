@@ -321,7 +321,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GX flows for %s', request.sid.id)
-        #self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
@@ -884,7 +883,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         if not self._print_grpc_payload:
             return
-        logging.debug(log_msg)
+        logging.info(log_msg)
 
     def SetSMFSessions(self, request, context):
         """
