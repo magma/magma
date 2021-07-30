@@ -13,7 +13,7 @@ limitations under the License.
 
 import abc
 import logging
-from socket import AF_INET, inet_ntop, ntohs
+from socket import AF_INET, inet_ntop
 from struct import pack
 
 import psutil

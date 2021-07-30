@@ -27,8 +27,7 @@ struct key_t {
   // binary name (task->comm in the kernel)
   char comm[TASK_COMM_LEN];
   u32 pid;
-  // source and destination addresses and ports
-  u32 saddr;
+  // source port and destination IP address, port
   u32 daddr;
   u16 lport;
   u16 dport;

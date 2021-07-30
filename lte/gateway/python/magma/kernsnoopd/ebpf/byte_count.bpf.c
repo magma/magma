@@ -39,7 +39,6 @@ int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg
     // read binary name, pid, source and destination IP address and port
     bpf_get_current_comm(key.comm, TASK_COMM_LEN);
     key.pid = bpf_get_current_pid_tgid() >> 32;;
-    key.saddr = sk->__sk_common.skc_rcv_saddr;
     key.lport = sk->__sk_common.skc_num;
     dport = sk->__sk_common.skc_dport;
     key.dport = ntohs(dport);
