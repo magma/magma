@@ -200,7 +200,7 @@ compilation just like the Python program above does.
 
 If we choose **C/C++**, we should consider switching from BCC to
 [`libbpf`](https://github.com/libbpf/libbpf). While BCC provides C bindings to
-write front-end programs, `libbpf` is a simpler alternative. This means that
+write front-end programs, `libbpf` is a simpler alternative. This means
 the `libbpf` API is not as convenient, but it supports compiling both the eBPF
 program, and the front-end program into a small binary and remove clang as a
 dependency on the AGW.
