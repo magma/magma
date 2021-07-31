@@ -20,7 +20,6 @@ class ABBAMsg {
  public:
 #define ABBA_MIN_LEN 2
   uint8_t iei;
-  // std::string contents;
   uint8_t contents[ABBA_MIN_LEN];
 
   ABBAMsg();

@@ -51,5 +51,4 @@ class AsyncM5GMobilityServiceClient : public M5GMobilityServiceClient {
  private:
   AsyncM5GMobilityServiceClient();
 };
-
-}  // Namespace magma5g
+}  // namespace magma5g

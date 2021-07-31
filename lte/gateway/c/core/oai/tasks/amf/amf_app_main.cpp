@@ -201,7 +201,7 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   if (amf_nas_state_init(amf_config_p)) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  /*Initialise UE state matrix */
+  /*Initialize UE state matrix */
   create_state_matrix();
   if (itti_create_task(TASK_AMF_APP, &amf_app_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_AMF_APP, "AMF APP create task failed\n");

@@ -31,6 +31,7 @@ extern "C" {
 #include "amf_sap.h"
 #include "amf_recv.h"
 #include "amf_app_timer_management.h"
+#include "includes/MetricsHelpers.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0

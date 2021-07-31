@@ -35,6 +35,7 @@ extern "C" {
 #include "amf_app_state_manager.h"
 #include "conversions.h"
 #include "M5GMobilityServiceClient.h"
+#include "includes/MetricsHelpers.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 

@@ -94,4 +94,4 @@ class AmfNasStateManager {
   // Clean-up the in-memory hashtables
   void clear_amf_nas_hashtables();
 };
-}  // end namespace magma5g
+}  // namespace magma5g
