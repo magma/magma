@@ -298,22 +298,46 @@
       }
     ],
     "Proposals": [
-      "proposals/p001_vpn_config_from_api",
-      "proposals/p002_scaled_prometheus_pipeline",
-      "proposals/p003_qos_enforcement",
-      "proposals/p004_fua-restrict-feature",
-      "proposals/p005_call_tracing",
-      "proposals/p007_header_enrichment",
-      "proposals/p008_apn_correction",
-      "proposals/p009_nms_mariadb_migration",
-      "proposals/p010_subscriber_scaling",
-      "proposals/p011_victoriametrics",
-      "proposals/p013_Ubuntu_upgrade",
-      "proposals/p014_proposal_process",
-      "proposals/p015_tech_debt_week",
-      "proposals/p016_nms_regression_testing",
-      "proposals/p017_apn_refactoring",
-      "proposals/p018_control_network_metrics"
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "proposals/p001_vpn_config_from_api",
+          "proposals/p005_call_tracing",
+          "proposals/p014_proposal_process",
+          "proposals/p015_tech_debt_week",
+          "proposals/p017_apn_refactoring"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "proposals/p003_qos_enforcement",
+          "proposals/p004_fua-restrict-feature",
+          "proposals/p007_header_enrichment",
+          "proposals/p008_apn_correction",
+          "proposals/p013_Ubuntu_upgrade",
+          "proposals/p018_control_network_metrics"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "proposals/p002_scaled_prometheus_pipeline",
+          "proposals/p010_subscriber_scaling",
+          "proposals/p011_victoriametrics"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "proposals/p009_nms_mariadb_migration",
+          "proposals/p016_nms_regression_testing"
+        ]
+      }
     ],
     "FAQ": [
       "faq/faq_magma"

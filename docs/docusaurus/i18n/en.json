@@ -54,6 +54,9 @@
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
       },
+      "docs/docs_overview": {
+        "title": "Documentation Overview"
+      },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },

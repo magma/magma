@@ -39,15 +39,15 @@ An alert Receiver is created to push the alert notification in real time so that
 - Create an App: Go to <https://api.slack.com/apps?new_app=1> and click on “Create New App”. Enter the App Name and the Slack Workspace.
 - Click on “Incoming Webhooks” and change “Active Incoming Webhooks” to On
 
-    ![alert_recv1](../assets/nms/userguide/alerts/alert_recv1.png)
+    ![alert_recv1](assets/nms/userguide/alerts/alert_recv1.png)
 
 - Scroll down and create a new Webhook by clicking on “Add New Webhook to Workspace”. Select the Slack Channel name.
 
-    ![alert_recv2](../assets/nms/userguide/alerts/alert_recv2.png)
+    ![alert_recv2](assets/nms/userguide/alerts/alert_recv2.png)
 
 - Copy the “Webhook URL” once it is generated.
 
-    ![alert_recv3](../assets/nms/userguide/alerts/alert_recv3.png)
+    ![alert_recv3](assets/nms/userguide/alerts/alert_recv3.png)
 
 #### Create a new Alert Receiver in NMS
 

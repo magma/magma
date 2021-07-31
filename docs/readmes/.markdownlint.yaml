@@ -47,7 +47,7 @@ MD009:
 # MD010/no-hard-tabs - Hard tabs
 MD010:
   # Include code blocks
-  code_blocks: true
+  code_blocks: false
 
 # MD011/no-reversed-links - Reversed link syntax
 MD011: true
