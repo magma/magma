@@ -27,6 +27,7 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_recv.h"
 #include "amf_identity.h"
+#include "amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
@@ -40,12 +41,25 @@ int amf_handle_service_request(
   bool tmsi_based_context_found  = false;
   notify_ue_event notify_ue_event_type;
   tmsi_t tmsi_rcv;
+  paging_context_t* paging_ctx = nullptr;
 
   memcpy(
       &tmsi_rcv, &msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi,
       sizeof(tmsi_t));
 
   ue_context = ue_context_loopkup_by_guti(tmsi_rcv);
+
+  if (ue_context) {
+    paging_ctx = &ue_context->paging_context;
+    if ((NAS5G_TIMER_INACTIVE_ID != paging_ctx->m5_paging_response_timer.id) &&
+        (0 != paging_ctx->m5_paging_response_timer.id)) {
+      amf_app_stop_timer(paging_ctx->m5_paging_response_timer.id);
+      paging_ctx->m5_paging_response_timer.id = NAS5G_TIMER_INACTIVE_ID;
+      paging_ctx->paging_retx_count           = 0;
+      // Fill the itti msg based on context info produced in amf core
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After stopping PAGING Timer\n");
+    }
+  }
   if ((ue_context) && (ue_id != ue_context->amf_ue_ngap_id)) {
     ue_context_update_ue_id(ue_context, ue_id);
   }
@@ -74,8 +88,11 @@ int amf_handle_service_request(
           ue_id);
     }
   } else {
-    OAILOG_INFO(LOG_NAS_AMF, "TMSI not matched for "
-		"(ue_id=" AMF_UE_NGAP_ID_FMT ")\n", ue_id);
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "TMSI not matched for "
+        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+        ue_id);
 
     // Send prepare and send reject message.
   }

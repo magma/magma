@@ -34,6 +34,7 @@ extern "C" {
 #include "M5gNasMessage.h"
 #include "dynamic_memory_check.h"
 #include "n11_messages_types.h"
+#include "amf_app_timer_management.h"
 
 #define QUADLET 4
 #define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
@@ -1077,11 +1078,18 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   MessageDef* message_p                          = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
 
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3560: Invalid Timer Id expiration, Timer Id: %u\n",
+        timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
-    return -1;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   // Get Paging Context
@@ -1092,19 +1100,19 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   /*
    * Increment the retransmission counter
    */
-  paging_ctx->paging_retx_count += 1;
   OAILOG_ERROR(
       LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
       paging_ctx->paging_retx_count);
 
   if (paging_ctx->paging_retx_count < MAX_PAGING_RETRY_COUNT) {
+    paging_ctx->paging_retx_count += 1;
     /*
      * ReSend Paging request message to the UE
      */
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: In Handler Starting PAGING Timer\n");
-    paging_ctx->m5_paging_response_timer.id = start_timer(
-        &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-        paging_t3513_handler, NULL);
+    /*OAILOG_INFO(LOG_AMF_APP, "AMF_APP: In Handler Starting PAGING Timer\n");
+    paging_ctx->m5_paging_response_timer.id = amf_app_start_timer(
+        PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE, paging_t3513_handler,
+        ue_id);*/
     OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After Starting PAGING Timer\n");
     // Fill the itti msg based on context info produced in amf core
 
@@ -1153,9 +1161,9 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         LOG_AMF_APP,
         "Timer: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
-    return rc;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 // Doing Paging Request handling received from SMF in AMF CORE
@@ -1194,13 +1202,15 @@ int amf_app_handle_notification_received(
       paging_ctx = &ue_context->paging_context;
 
       OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Starting PAGING Timer\n");
+      paging_ctx->paging_retx_count = 0;
       /* Start Paging Timer T3513 */
-      paging_ctx->m5_paging_response_timer.id = start_timer(
-          &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-          paging_t3513_handler, NULL);
+      paging_ctx->m5_paging_response_timer.id = amf_app_start_timer(
+          PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE, paging_t3513_handler,
+          ue_context->amf_ue_ngap_id);
       // Fill the itti msg based on context info produced in amf core
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After Starting PAGING Timer\n");
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Allocating memory ");
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "AMF_APP: After Starting PAGING Timer for notification received\n");
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
 
       OAILOG_INFO(LOG_AMF_APP, "AMF_APP: ngap_paging_notify");
