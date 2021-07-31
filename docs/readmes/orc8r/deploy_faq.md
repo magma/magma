@@ -8,20 +8,20 @@ hide_title: true
 
 ## Terraform timed out when running `terraform apply`
 
-https://magmacore.slack.com/archives/C018J8UMGMR/p1599228643121500
+[Sample reported issue](https://magmacore.slack.com/archives/C018J8UMGMR/p1599228643121500).
 
-```
+```text
 Error: rpc error: code = Unknown desc = release orc8r failed: timed out waiting for the condition on ../../main.tf line 22, in resource "helm_release" "orc8r":
  22: resource "helm_release" "orc8r" {
 ```
 
-**Resolution steps**
+### Resolution steps
 
 - Check if there is an issue with Helm repo URL, password, or container image tag
 - Ensure container image registry and Terraform values are correct
 - Run following kubectl commands to get more details on the error encountered
 
-```
+```bash
 kubectl --namespace orc8r get pods
 kubectl --namespace orc8r describe pods
 # pod status ImagePullBackOff, indicates that Image wasn't found
@@ -31,16 +31,18 @@ kubectl --namespace orc8r describe pods
 
 - Get Helm's view of images
 
-```
-helm version (provides current version of helm)
-helm -n orc8r list (provides the list of releases which are currently deployed under orc8r namespace)
-helm -n orc8r get values orc8r (gets the values file for the orc8r release)
+```bash
+helm version  # provides current version of Helm
+helm -n orc8r list  # provides the list of releases which are currently deployed under Orc8r namespace
+helm -n orc8r get values orc8r  # gets the values file for the Orc8r release
 ```
 
 ## NMS pod wasn't showing up properly
 
-```
-kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- yarn setAdminPassword master xxxx@xxxx.com 1234
+```bash
+$ kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- yarn setAdminPassword master xxxx@xxxx.com 1234
+
+
 error: error executing jsonpath "{.items[0].metadata.name}": Error executing template: array index out of bounds: index 0, length 0. Printing more information for debugging the template:
         template was:
                 {.items[0].metadata.name}
@@ -49,29 +51,29 @@ error: error executing jsonpath "{.items[0].metadata.name}": Error executing tem
 error: pod, type/name or --filename must be specified
 ```
 
-**Resolution steps**
+### Resolution steps
 
 - The problem was that `deploy_nms` wasn't set to true in variables.tf. Set `deploy_nms` to true and rerun `terraform apply`
 
-## No Resources found in default namespace after terraform apply
+## No resources found in default namespace after Terraform apply
 
-```
+```text
 No resources found in default namespace after terraform apply
 ```
 
-**Resolution steps**
+### Resolution steps
 
 - Terraform seems to reset the kubectl namespace — fix using `kubens` to select the orc8r namespace
 
 ## Errors creating Secrets Manager
 
-```
+```text
 error creating Secrets Manager Secret: InvalidRequestException:
 You can't create this secret because a secret with this name is already
  scheduled for deletion
 ```
 
-**Resolution steps**
+### Resolution steps
 
 - Change `secretsmanager_orc8r_secret` variable to new value
 - AWS doesn't fully delete secrets for safety reasons, so deleted secrets need a name change before successful regeneration
@@ -79,12 +81,12 @@ You can't create this secret because a secret with this name is already
 
 ## Error: ValidationException: Domain is being deleted for aws_elasticsearch_domain_policy
 
-```
+```text
 `Error: ValidationException: Domain is being deleted` for `aws_elasticsearch_domain_policy`
 
 ```
 
-**Resolution steps**
+### Resolution steps
 
 - Sometimes ES domains aren't deleted immediately. Change ES domain to new value and stop tracking old domain
 - Ensure ES domain is actually marked for deletion, e.g. via AWS console
@@ -93,7 +95,7 @@ You can't create this secret because a secret with this name is already
 
 ## Terraform apply failed due to some Python module error
 
-```
+```text
 Warning: Applied changes may be incompleteThe plan was created with the -target option in effect, so some changes
 requested in the configuration may have been ignored and the output values may
 not be fully updated. Run the following command to verify that no other
@@ -109,12 +111,12 @@ when Terraform specifically suggests to use it as part of an error message.Error
 ModuleNotFoundError: No module named 'boto3'
 ```
 
-**Resolution steps**
+### Resolution steps
 
 - Identify and install the relevant Python module - `pip3 install boto3`
 - Specifically ensure if deployment specific tooling has been installed
 
-```
+```bash
 brew install aws-iam-authenticator kubectl helm terraform
 python3 -m pip install awscli boto3
 aws configure

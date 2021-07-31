@@ -55,7 +55,7 @@ The following diagram displays the call flow for the metrics pipeline
 This section outlines the functionality of each service in the core
 Orchestrator, LTE, and FeG modules.
 
-**Orchestrator**
+#### Orchestrator
 
 - *accessd* stores, manages and verifies operator identity objects and their rights to access (read/write) entities
 - *analytics* periodically fetches and aggregates metrics for all deployed Orchestrator modules, exporting the aggregations to Prometheus
@@ -78,7 +78,7 @@ Orchestrator by querying Kubernetes's API server
 - *streamer* fetches updates for various data streams (e.g. mconfig, subscribers, etc.) from the appropriate Orchestrator service, returning these to the gateways
 - *tenants* provides CRUD interface for managing NMS tenants
 
-**LTE**
+#### LTE
 
 - *ha* provides interface for secondary gateways in an HA deployment to find offload status for UEs
 - *lte* provides
@@ -88,7 +88,7 @@ Orchestrator by querying Kubernetes's API server
 - *smsd* provides CRUD support for SMS messages to be fetched by LTE gateways
 - *subscriberdb* manages subscribers via a northbound CRUD API and a southbound subscriber stream
 
-**FeG**
+#### FeG
 
 - *feg* provides
     - Mconfigs for configuration of FeG-related gateway service configurations (e.g. s6a_proxy, session_proxy)
