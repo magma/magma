@@ -142,15 +142,15 @@ git delete-local-branches
 # ~/.gitconfig
 
 [alias]
-	delete-local-branches = !git branch | grep --invert-match master | xargs git branch --delete
-	commit-amend = commit --signoff --amend --no-edit
-	diff-base = !git diff $(git branch --show-current)_base
-	diff-origin = !git diff origin/$(git branch --show-current)
-	graph = graph-all --max-count=30
-	graph-all = log --graph --all --format=format:'%C(auto)%h%C(reset) %C(cyan)(%cr)%C(reset)%C(auto)%d%C(reset) %s %C(dim white)- %an%C(reset)'
-	amend-pr = !git add --all && git commit --signoff --amend --no-edit && git push --force
-	open-pr = !git push-branch && git pull-request --browse
-	push-branch = push --set-upstream origin HEAD
+ delete-local-branches = !git branch | grep --invert-match master | xargs git branch --delete
+ commit-amend = commit --signoff --amend --no-edit
+ diff-base = !git diff $(git branch --show-current)_base
+ diff-origin = !git diff origin/$(git branch --show-current)
+ graph = graph-all --max-count=30
+ graph-all = log --graph --all --format=format:'%C(auto)%h%C(reset) %C(cyan)(%cr)%C(reset)%C(auto)%d%C(reset) %s %C(dim white)- %an%C(reset)'
+ amend-pr = !git add --all && git commit --signoff --amend --no-edit && git push --force
+ open-pr = !git push-branch && git pull-request --browse
+ push-branch = push --set-upstream origin HEAD
 ```
 
 ```bashrc

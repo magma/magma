@@ -50,7 +50,6 @@ Every orc8r deployment relies on several configuration attributes. For example, 
 ```bash
 $ orcl configure --help
 
-
 Usage: orcl configure [OPTIONS] COMMAND [ARGS]...
 
   Configure orc8r deployment variables
@@ -94,7 +93,6 @@ Certs is a orcl command for managing certificates. Currently it has only one sub
 ```bash
 $ orcl certs --help
 
-
 Usage: orcl certs [OPTIONS] COMMAND [ARGS]...
   Manage certs in orc8r deployment
 
@@ -113,7 +111,6 @@ Install command provides the ability to install an orc8r deployment based on pro
 
 ```bash
 $ orcl install --help
-
 
 Usage: orcl install [OPTIONS] COMMAND [ARGS]...
 
@@ -154,7 +151,6 @@ Upgrade command provides the ability to install an orc8r deployment based on pro
 
 ```bash
 $ orcl upgrade --help
-
 
 Usage: orcl upgrade [OPTIONS] COMMAND [ARGS]...
 
@@ -211,7 +207,6 @@ Cleanup command provides the ability to cleanup all resources deployed during or
 
 ```bash
 $ orcl cleanup --help
-
 
 Usage: orcl cleanup [OPTIONS] COMMAND [ARGS]...
 

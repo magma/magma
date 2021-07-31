@@ -40,6 +40,7 @@ If this is your first time building the FeG, this may take a while.
 When this job finishes, you will have built FeG on your local machine. You can
 check the images using docker. You should `gateway_python` and `gateway_go`
 among others images that were used during the build process.
+
 ```bash
 docker images
 ```
@@ -53,7 +54,7 @@ images:
 ```
 
 In case you built Magma CWF (Carrier Wi-FI), you also need to upload `gateway_radius`.
+
 ```bash
 ../../../orc8r/tools/docker/publish.sh -r <REGISTRY> -i gateway_radius
 ```
-

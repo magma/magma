@@ -13,9 +13,10 @@ This document attempts to give high level explanations of the purpose of each ch
 ## How to reach out to a check owner
 
 Below are some resources for finding who to contact:
-* [GitHub-to-Slack ID mappings](contribute_id_mappings)
-* [List of Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain/members)
-* [List of `approvers-*` teams and their members](https://github.com/orgs/magma/teams/?query=approvers)
+
+- [GitHub-to-Slack ID mappings](contribute_id_mappings)
+- [List of Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain/members)
+- [List of `approvers-*` teams and their members](https://github.com/orgs/magma/teams/?query=approvers)
 
 ## Blocking Checks
 

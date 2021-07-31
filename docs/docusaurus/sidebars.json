@@ -69,6 +69,13 @@
         "ids": [
           "nms/nms_arch_overview"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "FeG",
+        "ids": [
+          "feg/architecture_overview"
+        ]
       }
     ],
     "Deploy": [

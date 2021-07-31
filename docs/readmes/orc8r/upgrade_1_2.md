@@ -72,7 +72,6 @@ $ helm3 2to3 move config
 ...
 2020/08/31 21:49:33 Helm v2 configuration was moved successfully to Helm v3 configuration.
 
-
 $ helm3 repo list  # now correctly populated
 
 NAME            URL

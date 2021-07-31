@@ -11,7 +11,7 @@ hide_title: true
 *Feedback requested from: @emakeev, @kozat, @pbshelar*\
 *Last Updated: 03/14/2021*
 
-#### *Note:* for more detailed description check [DetailedDesign](https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814) and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)
+> *Note:* for more detailed description check [DetailedDesign](https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814) and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)
 
 ## Summary
 
@@ -34,7 +34,6 @@ operator X (Magma operator) uses SubscriberDb as an authenticator and operator
 Y uses HSS to store their subscribers. Future proposals may bring other use
 cases which include HSS for X operator (Magma operator).
 
-
 ## Architecture
 
 To support inbound roaming we will need to modify current flow on control plane
@@ -43,7 +42,6 @@ on AGW and introduce a new service (s8_proxy) on FEG.
 ![Inbound Roaming Magma Architecture](../assets/feg/proposals/inbound_roaming_magma_architecture.jpeg)
 
 ## Design
-
 
 ### 1. FEG - s8_proxy
 
@@ -58,7 +56,6 @@ That interface is based on GTP (not Diameter), so that will also require
 implementing GTP-U protocol. We suggest to use [go-gtp](https://github.com/wmnsk/go-gtp)
 which is an implementation of GTP in go that covers the needs for those two
 calls.
-
 
 ### 2. Or8cr - Dynamic Authentication Mapping
 
@@ -78,22 +75,27 @@ Note that this map will be extended on future features to support hybrid
 Federated architectures.
 
 ### 3. MME
+
 #### s6a_task
+
 To support dynamic authentication `s6a_task` on MME will have to be extended to
 support two simultaneous authentication methods depending on AGW configuration.
 
 #### mme_task
+
 To support dynamic selection of type of subscribers `mme_task` on MME will have
 to be extended to support the decision if the subscriber needs to be sent to
 `spgw_task` or to `s8_task`.
 
 #### s8_task
+
 A new task on MME will be required to implement the AGW S8 interface side.
 That task will be similar to `spgw_task` on MME, but will implement
 `CreateSessionRequest` and `DeleteSessionRequest` GRPC calls to communicate
 with `s8_proxy` GRPC server.
 
 ### 4. OVS - Support of GTP-U
+
 OVS will implement the user plane of the S8 interface. It will use GTP-U
 (already supported by OVS). OVS will have to be able to set up a GTP-U tunnel
 on the interface that is currently being used as a SGi, So from that interface
@@ -129,4 +131,4 @@ production environment that implements VPN between remote and local network.
 - Testing on TeraVM and HCore: during all phases
 - SIT: April 2021
 
-#### *Note:* for more detailed description check [DetailedDesign](https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814) and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)
+> *Note:* for more detailed description check [DetailedDesign](https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814) and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)

@@ -13,6 +13,7 @@ To start, consider skimming the existing [Magma project proposals](https://githu
 ## Tracking proposals
 
 Proposals are tracked as GitHub Issues, using the following labels
+
 - [`type: proposal`](https://github.com/magma/magma/issues?q=is%3Aissue+label%3A%22type%3A+proposal%22+) for all proposals
 - [`tsc`](https://github.com/magma/magma/issues?q=is%3Aissue+label%3A%22type%3A+proposal%22+label%3Atsc) for proposals desiring TSC consideration
 
