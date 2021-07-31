@@ -34,7 +34,7 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
     M5GAuthenticationInformationAnswer msg,
     itti_amf_subs_auth_info_ans_t* itti_msg) {
   if (msg.m5gauth_vectors_size() > MAX_EPS_AUTH_VECTORS) {
-    std::cout << "[ERROR] Number of eutran auth vectors received is:"
+    std::cout << "[ERROR] Number of m5g auth vectors received is:"
               << msg.m5gauth_vectors_size() << std::endl;
     return;
   }

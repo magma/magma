@@ -18,11 +18,11 @@ namespace magma5g {
 class M5GSRegistrationResultMsg {
  public:
   uint8_t iei;
-  const int REGISTRATION_RESULT_MIN_LENGTH = 2;
   uint8_t spare : 4;
   uint8_t sms_allowed : 1;
   uint8_t reg_result_val : 3;
 
+#define REGISTRATION_RESULT_MIN_LENGTH 2
   M5GSRegistrationResultMsg();
   ~M5GSRegistrationResultMsg();
   int EncodeM5GSRegistrationResultMsg(

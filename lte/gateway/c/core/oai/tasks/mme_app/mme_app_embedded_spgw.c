@@ -51,11 +51,12 @@ static void usage(char* exe_path) {
 
 status_code_e mme_config_embedded_spgw_parse_opt_line(
     int argc, char* argv[], mme_config_t* mme_config_p,
-    spgw_config_t* spgw_config_p) {
+    amf_config_t* amf_config_p, spgw_config_t* spgw_config_p) {
   int c;
 
   mme_config_init(mme_config_p);
   spgw_config_init(spgw_config_p);
+  amf_config_init(amf_config_p);
 
   while ((c = getopt(argc, argv, "c:hi:Ks:v:V")) != -1) {
     switch (c) {
@@ -117,6 +118,10 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
     mme_config_p->config_file = bfromcstr("/usr/local/etc/oai/mme.conf");
   }
 
+  if (!amf_config_p->config_file) {
+    amf_config_p->config_file = mme_config_p->config_file;
+  }
+
   if (!spgw_config_p->config_file) {
     spgw_config_p->config_file = bfromcstr("/usr/local/etc/oai/spgw.conf");
     spgw_config_p->pgw_config.config_file =
@@ -130,6 +135,10 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
   }
 
   if (spgw_config_parse_file(spgw_config_p) != 0) {
+    return RETURNerror;
+  }
+
+  if (amf_config_parse_file(amf_config_p) != 0) {
     return RETURNerror;
   }
 

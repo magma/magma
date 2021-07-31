@@ -50,7 +50,6 @@
 #include "timer_messages_types.h"
 #include "ngap_amf.h"
 
-amf_config_t amf_config;
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
 static int ngap_send_init_sctp(void) {
@@ -93,7 +92,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
 
       // Invoke NGAP message decoder
-
       Ngap_NGAP_PDU_t pdu = {0};
 
       if (ngap_amf_decode_pdu(
@@ -123,6 +121,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
+
       /*
        * New message received from NAS task.
        * * * * This corresponds to a NGAP downlink nas transport message.
@@ -149,6 +148,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       ngap_handle_ue_context_release_command(
           state, &received_message_p->ittiMsg.ngap_ue_context_release_command,
           imsi64);
+    } break;
+
+    case NGAP_INITIAL_CONTEXT_SETUP_REQ: {
+      ngap_handle_conn_est_cnf(
+          state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(received_message_p));
     } break;
 
     case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
@@ -205,6 +209,17 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 //------------------------------------------------------------------------------
 status_code_e ngap_amf_init(const amf_config_t* amf_config_p) {
   OAILOG_DEBUG(LOG_NGAP, "Initializing NGAP interface\n");
+
+  if (NULL == amf_config_p) {
+    return RETURNerror;
+  }
+
+  if (ngap_state_init(
+          amf_config_p->max_ues, amf_config_p->max_gnbs,
+          amf_config_p->use_stateless) < 0) {
+    OAILOG_ERROR(LOG_NGAP, "Error while initing NGAP state\n");
+    return RETURNerror;
+  }
 
   if (itti_create_task(TASK_NGAP, &ngap_amf_thread, NULL) == RETURNerror) {
     OAILOG_ERROR(LOG_NGAP, "Error while creating NGAP task\n");
@@ -287,6 +302,48 @@ m5g_ue_description_t* ngap_new_ue(
   // Increment number of UE
   gnb_ref->nb_ue_associated++;
   return ue_ref;
+}
+
+//------------------------------------------------------------------------------
+void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
+  gnb_description_t* gNB_ref = NULL;
+
+  // NULL reference...
+  if (ue_ref == NULL) return;
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = ue_ref->gnb_ue_ngap_id;
+  gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
+
+  // Updating number of UE
+  gNB_ref->nb_ue_associated--;
+
+  ue_ref->ng_ue_state = NGAP_UE_INVALID_STATE;
+
+  hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
+  hashtable_ts_free(state_ue_ht, ue_ref->comp_ngap_id);
+  hashtable_ts_free(&state->amfid2associd, gnb_ue_ngap_id);
+  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, gnb_ue_ngap_id);
+
+  imsi64_t imsi64                = INVALID_IMSI64;
+  ngap_imsi_map_t* ngap_imsi_map = get_ngap_imsi_map();
+
+  hashtable_uint64_ts_get(
+      ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) gnb_ue_ngap_id,
+      &imsi64);
+
+  delete_ngap_ue_state(imsi64);
+
+  if (!gNB_ref->nb_ue_associated) {
+    if (gNB_ref->ng_state == NGAP_RESETING) {
+      gNB_ref->ng_state = NGAP_INIT;
+      set_gauge("ngap_connection", 0, 1, "gnb_name", gNB_ref->gnb_name);
+      // update_mme_app_stats_connected_enb_sub();
+    } else if (gNB_ref->ng_state == NGAP_SHUTDOWN) {
+      OAILOG_INFO(LOG_NGAP, "Deleting gNB \n");
+      // set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
+      ngap_remove_gnb(state, gNB_ref);
+    }
+  }
 }
 
 //------------------------------------------------------------------------------

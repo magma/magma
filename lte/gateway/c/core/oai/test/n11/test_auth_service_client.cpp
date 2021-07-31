@@ -34,23 +34,59 @@ TEST(
   magma::lte::M5GAuthenticationInformationAnswer response;
   itti_amf_subs_auth_info_ans_t amf_app_subs_auth_info_resp_p;
 
-  auto* authVector1 = response.add_m5gauth_vectors();
-  authVector1->set_rand("rand1");
-  authVector1->set_xres_star("xres_star1");
-  authVector1->set_autn("autn1");
-  authVector1->set_kseaf("kseaf1");
+  std::string rand("rand1");
+  std::string xres_star("xres_star1");
+  std::string autn("authenticationtn");
+  std::string kseaf("SecurityAnchorFunctionAMFKeyOf22");
 
-  std::cout << "m5gauth_vectors_size :" << response.m5gauth_vectors_size();
+  auto* authVector1 = response.add_m5gauth_vectors();
+  authVector1->set_rand(rand);
+  authVector1->set_xres_star(xres_star);
+  authVector1->set_autn(autn);
+  authVector1->set_kseaf(kseaf);
+
   magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
       response, &amf_app_subs_auth_info_resp_p);
 
+  // build expected itti_amf_subs_auth_info_ans_t
+  itti_amf_subs_auth_info_ans_t expect_auth_info;
+  expect_auth_info.auth_info.nb_of_vectors = 1;
+  m5gauth_vector_t& expected_m5gauth_vector =
+      expect_auth_info.auth_info.m5gauth_vector[0];
+  memcpy(expected_m5gauth_vector.rand, rand.c_str(), rand.length());
+  expected_m5gauth_vector.xres_star.size = xres_star.length();
+  memcpy(
+      expected_m5gauth_vector.xres_star.data, xres_star.c_str(),
+      xres_star.length());
+  memcpy(expected_m5gauth_vector.autn, autn.c_str(), autn.length());
+  memcpy(expected_m5gauth_vector.kseaf, kseaf.c_str(), kseaf.length());
+
+  // check generated & expected
+  m5gauth_vector_t& generated_m5gauth_vector =
+      amf_app_subs_auth_info_resp_p.auth_info.m5gauth_vector[0];
+
   EXPECT_TRUE(
-      response.m5gauth_vectors_size() ==
-      amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors)
-      << "size of response.m5gauth_vectors_size : "
-      << response.m5gauth_vectors_size()
-      << " amf_app_subs_auth_info_resp_p         : "
-      << amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors;
+      expect_auth_info.auth_info.nb_of_vectors ==
+      amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors);
+  EXPECT_TRUE(
+      0 == memcmp(
+               expected_m5gauth_vector.rand, generated_m5gauth_vector.rand,
+               rand.length()));
+  EXPECT_TRUE(
+      expected_m5gauth_vector.xres_star.size ==
+      generated_m5gauth_vector.xres_star.size);
+  EXPECT_TRUE(
+      0 == memcmp(
+               expected_m5gauth_vector.xres_star.data,
+               generated_m5gauth_vector.xres_star.data, xres_star.length()));
+  EXPECT_TRUE(
+      0 == memcmp(
+               expected_m5gauth_vector.autn, generated_m5gauth_vector.autn,
+               autn.length()));
+  EXPECT_TRUE(
+      0 == memcmp(
+               expected_m5gauth_vector.kseaf, generated_m5gauth_vector.kseaf,
+               kseaf.length()));
 }
 
 TEST(test_get_subs_auth_info, get_subs_auth_info) {
