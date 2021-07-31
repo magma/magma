@@ -62,3 +62,4 @@ The CI checks listed below do not block merging on failure.
 | ci/circleci: cwag-build                       | Validate CWAG builds                                             | approvers-cwf      | TODO                                                 |
 | ci/circleci: feg-lint                         | Check FeG changes satisfies Go linter                            | approvers-feg      | TODO                                                 |
 | Python Format Check                           | Ensure Python changes are formatted                              | themarwhal         | [AGW formatting](../lte/dev_unit_testing#format-agw) |
+| markdown-lint | Ensure documentation changes are formatted | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit) |
