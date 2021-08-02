@@ -276,6 +276,8 @@
       # For call tracing
       - tshark
       - getenvoy-envoy
+      # eBPF compile and load tools for kernsnoopd
+      - bpfcc-tools
 
 - name: Install debian Magma dependencies
   retries: 5

@@ -43,6 +43,7 @@
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "nas_proc.h"
+#include "includes/MetricsHelpers.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

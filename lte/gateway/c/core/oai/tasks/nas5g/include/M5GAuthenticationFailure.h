@@ -16,6 +16,7 @@ limitations under the License.
 #include "M5GMessageType.h"
 #include "M5GSpareHalfOctet.h"
 #include "M5GMMCause.h"
+#include "M5GAuthenticationFailureIE.h"
 
 using namespace std;
 namespace magma5g {
@@ -27,6 +28,10 @@ class AuthenticationFailureMsg {
   MessageTypeMsg message_type;
   M5GMMCauseMsg m5gmm_cause;
 #define AUTHENTICATION_FAILURE_MINIMUM_LENGTH 4
+#define AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE 0x30
+
+  /* Optional Parameters */
+  M5GAuthenticationFailureIE auth_failure_ie;
 
   AuthenticationFailureMsg();
   ~AuthenticationFailureMsg();

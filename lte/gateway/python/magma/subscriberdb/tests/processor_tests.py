@@ -22,12 +22,13 @@ from lte.protos.subscriberdb_pb2 import (
     SubscriberState,
 )
 from magma.subscriberdb import processor
+from magma.subscriberdb.crypto.lte import FiveGRanAuthVector
 from magma.subscriberdb.crypto.milenage import BaseLTEAuthAlgo, Milenage
 from magma.subscriberdb.crypto.utils import CryptoError
-from magma.subscriberdb.crypto.lte import FiveGRanAuthVector
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 from magma.subscriberdb.store.sqlite import SqliteStore
+
 
 def _dummy_auth_tuple():
     rand = b'ni\x89\xbel\xeeqTT7p\xae\x80\xb1\xef\r'
@@ -49,12 +50,13 @@ def _dummy_eutran_vector():
 
 def _dummy_resync_vector():
     mac_s = 8 * b'\x00'
-    sqn = 2**28 + 1 << 5
+    sqn = 2 ** 28 + 1 << 5
     return (sqn, mac_s)
 
 
 def _dummy_opc():
     return b'\x66\xe9\x4b\xd4\xef\x8a\x2c\x3b\x88\x4c\xfa\x59\xca\x34\x2b\x2e'
+
 
 def _dummy_m5gran_vector():
     rand = b'u\x96=\x9d\xef\xa4\x15\x0e\x95\x852\xcd\xb8$\xb1\xc1'
@@ -66,9 +68,10 @@ def _dummy_m5gran_vector():
     kseaf = (
         b'\t\xc1,\x15\x14%\xbe\xe1/\xe4IT\x7f\xae\xa6\xecT\xcf'
         b'\xacm#\xbbf|\xebu\rG#\x8b\x04\xd3'
-    )    
-       
+    )
+
     return FiveGRanAuthVector(rand, xres_star, autn, kseaf)
+
 
 class FakeMilenage(BaseLTEAuthAlgo):
     # pylint:disable=unused-argument
@@ -296,7 +299,7 @@ class ProcessorTests(unittest.TestCase):
         self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(
             self._processor.get_next_lte_auth_seq('11111'),
-            2**28 + 2,
+            2 ** 28 + 2,
         )
 
     def test_lte_resync_seq_equal(self):
@@ -304,12 +307,12 @@ class ProcessorTests(unittest.TestCase):
         Test if we update the next seq when the current next is what the USIM
         has. We start with a SEQ of 2**28 + 1 and SEQ_MS is equal so we add 1.
         """
-        self._processor.set_next_lte_auth_seq('11111', 2**28 + 1)
+        self._processor.set_next_lte_auth_seq('11111', 2 ** 28 + 1)
         auts = 14 * b'\x00'
         self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(
             self._processor.get_next_lte_auth_seq('11111'),
-            2**28 + 2,
+            2 ** 28 + 2,
         )
 
     def test_lte_resync_seq_larger(self):
@@ -323,7 +326,7 @@ class ProcessorTests(unittest.TestCase):
         """
         self._processor.set_next_lte_auth_seq(
             '11111',
-            2**28 + 3,
+            2 ** 28 + 3,
         )
         auts = 14 * b'\x00'
         with self.assertRaises(CryptoError):
@@ -333,7 +336,7 @@ class ProcessorTests(unittest.TestCase):
             self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(
             self._processor.get_next_lte_auth_seq('11111'),
-            2**28 + 3,
+            2 ** 28 + 3,
         )
 
     def test_lte_resync_bad_mac_s(self):
@@ -413,6 +416,6 @@ class ProcessorTests(unittest.TestCase):
             m5Gran_vector,
         )
 
+
 if __name__ == "__main__":
     unittest.main()
-

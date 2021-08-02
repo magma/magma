@@ -36,14 +36,14 @@ RUN apt-get update && apt-get install -y \
     vim \
     virtualenv
 
-# Install Golang 1.12.
+# Install Golang 1.13.
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.12.4.linux-amd64.tar.gz -O && \
-    tar xf go1.12.4.linux-amd64.tar.gz && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
+    tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Install protobuf compiler.
-RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
+RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
     unzip protoc3.zip -d protoc3 && \
     mv protoc3/bin/protoc /bin/protoc && \
     chmod a+rx /bin/protoc && \

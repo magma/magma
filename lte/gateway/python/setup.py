@@ -52,6 +52,7 @@ setup(
         'magma.subscriberdb.protocols.diameter',
         'magma.subscriberdb.protocols.diameter.application',
         'magma.subscriberdb.store',
+        'magma.kernsnoopd',
     ],
     scripts=[
         'scripts/agw_health_cli.py',

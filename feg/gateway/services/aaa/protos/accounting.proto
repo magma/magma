@@ -25,6 +25,8 @@ message update_request {
     uint32 packets_in = 3;
     uint32 packets_out = 4;
     context ctx = 5;
+    uint32 gigawords_in = 6;
+    uint32 gigawords_out = 7;
 }
 
 // stop_request - ctx with termination cause: https://tools.ietf.org/html/rfc2866#page-20
@@ -54,6 +56,8 @@ message stop_request {
     context ctx = 2;
     uint32 octets_in = 3;
     uint32 octets_out = 4;
+    uint32 gigawords_in = 5;
+    uint32 gigawords_out = 6;
 }
 
 // acct_resp message - RPC message definition for Accounting-Response (currently empty)

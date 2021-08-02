@@ -9933,6 +9933,11 @@ definitions:
       default_rule_id:
         example: default_rule_1
         type: string
+      enable_converged_core:
+        default: false
+        description: Enables 5G Standalone (SA) at a network level
+        example: true
+        type: boolean
       gx_gy_relay_enabled:
         example: false
         type: boolean

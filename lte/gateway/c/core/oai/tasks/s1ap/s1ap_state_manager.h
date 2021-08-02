@@ -42,6 +42,16 @@ namespace magma {
 namespace lte {
 
 /**
+ * create_s1ap_state allocates a new s1ap_state_t struct and initializes
+ * its properties.
+ */
+s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues);
+/**
+ * free_s1ap_state deallocates a s1ap_state_t struct and its properties.
+ */
+void free_s1ap_state(s1ap_state_t* state_cache_p);
+
+/**
  * S1apStateManager is a thread safe singleton class that contains functions
  * to maintain S1AP task state, allocating and freeing related state structs.
  */

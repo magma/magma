@@ -319,7 +319,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies,
+            request.policies, request.shard_id,
         )
 
         failed_policies_results = \
@@ -330,7 +330,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         enforcement_res = self._activate_rules_in_enforcement(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            policies,
+            policies, request.shard_id,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -355,7 +355,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies,
+            request.policies, request.shard_id,
         )
 
         failed_policies_results = \
@@ -367,7 +367,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         gy_res = self._activate_rules_in_gy(
             request.sid.id, request.msisdn, request.uplink_tunnel,
             ip_address, request.apn_ambr,
-            policies,
+            policies, request.shard_id,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -381,6 +381,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
+        shard_id: int,
     ) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME,
@@ -388,22 +389,25 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id,
         )
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
     def _activate_rules_in_enforcement(
-        self, imsi: str, msisdn: bytes,
+        self, imsi: str,
+        msisdn: bytes,
         uplink_tunnel: int,
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
+        shard_id: int,
     ) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
+            shard_id,
         )
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
@@ -415,11 +419,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
+        shard_id: int,
     ) -> ActivateFlowsResult:
         gy_res = self._gy_app.activate_rules(
             imsi, msisdn, uplink_tunnel,
             ip_addr, apn_ambr,
-            policies,
+            policies, shard_id,
         )
         # TODO: add metrics
         return gy_res
@@ -970,6 +975,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
 
+
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
@@ -1024,7 +1030,7 @@ def _report_enforcement_stats_failures(
 
 def get_deactivate_req(request: ActivateFlowsRequest):
     versioned_policy_ids = [
-        VersionedPolicyID(rule_id = p.rule.id, version=p.version) for
+        VersionedPolicyID(rule_id=p.rule.id, version=p.version) for
         p in request.policies
     ]
     return DeactivateFlowsRequest(

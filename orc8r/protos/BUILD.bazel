@@ -1,0 +1,117 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cpp_proto_library(
+    name = "common_cpp_proto",
+    protos = [":common_proto"],
+)
+
+cpp_grpc_library(
+    name = "common_cpp_grpc",
+    protos = [":common_proto"],
+)
+
+proto_library(
+    name = "common_proto",
+    srcs = ["common.proto"],
+)
+
+cpp_grpc_library(
+    name = "eventd_cpp_grpc",
+    protos = [":eventd_proto"],
+    deps = [
+        ":common_cpp_grpc",
+    ],
+)
+
+proto_library(
+    name = "eventd_proto",
+    srcs = ["eventd.proto"],
+    deps = [
+        ":common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "redis_cpp_proto",
+    protos = [":redis_proto"],
+)
+
+cpp_grpc_library(
+    name = "redis_cpp_grpc",
+    protos = [":redis_proto"],
+)
+
+proto_library(
+    name = "redis_proto",
+    srcs = ["redis.proto"],
+)
+
+proto_library(
+    name = "mconfigs_proto",
+    srcs = ["mconfig/mconfigs.proto"],
+    strip_import_prefix = "mconfig/",
+    deps = [
+        ":common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "metrics_cpp_proto",
+    protos = [":metrics_proto"],
+)
+
+proto_library(
+    name = "metrics_proto",
+    srcs = ["prometheus/metrics.proto"],
+    strip_import_prefix = "prometheus/",
+)
+
+cpp_proto_library(
+    name = "metricsd_cpp_proto",
+    protos = [":metricsd_proto"],
+    deps = [
+        ":common_cpp_proto",
+        ":metrics_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "metricsd_proto",
+    srcs = ["metricsd.proto"],
+    deps = [
+        ":common_proto",
+        ":metrics_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "service303_cpp_grpc",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_cpp_proto",
+        ":metricsd_cpp_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "service303_cpp_proto",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_cpp_proto",
+        ":metricsd_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "service303_proto",
+    srcs = ["service303.proto"],
+    deps = [
+        ":common_proto",
+        ":metricsd_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)

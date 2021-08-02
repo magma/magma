@@ -57,6 +57,26 @@ int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
   else
     decoded += decoded_result;
 
+  while (decoded < len) {
+    uint8_t ieiDecoded = *(buffer + decoded);
+
+    switch (ieiDecoded) {
+      case AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE:
+        if ((decoded_result =
+                 auth_failure->auth_failure_ie.DecodeM5GAuthenticationFailureIE(
+                     &auth_failure->auth_failure_ie,
+                     AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE,
+                     buffer + decoded, len - decoded)) < 0)
+          return decoded_result;
+
+        decoded += decoded_result;
+        break;
+
+      default:
+        return TLV_UNEXPECTED_IEI;
+    }
+  }
+
   return decoded;
 }
 

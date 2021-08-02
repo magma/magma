@@ -34,7 +34,8 @@
       "ipv6PCscfAddress": "2a12:577:9941:f99c:0002:0001:c731:f114",
       "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
       "natEnabled": true,
-      "congestionControlEnabled": true
+      "congestionControlEnabled": true,
+      "enableConvergedCore": false
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

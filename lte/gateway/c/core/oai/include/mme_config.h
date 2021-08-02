@@ -43,17 +43,20 @@
 #include <stdlib.h>
 #include "mme_default_values.h"
 #include "common_types.h"
+#include "amf_config.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "log.h"
 #include "service303.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
+#include "includes/SentryWrapper.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
 #define MAX_GUMMEI 5
 #define MIN_TAI_SUPPORTED 1
+#define MAX_TAI_SUPPORTED 16
 #define MAX_MCC_LENGTH 3
 #define MAX_MNC_LENGTH 3
 #define MIN_MNC_LENGTH 2
@@ -115,6 +118,12 @@
 #define MME_CONFIG_STRING_S1AP_CONFIG "S1AP"
 #define MME_CONFIG_STRING_S1AP_OUTCOME_TIMER "S1AP_OUTCOME_TIMER"
 #define MME_CONFIG_STRING_S1AP_PORT "S1AP_PORT"
+
+#define MME_CONFIG_STRING_TAC_LIST "TAC_LIST"
+#define MME_CONFIG_STRING_GUAMFI_LIST "GUAMFI_LIST"
+#define MME_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
+#define MME_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
+#define MME_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
 
 #define MME_CONFIG_STRING_GUMMEI_LIST "GUMMEI_LIST"
 #define MME_CONFIG_STRING_MME_CODE "MME_CODE"
@@ -327,12 +336,6 @@ typedef struct e_dns_config_s {
   bstring sgw_id[MME_CONFIG_MAX_SGW];
   struct in_addr sgw_ip_addr[MME_CONFIG_MAX_SGW];
 } e_dns_config_t;
-
-typedef struct sentry_config_s {
-  float sample_rate;
-  bool upload_mme_log;
-  bstring url_native;
-} sentry_config_t;
 
 typedef struct gummei_config_s {
   int nb;

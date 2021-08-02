@@ -54,6 +54,7 @@
 #include "log.h"
 #include "common_defs.h"
 #include "mme_config.h"
+#include "amf_config.h"
 #include "3gpp_33.401.h"
 #include "intertask_interface_conf.h"
 #include "3gpp_23.003.h"
@@ -1534,7 +1535,6 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_SENTRY_CONFIG);
     memset(&config_pP->sentry_config, 0, sizeof(sentry_config_t));
-    config_pP->sentry_config.url_native = bfromcstr("");
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_SENTRY_CONFIG \n");
     if (setting != NULL) {
       if ((config_setting_lookup_float(
@@ -1549,7 +1549,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_URL_NATIVE,
               (const char**) &astring))) {
-        bassigncstr(config_pP->sentry_config.url_native, astring);
+        strncpy(config_pP->sentry_config.url_native, astring, MAX_URL_LENGTH);
       }
     }
 
@@ -1784,7 +1784,7 @@ void mme_config_display(mme_config_t* config_pP) {
       config_pP->sentry_config.upload_mme_log);
   OAILOG_INFO(
       LOG_CONFIG, "    URL native .......: %s\n",
-      bdata(config_pP->sentry_config.url_native));
+      config_pP->sentry_config.url_native);
 
   OAILOG_INFO(LOG_CONFIG, "- ITTI:\n");
   OAILOG_INFO(
@@ -2062,7 +2062,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
    * Parse the configuration file using libconfig
    */
   if (!config_pP->config_file) {
-    config_pP->config_file = bfromcstr("/usr/local/etc/oai/mme.conf");
+    config_pP->config_file = bfromcstr("/var/opt/magma/tmp/mme.conf");
   }
   if (mme_config_parse_file(config_pP) != 0) {
     return -1;

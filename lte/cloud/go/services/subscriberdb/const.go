@@ -18,8 +18,9 @@ const (
 
 	EntityType = "subscriber"
 
-	LookupTableBlobstore       = "subscriber_lookup_blobstore"
-	PerSubDigestTableBlobstore = "per_sub_digest_blobstore"
+	LookupTableBlobstore         = "subscriber_lookup_blobstore"
+	PerSubDigestTableBlobstore   = "per_sub_digest_blobstore"
+	LastResyncTimeTableBlobstore = "last_resync_time_blobstore"
 
 	// MinimumSyncInterval is the the minimum interval in seconds between
 	// gateway requests to sync its subscriberdb with the cloud.

@@ -29,6 +29,7 @@ SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
                                                 'table_id'])
 default_ambr_config = None
 
+
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
     """ Attempt a grpc call and retry if unavailable """
     for i in range(retry_count):
@@ -153,7 +154,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 uplink_tunnel=None,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
-                policies=self._policies)
+                policies=self._policies,
+                shard_id=0)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
@@ -161,7 +163,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
-                    policies=self._policies)
+                    policies=self._policies,
+                    shard_id=0)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
