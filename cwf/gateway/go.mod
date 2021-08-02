@@ -13,12 +13,7 @@ module magma/cwf/gateway
 
 replace (
 	fbc/cwf/radius => ../../feg/radius/src/
-	fbc/lib/go => ../../feg/radius/lib/go
-	fbc/lib/go/http => ../../feg/radius/lib/go/http
-	fbc/lib/go/libgraphql => ../../feg/radius/lib/go/libgraphql
-	fbc/lib/go/log => ../../feg/radius/lib/go/log
 	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
-	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
 	magma/cwf/cloud/go => ../../cwf/cloud/go
@@ -37,6 +32,7 @@ require (
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/docker/docker v1.13.1
 	github.com/fiorix/go-diameter/v4 v4.0.4
+	github.com/go-kit/kit v0.9.0 // indirect
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -46,10 +42,11 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/net v0.0.0-20210501142056-aec3718b3fa0
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	google.golang.org/grpc v1.33.2
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0

@@ -367,7 +367,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         gy_res = self._activate_rules_in_gy(
             request.sid.id, request.msisdn, request.uplink_tunnel,
             ip_address, request.apn_ambr,
-            policies,
+            policies, request.shard_id,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -389,7 +389,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, shard_id, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id,
         )
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
@@ -419,7 +419,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
-        shard_id: int
+        shard_id: int,
     ) -> ActivateFlowsResult:
         gy_res = self._gy_app.activate_rules(
             imsi, msisdn, uplink_tunnel,
@@ -975,6 +975,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
 
+
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
@@ -1029,7 +1030,7 @@ def _report_enforcement_stats_failures(
 
 def get_deactivate_req(request: ActivateFlowsRequest):
     versioned_policy_ids = [
-        VersionedPolicyID(rule_id = p.rule.id, version=p.version) for
+        VersionedPolicyID(rule_id=p.rule.id, version=p.version) for
         p in request.policies
     ]
     return DeactivateFlowsRequest(

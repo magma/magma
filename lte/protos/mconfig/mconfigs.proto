@@ -354,6 +354,8 @@ message MME {
 
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 45;
+    
+    bool enable_converged_core = 46;
 }
 
 message FederatedModeMap {

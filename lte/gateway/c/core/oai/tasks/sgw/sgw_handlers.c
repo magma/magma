@@ -51,6 +51,7 @@
 #include "pgw_pcef_emulation.h"
 #include "pgw_procedures.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "pcef_handlers.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"

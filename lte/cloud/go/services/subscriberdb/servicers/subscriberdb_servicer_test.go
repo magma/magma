@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/base64"
 	"testing"
+	"time"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -47,8 +48,9 @@ func TestListSubscribers(t *testing.T) {
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
+	lastResyncStore := initializeLastResyncTimeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, digestStore, perSubDigestStore, subStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, digestStore, perSubDigestStore, subStore, lastResyncStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -308,11 +310,13 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
+	lastResyncStore := initializeLastResyncTimeStore(t)
 
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
-		DigestsEnabled:    true,
-		MaxProtosLoadSize: 10,
-	}, digestStore, perSubDigestStore, subStore)
+		DigestsEnabled:     true,
+		MaxProtosLoadSize:  10,
+		ResyncIntervalSecs: 1000,
+	}, digestStore, perSubDigestStore, subStore, lastResyncStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -481,14 +485,74 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 	assert.Equal(t, expectedToken, res.NextPageToken)
 }
 
+func TestListSubscribersSetLastResyncTime(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	digestStore := initializeDigestStore(t)
+	perSubDigestStore := initializePerSubDigestStore(t)
+	subStore := initializeSubStore(t)
+	lastResyncStore := initializeLastResyncTimeStore(t)
+
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{
+		DigestsEnabled:    true,
+		MaxProtosLoadSize: 10,
+	}, digestStore, perSubDigestStore, subStore, lastResyncStore)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+
+	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
+	ctx := id.NewContextWithIdentity(context.Background())
+
+	expectedProtos := []*lte_protos.SubscriberData{
+		basicSubProtoFromSid("IMSI00001", ""),
+		basicSubProtoFromSid("IMSI00002", ""),
+		basicSubProtoFromSid("IMSI00003", ""),
+	}
+	err = subStore.InsertMany("n1", expectedProtos)
+	assert.NoError(t, err)
+	err = subStore.ApplyUpdate("n1")
+	assert.NoError(t, err)
+
+	// The last resync time for this AGW should be set on the request for the last page (when nextToken is empty)
+	expectedNextToken := serializeToken(t, &configurator_storage.EntityPageToken{
+		LastIncludedEntity: "IMSI00003",
+	})
+	req := &lte_protos.ListSubscribersRequest{
+		PageSize:  3,
+		PageToken: "",
+	}
+	res, err := servicer.ListSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Len(t, res.Subscribers, 3)
+	assert.Equal(t, expectedNextToken, res.NextPageToken)
+	lastResyncTime, err := lastResyncStore.Get("n1", "g1")
+	assert.NoError(t, err)
+	assert.Empty(t, lastResyncTime)
+
+	req = &lte_protos.ListSubscribersRequest{
+		PageSize:  3,
+		PageToken: expectedNextToken,
+	}
+	res, err = servicer.ListSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Len(t, res.Subscribers, 0)
+	assert.Empty(t, res.NextPageToken)
+	lastResyncTime, err = lastResyncStore.Get("n1", "g1")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, lastResyncTime)
+}
+
 func TestCheckSubscribersInSync(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
+	lastResyncStore := initializeLastResyncTimeStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true}, digestStore, perSubDigestStore, subStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true, ResyncIntervalSecs: 1000}, digestStore, perSubDigestStore, subStore, lastResyncStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -499,6 +563,8 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	err = digestStore.SetDigest("n1", "digest_apple")
 	assert.NoError(t, err)
 
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix()))
+	assert.NoError(t, err)
 	// Requests with blank digests should get an update signal in return
 	req := &lte_protos.CheckSubscribersInSyncRequest{
 		FlatDigest: &lte_protos.Digest{Md5Base64Digest: ""},
@@ -524,6 +590,17 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	res, err = servicer.CheckSubscribersInSync(ctx, req)
 	assert.NoError(t, err)
 	assert.False(t, res.InSync)
+
+	// Requests from gateways that haven't been resynced for more than the specified
+	// resync interval should get an update signal in return
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix())-5000)
+	assert.NoError(t, err)
+	req = &lte_protos.CheckSubscribersInSyncRequest{
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_apple2"},
+	}
+	res, err = servicer.CheckSubscribersInSync(ctx, req)
+	assert.NoError(t, err)
+	assert.False(t, res.InSync)
 }
 
 func TestSyncSubscribers(t *testing.T) {
@@ -532,10 +609,11 @@ func TestSyncSubscribers(t *testing.T) {
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
+	lastResyncStore := initializeLastResyncTimeStore(t)
 
 	// Create servicer with the subscriber digests feature flag turned on
 	configs := subscriberdb.Config{DigestsEnabled: true, ChangesetSizeThreshold: 100, MaxProtosLoadSize: 100}
-	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subStore)
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subStore, lastResyncStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -545,11 +623,21 @@ func TestSyncSubscribers(t *testing.T) {
 	err = digestStore.SetDigest("n1", "flat_digest_apple")
 	assert.NoError(t, err)
 
-	// Initially no digests
+	// If the gateway has not received orc8r-oriented resync in a while, should get a resync signal
 	req := &lte_protos.SyncSubscribersRequest{
 		PerSubDigests: []*lte_protos.SubscriberDigestWithID{},
 	}
 	res, err := servicer.SyncSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.True(t, res.Resync)
+
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix()))
+	assert.NoError(t, err)
+	// Initially no digests
+	req = &lte_protos.SyncSubscribersRequest{
+		PerSubDigests: []*lte_protos.SubscriberDigestWithID{},
+	}
+	res, err = servicer.SyncSubscribers(ctx, req)
 	assert.NoError(t, err)
 	assert.Equal(t, "flat_digest_apple", res.FlatDigest.GetMd5Base64Digest())
 	assert.Empty(t, res.PerSubDigests)
@@ -654,14 +742,16 @@ func TestSyncSubscribersResync(t *testing.T) {
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 	subStore := initializeSubStore(t)
+	lastResyncStore := initializeLastResyncTimeStore(t)
 
 	// Create servicer with a small ChangesetSizeThreshold
 	configs := subscriberdb.Config{
 		DigestsEnabled:         true,
 		ChangesetSizeThreshold: 2,
 		MaxProtosLoadSize:      100,
+		ResyncIntervalSecs:     1000,
 	}
-	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subStore)
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore, subStore, lastResyncStore)
 
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -670,6 +760,8 @@ func TestSyncSubscribersResync(t *testing.T) {
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
 
+	err = lastResyncStore.Set("n1", "g1", uint32(time.Now().Unix()))
+	assert.NoError(t, err)
 	// When changeset is no larger than ChangesetSizeThreshold, the servicer should return the full changeset
 	expectedToRenewData := []*lte_protos.SubscriberData{
 		{
@@ -781,6 +873,16 @@ func initializeSubStore(t *testing.T) *subscriberdb_storage.SubStore {
 	assert.NoError(t, store.Initialize())
 	return store
 }
+
+func initializeLastResyncTimeStore(t *testing.T) *subscriberdb_storage.LastResyncTimeStore {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.LastResyncTimeTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	store := subscriberdb_storage.NewLastResyncTimeStore(fact)
+	return store
+}
+
 func assertEqualPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDigestWithID, got []*lte_protos.SubscriberDigestWithID) {
 	assert.Equal(t, len(expected), len(got))
 	for ind := range expected {

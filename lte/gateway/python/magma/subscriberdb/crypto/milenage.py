@@ -12,12 +12,11 @@ limitations under the License.
 """
 
 import hmac
+
 from Crypto.Cipher import AES
 from Crypto.Random import random
-from .lte import (
-    BaseLTEAuthAlgo,
-    FiveGRanAuthVector,
-)
+
+from magma.subscriberdb.crypto.lte import BaseLTEAuthAlgo, FiveGRanAuthVector
 
 class Milenage(BaseLTEAuthAlgo):
     """
@@ -54,20 +53,23 @@ class Milenage(BaseLTEAuthAlgo):
         kasme = Milenage.generate_kasme(ck, ik, plmn, sqn_bytes, ak)
         return rand, xres, autn, kasme
 
-    def generate_m5gran_vector(self, key: bytes, opc: bytes, sqn: int, snni: bytes) -> FiveGRanAuthVector:
+    def generate_m5gran_vector(
+        self, key: bytes, opc: bytes, sqn: int,
+        snni: bytes,
+    ) -> FiveGRanAuthVector:
         """
         Generate the NGRAN key vector.
         Args:
-            key : bytes 
+            key : bytes
                 128 bit subscriber key
-            opc : bytes 
+            opc : bytes
                 128 bit operator variant algorithm configuration field
-            sqn : int 
+            sqn : int
                 48 bit sequence number
-            snni : bytes 
+            snni : bytes
                 32 bit serving network name consisting of MCC and MNC
         Returns:
-            FiveGRanAuthVector : NamedTuple 
+            FiveGRanAuthVector : NamedTuple
                  Consists of (rand, xres_star, autn, kseaf)
         """
         sqn_bytes = bytearray.fromhex('{:012x}'.format(sqn))
@@ -85,8 +87,10 @@ class Milenage(BaseLTEAuthAlgo):
 
         return FiveGRanAuthVector(rand, xres_star, autn, kseaf)
 
-    def generate_auts(self, key: bytes, opc: bytes, rand: bytes,
-                      sqn: int) -> bytes:
+    def generate_auts(
+        self, key: bytes, opc: bytes, rand: bytes,
+        sqn: int,
+    ) -> bytes:
         """
         Compute AUTS for re-synchronization using the formula
             AUTS = SQN_MS ^ AK || f1*(SQN_MS || RAND || AMF*)
@@ -350,8 +354,10 @@ class Milenage(BaseLTEAuthAlgo):
         return aes_cipher.encrypt(buf)
 
     @classmethod
-    def generate_m5g_xres_star(cls, key: bytes, snni: bytes, rand: bytes,
-                               xres: bytes) -> bytes:
+    def generate_m5g_xres_star(
+        cls, key: bytes, snni: bytes, rand: bytes,
+        xres: bytes,
+    ) -> bytes:
         """
         Compute XRES_STAR = K + FC + P0 + L0 + P1 + L1 + P2 + L2
         Args:
@@ -363,18 +369,18 @@ class Milenage(BaseLTEAuthAlgo):
             xres_star (bytes)
         """
 
-        snni_len=len(snni)
-        rand_len=len(rand)
-        xres_len=len(xres)
+        snni_len = len(snni)
+        rand_len = len(rand)
+        xres_len = len(xres)
 
-        K  =  key
-        FC =  bytes.fromhex('6B')
-        P0 =  snni
-        L0 =  snni_len.to_bytes(2, 'big')
-        P1 =  rand
-        L1 =  rand_len.to_bytes(2, 'big')
-        P2 =  xres
-        L2 =  xres_len.to_bytes(2, 'big')
+        K = key
+        FC = bytes.fromhex('6B')
+        P0 = snni
+        L0 = snni_len.to_bytes(2, 'big')
+        P1 = rand
+        L1 = rand_len.to_bytes(2, 'big')
+        P2 = xres
+        L2 = xres_len.to_bytes(2, 'big')
 
         S = FC + P0 + L0 + P1 + L1 + P2 + L2
 
@@ -391,12 +397,12 @@ class Milenage(BaseLTEAuthAlgo):
         Returns:
             kausf (bytes) : Key from Authentication server function
         """
-        K  =  key
-        FC =  bytes.fromhex('6A')
-        P0 =  snni
-        L0 =  len(snni).to_bytes(2, 'big')
-        P1 =  autn[:6]
-        L1 =  len(P1).to_bytes(2, 'big')
+        K = key
+        FC = bytes.fromhex('6A')
+        P0 = snni
+        L0 = len(snni).to_bytes(2, 'big')
+        P1 = autn[:6]
+        L1 = len(P1).to_bytes(2, 'big')
 
         S = FC + P0 + L0 + P1 + L1
 
@@ -412,14 +418,15 @@ class Milenage(BaseLTEAuthAlgo):
         Returns:
             kseaf (bytes) : keys from security anchor function
         """
-        K  =  kausf
-        FC =  bytes.fromhex('6C')
-        P0 =  snni
-        L0 =  len(snni).to_bytes(2, 'big')
+        K = kausf
+        FC = bytes.fromhex('6C')
+        P0 = snni
+        L0 = len(snni).to_bytes(2, 'big')
 
         S = FC + P0 + L0
 
         return cls.KDF(K, S)
+
 
 def xor(s1, s2):
     """
@@ -451,8 +458,7 @@ def rotate(input_s, bytes_):
     return bytes(
         input_s[(i + bytes_) % len(input_s)] for i in range(
             len(
-            input_s,
+                input_s,
             ),
         )
     )
-    

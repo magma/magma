@@ -29,6 +29,7 @@
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
+#include "ShardTracker.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -44,11 +45,6 @@ const char* DIRECTION_DOWN          = "down";
 // that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
-
-using magma::service303::increment_counter;
-using magma::service303::remove_counter;
-using magma::service303::remove_gauge;
-using magma::service303::set_gauge;
 
 namespace magma {
 
@@ -68,6 +64,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
+  marshaled.shard_id   = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
@@ -150,7 +147,8 @@ SessionState::SessionState(
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
       credit_map_(4, &ccHash, &ccEqual),
-      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy),
+      shard_id_(marshaled.shard_id) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;

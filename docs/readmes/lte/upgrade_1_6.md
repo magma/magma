@@ -8,7 +8,7 @@ hide_title: true
 
 ### Fresh Install Notes
 
-Instructions on fresh gateway installs are provided in the [Install AGW section](https://magma.github.io/magma/docs/lte/deploy_install)
+Instructions on fresh gateway installs are provided in the [Install AGW section](deploy_install.md)
 
 ### Upgrading from previous releases
 

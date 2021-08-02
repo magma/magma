@@ -96,6 +96,7 @@ bool SessionStateEnforcer::m5g_init_session_credit(
     const std::string& session_id, const SessionConfig& cfg) {
   /* creating SessionState object with state CREATING
    * This calls constructor and allocates memory*/
+  // TODO(veshkemburu): Figure out how to handle sharding(object)
   auto session_state =
       std::make_unique<SessionState>(imsi, session_id, cfg, *rule_store_);
   MLOG(MDEBUG) << " New SessionState object created with IMSI: " << imsi
@@ -408,19 +409,18 @@ void SessionStateEnforcer::m5g_move_to_inactive_state(
 void SessionStateEnforcer::m5g_move_to_active_state(
     std::unique_ptr<SessionState>& session, SetSmNotificationContext notif,
     SessionStateUpdateCriteria* session_uc) {
-  bool get_gnb_teid = false;
-  bool get_upf_teid = false;
-
-  /* Reattach or get  rules to the session */
-  update_session_rules(session, get_gnb_teid, get_upf_teid, session_uc);
+  /* Reattach or get rules to the session */
+  uint32_t upf_teid = update_session_rules(session, false, false, session_uc);
   /* As we got rules again, move the state to creating */
-  session->set_fsm_state(CREATED, session_uc);
+  session->set_fsm_state(CREATING, session_uc);
   uint32_t cur_version = session->get_current_version();
   session->set_current_version(++cur_version, session_uc);
-  /* Call for all rules to be associated from session
-   * and inform to UPF
+  /* Send the UPF (local TEID) info to AMF which are going to
+   * be used by GnodeB
    */
-  m5g_pdr_rules_change_and_update_upf(session, PdrState::INSTALL);
+  prepare_response_to_access(
+      *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, get_upf_n3_addr(),
+      upf_teid);
 }
 
 void SessionStateEnforcer::set_new_fsm_state_and_increment_version(

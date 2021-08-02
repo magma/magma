@@ -15,8 +15,7 @@
 #include <stdarg.h>                     // for va_end, va_list, va_start
 #include "includes/MetricsSingleton.h"  // for MetricsSingleton
 
-namespace magma {
-namespace service303 {
+using magma::service303::MetricsSingleton;
 
 void remove_counter(const char* name, size_t n_labels, ...) {
   va_list ap;
@@ -54,6 +53,13 @@ void decrement_gauge(const char* name, double decrement, size_t n_labels, ...) {
   va_end(ap);
 }
 
+double get_gauge(const char* name, size_t n_labels, ...) {
+  va_list ap;
+  va_start(ap, n_labels);
+  return MetricsSingleton::Instance().GetGauge(name, n_labels, ap);
+  va_end(ap);
+}
+
 void set_gauge(const char* name, double value, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
@@ -69,6 +75,3 @@ void observe_histogram(
       name, observation, n_labels, ap);
   va_end(ap);
 }
-
-}  // namespace service303
-}  // namespace magma

@@ -58,7 +58,6 @@ int AuthenticationResponseParameterMsg::
         uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 #ifdef HANDLE_POST_MVC
-  uint16_t* lenPtr;
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN, len);

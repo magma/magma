@@ -1,7 +1,7 @@
 add_compile_options(-std=c++14)
 
-set(N11_LTE_CPP_PROTOS apn policydb mobilityd subscriberdb session_manager )
-set(N11_LTE_GRPC_PROTOS session_manager mobilityd )
+set(N11_LTE_CPP_PROTOS apn policydb mobilityd subscriberdb session_manager subscriberauth)
+set(N11_LTE_GRPC_PROTOS session_manager mobilityd subscriberauth)
 set(N11_ORC8R_GRPC_PROTOS common)
 
 list(APPEND PROTO_SRCS "")
@@ -14,6 +14,9 @@ generate_all_protos("${N11_LTE_CPP_PROTOS}" "${N11_ORC8R_GRPC_PROTOS}"
 
 add_library(LIB_N11
     SmfServiceClient.cpp
+    amf_client_proto_msg_to_itti_msg.cpp
+    M5GAuthenticationServiceClient.cpp
+    M5GMobilityServiceClient.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

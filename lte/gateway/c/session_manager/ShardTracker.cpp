@@ -13,45 +13,43 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "ShardTracker.h"
 
 namespace magma {
 
-int ShardTracker::add_ue() {
-  /*
-  * If there are no shards, add an entry for the shard
-  * representing a single UE at the new shard
-  */
-  if (ue_count_per_shard_.size() == 0) {
-    ue_count_per_shard_.push_back(1);
-    return 0;
-  }
-  /*
-  * Iterate through all existing shards, if all are full
-  * create a new shard with quantity 1, otherwise increment
-  * the quantity of UEs in the latest shard
-  */
-  for (size_t shard_id = 0; shard_id < ue_count_per_shard_.size(); shard_id++) {
-    if (ue_count_per_shard_[shard_id] < max_shard_size_) {
-      ue_count_per_shard_[shard_id]++;
+ShardTracker::ShardTracker() {
+  // initialize with at least one empty vector to avoid checking for empty
+  imsis_per_shard_.push_back({});
+}
+
+uint16_t ShardTracker::add_ue(const std::string imsi) {
+  for (size_t shard_id = 0; shard_id < imsis_per_shard_.size(); shard_id++) {
+    // If the UE is already in the shard, return the shard id. This check
+    // is meant to avoid multiple sessions for a UE being assigned duplicate
+    // entries.
+    std::set<std::string>& imsis_at_id = imsis_per_shard_[shard_id];
+    // If the shard has space, insert the UE
+    if (imsis_at_id.size() < max_shard_size_) {
+      imsis_at_id.insert(imsi);
       return shard_id;
     }
   }
-  ue_count_per_shard_.push_back(1);
-  return ue_count_per_shard_.size() - 1;
+  // If all shards are filled, add a new shard and insert the UE,
+  // return it's index
+  imsis_per_shard_.push_back({imsi});
+  return imsis_per_shard_.size() - 1;
 }
 
-bool ShardTracker::remove_ue(int shard_id) {
-  /*
-  * Since we only keep global state of all UEs, we just
-  * need to decrement the number of UEs at a particular id
-  * if there are no UEs at the shard, removal should fail
-  */
-  if (ue_count_per_shard_.empty()) {
+bool ShardTracker::remove_ue(const std::string imsi, const uint16_t shard_id) {
+  // Check if the shard id exists(shard ids are index based),
+  // and whether the UE is actually part of the shard, before removal
+  if (shard_id >= imsis_per_shard_.size() ||
+      imsis_per_shard_[shard_id].empty()) {
     return false;
   }
-  ue_count_per_shard_[shard_id]--;
+  imsis_per_shard_[shard_id].erase(imsi);
   return true;
 }
 

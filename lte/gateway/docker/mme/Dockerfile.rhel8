@@ -344,8 +344,7 @@ RUN cd json && \
     cd _build && \
     cmake3 -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .. && \
     make -j`nproc` && \
-    make install && \
-    cp /usr/local/include/nlohmann/json.hpp /usr/local/include/
+    make install
 
 ##### lib yaml-cpp
 RUN cd yaml-cpp && \
@@ -458,6 +457,7 @@ RUN yum update -y && \
       libasan \
       liblsan \
       psmisc \
+      procps-ng \
       tcpdump \
       openssl \
       net-tools \

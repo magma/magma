@@ -15,15 +15,16 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"sync/atomic"
+	"time"
+
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/filters"
 	"fbc/cwf/radius/loader"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
-	"fmt"
-	"sync/atomic"
-	"time"
 
 	"go.opencensus.io/tag"
 

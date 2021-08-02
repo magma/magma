@@ -1,7 +1,7 @@
-From b29518282262eaae3a0dd882c2ea4506e663da71 Mon Sep 17 00:00:00 2001
+From f2e3039cf4be98bca09026513b56aaa79e7ad053 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 23:09:50 -0800
-Subject: [PATCH 11/19] fixes for 2.14
+Subject: [PATCH 11/20] fixes for 2.14
 
 ---
  datapath/flow_netlink.c                       |  2 ++

@@ -61,7 +61,7 @@ jobs:
           echo "Oops! Looks like you failed the \`Semantic PR check\`.
           ### Howto
           - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
-          - Note: if your PR only has one commit, the commit message must also be semantic. See [Changing a commit message](https://docs.github.com/en/github/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message) for a howto
+          - For PRs with only one commit, the commit message must also be semantic. See [Changing a commit message](https://docs.github.com/en/github/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message) for a howto
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Comment on PR
         uses: actions/github-script@v3

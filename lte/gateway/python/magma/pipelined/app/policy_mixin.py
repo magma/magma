@@ -53,6 +53,7 @@ class PolicyMixin(metaclass=ABCMeta):
     Mixin class for policy enforcement apps that includes common methods
     used for rule activation/deactivation.
     """
+
     def __init__(self, *args, **kwargs):
         super(PolicyMixin, self).__init__(*args, **kwargs)
         self._datapath = None
@@ -123,7 +124,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
-            #TODO need to rework setup to return all rule specific success/fails
+            # TODO need to rework setup to return all rule specific success/fails
             self.logger.error("Failed to install rule for subscriber: %s", err)
 
         for _ in range(response_count):
@@ -278,11 +279,11 @@ class PolicyMixin(metaclass=ABCMeta):
         msg_list = []
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
-            shard_id = add_flow_req.shard_id
             apn_ambr = add_flow_req.apn_ambr
             policies = add_flow_req.policies
             msisdn = add_flow_req.msisdn
             uplink_tunnel = add_flow_req.uplink_tunnel
+            shard_id = add_flow_req.shard_id
 
             if self._setup_type == 'CWF' or add_flow_req.ip_addr:
                 ipv4 = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
@@ -300,7 +301,6 @@ class PolicyMixin(metaclass=ABCMeta):
 
                 for policy in policies:
                     msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv6, apn_ambr, policy, shard_id))
-
 
         return {self.tbl_num: msg_list}
 
@@ -340,7 +340,6 @@ class PolicyMixin(metaclass=ABCMeta):
                 self.proxy_controller = self.proxy_controller_fut.result()
         self.logger.info("Initialized proxy_controller %s",
                          self.proxy_controller)
-
 
     @abstractmethod
     def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version, shard_id: int):
