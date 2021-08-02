@@ -18,11 +18,12 @@ limitations under the License.
 #include "mme_app_ueip_imsi_map.h"
 #include "mme_app_state_manager.h"
 
+using magma::lte::MmeNasStateManager;
 // Description: Logs the content of ueip_imsi map
 void mme_app_log_ipv4_imsi_map() {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
-      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+      MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   for (const auto& itr_map : ueip_imsi_map) {
     for (const auto& it_vec : itr_map.second) {
       OAILOG_TRACE(
@@ -42,7 +43,7 @@ void mme_app_log_ipv4_imsi_map() {
 int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
-      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+      MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv4);
@@ -56,7 +57,7 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
         ipv4_addr);
     ueip_imsi_map[ipv4].push_back(imsi64);
   }
-  magma::lte::MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
+  MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -67,7 +68,7 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
 int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
-      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+      MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   int num_imsis              = 0;
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
@@ -94,7 +95,7 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
 void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
-      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+      MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv4);
@@ -114,8 +115,7 @@ void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
         if (itr_map->second.empty()) {
           ueip_imsi_map.erase(ipv4);
         }
-        magma::lte::MmeNasStateManager::getInstance()
-            .write_mme_ueip_imsi_map_to_db();
+        MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
         break;
       }
     }
