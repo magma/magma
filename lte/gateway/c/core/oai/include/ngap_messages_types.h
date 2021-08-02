@@ -82,6 +82,8 @@ typedef uint32_t teid_t;
 #define NGAP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.ngap_nas_dl_data_req
 #define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR)                                 \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_req
+#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                                 \
+  (mSGpTR)->ittiMsg.ngap_initial_context_setup_rsp
 #define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
 #define NGAP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.ngap_path_switch_request
@@ -193,7 +195,8 @@ enum Ngcause {
   NGAP_INITIAL_CONTEXT_SETUP_TMR_EXPRD,
   NGAP_INVALID_GNB_ID,
   NGAP_CSFB_TRIGGERED,
-  NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS
+  NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  NGAP_USER_INACTIVITY
 };
 typedef struct itti_ngap_ue_context_release_command_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;

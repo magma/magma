@@ -306,8 +306,8 @@ int amf_smf_send(
       if (smf_ctx->n_active_pdus) {
         /* Execute PDU Session Release and notify to SMF */
         rc = pdu_state_handle_message(
-            ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
-            smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+            ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE, ACTIVE,
+            ue_context, amf_smf_msg, imsi, NULL, 0);
       }
 
       if (smf_ctx->pdu_address.pdn_type == IPv4) {
@@ -355,8 +355,28 @@ int amf_smf_notification_send(
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
 
   req_common->mutable_sid()->mutable_id()->assign(imsi);
-  req_rat_specific->set_notify_ue_event(
-      magma::lte::NotifyUeEvents::UE_IDLE_MODE_NOTIFY);
+  if (notify_event_type == UE_IDLE_MODE_NOTIFY) {
+    req_rat_specific->set_notify_ue_event(
+        magma::lte::NotifyUeEvents::UE_IDLE_MODE_NOTIFY);
+  } else if (notify_event_type == UE_SERVICE_REQUEST_ON_PAGING) {
+    req_rat_specific->set_notify_ue_event(
+        magma::lte::NotifyUeEvents::UE_SERVICE_REQUEST_ON_PAGING);
+  }
+
+  auto it = ue_context->amf_context.smf_ctxt_vector.begin();
+  if (it != ue_context->amf_context.smf_ctxt_vector.end()) {
+    smf_context_t smf_context = *it;
+
+    if (smf_context.pdu_address.pdn_type == IPv4) {
+      char ip_str[INET_ADDRSTRLEN];
+
+      inet_ntop(
+          AF_INET, &(smf_context.pdu_address.ipv4_address.s_addr), ip_str,
+          INET_ADDRSTRLEN);
+      req_common->set_ue_ipv4((char*) ip_str);
+    }
+  }
+  // Set the PDU Address
 
   OAILOG_DEBUG(
       LOG_AMF_APP,
