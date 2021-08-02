@@ -84,6 +84,14 @@ The interface between core service and extension implementation is defined per e
 the particular extension. For a concrete example, consider the state indexing diagram
 described in [State Indexers](./dev_indexers.md).
 
+## Modules
+
+Magma modules encapsulate domain-specific functionality by defining reusable code and deployments that span Orc8r and gateways. At the Orc8r, these modules use the extension pattern to inject their functionality.
+
+You can see the full list of modules in [Module Dependencies](./dev_dependencies.md). These modules span both Orc8r and the relevant gateways, allowing domain-specific code to be shared and injected across the stack. As an example, the AGW, FeG, and CWAG are gateways that collectively share the *orc8r*, *lte*, *feg*, and *cwf* modules
+
+![Orc8r modules example](../assets/orc8r/magma_modules.png)
+
 ## Extending Orchestrator
 
 ### Implement extension
