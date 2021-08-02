@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2020 The Magma Authors.
  *
@@ -23,28 +24,48 @@ BPF_HASH(dest_counters, struct key_t);
 
 // Attach kprobe for the `tcp_sendmsg` syscall
 int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg, size_t size) {
-  u16 dport = 0, family = sk->__sk_common.skc_family;
+  u16 family = sk->sk_family;
 
-  // only IPv4
-  if (family == AF_INET) {
-    struct key_t key;
-    key.daddr = sk->__sk_common.skc_daddr;
+  // both IPv4 and IPv6
+  if (family == AF_INET || family == AF_INET6) {
+    struct key_t key = {};
 
-    // ignore packets destined for localhost
+    // read destination IP address and port
+    if (family == AF_INET) {
+      key.daddr = sk->sk_daddr;
+    }
+    else if (family == AF_INET6) {
+      bpf_probe_read(&key.daddr, sizeof(key.daddr), &sk->sk_v6_daddr.s6_addr32);
+    }
+    u16 dport = sk->sk_dport;
+    key.dport = ntohs(dport);
+
+    // ignore packets destined for localhost unless dport is PROXY_PORT
+
     // IPv4 127.0.0.1 == 16777343, 0.0.0.0 == 0
-    if ((key.daddr == 16777343 || key.daddr == 0)) {
-      return 0;
+    if (family == AF_INET && key.dport != {{PROXY_PORT}}) {
+      if (key.daddr == 0x100007F || key.daddr == 0) {
+        return 0;
+      }
+    }
+    // IPv6 localhost has embedded IPv4 in case of control_proxy
+    // uint128 is split into two u64 and high is FFFF:"127.0.0.1"
+    else if (family == AF_INET6 && key.dport != {{PROXY_PORT}}) {
+      uint64_t low = (uint64_t)key.daddr;
+      uint64_t high = (key.daddr >> 64);
+      if (low == 0 && high == 0x100007FFFFF0000) {
+        return 0;
+      }
     }
 
-    // read binary name, pid, source and destination IP address and port
+    // read binary name, pid, and source port
     bpf_get_current_comm(key.comm, TASK_COMM_LEN);
-    key.pid = bpf_get_current_pid_tgid() >> 32;;
-    key.lport = sk->__sk_common.skc_num;
-    dport = sk->__sk_common.skc_dport;
-    key.dport = ntohs(dport);
+    key.pid = bpf_get_current_pid_tgid() >> 32;
+    key.family = family;
 
     // increment the counters
     dest_counters.increment(key, size);
   }
   return 0;
 }
+

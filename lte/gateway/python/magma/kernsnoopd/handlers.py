@@ -14,7 +14,7 @@ limitations under the License.
 import abc
 import logging
 from functools import lru_cache
-from socket import AF_INET, inet_ntop
+from socket import AF_INET, AF_INET6, inet_ntop
 from struct import pack
 
 import psutil
@@ -84,22 +84,23 @@ class ByteCounter(EBPFHandler):
         return psutil.Process(pid=pid).cmdline()
 
     @lru_cache(maxsize=1024)
-    def _ipv4_addr_to_str(self, daddr: int) -> str:
+    def _ip_addr_to_str(self, family: int, daddr) -> str:
         """
-        _ipv4_addr_to_str returns a string representation of an IPv4 IP address
-        It caches results in an LRU cache to reduce cost of conversion
+        _ip_addr_to_str returns a string representation of an IPv4 or IPv6
+        address. It caches results in an LRU cache to reduce cost of conversion
 
         Args:
-            daddr: uint32 representation of IPv4 address
+            family: socket.AF_INET (v4) or socket.AF_INET6 (v6)
+            daddr: For IPv4, uint32 representation of address as the first item
+            in a tuple. For IPv6, 16-byte array representation of address.
 
         Returns:
-            list of strings that make up the command line arguments
-
-        Raises:
-            psutil.NoSuchProcess when process with given pid does not exist.
-            Process may have already exited.
+            String representation of IP address, e.g., '127.0.0.1'
         """
-        return inet_ntop(AF_INET, pack('I', daddr))
+        if family == AF_INET:
+            return inet_ntop(AF_INET, pack('I', daddr[0]))
+        elif family == AF_INET6:
+            return inet_ntop(AF_INET6, bytes(daddr))
 
     def handle(self, bpf):
         """
@@ -112,7 +113,7 @@ class ByteCounter(EBPFHandler):
         """
         table = bpf['dest_counters']
         for key, count in table.items():
-            d_host = self._ipv4_addr_to_str(key.daddr)
+            d_host = self._ip_addr_to_str(key.family, tuple(key.daddr))
             service_name = None
 
             try:
