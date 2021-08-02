@@ -16,6 +16,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Dependencies
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
+pkg_search_module(OPENSSL openssl REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIRS})
+
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+include_directories(${CRYPTO_INCLUDE_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories("/usr/src/googletest/googlemock/include/")
@@ -48,7 +53,7 @@ target_link_libraries(test_mme_app_emm_decode
     )
 target_link_libraries(test_mme_app_procedures
     TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main
+    LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     )
 
 target_link_libraries(test_mme_app_config

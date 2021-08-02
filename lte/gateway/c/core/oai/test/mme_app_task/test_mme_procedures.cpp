@@ -10,47 +10,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
 
 #include "../mock_tasks/mock_tasks.h"
+#include "mme_app_state_manager.h"
+#include "mme_app_ip_imsi.h"
 
 extern "C" {
-#define CHECK_PROTOTYPE_ONLY
-#include "intertask_interface_init.h"
-#undef CHECK_PROTOTYPE_ONLY
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
 #include "mme_config.h"
+#include "mme_app_defs.h"
 #include "mme_app_extern.h"
+#include "mme_app_state.h"
 }
-
-const task_info_t tasks_info[] = {
-    {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
-  {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include <tasks_def.h>
-#undef TASK_DEF
-};
-
-/* Map message id to message information */
-const message_info_t messages_info[] = {
-#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) {iD, sizeof(sTRUCT), #iD},
-#include <messages_def.h>
-#undef MESSAGE_DEF
-};
 
 task_zmq_ctx_t task_zmq_ctx_main;
 
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
+    // log_init(MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG,
+    // MAX_LOG_PROTOS);
     itti_init(
         TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
         NULL);
 
     // initialize mme config
     mme_config_init(&mme_config);
+    mme_config.use_stateless = false;
 
     task_id_t task_id_list[10] = {
         TASK_MME_APP,    TASK_HA,  TASK_S1AP,   TASK_S6A,      TASK_S11,
@@ -76,15 +63,39 @@ class MmeAppProcedureTest : public ::testing::Test {
     task_sms_orc8r.detach();
     task_spgw.detach();
 
-    // mme_app_init(&mme_config);
+    mme_app_init(&mme_config);
   }
 
   virtual void TearDown() {
-    // send_terminate_message_fatal(&task_zmq_ctx_main);
+    send_terminate_message_fatal(&task_zmq_ctx_main);
+    // Sleep to ensure that messages are received and contexts are released
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 };
+/*
+TEST_F(MmeAppProcedureTest, TestDummy) {
+  mme_app_desc_t* mme_nas_state_p = get_mme_nas_state(false);
+  ASSERT_NE(mme_nas_state_p, nullptr);
+}
+*/
+TEST_F(MmeAppProcedureTest, TestInitialUeMessage) {
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
 
-TEST_F(MmeAppProcedureTest, TestDummy) {}
+  uint8_t nas_msg[]       = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
+                       0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
+                       0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
+                       0x04, 0x00, 0x02, 0x1c, 0x00};
+  uint32_t nas_msg_length = 29;
+
+  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+}
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

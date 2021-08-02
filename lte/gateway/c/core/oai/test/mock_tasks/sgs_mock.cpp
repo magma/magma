@@ -10,31 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-extern "C" {
-#include "dynamic_memory_check.h"
-#define CHECK_PROTOTYPE_ONLY
-#include "intertask_interface_init.h"
-#undef CHECK_PROTOTYPE_ONLY
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
-}
-
-const task_info_t tasks_info[] = {
-    {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
-  {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include <tasks_def.h>
-#undef TASK_DEF
-};
-
-/* Map message id to message information */
-const message_info_t messages_info[] = {
-#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) {iD, sizeof(sTRUCT), #iD},
-#include <messages_def.h>
-#undef MESSAGE_DEF
-};
+#include "mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_sgs;
 
