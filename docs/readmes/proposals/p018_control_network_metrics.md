@@ -365,7 +365,7 @@ AGW capacity in terms of number of UEs, varying attach/detach rates, data path
 traffic. We will also aim to compensate statistically for the jitter in AGW
 capacity measurements.
 
-## Original Design
+## Original design
 
 We have arrived at the above design after a few rounds of discussion and
 feedback from the team. In the original design, we had planned to
@@ -374,12 +374,14 @@ feedback from the team. In the original design, we had planned to
 The authors of `netqtop`, a similar tool included in the BCC distribution, have
 benchmarked their tool and observe 1.17 usec increase in packet "pingpong"
 latency [2]. When they benchmark bandwidth on the loopback interface, they
-observe a drop of around 27% in packets per second (PPS). To avoid this high
-penalty, we switched to attaching a _kprobe_ to the `tcp_sendmsg` syscall as an
-L2 hook would have higher performance impact. As a consequence, we lost the
-ability to observe L3 traffic such as that generated from the ping and
-traceroute probes that _magmad_ sends periodically. But since those probes
-should not be consuming much bandwidth, we are willing to ignore them.
+observe a drop of around 27% in packets per second (PPS). We also measured [the
+performance impact](#performance-impact-of-l2-instrumentation) and concluded
+that it was too high. To avoid this high penalty, we switched to attaching a
+_kprobe_ to the `tcp_sendmsg` syscall as an L2 hook would have higher
+performance impact. As a consequence, we lost the ability to observe L3 traffic
+such as that generated from the ping and traceroute probes that _magmad_ sends
+periodically. But since those probes should not be consuming much bandwidth, we
+are willing to ignore them.
 
 - Have packet counters in addition to byte counters. We dropped packet counters
 as it is not possible to get accurate packet counts even with
@@ -391,6 +393,28 @@ distinct value for a label results in a separate Prometheus time series, and
 since destination IP addresses and ports have very large domains, the overhead
 of having separate time-series would be too high. We instead decided to label
 Magma traffic by destination cloud service.
+
+### Performance impact of L2 instrumentation
+
+We evaluated the performance impact of instrumenting the `net_dev_start_xmit`
+kernel event using the Spirent lab setup as we did for [`tcp_sendmsg`](#performance). Two
+tests were run, one with `net_dev_start_xmit` instrumentation disabled, and one
+with it enabled. Each test had 600 user devices, 5 MB download rate per device,
+and an attach rate of 10. The tests ran for 30 minutes each.
+
+When `net_dev_start_xmit` instrumentation was disabled, the mean download
+throughput was roughly 540 Mbps. When it was enabled, the mean download
+throughput reduced to 430 Mbps, a 20% reduction.
+
+We also stress-tested the `net_dev_start_xmit` instrumentation. The most
+expensive operation in the relevant callback is incrementing a value in the BPF
+hash map. We put the increment operation in a loop and iterated it `n` times.
+When `n = 100`, the mean download throughput reduction was modest: from 430 Mbps
+to 420 Mbps. For `n = 150` and `n = 175`, no noticeable reduction was observed
+compared to `n = 100`. However, at `n = 200`, download throughput collapsed
+completely and produced a mean of around 5.5 Mbps with the peak hitting 75 Mbps.
+This sudden drop in throughput may have to do with excessive packet loss because
+of the slow callback function.
 
 ## References
 
