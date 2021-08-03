@@ -587,5 +587,32 @@ class SendPagingRequestCallData : public AsyncGRPCRequest<
  private:
   UpfMsgManageHandler& handler_;
 };
+/*
+ *  Class to handle SetSmfNofificationCallData
+ */
+class SetSmfNotificationCallData
+    : public AsyncGRPCRequest<
+          AmfPduSessionSmContext::AsyncService, SetSmNotificationContext,
+          SmContextVoid> {
+ public:
+  SetSmfNotificationCallData(
+      ServerCompletionQueue* cq, AmfPduSessionSmContext::AsyncService& service,
+      SetMessageManager& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetSmfNotification(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
 
+ protected:
+  void clone() override {
+    new SetSmfNotificationCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetSmfNotification(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  SetMessageManager& handler_;
+};
 }  // namespace magma

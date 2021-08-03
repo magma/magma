@@ -30,7 +30,7 @@ It is one of the key KPI and may impact network deployment/expansion/operations 
 1. If any Orchestrator pods has some issue, please try to resolve that first.
 2. Make sure that Gateways are successfully checking in. If they are not checked-in, means that their metrics won’t be reported. Please follow [these steps](https://docs.magmacore.org/docs/howtos/troubleshooting/agw_unable_to_checkin) to troubleshoot.
 3. Perform relevant sync/changes if any update has been performed on NMS -> Network.
-4. Make sure that configuration for [Gateway](https://docs.magmacore.org/docs/lte/deploy_config_agw), [eNodeB](https://docs.magmacore.org/docs/lte/deploy_config_enodebd) and [APN ](https://docs.magmacore.org/docs/lte/deploy_config_apn)has been followed.
+4. Make sure that configuration for [Gateway](https://docs.magmacore.org/docs/lte/deploy_config_agw), [eNodeB](https://docs.magmacore.org/docs/lte/deploy_config_enodebd) and [APN](https://docs.magmacore.org/docs/lte/deploy_config_apn)has been followed.
 5. If any faulty Gateway has been identified, please consider rebooting _enodebd_ service. Please consider rebooting the device (this should be done in minimal traffic duration) if need be.
 6. If still not resolved, then capture trace on eth1 interface on issue Gateway(s) to identify the case. Try to analyze and identify the cause. This will give an indication of any parameter inserted by eNodeB causing the issue.
 7. If issue persists then get higher level support by providing relevant traces/logs and [additional files](https://docs.magmacore.org/docs/lte/debug_show_tech). Report issue with eNodeB (vendor, firmware etc) and Magma node details along with any issue found in step 6.
@@ -52,8 +52,6 @@ Major severity. It indicates that functionality of network has been impacted.
 ### what resource does this affect?
 
 Network, eNodeB, Gateway, Subscribers.
-
-
 
 ## UE Attach Failure
 
@@ -77,7 +75,7 @@ Subscribers will not be able to access the services.
 ### Troubleshooting steps
 
 1. Perform relevant sync/changes if any update has been performed on NMS -> Network.
-2. Make sure that configuration for [Gateway](https://docs.magmacore.org/docs/lte/deploy_config_agw), [eNodeB](https://docs.magmacore.org/docs/lte/deploy_config_enodebd) and [APN ](https://docs.magmacore.org/docs/lte/deploy_config_apn)has been followed.
+2. Make sure that configuration for [Gateway](https://docs.magmacore.org/docs/lte/deploy_config_agw), [eNodeB](https://docs.magmacore.org/docs/lte/deploy_config_enodebd) and [APN](https://docs.magmacore.org/docs/lte/deploy_config_apn)has been followed.
 3. Please follow troubleshooting steps from [here](https://docs.magmacore.org/docs/howtos/troubleshooting/user_unable_to_attach) for issue Gateway. Please note the error code.
 4. Please check mme logs, verify if the service request failures are coming from a specific user/device/model/firmware.
 5. You may use PromQL _ue_attach{networkID=&lt;NetworkID>,result="failure"}_ to isolate further.
@@ -103,8 +101,6 @@ Major when below 80%.
 ### what resource does this affect?
 
 Network, eNodeB, Gateway, Subscribers.
-
-
 
 ## Gateway Checkin Failure
 
@@ -146,8 +142,6 @@ Critical as visibility of AGW is lost from Orchestrator.
 
 AGW, Orchestrator, Network.
 
-
-
 ## eNodeB Failure To Connect
 
 ### Description
@@ -188,8 +182,6 @@ Major
 
 AGW, Orchestrator, Network.
 
-
-
 ## No Metrics Available
 
 ### Description
@@ -206,21 +198,21 @@ If AGW is unable to checkin(alert fired), recommend restarting the magmad servic
 
 ### Troubleshooting steps
 
-_Cause 1: AGW is not reachable_
+#### Cause 1: AGW is not reachable
 
 Make sure AGW is reachable, try to ssh the AGW and if not possible make sure there are no backhaul, physical connection or power issues onsite.
 
-_Cause 2: AGW checkin Orc8r problem_
+#### Cause 2: AGW checkin Orc8r problem
 
 In AGW use `sudo checkin_cli.py` to test the Orc8r connection, verify the correct configuration in control_proxy.yml, validate certificates, verify Orc8r endpoints are reachable from AGW. Use the [troubleshooting steps](https://magma.github.io/magma/docs/howtos/troubleshooting/agw_unable_to_checkin) to investigate these steps further.
 
-_Cause 3: Unhealthy services in AGW_
+#### Cause 3: Unhealthy services in AGW
 
 In AGW, use `sudo service magma@* status`  to verify the services are active in AGW. Services like `magmad, eventd` and `td-agent-bit` are important for reporting metrics, events and logs.
 
 In AGW,  verify metrics are being generated using `service303_cli.py metrics &lt;service>.` For example,  `service303_cli.py metrics magmad`
 
-_Cause 4: Unhealthy services in Orc8r_
+#### Cause 4: Unhealthy services in Orc8r
 
 Verify if the metrics are not being populated on prometheus or if there is an error querying data in prometheus.
 
@@ -230,7 +222,7 @@ In Orc8r, use `kubectl --namespace orc8r get pods,` to verify pods are properly 
 
 In Orc8r, we can debug the issues by dumping the logs on prometheus, prometheus-configmanager, prometheus-cache and metricsd
 
-```
+```bash
 kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus-configurer -c prometheus-configurer
 
 kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus -c prometheus
@@ -239,7 +231,7 @@ kubectl --namespace orc8r logs -l app.kubernetes.io/component=metricsd
 helm --debug -n orc8r get values orc8r
 ```
 
-_Cause 6: Orc8r endpoints unreachable_
+#### Cause 6: Orc8r endpoints unreachable
 
 Make sure you can reach Orc8r endpoints `api.yourdomain, controller.yourdomain` from NMS, you can ping these domains to verify the same. If you are unable to reach the domains try reaching external IPs of the pods. To get the external IPs use the command `kubectl --namespace orc8r get services`
 
@@ -261,8 +253,6 @@ Major, as it blocks network monitoring.
 
 AGW, NMS, Orchestrator.
 
-
-
 ## S6A Authentication Success Rate
 
 ### Description
@@ -277,19 +267,19 @@ Measure unexpected increase of users not able to authenticate
 
 ### Troubleshooting steps
 
-_Cause 1: DIAMETER_ERROR_USER_UNKNOWN (5001) _
+#### Cause 1: DIAMETER_ERROR_USER_UNKNOWN (5001)
 
 Verify if s6a_auth_failure has increased due to error code 5001.``This result code shall be sent by the HSS to indicate that the user identified by the IMSI is unknown
 
-_Cause 2: DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION (5420)_
+#### Cause 2: DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION (5420)
 
 Verify if s6a_auth_failure has increased due to error code 5420. This result code shall be sent by the HSS to indicate that no EPS subscription is associated with the IMSI.
 
-_Cause 3: DIAMETER_ERROR_RAT_NOT_ALLOWED (5421) _
+#### Cause 3: DIAMETER_ERROR_RAT_NOT_ALLOWED (5421)
 
 Verify if s6a_auth_failure has increased due to error code 5421. This result code shall be sent by the HSS to indicate the RAT type the UE is using is not allowed for the IMSI.
 
-_Cause 4: DIAMETER_ERROR_ROAMING_NOT_ALLOWED (5004) _
+#### Cause 4: DIAMETER_ERROR_ROAMING_NOT_ALLOWED (5004)
 
 Verify if s6a_auth_failure has increased due to error code 5004. This result code shall be sent by the HSS to indicate that the subscriber is not allowed to roam within the MME or SGSN area.
 
@@ -312,8 +302,6 @@ Major when below 80%.
 
 AGW.
 
-
-
 ## Service Request Success Rate
 
 ### Description
@@ -328,19 +316,19 @@ An inactive UE in Idle state is unable to get activated to handle new traffic
 
 ### Troubleshooting steps
 
-_Cause 1: Rejects coming from a new error code_
+#### Cause 1: Rejects coming from a new error code
 
 Verify if the service request failures are coming from new error code
 
-```
+```promql
 service_request{networkID=<NetworkID>,result="failure"}
 ```
 
-_Cause 2: Rejects coming from a single user_
+#### Cause 2: Rejects coming from a single user
 
-From mme logs, verify if the service request failures are coming from a single user or specific device  brand/model/firmware. Sometimes, frequent attempts from a new user could degrade the metrics.
+From mme logs, verify if the service request failures are coming from a single user or specific device brand/model/firmware. Sometimes, frequent attempts from a new user could degrade the metrics.
 
-_Cause 3: Rejects coming from a single AGW _
+#### Cause 3: Rejects coming from a single AGW
 
 Verify if service request failures have increased due to a specific AGW. Verify the configuration/version compared to other AGW. You can use the following PromQL to isolate the AGW \
 `service_request{networkID=&lt;NetworkID>,result="failure"}`
@@ -363,8 +351,6 @@ Major when below 80%.
 
 AGW.
 
-
-
 ## AGW Reboot
 
 ### Description
@@ -382,15 +368,15 @@ If other alerts related to power failure are firing, then the reboot might be re
 ### Troubleshooting steps
 
 - Check below metrics to confirm if traffic has been affected
-  - Number of Connected eNodebs
-  - Network of Connected UEs
-  - Network of Registered UEs
-  - Attach/ Reg attempts
-  - Attach Success Rate
-  - S6a Authentication Success Rate
-  - Service Request Success Rate
-  - Session Create Success Rate
-  - Upload/Download Throughput
+    - Number of Connected eNodebs
+    - Network of Connected UEs
+    - Network of Registered UEs
+    - Attach/ Reg attempts
+    - Attach Success Rate
+    - S6a Authentication Success Rate
+    - Service Request Success Rate
+    - Session Create Success Rate
+    - Upload/Download Throughput
 - Use last reboot to list the last logged in users and system last reboot time and date.
 - Confirm the same information in /var/log/syslog, logs like kernel loading should indicate the AGW has been rebooted.
 - Example of what the log could look like:
@@ -414,8 +400,6 @@ Critical, as AGW will be unavailable.
 
 It directly affects the gateway, which consequently affects all the subscribers connected to that gateway.
 
-
-
 ## Expected Service Restart
 
 ### Description
@@ -433,15 +417,15 @@ If AGW reboot alert has fired then service(s) restart would be an outcome of tha
 ### Troubleshooting steps
 
 - Check below metrics to confirm if traffic has been affected
-  - Number of Connected eNBs
-  - Network of Connected UEs
-  - Network of Registered UEs
-  - Attach/ Reg attempts
-  - Attach Success Rate
-  - S6a Authentication Success Rate
-  - Service Request Success Rate
-  - Session Create Success Rate
-  - Upload/Download Throughput
+    - Number of Connected eNBs
+    - Network of Connected UEs
+    - Network of Registered UEs
+    - Attach/ Reg attempts
+    - Attach Success Rate
+    - S6a Authentication Success Rate
+    - Service Request Success Rate
+    - Session Create Success Rate
+    - Upload/Download Throughput
 - Use last reboot to list the last logged in users and system last reboot time and date.
 - Confirm the same information in /var/log/syslog, logs like kernel loading should indicate the AGW has been rebooted.
 - Example of what the log could look like:
@@ -463,8 +447,6 @@ Minor, as was done intentionally. It serves as more of a notification.
 
 It directly affects the gateway, which consequently affects all the subscribers connected to that gateway.
 
-
-
 ## Unexpected Service Restart
 
 ### Description
@@ -482,15 +464,15 @@ If AGW reboot alert has fired then service(s) restart would be an outcome of tha
 ### Troubleshooting steps
 
 - Check below metrics to confirm if traffic has been affected
-  - Number of Connected eNBs
-  - Network of Connected UEs
-  - Network of Registered UEs
-  - Attach/ Reg attempts
-  - Attach Success Rate
-  - S6a Authentication Success Rate
-  - Service Request Success Rate
-  - Session Create Success Rate
-  - Upload/Download Throughput
+    - Number of Connected eNBs
+    - Network of Connected UEs
+    - Network of Registered UEs
+    - Attach/ Reg attempts
+    - Attach Success Rate
+    - S6a Authentication Success Rate
+    - Service Request Success Rate
+    - Session Create Success Rate
+    - Upload/Download Throughput
 - Check for recent changes done before the issue was first observed
 - If applicable, revert the recent changes and check if issue is still observed
 - Capture the service crash syslogs and coredumps. Use the approximate time in metrics and look for the events in both syslogs and coredumps

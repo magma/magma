@@ -975,6 +975,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
 
+
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
@@ -1029,7 +1030,7 @@ def _report_enforcement_stats_failures(
 
 def get_deactivate_req(request: ActivateFlowsRequest):
     versioned_policy_ids = [
-        VersionedPolicyID(rule_id = p.rule.id, version=p.version) for
+        VersionedPolicyID(rule_id=p.rule.id, version=p.version) for
         p in request.policies
     ]
     return DeactivateFlowsRequest(

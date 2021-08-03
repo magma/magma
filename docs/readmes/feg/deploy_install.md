@@ -11,10 +11,10 @@ hide_title: true
 To install the Federation Gateway, there are three required files that are
 deployment-specific. These are described below:
 
-* `rootCA.pem` - This file should match the `rootCA.pem` of the Orchestrator
+- `rootCA.pem` - This file should match the `rootCA.pem` of the Orchestrator
 that the Federation Gateway will connect to.
 
-* `control_proxy.yml` - This file is used to configure the `magmad`
+- `control_proxy.yml` - This file is used to configure the `magmad`
 and `control_proxy` services to point toward the appropriate Orchestrator.
 A sample configuration is provided below. The `bootstrap_address`,
 `bootstrap_port`, `controller_address`, and `controller_port` are the
@@ -22,7 +22,7 @@ parameters that will likely need to be modified (check
   `/magma/feg/gateway/configs/control_proxy.yml` for the most recent
   format)
 
-```
+```yaml
 #
 # Copyright 2020 The Magma Authors.
 
@@ -62,12 +62,12 @@ proxy_cloud_connections: True
 allow_http_proxy: True
 ```
 
-* `.env` - This file provides any deployment specific environment variables used
+- `.env` - This file provides any deployment specific environment variables used
 in the `docker-compose.yml` of the Federation Gateway. A sample configuration
 is provided below (please check `magma/feg/gateway/docker/.env` for the most
   recent format):
 
-```
+```yaml
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -140,7 +140,7 @@ registered with the Orchestrator. At this time, NMS support for FeG
 registration is still in-progress.
 
 To register the FeG, go to the Orchestrator's Swagger UI in your browser.
-(i.e. https://controller.url.sample:9443/swagger/v1/ui/).
+(i.e. <https://controller.url.sample:9443/swagger/v1/ui/>).
 
 Now, create a Federation Network. This is found at `/feg` under the
 **Federation Networks** section. Then register the gateway under the

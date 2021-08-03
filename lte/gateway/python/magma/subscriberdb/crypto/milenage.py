@@ -15,8 +15,8 @@ import hmac
 
 from Crypto.Cipher import AES
 from Crypto.Random import random
-from magma.subscriberdb.crypto.lte import BaseLTEAuthAlgo, FiveGRanAuthVector
 
+from magma.subscriberdb.crypto.lte import BaseLTEAuthAlgo, FiveGRanAuthVector
 
 class Milenage(BaseLTEAuthAlgo):
     """

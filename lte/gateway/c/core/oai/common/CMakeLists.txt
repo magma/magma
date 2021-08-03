@@ -65,7 +65,7 @@ add_library(COMMON ${COMMON_SRC})
 
 target_link_libraries(COMMON
         lfds710
-        LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY
+        LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB
         )
 
 target_include_directories(COMMON PUBLIC

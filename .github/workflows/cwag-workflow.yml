@@ -67,13 +67,34 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - name: Run docker-compose
-        uses: nick-invision/retry@v2
-        with:
-          command: cd ${MAGMA_ROOT}/cwf/gateway/docker && docker-compose build --parallel
-          max_attempts: 2
-          timeout_minutes: 10
-          # TODO bring up the containers and check for crashloops
+      - name: Run docker compose
+        id: cwag-build-docker-compose
+        continue-on-error: true
+        # yamllint disable rule:line-length
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker-compose build --parallel
+      - name: Retry docker compose on failure
+        id: retry-cwag-build-docker-compose
+        continue-on-error: true
+        if: steps.cwag-docker-compose.outcome=='failure'
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker-compose build --parallel
+      - name: Set the job status
+        if: always()
+        run: |
+          if ${{ steps.cwag-build-docker-compose.outcome=='success' || steps.retry-cwag-build-docker-compose.outcome=='success' }}; then
+             echo "Docker compose completed successfully"
+          else
+             echo "Docker compose failed"
+             exit 1
+          fi
+        # TODO bring up the containers and check for crashloops
   cwag-deploy:
     needs:
       - cwag-precommit

@@ -16,6 +16,7 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import FEGGateway from './FEGEquipmentGateway';
+import FEGGatewayDetail from './FEGGatewayDetailMain';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 
@@ -33,6 +34,10 @@ function FEGEquipmentDashboard() {
   return (
     <>
       <Switch>
+        <Route
+          path={relativePath('/overview/gateway/:gatewayId')}
+          component={FEGGatewayDetail}
+        />
         <Route
           path={relativePath('/overview')}
           component={EquipmentDashboardInternal}

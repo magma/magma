@@ -1,4 +1,4 @@
-From 0a507d5e28861d60303560fc87c827491e3794d6 Mon Sep 17 00:00:00 2001
+From e9e17000c3238bba5e2558b1db27767101a4988b Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 4 Jul 2021 19:31:58 +0000
 Subject: [PATCH 20/20] net: Fix zero-copy head len calculation.
@@ -103,12 +103,12 @@ index 4cdeedc58..9db943da1 100644
  /**
   *	skb_zerocopy - Zero copy skb to skb
 diff --git a/debian/changelog b/debian/changelog
-index d817479b0..ac0d3515a 100644
+index d817479b0..a2896d041 100644
 --- a/debian/changelog
 +++ b/debian/changelog
 @@ -1,4 +1,4 @@
 -openvswitch (2.14.3-8) unstable; urgency=low
-+openvswitch (2.14.3-10) unstable; urgency=low
++openvswitch (2.14.3-13) unstable; urgency=low
     [ Open vSwitch team ]
     * New upstream version
  

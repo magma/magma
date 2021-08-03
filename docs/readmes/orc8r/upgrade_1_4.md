@@ -28,7 +28,7 @@ state files are located in your working directory before proceeding. This means
 Now fetch the Kubernetes version that your cluster is running. If the AWS CLI
 is configured locally, run
 
-```
+```bash
 aws eks describe-cluster --name orc8r
 ```
 
