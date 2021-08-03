@@ -81,6 +81,7 @@ from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.rule_mappers import (
     RuleIDToNumMapper,
+    RestartInfoStore,
     SessionRuleToVersionMapper,
 )
 from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper
@@ -531,6 +532,7 @@ class ServiceManager:
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
         self.interface_to_prefix_mapper = InterfaceIDToPrefixMapper()
         self.tunnel_id_mapper = TunnelToTunnelMapper()
+        self.restart_info_store = RestartInfoStore()
 
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
@@ -624,6 +626,7 @@ class ServiceManager:
         ] = self.session_rule_version_mapper
         contexts['interface_to_prefix_mapper'] = self.interface_to_prefix_mapper
         contexts['tunnel_id_mapper'] = self.tunnel_id_mapper
+        contexts['restart_info_store'] = self.restart_info_store
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
         contexts['internal_ip_allocator'] = \
             InternalIPAllocator(self._magma_service.config)
