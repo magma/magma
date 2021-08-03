@@ -89,7 +89,7 @@ class TestPagingAfterMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
         wait_time = 20
-        for j in range(wait_time):
+        for j in range(wait_time, 0, -1):
             print('Waiting for', j, 'seconds')
             time.sleep(1)
 
