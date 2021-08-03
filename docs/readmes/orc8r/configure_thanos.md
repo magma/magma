@@ -16,7 +16,7 @@ with Thanos in order to have a more robust metrics pipeline.
 The terraform module makes deploying Thanos very easy. In your `main.tf` you
 just need to set the following values:
 
-```
+```hcl
 module orc8r {
     thanos_enabled = true
 }
@@ -35,7 +35,8 @@ will be adjusted accordingly, so the NMS/Grafana will work the same as before.
 If you don't care about the internals you can stop reading here.
 
 If you run `kubectl --namespace orc8r get pods` it should now look like this:
-```
+
+```text
 NAME                                             READY   STATUS    RESTARTS   AGE
 fluentd-6fb9f57dff-ljmfw                         1/1     Running   0          24h
 fluentd-6fb9f57dff-p54p9                         1/1     Running   0          24h
@@ -69,7 +70,8 @@ However, you may want to deploy more nodes if you want to make sure thanos
 components run on different nodes than the rest of orc8r. To do that you can
 override the default value for `thanos_worker_groups` in the `orc8r` module.
 The default value is:
-```
+
+```hcl
 [
     {
       name                 = "thanos-1"
@@ -86,10 +88,12 @@ The default value is:
 To add more workers, either adjust the `asg_...` values in that object, or add
 another entry to that array of worker groups. To specify thanos components to
 run on specific nodes, just set the following variables in the `orc8r-app` module:
-```
+
+```hcl
 thanos_query_node_selector = "thanos"
 thanos_store_node_selector = "thanos"
 ```
+
 > Note: set the value to the same value you used for `--node-labels=compute-type=<value>`
 > in order to run on that worker group
 

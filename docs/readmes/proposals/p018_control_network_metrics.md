@@ -39,7 +39,6 @@ that sends traffic.
 4. Minimize required infrastructure changes for metrics export and for
 deployment.
 
-
 ### Non-goals
 
 1. Change collection/export methods for existing data-path metrics.
@@ -89,7 +88,6 @@ the same destination port, so we may have to look at the [HTTP authority
 header](https://sourcegraph.com/github.com/magma/magma@v1.6/-/blob/orc8r/gateway/python/magma/common/service_registry.py?L165)
 to infer destination service.
 
-
 Once Prometheus counter values have been set, they will follow the existing
 Magma metrics path: the `magmad` service will read the counters from
 `kernsnoopd` and upload them to `metricsd` at the orchestrator every
@@ -110,7 +108,6 @@ Now we show a prototype of the eBPF program `kernsnoopd` will use:
 #include <uapi/linux/ptrace.h>
 #include <net/sock.h>
 
-
 struct key_t {
   // binary name (task->comm in the kernel)
   char comm[TASK_COMM_LEN];
@@ -119,7 +116,6 @@ struct key_t {
   u32 daddr;
   u16 dport;
 };
-
 
 // Create a hash map with `key_t` as key type and u64 as value type
 BPF_HASH(dest_counters, struct key_t);
@@ -396,26 +392,26 @@ Magma traffic by destination cloud service.
 
 [1]: Jay Schulist, Daniel Borkmann, Alexei Starovoitov. 2018. Linux Socket
 Filtering aka Berkeley Packet Filter (BPF).
-https://www.kernel.org/doc/Documentation/networking/filter.txt
+<https://www.kernel.org/doc/Documentation/networking/filter.txt>
 
 [2]: yonghong-song. 2020. Netqtop 3037.
-https://github.com/iovisor/bcc/pull/3048
+<https://github.com/iovisor/bcc/pull/3048>
 
 [3]: Brendan Gregg. 2018. TCP Tracepoints.
-https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html
+<https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html>
 
-[4]: pflua-bench. 2016. https://github.com/Igalia/pflua-bench
+[4]: pflua-bench. 2016. <https://github.com/Igalia/pflua-bench>
 
 [5]: Alexei Starovoitov. 2014. net: filter: rework/optimize internal BPF
 interpreter's instruction set.
-https://www.kernel.org/doc/Documentation/networking/filter.txt
+<https://www.kernel.org/doc/Documentation/networking/filter.txt>
 
 [6]: Alexei Starovoitov. 2019. bpf: introduce bounded loops.
-https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5
+<https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5>
 
 [7]: Quentin Monnet. 2021. eBPF Updates #4: In-Memory Loads Detection,
 Debugging QUIC, Local CI Runs, MTU Checks, but No Pancakes.
-https://ebpf.io/blog/ebpf-updates-2021-02
+<https://ebpf.io/blog/ebpf-updates-2021-02>
 
 [8]: Ivan Babrou. 2018. eBPF overhead benchmark.
-https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark
+<https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark>

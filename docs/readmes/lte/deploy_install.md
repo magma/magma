@@ -4,9 +4,9 @@ title: Install AGW
 hide_title: true
 ---
 
-> NOTE: Debian-based AGW deployments are no longer supported as of v1.6. If you want to install to Debian, refer to [v1.5 of the documentation](https://magma.github.io/magma/versions).
-
 # Install Access Gateway on Ubuntu (Bare Metal)
+
+> NOTE: Debian-based AGW deployments are no longer supported as of v1.6. If you want to install to Debian, refer to [v1.5 of the documentation](https://magma.github.io/magma/versions).
 
 ## Prerequisites
 
@@ -35,22 +35,22 @@ satisfies the following requirements:
 - Network missing firmware "No"
 - Primary network interface "enp1s0"
 - Configuration.
-  * hostname: <choose host name>. Default is "magma". You need to select unique
+    - hostname: `<choose host name>`. Default is "magma". You need to select unique
     host name in case of multiple AGW in network.
-  * Domain name : ""
-  * Root password: "magma"
-  * Username : "magma"
-  * Password: "magma"
-  * Partition disk: "Use entire disk"
-  * Select disk to partition: "sda"
-  * Partitioning scheme: "All files in one partition"
-  * Only tick ssh server and utilities (untick every other)
+    - Domain name : ""
+    - Root password: "magma"
+    - Username : "magma"
+    - Password: "magma"
+    - Partition disk: "Use entire disk"
+    - Select disk to partition: "sda"
+    - Partitioning scheme: "All files in one partition"
+    - Only tick ssh server and utilities (untick every other)
 - Connect your SGi interface to the internet and select this port during the
 installation process to get an IP using DHCP.
 
 ### 2. Deploy magma on the  AGW_HOST
 
-*Run AGW installation*
+#### Run AGW installation
 
 To install on server with DHCP configured SGi interface.
 
@@ -98,7 +98,7 @@ When you see "AGW installation is done." It means that your AGW installation is 
 service magma@* status
 ```
 
-*Post Install Check*
+#### Post Install Check
 
 Make sure you have `control_proxy.yml` file in directory /var/opt/magma/configs/
 before running post install script.

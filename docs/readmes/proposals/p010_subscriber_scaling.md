@@ -37,13 +37,13 @@ See the end of this document for resulting followup tasks.
 
 ### Open questions
 
-* **Is 3 or 5 minutes a reasonable default interval for setting subscriber configs to the gateway?** Current [default is 1 minute](https://github.com/magma/magma/blob/509e5b4bcdb68b0021044fb1dc8cf47554446b8f/lte/gateway/configs/streamer.yml#L14), which [we set in the streamer common code](https://github.com/magma/magma/blob/509e5b4bcdb68b0021044fb1dc8cf47554446b8f/orc8r/gateway/python/magma/common/streamer.py#L92-L95). Increasing would be an immediate win toward reducing DB and network pressure
-* **Are we okay with read-through cache model becoming the new default mode?** Current model is Orc8r pushes all subscribers to all gateways, but one alternative is to model gateway as a read-through LRU cache of subscribers
-    * Immediate consequence: we **architecturally lose the capacity to run in true headless mode**. I.e., if an Orc8r goes down, gateways will only be able to serve subscribers currently cached at that gateway
-    * Upside: implemented well, this in tandem with flat subscriber digests would be a strong solution to our scalability issues while retaining set-interface benefits
-* **Timeline and prioritization**
-    * **Pagination and digests by release 1.5?**
-    * **Read-through cache mode by release 1.6?**
+- **Is 3 or 5 minutes a reasonable default interval for setting subscriber configs to the gateway?** Current [default is 1 minute](https://github.com/magma/magma/blob/509e5b4bcdb68b0021044fb1dc8cf47554446b8f/lte/gateway/configs/streamer.yml#L14), which [we set in the streamer common code](https://github.com/magma/magma/blob/509e5b4bcdb68b0021044fb1dc8cf47554446b8f/orc8r/gateway/python/magma/common/streamer.py#L92-L95). Increasing would be an immediate win toward reducing DB and network pressure
+- **Are we okay with read-through cache model becoming the new default mode?** Current model is Orc8r pushes all subscribers to all gateways, but one alternative is to model gateway as a read-through LRU cache of subscribers
+    - Immediate consequence: we **architecturally lose the capacity to run in true headless mode**. I.e., if an Orc8r goes down, gateways will only be able to serve subscribers currently cached at that gateway
+    - Upside: implemented well, this in tandem with flat subscriber digests would be a strong solution to our scalability issues while retaining set-interface benefits
+- **Timeline and prioritization**
+    - **Pagination and digests by release 1.5?**
+    - **Read-through cache mode by release 1.6?**
 
 ## Context
 
@@ -61,15 +61,15 @@ To put it another way, consider a 10-network Orc8r deployment, where each networ
 
 Clearly this is an inadmissible number. This document describes patterns for moving this number to a manageable size while retaining the benefits of the set-interface. To start, consider each contributor to this final number
 
-* 10 networks: reasonable target, no change
-* 400 gateways: GA target, no change
-* 20k subscribers: major improvement possible
-    * Total number of subscribers is GA target, no change
-    * Number of subscribers sent per-request, however, can be reduced by orders of magnitude. **We present patterns for sending only updated subscribers, while maintaining set-interface principles.**
-* 250 bytes per subscriber: trivial improvement possible
-    * Average subscriber object could get down to maybe 150 bytes, a 40% improvement
-* 43800 requests per month: minor improvement possible
-    * Instead of setting every minute, can default to every 3 or 5 minutes, an up to 5x improvement
+- 10 networks: reasonable target, no change
+- 400 gateways: GA target, no change
+- 20k subscribers: major improvement possible
+    - Total number of subscribers is GA target, no change
+    - Number of subscribers sent per-request, however, can be reduced by orders of magnitude. **We present patterns for sending only updated subscribers, while maintaining set-interface principles.**
+- 250 bytes per subscriber: trivial improvement possible
+    - Average subscriber object could get down to maybe 150 bytes, a 40% improvement
+- 43800 requests per month: minor improvement possible
+    - Instead of setting every minute, can default to every 3 or 5 minutes, an up to 5x improvement
 
 From this listing, **it's clear the only non-trivial resolution to our GA scaling needs under a set-interface pattern must come with intelligently sending a trivial subset of subscribers on each request**, rather than sending the full subscriber set.
 
@@ -116,10 +116,10 @@ Orc8r makes certain consistency guarantees which need to be upheld. Of specific 
 
 Existing guarantees
 
-* Southbound: **eventual consistency** across the full set of subscriber objects — if a subscriber config is mutated, eventually all gateways will hold this updated set of all subscriber objects. Additional attributes of the eventual consistency include
-    * **Monotonic read consistency**: never read an older version of the full set of subscribers than one you have previously read
-    * **Serializability**: reading the full set of subscribers returns a value equal to the outcome of some previous write
-* Northbound: **strong consistency** across the full set of subscriber objects — if a subscriber config is mutated, all subsequent readers will view the full set of subscriber objects as including the mutated config
+- Southbound: **eventual consistency** across the full set of subscriber objects — if a subscriber config is mutated, eventually all gateways will hold this updated set of all subscriber objects. Additional attributes of the eventual consistency include
+    - **Monotonic read consistency**: never read an older version of the full set of subscribers than one you have previously read
+    - **Serializability**: reading the full set of subscribers returns a value equal to the outcome of some previous write
+- Northbound: **strong consistency** across the full set of subscriber objects — if a subscriber config is mutated, all subsequent readers will view the full set of subscriber objects as including the mutated config
 
 ### Considered alternatives
 
@@ -131,25 +131,25 @@ Existing guarantees
 
 For both northbound and southbound interfaces (NMS and gateways, respectively), a get-all request reads all subscriber objects in a network, optionally manipulates them, and passes the result to the caller. This pattern drops dead in two immediate areas
 
-* **gRPC message size**
-    * Problem
-        * If the full set of subscriber objects exceeds an arbitrary size limit (in bytes), the request will error out
-        * Can occur both at external service interfaces and internal service interfaces
-    * **Operator recourse: none**
-    * Partial resolution: make gRPC max message size a per-service Orc8r config
-    * **Full resolution**: paginate both REST API and gRPC endpoints on the “all subscribers” codepath. NMS and gateways will need to be updated to handle pagination. NMS will only use first page in the general case, while gateways will need to exhaustively consume all pages
-* **DB query size**
-    * Problem
-        * If the total number of subscriber objects exceeds ~18k, [the DB query for “all subscribers” errors out at the DB side](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3054)
-        * For MariaDB, the error is `Prepared statement contains too many placeholders`
-        * Multiple potential sources for this issue
-            * Can be triggered by an unfortunate implementation choice for how the [ent](https://entgo.io/) library constructs its get-all queries. Affects subscriber state codepath
-            * Unclear/likely: may be triggered by certain non-scalable configurator queries. Affects subscriber config codepath
-    * **Operator recourse: none**
-    * Partial resolution: probably none
-    * **Full resolution**: determine source of issue and resolve
-        * State codepath: (a) coerce ent framework to make proper get-all requests, through upgrade or conniving, or (b) deprecate usage of ent library in favor of the base SQL blobstore implementation. I'm in favor of (b), since there's no concrete reason to be using the ent library over our native SQL implementation
-        * Config codepath: determine if there is an issue on this codepath, then resolve in configurator implementation
+- **gRPC message size**
+    - Problem
+        - If the full set of subscriber objects exceeds an arbitrary size limit (in bytes), the request will error out
+        - Can occur both at external service interfaces and internal service interfaces
+    - **Operator recourse: none**
+    - Partial resolution: make gRPC max message size a per-service Orc8r config
+    - **Full resolution**: paginate both REST API and gRPC endpoints on the “all subscribers” codepath. NMS and gateways will need to be updated to handle pagination. NMS will only use first page in the general case, while gateways will need to exhaustively consume all pages
+- **DB query size**
+    - Problem
+        - If the total number of subscriber objects exceeds ~18k, [the DB query for “all subscribers” errors out at the DB side](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3054)
+        - For MariaDB, the error is `Prepared statement contains too many placeholders`
+        - Multiple potential sources for this issue
+            - Can be triggered by an unfortunate implementation choice for how the [ent](https://entgo.io/) library constructs its get-all queries. Affects subscriber state codepath
+            - Unclear/likely: may be triggered by certain non-scalable configurator queries. Affects subscriber config codepath
+    - **Operator recourse: none**
+    - Partial resolution: probably none
+    - **Full resolution**: determine source of issue and resolve
+        - State codepath: (a) coerce ent framework to make proper get-all requests, through upgrade or conniving, or (b) deprecate usage of ent library in favor of the base SQL blobstore implementation. I'm in favor of (b), since there's no concrete reason to be using the ent library over our native SQL implementation
+        - Config codepath: determine if there is an issue on this codepath, then resolve in configurator implementation
 
 ### [immediate fix] Configurable max gRPC message size
 
@@ -161,11 +161,11 @@ Implementation options: we can also consider having a single, cross-service conf
 
 Google provides a great description on [how to paginate listable gRPC endpoints](https://cloud.google.com/apis/design/design_patterns#list_pagination) in their [API Design Guide](https://cloud.google.com/apis/design). We'll reproduce their recommendations with Magma-specific considerations. This pattern is also flexible across gRPC and REST endpoints. Key tenets include
 
-* Client should retain control over returned page size and rate of object reception
-    * Server can add configurable max page size
-    * If client sends page size of 0 (default), use server's max page size. This should provide a measure of backwards-compatibility so outdated clients don't fall down in scaled Orc8r deployments
-* Pagination token (page token) should be opaque to the client
-    * If page token is empty string, return first page
+- Client should retain control over returned page size and rate of object reception
+    - Server can add configurable max page size
+    - If client sends page size of 0 (default), use server's max page size. This should provide a measure of backwards-compatibility so outdated clients don't fall down in scaled Orc8r deployments
+- Pagination token (page token) should be opaque to the client
+    - If page token is empty string, return first page
 
 For concreteness, we'll examine [the `ListSubscribers` gRPC endpoint](https://github.com/magma/magma/blob/1e968b929634dc0b3c28382cc52040c9cf98c3fb/lte/protos/subscriberdb.proto#L237). But the concepts are generalizable to the rest of the subscriber get-all codepath.
 
@@ -211,15 +211,15 @@ For configurator-specific implementation, we can use [`EntityLoadCriteria`](http
 
 Specifically for the subscriber codepaths, we need to
 
-* **Augment configurator to support pagination** (subscriber config codepath), with propagation through northbound and southbound interfaces
-* **Augment state service to support pagination** (subscriber state codepath), with propagation through northbound and southbound interfaces
+- **Augment configurator to support pagination** (subscriber config codepath), with propagation through northbound and southbound interfaces
+- **Augment state service to support pagination** (subscriber state codepath), with propagation through northbound and southbound interfaces
 
 **Change to consistency guarantees**. Under a paginated subscriber polling model, the full set of subscribers can be updated concurrently with an iterative request for the full set of subscriber pages. This slightly alters our consistency guarantees, but we should still have sufficiently-strong guarantees under the paging pattern. We note the difference between consistency on the “full set of subscribers” vs. consistency for “any particular subscriber.”
 
-* Southbound: **eventual consistency** across the set of subscribers
-    * **Monotonic read consistency**: never read an older version of ~~the full set of~~ ***individual*** subscribers than one you have previously read
-    * ~~**Serializability**~~: a gateway can read a set of subscribers that never existed as the outcome from a previous write. However, this is admissible because (a) individual subscriber configs are updated atomically and (b) the full set of subscribers is still eventually consistent
-* Northbound: **strong consistency** across ~~the full set of~~ ***individual*** subscriber objects. As above, we lose the serializability guarantee for the full set of subscriber objects. However, we can still guarantee strong consistency on a per-object basis, meaning read-your-writes, monotonic read, and monotonic write consistency all apply on a per-subscriber basis
+- Southbound: **eventual consistency** across the set of subscribers
+    - **Monotonic read consistency**: never read an older version of ~~the full set of~~ ***individual*** subscribers than one you have previously read
+    - ~~**Serializability**~~: a gateway can read a set of subscribers that never existed as the outcome from a previous write. However, this is admissible because (a) individual subscriber configs are updated atomically and (b) the full set of subscribers is still eventually consistent
+- Northbound: **strong consistency** across ~~the full set of~~ ***individual*** subscriber objects. As above, we lose the serializability guarantee for the full set of subscriber objects. However, we can still guarantee strong consistency on a per-object basis, meaning read-your-writes, monotonic read, and monotonic write consistency all apply on a per-subscriber basis
 
 For both northbound and southbound interfaces, **this change from “full set of subscribers” guarantees to “any particular subscriber” should not cause correctness issues**, as a coherent view of the network-wide set of subscribers is not required for correct behavior — just coherence on a per-subscriber basis. That is, we only update subscribers on a per-subscriber basis, and never in-bulk — i.e., we update the single-subscriber object rather than the full-set-of-subscribers object. So reading an incoherent view of the full set of subscribers won't cause any additional correctness issues because we don't provide a way to write that full set of subscribers atomically.
 
@@ -227,21 +227,21 @@ For both northbound and southbound interfaces, **this change from “full set of
 
 gRPC also supports streaming constructs, where server-side streaming is an attractive option for this use-case. However, we view server-side streaming as inferior to pagination due to the following issues
 
-* [DBs don't easily support streaming responses](https://revs.runtime-revolution.com/streaming-data-in-postgres-43c502a6732)
-    * Easy implementation: paginate requests to DB then stream response to gRPC client
-    * Harder implementation: DB-specific support for streaming responses. Breaks our usage of squirrel/sqorc to implicitly support both Postgres and Maria. Unclear if this is a common pattern, likely hidden gotchas
-* Server-side streaming doesn't play well with northbound (REST) endpoints
-    * Obsidian handlers have to be paginated, so they would need to deal with the complexity of converting a subscriber stream from subscriberdb into a paginated API response
-* [Bad experiences with gRPC streaming](https://docs.google.com/presentation/d/1sgGpe0a1eFwb16ikYX8Y4I7_iRisNaQuu6nG0_N_K5c/edit#slide=id.p)
-    * SyncRPC uses gRPC streaming by necessity, and the additional complexity involved with managing gRPC streams has contributed to our SyncRPC troubles
-    * More difficult to load-balance gRPC streams than unary endpoints
+- [DBs don't easily support streaming responses](https://revs.runtime-revolution.com/streaming-data-in-postgres-43c502a6732)
+    - Easy implementation: paginate requests to DB then stream response to gRPC client
+    - Harder implementation: DB-specific support for streaming responses. Breaks our usage of squirrel/sqorc to implicitly support both Postgres and Maria. Unclear if this is a common pattern, likely hidden gotchas
+- Server-side streaming doesn't play well with northbound (REST) endpoints
+    - Obsidian handlers have to be paginated, so they would need to deal with the complexity of converting a subscriber stream from subscriberdb into a paginated API response
+- [Bad experiences with gRPC streaming](https://docs.google.com/presentation/d/1sgGpe0a1eFwb16ikYX8Y4I7_iRisNaQuu6nG0_N_K5c/edit#slide=id.p)
+    - SyncRPC uses gRPC streaming by necessity, and the additional complexity involved with managing gRPC streams has contributed to our SyncRPC troubles
+    - More difficult to load-balance gRPC streams than unary endpoints
 
 Since the subscriber get-all codepath is easier to implement via pagination at the DB side, and needs to support pagination on the northbound interface, we can avoid unnecessary complexity by making the entire codepath paginated rather than a mix of pagination and streaming.
 
 ### Upshot
 
-* Configurable max gRPC message sizes affords operator recourse to scale issues
-* Paginating the get-all subscribers codepath resolves drop-dead scale cutoffs
+- Configurable max gRPC message sizes affords operator recourse to scale issues
+- Paginating the get-all subscribers codepath resolves drop-dead scale cutoffs
 
 ## 💾 Objective 2: reduce DB pressure at scale
 
@@ -291,15 +291,15 @@ This solution is not worth the complexity it would entail at this point, where w
 
 To contextualize the proposed changes in this section, consider the [representative operator behaviors presented above](https://fb.quip.com/qqcBA5OMeaHA#RAHACA1mTTg), with a single-tenant Orc8r deployment with GA targets of 20k subscribers and 400 gateways over a 7-day period. We'll assume the southbound cache refresh occurs every 5 minutes, which means
 
-* Previous architecture causes (1440\*7)(400) = 4,032,000 DB hits
-* Proposed caching pattern would result in (1440\*7/5)(1) = 2016 DB hits, **a 2000x improvement**
+- Previous architecture causes (1440\*7)(400) = 4,032,000 DB hits
+- Proposed caching pattern would result in (1440\*7/5)(1) = 2016 DB hits, **a 2000x improvement**
 
 ### Upshot
 
-* Increasing sync interval gives immediate breathing room
-* Shorter DB timeouts help prevent transaction backlog
-* Southbound subscriber caching reduces DB pressure
-* 2000x reduction in DB hits under proposed changes
+- Increasing sync interval gives immediate breathing room
+- Shorter DB timeouts help prevent transaction backlog
+- Southbound subscriber caching reduces DB pressure
+- 2000x reduction in DB hits under proposed changes
 
 ## ☔️ Objective 3: reduce network pressure at scale
 
@@ -352,18 +352,18 @@ message ListCachedSubscribersResponse {
 
 Some followup notes
 
-* Can include support for computing digests incrementally and/or concurrently
-* Since we're transitioning to pagination of subscriber get-all endpoints, we'll no longer provide a mechanism to retrieve a serializable view of the full set of subscribers. This will restrict our capacity to generate effective digests. However, consider the following affordances
-    * Since our expected operator patterns are exceedingly read-heavy (i.e. writes expected order of once per day in common case), it's reasonable to assume that, the vast majority of the time, a reader's view of the full set of subscribers will happen to be a serializable view
-    * The above-mentioned singleton `subscriber_cache` service resolves this issue in practice, providing, if not serializable, at least a globally-consistent view
-    * The below-mentioned tree-based digest pattern is resilient against globally-inconsistent views of the full set of subscribers
-* Because protobufs explicitly do not support *canonical* encodings, all digests must be generated at the Orc8r
-* We've had some unconfirmed reports of mildly unstable (non-deterministic) protobuf encodings. This would remove a large chunk of the performance wins, so is worth validating before fully committing to this pattern. Some workaround resolutions, if necessary, in increasing order of difficulty to implement
-    * If the encoding is only mildly unstable (and with uniform distribution), the `subscriber_cache` service can compute the digest multiple times per cache refresh, storing the set of digests rather than just the single digest. Clients can still send a single digest, and servers check that digest against the list. This is hacky but potentially feasible
-    * Upstream, find, or fork the proto library to resolve the source of the non-determinism
-    * Use the entity versioning alternative considered below — with read-through cache mode this could be sufficient
-    * Abandon true set-interface architecture in favor of hybrid — send updates as they occur, with snapshot checkins at much longer intervals
-    * Other options ?
+- Can include support for computing digests incrementally and/or concurrently
+- Since we're transitioning to pagination of subscriber get-all endpoints, we'll no longer provide a mechanism to retrieve a serializable view of the full set of subscribers. This will restrict our capacity to generate effective digests. However, consider the following affordances
+    - Since our expected operator patterns are exceedingly read-heavy (i.e. writes expected order of once per day in common case), it's reasonable to assume that, the vast majority of the time, a reader's view of the full set of subscribers will happen to be a serializable view
+    - The above-mentioned singleton `subscriber_cache` service resolves this issue in practice, providing, if not serializable, at least a globally-consistent view
+    - The below-mentioned tree-based digest pattern is resilient against globally-inconsistent views of the full set of subscribers
+- Because protobufs explicitly do not support *canonical* encodings, all digests must be generated at the Orc8r
+- We've had some unconfirmed reports of mildly unstable (non-deterministic) protobuf encodings. This would remove a large chunk of the performance wins, so is worth validating before fully committing to this pattern. Some workaround resolutions, if necessary, in increasing order of difficulty to implement
+    - If the encoding is only mildly unstable (and with uniform distribution), the `subscriber_cache` service can compute the digest multiple times per cache refresh, storing the set of digests rather than just the single digest. Clients can still send a single digest, and servers check that digest against the list. This is hacky but potentially feasible
+    - Upstream, find, or fork the proto library to resolve the source of the non-determinism
+    - Use the entity versioning alternative considered below — with read-through cache mode this could be sufficient
+    - Abandon true set-interface architecture in favor of hybrid — send updates as they occur, with snapshot checkins at much longer intervals
+    - Other options ?
 
 ### [long-term solution] Tree-based digest: Merkle radix tree
 
@@ -371,9 +371,9 @@ If the assumption of minimal subscriber updates is violated, or we scale past vi
 
 **Context: Merkle tree**. [Merkle trees](https://en.wikipedia.org/wiki/Merkle_tree) allow tree-based understanding of which data block (in our case, subscriber object) has mutated. See this [Merkle tree visualization](https://efficient-merkle-trees.netlify.app/) to get an intuitive understanding. With two Merkle trees, you can start with the root nodes, compare, then recurse to each child until you find one of the following
 
-* a node whose subtree contains all changes — i.e. the lowest node with more than 1 mutated child hash
-* a set of nodes whose subtrees collectively contain all changes — with tunable precision for number of nodes
-* the exact set of mutated data blocks (subscriber objects)
+- a node whose subtree contains all changes — i.e. the lowest node with more than 1 mutated child hash
+- a set of nodes whose subtrees collectively contain all changes — with tunable precision for number of nodes
+- the exact set of mutated data blocks (subscriber objects)
 
 ![merkle_tree](assets/proposals/p010/merkle_tree.png)
 
@@ -389,9 +389,9 @@ If the assumption of minimal subscriber updates is violated, or we scale past vi
 
 Some followup notes
 
-* Based on scalability calculations below, the full multi-round pattern is the only variant that resolves scale issues
-* Side note on why we can't use just a Merkle tree: we don't have a good way to get the subscribers into a stable arrangement. We could sort them into a flat list, but removing the first subscriber would shift every hash in the tree. The radix tree solves this problem.
-* As a lower-priority concern: we should probably still perform an infrequent snapshot-based re-sync to handle the corner case of incidental hash collisions. Depending on the probability of such collisions, we could make this full re-sync arbitrarily infrequent.
+- Based on scalability calculations below, the full multi-round pattern is the only variant that resolves scale issues
+- Side note on why we can't use just a Merkle tree: we don't have a good way to get the subscribers into a stable arrangement. We could sort them into a flat list, but removing the first subscriber would shift every hash in the tree. The radix tree solves this problem.
+- As a lower-priority concern: we should probably still perform an infrequent snapshot-based re-sync to handle the corner case of incidental hash collisions. Depending on the probability of such collisions, we could make this full re-sync arbitrarily infrequent.
 
 ### [long-term solution] Configurable gateway subscriber views
 
@@ -405,11 +405,11 @@ From an implementation perspective, we can support a per-network, REST-API-confi
 
 **Gateway as read-through cache**. Gateways only pull subscribers on-demand. Supports headless gateways but not mobility across headless gateways.
 
-* Even in our GA-target deployments with 20k subscribers per network, each gateway will serve no more than 1k subscribers at a time, with the expected number much closer to the 50-500 range — that's 2-3 orders of magnitude fewer subscribers per gateway
-* Instead of proactively sending all subscribers in a network down to a particular gateway, the gateway can instead dynamically request particular subscribers in an on-demand manner — i.e., only when necessary, as deemed by the gateway. We can then consider a gateway to be “following” a subset of the network's subscribers, and receive poll-based updates on only that subset of subscribers at every update interval. Note that the gateway would be responsible for updating its “follow” list of subscribers and sending it in requests for subscriber objects, allowing Orc8r to support these gateway views in a stateless manner
-* An immediate consideration for the read-through cache pattern is “unfollowing” a subscriber the gateway no longer needs, to avoid application-level Redis memory leaks. For this, we can turn to a potential implementation choice. Consider a small service or bit of library code used as the entry point for reading a subscriber object from Redis at the gateway. If the object returns missing, the module handles (a) proactively reaching out to Orc8r for the subscriber object and (b) following that subscriber to receive future updates. Since this is a read-through cache, we can use a simple LRU caching policy, and/or just fully clear the cache (and subscription list) at infrequent interval
-    * Side note: while we can start by setting cache size to a sensible default, it probably makes sense to give Orc8r control over this, to empower operators to e.g. increase cache size for gateways under heavy load
-* Once a gateway is following a set of subscribers, the gateway can poll Orc8r for just the subset of subscriber objects it's currently following. Each gateway manages its own follow-list, and sends it its subscriber polling request, affording Orc8r a stateless implementation of per-gateway subscriber views
+- Even in our GA-target deployments with 20k subscribers per network, each gateway will serve no more than 1k subscribers at a time, with the expected number much closer to the 50-500 range — that's 2-3 orders of magnitude fewer subscribers per gateway
+- Instead of proactively sending all subscribers in a network down to a particular gateway, the gateway can instead dynamically request particular subscribers in an on-demand manner — i.e., only when necessary, as deemed by the gateway. We can then consider a gateway to be “following” a subset of the network's subscribers, and receive poll-based updates on only that subset of subscribers at every update interval. Note that the gateway would be responsible for updating its “follow” list of subscribers and sending it in requests for subscriber objects, allowing Orc8r to support these gateway views in a stateless manner
+- An immediate consideration for the read-through cache pattern is “unfollowing” a subscriber the gateway no longer needs, to avoid application-level Redis memory leaks. For this, we can turn to a potential implementation choice. Consider a small service or bit of library code used as the entry point for reading a subscriber object from Redis at the gateway. If the object returns missing, the module handles (a) proactively reaching out to Orc8r for the subscriber object and (b) following that subscriber to receive future updates. Since this is a read-through cache, we can use a simple LRU caching policy, and/or just fully clear the cache (and subscription list) at infrequent interval
+    - Side note: while we can start by setting cache size to a sensible default, it probably makes sense to give Orc8r control over this, to empower operators to e.g. increase cache size for gateways under heavy load
+- Once a gateway is following a set of subscribers, the gateway can poll Orc8r for just the subset of subscriber objects it's currently following. Each gateway manages its own follow-list, and sends it its subscriber polling request, affording Orc8r a stateless implementation of per-gateway subscriber views
 
 ### [considered alternative] Configurator entity-type versioning
 
@@ -419,9 +419,9 @@ One consideration for this solution is that subscriberdb pulls multiple entity t
 
 We slightly prefer the digest-based pattern, but are open to feedback. Downsides to the versioning solution include
 
-* **Not progressively scalable** — on any change, no matter how small, Orc8r must send all subscribers in the network to every gateway in the network
-* Increases configurator complexity, where configurator is already complex and [the largest Orc8r service](https://app.codecov.io/gh/magma/magma/)
-* As mentioned, subscriberdb would need to consider versions of multiple types, since e.g. APN configuration is pulled into the subscriber objects
+- **Not progressively scalable** — on any change, no matter how small, Orc8r must send all subscribers in the network to every gateway in the network
+- Increases configurator complexity, where configurator is already complex and [the largest Orc8r service](https://app.codecov.io/gh/magma/magma/)
+- As mentioned, subscriberdb would need to consider versions of multiple types, since e.g. APN configuration is pulled into the subscriber objects
 
 ### [considered alternative] 3GPP tracking areas
 
@@ -439,8 +439,8 @@ Rather than sending all subscribers in a network to all gateways, we can use the
 
 In both scenarios, network pressure improvements are either partially lost (scenario A) or up to completely lost (scenario B). The principal prospects for ameliorating these failure modes are
 
-* resorting to edge-triggered architecture (considered alternative, not chosen for now)
-* gateways subscribe to minor subset of full subscriber set (read-through cache)
+- resorting to edge-triggered architecture (considered alternative, not chosen for now)
+- gateways subscribe to minor subset of full subscriber set (read-through cache)
 
 The latter solution doesn't resolve scenario A, but it does restrict the scope of opex and self-DoS issues in scenario B.
 
@@ -484,9 +484,9 @@ Note that **for target use-cases, the proposed multi-round tree pattern in conju
 
 ### Upshot
 
-* [short-term] **Flat digest** reduces GA 7-day total network usage under **15gb** for common case
-* [medium-term] **Flat digest with read-through cache** reduces GA 7-day total network usage under **1gb** for most expected cases
-* [long-term] If read-through cache mode proves an unworkable solution, or write-heavy subscriber update patterns become the norm: **tree-based digest with read-through cache** reduces GA 7-day total network usage under **250mb** for all considered cases
+- [short-term] **Flat digest** reduces GA 7-day total network usage under **15gb** for common case
+- [medium-term] **Flat digest with read-through cache** reduces GA 7-day total network usage under **1gb** for most expected cases
+- [long-term] If read-through cache mode proves an unworkable solution, or write-heavy subscriber update patterns become the norm: **tree-based digest with read-through cache** reduces GA 7-day total network usage under **250mb** for all considered cases
 
 ## 💬 Objective 4: simplify Orc8r-gateway interface
 
@@ -504,10 +504,10 @@ As an aside, the current streamer pattern handling at both Orc8r and gateways do
 
 That to say, rather than retrofitting the streamer pattern, we can instead fully move to a pull-based model for polling the subscriber codepath. Benefits of this refactoring approach include
 
-* **Backwards compatibility** — we can leave the existing subscriber streamer codepath intact and untouched for the next release, with the note that it will be insufficient for high-scale deployments
-* **Forward compatibility** — if we want to experiment with transitioning to tree-based digests in the future, having a single-purpose standalone unary RPC allows zero-collateral changes to the subscriber code path
-* **Reduce collateral risk** — no hidden risks in a major change to the streamer pattern accidentally breaking major components of the Orc8r-gateway interface
-* **Simpler end-implementation** — streamer's layer of indirection results in unnecessary, repetitive code at both Orc8r and gateway. Exposing the subscriberdb stream as a direct endpoint allows a simpler implementation, where gateways just make iterative unary requests until the returned page token is empty
+- **Backwards compatibility** — we can leave the existing subscriber streamer codepath intact and untouched for the next release, with the note that it will be insufficient for high-scale deployments
+- **Forward compatibility** — if we want to experiment with transitioning to tree-based digests in the future, having a single-purpose standalone unary RPC allows zero-collateral changes to the subscriber code path
+- **Reduce collateral risk** — no hidden risks in a major change to the streamer pattern accidentally breaking major components of the Orc8r-gateway interface
+- **Simpler end-implementation** — streamer's layer of indirection results in unnecessary, repetitive code at both Orc8r and gateway. Exposing the subscriberdb stream as a direct endpoint allows a simpler implementation, where gateways just make iterative unary requests until the returned page token is empty
 
 ### Additional considerations
 
@@ -515,45 +515,45 @@ That to say, rather than retrofitting the streamer pattern, we can instead fully
 
 ### Upshot
 
-* Migrate southbound subscribers endpoint to pull-based unary RPC
-* Give Orc8r control over gateway polling frequency
+- Migrate southbound subscribers endpoint to pull-based unary RPC
+- Give Orc8r control over gateway polling frequency
 
 ## Conclusion: followup tasks
 
 ### v1.5
 
-* **[P1][XXS] 🔥 Implement and document new default subscriber polling frequency of 3 minutes**
-* **[P1][XXS] 🔥 Give all orc8r services a configurable max gRPC message size**
-* [P1][M] Paginate all endpoints along the “get all subscribers” config codepath
-    * Update Orc8r codepath (configurator), through to northbound and southbound interfaces
-    * Update gateway consumption: either retrofit streamer code to handle pagination, or migrate to unary RPC
-    * Updated NMS to handle paginated Orc8r REST API
-        * Side note: [NMS creates a gateway→subscriber map](https://github.com/magma/magma/blob/master/nms/app/packages/magmalte/app/state/lte/SubscriberState.js#L223-L240) based on getting all subscribers and all gateways. Move this functionality to an Orc8r `/lte/networks/{network_id}/gateways/{gateway_id}/subscribers` endpoint, fully removing the need for NMS to make get-all subscriber requests. May need to use state indexers pattern to implement this endpoint
-* [P1][S] Identify source of “DB statement too large” error and resolve
-    * If from ent.go (state codepath): resolve ent.go's poor get-all query construction or remove it in favor of SQL blobstore implementation. Latter option will likely require a migration
-    * If from configurator (config codepath): resolve poorly-constructed query
-* [P1][S] Add flat digests to get-all subscriber codepath
-    * Validate determinism of protobuf encodings across 10-20k subscriber protos
-* [P2][XXS] Document Orc8r's consistency guarantees in Docusaurus architecture section
-* [P2][XXS] Shorten application DB timeouts to less than the subscriberdb stream update frequency
-* [P2][M] Paginate all endpoints along the (subscriber) state codepath
-    * Update Orc8r codepath (state service), through to northbound and southbound interfaces
-    * Update gateway state reporting
+- **[P1][XXS] 🔥 Implement and document new default subscriber polling frequency of 3 minutes**
+- **[P1][XXS] 🔥 Give all orc8r services a configurable max gRPC message size**
+- [P1][M] Paginate all endpoints along the “get all subscribers” config codepath
+    - Update Orc8r codepath (configurator), through to northbound and southbound interfaces
+    - Update gateway consumption: either retrofit streamer code to handle pagination, or migrate to unary RPC
+    - Updated NMS to handle paginated Orc8r REST API
+        - Side note: [NMS creates a gateway→subscriber map](https://github.com/magma/magma/blob/master/nms/app/packages/magmalte/app/state/lte/SubscriberState.js#L223-L240) based on getting all subscribers and all gateways. Move this functionality to an Orc8r `/lte/networks/{network_id}/gateways/{gateway_id}/subscribers` endpoint, fully removing the need for NMS to make get-all subscriber requests. May need to use state indexers pattern to implement this endpoint
+- [P1][S] Identify source of “DB statement too large” error and resolve
+    - If from ent.go (state codepath): resolve ent.go's poor get-all query construction or remove it in favor of SQL blobstore implementation. Latter option will likely require a migration
+    - If from configurator (config codepath): resolve poorly-constructed query
+- [P1][S] Add flat digests to get-all subscriber codepath
+    - Validate determinism of protobuf encodings across 10-20k subscriber protos
+- [P2][XXS] Document Orc8r's consistency guarantees in Docusaurus architecture section
+- [P2][XXS] Shorten application DB timeouts to less than the subscriberdb stream update frequency
+- [P2][M] Paginate all endpoints along the (subscriber) state codepath
+    - Update Orc8r codepath (state service), through to northbound and southbound interfaces
+    - Update gateway state reporting
 
 ### v1.6
 
-* [P1][S] Add get-all subscriber caching functionality as separate singleton service
-    * If necessary — v1.5 work may uncover that this cache is unnecessary
-* [P2][L] Add support for gateway subscriber views, with REST API-configurable modes of populating
-    * If necessary — there's imperfect alignment on whether this is the best path forward, so we'll revisit this after the v1.5 work is complete
-    * Modes
-        * Read-through cache (new default)
-        * Global/identical (current)
-* [P2][XS] Give Orc8r per-gateway control over subscriber poll interval and read-through cache size
-    * Add relevant field to subscriberdb's mconfig, allowing control from Orc8r REST API
+- [P1][S] Add get-all subscriber caching functionality as separate singleton service
+    - If necessary — v1.5 work may uncover that this cache is unnecessary
+- [P2][L] Add support for gateway subscriber views, with REST API-configurable modes of populating
+    - If necessary — there's imperfect alignment on whether this is the best path forward, so we'll revisit this after the v1.5 work is complete
+    - Modes
+        - Read-through cache (new default)
+        - Global/identical (current)
+- [P2][XS] Give Orc8r per-gateway control over subscriber poll interval and read-through cache size
+    - Add relevant field to subscriberdb's mconfig, allowing control from Orc8r REST API
 
 ### Non-goals
 
-* Revamp Orc8r's security considerations of subscriber data
-    * Handled outside the scope of this document
-* Remove APN configuration information from streamed subscriber objects. While this may reduce average subscriber object size, this size is only a minor contributor to current scale challenges
+- Revamp Orc8r's security considerations of subscriber data
+    - Handled outside the scope of this document
+- Remove APN configuration information from streamed subscriber objects. While this may reduce average subscriber object size, this size is only a minor contributor to current scale challenges
