@@ -31,11 +31,11 @@ jobs:
             echo "Running fossa-analyze-go.sh"
             sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
       - name: Extract commit title
+        id: commit
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -44,7 +44,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action fossa-analyze update failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Docusaurus update "
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
