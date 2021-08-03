@@ -71,7 +71,6 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
       handle_service303_server_message, &service303_server_task_zmq_ctx);
 
   zloop_start(service303_server_task_zmq_ctx.event_loop);
-
   AssertFatal(
       0,
       "Asserting as service303_server_thread should not be exiting on its "

@@ -375,7 +375,6 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
-
   AssertFatal(
       0, "Asserting as s1ap_mme_thread should not be exiting on its own!");
   return NULL;

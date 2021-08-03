@@ -34,7 +34,6 @@ static void* sgw_s8_thread(void* args) {
       &sgw_s8_task_zmq_ctx);
 
   zloop_start(sgw_s8_task_zmq_ctx.event_loop);
-
   AssertFatal(
       0, "Asserting as sgw_s8_thread should not be exiting on its own!");
   return NULL;

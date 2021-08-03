@@ -221,7 +221,6 @@ static void* spgw_app_thread(__attribute__((unused)) void* args) {
       &spgw_app_task_zmq_ctx);
 
   zloop_start(spgw_app_task_zmq_ctx.event_loop);
-
   AssertFatal(
       0, "Asserting as spgw_app_thread should not be exiting on its own!");
   return NULL;
