@@ -15,7 +15,7 @@ syntax = "proto3";
 
 package magma.orc8r;
 
-import "metrics.proto";
+import "orc8r/protos/prometheus/metrics.proto";
 import "orc8r/protos/common.proto";
 
 option go_package = "magma/orc8r/lib/go/protos";
