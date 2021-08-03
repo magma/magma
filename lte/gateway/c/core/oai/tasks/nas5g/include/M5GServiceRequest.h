@@ -40,8 +40,8 @@ class ServiceRequestMsg {
   ServiceRequestMsg();
   ~ServiceRequestMsg();
   int DecodeServiceRequestMsg(
-      ServiceRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
+      ServiceRequestMsg* svc_request, uint8_t* buffer, uint32_t len);
   int EncodeServiceRequestMsg(
-      ServiceRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
+      ServiceRequestMsg* svc_request, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
