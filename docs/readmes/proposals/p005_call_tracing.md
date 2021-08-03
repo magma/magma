@@ -20,7 +20,7 @@ understanding control messaging flow through a Magma access gateway.
 
 Example use cases include the following:
 
-**Subscriber Tracing**
+### Subscriber Tracing
 
 When issues are experienced by a subscriber on the network, network operators
 would like to have a tool which allows them to see the messages between the UE,
@@ -31,7 +31,7 @@ and display relevant messages for Gx, Gy, S1AP, TR-069, etc., as well as
 plugins to support decoding and viewing gRPC messages which are passed between
 Magma gateway components.
 
-**Protocol Tracing**
+### Protocol Tracing
 
 Operators would like to be able to capture traces for specific protocol stacks,
 such as SCTP or DIAMETER. This could be used for troubleshooting specific
@@ -42,7 +42,7 @@ integrations.
 - Allow network operators to trace the control plane messaging for a subscriber
 - Allow network operators to trace control plane messaging for a specific
 protocol or interface
-- Allow call trace captures to started and stopped from the NMS 
+- Allow call trace captures to started and stopped from the NMS
 - Allow call trace captures to be filtered by subscriber/protocol/interface
 control plane messaging
 
@@ -53,7 +53,7 @@ be viewable in Wireshark.
 
 The implementation will be done in two phases.
 
-**Phase 1 - MVP**
+### Phase 1 - MVP
 
 (October - November 27)
 
@@ -61,7 +61,7 @@ The first phase of implementation will focus on bringing an MVP. Call traces
 will be able to be initiated from the NMS, and downloads of captures viewable
 through Wireshark after capture will be available.
 
-**Phase 2 - Call Trace Filtering**
+### Phase 2 - Call Trace Filtering
 
 (December - January)
 
@@ -70,9 +70,10 @@ subscriber, protocol, or interface.
 
 ## Phase 1
 
-#### User Flow
+### User Flow
 
 For call tracing with Magma, we will provide the following user flow:
+
 1. User accesses NMS
 2. User selects either the gateway or subscriber that they would like to do
 call tracing for
@@ -88,7 +89,8 @@ The API supports starting the call trace, ending the tracing session, and
 downloading the resulting capture.
 
 The API will be as follows:
-```
+
+```text
 GET      /networks/{network_id}/tracing/{trace_type}/{trace_id}
 POST     /networks/{network_id}/tracing/{trace_type}/{trace_id}
 PUT      /networks/{network_id}/tracing/{trace_type}/{trace_id}
@@ -111,7 +113,7 @@ To download the call trace, the GET endpoint should return whether the call
 trace has ended and is ready to download, and if it is, will return the
 download URL.
 
-```
+```yaml
 definitions:
   call_trace:
    description: Mutable Call Trace
@@ -203,13 +205,12 @@ managing call tracing. Options will be provided for gateway wide
 packet-capture, and later on, options will be provided for protocol, interface,
 or subscriber specific call tracing.
 
-```
+```grpc
 service CallTraceService {
   rpc StartCallTrace (StartTraceRequest) returns (StartTraceResponse) {}
 
   rpc EndCallTrace (EndTraceRequest) returns (EndTraceResponse) {}
 }
-
 
 message StartTraceRequest {
   enum TraceType {
@@ -269,7 +270,7 @@ see past call traces, and download them.
 
 ## Phase 2
 
-#### User Flow
+### User Flow
 
 Phase 2 user flow will be the same from the user interface. The differentiation
 will be in the call trace provided to the operator, which will have its tracing
@@ -281,9 +282,9 @@ information filtered by the specified subscriber.
 4. After a timeout, or by user control, the call trace stops
 5. The call trace will be provided as a download to the user
 
-#### Gateway - ctraced
+### Gateway - ctraced
 
-The ctraced service will need to be modified to filter messages. For protocols 
+The ctraced service will need to be modified to filter messages. For protocols
 including S1-AP or interfaces like Gx, tshark will be used to filter for the
 relevant subscriber, protocol, or interface.
 
@@ -293,18 +294,16 @@ trace, ctraced will filter for relevant messages. Together with the packet
 capture acquired through tshark, these two traces will be provided for download
 to the user.
 
-#### Tracing Options
+### Tracing Options
 
 Tracing will be able to be filtered for the following interfaces:
+
 - S6a
 - Gx
 - Gy
 
 Or for the following protocols:
+
 - S1-AP
 - Diameter Credit-Control Application
 - TR-069
-
-
-
-

@@ -33,7 +33,6 @@ In net these result in fewer abandoned PRs, fewer merge conflicts due to delays,
 
 It is a common phenomenon to see new changes that are precipitated by an in-progress or in-review PR.  Magma Codeowners should resist the urge to move goalposts to include new refactoring or substantial changes in asks of the contributor.  Instead, follow-up work should be immediately described in a GH Issue and assigned either to the codeowner, the PR contributor (if they are game), or some other Magma contributor.  The rationale is that moving goalposts results in many stalled PRs - and our objective is not to stall PRs. Further, the best PR is a small PR - and movement of goalposts almost always results in larger PRs (one could use this metric to determine whether it's reaonsable to ask for a change in direction - does it enlarge the PR?).
 
-
 ### PRs with limited unit / integration tests
 
 Where Magma has made it reasonably low-friction, is is good practice for Magma Codeowners to request tests be included with community PRs.  Unfortunately, there exist plenty of Magma code regions which do not readily admit to test today due to architecture, libraries in play, or build configuration issues.  Magma is committed to improving this situation but codeowners should not hold contributors to a test bar that has not yet been made accessible to them.

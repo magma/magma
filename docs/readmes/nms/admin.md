@@ -7,9 +7,9 @@ hide_title: true
 
 NMS provides an admin page to manage the NMS itself. Admin page currently has three main functionalities
 
-* Manage Users
-* Manage Networks
-* View Audit Logs
+- Manage Users
+- Manage Networks
+- View Audit Logs
 
 ## Users
 
@@ -28,7 +28,6 @@ All configuration change made through NMS can be viewed through the audit log co
 ![audit_log](assets/nms/userguide/admin/audit_log1.png)
 ![audit_log](assets/nms/userguide/admin/audit_log2.png)
 ![audit_log](assets/nms/userguide/admin/audit_log3.png)
-
 
 ## Networks
 

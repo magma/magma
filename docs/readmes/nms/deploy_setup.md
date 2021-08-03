@@ -23,10 +23,13 @@ When you deploy the NMS for the first time, you'll need to create a user that
 has access to the master organization. Run the command
 
 - Docker (development environment)
+
     ```bash
     docker-compose exec magmalte yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
     ```
+
 - Kubernetes (production environment)
+
     ```bash
     export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
     kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD

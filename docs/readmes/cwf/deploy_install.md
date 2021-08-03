@@ -10,16 +10,16 @@ hide_title: true
 To install the Carrier Wifi Gateway, there are three required files that are
 deployment-specific. These are described below:
 
-* `rootCA.pem` - This file should match the `rootCA.pem` of the Orchestrator
+- `rootCA.pem` - This file should match the `rootCA.pem` of the Orchestrator
 that the Carrier Wifi Gateway will connect to.
 
-* `control_proxy.yml` - This file is used to configure the `magmad`
+- `control_proxy.yml` - This file is used to configure the `magmad`
 and `control_proxy` services to point toward the appropriate Orchestrator.
 A sample configuration is provided below. The `bootstrap_address`,
 `bootstrap_port`, `controller_address`, and `controller_port` are the
 parameters that will likely need to be modified.
- 
-```
+
+```yaml
 #
 # Copyright 2020 The Magma Authors.
 
@@ -59,11 +59,11 @@ proxy_cloud_connections: True
 allow_http_proxy: True
 ```
 
-* `.env` - This file provides any deployment specific environment variables used
+- `.env` - This file provides any deployment specific environment variables used
 in the `docker-compose.yml` of the Carrier Wifi Gateway. A sample configuration
 is provided below:
 
-```
+```yaml
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -118,14 +118,14 @@ INSTALL_HOST [/var/opt/magma/docker]$ docker-compose exec magmad /usr/local/bin/
 This will output a hardware ID and a challenge key. This information must be
 registered with the Orchestrator.
 
-To register the Carrier Wifi Gateway, go to the Orchestrator's APIdocs in your browser. 
+To register the Carrier Wifi Gateway, go to the Orchestrator's APIdocs in your browser.
 **Note: It is highly encouraged to use V1 of the apidocs**
-(i.e. https://controller.url.sample:9443/apidocs/v1/).
+(i.e. <https://controller.url.sample:9443/apidocs/v1/>).
 
 Now, create a Carrier Wifi Network. This is found at `/cwf` under the
 **Carrier Wifi Networks** section. Then register the gateway under the
-**Carrier Wifi Gateway** section at `/cwf/{network_id}/gateways` using the 
-network ID of the Carrier Wifi Network and the hardware ID and challenge key 
+**Carrier Wifi Gateway** section at `/cwf/{network_id}/gateways` using the
+network ID of the Carrier Wifi Network and the hardware ID and challenge key
 from the previous step.
 
 To verify that the gateway was correctly registered, run:
@@ -144,18 +144,18 @@ magmad on the gateway will pull down the specified docker images,
 update any static configuration, and update the docker-compose file to the
 appropriate version.
 
-### Prepare Gateway Node for Upgrade:
+### Prepare Gateway Node for Upgrade
 
-1. Configuring Docker With a Proxy
+#### 1. Configuring Docker With a Proxy
 
- In order to the set the proxy for Docker, you will need to create a configuration file for the Docker service. No configuration files exist by default, so one will have to be created.
+In order to the set the proxy for Docker, you will need to create a configuration file for the Docker service. No configuration files exist by default, so one will have to be created.
 
-```console 
+```console
 a. Create a new directory for Docker service configurations
-  
+
   sudo mkdir -p /etc/systemd/system/docker.service.d
 
-b. Create a file called http-proxy.conf in configuration directory. 
+b. Create a file called http-proxy.conf in configuration directory.
 
   sudo vim /etc/systemd/system/docker.service.d/http-proxy.conf
 
@@ -179,24 +179,24 @@ f. Restart Docker to apply changes.
   sudo service docker restart
 ```
 
-2. update orc8r to support proxy
+#### 2. update orc8r to support proxy
 
 ```console
 a. update orc8r-proxy values by editing  vals.yml
-  
+
 proxy:
   spec:
     http_proxy_docker_hostname: "docker.io"
     http_proxy_github_hostname: "github.com"
-        
-b. upgrade helm deployment 
+
+b. upgrade helm deployment
 
   cd magma/orc8r/cloud/helm/orc8r
   helm upgrade orc8r . --values=PATH_TO_VALS/vals.yml
   kubectl -n magma get pods
 ```
 
-3. create or update upgrade tier with latest tag/commit id
+#### 3. create or update upgrade tier with latest tag/commit id
 
 ```console
 a. open Orchestrator's APIdocs in your browser
@@ -215,12 +215,13 @@ a. open Orchestrator's APIdocs in your browser
      }
    ],
    "name": "Stable Tier",
-   "version": "1.0.0-123456789-<commit_id/tag_id>" 
+   "version": "1.0.0-123456789-<commit_id/tag_id>"
  }
 ```
 
-4. tail magmad logs on the gateway to see the upgrade status. 
+#### 4. tail magmad logs on the gateway to see the upgrade status
+
 ```console
   [gateway]$ cd /var/opt/magma/docker
-	[gateway]$ docker-compose logs -f magmad
+ [gateway]$ docker-compose logs -f magmad
 ```

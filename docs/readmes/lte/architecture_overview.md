@@ -29,8 +29,7 @@ Note: The *mme* service will be renamed soon to *accessd*, as its main purpose i
 
 Together, these components help to facilitate and manage data both to and from the user.
 
-
-```
+```text
    ┏━━━━━━━━━━━━━━┓           ┏━━━━━━━━━━━━━━┓
    ┃ Magma Orc8r  ┃───────────┃  Magma Feg   ┃
    ┗━━━━━━━━━━━━━━┛           ┗━━━━━━━━━━━━━━┛
@@ -73,7 +72,7 @@ Together, these components help to facilitate and manage data both to and from t
    └───────────┘       │
    ┌───────────┐       │
    │ mobilityd │◀──────┘
-   └───────────┘ 
+   └───────────┘
 ```
 
 ## Default components

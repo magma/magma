@@ -15,6 +15,7 @@ On your GW host, run the following command
 ```$ dp_probe_cli.py -i <IMSI> --direction <DL/UL> <list_rules/stats>```
 
 For example:
+
 ```sh
 dp_probe_cli.py -i 001010000000004 --direction DL
 IMSI: 001010000000004, IP: 192.168.128.15
@@ -35,7 +36,8 @@ Uplink rules: allowlist_sid-IMSI001010000000004-magma.ipv4
 ```
 
 You can also supply the followin options
-```
+
+```string
 # list_rules
 # stats
 # -I <External IP Address>
@@ -73,6 +75,7 @@ This command is a wrapper around *ovs-appctl ofproto/trace* which simulates the 
 ## How to read the output?
 
 Based on the *IMSI* supplied to this command
+
 - If the UE is connected it prints:
     - The *IP Address* of the UE and the Datapath Actions based on the ovs-appctl ofproto/trace
     - Ingress or egress stats obtained from ```ovs-ofctl dump-flows gtp_br0 table=0```

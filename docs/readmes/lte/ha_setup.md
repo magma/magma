@@ -16,10 +16,10 @@ gateway to serve as a secondary to a primary gateway running at an edge site.
 
 Steps:
 
-1. Download packer onto your host machine at https://www.packer.io/downloads.html
+1. Download packer onto your host machine at <https://www.packer.io/downloads.html>
 2. Run the following
 
-```
+```text
 [~] cd magma/orc8r/tools/packer
 [~/magma/orc8r/tools/packer] packer build -force \
     -var "aws_access_key=YOUR_ACCESS_KEY" \
@@ -35,7 +35,7 @@ subnet/vpc which the box is launched into while building.
 
 The result should show
 
-```
+```text
 ==> Builds finished. The artifacts of successful builds are:
 --> amazon-ebs: AMIs were created:
 us-west-1: ami-0f1c9db5a767a0296
@@ -62,13 +62,13 @@ rules listed below. It is advised to limit the source IPs to the subnet that i
 the primary gateway resides in for all rules other than SSH. Proceed to
 `Review and Launch`.
 
-|Type	|Protocol	|Port Range	|Source	|Description	|
-|---	|---	|---	|---	|---	|
-|SSH	|TCP	|22	|0.0.0.0/0	|-	|
-|SCTP (132)	|SCTP (132)	|All	|0.0.0.0/0	|-	|
-|Custom TCP	|TCP	|3386	|0.0.0.0/0	|-	|
-|All UDP	|UDP	|0 - 65535	|0.0.0.0/0	|	|
-|All ICMP - IPv4	|ICMP	|All	|0.0.0.0/0	|-	|
+|Type |Protocol |Port Range |Source |Description |
+|--- |--- |--- |--- |--- |
+|SSH |TCP |22 |0.0.0.0/0 |- |
+|SCTP (132) |SCTP (132) |All |0.0.0.0/0 |- |
+|Custom TCP |TCP |3386 |0.0.0.0/0 |- |
+|All UDP |UDP |0 - 65535 |0.0.0.0/0 | |
+|All ICMP - IPv4 |ICMP |All |0.0.0.0/0 |- |
 
 1. Review that the selected settings are as described here. Then proceed to
 `Launch`.
@@ -108,7 +108,7 @@ the instance summary.
 `ssh admin@<instance_public_ip>`
 4. Now install Magma
 
-```
+```text
 [admin@<public_ip>~/] sudo su
 [root@<public_ip>:/home/admin] wget https://raw.githubusercontent.com/facebookincubator/magma/v1.4/lte/gateway/deploy/agw_install.sh
 [root@<public_ip>:/home/admin] bash agw_install cloud
@@ -118,7 +118,7 @@ the instance summary.
 When  you see "AGW installation is done." It means that your AGW installation
 is done, you can make sure magma is running by executing:
 
-```
+```bash
 service magma@* status
 ```
 
@@ -177,4 +177,3 @@ the management interface for the eNB vendor. The primary and secondary AGW’s
 routable ip addresses assigned for eth1 must be used in this configuration.
 Make sure that eNB simultaneously connects to each MME ip address in its pool
 and there are sctp heartbeat requests and responses on each AGW.
-

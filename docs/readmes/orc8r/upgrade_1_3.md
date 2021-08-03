@@ -80,7 +80,7 @@ upgraded and Prometheus should be back up on v2.20.1.
 
 > **_NOTE:_** If you're upgrading to release tag v1.3.0 specifically, `m014_enodeb_config` is not required.
 
-```
+```bash
 $ export CNTLR_POD=$(kubectl --namespace orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 $ kubectl --namespace orc8r exec -it ${CNTLR_POD} -- bash
 
