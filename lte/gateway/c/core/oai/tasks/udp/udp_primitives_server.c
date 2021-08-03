@@ -509,7 +509,8 @@ static void* udp_thread(void* args) {
       &udp_task_zmq_ctx);
 
   zloop_start(udp_task_zmq_ctx.event_loop);
-  udp_exit();
+
+  AssertFatal(0, "Asserting as udp_thread should not be exiting on its own!");
   return NULL;
 }
 

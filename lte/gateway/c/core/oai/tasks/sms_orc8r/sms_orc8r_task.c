@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 
+#include "assertions.h"
 #include "log.h"
 #include "intertask_interface.h"
 #include "mme_config.h"
@@ -80,7 +81,9 @@ static void* sms_orc8r_thread(__attribute__((unused)) void* args_p) {
       task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
-  sms_orc8r_exit();
+
+  AssertFatal(
+      0, "Asserting as sms_orc8r_thread should not be exiting on its own!");
   return NULL;
 }
 
