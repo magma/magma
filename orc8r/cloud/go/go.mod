@@ -29,6 +29,7 @@ require (
 	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/facebookincubator/prometheus-edge-hub v1.1.0
+	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.19.3

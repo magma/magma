@@ -15,8 +15,10 @@ require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/aws/aws-sdk-go v1.19.6
 	github.com/coreos/go-semver v0.2.0
+	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.15
+	github.com/go-openapi/validate v0.19.3
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/labstack/echo v3.3.10+incompatible
