@@ -1,4 +1,3 @@
-
 /**
  * Copyright 2020 The Magma Authors.
  *
@@ -58,7 +57,7 @@ int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg
       }
     }
 
-    // read binary name, pid, and source port
+    // read binary name, pid, and IP version
     bpf_get_current_comm(key.comm, TASK_COMM_LEN);
     key.pid = bpf_get_current_pid_tgid() >> 32;
     key.family = family;
