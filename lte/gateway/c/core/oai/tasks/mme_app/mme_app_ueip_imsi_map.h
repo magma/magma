@@ -12,17 +12,17 @@ limitations under the License.
 */
 
 #pragma once
-#include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "log.h"
-#include "common_defs.h"
-#include "common_types.h"
-int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
-int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list);
-void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
-#ifdef __cplusplus
-}
-#endif
+#include <bits/stdc++.h>
+#include <unordered_map>
+#include <iostream>
+#include <string>
+#include <vector>
+
+/* Description: ue_ip address is allocated by either roaming PGWs or mobilityd
+ * So there is possibility to allocate same ue ip address for different UEs.
+ * So defining ue_ip_imsi map with key as ue_ip and value as list of imsis
+ * having same ue_ip
+ */
+
+typedef std::unordered_map<std::string, std::vector<uint64_t>> UeIpImsiMap;

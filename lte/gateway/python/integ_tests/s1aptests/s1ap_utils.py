@@ -1087,13 +1087,29 @@ class MagmadUtil(object):
         s1ap_imsi_map_state = self.exec_command_output(magtivate_cmd + " && " + s1ap_imsi_map_cmd)
         # Remove state version output to get only hashmap entries
         s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[:-4]) // 4
+
+        mme_ueip_imsi_map_cmd = "state_cli.py parse mme_ueip_imsi_map"
+        mme_ueip_imsi_map_state = self.exec_command_output(
+            magtivate_cmd + " && " + mme_ueip_imsi_map_cmd,
+        )
+        mme_ueip_imsi_map_entries = 0
+        for state in mme_ueip_imsi_map_state.split("\n"):
+            if 'key' in state:
+                mme_ueip_imsi_map_entries += 1
         print(
             "Keys left in Redis (list should be empty)[\n",
             "\n".join(keys_to_be_cleaned),
             "\n]",
         )
-        print("Entries in s1ap_imsi_map (should be zero):", s1ap_imsi_map_entries)
+        print(
+            "Entries in s1ap_imsi_map (should be zero):",
+            s1ap_imsi_map_entries,
+        )
         print("Entries left in hashtables (should be zero):", num_htbl_entries)
+        print(
+            "Entries in mme_ueip_imsi_map (should be zero):",
+            mme_ueip_imsi_map_entries,
+        )
 
 
 class MobilityUtil(object):
