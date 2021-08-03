@@ -13,7 +13,7 @@ limitations under the License.
 
 syntax = "proto3";
 package magma.orc8r.obsidian.swagger;
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/obsidian/swagger/protos";
 
 // SwaggerSpec provides a Swagger specification of the service's REST API.
 service SwaggerSpec {

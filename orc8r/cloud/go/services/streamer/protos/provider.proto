@@ -17,7 +17,7 @@ package magma.orc8r.streamer;
 
 import "orc8r/protos/streamer.proto";
 
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/streamer/protos";
 
 // StreamProvider allows orc8r services to provide custom streaming configs.
 service StreamProvider {
