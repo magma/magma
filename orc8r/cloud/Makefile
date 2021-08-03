@@ -108,11 +108,11 @@ fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 
-fullgen: clean_gen gen
+fullgen: clean_gen gen swagger tidy
 
-gen: gen_protos $(GEN_LIST)
+gen: tools gen_protos $(GEN_LIST)
 $(GEN_LIST): %_gen:
-	#make -C $*/cloud/go gen
+	make -C $*/cloud/go gen
 
 gen_protos: $(GEN_PROTO_LIST)
 $(GEN_PROTO_LIST): %_gen_proto:
