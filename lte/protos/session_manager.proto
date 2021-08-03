@@ -46,6 +46,8 @@ message RuleRecordTable {
   repeated RuleRecord records = 1;
   // Time at which PipelineD started
   uint64 epoch = 2;
+  // If policy rule versions need to be incremented(only used for startup)
+  bool update_rule_versions = 3;
 }
 
 ///////////////////
@@ -829,7 +831,7 @@ message TrackingAreaIdentityList {
    // 3 bytes
    string MNC=4;
    // 8 bytes
-   string TAC= 5;          
+   string TAC= 5;
 }
 enum TypeOfList  {
    LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES = 0;
@@ -865,16 +867,16 @@ message M5GSMSessionContext {
   // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
   string imei = 6;
   // Length is 10 bytes + 2 bytes country code generic public subscription id.
-  string gpsi = 7; 
+  string gpsi = 7;
   // up to 6 byte. TS-23.003 - 28.15.3
   string user_location_info = 8;
   // length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
   string pcf_id = 9;
   // Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
-  repeated LadnServiceArea ladn_service_area = 10; 
+  repeated LadnServiceArea ladn_service_area = 10;
   // Subscription For PDU Session Status Notification true or false
   bool pdu_session_status_notification_sub = 11;
-  // TS-29-502 - 6.1.6.3.10 
+  // TS-29-502 - 6.1.6.3.10
   DnnSelectionMode dnn_selection_mode = 12;
   // TS-29.571 5.6.
   string trace_requirement = 13;
@@ -889,7 +891,7 @@ message M5GSMSessionContext {
   // Always-on PDU session requested TS-24.501 9.11.4.4
   bool pdu_session_req_always_on = 19;
   // SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
-  string sm_pdu_dn_req = 20; 
+  string sm_pdu_dn_req = 20;
   M5GSMCause m5gsm_cause = 21;
   // TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
   QosRules requested_qos_rules = 22;
@@ -912,7 +914,7 @@ message SmContextVoid {
 
 
 
-// SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE 
+// SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE
 
 // 4G response message has not been refactored yet. Hence only considering M5G.
 message RatSpecificContextAccess {
@@ -957,22 +959,22 @@ message M5GSMSessionContextAccess{
     AggregatedMaximumBitrate session_ambr = 5;
     AmbrUnit downlink_unit_type = 6;
     // Only to use lower 2 bytes (16 bit values)
-    uint32   downlink_units = 7;   
+    uint32   downlink_units = 7;
     AmbrUnit uplink_unit_type = 8;
-    // Only to use lower 2 bytes (16 bit values) 
-    uint32   uplink_units = 9;   
+    // Only to use lower 2 bytes (16 bit values)
+    uint32   uplink_units = 9;
     // TS-24501 - 9.11.4.2
-    M5GSMCause M5gsm_cause = 10; 
+    M5GSMCause M5gsm_cause = 10;
     // PDU session is requested to be established as always-on PDU session.
     bool always_on_pdu_session_indication = 11;
     // Indicates SSC mode.
-    SscMode allowed_ssc_mode = 12; 
+    SscMode allowed_ssc_mode = 12;
     bool M5G_sm_congestion_reattempt_indicator = 13;
     // IP address. Imported from session_manager.proto file.
     RedirectServer pdu_address = 14;
     TeidSet upf_endpoint = 15;
     // Procedure transaction identity One byte TS-24501 9.6
-    bytes procedure_trans_identity = 16;    
+    bytes procedure_trans_identity = 16;
     FlowQos  qos =17;
 }
 
@@ -1006,7 +1008,7 @@ message UserPlaneIPResourceSchema {
     uint32 teid_range = 4;
     string assoc_network_instance = 5;
     // 15.8 (Sec 8.2.2) Source Interface
-    enum InterfaceValue {    
+    enum InterfaceValue {
        ACCESS = 0;
        CORE = 1;
        LAN  = 2;
@@ -1051,33 +1053,33 @@ message UPFAssociationState {
 message UPFFeatureSet {
   // 15.8 (Sec 8.2.25) :  UP Function Features
   // Downlink Data Buffering in CP function supported in UPF
-  bool downlink_data_buffering_cp = 1;   
+  bool downlink_data_buffering_cp = 1;
   // Buffering parameter, Downlink DataNotification Delay supported by UPF
   bool downlink_data_notification_delay = 2;
-  // Buffering parameter, DL Buffering Duration is supported by UPF  
-  bool dl_buffering_duration = 3;        
+  // Buffering parameter, DL Buffering Duration is supported by UPF
+  bool dl_buffering_duration = 3;
   // Traffic Steering is supported by the UPF
-  bool traffic_steering = 4;             
+  bool traffic_steering = 4;
   // F-TEID allocation/release in the UP function is supported by UPF
-  bool f_teid = 5;                       
+  bool f_teid = 5;
   // PFD Management is supported by UPF
-  bool pfd_management = 6;               
+  bool pfd_management = 6;
   // Header enrichment of Uplink Traffic is supported by UPF
-  bool header_enrichment_uplink = 7;     
+  bool header_enrichment_uplink = 7;
   // Traffic Redirection Enforcement in the UP function is supported in UPF
   bool traffic_redirection_enforcement = 8;
   // Sending End of Marker packets supported by the UPF
-  bool end_of_marker_packet = 9;         
+  bool end_of_marker_packet = 9;
   // Support PDI optimized signaling in UPF
-  bool pdi_optimization_signaling = 10; 
+  bool pdi_optimization_signaling = 10;
   // Support of UL/DL Buffering Control
-  bool ul_dl_buffering_control = 11;     
+  bool ul_dl_buffering_control = 11;
   // The UPF supports being provisioned with the Quota Action to apply
-  bool quota_application_to_apply = 12;  
+  bool quota_application_to_apply = 12;
   // The UPF supports Trace
-  bool trace = 13;                       
+  bool trace = 13;
   // UPF supports Framed Routing
-  bool frame_routing = 14;               
+  bool frame_routing = 14;
   bool pfd_contents = 15;
 }
 
@@ -1085,19 +1087,19 @@ message UPFFeatureSet {
 // 15.8 (Sec 7.4.5.1) : PFCP Node Report Request
 message UPFNodeReport {
     // Version of the report
-    uint32 state_version = 2;                                        
+    uint32 state_version = 2;
     // Load Control Information
-    LoadControlInformation load_control_info = 3;                    
+    LoadControlInformation load_control_info = 3;
     // OverLoad Control Information
-    OverloadControlInformation overload_control_info = 4;            
+    OverloadControlInformation overload_control_info = 4;
 }
 
 // 15.8 (Table 7.5.3.3-1) : Load Control Information
 message LoadControlInformation {
    // Sec 6.2.3.3.2.1
-   uint32 load_control_seq_number = 1;   
+   uint32 load_control_seq_number = 1;
    // Sec 6.2.3.3.2.2
-   uint32 load_metric = 2;               
+   uint32 load_metric = 2;
 }
 
 // 15.8 (Sec 8.2.35) : Timer
@@ -1117,11 +1119,11 @@ message OverloadControlInformation {
 // Current Session snapshot in UPF.
 message UPFSessionState {
   // Subscriber ID
-  string subscriber_id = 1;       
+  string subscriber_id = 1;
   // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
-  uint32 session_version = 2;      
+  uint32 session_version = 2;
   // Local TEID to uniquely identify the session
-  uint32 local_f_teid = 3;        
+  uint32 local_f_teid = 3;
 }
 
 // Perodic Session snapshot information from UPF to SMF
@@ -1147,12 +1149,12 @@ service AmfPduSessionSmContext {
   // PDU session related configuration from amf to smf
   rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
   // PDU session related notification from amf to smf
-  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid); 
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);
 }
 
 // RPC service and method from SMF to AMF
 service SmfPduSessionSmContext {
- rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    
+ rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
 
