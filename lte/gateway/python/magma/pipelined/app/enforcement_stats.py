@@ -662,21 +662,16 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def _delete_flow(self, imsi, ip_addr, rule_id, rule_version, local_f_teid_ng=0):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule_id)
-        cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
-        match_in = _generate_rule_match(imsi, ip_addr, cookie, rule_version,
+        match_in = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
                                         Direction.IN, local_f_teid_ng)
-        match_out = _generate_rule_match(imsi, ip_addr, cookie, rule_version,
+        match_out = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
                                          Direction.OUT, local_f_teid_ng)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
-                          match_in,
-                          cookie=cookie,
-                          cookie_mask=mask)
+                          match_in)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
-                          match_out,
-                          cookie=cookie,
-                          cookie_mask=mask)
+                          match_out)
 
     def _was_ovs_restarted(self):
         try:
