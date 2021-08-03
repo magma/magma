@@ -26,6 +26,7 @@ endif
 ifndef PROTO_INCLUDES
 PROTO_INCLUDES := /usr/include
 endif
+export PROTO_INCLUDES
 
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
