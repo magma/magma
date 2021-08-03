@@ -27,6 +27,19 @@ extern "C" {
 
 task_zmq_ctx_t task_zmq_ctx_main;
 
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
+  MessageDef* received_message_p = receive_msg(reader);
+
+  switch (ITTI_MSG_ID(received_message_p)) {
+    default: {
+    } break;
+  }
+
+  itti_free_msg_content(received_message_p);
+  free(received_message_p);
+  return 0;
+}
+
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     // log_init(MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG,
@@ -42,7 +55,8 @@ class MmeAppProcedureTest : public ::testing::Test {
     task_id_t task_id_list[10] = {
         TASK_MME_APP,    TASK_HA,  TASK_S1AP,   TASK_S6A,      TASK_S11,
         TASK_SERVICE303, TASK_SGS, TASK_SGW_S8, TASK_SPGW_APP, TASK_SMS_ORC8R};
-    init_task_context(TASK_MAIN, task_id_list, 10, NULL, &task_zmq_ctx_main);
+    init_task_context(
+        TASK_MAIN, task_id_list, 10, handle_message, &task_zmq_ctx_main);
 
     std::thread task_ha(start_mock_ha_task);
     std::thread task_s1ap(start_mock_s1ap_task);
@@ -72,12 +86,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 };
-/*
-TEST_F(MmeAppProcedureTest, TestDummy) {
-  mme_app_desc_t* mme_nas_state_p = get_mme_nas_state(false);
-  ASSERT_NE(mme_nas_state_p, nullptr);
-}
-*/
+
 TEST_F(MmeAppProcedureTest, TestInitialUeMessage) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);

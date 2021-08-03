@@ -102,7 +102,8 @@ void stop_mock_s1ap_task() {
 }
 
 void start_mock_s1ap_task() {
-  init_task_context(TASK_S1AP, nullptr, 0, handle_message, &task_zmq_ctx_s1ap);
+  task_id_t task_id_list_main[1] = {TASK_MAIN};
+  init_task_context(TASK_S1AP, task_id_list_main, 1, handle_message, &task_zmq_ctx_s1ap);
 
   zloop_start(task_zmq_ctx_s1ap.event_loop);
 }

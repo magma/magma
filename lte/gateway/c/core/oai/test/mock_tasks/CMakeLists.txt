@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include_directories("/usr/src/googletest/googlemock/include/")
+link_directories(/usr/src/googletest/googlemock/lib/)
+
 add_library(MOCK_TASKS
     ha_mock.cpp
     s1ap_mock.cpp

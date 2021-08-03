@@ -10,6 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 extern "C" {
 #include "dynamic_memory_check.h"
@@ -45,3 +47,11 @@ void start_mock_sgs_task();
 void start_mock_sgw_s8_task();
 void start_mock_sms_orc8r_task();
 void start_mock_spgw_task();
+
+using ::testing::_;
+using ::testing::Return;
+
+class MockTask {
+ public:
+  MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
+};
