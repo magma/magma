@@ -15,7 +15,7 @@ syntax = "proto3";
 
 package magma.orc8r.metricsd;
 
-import "orc8r/protos/prometheus/metrics.proto";
+import "metrics.proto";
 
 option go_package = "magma/orc8r/cloud/go/services/metricsd/protos";
 

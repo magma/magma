@@ -40,13 +40,18 @@ gen::
 #		most recent version of protoc.
 # 	(2) Overriding field_mask. This version of protoc points to the WKTs where
 #		field_mask has no go_package defined. Same resolution as (1).
-# 	(3) Duplicated protoc calls. Need to move all protos to a single (IDL)
+# 	(3) Special-case Prometheus include. For some reason we originally shimmed
+#		this vendored dependency in in a hacky way, and we use it in
+#		Go, Python, and C++. I spent 3 hours trying to fix its C++
+#		compilation to no success, so for now this is what we get.
+# 	(4) Duplicated protoc calls. Need to move all protos to a single (IDL)
 #		directory per module, then generate to a single base output directory.
 gen_protos::
 	cd $(MAGMA_ROOT) ; \
 	for x in $$(find $(MODULE_NAME)/protos -name '*.proto') ; do \
 		protoc \
 			--proto_path $(MAGMA_ROOT) \
+			--proto_path $(MAGMA_ROOT)/orc8r/protos/prometheus \
 			--proto_path $(PROTO_INCLUDES) \
 			--go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
 			$${x} ; \
@@ -54,6 +59,7 @@ gen_protos::
 	for x in $$(find $(MODULE_NAME)/cloud/go -name '*.proto') ; do \
 		protoc \
 			--proto_path $(MAGMA_ROOT) \
+			--proto_path $(MAGMA_ROOT)/orc8r/protos/prometheus \
 			--proto_path $(PROTO_INCLUDES) \
 			--go_opt=paths=source_relative \
 			--go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:. \
