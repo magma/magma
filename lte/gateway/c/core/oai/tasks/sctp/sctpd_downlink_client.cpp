@@ -74,7 +74,7 @@ int SctpdDownlinkClient::init(InitReq& req, InitRes* res) {
 
   if (!status.ok()) {
     OAILOG_ERROR(
-        LOG_SCTP, "sctpdl.init error = %s\n", status.error_message().c_str());
+        LOG_SCTP, "sctpdl.init error = %s\n", status.message().c_str());
   }
 
   return status.ok() ? 0 : -1;
@@ -89,7 +89,7 @@ int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res) {
 
   if (!status.ok()) {
     OAILOG_ERROR(
-        LOG_SCTP, "sctpdl.senddl error = %s\n", status.error_message().c_str());
+        LOG_SCTP, "sctpdl.senddl error = %s\n", status.message().c_str());
   }
 
   return status.ok() ? 0 : -1;

@@ -76,7 +76,7 @@ folly::dynamic get_dynamic_active_policies(
         policy, &json_policy, options);
     if (!status.ok()) {
       MLOG(MERROR) << "Error serializing PolicyRule " << policy.id()
-                   << " to JSON: " << status.error_message();
+                   << " to JSON: " << status.message();
       continue;
     }
     policies.push_back(json_policy);

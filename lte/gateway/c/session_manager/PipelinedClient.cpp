@@ -364,7 +364,7 @@ void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
       request, [imsi](Status status, DeactivateFlowsResult resp) {
         if (!status.ok()) {
           MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
-                       << ": " << status.error_message();
+                       << ": " << status.message();
         }
       });
 }
@@ -405,7 +405,7 @@ void AsyncPipelinedClient::update_ipfix_flow(
   update_ipfix_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not update ipfix flow for subscriber with MAC"
-                   << ue_mac_addr << ": " << status.error_message();
+                   << ue_mac_addr << ": " << status.message();
     }
   });
 }
@@ -416,7 +416,7 @@ void AsyncPipelinedClient::delete_ue_mac_flow(
   delete_ue_mac_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not delete flow for subscriber with UE MAC"
-                   << ue_mac_addr << ": " << status.error_message();
+                   << ue_mac_addr << ": " << status.message();
     }
   });
 }
@@ -426,7 +426,7 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
   auto req = create_subscriber_quota_state_req(updates);
   update_subscriber_quota_state_rpc(req, [](Status status, FlowResponse resp) {
     if (!status.ok()) {
-      MLOG(MERROR) << "Could send quota update " << status.error_message();
+      MLOG(MERROR) << "Could send quota update " << status.message();
     }
   });
 }
@@ -437,7 +437,7 @@ void AsyncPipelinedClient::poll_stats(
   auto req = make_stat_req(cookie, cookie_mask);
   poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
     if (!status.ok()) {
-      MLOG(MERROR) << "Could not poll stats " << status.error_message();
+      MLOG(MERROR) << "Could not poll stats " << status.message();
     }
   });
 }
@@ -453,7 +453,7 @@ void AsyncPipelinedClient::add_gy_final_action_flow(
   auto cb = [imsi](Status status, ActivateFlowsResult resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not activate GY flows through pipelined for UE "
-                   << imsi << ": " << status.error_message();
+                   << imsi << ": " << status.message();
     }
   };
 

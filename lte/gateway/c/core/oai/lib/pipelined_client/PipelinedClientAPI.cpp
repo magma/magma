@@ -174,7 +174,7 @@ void handle_upf_classifier_rpc_call_done(
   if (!status.ok()) {
     OAILOG_ERROR(
         LOG_UTIL, "Error Code=%d, Error Message=%s", status.error_code(),
-        status.error_message().c_str());
+        status.message().c_str());
   }
 
   if (response.cause_info().cause_ie() != CauseIE::REQUEST_ACCEPTED) {

@@ -48,7 +48,7 @@ void send_location_update_request(const itti_sgsap_location_update_req_t* msg) {
         } else {
           std::cout
               << "[ERROR] Failed to send LOCATION_UDPATE_REQUEST with IMSI: "
-              << imsiStr << "; Status: " << status.error_message() << std::endl;
+              << imsiStr << "; Status: " << status.message() << std::endl;
         }
         return;
       });
@@ -69,7 +69,7 @@ void send_tmsi_reallocation_complete(
         } else {
           std::cout
               << "[ERROR] Failed to send TMSI_REALLOCATION_COMPLETE with IMSI: "
-              << imsiStr << "; Status: " << status.error_message() << std::endl;
+              << imsiStr << "; Status: " << status.message() << std::endl;
         }
         return;
       });

@@ -108,7 +108,7 @@ void MobilityServiceClient::ReleaseIPv4Address(
     if (!status.ok()) {
       // TODO: use logging
       std::cout << "ReleaseIPv4Address fails with code " << status.error_code()
-                << ", msg: " << status.error_message() << std::endl;
+                << ", msg: " << status.message() << std::endl;
     }
   });
 }
@@ -130,7 +130,7 @@ void MobilityServiceClient::ReleaseIPv6Address(
   ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
     if (!status.ok()) {
       std::cout << "ReleaseIPv6Address fails with code " << status.error_code()
-                << ", msg: " << status.error_message() << std::endl;
+                << ", msg: " << status.message() << std::endl;
     }
   });
 }
@@ -153,7 +153,7 @@ void MobilityServiceClient::ReleaseIPv4v6Address(
   ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
     if (!status.ok()) {
       std::cout << "ReleaseIPv4Address fails with code " << status.error_code()
-                << ", msg: " << status.error_message() << std::endl;
+                << ", msg: " << status.message() << std::endl;
     }
   });
 
@@ -165,7 +165,7 @@ void MobilityServiceClient::ReleaseIPv4v6Address(
   ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
     if (!status.ok()) {
       std::cout << "ReleaseIPv6Address fails with code " << status.error_code()
-                << ", msg: " << status.error_message() << std::endl;
+                << ", msg: " << status.message() << std::endl;
     }
   });
 }
@@ -188,7 +188,7 @@ int MobilityServiceClient::GetIPv4AddressForSubscriber(
   Status status = stub_->GetIPForSubscriber(&context, request, &ip_msg);
   if (!status.ok()) {
     std::cout << "GetIPv4AddressForSubscriber fails with code "
-              << status.error_code() << ", msg: " << status.error_message()
+              << status.error_code() << ", msg: " << status.message()
               << std::endl;
     return status.error_code();
   }
@@ -208,7 +208,7 @@ int MobilityServiceClient::GetAssignedIPv4Block(
   if (!status.ok()) {
     // TODO: use logging
     std::cout << "GetAssignedIPBlock fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
+              << ", msg: " << status.message() << std::endl;
     return status.error_code();
   }
 
@@ -233,7 +233,7 @@ int MobilityServiceClient::GetSubscriberIDFromIPv4(
   Status status = stub_->GetSubscriberIDFromIP(&context, ip_addr, &match);
   if (!status.ok()) {
     std::cout << "GetSubscriberIDFromIPv4 fails with code "
-              << status.error_code() << ", msg: " << status.error_message()
+              << status.error_code() << ", msg: " << status.message()
               << std::endl;
     return status.error_code();
   }

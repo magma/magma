@@ -52,7 +52,7 @@ int log_event(const Event& event) {
       return 0;  // Suppress error logs if EventD is unavailable
     }
     std::cout << "[ERROR] Failed to log event: " << event.event_type()
-              << "; Status: " << status.error_message() << std::endl;
+              << "; Status: " << status.message() << std::endl;
     return int(status.error_code());
   });
   return 0;

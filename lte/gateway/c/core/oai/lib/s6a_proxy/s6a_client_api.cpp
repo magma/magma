@@ -56,7 +56,7 @@ bool s6a_purge_ue(const char* imsi) {
         // For now, do nothing, just log
         std::cout << "[" << log_level
                   << "] PurgeUE Response for IMSI: " << imsiStr
-                  << "; Status: " << status.error_message()
+                  << "; Status: " << status.message()
                   << "; ErrorCode: " << response.error_code() << std::endl;
         return;
       });
@@ -78,7 +78,7 @@ static void s6a_handle_authentication_info_ans(
     if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
       std::cout << "[INFO] "
                 << "Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: "
-                << imsi << "; Status: " << status.error_message()
+                << imsi << "; Status: " << status.message()
                 << "; StatusCode: " << response.error_code() << std::endl;
 
       itti_msg->result.present     = S6A_RESULT_BASE;
@@ -91,10 +91,10 @@ static void s6a_handle_authentication_info_ans(
     }
   } else {
     std::cout << "[ERROR] " << status.error_code() << ": "
-              << status.error_message() << std::endl;
+              << status.message() << std::endl;
     std::cout
         << "[ERROR] Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: "
-        << imsi << "; Status: " << status.error_message()
+        << imsi << "; Status: " << status.message()
         << "; ErrorCode: " << response.error_code() << std::endl;
     itti_msg->result.present     = S6A_RESULT_BASE;
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
@@ -135,7 +135,7 @@ static void s6a_handle_update_location_ans(
   if (status.ok()) {
     if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
       std::cout << "[INFO] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
-                << imsi << "; Status: " << status.error_message()
+                << imsi << "; Status: " << status.message()
                 << "; StatusCode: " << response.error_code() << std::endl;
 
       itti_msg->result.present     = S6A_RESULT_BASE;
@@ -149,9 +149,9 @@ static void s6a_handle_update_location_ans(
     }
   } else {
     std::cout << "[ERROR] " << status.error_code() << ": "
-              << status.error_message() << std::endl;
+              << status.message() << std::endl;
     std::cout << "[ERROR]  Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
-              << imsi << "; Status: " << status.error_message()
+              << imsi << "; Status: " << status.message()
               << "; ErrorCode: " << response.error_code() << std::endl;
 
     itti_msg->result.present     = S6A_RESULT_BASE;

@@ -34,7 +34,7 @@ void handle_session_context_response(
     grpc::Status status, magma::lte::SmContextVoid response) {
   if (!status.ok()) {
     std::cout << "AsyncSetAmfSessionContext fails with code "
-              << status.error_code() << ", msg: " << status.error_message()
+              << status.error_code() << ", msg: " << status.message()
               << std::endl;
   }
 }

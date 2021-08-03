@@ -51,7 +51,7 @@ static void handle_subs_authentication_info_ans(
 
   if (!status.ok()) {
     std::cout << "get_subs_auth_info fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
+              << ", msg: " << status.message() << std::endl;
 
     return;
   }

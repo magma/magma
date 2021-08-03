@@ -61,7 +61,7 @@ class Service303Client {
     Status status = stub_->GetServiceInfo(&context, request, response);
     if (!status.ok()) {
       std::cout << "GetServiceInfo fails with code " << status.error_code()
-                << ", msg: " << status.error_message() << std::endl;
+                << ", msg: " << status.message() << std::endl;
       return -1;
     }
     return 0;
@@ -77,7 +77,7 @@ class Service303Client {
     Status status = stub_->GetMetrics(&context, request, response);
     if (!status.ok()) {
       std::cout << "GetMetrics fails with code " << status.error_code()
-                << ", msg: " << status.error_message() << std::endl;
+                << ", msg: " << status.message() << std::endl;
       return -1;
     }
     return 0;

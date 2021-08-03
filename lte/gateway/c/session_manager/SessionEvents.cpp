@@ -111,7 +111,7 @@ void EventsReporterImpl::session_created(
     if (!status.ok()) {
       MLOG(MERROR) << "Could not log " << SESSION_CREATED_EV << " event "
                    << event_value_string
-                   << ", Error Message: " << status.error_message();
+                   << ", Error Message: " << status.message();
     }
   });
 }
@@ -137,7 +137,7 @@ void EventsReporterImpl::session_create_failure(
     if (!status.ok()) {
       MLOG(MERROR) << "Could not log " << SESSION_CREATE_FAILURE_EV << " event "
                    << event_value_string
-                   << ", Error Message: " << status.error_message();
+                   << ", Error Message: " << status.message();
     }
   });
 }
@@ -168,7 +168,7 @@ void EventsReporterImpl::session_updated(
     if (!status.ok()) {
       MLOG(MERROR) << "Could not log " << SESSION_UPDATED_EV << " event "
                    << event_value_string
-                   << ", Error Message: " << status.error_message();
+                   << ", Error Message: " << status.message();
     }
   });
 }
@@ -199,7 +199,7 @@ void EventsReporterImpl::session_update_failure(
     if (!status.ok()) {
       MLOG(MERROR) << "Could not log " << SESSION_UPDATE_FAILURE_EV << " event "
                    << event_value_string
-                   << ", Error Message: " << status.error_message();
+                   << ", Error Message: " << status.message();
     }
   });
 }
@@ -271,7 +271,7 @@ void EventsReporterImpl::session_terminated(
     if (!status.ok()) {
       MLOG(MERROR) << "Could not log " << SESSION_TERMINATED_EV << " event "
                    << event_value_string
-                   << ", Error Message: " << status.error_message();
+                   << ", Error Message: " << status.message();
     }
   });
 }

@@ -83,7 +83,7 @@ bool AsyncAAAClient::terminate_session(
         } else {
           MLOG(MERROR) << "Could not add terminate session. Radius ID:"
                        << radius_session_id << ", IMSI: " << imsi
-                       << ", Error: " << status.error_message();
+                       << ", Error: " << status.message();
         }
       });
   return true;
@@ -101,7 +101,7 @@ bool AsyncAAAClient::add_sessions(const magma::lte::SessionMap& session_map) {
       MLOG(MINFO) << "Successfully added all existing sessions to AAA server";
     } else {
       MLOG(MERROR) << "Could not add existing sessions to AAA server,"
-                   << " Error: " << status.error_message();
+                   << " Error: " << status.message();
     }
   });
   return true;

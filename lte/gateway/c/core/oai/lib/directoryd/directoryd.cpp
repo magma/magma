@@ -67,6 +67,6 @@ bool directoryd_update_record_field(char* imsi, char* key, char* value) {
 void directoryd_rpc_call_done(const grpc::Status& status) {
   if (!status.ok()) {
     std::cerr << "Directoryd RPC failed with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
+              << ", msg: " << status.message() << std::endl;
   }
 }

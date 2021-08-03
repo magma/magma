@@ -64,7 +64,7 @@ bool sync_up_with_orc8r(void) {
         } else {
           OAILOG_ERROR(
               LOG_UTIL, "GRPC Failure Message: %s Status Error Code: %d",
-              status.error_message().c_str(), status.error_code());
+              status.message().c_str(), status.error_code());
         }
       });
   return true;

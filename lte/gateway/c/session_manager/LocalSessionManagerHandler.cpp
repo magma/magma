@@ -163,7 +163,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     // Cases for which we re-try the Setup call
     if (!status.ok()) {
       MLOG(MERROR) << "Could not setup PipelineD, rpc failed with: "
-                   << status.error_message() << ", retrying PipelineD setup "
+                   << status.message() << ", retrying PipelineD setup "
                    << "for epoch: " << epoch;
     } else if (resp.result() == resp.FAILURE) {
       MLOG(MWARNING) << "PipelineD setup failed, retrying PipelineD setup "
@@ -346,7 +346,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
           std::ostringstream failure_stream;
           failure_stream << "Failed to initialize session in SessionProxy for "
                          << imsi << " APN " << cfg.common_context.apn() << ": "
-                         << status.error_message();
+                         << status.message();
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
           events_reporter_->session_create_failure(cfg, failure_msg);
@@ -471,7 +471,7 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
         if (!status.ok()) {
           MLOG(MERROR) << "Could not add session_id to directory record for "
                           "subscriber "
-                       << imsi << "; " << status.error_message();
+                       << imsi << "; " << status.message();
         }
       });
 }

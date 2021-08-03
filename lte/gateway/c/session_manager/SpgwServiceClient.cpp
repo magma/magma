@@ -108,7 +108,7 @@ bool AsyncSpgwServiceClient::delete_dedicated_bearer(
     if (!status.ok()) {
       // only log error for now
       MLOG(MERROR) << "Could not delete bearer" << request.sid().id() << ", "
-                   << request.ip_addr() << ": " << status.error_message();
+                   << request.ip_addr() << ": " << status.message();
     }
   });
   return true;
@@ -128,7 +128,7 @@ bool AsyncSpgwServiceClient::create_dedicated_bearer(
         if (!status.ok()) {
           MLOG(MERROR) << "Could not create dedicated bearer"
                        << request.sid().id() << ", " << request.ip_addr()
-                       << ": " << status.error_message();
+                       << ": " << status.message();
         }
       });
   return true;
@@ -146,7 +146,7 @@ bool AsyncSpgwServiceClient::delete_bearer(
         if (!status.ok()) {
           // only log error for now
           MLOG(MERROR) << "Could not delete bearer" << imsi << apn_ip_addr
-                       << ": " << status.error_message();
+                       << ": " << status.message();
         }
       });
   return true;

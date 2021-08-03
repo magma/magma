@@ -34,7 +34,7 @@ namespace sctpd {
 #define MLOG_grpcerr(status)                                                   \
   do {                                                                         \
     MLOG(MERROR) << "grpc error (" << std::to_string(status.error_code())      \
-                 << "): " << status.error_message();                           \
+                 << "): " << status.message();                           \
   } while (0)
 
 int create_sctp_sock(const InitReq& req);

@@ -199,10 +199,10 @@ void LocalEnforcer::handle_session_update_response(
   auto updates_by_session = UpdateRequestsBySession(request);
   if (!status.ok()) {
     MLOG(MERROR) << "UpdateSession request to FeG/PolicyDB failed entirely: "
-                 << status.error_message();
+                 << status.message();
     handle_update_failure(*session_map_ptr, updates_by_session, session_uc);
     report_session_update_failure_event(
-        *session_map_ptr, updates_by_session, status.error_message());
+        *session_map_ptr, updates_by_session, status.message());
     session_store_.update_sessions(session_uc);
     return;
   }
@@ -252,7 +252,7 @@ void LocalEnforcer::handle_pipelined_response(
     Status status, RuleRecordTable resp) {
   if (!status.ok()) {
     MLOG(MERROR) << "Could not successfully poll stats: "
-                 << status.error_message();
+                 << status.message();
   } else {
     auto session_map = session_store_.read_all_sessions();
     SessionUpdate update =
@@ -1926,7 +1926,7 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
   }
 
   MLOG(MERROR) << "Could not activate rules for " << imsi
-               << ", rpc failed: " << status.error_message()
+               << ", rpc failed: " << status.message()
                << ", terminating session...";
 
   SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip_addr);
@@ -1965,7 +1965,7 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
 
   if (!status.ok()) {
     MLOG(MERROR) << "Could not add ue mac flow, rpc failed with: "
-                 << status.error_message() << ", retrying...";
+                 << status.message() << ", retrying...";
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined add ue mac flow failed, retrying...";
   }
@@ -1973,14 +1973,14 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
   evb_->runAfterDelay(
       [=] {
         MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
-                     << sid.id() << ": " << status.error_message()
+                     << sid.id() << ": " << status.message()
                      << ", retrying...";
         pipelined_client_->add_ue_mac_flow(
             sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
             [ue_mac_addr](Status status, FlowResponse resp) {
               if (!status.ok()) {
                 MLOG(MERROR) << "Could not activate flows for UE "
-                             << ue_mac_addr << ": " << status.error_message();
+                             << ue_mac_addr << ": " << status.message();
               }
             });
       },
