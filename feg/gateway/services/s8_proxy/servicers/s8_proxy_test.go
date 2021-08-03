@@ -704,21 +704,68 @@ func TestCreateBearerRequest(t *testing.T) {
 	assert.Equal(t, csReq.CAgwTeid, cbReqReceived.CAgwTeid)
 	assert.Equal(t, uint32(DEDICATEDBEARER), cbReqReceived.BearerContext.Id)
 	assert.Equal(t, uint32(pgwCreateBearerRequest.QosQCI), cbReqReceived.BearerContext.Qos.Qci)
-	tft := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[0]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	tftContents := tft.PacketFilterContents
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiLocalFilterPort), tftContents.SingleLocalPort)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiRemoteFilterPort), tftContents.SingleRemotePort)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterProtocolId), tftContents.ProtocolIdentifierNextheader)
+	packetFilterComponents := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft
+	assert.Equal(t, 10, len(packetFilterComponents))
 
-	tft2 := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[1]
-	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft2.Direction)
-	tft2Contents := tft2.PacketFilterContents
-	assert.Equal(t, uint32(1), tft2Contents.ProtocolIdentifierNextheader)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiLocalFilterPort), tft2Contents.LocalPortRange.LowLimit)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiLocalFilterPort+10), tft2Contents.LocalPortRange.HighLimit)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiRemoteFilterPort), tft2Contents.RemotePortRange.LowLimit)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiRemoteFilterPort+10), tft2Contents.RemotePortRange.HighLimit)
+	// check filter components
+	// component 0
+	tft := packetFilterComponents[0]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompSecurityParameterIndex, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, uint32(0xdeadbeef), tft.PacketFilterContents.SecurityParameterIndex)
+
+	// component 1
+	tft = packetFilterComponents[1]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompIPv4RemoteAddress, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, ip2Long("127.0.0.1"), tft.PacketFilterContents.Ipv4RemoteAddresses[0].Addr)
+
+	// component 2
+	tft = packetFilterComponents[2]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompProtocolIdentifierNextHeader, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiFilterProtocolId, uint8(tft.PacketFilterContents.ProtocolIdentifierNextheader))
+
+	// component 3
+	tft = packetFilterComponents[3]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompTypeOfServiceTrafficClass, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, uint32(1), tft.PacketFilterContents.TypeOfServiceTrafficClass.Value)
+	assert.Equal(t, uint32(2), tft.PacketFilterContents.TypeOfServiceTrafficClass.Mask)
+
+	// component 4
+	tft = packetFilterComponents[4]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompSingleLocalPort, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.PacketFilterContents.SingleLocalPort))
+
+	// component 5
+	tft = packetFilterComponents[5]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompSingleRemotePort, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.PacketFilterContents.SingleRemotePort))
+
+	// component 8
+	tft = packetFilterComponents[8]
+	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft.Direction)
+	assert.Equal(t, uint32(1), tft.Identifier)
+	assert.Equal(t, ie.PFCompLocalPortRange, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.PacketFilterContents.LocalPortRange.LowLimit))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort+10, uint16(tft.PacketFilterContents.LocalPortRange.HighLimit))
+
+	// component 9
+	tft = packetFilterComponents[9]
+	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft.Direction)
+	assert.Equal(t, uint32(1), tft.Identifier)
+	assert.Equal(t, ie.PFCompRemotePortRange, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.PacketFilterContents.RemotePortRange.LowLimit))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort+10, uint16(tft.PacketFilterContents.RemotePortRange.HighLimit))
 
 	// send the response from agw to feg
 	cbResGrpc := &protos.CreateBearerResponsePgw{
