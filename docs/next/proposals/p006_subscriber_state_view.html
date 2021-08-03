@@ -1,5 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Displaying Run-time Subscriber State in NMS · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="*Feature owner: @themarwhal*"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Displaying Run-time Subscriber State in NMS · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="*Feature owner: @themarwhal*"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><p><em>Feature owner: @themarwhal</em></p>
-<h1><a class="anchor" aria-hidden="true" id="subscriber-state-reporting-from-gw-→-orc8r"></a><a href="#subscriber-state-reporting-from-gw-→-orc8r" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subscriber State Reporting From GW → Orc8r</h1>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Displaying Run-time Subscriber State in NMS · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Subscriber State Reporting From GW → Orc8r"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Displaying Run-time Subscriber State in NMS · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Subscriber State Reporting From GW → Orc8r"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="subscriber-state-reporting-from-gw-→-orc8r"></a><a href="#subscriber-state-reporting-from-gw-→-orc8r" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subscriber State Reporting From GW → Orc8r</h1>
+<ul>
+<li><em>Feature owner: @themarwhal</em></li>
+</ul>
 <h2><a class="anchor" aria-hidden="true" id="summary-of-currently-available-run-time-subscriber-state"></a><a href="#summary-of-currently-available-run-time-subscriber-state" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Summary of currently available run-time subscriber state</h2>
 <p>Currently, our view of subscribers is fairly fragmented over states reported by various services and event logs.</p>
 <h3><a class="anchor" aria-hidden="true" id="directoryd-imsi-→-sessionidmsisdn"></a><a href="#directoryd-imsi-→-sessionidmsisdn" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>DirectoryD (IMSI → SessionID/MSISDN)</h3>
@@ -22,7 +24,7 @@ For federated deployments where the subscriber configurations are federated to H
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="proposed-state-from-sessiond-→-gw-state-service"></a><a href="#proposed-state-from-sessiond-→-gw-state-service" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposed State from SessionD → GW State service</h2>
 <p>Here is the state Protobuf type:</p>
-<pre><code class="hljs">message State {
+<pre><code class="hljs css language-grpc">message State {
     <span class="hljs-comment">// Type determines how the value is deserialized and validated on the cloud service side</span>
     <span class="hljs-built_in">string</span> type = <span class="hljs-number">1</span>; <span class="hljs-comment">// 'subscriber_state'</span>
     <span class="hljs-built_in">string</span> deviceID = <span class="hljs-number">2</span>; <span class="hljs-comment">// IMSI'</span>
@@ -32,40 +34,40 @@ For federated deployments where the subscriber configurations are federated to H
 }
 </code></pre>
 <p>Here is the blob value:</p>
-<pre><code class="hljs">  subscriber_state:
-    <span class="hljs-class"><span class="hljs-keyword">type</span></span>: <span class="hljs-class"><span class="hljs-keyword">object</span></span>
-    description: <span class="hljs-type">An</span> <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">that</span> <span class="hljs-title">maps</span> <span class="hljs-title">IMSI-&gt;APN-&gt;SubscriberState</span></span>
-    properties:
-      imsi:
-        <span class="hljs-class"><span class="hljs-keyword">type</span></span>: string
-      sessions:
-        <span class="hljs-class"><span class="hljs-keyword">type</span></span>: array
-        items:
-          $ref: '#/definitions/policy_rule'
-  session_state:
-    <span class="hljs-class"><span class="hljs-keyword">type</span></span>: <span class="hljs-class"><span class="hljs-keyword">object</span></span>
-    description: <span class="hljs-type">Used</span> to describe a session<span class="hljs-symbol">'s</span> state per <span class="hljs-type">APN</span>
-    additionalProperties:
-      <span class="hljs-class"><span class="hljs-keyword">type</span></span>: <span class="hljs-class"><span class="hljs-keyword">object</span></span>
-      properties:
-        apn:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: string
-        msisdn:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: string
-        session_id:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: string
-        ipv4:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: string
-        session_start_time:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: uint32
-        lifecycle_state: 
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: string
-        active_duration_sec:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: uint32
-        active_policy_rules:
-          <span class="hljs-class"><span class="hljs-keyword">type</span></span>: array
-          items:
-            $ref:# <span class="hljs-type">A</span> <span class="hljs-type">JSON</span>-serialized version of protobuf <span class="hljs-type">PolicyRule</span>
+<pre><code class="hljs css language-yaml">  <span class="hljs-attr">subscriber_state:</span>
+    <span class="hljs-attr">type:</span> <span class="hljs-string">object</span>
+    <span class="hljs-attr">description:</span> <span class="hljs-string">An</span> <span class="hljs-string">object</span> <span class="hljs-string">that</span> <span class="hljs-string">maps</span> <span class="hljs-string">IMSI-&gt;APN-&gt;SubscriberState</span>
+    <span class="hljs-attr">properties:</span>
+      <span class="hljs-attr">imsi:</span>
+        <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+      <span class="hljs-attr">sessions:</span>
+        <span class="hljs-attr">type:</span> <span class="hljs-string">array</span>
+        <span class="hljs-attr">items:</span>
+          <span class="hljs-string">$ref:</span> <span class="hljs-string">'#/definitions/policy_rule'</span>
+  <span class="hljs-attr">session_state:</span>
+    <span class="hljs-attr">type:</span> <span class="hljs-string">object</span>
+    <span class="hljs-attr">description:</span> <span class="hljs-string">Used</span> <span class="hljs-string">to</span> <span class="hljs-string">describe</span> <span class="hljs-string">a</span> <span class="hljs-string">session's</span> <span class="hljs-string">state</span> <span class="hljs-string">per</span> <span class="hljs-string">APN</span>
+    <span class="hljs-attr">additionalProperties:</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">object</span>
+      <span class="hljs-attr">properties:</span>
+        <span class="hljs-attr">apn:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+        <span class="hljs-attr">msisdn:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+        <span class="hljs-attr">session_id:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+        <span class="hljs-attr">ipv4:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+        <span class="hljs-attr">session_start_time:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">uint32</span>
+        <span class="hljs-attr">lifecycle_state:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+        <span class="hljs-attr">active_duration_sec:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">uint32</span>
+        <span class="hljs-attr">active_policy_rules:</span>
+          <span class="hljs-attr">type:</span> <span class="hljs-string">array</span>
+          <span class="hljs-attr">items:</span>
+            <span class="hljs-string">$ref:#</span> <span class="hljs-string">A</span> <span class="hljs-string">JSON-serialized</span> <span class="hljs-string">version</span> <span class="hljs-string">of</span> <span class="hljs-string">protobuf</span> <span class="hljs-string">PolicyRule</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="notes-on-the-subscriber_state-fields"></a><a href="#notes-on-the-subscriber_state-fields" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Notes on the subscriber_state fields</h3>
 <ul>
@@ -85,40 +87,40 @@ Additionally, we do not keep around non-ACTIVE sessions for longer than 5 second
 <h2><a class="anchor" aria-hidden="true" id="proposed-orc8r-api-endpoints"></a><a href="#proposed-orc8r-api-endpoints" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposed Orc8r API Endpoints</h2>
 <p><strong>[P1]</strong> Define read-only <code>lte</code> subscriber state endpoints that dumps the most recently reported subscriber state.</p>
 <p><strong>[P2]</strong> We can expose a similar endpoint for other access network types, <code>cwf</code>.</p>
-<pre><code class="hljs">/lte/{network_id}/subscriber_state/:
+<pre><code class="hljs css language-text">/lte/{network_id}/subscriber_state/:
     get:
-      summary: A list of subscriber states <span class="hljs-keyword">in</span> this<span class="hljs-built_in"> network
-</span>      tags:
+      summary: A list of subscriber states in this network
+      tags:
         - Federated LTE Networks
       parameters:
-        - <span class="hljs-variable">$ref</span>: <span class="hljs-string">'./orc8r-swagger-common.yml#/parameters/network_id'</span>
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
-        <span class="hljs-string">'200'</span>:
+        '200':
           description: Subscriber State
           schema:
             type: array
             items:
-              <span class="hljs-variable">$ref</span>: <span class="hljs-string">'#/definitions/subscriber_state'</span>
+              $ref: '#/definitions/subscriber_state'
         default:
-          <span class="hljs-variable">$ref</span>: <span class="hljs-string">'./orc8r-swagger-common.yml#/responses/UnexpectedError'</span>
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 /lte/{network_id}/subscriber_state/{imsi}:
     get:
-        summary: A list of subscriber states <span class="hljs-keyword">in</span> this<span class="hljs-built_in"> network </span>keyed by IMSI
+        summary: A list of subscriber states in this network keyed by IMSI
         tags:
         - Federated LTE Networks
         parameters:
-        - <span class="hljs-variable">$ref</span>: <span class="hljs-string">'./orc8r-swagger-common.yml#/parameters/network_id'</span>
-        - <span class="hljs-variable">$ref</span>:  <span class="hljs-string">'./lte-policydb-swagger.yml#/parameters/imsi'</span>
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/imsi'
         responses:
-        <span class="hljs-string">'200'</span>:
+        '200':
             description: Subscriber State
             schema:
             type: array
             items:
-                <span class="hljs-variable">$ref</span>: <span class="hljs-string">'#/definitions/subscriber_state'</span>
+                $ref: '#/definitions/subscriber_state'
         default:
-            <span class="hljs-variable">$ref</span>: <span class="hljs-string">'./orc8r-swagger-common.yml#/responses/UnexpectedError'</span>
+            $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="proposed-nms-changes"></a><a href="#proposed-nms-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposed NMS Changes</h2>
 <p><strong>[P1]</strong> For this limited scope, subscriber_state data can be displayed as part of the FederatedLTE network page. The NMS will use the <code>lte</code> endpoint defined above to display this information.</p>

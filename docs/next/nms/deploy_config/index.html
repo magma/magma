@@ -11,10 +11,10 @@ would access the NMS using <code>facebook.nms.yourdomain.com</code>.</p>
 <p>When you deploy the NMS for the first time, you'll need to create a user that
 has access to the master organization. Run the command</p>
 <ul>
-<li>Docker (development environment)
+<li><p>Docker (development environment)</p>
 <pre><code class="hljs css language-bash">docker-compose <span class="hljs-built_in">exec</span> magmalte yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 </code></pre></li>
-<li>Kubernetes (production environment)
+<li><p>Kubernetes (production environment)</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
 kubectl <span class="hljs-built_in">exec</span> -it <span class="hljs-variable">${NMS_POD}</span> -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 </code></pre></li>

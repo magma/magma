@@ -11,7 +11,7 @@ A sample configuration is provided below. The <code>bootstrap_address</code>,
 <code>bootstrap_port</code>, <code>controller_address</code>, and <code>controller_port</code> are the
 parameters that will likely need to be modified.</p></li>
 </ul>
-<pre><code class="hljs"><span class="hljs-comment">#</span>
+<pre><code class="hljs css language-yaml"><span class="hljs-comment">#</span>
 <span class="hljs-comment"># Copyright 2020 The Magma Authors.</span>
 
 <span class="hljs-comment"># This source code is licensed under the BSD-style license found in the</span>
@@ -54,7 +54,7 @@ parameters that will likely need to be modified.</p></li>
 in the <code>docker-compose.yml</code> of the Carrier Wifi Gateway. A sample configuration
 is provided below:</li>
 </ul>
-<pre><code class="hljs"><span class="hljs-comment"># Copyright 2020 The Magma Authors.</span>
+<pre><code class="hljs css language-yaml"><span class="hljs-comment"># Copyright 2020 The Magma Authors.</span>
 
 <span class="hljs-comment"># This source code is licensed under the BSD-style license found in the</span>
 <span class="hljs-comment"># LICENSE file in the root directory of this source tree.</span>
@@ -65,22 +65,22 @@ is provided below:</li>
 <span class="hljs-comment"># See the License for the specific language governing permissions and</span>
 <span class="hljs-comment"># limitations under the License.</span>
 
-<span class="hljs-attr">COMPOSE_PROJECT_NAME</span>=cwf
-<span class="hljs-attr">DOCKER_REGISTRY</span>=&lt;registry&gt;
-<span class="hljs-attr">DOCKER_USERNAME</span>=&lt;username&gt;
-<span class="hljs-attr">DOCKER_PASSWORD</span>=&lt;password&gt;
-<span class="hljs-attr">IMAGE_VERSION</span>=latest
-<span class="hljs-attr">GIT_HASH</span>=master
+<span class="hljs-string">COMPOSE_PROJECT_NAME=cwf</span>
+<span class="hljs-string">DOCKER_REGISTRY=&lt;registry&gt;</span>
+<span class="hljs-string">DOCKER_USERNAME=&lt;username&gt;</span>
+<span class="hljs-string">DOCKER_PASSWORD=&lt;password&gt;</span>
+<span class="hljs-string">IMAGE_VERSION=latest</span>
+<span class="hljs-string">GIT_HASH=master</span>
 
-<span class="hljs-attr">BUILD_CONTEXT</span>=https://github.com/facebookincubator/magma.git<span class="hljs-comment">#master</span>
+<span class="hljs-string">BUILD_CONTEXT=https://github.com/facebookincubator/magma.git#master</span>
 
-<span class="hljs-attr">ROOTCA_PATH</span>=/var/opt/magma/certs/rootCA.pem
-<span class="hljs-attr">CONTROL_PROXY_PATH</span>=/etc/magma/control_proxy.yml
-<span class="hljs-attr">CONFIGS_TEMPLATES_PATH</span>=/etc/magma/templates
+<span class="hljs-string">ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem</span>
+<span class="hljs-string">CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml</span>
+<span class="hljs-string">CONFIGS_TEMPLATES_PATH=/etc/magma/templates</span>
 
-<span class="hljs-attr">CERTS_VOLUME</span>=/var/opt/magma/certs
-<span class="hljs-attr">CONFIGS_OVERRIDE_VOLUME</span>=/var/opt/magma/configs
-<span class="hljs-attr">CONFIGS_DEFAULT_VOLUME</span>=/etc/magma
+<span class="hljs-string">CERTS_VOLUME=/var/opt/magma/certs</span>
+<span class="hljs-string">CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs</span>
+<span class="hljs-string">CONFIGS_DEFAULT_VOLUME=/etc/magma</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="installation"></a><a href="#installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Installation</h2>
 <p>The installation is done using the <code>install_gateway.sh</code> script located at
@@ -116,16 +116,14 @@ appropriate <code>Software Version</code>. After triggering the upgrade from the
 magmad on the gateway will pull down the specified docker images,
 update any static configuration, and update the docker-compose file to the
 appropriate version.</p>
-<h3><a class="anchor" aria-hidden="true" id="prepare-gateway-node-for-upgrade"></a><a href="#prepare-gateway-node-for-upgrade" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prepare Gateway Node for Upgrade:</h3>
-<ol>
-<li>Configuring Docker With a Proxy</li>
-</ol>
+<h3><a class="anchor" aria-hidden="true" id="prepare-gateway-node-for-upgrade"></a><a href="#prepare-gateway-node-for-upgrade" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prepare Gateway Node for Upgrade</h3>
+<h4><a class="anchor" aria-hidden="true" id="1-configuring-docker-with-a-proxy"></a><a href="#1-configuring-docker-with-a-proxy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Configuring Docker With a Proxy</h4>
 <p>In order to the set the proxy for Docker, you will need to create a configuration file for the Docker service. No configuration files exist by default, so one will have to be created.</p>
 <pre><code class="hljs css language-console">a. Create a new directory for Docker service configurations
-  
+
   sudo mkdir -p /etc/systemd/system/docker.service.d
 
-b. Create a file called http-proxy.conf in configuration directory. 
+b. Create a file called http-proxy.conf in configuration directory.
 
   sudo vim /etc/systemd/system/docker.service.d/http-proxy.conf
 
@@ -148,25 +146,21 @@ f. Restart Docker to apply changes.
 
   sudo service docker restart
 </code></pre>
-<ol start="2">
-<li>update orc8r to support proxy</li>
-</ol>
+<h4><a class="anchor" aria-hidden="true" id="2-update-orc8r-to-support-proxy"></a><a href="#2-update-orc8r-to-support-proxy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. update orc8r to support proxy</h4>
 <pre><code class="hljs css language-console">a. update orc8r-proxy values by editing  vals.yml
-  
+
 proxy:
   spec:
     http_proxy_docker_hostname: "docker.io"
     http_proxy_github_hostname: "github.com"
-        
-b. upgrade helm deployment 
+
+b. upgrade helm deployment
 
   cd magma/orc8r/cloud/helm/orc8r
   helm upgrade orc8r . --values=PATH_TO_VALS/vals.yml
   kubectl -n magma get pods
 </code></pre>
-<ol start="3">
-<li>create or update upgrade tier with latest tag/commit id</li>
-</ol>
+<h4><a class="anchor" aria-hidden="true" id="3-create-or-update-upgrade-tier-with-latest-tagcommit-id"></a><a href="#3-create-or-update-upgrade-tier-with-latest-tagcommit-id" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. create or update upgrade tier with latest tag/commit id</h4>
 <pre><code class="hljs css language-console">a. open Orchestrator's APIdocs in your browser
 
  https://&lt;orc8r_ip&gt;:9443/apidocs/v1/#/Upgrades/post_networks__network_id__tiers
@@ -183,16 +177,14 @@ b. upgrade helm deployment
      }
    ],
    "name": "Stable Tier",
-   "version": "1.0.0-123456789-&lt;commit_id/tag_id&gt;" 
+   "version": "1.0.0-123456789-&lt;commit_id/tag_id&gt;"
  }
 </code></pre>
-<ol start="4">
-<li>tail magmad logs on the gateway to see the upgrade status.</li>
-</ol>
+<h4><a class="anchor" aria-hidden="true" id="4-tail-magmad-logs-on-the-gateway-to-see-the-upgrade-status"></a><a href="#4-tail-magmad-logs-on-the-gateway-to-see-the-upgrade-status" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. tail magmad logs on the gateway to see the upgrade status</h4>
 <pre><code class="hljs css language-console"><span class="hljs-meta">  [gateway]$</span><span class="bash"> <span class="hljs-built_in">cd</span> /var/opt/magma/docker</span>
-    [gateway]$ docker-compose logs -f magmad
+<span class="hljs-meta"> [gateway]$</span><span class="bash"> docker-compose logs -f magmad</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#installation">Installation</a></li><li><a href="#registration">Registration</a></li><li><a href="#upgrades">Upgrades</a><ul class="toc-headings"><li><a href="#prepare-gateway-node-for-upgrade">Prepare Gateway Node for Upgrade:</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#installation">Installation</a></li><li><a href="#registration">Registration</a></li><li><a href="#upgrades">Upgrades</a><ul class="toc-headings"><li><a href="#prepare-gateway-node-for-upgrade">Prepare Gateway Node for Upgrade</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;

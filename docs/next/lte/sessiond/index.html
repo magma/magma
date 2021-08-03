@@ -5,60 +5,42 @@ configurations.</p>
 <h3><a class="anchor" aria-hidden="true" id="interfaces"></a><a href="#interfaces" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Interfaces</h3>
 <p>SessionD interfaces with three distinct external components.</p>
 <ol>
-<li>Access (MME, AAA) <br>
-This component receives all connection and session related information from
-the UE. It also handles mobility management. But from SessionD's point of view,
-it notifies SessionD whenever a UE is attached or detached. This notification
-will include any context that SessionD needs for enforcement.</li>
-<li>Policy (PolicyDB, FeG+PCRF/OCS) <br>
-This component is responsible for propagating any session or policy
-configuration that SessionD must enforce. Whenever a new UE is introduced,
-SessionD will reach out to this component to fetch any configuration. Depending
-on the configuration, SessionD maybe reach out to this component for updates.</li>
-<li>User Plane (PipelineD) <br>
-This component is responsible for policy and QoS enforcement. It receives
+<li><p>Access (MME, AAA)</p>
+<p>This component receives all connection and session related information from the UE. It also handles mobility management. But from SessionD's point of view, it notifies SessionD whenever a UE is attached or detached. This notification will include any context that SessionD needs for enforcement.</p></li>
+<li><p>Policy (PolicyDB, FeG+PCRF/OCS)</p>
+<p>This component is responsible for propagating any session or policy configuration that SessionD must enforce. Whenever a new UE is introduced, SessionD will reach out to this component to fetch any configuration. Depending on the configuration, SessionD maybe reach out to this component for updates.</p></li>
+<li><p>User Plane (PipelineD)</p>
+<p>This component is responsible for policy and QoS enforcement. It receives
 any relevant policy and QoS configuration from SessionD and periodically
-reports usage accordingly.</li>
+reports usage accordingly.</p></li>
 </ol>
 <h3><a class="anchor" aria-hidden="true" id="internal-architecture"></a><a href="#internal-architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Internal Architecture</h3>
 <p><img src="SessionD_Architecture.png" alt="Internal Architecture Diagram"></p>
 <h2><a class="anchor" aria-hidden="true" id="configurations-not-exhaustive"></a><a href="#configurations-not-exhaustive" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configurations (Not Exhaustive)</h2>
 <ul>
-<li>FeG Relay <br>
-A federation gateway, FeG, is an entity responsible for hosting a centralized
+<li><p>FeG Relay</p>
+<p>A federation gateway, FeG, is an entity responsible for hosting a centralized
 control plane interface towards an operator core. In terms of session
 management, the SessionProxy service on a FeG will relay all session related
-interactions. <br>
-This feature can be enabled on the Orc8r with a network wide
+interactions.</p>
+<p>This feature can be enabled on the Orc8r with a network wide
 <code>gx_gy_relay_enabled</code> flag. When it is disabled, a local PolicyDB service
 is used in place. This service will directly fetch session configurations
-from the Orc8r. <br>
-The feature is disabled by default.</li>
-<li>Omnipresent Rules <br>
-<em>This feature is currently only relevant for the federated case.</em> <br>
-Omnipresent rules are policies that are applied to all subscribers in a
-network. The list of such policies are configured on the Orc8r as a network
-configuration and are streamed down to all gateways in the network.
-These policies are added onto the list of policies configured by the PCRF.</li>
-<li>Zero Wallet Detections <br>
-<em>This feature is currently only relevant for the CWF case.</em> <br>
-This configures a way for SessionD to detect when a subscriber is out of valid
-wallet. When an empty wallet is detected, the empty status is propagated to
-PipelineD, which hosts a flask server that indicates the state. After a
-configured number of seconds, the session will be terminated and the user will
-be kicked out.
-The configuration is done in Orc8r, but it is not currently exposed by an API.
-This timeout is configured in <code>sessiond.yml</code> with
-<code>cwf_quota_exhaustion_termination_on_init_ms</code>.
-<br>
-The detection methods are described below: <br>
+from the Orc8r.</p>
+<p>The feature is disabled by default.</p></li>
+<li><p>Omnipresent Rules</p>
+<p><em>This feature is currently only relevant for the federated case.</em></p>
+<p>Omnipresent rules are policies that are applied to all subscribers in a network. The list of such policies are configured on the Orc8r as a network configuration and are streamed down to all gateways in the network. These policies are added onto the list of policies configured by the PCRF.</p></li>
+<li><p>Zero Wallet Detections</p>
+<p><em>This feature is currently only relevant for the CWF case.</em></p>
+<p>This configures a way for SessionD to detect when a subscriber is out of valid wallet. When an empty wallet is detected, the empty status is propagated to PipelineD, which hosts a flask server that indicates the state. After a configured number of seconds, the session will be terminated and the user will be kicked out. The configuration is done in Orc8r, but it is not currently exposed by an API. This timeout is configured in <code>sessiond.yml</code> with <code>cwf_quota_exhaustion_termination_on_init_ms</code>.</p>
+<p>The detection methods are described below:</p>
 <ul>
-<li>GxTrackedRules: Wallet is empty if there are no active PCRF tracked policy.
-PCRF tracked policies are policies with tracking type <code>PCRF_ONLY</code> or
+<li>GxTrackedRules: Wallet is empty if there are no active PCRF tracked policy.</li>
+<li>PCRF tracked policies are policies with tracking type <code>PCRF_ONLY</code> or
 <code>PCRF_AND_OCS</code>.</li>
 </ul></li>
-<li><code>magma/lte/gateway/configs/sessiond.yml</code> has more configurations that are
-managed on each gateway.</li>
+<li><p><code>magma/lte/gateway/configs/sessiond.yml</code> has more configurations that are managed on each gateway.</p></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="stateless-operation"></a><a href="#stateless-operation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Operation</h2>
 <p>A stateless SessionD service can be enabled by the <code>support_stateless</code> flag in

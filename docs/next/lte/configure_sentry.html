@@ -6,7 +6,7 @@
 <h2><a class="anchor" aria-hidden="true" id="enabling-error-reporting-on-an-agw"></a><a href="#enabling-error-reporting-on-an-agw" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enabling error reporting on an AGW</h2>
 <p>Reporting for Python services, MME, and SessionD will <em>only</em> be enabled if the corresponding URL fields are non-empty.</p>
 <p>The URL fields can be set in a network-wide configuration through the Orc8r's Swagger endpoint at <code>/networks/{network_id}</code>. You can also set or override Sentry configuration for specific gateways through the Orc8r's <code>/networks/{network_id}/gateways/{gateway_id}</code> endpoint. Finally, you can set them locally on a gateway in the <code>control_proxy.yml</code> file by filling out the following fields.</p>
-<pre><code class="hljs"><span class="hljs-comment"># [Experimental] Sentry related configs</span>
+<pre><code class="hljs css language-yaml"><span class="hljs-comment"># [Experimental] Sentry related configs</span>
 <span class="hljs-comment"># If set, the Sentry Python SDK will be initialized for all python services</span>
 <span class="hljs-attr">sentry_url_python:</span> <span class="hljs-string">""</span>
 <span class="hljs-comment"># If set, the Sentry Native SDK will be initialized for MME and SessionD</span>
@@ -23,31 +23,30 @@
 For more information, please refer to <a href="https://docs.sentry.io/platforms/android/data-management/debug-files/">this documentation provided by Sentry</a>.</p>
 <p>In order for the build artifacts to have a debug section, they have to be built with the <code>-g</code> compiler flag. The flag is set by default for all C/C++ services, so no additional change is necessary for this.</p>
 <p>The follwing script outlines the necessary steps.</p>
-<pre><code class="hljs"><span class="hljs-comment">#!/bin/bash</span>
+<pre><code class="hljs css language-bash"><span class="hljs-meta">#!/bin/bash</span>
 <span class="hljs-comment"># To install sentry-cli, run `curl -sL https://sentry.io/get-cli/ | bash`</span>
 
 TODO: change me!
-<span class="hljs-attribute">EXECS_PATHS</span>=<span class="hljs-string">""</span>
-<span class="hljs-attribute">ORG</span>=<span class="hljs-string">""</span>
-<span class="hljs-attribute">PROJECT</span>=<span class="hljs-string">""</span>
+EXECS_PATHS=<span class="hljs-string">""</span>
+ORG=<span class="hljs-string">""</span>
+PROJECT=<span class="hljs-string">""</span>
 
 <span class="hljs-keyword">for</span> EXEC <span class="hljs-keyword">in</span> <span class="hljs-variable">$EXECS_PATHS</span>
 <span class="hljs-keyword">do</span>
-    # Strip artifacts
-    objcopy --only-keep-<span class="hljs-builtin-name">debug</span> <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.<span class="hljs-builtin-name">debug</span>
-    objcopy --strip-<span class="hljs-builtin-name">debug</span> --strip-unneeded <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
-    objcopy <span class="hljs-attribute">--add-gnu-debuglink</span>=<span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.debug <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
+    <span class="hljs-comment"># Strip artifacts</span>
+    objcopy --only-keep-debug <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.debug
+    objcopy --strip-debug --strip-unneeded <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
+    objcopy --add-gnu-debuglink=<span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.debug <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
 
-    # [Optional] Log included <span class="hljs-builtin-name">debug</span> information
+    <span class="hljs-comment"># [Optional] Log included debug information</span>
     sentry-cli difutil check <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
-    sentry-cli difutil check <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.<span class="hljs-builtin-name">debug</span>
+    sentry-cli difutil check <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.debug
 
-
-    # Upload the <span class="hljs-builtin-name">debug</span> artifact with `symtab`, `debug`, <span class="hljs-keyword">and</span> `sources`
-    sentry-cli upload-dif <span class="hljs-attribute">--log-level</span>=info <span class="hljs-attribute">--org</span>=<span class="hljs-string">"<span class="hljs-variable">$ORG</span>"</span> <span class="hljs-attribute">--project</span>=<span class="hljs-string">"<span class="hljs-variable">$PROJECT</span>"</span> --include-sources  <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.<span class="hljs-builtin-name">debug</span>
-    # Upload the stripped executable with `unwind`
-    sentry-cli upload-dif <span class="hljs-attribute">--log-level</span>=info <span class="hljs-attribute">--org</span>=<span class="hljs-string">"<span class="hljs-variable">$ORG</span>"</span> <span class="hljs-attribute">--project</span>=<span class="hljs-string">"<span class="hljs-variable">$PROJECT</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
-done
+    <span class="hljs-comment"># Upload the debug artifact with `symtab`, `debug`, and `sources`</span>
+    sentry-cli upload-dif --<span class="hljs-built_in">log</span>-level=info --org=<span class="hljs-string">"<span class="hljs-variable">$ORG</span>"</span> --project=<span class="hljs-string">"<span class="hljs-variable">$PROJECT</span>"</span> --include-sources  <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>.debug
+    <span class="hljs-comment"># Upload the stripped executable with `unwind`</span>
+    sentry-cli upload-dif --<span class="hljs-built_in">log</span>-level=info --org=<span class="hljs-string">"<span class="hljs-variable">$ORG</span>"</span> --project=<span class="hljs-string">"<span class="hljs-variable">$PROJECT</span>"</span> <span class="hljs-string">"<span class="hljs-variable">$EXEC</span>"</span>
+<span class="hljs-keyword">done</span>
 </code></pre>
 </span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#setting-up-a-sentry-platform">Setting up a Sentry platform</a></li><li><a href="#enabling-error-reporting-on-an-agw">Enabling error reporting on an AGW</a></li><li><a href="#uploading-debug-information-files-for-sessiond-and-mme">Uploading debug information files for SessionD and MME</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {

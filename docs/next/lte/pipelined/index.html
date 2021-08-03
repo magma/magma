@@ -18,8 +18,8 @@
 <h2><a class="anchor" aria-hidden="true" id="services"></a><a href="#services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Services</h2>
 <h3><a class="anchor" aria-hidden="true" id="static-services"></a><a href="#static-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Static Services</h3>
 <p>Static services include mandatory services (such as OAI and inout) which are always enabled, and services with a set table number. Static services can be configured in the YAML config.</p>
-<pre><code class="hljs">    GTP<span class="hljs-built_in"> port </span>           Local<span class="hljs-built_in"> Port
-</span>     Uplink              Downlink
+<pre><code class="hljs css language-text">    GTP port            Local Port
+     Uplink              Downlink
         |                   |
         |                   |
         V                   V
@@ -43,8 +43,8 @@
     |      Table 2 (PHYSICAL)     |
     |            ARP              |
     |- Forwards non-ARP traffic   |
-    |- Responds <span class="hljs-keyword">to</span> ARP requests w/| ---&gt; Arp traffic - LOCAL
-    |  ovs<span class="hljs-built_in"> bridge </span>MAC             |
+    |- Responds to ARP requests w/| ---> Arp traffic - LOCAL
+    |  ovs bridge MAC             |
     -------------------------------
                   |
                   V
@@ -52,44 +52,43 @@
     |      Table 3 (PHYSICAL)     |
     |       access control        |
     |- Forwards normal traffic    |
-    |- Drops traffic with<span class="hljs-built_in"> ip </span>     |
-    | <span class="hljs-built_in"> address </span>that matches the   |
-    | <span class="hljs-built_in"> ip </span>blocklist               |
+    |- Drops traffic with ip      |
+    |  address that matches the   |
+    |  ip blocklist               |
     -------------------------------
                   |
                   V
-   Configurable PHYSICAL apps managed by cloud &lt;---&gt; Scratch tables
+   Configurable PHYSICAL apps managed by cloud <---> Scratch tables
             (Tables 4-9)                            (Tables 21 - 254)
                   |
                   V
     -------------------------------
     |      Table 10 (SPECIAL)     |
     |           inout             |
-    |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
-    |  LOCAL<span class="hljs-built_in"> port </span>                |
+    |- Forwards uplink traffic to |
+    |  LOCAL port                 |
     |- Forwards downlink traffic  |
-    |  <span class="hljs-keyword">to</span> GTP<span class="hljs-built_in"> port </span>               |
+    |  to GTP port                |
     -------------------------------
                   |
                   V
-   Configurable LOGICAL apps managed by cloud &lt;---&gt; Scratch tables
+   Configurable LOGICAL apps managed by cloud <---> Scratch tables
             (Tables 11-19)                         (Tables 21 - 254)
                   |
                   V
     -------------------------------
     |      Table 20 (SPECIAL)     |
     |           inout             |
-    |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
-    |  LOCAL<span class="hljs-built_in"> port </span>                |
+    |- Forwards uplink traffic to |
+    |  LOCAL port                 |
     |- Forwards downlink traffic  |
-    |  <span class="hljs-keyword">to</span> GTP<span class="hljs-built_in"> port </span>               |
+    |  to GTP port                |
     -------------------------------
         |                   |
         |                   |
         V                   V
-    GTP<span class="hljs-built_in"> port </span>           Local<span class="hljs-built_in"> Port
-</span>    downlink              uplink
-
+    GTP port            Local Port
+    downlink              uplink
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="service-types"></a><a href="#service-types" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service types</h3>
 <p>Services(controllers) are split into two: Physical and Logical.
@@ -98,31 +97,31 @@ Logical controllers: dpi, enforcement.</p>
 <h3><a class="anchor" aria-hidden="true" id="configurable-services"></a><a href="#configurable-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configurable Services</h3>
 <p>These services can be enabled and ordered from orchestrator cloud. <code>mconfig</code> is used to stream the list of enabled service to gateway.</p>
 <p>Table numbers are dynamically assigned to these services and depenedent on the order.</p>
-<pre><code class="hljs">    -------------------------------
-    |<span class="hljs-string">          Table X            </span>|
-    |<span class="hljs-string">            DPI              </span>|
-    |<span class="hljs-string">- Assigns App ID to each new </span>|
-    |<span class="hljs-string">  IP tuple encountered       </span>|
-    |<span class="hljs-string">- Optional, requires separate</span>|
-    |<span class="hljs-string">  DPI engine                 </span>|
+<pre><code class="hljs css language-text">    -------------------------------
+    |          Table X            |
+    |            DPI              |
+    |- Assigns App ID to each new |
+    |  IP tuple encountered       |
+    |- Optional, requires separate|
+    |  DPI engine                 |
     -------------------------------
 
     -------------------------------     -------------------------------
-    |<span class="hljs-string">          Table X            </span>|<span class="hljs-string">     </span>|<span class="hljs-string">       Scratch Table 1       </span>|
-    |<span class="hljs-string">        enforcement          </span>|<span class="hljs-string"> ---&gt;</span>|<span class="hljs-string">           redirect          </span>|
-    |<span class="hljs-string">- Activates/deactivates rules</span>|<span class="hljs-string">     </span>|<span class="hljs-string">- Drop all non-HTTP traffic  </span>|
-    |<span class="hljs-string">  for a subscriber           </span>|<span class="hljs-string">     </span>|<span class="hljs-string">  for redirected subscribers </span>|
-    |<span class="hljs-string">                             </span>|<span class="hljs-string">&lt;--- </span>|<span class="hljs-string">                             </span>|
-    |<span class="hljs-string">                             </span>|<span class="hljs-string">     </span>|<span class="hljs-string">                             </span>|
+    |          Table X            |     |       Scratch Table 1       |
+    |        enforcement          | --->|           redirect          |
+    |- Activates/deactivates rules|     |- Drop all non-HTTP traffic  |
+    |  for a subscriber           |     |  for redirected subscribers |
+    |                             |<--- |                             |
+    |                             |     |                             |
     -------------------------------     -------------------------------
-                  |<span class="hljs-string">
-                  </span>|<span class="hljs-string">                     -------------------------------
-                  ---------------------&gt;</span>|<span class="hljs-string">       Scratch Table 2       </span>|
-                                        |<span class="hljs-string">      enforcement stats      </span>|
-                                        |<span class="hljs-string">- Keeps track of flow stats  </span>|
-                                        |<span class="hljs-string">  and sends to sessiond      </span>|
-                                        |<span class="hljs-string">                             </span>|
-                                        |<span class="hljs-string">                             </span>|
+                  |
+                  |                     -------------------------------
+                  --------------------->|       Scratch Table 2       |
+                                        |      enforcement stats      |
+                                        |- Keeps track of flow stats  |
+                                        |  and sends to sessiond      |
+                                        |                             |
+                                        |                             |
                                         -------------------------------
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="reserved-registers"></a><a href="#reserved-registers" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Reserved registers</h3>
@@ -165,9 +164,9 @@ Currently we reinsert some flows instead of doing the diff logic on them(f.e. en
 <li>Example:</li>
 </ul></li>
 </ul>
-<pre><code class="hljs css language-bash">$ ./pipelined_cli.py enforcement activate_dynamic_rule --imsi IMSI12345 --rule_id rule1 --priority 110 --hard_timeout 60
+<pre><code class="hljs css language-bash">./pipelined_cli.py enforcement activate_dynamic_rule --imsi IMSI12345 --rule_id rule1 --priority 110 --hard_timeout 60
 </code></pre>
-<pre><code class="hljs css language-bash">$ venvsudo ./pipelined_cli.py enforcement display_flows
+<pre><code class="hljs css language-bash">venvsudo ./pipelined_cli.py enforcement display_flows
 </code></pre>
 <ul>
 <li><code>fake_user.py</code> can be used to debug Pipelined without an eNodeB. It creates a fake_user OVS port and an interface with the same name and IP (10.10.10.10). Any traffic sent through the interface would traverse the pipeline, as if its sent from a user ip (192.168.128.200 by default).
@@ -175,8 +174,8 @@ Currently we reinsert some flows instead of doing the diff logic on them(f.e. en
 <li>Example:</li>
 </ul></li>
 </ul>
-<pre><code class="hljs css language-bash">$ ./fake_user.py create --imsi IMSI12345
-$ sudo curl --interface fake_user -vvv --ipv4 http://www.google.com &gt; /dev/null
+<pre><code class="hljs css language-bash">./fake_user.py create --imsi IMSI12345
+sudo curl --interface fake_user -vvv --ipv4 http://www.google.com &gt; /dev/null
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="unit-tests"></a><a href="#unit-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unit Tests</h3>
 <p>See the <a href="/magma/docs/next/lte/pipelined_tests">Unit Test README</a> for more details.</p>

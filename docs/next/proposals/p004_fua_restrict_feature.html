@@ -15,12 +15,12 @@ by sending CCA-I/U with a Final-Unit-Action AVP set to RESTRICT_ACCESS.</p>
 <h2><a class="anchor" aria-hidden="true" id="propostion"></a><a href="#propostion" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Propostion</h2>
 <p>FUA-Restrict can be enabled by including either the Restriction-Filter-Rule
 AVP or the Filter-Id AVP in the Credit-Control-Answer message.</p>
-<pre><code class="hljs">  [<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-Indication]
-    {<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-<span class="hljs-keyword">Action</span>}
+<pre><code class="hljs css language-text">  [Final-Unit-Indication]
+    {Final-Unit-Action}
     *[Restriction-Filter-Rule]
     *[Filter-Id]
     [Redirect-Server]
-      {Redirect-Address-<span class="hljs-keyword">Type</span>}
+      {Redirect-Address-Type}
       {Redirect-Server-Address}
 </code></pre>
 <p>Restriction-Filter-Rule: of type IPFilterRule (FlowDescription). This will
@@ -37,25 +37,25 @@ LocalEnforcer will ensure priority in this case.</p>
 <p>As we would like to use any static rule when restriction is enabled, there will
 no change to PolicyRules definition.</p>
 <h2><a class="anchor" aria-hidden="true" id="how-we-will-change-magma"></a><a href="#how-we-will-change-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How We Will Change Magma</h2>
-<p><strong>PolicyRule</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="policyrule"></a><a href="#policyrule" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PolicyRule</h3>
 <p>Policy Object definition remains the same as the current definition. At the
 opposite of a policy rule used in the FUA-Redirect case, there is no need to
 introduce any additional field for FUA-Restrict.
 We will be able to apply any static rule when restricting access.</p>
-<p><strong>Session Proxy</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="session-proxy"></a><a href="#session-proxy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Session Proxy</h3>
 <p>We will limit this implementation to Filter-Id AVP only as It covers the desired
 use-cases. The AVP will reference a PolicyRule Identifier.</p>
-<pre><code class="hljs">  [<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-Indication]
-    {<span class="hljs-keyword">Final</span>-<span class="hljs-keyword">Unit</span>-<span class="hljs-keyword">Action</span>}
+<pre><code class="hljs css language-text">  [Final-Unit-Indication]
+    {Final-Unit-Action}
     *[Filter-Id]
     [Redirect-Server]
-      {Redirect-Address-<span class="hljs-keyword">Type</span>}
+      {Redirect-Address-Type}
       {Redirect-Server-Address}
 </code></pre>
 <p>The support of Restriction-Filter-Rule can be added later if required. In this
 case, ReceivedCredits will need to be updated to include a FlowDescription list.</p>
 <p>We will need to translation IPFilterRule to FlowDescription as well.</p>
-<p><strong>SessionD</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="sessiond"></a><a href="#sessiond" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SessionD</h3>
 <p>ServiceAction will need to be updated to support RESTRICT_ACCESS action. Mostly,
 we will need to be able to store a restricted list of rule ids received from
 OCS/SessionProxy.</p>
@@ -67,7 +67,7 @@ provides support for this case as well.</p>
 <p>Static Rules will be sent using their original priority and will be applied as gy
 final action flow.</p>
 <p>The service state SERVICE_RESTRICTED will need to be supported as well.</p>
-<p><strong>Pipelined</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="pipelined"></a><a href="#pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pipelined</h3>
 <p>GYController needs to be updated to support restriction FUA. This translates to,
 1/ activate all the flows as they are received from SessionD.
 2/ Support QoS in GY APP (Include a Qos Manager)
@@ -75,14 +75,14 @@ final action flow.</p>
 4/ Support Gy rules enforcement stats in SessionD</p>
 <p>Since some of these logic is common between enforcement and gy apps, we will need
 to move it to  policy_mixin.py</p>
-<p><strong>Swagger API</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="swagger-api"></a><a href="#swagger-api" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Swagger API</h3>
 <p>No change is planned</p>
-<p><strong>NMS</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="nms"></a><a href="#nms" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>NMS</h3>
 <p>No change is planned</p>
-<p><strong>Additional Changes</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="additional-changes"></a><a href="#additional-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Additional Changes</h3>
 <p>Full support Restrict FUA-Restrict in OCS
 Add integration tests for FUA-Restrict to cover Filter-Id with and without QoS.</p>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#propostion">Propostion</a></li><li><a href="#how-we-will-change-magma">How We Will Change Magma</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#propostion">Propostion</a></li><li><a href="#how-we-will-change-magma">How We Will Change Magma</a><ul class="toc-headings"><li><a href="#policyrule">PolicyRule</a></li><li><a href="#session-proxy">Session Proxy</a></li><li><a href="#sessiond">SessionD</a></li><li><a href="#pipelined">Pipelined</a></li><li><a href="#swagger-api">Swagger API</a></li><li><a href="#nms">NMS</a></li><li><a href="#additional-changes">Additional Changes</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;

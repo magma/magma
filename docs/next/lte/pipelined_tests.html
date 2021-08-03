@@ -44,105 +44,105 @@ will work with this framework after some threading fixes.</p>
 <code>pipelined_test_util.py</code> file provides convenient functions for easier and
 faster test writing.</p>
 <h3><a class="anchor" aria-hidden="true" id="setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass"></a><a href="#setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup that can be used for multiple tests, this should go in <code>setUpClass</code></h3>
-<p><strong>Setup a new bridge or use the production bridge</strong></p>
-<pre><code class="hljs">BRIDGE = <span class="hljs-string">'testing_br'</span>
+<h4><a class="anchor" aria-hidden="true" id="setup-a-new-bridge-or-use-the-production-bridge"></a><a href="#setup-a-new-bridge-or-use-the-production-bridge" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup a new bridge or use the production bridge</h4>
+<pre><code class="hljs css language-python">BRIDGE = <span class="hljs-string">'testing_br'</span>
 IFACE = <span class="hljs-string">'testing_br'</span>
-BridgeTools.create_bridge<span class="hljs-comment">(BRIDGE, IFACE)</span>
+BridgeTools.create_bridge(BRIDGE, IFACE)
 </code></pre>
-<p><strong>Start ryu apps on a separate thread</strong></p>
-<pre><code class="hljs"><span class="hljs-comment"># Set the futures for pipelined controller references</span>
-<span class="hljs-attr">enforcement_controller_reference</span> = Future()
-<span class="hljs-attr">testing_controller_reference</span> = Future()
+<h4><a class="anchor" aria-hidden="true" id="start-ryu-apps-on-a-separate-thread"></a><a href="#start-ryu-apps-on-a-separate-thread" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Start ryu apps on a separate thread</h4>
+<pre><code class="hljs css language-python"><span class="hljs-comment"># Set the futures for pipelined controller references</span>
+enforcement_controller_reference = Future()
+testing_controller_reference = Future()
 
 <span class="hljs-comment"># Build a test_setup for launching ryu apps</span>
-<span class="hljs-attr">test_setup</span> = TestSetup(
-    <span class="hljs-attr">apps=[PipelinedController.Enforcement,</span>
+test_setup = TestSetup(
+    apps=[PipelinedController.Enforcement,
           PipelinedController.Testing],
-    <span class="hljs-attr">references={</span>
+    references={
         PipelinedController.Enforcement:
             enforcement_controller_reference,
         PipelinedController.Testing:
             testing_controller_reference
     },
-    <span class="hljs-attr">config={</span>
-        'bridge_name': cls.BRIDGE,
-        'bridge_ip_address': '<span class="hljs-number">192.168</span>.<span class="hljs-number">128.1</span>',
-        'nat_iface': 'eth2',
-        'enodeb_iface': 'eth1'
+    config={
+        <span class="hljs-string">'bridge_name'</span>: cls.BRIDGE,
+        <span class="hljs-string">'bridge_ip_address'</span>: <span class="hljs-string">'192.168.128.1'</span>,
+        <span class="hljs-string">'nat_iface'</span>: <span class="hljs-string">'eth2'</span>,
+        <span class="hljs-string">'enodeb_iface'</span>: <span class="hljs-string">'eth1'</span>
     },
-    <span class="hljs-attr">mconfig=None,</span>
-    <span class="hljs-attr">loop=None</span>
+    mconfig=<span class="hljs-literal">None</span>,
+    loop=<span class="hljs-literal">None</span>
 )
 
 <span class="hljs-comment"># Start the apps from the test_setup config</span>
-cls.<span class="hljs-attr">thread</span> = start_ryu_app_thread(test_setup)
+cls.thread = start_ryu_app_thread(test_setup)
 
 <span class="hljs-comment"># Wait for apps to start, retrieve references</span>
-cls.<span class="hljs-attr">enforcement_controller</span> = enforcement_controller_reference.result()
-cls.<span class="hljs-attr">testing_controller</span> = testing_controller_reference.result()
+cls.enforcement_controller = enforcement_controller_reference.result()
+cls.testing_controller = testing_controller_reference.result()
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="unit-test-example"></a><a href="#unit-test-example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unit test example</h3>
-<p><strong>Setup basic information/constants</strong></p>
-<pre><code class="hljs"><span class="hljs-comment"># Setup subscriber info imsi, ip and a PolicyRule</span>
+<h4><a class="anchor" aria-hidden="true" id="setup-basic-informationconstants"></a><a href="#setup-basic-informationconstants" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup basic information/constants</h4>
+<pre><code class="hljs css language-python"><span class="hljs-comment"># Setup subscriber info imsi, ip and a PolicyRule</span>
 imsi = <span class="hljs-string">'IMSI010000000088888'</span>
 sub_ip = <span class="hljs-string">'192.168.128.74'</span>
 flow_list1 = [FlowDescription(
-    <span class="hljs-attribute">match</span>=FlowMatch(
-        <span class="hljs-attribute">ipv4_dst</span>=<span class="hljs-string">'45.10.0.0/24'</span>, <span class="hljs-attribute">direction</span>=FlowMatch.UPLINK),
-    <span class="hljs-attribute">action</span>=FlowDescription.PERMIT)
-]<span class="hljs-built_in">
-policy </span>= PolicyRule(<span class="hljs-attribute">id</span>=<span class="hljs-string">'simple_match'</span>, <span class="hljs-attribute">priority</span>=2, <span class="hljs-attribute">flow_list</span>=flow_list1)
+    match=FlowMatch(
+        ipv4_dst=<span class="hljs-string">'45.10.0.0/24'</span>, direction=FlowMatch.UPLINK),
+    action=FlowDescription.PERMIT)
+]
+policy = PolicyRule(id=<span class="hljs-string">'simple_match'</span>, priority=<span class="hljs-number">2</span>, flow_list=flow_list1)
 
-pkts_matched = 256
-pkts_sent = 4096
+pkts_matched = <span class="hljs-number">256</span>
+pkts_sent = <span class="hljs-number">4096</span>
 </code></pre>
-<p><strong>Setup the testing framework classes</strong></p>
-<pre><code class="hljs"><span class="hljs-comment"># Create a subscriber context, used for adding PolicyRules</span>
-<span class="hljs-keyword">sub_context </span>= RyuDirectSubscriberContext(
-    imsi, <span class="hljs-keyword">sub_ip, </span>self.enforcement_controller
-).<span class="hljs-keyword">add_dynamic_rule(policy)
-</span>
+<h4><a class="anchor" aria-hidden="true" id="setup-the-testing-framework-classes"></a><a href="#setup-the-testing-framework-classes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup the testing framework classes</h4>
+<pre><code class="hljs css language-python"><span class="hljs-comment"># Create a subscriber context, used for adding PolicyRules</span>
+sub_context = RyuDirectSubscriberContext(
+    imsi, sub_ip, self.enforcement_controller
+).add_dynamic_rule(policy)
+
 <span class="hljs-comment"># Create a table isolator from subscriber context, will set metadata/reg1,</span>
 <span class="hljs-comment"># forward the packets to table 5</span>
 isolator = RyuDirectTableIsolator(
-    RyuForwardFlowArgsBuilder.from_subscriber(<span class="hljs-keyword">sub_context.cfg)
-</span>                             .<span class="hljs-keyword">build_requests(),
-</span>    self.testing_controller
+    RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                             .build_requests(),
+    self.testing_controller
 )
 
 <span class="hljs-comment"># Create a packet sender, an ip packet for testing our PolicyRule</span>
-pkt_sender = <span class="hljs-keyword">ScapyPacketInjector(self.IFACE)
-</span>packet = IPPacketBuilder()\
-    .set_ip_layer(<span class="hljs-string">'45.10.0.0/20'</span>, <span class="hljs-keyword">sub_ip)\
-</span>    .set_ether_layer(self.MAC_DEST, <span class="hljs-string">"00:00:00:00:00:00"</span>)\
-    .<span class="hljs-keyword">build()
-</span>
+pkt_sender = ScapyPacketInjector(self.IFACE)
+packet = IPPacketBuilder()\
+    .set_ip_layer(<span class="hljs-string">'45.10.0.0/20'</span>, sub_ip)\
+    .set_ether_layer(self.MAC_DEST, <span class="hljs-string">"00:00:00:00:00:00"</span>)\
+    .build()
+
 <span class="hljs-comment"># Generate a flow query for checking the stats of the added rule</span>
 flow_query = FlowQuery(
     self.TID, self.testing_controller,
     match=flow_match_to_match(flow_list1[<span class="hljs-number">0</span>].match)
 )
 </code></pre>
-<p><strong>Test &amp; Verify everything works</strong></p>
-<pre><code class="hljs"><span class="hljs-meta"># Verify aggregate table stats</span>
-<span class="hljs-meta"># Each FlowTest provides a query and number of packets that query should match</span>
-<span class="hljs-meta"># wait_after_send function ensures all packets are processed before verifying</span>
+<h4><a class="anchor" aria-hidden="true" id="test--verify-everything-works"></a><a href="#test--verify-everything-works" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test &amp; Verify everything works</h4>
+<pre><code class="hljs css language-python"><span class="hljs-comment"># Verify aggregate table stats</span>
+<span class="hljs-comment"># Each FlowTest provides a query and number of packets that query should match</span>
+<span class="hljs-comment"># wait_after_send function ensures all packets are processed before verifying</span>
 flow_verifier = FlowVerifier([
     FlowTest(FlowQuery(self.TID, self.testing_controller), pkts_sent),
     FlowTest(flow_query, pkts_matched)
-], lambda: wait_after_send(self.testing_controller))
+], <span class="hljs-keyword">lambda</span>: wait_after_send(self.testing_controller))
 
-<span class="hljs-meta"># Initialize all contexts and then send packets</span>
-<span class="hljs-meta"># isolator -  inserts the flow forward rules that forward traffic to table 5,</span>
-<span class="hljs-meta">#             set the required registers (metadata, reg1)</span>
-<span class="hljs-meta">#</span>
-<span class="hljs-meta"># sub_context - adds subscriber flows, activates the PolicyRule provided</span>
-<span class="hljs-meta">#</span>
-<span class="hljs-meta"># flow_verifier - gathers FlowTest stats on when initialized and when exiting</span>
-with isolator, sub_context, flow_verifier:
+<span class="hljs-comment"># Initialize all contexts and then send packets</span>
+<span class="hljs-comment"># isolator -  inserts the flow forward rules that forward traffic to table 5,</span>
+<span class="hljs-comment">#             set the required registers (metadata, reg1)</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># sub_context - adds subscriber flows, activates the PolicyRule provided</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># flow_verifier - gathers FlowTest stats on when initialized and when exiting</span>
+<span class="hljs-keyword">with</span> isolator, sub_context, flow_verifier:
     pkt_sender.send(packet)
 
-<span class="hljs-meta"># Asserts that conditions were met for each provided FlowTest</span>
+<span class="hljs-comment"># Asserts that conditions were met for each provided FlowTest</span>
 flow_verifier.verify()
 </code></pre>
 </span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#functionality-breakdown">Functionality breakdown</a><ul class="toc-headings"><li><a href="#launch-pipelined-application-directly-not-as-services">Launch pipelined application directly (not as services)</a></li><li><a href="#isolate-the-table-that-is-being-tested">Isolate the table that is being tested</a></li><li><a href="#insert-flow-rules-if-needed-fe-subscriber-policy-rules">Insert flow rules if needed (f.e. subscriber policy rules)</a></li><li><a href="#using-scapy-insert-packets-into-ovs">Using Scapy insert packets into OVS</a></li></ul></li><li><a href="#testing-controller">Testing controller</a></li><li><a href="#api-variations">API variations</a></li><li><a href="#writing-a-new-test">Writing a new test</a><ul class="toc-headings"><li><a href="#setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass">Setup that can be used for multiple tests, this should go in <code>setUpClass</code></a></li><li><a href="#unit-test-example">Unit test example</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>

@@ -13,7 +13,7 @@ federated/un-federated environments</li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="use-cases-and-capabilities-to-be-enabled"></a><a href="#use-cases-and-capabilities-to-be-enabled" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use Cases and Capabilities to Be Enabled</h2>
 <p>We would like to enable QoS enforcement across the APN and bearer level.</p>
-<p><strong>Private LTE</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="private-lte"></a><a href="#private-lte" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Private LTE</h3>
 <p>As an example use case for QoS enforcement, a service provider may wish to
 segment users into tiers denoting their service quality, eg. bronze, silver,
 and gold. A service provider should then be able configure a QoS profiles for
@@ -32,15 +32,14 @@ specified differently for each APN even when served from the same gateway.</p>
 interfaces are set up for an APN in a gateway.</p>
 <p>To enable the above, we have the following list of new API requirements for
 Magma:</p>
-<ol>
-<li>Configuration of policy QoS profiles</li>
-<li>Configuration of APN entities</li>
-<li>Configuration of ApnResource entities</li>
-<li>Assignment of APN entities to subscribers (to denote which APNs a
-subscriber has access to)</li>
-<li>Assignment of ApnResource entities to gateways</li>
-</ol>
-<p><strong>Federated LTE</strong></p>
+<ul>
+<li>(1) Configuration of policy QoS profiles</li>
+<li>(2) Configuration of APN entities</li>
+<li>(3) Configuration of ApnResource entities</li>
+<li>(4) Assignment of APN entities to subscribers (to denote which APNs a subscriber has access to)</li>
+<li>(5) Assignment of ApnResource entities to gateways</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="federated-lte"></a><a href="#federated-lte" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Federated LTE</h3>
 <p>In federated use cases, we have slightly different requirements. APN entities
 may not need to be configured as they are provided by the federation network.
 <code>ApnResource</code> entities will still need to be configured for the AGW.</p>
@@ -49,98 +48,95 @@ may not need to be configured as they are provided by the federation network.
 and so our <code>policydb</code> service is disabled.</p>
 <p>Due to different federation requirements between operators who federate HSS,
 Gx/Gy, or both, the following requirement is added:</p>
-<ol start="6">
-<li>Split our <code>relay_enabled</code> flag for enabling federation into two separate
-flags, <code>hss_relay_enabled</code>, and <code>gx_gy_relay_enabled</code></li>
-</ol>
+<ul>
+<li>(6) Split our <code>relay_enabled</code> flag for enabling federation into two separate flags, <code>hss_relay_enabled</code>, and <code>gx_gy_relay_enabled</code></li>
+</ul>
 <h2><a class="anchor" aria-hidden="true" id="how-we-will-change-magma"></a><a href="#how-we-will-change-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How We Will Change Magma</h2>
 <h3><a class="anchor" aria-hidden="true" id="api-endpoints"></a><a href="#api-endpoints" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>API Endpoints</h3>
 <p>To enable configuration of QoS profiles and APNs, we will support the
 following REST endpoints:</p>
-<pre><code class="hljs">Policy QoS Profiles
+<pre><code class="hljs css language-text">Policy QoS Profiles
 
-GET     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles</span>
-POST    <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles</span>
+GET     /lte/{network_id}/policy_qos_profiles
+POST    /lte/{network_id}/policy_qos_profiles
 
-GET     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles/</span>{qos_name}
-PUT     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles/</span>{qos_name}
-DELETE  <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles/</span>{qos_name}
+GET     /lte/{network_id}/policy_qos_profiles/{qos_name}
+PUT     /lte/{network_id}/policy_qos_profiles/{qos_name}
+DELETE  /lte/{network_id}/policy_qos_profiles/{qos_name}
 
-GET     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles</span>
-POST    <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles</span>
+GET     /feg_lte/{network_id}/policy_qos_profiles
+POST    /feg_lte/{network_id}/policy_qos_profiles
 
-GET     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles/</span>{qos_name}
-PUT     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles/</span>{qos_name}
-DELETE  <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/policy_qos_profiles/</span>{qos_name}
+GET     /feg_lte/{network_id}/policy_qos_profiles/{qos_name}
+PUT     /feg_lte/{network_id}/policy_qos_profiles/{qos_name}
+DELETE  /feg_lte/{network_id}/policy_qos_profiles/{qos_name}
 
 
+APNs
 
-APNs 
+GET     /lte/{network_id}/apns
+POST    /lte/{network_id}/apns
 
-GET     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/apns</span>
-POST    <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/apns</span>
+GET     /lte/{network_id}/apns/{apn_name}
+PUT     /lte/{network_id}/apns/{apn_name}
+DELETE  /lte/{network_id}/apns/{apn_name}
 
-GET     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/apns/</span>{apn_name}
-PUT     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/apns/</span>{apn_name}
-DELETE  <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/apns/</span>{apn_name}
+GET     /feg_lte/{network_id}/apns
+POST    /feg_lte/{network_id}/apns
 
-GET     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/apns</span>
-POST    <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/apns</span>
-
-GET     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/apns/</span>{apn_name}
-PUT     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/apns/</span>{apn_name}
-DELETE  <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/apns/</span>{apn_name}
-
+GET     /feg_lte/{network_id}/apns/{apn_name}
+PUT     /feg_lte/{network_id}/apns/{apn_name}
+DELETE  /feg_lte/{network_id}/apns/{apn_name}
 
 
 APN Resources
 
-GET     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels</span>
-POST    <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels</span>
+GET     /lte/{network_id}/gateways/{gateway_id}/resource_labels
+POST    /lte/{network_id}/gateways/{gateway_id}/resource_labels
 
-GET     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels/</span>{resource_label}
-PUT     <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels/</span>{resource_label}
-DELETE  <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels/</span>{resource_label}
+GET     /lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_label}
+PUT     /lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_label}
+DELETE  /lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_label}
 
-GET     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels</span>
-POST    <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels</span>
+GET     /feg_lte/{network_id}/gateways/{gateway_id}/resource_labels
+POST    /feg_lte/{network_id}/gateways/{gateway_id}/resource_labels
 
-GET     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels/</span>{resource_label}
-PUT     <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels/</span>{resource_label}
-DELETE  <span class="hljs-string">/feg_lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/resource_labels/</span>{resource_label}
+GET     /feg_lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_label}
+PUT     /feg_lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_label}
+DELETE  /feg_lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_label}
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="api-entity-definitions"></a><a href="#api-entity-definitions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>API Entity Definitions</h3>
 <p>Entity definitions for QoS, APN, and subscribers will change.
 The final state is summarized here:</p>
-<pre><code class="hljs"><span class="hljs-symbol">policy_qos_profile:</span>
-<span class="hljs-symbol">  id:</span> string
-<span class="hljs-symbol">  class_id:</span> enum[<span class="hljs-number">0</span>,<span class="hljs-number">255</span>]
-<span class="hljs-symbol">  max_req_bw_dl:</span> uint32
-<span class="hljs-symbol">  max_req_bw_ul:</span> uint32
-  <span class="hljs-meta"># Guaranteed bit rate</span>
-  <span class="hljs-meta"># Not enforced by Magma yet</span>
-<span class="hljs-symbol">  gbr:</span>
-<span class="hljs-symbol">    gbr_ul:</span> uint32
-<span class="hljs-symbol">    gbr_dl:</span> uint32
-  <span class="hljs-meta"># Allocation and retention priority</span>
-  <span class="hljs-meta"># Not enforced by Magma yet</span>
-<span class="hljs-symbol">  arp:</span>
-<span class="hljs-symbol">    arp_priority_level:</span> uint32
-<span class="hljs-symbol">    arp_preemption_capability:</span> bool
-<span class="hljs-symbol">    arp_preemption_vulnerability:</span> bool
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">policy_qos_profile:</span>
+  <span class="hljs-attr">id:</span> <span class="hljs-string">string</span>
+  <span class="hljs-attr">class_id:</span> <span class="hljs-string">enum[0,255]</span>
+  <span class="hljs-attr">max_req_bw_dl:</span> <span class="hljs-string">uint32</span>
+  <span class="hljs-attr">max_req_bw_ul:</span> <span class="hljs-string">uint32</span>
+  <span class="hljs-comment"># Guaranteed bit rate</span>
+  <span class="hljs-comment"># Not enforced by Magma yet</span>
+  <span class="hljs-attr">gbr:</span>
+    <span class="hljs-attr">gbr_ul:</span> <span class="hljs-string">uint32</span>
+    <span class="hljs-attr">gbr_dl:</span> <span class="hljs-string">uint32</span>
+  <span class="hljs-comment"># Allocation and retention priority</span>
+  <span class="hljs-comment"># Not enforced by Magma yet</span>
+  <span class="hljs-attr">arp:</span>
+    <span class="hljs-attr">arp_priority_level:</span> <span class="hljs-string">uint32</span>
+    <span class="hljs-attr">arp_preemption_capability:</span> <span class="hljs-string">bool</span>
+    <span class="hljs-attr">arp_preemption_vulnerability:</span> <span class="hljs-string">bool</span>
 </code></pre>
 <p>This is an addition, as there is an existing <code>qos_profile</code> definition, which
 will continue to be used only for the <code>apn_configuration</code> entity.</p>
 <p>This <code>policy_qos_profile</code> will be marshalled to the <code>FlowQos</code> protobuf
 message.</p>
-<pre><code class="hljs"><span class="hljs-symbol">flow_qos:</span>
-  ...
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">flow_qos:</span>
+  <span class="hljs-string">...</span>
 </code></pre>
 <p>The <code>policy_qos_profile</code> will replace the <code>flow_qos</code> swagger entity
 in funtctionality.
 <code>flow_qos</code> should be marked as deprecated and should be discouraged from further
 use in the API.</p>
-<pre><code class="hljs">apn_configuration:
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">apn_configuration:</span>
   <span class="hljs-string">...</span>
   <span class="hljs-comment"># Unchanged</span>
   <span class="hljs-string">...</span>
@@ -148,52 +144,52 @@ use in the API.</p>
 <p>As before, a single QoS profile will be associated to an APN object at creation.
 This will define the QoS for the default bearer, in combination with the <code>ambr</code>
 field, and is unchanged.</p>
-<pre><code class="hljs">apn_resource:
-  id: string
-  # Identifies that the SGi<span class="hljs-built_in"> interface </span>is <span class="hljs-builtin-name">set</span> up <span class="hljs-keyword">for</span> the specified APN
-  apn_name: string
-  # Specify either<span class="hljs-built_in"> VLAN </span><span class="hljs-keyword">or</span> the<span class="hljs-built_in"> interface </span>name <span class="hljs-keyword">for</span> SGi
-  #<span class="hljs-built_in"> VLAN </span><span class="hljs-keyword">to</span> use when communicating over SGi<span class="hljs-built_in"> interface
-</span>  vlan_id: string
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">apn_resource:</span>
+  <span class="hljs-attr">id:</span> <span class="hljs-string">string</span>
+  <span class="hljs-comment"># Identifies that the SGi interface is set up for the specified APN</span>
+  <span class="hljs-attr">apn_name:</span> <span class="hljs-string">string</span>
+  <span class="hljs-comment"># Specify either VLAN or the interface name for SGi</span>
+  <span class="hljs-comment"># VLAN to use when communicating over SGi interface</span>
+  <span class="hljs-attr">vlan_id:</span> <span class="hljs-string">string</span>
 </code></pre>
 <p>The <code>apn_resource</code> defines how the APN is serviced by each access gateway.
 Options are provided for IP allocation, and the uplink. It is possible that
 two APNs are serviced by separate uplink interfaces on the same access gateway.</p>
-<pre><code class="hljs">mutable_lte_gateway:
- <span class="hljs-built_in"> id</span>:<span class="hljs-built_in"> string</span>
- <span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>
-  description:<span class="hljs-built_in"> string</span>
-  ...
-  apn_resources: <span class="hljs-keyword">array</span><span class="hljs-built_in">[string</span>]
-  ...
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">mutable_lte_gateway:</span>
+  <span class="hljs-attr">id:</span> <span class="hljs-string">string</span>
+  <span class="hljs-attr">name:</span> <span class="hljs-string">string</span>
+  <span class="hljs-attr">description:</span> <span class="hljs-string">string</span>
+  <span class="hljs-string">...</span>
+  <span class="hljs-attr">apn_resources:</span> <span class="hljs-string">array[string]</span>
+  <span class="hljs-string">...</span>
 </code></pre>
 <p>We are adding the <code>apn_resources</code> field to <code>lte_gateway</code> and
 <code>mutable_lte_gateway</code> and they are specified by ID.</p>
-<pre><code class="hljs"><span class="hljs-symbol">network_epc_configs:</span>
-  ...
-<span class="hljs-symbol">  hss_relay_enabled:</span> bool
-<span class="hljs-symbol">  gx_gy_relay_enabled:</span> bool
-  ...
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">network_epc_configs:</span>
+  <span class="hljs-string">...</span>
+  <span class="hljs-attr">hss_relay_enabled:</span> <span class="hljs-string">bool</span>
+  <span class="hljs-attr">gx_gy_relay_enabled:</span> <span class="hljs-string">bool</span>
+  <span class="hljs-string">...</span>
 </code></pre>
 <p>The <code>relay_enabled</code> flag will be split to enable federation under different
 circumstances, with finer control. The combination of <code>hss_relay_enabled</code> and
 <code>gx_gy_relay_enabled</code> together have the same functionality as the current
 <code>relay_enabled</code>.</p>
-<pre><code class="hljs">subscriber:
-  id: string
-  name: string
-  <span class="hljs-built_in">..</span>.
-  # The subscriber has access <span class="hljs-keyword">to</span> the<span class="hljs-built_in"> default </span>bearer <span class="hljs-keyword">for</span> all APNs listed here
-  active_apns: array[string]
-  active_base_names: array[base_name]
-  #<span class="hljs-built_in"> Policy </span>IDs listed <span class="hljs-keyword">in</span> active_policies define which policies will be installed
-  # <span class="hljs-keyword">for</span> every APN of the subscriber
-  active_policies: array[string]
-  # Keyed by APN IDs, <span class="hljs-keyword">and</span> values list out the<span class="hljs-built_in"> policy </span>IDs
-  #<span class="hljs-built_in"> policy </span>IDs define what policies will be installed <span class="hljs-keyword">for</span> the subscriber <span class="hljs-keyword">for</span> 
-  # each APN beyond<span class="hljs-built_in"> default </span>bearers
-  active_policies_by_apn: dict[string, array[string]]
-  <span class="hljs-built_in">..</span>.
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">subscriber:</span>
+  <span class="hljs-attr">id:</span> <span class="hljs-string">string</span>
+  <span class="hljs-attr">name:</span> <span class="hljs-string">string</span>
+  <span class="hljs-string">...</span>
+  <span class="hljs-comment"># The subscriber has access to the default bearer for all APNs listed here</span>
+  <span class="hljs-attr">active_apns:</span> <span class="hljs-string">array[string]</span>
+  <span class="hljs-attr">active_base_names:</span> <span class="hljs-string">array[base_name]</span>
+  <span class="hljs-comment"># Policy IDs listed in active_policies define which policies will be installed</span>
+  <span class="hljs-comment"># for every APN of the subscriber</span>
+  <span class="hljs-attr">active_policies:</span> <span class="hljs-string">array[string]</span>
+  <span class="hljs-comment"># Keyed by APN IDs, and values list out the policy IDs</span>
+  <span class="hljs-comment"># policy IDs define what policies will be installed for the subscriber for</span>
+  <span class="hljs-comment"># each APN beyond default bearers</span>
+  <span class="hljs-attr">active_policies_by_apn:</span> <span class="hljs-string">dict[string,</span> <span class="hljs-string">array[string]]</span>
+  <span class="hljs-string">...</span>
 </code></pre>
 <p>To now specify APN-specific policies, the field <code>active_policies_by_apn</code> will
 be added. If an APN key is not present in <code>active_policies_by_apn</code>, then the
@@ -208,17 +204,17 @@ to its corresponding <code>apn_policy_profile</code>s. When policies are deleted
 the subscriber will no longer be assigned those policies for its APNs. When APNs
 are deleted, each subscriber should no longer have assignments to policies for
 those APNs.</p>
-<pre><code class="hljs"><span class="hljs-attr">policy_rule</span>:<span class="hljs-string"></span>
-  <span class="hljs-attr">id</span>: <span class="hljs-string">string</span>
-  <span class="hljs-attr">flow_list</span>: <span class="hljs-string">array[flow_description]</span>
-  <span class="hljs-attr">priority</span>: <span class="hljs-string">uint32</span>
-  <span class="hljs-attr">rating_group</span>: <span class="hljs-string">uint32</span>
-  <span class="hljs-attr">monitoring_key</span>: <span class="hljs-string">string</span>
-  <span class="hljs-attr">...</span>
-<span class="hljs-comment">  # Set to be deprecated and replaced by qos_profile</span>
-  <span class="hljs-attr">qos</span>: <span class="hljs-string">flow_qos</span>
-<span class="hljs-comment">  # Refers to the ID of the qos_profile</span>
-  <span class="hljs-attr">qos_profile</span>: <span class="hljs-string">string</span>
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">policy_rule:</span>
+  <span class="hljs-attr">id:</span> <span class="hljs-string">string</span>
+  <span class="hljs-attr">flow_list:</span> <span class="hljs-string">array[flow_description]</span>
+  <span class="hljs-attr">priority:</span> <span class="hljs-string">uint32</span>
+  <span class="hljs-attr">rating_group:</span> <span class="hljs-string">uint32</span>
+  <span class="hljs-attr">monitoring_key:</span> <span class="hljs-string">string</span>
+  <span class="hljs-string">...</span>
+  <span class="hljs-comment"># Set to be deprecated and replaced by qos_profile</span>
+  <span class="hljs-attr">qos:</span> <span class="hljs-string">flow_qos</span>
+  <span class="hljs-comment"># Refers to the ID of the qos_profile</span>
+  <span class="hljs-attr">qos_profile:</span> <span class="hljs-string">string</span>
 </code></pre>
 <p>One QoS object can be associated to each policy object.
 The same QoS object can be associated to multiple different policies.</p>
@@ -246,10 +242,7 @@ QoS enforcement:</p>
 <li>(P1) Orc8r <code>policydb</code> service should be updated to stream to the gateway
 all the mappings between basenames, policies, QoS profiles, APNs, data plans
 and subscribers</li>
-<li>(P1) Gateway <code>policydb</code> service should interface with <code>sessiond</code> to trigger
-rule activations/deactivations when there are updates to subscribers'
-active policies. This will occur through a new gRPC service implemented by
-<code>sessiond</code></li>
+<li>(P1) Gateway <code>policydb</code> service should interface with <code>sessiond</code> to trigger rule activations/deactivations when there are updates to subscribers' active policies. This will occur through a new gRPC service implemented by <code>sessiond</code></li>
 </ul>
 <h3><a class="anchor" aria-hidden="true" id="session-manager-changes"></a><a href="#session-manager-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Session Manager Changes</h3>
 <p>The session manager will be changed to support the following:</p>
@@ -267,7 +260,7 @@ specified in the current <code>apn_configuration</code></li>
 <p>As specified in the previous two sections, <code>sessiond</code> will provide a gRPC
 service for <code>policydb</code> to set installed policies for attached subscribers.</p>
 <p>An outline of the gRPC service is as follows:</p>
-<pre><code class="hljs"><span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">SessionPolicySet</span> </span>{
+<pre><code class="hljs css language-grpc"><span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">SessionPolicySet</span> </span>{
   <span class="hljs-built_in">bool</span> apply_subscriber_wide = <span class="hljs-number">1</span>;
   <span class="hljs-built_in">string</span> apn = <span class="hljs-number">2</span>;
   <span class="hljs-keyword">repeated</span> StaticRuleInstall static_rules = <span class="hljs-number">3</span>;
@@ -286,7 +279,7 @@ service for <code>policydb</code> to set installed policies for attached subscri
 
 <span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">SessionUpdateResponder</span> </span>{
   <span class="hljs-comment">// Update the specified subscribers with the currently active rules</span>
-  <span class="hljs-comment">// </span>
+  <span class="hljs-comment">//</span>
   <span class="hljs-function"><span class="hljs-keyword">rpc</span> UpdateActiveRules (SubscriberPolicyUpdates) <span class="hljs-keyword">returns</span> (magma.orc8r.Void) {}
 }
 </span></code></pre>
@@ -330,7 +323,7 @@ per APN</li>
 <li>(P1) Split support of <code>relay_enabled</code> into <code>hss_relay_enabled</code> and
 <code>gx_gy_relay_enabled</code></li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#use-cases-and-capabilities-to-be-enabled">Use Cases and Capabilities to Be Enabled</a></li><li><a href="#how-we-will-change-magma">How We Will Change Magma</a><ul class="toc-headings"><li><a href="#api-endpoints">API Endpoints</a></li><li><a href="#api-entity-definitions">API Entity Definitions</a></li><li><a href="#pipelined-changes-for-enforcement">Pipelined Changes for Enforcement</a></li><li><a href="#policydb-changes-with-streaming">Policydb Changes with Streaming</a></li><li><a href="#session-manager-changes">Session Manager Changes</a></li></ul></li><li><a href="#policydb-and-session-manager-grpc-interface">Policydb and Session Manager gRPC Interface</a><ul class="toc-headings"><li><a href="#subscriberdb-changes">Subscriberdb Changes</a></li><li><a href="#mobilityd-changes">Mobilityd Changes</a></li><li><a href="#nms-changes">NMS Changes</a></li><li><a href="#feg-changes">FeG Changes</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#use-cases-and-capabilities-to-be-enabled">Use Cases and Capabilities to Be Enabled</a><ul class="toc-headings"><li><a href="#private-lte">Private LTE</a></li><li><a href="#federated-lte">Federated LTE</a></li></ul></li><li><a href="#how-we-will-change-magma">How We Will Change Magma</a><ul class="toc-headings"><li><a href="#api-endpoints">API Endpoints</a></li><li><a href="#api-entity-definitions">API Entity Definitions</a></li><li><a href="#pipelined-changes-for-enforcement">Pipelined Changes for Enforcement</a></li><li><a href="#policydb-changes-with-streaming">Policydb Changes with Streaming</a></li><li><a href="#session-manager-changes">Session Manager Changes</a></li></ul></li><li><a href="#policydb-and-session-manager-grpc-interface">Policydb and Session Manager gRPC Interface</a><ul class="toc-headings"><li><a href="#subscriberdb-changes">Subscriberdb Changes</a></li><li><a href="#mobilityd-changes">Mobilityd Changes</a></li><li><a href="#nms-changes">NMS Changes</a></li><li><a href="#feg-changes">FeG Changes</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;

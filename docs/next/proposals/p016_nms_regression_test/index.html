@@ -27,15 +27,15 @@ subscription will be paid for by Facebook.</p>
 <p>The test suite will be triggered to run daily through Github Actions.
 A kubernetes cluster will be set up to run daily images of the Magma
 orchestrator and NMS. The tests will run on this test cluster.</p>
-<p><strong>Daily Reports</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="daily-reports"></a><a href="#daily-reports" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Daily Reports</h3>
 <p>A Slack channel will be used for contributors to see the results of tests.
 The results of each test should be visible in the Slack channel, and a link
 to the test run should also be provided, as well as a reference to which
 container image tags were used for the test run.</p>
-<p><strong>Budget</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="budget"></a><a href="#budget" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Budget</h3>
 <p>Facebook will pay for the associated costs with using the service provided by
 Testim, for at least one year.</p>
-<p><strong>Tests</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="tests"></a><a href="#tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Tests</h3>
 <p>The following tests are proposed to verify pure-play FWA usage of the Magma
 NMS:</p>
 <ol>
@@ -65,28 +65,28 @@ NMS:</p>
 <p>Implementation will proceed in 4 phases.
 The entire implementation is proposed to be completed by the end of June 2021,
 and should validate the Magma NMS for version 1.6 and onwards.</p>
-<p><strong>Phase 1: Proposal Review and Github Comments</strong></p>
-<p><em>April 19 - 26</em></p>
+<h3><a class="anchor" aria-hidden="true" id="phase-1-proposal-review-and-github-comments"></a><a href="#phase-1-proposal-review-and-github-comments" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Phase 1: Proposal Review and Github Comments</h3>
+<p>April 19 - 26</p>
 <p>The proposal will be visible on Github for at least a week to solicit comments
 and feedback. At the end of this phase, there should be some consensus on the
 plan to add NMS E2E/regression testing.</p>
-<p><strong>Phase 2: Testim Test Suite Creation</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="phase-2-testim-test-suite-creation"></a><a href="#phase-2-testim-test-suite-creation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Phase 2: Testim Test Suite Creation</h3>
 <p>The test suite will be created on the Testim account.</p>
 <p>At the end of this phase, there should be a full test suite capable of
 verifying the use of Magma NMS for pure-play FWA usage. This test suite will
 need to be run manually.</p>
-<p><strong>Phase 3: Daily Github Actions Triggering Tests</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="phase-3-daily-github-actions-triggering-tests"></a><a href="#phase-3-daily-github-actions-triggering-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Phase 3: Daily Github Actions Triggering Tests</h3>
 <p>Github Action integration will be completed during this phase.
 At the end of this phase, the full test suite should run on a daily basis.
 This test suite should run against the Magma staging setup, currently
 maintained by Facebook. Results of the tests should be posted to the Magma
 Slack.</p>
-<p><strong>Phase 4: Kubernetes Test Cluster for NMS Testing</strong></p>
+<h3><a class="anchor" aria-hidden="true" id="phase-4-kubernetes-test-cluster-for-nms-testing"></a><a href="#phase-4-kubernetes-test-cluster-for-nms-testing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Phase 4: Kubernetes Test Cluster for NMS Testing</h3>
 <p>A separate kubernetes test cluster will be set up specifically for NMS testing.
 This cluster will run daily builds of orchestrator and NMS.
 The test suite will run against the NMS hosted on this test cluster to get
 an up-to-date view of the NMS.</p>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#abstract">Abstract</a></li><li><a href="#background">Background</a></li><li><a href="#proposal">Proposal</a></li><li><a href="#implementation">Implementation</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#abstract">Abstract</a></li><li><a href="#background">Background</a></li><li><a href="#proposal">Proposal</a><ul class="toc-headings"><li><a href="#daily-reports">Daily Reports</a></li><li><a href="#budget">Budget</a></li><li><a href="#tests">Tests</a></li></ul></li><li><a href="#implementation">Implementation</a><ul class="toc-headings"><li><a href="#phase-1-proposal-review-and-github-comments">Phase 1: Proposal Review and Github Comments</a></li><li><a href="#phase-2-testim-test-suite-creation">Phase 2: Testim Test Suite Creation</a></li><li><a href="#phase-3-daily-github-actions-triggering-tests">Phase 3: Daily Github Actions Triggering Tests</a></li><li><a href="#phase-4-kubernetes-test-cluster-for-nms-testing">Phase 4: Kubernetes Test Cluster for NMS Testing</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
