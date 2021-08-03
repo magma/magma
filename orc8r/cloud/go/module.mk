@@ -32,12 +32,29 @@ fmt::
 gen::
 	go generate ./...
 
+# gen_protos generates the protos for a module.
+#
+# HACK: this is gross, but the best solution given the current constraints.
+# Here are the issues, and how we'll progressively fix them
+# 	(1) Using a for-loop. Waiting for Golang 1.16, which will allow using the
+#		most recent version of protoc.
+# 	(2) Overriding field_mask. This version of protoc points to the WKTs where
+#		field_mask has no go_package defined. Same resolution as (1).
+# 	(3) Duplicated protoc calls. Need to move all protos to a single (IDL)
+#		directory per module, then generate to a single base output directory.
 gen_protos::
 	cd $(MAGMA_ROOT) ; \
-	for x in $$(find orc8r/cloud/go -name '*.proto') ; do \
+	for x in $$(find $(MODULE_NAME)/protos -name '*.proto') ; do \
 		protoc \
 			--proto_path $(MAGMA_ROOT) \
-			--proto_path /usr/local/Cellar/protobuf/3.10.0/include/google/ \
+			--proto_path $(PROTO_INCLUDES) \
+			--go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
+			$${x} ; \
+	done ; \
+	for x in $$(find $(MODULE_NAME)/cloud/go -name '*.proto') ; do \
+		protoc \
+			--proto_path $(MAGMA_ROOT) \
+			--proto_path $(PROTO_INCLUDES) \
 			--go_opt=paths=source_relative \
 			--go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:. \
 			$${x} ; \

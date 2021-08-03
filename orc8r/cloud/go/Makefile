@@ -40,8 +40,7 @@ gen::
 	$(MAKE) -C $(LIB_ROOT)/protos gen
 
 gen_protos::
-	$(MAKE) -C $(LIB_ROOT) gen_protos
-	$(MAKE) -C $(LIB_ROOT)/protos gen_protos
+	$(MAKE) -C $(LIB_ROOT) lib_gen_protos
 
 test::
 	$(MAKE) -C $(LIB_ROOT) test

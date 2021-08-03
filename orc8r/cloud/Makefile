@@ -21,6 +21,12 @@ MAGMA_MODULES := \
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
+# To override this on macOS with Homebrew-installed protoc, set something like
+# PROTO_INCLUDES=/usr/local/Cellar/protobuf/3.10.0/include/google/
+ifndef PROTO_INCLUDES
+PROTO_INCLUDES := /usr/include
+endif
+
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
@@ -101,11 +107,10 @@ fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 
-fullgen: clean_gen gen swagger tidy
+fullgen: clean_gen gen
 
-gen: tools gen_protos $(GEN_LIST)
+gen: gen_protos $(GEN_LIST)
 $(GEN_LIST): %_gen:
-	echo foo
 	#make -C $*/cloud/go gen
 
 gen_protos: $(GEN_PROTO_LIST)
