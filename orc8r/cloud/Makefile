@@ -57,14 +57,13 @@ define add_module
 	DOWNLOAD_LIST += $(MODULE)_download
 	FMT_LIST += $(MODULE)_fmt
 	GEN_LIST += $(MODULE)_gen
+	GEN_PROTO_LIST += $(MODULE)_gen_proto
 	LINT_LIST += $(MODULE)_lint
 	PLUGIN_LIST += $(MODULE)_plugin
 	SWAGGER_LIST += $(MODULE)_swagger
 	TEST_LIST += $(MODULE)_test
 	TIDY_LIST += $(MODULE)_tidy
 	TOOLS_LIST += $(MODULE)_tools
-
-	MIGRATION_PLUGIN_LIST += $(MODULE)_migrationplugin
 endef
 _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 
@@ -74,7 +73,7 @@ _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 
 precommit: fmt lint test
 
-build: $(BUILD_LIST) migration_plugin swagger
+build: $(BUILD_LIST) swagger
 $(BUILD_LIST): %_build:
 	make -C $*/cloud/go build
 
@@ -101,28 +100,29 @@ $(DOWNLOAD_LIST): %_download:
 fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
-	if [ -d $*/lib/go ] ; then make -C $*/lib/go fmt ; fi
 
 fullgen: clean_gen gen swagger tidy
 
-gen: tools $(GEN_LIST)
+gen: tools gen_protos $(GEN_LIST)
 $(GEN_LIST): %_gen:
-	make -C $*/cloud/go gen
+	echo foo
+	#make -C $*/cloud/go gen
+
+gen_protos: $(GEN_PROTO_LIST)
+$(GEN_PROTO_LIST): %_gen_proto:
+	make -C $*/cloud/go gen_protos
 
 lint: tools_lint $(LINT_LIST)
 $(LINT_LIST): %_lint:
 	make -C $*/cloud/go lint
-	if [ -d $*/lib/go ] ; then make -C $*/lib/go lint ; fi
 
 test: tools $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $*/cloud/go test
-	if [ -d $*/lib/go ] ; then make -C $*/lib/go test ; fi
 
 tidy: $(TIDY_LIST)
 $(TIDY_LIST): %_tidy:
 	make -C $*/cloud/go tidy
-	if [ -d $*/lib/go ] ; then make -C $*/lib/go tidy ; fi
 
 tools: $(TOOLS_LIST)
 $(TOOLS_LIST): %_tools:
@@ -148,16 +148,3 @@ swagger_directories:
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go swagger_tools copy_swagger_files
-
-##########
-## Misc ##
-##########
-
-list:  # List all commands
-	@echo -e "\nAvailable commands:\n"
-	@grep '^[[:lower:]].*:.*#.*' Makefile | awk -F ':|#' '{ printf "\t%-30s%s\n", $$1, $$3 }'
-	@echo -e "\n"
-
-migration_plugin: $(MIGRATION_PLUGIN_LIST)
-$(MIGRATION_PLUGIN_LIST): %_migrationplugin:
-	make -C $*/cloud/go migration_plugin
