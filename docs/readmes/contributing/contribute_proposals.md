@@ -10,12 +10,15 @@ This document describes the process by which interested parties may propose chan
 
 To start, consider skimming the existing [Magma project proposals](https://github.com/magma/magma/issues?q=is%3Aissue+label%3A%22type%3A+proposal%22+).
 
-## Tracking proposals
+## Overview
 
-Proposals are tracked as GitHub Issues, using the following labels
+### Acceptance
 
-- [`type: proposal`](https://github.com/magma/magma/issues?q=is%3Aissue+label%3A%22type%3A+proposal%22+) for all proposals
-- [`tsc`](https://github.com/magma/magma/issues?q=is%3Aissue+label%3A%22type%3A+proposal%22+label%3Atsc) for proposals desiring TSC consideration
+To be accepted, proposals must receive a majority vote from the TSC.
+
+### Tracking
+
+Proposals are tracked as GitHub Issues, using the [`type: proposal`](https://github.com/magma/magma/issues?q=is%3Aissue+label%3A%22type%3A+proposal%22+) label.
 
 The `#proposals` Slack channel receives notifications when new proposals are created.
 
@@ -23,13 +26,13 @@ The `#proposals` Slack channel receives notifications when new proposals are cre
 
 ### Submit an Issue
 
-[Submit a GitHub Issue](https://github.com/magma/magma/issues/new/choose) following the "Proposal" template.
+[Submit a GitHub Issue](https://github.com/magma/magma/issues/new/choose) following the "Proposal" template. The proposal contents should be clear and concise. Aim for a "one-pager" style.
 
-The proposal contents should be clear and concise. Aim for a "one-pager" style.
+In many cases, the TSC will delegate their decision to one of the [approvers teams](https://github.com/orgs/magma/teams?query=approvers-). To expedite this process, you can [label your proposal with the applicable component](https://github.com/magma/magma/labels?q=component%3A), which will help the TSC identify domain experts.
 
 ### Receive feedback
 
-The project maintainers (or the TSC, if you applied the `tsc` label) will discuss the proposal and make comments on the Issue. One of four outcomes will be communicated via labels
+The TSC, and relevant project maintainers, will discuss the proposal and make comments on the Issue. One of four outcomes will be communicated via labels
 
 - [`status: accepted`](https://github.com/magma/magma/labels/status%3A%20accepted) proposal was accepted
 - [`status: rejected`](https://github.com/magma/magma/labels/status%3A%20rejected) proposal was rejected
@@ -48,3 +51,14 @@ When writing your design doc, consider following this [standardized design doc t
 
 - Example design doc: [Scaling Orc8r Subscribers Codepath](https://magma.github.io/magma/docs/next/proposals/p010_subscriber_scaling)
 - Example design doc PR: [APN Refactoring](https://github.com/magma/magma/pull/7191)
+
+### Resolution
+
+A proposal Issue will be closed when no further discussion is needed. This occurs after one of the following
+
+- Acceptance, rejection, or withdrawal of the Issue
+- Acceptance of a requested design doc
+
+## Conclusion
+
+Please direct process-related questions to the `#governance-tsc-ama` Slack channel.
