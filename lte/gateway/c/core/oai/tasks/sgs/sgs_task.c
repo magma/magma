@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 
+#include "assertions.h"
 #include "log.h"
 #include "intertask_interface.h"
 #include "mme_config.h"
@@ -180,7 +181,7 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
       TASK_SGS, (task_id_t[]){TASK_MME_APP}, 1, handle_message, task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
-  sgs_exit();
+  AssertFatal(0, "Asserting as sgs_thread should not be exiting on its own!");
   return NULL;
 }
 
