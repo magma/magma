@@ -176,9 +176,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                if local_f_teid_ng:
-                    version = self._session_rule_version_mapper.\
-                                   get_version(imsi, ip_addr, rule.id)
                 flow_adds.extend(
                     self._get_classify_rule_flow_msgs(
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,

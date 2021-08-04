@@ -431,7 +431,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         gy_res = self._gy_app.activate_rules(
             imsi, msisdn, uplink_tunnel,
             ip_addr, apn_ambr,
-            policies, shard_id,
+            policies, shard_id, 0,
         )
         # TODO: add metrics
         return gy_res
