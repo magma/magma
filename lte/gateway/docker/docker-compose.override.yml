@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  gateway_c:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/c/Dockerfile
