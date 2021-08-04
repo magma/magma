@@ -25,9 +25,6 @@ using ::testing::Test;
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-namespace magma {
-namespace lte {
-
 TEST(
     test_convert_proto_msg_to_itti_m5g_auth_info_ans,
     convert_proto_msg_to_itti_m5g_auth_info_ans) {
@@ -103,5 +100,3 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-}  // namespace lte
-}  // namespace magma

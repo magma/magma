@@ -1,16 +1,7 @@
 set(NAS5G_C_DIR ${PROJECT_SOURCE_DIR}/tasks/nas5g)
-list(APPEND PROTO_SRCS "")
-list(APPEND PROTO_HDRS "")
+set(AMF_C_DIR ${PROJECT_SOURCE_DIR}/tasks/amf)
 
-create_proto_dir("feg" FEG_OUT_DIR)
-
-# S6a
-set(S6ASRV_FEG_CPP_PROTOS s6a_proxy)
-set(S6ASRV_FEG_GRPC_PROTOS s6a_proxy)
-generate_cpp_protos("${S6ASRV_FEG_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
-generate_grpc_protos("${S6ASRV_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
+add_compile_options(-std=c++14)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories("${NAS5G_C_DIR}")
@@ -40,6 +31,7 @@ add_library(TASK_AMF_APP
     amf_authentication.cpp
     amf_data.cpp
     amf_cn.cpp
+    amf_client_servicer.cpp
     amf_sap.cpp
     nas_proc.cpp
     Registration.cpp

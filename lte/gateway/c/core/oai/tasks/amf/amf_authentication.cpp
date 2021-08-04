@@ -31,13 +31,11 @@ extern "C" {
 #include "amf_recv.h"
 #include "amf_identity.h"
 #include "amf_sap.h"
-#include "M5GAuthenticationServiceClient.h"
+#include "include/amf_client_servicer.h"
 #include "amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
-
-using magma5g::AsyncM5GAuthenticationServiceClient;
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -132,22 +130,23 @@ static int start_authentication_information_procedure(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
+  auto amf_client_servicer = get_amf_client_server_ref();
+
   if (is_initial_req) {
     OAILOG_INFO(
         LOG_AMF_APP,
         "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info\n",
         imsi_str);
-    AsyncM5GAuthenticationServiceClient::getInstance().get_subs_auth_info(
+    amf_client_servicer.get_subscriber_authentication_info(
         imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), ue_id);
   } else if (auts->data) {
     OAILOG_INFO(
         LOG_AMF_APP,
         "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info-resync\n",
         imsi_str);
-    AsyncM5GAuthenticationServiceClient::getInstance()
-        .get_subs_auth_info_resync(
-            imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni),
-            auts->data, RAND_LENGTH_OCTETS + AUTS_LENGTH, ue_id);
+    amf_client_servicer.get_subscriber_authentication_info_resync(
+        imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), auts->data,
+        RAND_LENGTH_OCTETS + AUTS_LENGTH, ue_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);

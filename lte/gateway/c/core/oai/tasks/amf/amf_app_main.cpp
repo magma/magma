@@ -32,6 +32,7 @@ extern "C" {
 #include "amf_data.h"
 #include "amf_app_defs.h"
 #include "amf_authentication.h"
+#include "include/amf_client_servicer.h"
 #include "ngap_messages_types.h"
 #include "amf_app_state_manager.h"
 #include "amf_smfDefs.h"
@@ -182,6 +183,10 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   }
   /*Initialize UE state matrix */
   create_state_matrix();
+
+  // Initialize the client layer
+  amf_client_servicer_init();
+
   if (itti_create_task(TASK_AMF_APP, &amf_app_thread, NULL) < 0) {
     OAILOG_CRITICAL(LOG_AMF_APP, "Amf app create task failed\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);

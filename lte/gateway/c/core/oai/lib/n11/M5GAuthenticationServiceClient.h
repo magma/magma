@@ -35,7 +35,7 @@ M5GAuthenticationInformationRequest create_subs_auth_request(
 
 class M5GAuthenticationServiceClient {
  public:
-  virtual ~M5GAuthenticationServiceClient() {}
+  virtual ~M5GAuthenticationServiceClient() = default;
   virtual bool get_subs_auth_info(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       amf_ue_ngap_id_t ue_id) = 0;
@@ -44,6 +44,12 @@ class M5GAuthenticationServiceClient {
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       const void* resync_info, uint8_t resync_info_len,
       amf_ue_ngap_id_t ue_id) = 0;
+
+ private:
+  virtual void GetSubscriberAuthInfoRPC(
+      M5GAuthenticationInformationRequest& request,
+      const std::function<void(
+          grpc::Status, M5GAuthenticationInformationAnswer)>& callback) = 0;
 };
 
 /**
@@ -54,6 +60,7 @@ class AsyncM5GAuthenticationServiceClient
     : public GRPCReceiver,
       public M5GAuthenticationServiceClient {
  public:
+  AsyncM5GAuthenticationServiceClient();
   bool get_subs_auth_info(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       amf_ue_ngap_id_t ue_id);
@@ -69,7 +76,6 @@ class AsyncM5GAuthenticationServiceClient
   void operator=(AsyncM5GAuthenticationServiceClient const&) = delete;
 
  private:
-  AsyncM5GAuthenticationServiceClient();
   static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
   std::unique_ptr<M5GSubscriberAuthentication::Stub> stub_{};
 

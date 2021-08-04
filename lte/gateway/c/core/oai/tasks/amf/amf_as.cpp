@@ -36,11 +36,8 @@ extern "C" {
 #include "S6aClient.h"
 #include "proto_msg_to_itti_msg.h"
 #include "ngap_messages_types.h"
-#include "M5GAuthenticationServiceClient.h"
 #include "M5GMMCause.h"
 #include "3gpp_38.401.h"
-
-using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
 #define QUADLET 4
