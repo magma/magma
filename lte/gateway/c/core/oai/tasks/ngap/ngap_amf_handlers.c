@@ -73,7 +73,7 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "amf_app_messages_types.h"
-#include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "ngap_state.h"
 
 struct Ngap_IE;
@@ -126,7 +126,8 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {0, 0, 0}, /* TraceStart */
     {0, 0, 0}, /* TraceFailureIndication */
     {0, 0, 0}, /* GNBConfigurationUpdate */
-    {0, 0, 0}, /* AMFConfigurationUpdate */
+    {0, ngap_amf_handle_pduSession_setup_response,
+     0},       /* AMFConfigurationUpdate */
     {0, 0, 0}, /* LocationReportingControl */
     {0, 0, 0}, /* LocationReportingFailureIndication */
     {0, 0, 0}, /* LocationReport */
@@ -141,10 +142,11 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {0, 0, 0}, /* AMFConfigurationTransfer */
     {/*ngap_amf_handle_ue_context_release_request*/ 0,
      /*ngap_amf_handle_ue_context_release_complete*/ 0,
-     0},       /* UEContextRelease */
-    {0, 0, 0}, /* CellTrafficTrace */
-               // UPDATE RELEASE 9
-    {0, 0, 0}, /* Kill */
+     0}, /* UEContextRelease */
+    {ngap_amf_handle_ue_context_release_request,
+     ngap_amf_handle_ue_context_release_complete, 0}, /* UEContextRelease */
+                                                      // UPDATE RELEASE 9
+    {0, 0, 0},                                        /* Kill */
     {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
     {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
     {ngap_amf_handle_uplink_nas_transport, 0, 0}, /* uplinkNASTransport */
@@ -195,7 +197,7 @@ status_code_e ngap_amf_set_cause(
 
   switch (cause_type) {
     case Ngap_Cause_PR_radioNetwork:
-      cause_p->choice.misc = cause_value;
+      cause_p->choice.radioNetwork = cause_value;
       break;
 
     case Ngap_Cause_PR_transport:
@@ -215,6 +217,7 @@ status_code_e ngap_amf_set_cause(
       break;
 
     default:
+      OAILOG_DEBUG(LOG_NGAP, "Unknown cause for context release");
       return -1;
   }
 
@@ -270,6 +273,10 @@ status_code_e ngap_amf_generate_ng_setup_failure(
   bstring b = blk2bstr(buffer_p, length);
   free(buffer_p);
   rc = ngap_amf_itti_send_sctp_request(&b, assoc_id, 0, INVALID_AMF_UE_NGAP_ID);
+
+  /* Free up the bstring */
+  bdestroy(b);
+
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 
@@ -539,7 +546,7 @@ status_code_e ngap_generate_ng_setup_response(
   // memset for gcc 4.8.4 instead of {0}, servedGUAMFI.servedPLMNs
   servedGUAMFI = calloc(1, sizeof *servedGUAMFI);
 
-#if 0
+#if 0  
 amf_config_read_lock(&amf_config);
   /*
    * Use the guamfi parameters provided by configuration
@@ -748,8 +755,9 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
     }
   }
   ue_ref_p->ng_ue_state = NGAP_UE_CONNECTED;
-  message_p             = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_RSP);
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_RSP);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = ue_ref_p->amf_ue_ngap_id;
 
   if (ie) {
@@ -853,9 +861,8 @@ status_code_e ngap_handle_new_association(
   OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
 
-status_code_e ngap_amf_handle_ue_context_release_request(
-    __attribute__((unused)) ngap_state_t* state,
-    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+int ngap_amf_handle_ue_context_release_request(
+    ngap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
   Ngap_UEContextReleaseRequest_t* container;
@@ -994,15 +1001,17 @@ status_code_e ngap_amf_handle_ue_context_release_request(
           imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) amf_ue_ngap_id,
           &imsi64);
 
-      message_p = DEPRECATEDitti_alloc_new_message_fatal(
-          TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_REQ);
+      message_p =
+          itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_REQ);
+      AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
+
+      // gnb_ref_p = ngap_state_get_gnb(state, ue_ref_p->sctp_assoc_id);
 
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).amf_ue_ngap_id =
           ue_ref_p->amf_ue_ngap_id;
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).gnb_ue_ngap_id =
           ue_ref_p->gnb_ue_ngap_id;
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = ng_release_cause;
-      NGAP_UE_CONTEXT_RELEASE_REQ(message_p).cause    = ie->value.choice.Cause;
 
       message_p->ittiMsgHeader.imsi = imsi64;
       rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
@@ -1075,6 +1084,10 @@ status_code_e ngap_amf_generate_ue_context_release_command(
       cause_type  = Ngap_Cause_PR_nas;
       cause_value = Ngap_CauseNas_unspecified;
       break;
+    case NGAP_NAS_AUTHENTICATION_FAILURE:
+      cause_type  = Ngap_Cause_PR_nas;
+      cause_value = Ngap_CauseNas_authentication_failure;
+      break;
     case NGAP_RADIO_NR_GENERATED_REASON:
       cause_type  = Ngap_Cause_PR_radioNetwork;
       cause_value = Ngap_CauseRadioNetwork_release_due_to_5gc_generated_reason;
@@ -1138,7 +1151,7 @@ status_code_e ngap_handle_ue_context_release_command(
         ue_context_release_command_pP->cause ==
             NGAP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
         ue_context_release_command_pP->cause == NGAP_INVALID_GNB_ID) {
-      // ngap_remove_ue(state, ue_ref_p);
+      ngap_remove_ue(state, ue_ref_p);
     } else {
       rc = ngap_amf_generate_ue_context_release_command(
           state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
@@ -1331,8 +1344,9 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
           cause_type);
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.amf_app_initial_context_setup_failure, 0,
       sizeof(itti_amf_app_initial_context_setup_failure_t));
@@ -1535,8 +1549,9 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
   /*
    * Remove UE context and inform AMF_APP.
    */
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.ngap_ue_context_release_complete, 0,
       sizeof(itti_ngap_ue_context_release_complete_t));
@@ -1550,7 +1565,7 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
       (uint32_t) ue_ref_p->amf_ue_ngap_id);
-  // ngap_remove_ue(state, ue_ref_p);
+  ngap_remove_ue(state, ue_ref_p);
 
   hashtable_uint64_ts_remove(
       imsi_map->amf_ue_id_imsi_htbl,
@@ -1571,8 +1586,9 @@ void ngap_amf_release_ue_context(
   /*
    * Remove UE context and inform AMF_APP.
    */
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.ngap_ue_context_release_complete, 0,
       sizeof(itti_ngap_ue_context_release_complete_t));
@@ -1586,7 +1602,7 @@ void ngap_amf_release_ue_context(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
       (uint32_t) ue_ref_p->amf_ue_ngap_id);
 
-  // ngap_remove_ue(state, ue_ref_p);
+  ngap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
@@ -1765,8 +1781,9 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
       imsi_map->amf_ue_id_imsi_htbl,
       (const hash_key_t) ue_ref_p->amf_ue_ngap_id, &imsi64);
 
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_NGAP, NGAP_PDUSESSIONRESOURCE_SETUP_RSP);
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_SETUP_RSP);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).amf_ue_ngap_id =
       ue_ref_p->amf_ue_ngap_id;
   NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).gnb_ue_ngap_id =

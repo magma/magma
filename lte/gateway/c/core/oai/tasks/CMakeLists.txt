@@ -1,4 +1,5 @@
 add_subdirectory(mme_app) # TASK_MME_APP
+add_subdirectory(amf) # TASK_AMF_APP
 add_subdirectory(nas) # TASK_NAS
 add_subdirectory(nas5g) # TASK_NAS
 add_subdirectory(s1ap) # TASK_S1AP, LIB_S1AP

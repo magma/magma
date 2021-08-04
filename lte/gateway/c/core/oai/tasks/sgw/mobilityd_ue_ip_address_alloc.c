@@ -20,6 +20,7 @@
 #include "log.h"
 #include "MobilityClientAPI.h"
 #include "service303.h"
+#include "includes/MetricsHelpers.h"
 
 struct in_addr;
 

@@ -328,6 +328,11 @@ class LocalEnforcer {
   bool update_tunnel_ids(
       SessionMap& session_map, const UpdateTunnelIdsRequest& request);
 
+  /**
+   * Increments all the UE policies versions by 1
+   */
+  void increment_all_policy_versions(SessionMap& session_map);
+
   std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
 
   // If this is set to true, we will send the timezone along with

@@ -377,7 +377,8 @@ static void* s11_mme_thread(void* args) {
   bdestroy_wrapper(&b);
 
   zloop_start(s11_task_zmq_ctx.event_loop);
-  s11_mme_exit();
+  AssertFatal(
+      0, "Asserting as s11_mme_thread should not be exiting on its own!");
   return NULL;
 }
 

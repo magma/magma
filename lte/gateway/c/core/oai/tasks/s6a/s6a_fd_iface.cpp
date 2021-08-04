@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 #include "s6a_fd_iface.h"
+#include "includes/MetricsHelpers.h"
 
 #include <iostream>
 #include <exception>

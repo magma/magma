@@ -43,7 +43,7 @@
 #include "s1ap_mme_handlers.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
-#include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "service303_message_utils.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
@@ -375,7 +375,8 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
-  s1ap_mme_exit();
+  AssertFatal(
+      0, "Asserting as s1ap_mme_thread should not be exiting on its own!");
   return NULL;
 }
 

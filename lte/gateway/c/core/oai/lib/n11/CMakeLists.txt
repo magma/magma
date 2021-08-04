@@ -16,6 +16,7 @@ add_library(LIB_N11
     SmfServiceClient.cpp
     amf_client_proto_msg_to_itti_msg.cpp
     M5GAuthenticationServiceClient.cpp
+    M5GMobilityServiceClient.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

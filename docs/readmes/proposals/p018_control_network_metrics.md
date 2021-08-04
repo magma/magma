@@ -28,16 +28,16 @@ existing Magma metrics pipeline.
 
 ### Goals
 
-1. On the access gateway, record byte and packet counts grouped by service,
-destination IP address, and destination port.
+1. On the access gateway, record byte counts grouped by AGW source service and
+destination cloud service. For non-Magma traffic, only record the Linux binary
+that sends traffic.
 
-2. Export these counters as Prometheus metrics on the NMS UI.
+2. Export byte counts as Prometheus metrics on the NMS UI.
 
 3. Minimize performance penalty on the gateway for network metrics collection.
 
 4. Minimize required infrastructure changes for metrics export and for
 deployment.
-
 
 ### Non-goals
 
@@ -47,8 +47,8 @@ deployment.
 
 ![Network metrics path](assets/orc8r/control_network_metrics.png)
 
-To collect relevant metrics, i.e., byte and packet counters, we propose using
-an [eBPF](https://ebpf.io/what-is-ebpf/) program. eBPF is a modern Linux kernel
+To collect relevant byte count metrics, we propose using an
+[eBPF](https://ebpf.io/what-is-ebpf/) program. eBPF is a modern Linux kernel
 feature that allows running sandboxed programs inside the kernel without having
 to change kernel source code or loading privileged/risky kernel modules. The
 Linux kernel verifies eBPF programs to ensure safety and termination, and
@@ -57,31 +57,36 @@ provide certain performance guarantees [1].
 We will use the [BCC toolkit](https://github.com/iovisor/bcc/) for writing and
 loading our eBPF monitoring program. BCC makes it easier to write eBPF programs
 by providing clean abstractions for kernel instrumentation, and Python and Lua
-libraries for writing user-space front-end programs that communicate with the
-kernel-space eBPF program. We will write a Python front-end since many of our
+libraries for writing user space front-end programs that communicate with the
+kernel space eBPF program. We will write a Python front-end since many of our
 existing services already use Python, and we have convenient infrastructure for
 exporting Prometheus metrics from Python services.
 
-We will create a new Python service called `kernsnoopd` (not `netsnoopd` as
-this service can later become a home for more observability through eBPF). Upon
-service start, `kernsnoopd` will compile the eBPF kernel instrumentation
-program and load it. It will read `sampling_period` from its configuration.
-Every `sampling_period` seconds, `kernsnoopd` will read the counters from the
-eBPF program into Prometheus counters and clear the eBPF counters.
+We will create a new Python service called `kernsnoopd` (not `netsnoopd` as this
+service can later become a home for more observability through eBPF). Upon
+service start, `kernsnoopd` will compile the eBPF kernel instrumentation program
+and load it. It will read `collect_interval` from its configuration. Every
+`collect_interval` seconds, `kernsnoopd` will read the counters from the eBPF
+program into Prometheus counters and clear the eBPF counters.
 
-The byte and packet counts read from eBPF will be stored into Prometheus
-counters `network_bytes_sent_total` and `network_packets_sent_total`. Each
-counter will also have labels indicating `source_process`, `dest_ip` and
-`dest_port`. On the loopback interface, only the port on which `control_proxy`
-is listening for traffic will be observed. This port and and other information
-related to Magma services can be read from the
+The byte counts read from eBPF will be stored into Prometheus counters
+`magma_bytes_sent_total` and `linux_bytes_sent_total`. The
+`magma_bytes_sent_total` counter will have the label `service_name` indicating
+AGW source service, and `dest_service` indicating the cloud destination service.
+The `linux_bytes_sent_total` counter will only have a `binary_name` label. On
+the loopback interface, only the port on which `control_proxy` is listening for
+traffic will be observed. This port and other information related to Magma
+services can be read from the
 [`ServiceRegistry`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/gateway/python/magma/common/service_registry.py).
 On other interfaces (see [Open Issues](#open-issues)), all traffic will be
-observed. `source_process` will just be the binary name (`task->comm` in the
-kernel) of the process triggering the packet transmission. In case of Python
-services, the binary name is `python3` so command line arguments (e.g.
-`magma.main.subscriberdb`) will be used to infer the service name and
-`source_process` will be set to the service name.
+observed. `task->comm` from the kernel will be used to identify the binary
+triggering traffic. In case of Python services, the binary name is `python3` so
+command line arguments (e.g. `magma.main.subscriberdb`) will be used to infer
+the source service name.
+All traffic from the AGW to the Orc8r will be going to
+the same destination port, so we may have to look at the [HTTP authority
+header](https://sourcegraph.com/github.com/magma/magma@v1.6/-/blob/orc8r/gateway/python/magma/common/service_registry.py?L165)
+to infer destination service.
 
 Once Prometheus counter values have been set, they will follow the existing
 Magma metrics path: the `magmad` service will read the counters from
@@ -100,56 +105,52 @@ Now we show a prototype of the eBPF program `kernsnoopd` will use:
 ```c
 #include <bcc/proto.h>
 #include <linux/sched.h>
-#include <net/inet_sock.h>
-
-struct counters_t {
-    u64 bytes;
-    u64 packets;
-};
+#include <uapi/linux/ptrace.h>
+#include <net/sock.h>
 
 struct key_t {
-    u32 pid;
-    u32 daddr;
-    u16 dport;
+  // binary name (task->comm in the kernel)
+  char comm[TASK_COMM_LEN];
+  u32 pid;
+  // source port and destination IP address, port
+  u32 daddr;
+  u16 dport;
 };
 
-// Create a hash map with `key_t` as key type and `counters_t` as value type
-BPF_HASH(dest_counters, struct key_t, struct counters_t, 1000);
+// Create a hash map with `key_t` as key type and u64 as value type
+BPF_HASH(dest_counters, struct key_t);
 
-// Attach hook for the `net_dev_start_xmit` kernel trace event
-TRACEPOINT_PROBE(net, net_dev_start_xmit)
-{
-    struct sk_buff* skb = (struct sk_buff*) args->skbaddr;
-    struct sock* sk = skb->sk;
+// Attach kprobe for the `tcp_sendmsg` syscall
+int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msghdr *msg, size_t size) {
+  u16 dport = 0, family = sk->__sk_common.skc_family;
 
-    // read destination IP address, port and current pid
-    struct key_t key = {};
-    bpf_probe_read(&key.daddr, sizeof(sk->sk_daddr), &sk->sk_daddr);
-    bpf_probe_read(&key.dport, sizeof(sk->sk_dport), &sk->sk_dport);
-    key.pid = bpf_get_current_pid_tgid() >> 32;
+  // only IPv4
+  if (family == AF_INET) {
+    struct key_t key;
 
-    // lookup or initialize item in dest_counters
-    struct counters_t empty;
-    __builtin_memset(&empty, 0, sizeof(empty));
-    struct counters_t *data = dest_counters.lookup_or_try_init(&key, &empty);
+    // read binary name, pid, source and destination IP address and port
+    bpf_get_current_comm(key.comm, TASK_COMM_LEN);
+    key.pid = bpf_get_current_pid_tgid() >> 32;;
+    key.daddr = sk->__sk_common.skc_daddr;
+    dport = sk->__sk_common.skc_dport;
+    key.dport = ntohs(dport);
 
     // increment the counters
-    if (data) {
-        data->bytes += skb->len;
-        data->packets++;
-    }
-    return 0;
+    dest_counters.increment(key, size);
+  }
+  return 0;
 }
+
 ```
 
 This program is written in restricted C (prevents direct memory access, for
-example) that is suitable for LLVM compilation into BPF bytecode. It uses
-macros from BCC to create a hash map data structure (`dest_counters`), and
-attach a callback function to kernel trace event
-[`net_dev_start_xmit`](https://patchwork.ozlabs.org/project/netdev/patch/1389392223.2025.125.camel@bwh-desktop.uk.level5networks.com/).
-The kernel fires this event just before it starts a packet transmission. Our
-callback function reads the appropriate context and increments relevant
-counters in the hash map.
+example) that is suitable for LLVM compilation into BPF bytecode. It uses macros
+from BCC to create a hash map data structure (`dest_counters`), and attach a
+`kprobe` to the
+[`tcp_sendmsg`](https://elixir.bootlin.com/linux/latest/source/net/ipv4/tcp.c#L1456)
+function. This probe gets triggered just before a TCP segment transmission. Our
+callback function reads the appropriate context and increments relevant counters
+in the hash map.
 
 Below is an example of a front-end Python program that retrieves and displays
 the counters aggregated in the kernel:
@@ -169,7 +170,7 @@ def print_table(table):
     for k, v in table.items():
         daddr = inet_ntop(AF_INET, pack("I", k.daddr))
         dport = ntohs(k.dport)
-        print(f"{k.pid} {daddr}:{dport} {v.bytes} {v.packets}")
+        print(f"{k.pid} sent {v.value} bytes to ({daddr}:{dport})")
     print("----------------------------")
 
 if __name__ == "__main__":
@@ -198,11 +199,11 @@ would presumably have to be compiled for various kernel versions. Pre-compiling
 is not necessary though as `gobf` allows the front-end Go program to trigger
 compilation just like the Python program above does.
 
-If we choose **C/C++**, we should switch from BCC to
-[`libbpf`](https://github.com/libbpf/libbpf) as BCC does not provide C bindings
-to write simple front-end programs. `libbpf` is simpler than BCC, which means
-the API is not as convenient, but it also supports compiling both the eBPF
-program and the front-end program into a small binary and remove clang as a
+If we choose **C/C++**, we should consider switching from BCC to
+[`libbpf`](https://github.com/libbpf/libbpf). While BCC provides C bindings to
+write front-end programs, `libbpf` is a simpler alternative. This means
+the `libbpf` API is not as convenient, but it supports compiling both the eBPF
+program, and the front-end program into a small binary and remove clang as a
 dependency on the AGW.
 
 We have tools to translate Prometheus metrics for consumption at the `magmad`
@@ -226,13 +227,13 @@ eBPF.
 
 2. [**`nghttpx`**](https://nghttp2.org): We use `control_proxy` to proxy TLS
 connections from individual services to the orchestrator. However, `nghttpx`,
-the proxy implementation we use does not collect per-process or per-destination
-byte and packet counters. `nghttpx` could probably be modified to collect these
-statistics, but that would probably be higher development effort and may yield
-worse performance. Also, it will not work if `proxy_cloud_connections` is set to
-`False` and services are connecting to the cloud directly. Even if
-`proxy_cloud_connections` is set to `True`, `nghttpx` will not be able to
-capture general traffic outside of Magma daemons.
+the proxy implementation we use does not collect per-service byte counters.
+`nghttpx` could probably be modified to collect these statistics, but that would
+probably be higher development effort and may yield worse performance. Also, it
+will not work if `proxy_cloud_connections` is set to `False` and services are
+connecting to the cloud directly. Even if `proxy_cloud_connections` is set to
+`True`, `nghttpx` will not be able to capture general traffic outside of Magma
+daemons.
 
 3. [**`cilium/epbf`**](https://github.com/cilium/ebpf): This is a pure Go eBPF
 library alternative to BCC. `cilium/ebpf` has minimal external dependencies and
@@ -276,33 +277,27 @@ There are several concerns that this proposal attempts to address:
 
 ### Performance
 
-Performance is a major concern for this proposal as we are putting code into
-the kernel's network path on the access gateway. Although we have not
-benchmarked the prototype above, there is a similar tool included in the BCC
-distribution called `netqtop`. The authors of `netqtop` have benchmarked their
-tool and observe 1.17 usec increase in packet "pingpong" latency [2]. When they
-benchmark bandwidth on the loopback interface, they observe a drop of around
-27% in packets per second (PPS). Since `netqtop` instruments both transmit and
-receive network paths, and does more processing than we need, we expect the
-performance penalty of `kernsnoopd` to be less than half of `netqtop`. We think
-the performance penalty will be closer to the `getpid()` benchmark from
-`ebpf_exporter` [8]: a few hundred nanoseconds per call. However, even that on
-the network path may be significant and would warrant concern if network
-utilization on our gateways is very high and if they are CPU-bottlenecked (see
-[Open Issues](#open-issues)).
-It will be important to count bytes/packets only on the relevant interfaces and
-relevant ports on the loopback interface. We want to observe traffic on loopback
-as we use `control_proxy` to funnel traffic from Magma daemons, but we want to
-ignore traffic on loopback that isn't destined for `control_proxy` such as
-`redis` traffic or communication between `magmad` and other daemons.
+Performance is a major concern for this proposal as we are putting code into the
+kernel's network path on the access gateway. We benchmarked the eBPF code above
+using the Spirent lab setup. Four tests were run in total, each with 600 user
+devices, 5 MB download rate per device, and an attach rate of 10. The tests ran
+for 30 minutes each. The `tcp_sendmsg` instrumentation was enabled for two tests
+and disabled for the other two. No distinguishable downgrade in throughput was
+observed when `tcp_sendmsg` instrumentation was enabled. The mean download
+throughput for each of the four cases hovered around 530 Mbps.
 
-One way to slash the performance penalty is to take the instrumentation out of
-the network path. We could, for example, use the TCP tracepoint
-`sock:inet_sock_set_state` instead of `net_dev_start_xmit`.
-`sock:inet_sock_set_state` is fired when the kernel changes the state of a
-socket [3]. We could use this event to collect metrics before a socket closes.
-However, this means that we will not be able to observe non-TCP traffic and
-there might be precision issues for long-running TCP streams.
+For deployment, it will be important to count bytes only on the relevant
+interfaces and relevant ports on the loopback interface. We want to observe
+traffic on loopback as we use `control_proxy` to funnel traffic from Magma
+daemons, but we want to ignore traffic on loopback that isn't destined for
+`control_proxy` such as `redis` traffic or communication between `magmad` and
+other daemons.
+
+One way to further reduce the performance penalty is to use the TCP tracepoint
+`sock:inet_sock_set_state` instead of `tcp_sendmsg`. `sock:inet_sock_set_state`
+is fired when the kernel changes the state of a socket [3]. We could use this
+event to collect metrics before a socket closes. However, this means that there
+might be precision issues for long-running TCP streams.
 
 A minor performance concern relates to compiling the kernel instrumentation
 code from C to BPF bytecode and loading it onto the kernel. We have benchmarked
@@ -366,31 +361,81 @@ AGW capacity in terms of number of UEs, varying attach/detach rates, data path
 traffic. We will also aim to compensate statistically for the jitter in AGW
 capacity measurements.
 
+## Original design
+
+We have arrived at the above design after a few rounds of discussion and
+feedback from the team. In the original design, we had planned to
+
+- Instrument the `net_dev_start_xmit` event, which is on the L2 network path.
+The authors of `netqtop`, a similar tool included in the BCC distribution, have
+benchmarked their tool and observe 1.17 usec increase in packet "pingpong"
+latency [2]. When they benchmark bandwidth on the loopback interface, they
+observe a drop of around 27% in packets per second (PPS). We also measured [the
+performance impact](#performance-impact-of-l2-instrumentation) and concluded
+that it was too high. To avoid this high penalty, we switched to attaching a
+_kprobe_ to the `tcp_sendmsg` syscall as an L2 hook would have higher
+performance impact. As a consequence, we lost the ability to observe L3 traffic
+such as that generated from the ping and traceroute probes that _magmad_ sends
+periodically. But since those probes should not be consuming much bandwidth, we
+are willing to ignore them.
+
+- Have packet counters in addition to byte counters. We dropped packet counters
+as it is not possible to get accurate packet counts even with
+`net_dev_start_xmit` because of [NIC
+offloading](https://en.wikipedia.org/wiki/TCP_offload_engine).
+
+- Put destination IP address and port as labels on Prometheus counters. Each
+distinct value for a label results in a separate Prometheus time series, and
+since destination IP addresses and ports have very large domains, the overhead
+of having separate time-series would be too high. We instead decided to label
+Magma traffic by destination cloud service.
+
+### Performance impact of L2 instrumentation
+
+We evaluated the performance impact of instrumenting the `net_dev_start_xmit`
+kernel event using the Spirent lab setup as we did for [`tcp_sendmsg`](#performance). Two
+tests were run, one with `net_dev_start_xmit` instrumentation disabled, and one
+with it enabled. Each test had 600 user devices, 5 MB download rate per device,
+and an attach rate of 10. The tests ran for 30 minutes each.
+
+When `net_dev_start_xmit` instrumentation was disabled, the mean download
+throughput was roughly 540 Mbps. When it was enabled, the mean download
+throughput reduced to 430 Mbps, a 20% reduction.
+
+We also stress-tested the `net_dev_start_xmit` instrumentation. The most
+expensive operation in the relevant callback is incrementing a value in the BPF
+hash map. We put the increment operation in a loop and iterated it `n` times.
+When `n = 100`, the mean download throughput reduction was modest: from 430 Mbps
+to 420 Mbps. For `n = 150` and `n = 175`, no noticeable reduction was observed
+compared to `n = 100`. However, at `n = 200`, download throughput collapsed
+completely and produced a mean of around 5.5 Mbps with the peak hitting 75 Mbps.
+This sudden drop in throughput may have to do with excessive packet loss because
+of the slow callback function.
 
 ## References
 
 [1]: Jay Schulist, Daniel Borkmann, Alexei Starovoitov. 2018. Linux Socket
 Filtering aka Berkeley Packet Filter (BPF).
-https://www.kernel.org/doc/Documentation/networking/filter.txt
+<https://www.kernel.org/doc/Documentation/networking/filter.txt>
 
 [2]: yonghong-song. 2020. Netqtop 3037.
-https://github.com/iovisor/bcc/pull/3048
+<https://github.com/iovisor/bcc/pull/3048>
 
 [3]: Brendan Gregg. 2018. TCP Tracepoints.
-https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html
+<https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html>
 
-[4]: pflua-bench. 2016. https://github.com/Igalia/pflua-bench
+[4]: pflua-bench. 2016. <https://github.com/Igalia/pflua-bench>
 
 [5]: Alexei Starovoitov. 2014. net: filter: rework/optimize internal BPF
 interpreter's instruction set.
-https://www.kernel.org/doc/Documentation/networking/filter.txt
+<https://www.kernel.org/doc/Documentation/networking/filter.txt>
 
 [6]: Alexei Starovoitov. 2019. bpf: introduce bounded loops.
-https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5
+<https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5>
 
 [7]: Quentin Monnet. 2021. eBPF Updates #4: In-Memory Loads Detection,
 Debugging QUIC, Local CI Runs, MTU Checks, but No Pancakes.
-https://ebpf.io/blog/ebpf-updates-2021-02
+<https://ebpf.io/blog/ebpf-updates-2021-02>
 
 [8]: Ivan Babrou. 2018. eBPF overhead benchmark.
-https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark
+<https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark>

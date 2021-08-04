@@ -44,10 +44,10 @@ jobs:
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - name: Extract commit title
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        id: commit
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -56,7 +56,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG-precommit tests failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -67,13 +67,34 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - name: Run docker-compose
-        uses: nick-invision/retry@v2
-        with:
-          command: cd ${MAGMA_ROOT}/cwf/gateway/docker && docker-compose build --parallel
-          max_attempts: 2
-          timeout_minutes: 10
-          # TODO bring up the containers and check for crashloops
+      - name: Run docker compose
+        id: cwag-build-docker-compose
+        continue-on-error: true
+        # yamllint disable rule:line-length
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker-compose build --parallel
+      - name: Retry docker compose on failure
+        id: retry-cwag-build-docker-compose
+        continue-on-error: true
+        if: steps.cwag-docker-compose.outcome=='failure'
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker-compose build --parallel
+      - name: Set the job status
+        if: always()
+        run: |
+          if ${{ steps.cwag-build-docker-compose.outcome=='success' || steps.retry-cwag-build-docker-compose.outcome=='success' }}; then
+             echo "Docker compose completed successfully"
+          else
+             echo "Docker compose failed"
+             exit 1
+          fi
+        # TODO bring up the containers and check for crashloops
   cwag-deploy:
     needs:
       - cwag-precommit
@@ -128,11 +149,11 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Extract commit title
+        id: commit
         if: github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -142,7 +163,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG-deploy failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -155,7 +176,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*CWAG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -193,11 +214,11 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${GITHUB_SHA:0:8}" --tag-latest true
       - name: Extract commit title
+        id: commit
         if: github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -207,7 +228,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action xwfm-deploy-latest failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -220,7 +241,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*xwfm Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"

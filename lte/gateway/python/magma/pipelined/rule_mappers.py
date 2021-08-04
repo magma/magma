@@ -221,3 +221,20 @@ class RuleVersionDict(RedisFlatDict):
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
         return None
+
+
+class RestartInfoStore(RedisHashDict):
+    """
+    RuleVersionDict uses the RedisHashDict collection to store
+    latest ovs pid
+    Setting and deleting items in the dictionary syncs with Redis automatically
+    """
+    _DICT_HASH = "pipelined:enforcement_stats_info"
+    def __init__(self):
+        client = get_default_client()
+        super().__init__(client, self._DICT_HASH,
+                         get_json_serializer(), get_json_deserializer())
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return 0 when key not found"""
+        return 0

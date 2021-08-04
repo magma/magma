@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include "mme_default_values.h"
 #include "common_types.h"
+#include "amf_config.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "log.h"
@@ -55,6 +56,7 @@
 #define MIN_GUMMEI 1
 #define MAX_GUMMEI 5
 #define MIN_TAI_SUPPORTED 1
+#define MAX_TAI_SUPPORTED 16
 #define MAX_MCC_LENGTH 3
 #define MAX_MNC_LENGTH 3
 #define MIN_MNC_LENGTH 2
@@ -116,6 +118,12 @@
 #define MME_CONFIG_STRING_S1AP_CONFIG "S1AP"
 #define MME_CONFIG_STRING_S1AP_OUTCOME_TIMER "S1AP_OUTCOME_TIMER"
 #define MME_CONFIG_STRING_S1AP_PORT "S1AP_PORT"
+
+#define MME_CONFIG_STRING_TAC_LIST "TAC_LIST"
+#define MME_CONFIG_STRING_GUAMFI_LIST "GUAMFI_LIST"
+#define MME_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
+#define MME_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
+#define MME_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
 
 #define MME_CONFIG_STRING_GUMMEI_LIST "GUMMEI_LIST"
 #define MME_CONFIG_STRING_MME_CODE "MME_CODE"

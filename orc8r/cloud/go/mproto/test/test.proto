@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 package magma.orc8r.mproto_test;
-option go_package = "test";
+option go_package = "magma/orc8r/cloud/go/mproto/test";
 
 // TestDataBasic contains basic field types for testing deterministic encoding.
 message TestDataBasic {

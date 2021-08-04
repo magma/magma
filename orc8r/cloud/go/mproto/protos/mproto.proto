@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 package magma.orc8r.mproto;
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/mproto/protos";
 
 // ProtosByID is a set of protobuf messages, all individually encoded & paired with unique identifiers.
 message ProtosByID {

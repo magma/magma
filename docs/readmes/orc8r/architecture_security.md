@@ -73,5 +73,6 @@ At the the *northbound interface*, only operator identities are allowed to make 
 the requested REST resources.
 
 For more information, see the following servicer definitions
+
 - [`access.proto`](https://github.com/magma/magma/blob/master/orc8r/cloud/go/services/accessd/protos/access.proto) access control
 - [`certifier.proto`](https://github.com/magma/magma/blob/master/orc8r/cloud/go/services/certifier/protos/certifier.proto) certificate management

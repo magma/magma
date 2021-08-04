@@ -54,6 +54,7 @@
 #include "log.h"
 #include "common_defs.h"
 #include "mme_config.h"
+#include "amf_config.h"
 #include "3gpp_33.401.h"
 #include "intertask_interface_conf.h"
 #include "3gpp_23.003.h"

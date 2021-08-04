@@ -22,6 +22,7 @@ import glob
 import os
 import shutil
 import subprocess
+import sys
 from collections import namedtuple
 from typing import Iterable, List, Optional
 
@@ -70,6 +71,8 @@ MagmaModule = namedtuple('MagmaModule', ['name', 'host_path'])
 
 
 def main() -> None:
+    _check_assumptions()
+
     args = _parse_args()
     mods = _get_modules(DEPLOYMENT_TO_MODULES[args.deployment])
 
@@ -107,6 +110,21 @@ def main() -> None:
         _run(d_args)
 
 
+def _check_assumptions():
+    """Checks assumptions about environment."""
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    if cwd != os.getcwd():
+        sys.exit("Must run from orc8r/cloud/docker directory")
+
+    if 'PWD' not in os.environ:
+        msg = (
+            "$PWD environment variable must be set.\n"
+            "Normally this is set by your shell. Try running without sudo, "
+            "then try explicitly setting the PWD env var."
+        )
+        sys.exit(msg)
+
+
 def _get_modules(mods: Iterable[str]) -> Iterable[MagmaModule]:
     """
     Read the modules config file and return all modules specified.
@@ -141,7 +159,7 @@ def _run(cmd: List[str]) -> None:
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as err:
-        exit(err.returncode)
+        sys.exit(err.returncode)
 
 
 def _get_mnt_vols(modules: Iterable[MagmaModule]) -> List[str]:

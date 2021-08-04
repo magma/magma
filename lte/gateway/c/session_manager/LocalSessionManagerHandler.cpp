@@ -77,8 +77,12 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
                 << " old epoch = " << current_epoch_
                 << ", new epoch = " << reported_epoch_;
+
     enforcer_->get_event_base().runInEventBaseThread(
-        [this, epoch = reported_epoch_]() { call_setup_pipelined(epoch); });
+        [this, epoch = reported_epoch_,
+         update_rule_versions = request_cpy.update_rule_versions()]() {
+          call_setup_pipelined(epoch, update_rule_versions);
+        });
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
   }
@@ -167,12 +171,12 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     }
 
     enforcer_->get_event_base().runAfterDelay(
-        [=] { call_setup_pipelined(epoch); }, retry_timeout_ms_.count());
+        [=] { call_setup_pipelined(epoch, false); }, retry_timeout_ms_.count());
   });
 }
 
 void LocalSessionManagerHandlerImpl::call_setup_pipelined(
-    const std::uint64_t& epoch) {
+    const std::uint64_t& epoch, const bool update_rule_versions) {
   using namespace std::placeholders;
   if (pipelined_state_ == PipelineDState::SETTING_UP) {
     // Return if there is already a Setup call in progress
@@ -185,8 +189,13 @@ void LocalSessionManagerHandlerImpl::call_setup_pipelined(
   }
   pipelined_state_ = PipelineDState::SETTING_UP;
 
-  MLOG(MINFO) << "Sending a setup call to PipelineD with epoch: " << epoch;
   auto session_map = session_store_.read_all_sessions();
+  if (update_rule_versions) {
+    MLOG(MINFO) << "Incrementing all policy version for pipelined setup";
+    enforcer_->increment_all_policy_versions(session_map);
+  }
+
+  MLOG(MINFO) << "Sending a setup call to PipelineD with epoch: " << epoch;
   enforcer_->setup(
       session_map, epoch,
       std::bind(

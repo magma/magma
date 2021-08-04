@@ -8,12 +8,12 @@ hide_title: true
 Alerts are an important part of our NMS. We highly recommend the operators to run their networks with alerts always turned on. Without alerts, it is impossible to debug any potential issues happening on the network in a timely fashion.
 In this guide we will discuss
 
-* Viewing Alerts
-* Alert receiver configuration
-* Alert rules configuration
-    * Predefined alerts
-    * Custom Alerts
-* Troubleshooting
+- Viewing Alerts
+- Alert receiver configuration
+- Alert rules configuration
+    - Predefined alerts
+    - Custom Alerts
+- Troubleshooting
 
 ## Viewing alerts
 
@@ -21,6 +21,7 @@ In this guide we will discuss
 
 Alert dashboard displays the current firing alerts in a table tabbed by severity. In each of the columns we additionally display the labels passed along with the alert.
 ![viewing_alerts_1](assets/nms/userguide/alerts/viewing_alerts1.png)
+
 ### Alarm component’s Alert Tab
 
 Alerts can also be viewed from the alert tab in the Alarm table.
@@ -33,22 +34,26 @@ An alert Receiver is created to push the alert notification in real time so that
 
 ### Example: Adding Slack Channel as Alert Receiver
 
-**Generate Slack Webhook URL:**
+#### Generate Slack Webhook URL
 
-* Create an App: Go to https://api.slack.com/apps?new_app=1 and click on “Create New App”. Enter the App Name and the Slack Workspace.
-* Click on “Incoming Webhooks” and change “Active Incoming Webhooks” to On
+- Create an App: Go to <https://api.slack.com/apps?new_app=1> and click on “Create New App”. Enter the App Name and the Slack Workspace.
+- Click on “Incoming Webhooks” and change “Active Incoming Webhooks” to On
 
-![alert_recv1](assets/nms/userguide/alerts/alert_recv1.png)
-* Scroll down and create a new Webhook by clicking on “Add New Webhook to Workspace”. Select the Slack Channel name.
+    ![alert_recv1](assets/nms/userguide/alerts/alert_recv1.png)
 
-![alert_recv2](assets/nms/userguide/alerts/alert_recv2.png)
-* Copy the “Webhook URL” once it is generated.
+- Scroll down and create a new Webhook by clicking on “Add New Webhook to Workspace”. Select the Slack Channel name.
 
-![alert_recv3](assets/nms/userguide/alerts/alert_recv3.png)
-**Create a new Alert Receiver in NMS:**
+    ![alert_recv2](assets/nms/userguide/alerts/alert_recv2.png)
+
+- Copy the “Webhook URL” once it is generated.
+
+    ![alert_recv3](assets/nms/userguide/alerts/alert_recv3.png)
+
+#### Create a new Alert Receiver in NMS
+
 ![alert_recv4](assets/nms/userguide/alerts/alert_recv4.png)
 
-**Testing the newly added alert receiver**
+#### Testing the newly added alert receiver
 
 Add a dummy alert to verify if the alert receiver is indeed working. A dummy alert expression can be constructed
 with a PromQL advanced expresssion of `vector(1)` as shown below.
@@ -69,34 +74,37 @@ Magma NMS comes loaded with some default set of alert rules. These default rules
 ![alerts2](assets/nms/userguide/alerts/alerts2.png)
 
 Currently predefined alerts configure following alerts
-* CPU percent on the gateway is running > 75% in last 5 minutes
-* Unsuccessful S1 setup in last 5 minutes
-* S6A authorization failures in last 5 minutes
-* Upon exceptions when bootstrapping a gateway in last 5 minutes
-* When services were restarted unexpectedly in last 5 minutes
-* When a UE attach resulted in a failure in last 5 minutes
-* When there were any service restarts in last 5 minutes
 
-**Note:** Operator will have to go and additionally specify the receiver in each of these alerts when they want to be notified of the alerts as follows,
+- CPU percent on the gateway is running > 75% in last 5 minutes
+- Unsuccessful S1 setup in last 5 minutes
+- S6A authorization failures in last 5 minutes
+- Upon exceptions when bootstrapping a gateway in last 5 minutes
+- When services were restarted unexpectedly in last 5 minutes
+- When a UE attach resulted in a failure in last 5 minutes
+- When there were any service restarts in last 5 minutes
+
+> Note Operator will have to go and additionally specify the receiver in each of these alerts when they want to be notified of the alerts as follows
+
 ![alerts3](assets/nms/userguide/alerts/alerts3.png)
 
 ### Custom Alert Rules
 
 Operators can create custom alert rules by creating an expression based on metrics.
 
-**Metrics Overview**
+#### Metrics Overview
+
 Magma gateways collect various metrics at a regular intervals and push them into Orchestrator. Orchestrator stores these metrics in a Prometheus instance. The Prometheus instance along with AlertManager provides us support in querying various metrics on the system and setting alerts based on that.
 
 [We currently support following metrics on our Access gateways.](metrics#list-of-metrics-which-are-currently-available)
 
-**Custom Alert Configuration**
+#### Custom Alert Configuration
 
 An alert configuration consists of
 
-* Name/Description of the alert
-* Alert Definition
-* Alert receiver to be notified when the alert is fired (optional)
-* Additional labels which can be added to provide more information about the alert. (optional)
+- Name/Description of the alert
+- Alert Definition
+- Alert receiver to be notified when the alert is fired (optional)
+- Additional labels which can be added to provide more information about the alert. (optional)
 
 Alert definition consists of a metric expression (a [Prometheus PromQL expression](https://prometheus.io/docs/prometheus/latest/querying/basics/)) and a duration attribute which specifies the time for the expression to be true, following which the alert is fired.
 ![alerts5](assets/nms/userguide/alerts/alerts5.png)
@@ -112,64 +120,68 @@ In case of an advanced expression([PromQL cheatsheet](https://promlabs.com/promq
 type the advanced promQL expression directly in the textbox
 ![advanced_alert](assets/nms/userguide/alerts/advanced_alert.png)
 
-
 The following examples show how we can create custom alerts on the above mentioned metrics.
 
-**eNB Down Alert:**
+#### eNB Down Alert
+
 This alert will fire if eNB Rf Tx is down in any of the gateways in your network.
 
 Expression:
 
-```
+```promql
 sum by(gatewayID) (enodeb_rf_tx_enabled{networkID="<your network ID>"} < 1)
 ```
 
 Duration:
 10 minutes
 
-**No Connected eNB Alert:**
+#### No Connected eNB Alert
+
 This alert will fire if the connected eNB count falls to ‘0’ for any of the gateways in your network.
 
 Simple: Select “enb_connected” metric from the dropdown and construct the if statement as **“if enb_connected < 1”**
 
 Advanced Expression:
 
-```
+```promql
 enb_connected{networkID="<your network ID>"} < 1
 ```
 
 Duration:
 5 minutes
 
-**Free Memory is < 10 Alert:**
+#### Free Memory is < 10 Alert
+
 This alert will fire if the free memory of any of the gateways in your network is less than 10%
 
 Advanced Expression:
 
-```
+```promql
 ((1 - avg_over_time(mem_available{networkID="mpk_dogfooding"}[5m]) / avg_over_time(mem_total{networkID="mpk_dogfooding"}[5m])) * 100) > 90
 ```
 
 Duration:
 15 minutes
 
-**High Disk Usage Alert:**
+#### High Disk Usage Alert
+
 This alert will fire if the disk usage of any of the gateways in your network is more than 80%
 Simple Way: Select “disk*_percent*” metric from the dropdown and construct the if statement as **“if disk*_percent* > 80”**
 Advanced Expression:
 
-```
+```promql
 (disk_percent{networkID="<your network ID>"}) > 80
 ```
 
 Duration:
 15 minutes
 
-**Attach Success Rate Alert:**
+#### Attach Success Rate Alert
+
 This alert will fire if the attach success rate of any of the gateways in your network is less than 50% for a 3h window.
 Expression:
 
-```
+```promql
 (sum by(gatewayID) (increase(ue_attach{action="attach_accept_sent",networkID="<your network ID>"}[3h]))) * 100 / (sum by(gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort",networkID="<your network ID>"}[3h]))) < 50
 ```
 
@@ -181,13 +193,13 @@ ue_attach metric is tagged with action, networkID labels. Action labels can cont
 Here we are computing the percentage of the increase in ue_attach counter for a successful attach against all ue_attach actions including rejected and aborted
 actions and triggering an alert if the success rate for the ue_attach action is less than 50%.
 
+#### Dip in User Plane Throughput Alert
 
-**Dip in User Plane Throughput Alert:**
 This alert will fire if for any of the gateway in your network, the User Plane throughput dips by over 70% when compared day-over-day.
 
 Expression:
 
-```
+```promql
 (sum by(gatewayID) (((rate(pdcp_user_plane_bytes_dl{networkID="<your network ID>"}[1h])) - (rate(pdcp_user_plane_bytes_dl{networkID="<your network ID>"}[1h] offset 1d))) / (rate(pdcp_user_plane_bytes_dl{networkID="<your network ID>"}[1h] offset 1d))) < -0.7)
 ```
 
@@ -199,7 +211,7 @@ This alert will fire if for any of the gateway in your network, connected UEs di
 
 Expression:
 
-```
+```promql
 (ue_connected{networkID="<your network ID>"} - ue_connected{networkID="<your network ID>"} offset 1d) / (ue_connected{networkID="<your network ID>"}) < -0.5
 ```
 
@@ -207,13 +219,14 @@ Duration:
 15 minutes
 
 ## REST API for alerts
+
 ![api](assets/nms/userguide/alerts/alerts_api.png)
 
 ## Troubleshooting
 
 In case we are having issues with alerts. Logs from the following services will give more information on debugging this further.
 
-```
+```bash
 kubectl --namespace orc8r logs -l [app.kubernetes.io/component=alertmanager](http://app.kubernetes.io/component=alertmanager)
 kubectl --namespace orc8r logs -l [app.kubernetes.io/component=alertmanager-configurer](http://app.kubernetes.io/component=alertmanager-configurer)
 kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus-configurer -c prometheus-configurer
