@@ -324,7 +324,8 @@ int main(int argc, char* argv[]) {
 
   uint32_t max_shard_size;
   if (!config["max_shard_size"].IsDefined()) {
-    MLOG(MINFO) << "Using default max shard size";
+    MLOG(MINFO) << "Using default max shard size of "
+                << DEFAULT_MAX_SHARD_SIZE;
     max_shard_size = DEFAULT_MAX_SHARD_SIZE;
   } else {
     max_shard_size = config["max_shard_size"].as<uint32_t>();
