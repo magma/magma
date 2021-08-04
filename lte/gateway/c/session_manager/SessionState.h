@@ -121,6 +121,7 @@ class SessionState {
     uint32_t ver_no;
     NodeId nodeId;
     FSid Seid;
+    uint16_t shard_id;
     // 5G specific extension routines
   };
 

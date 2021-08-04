@@ -83,6 +83,11 @@ class ServiceAction {
     return *this;
   }
 
+  ServiceAction& set_imsi(const uint16_t shard_id) {
+    shard_id_ = shard_id;
+    return *this;
+  }
+
   /**
    * get_imsi returns the associated IMSI for the action, or throws a nullptr
    * exception if there is none stored
@@ -111,6 +116,8 @@ class ServiceAction {
 
   const std::string& get_msisdn() const { return *msisdn_; }
 
+  const int get_shard_id() const { return shard_id_; }
+
   // RulesToProcess
   RulesToProcess get_gx_rules_to_install() const { return gx_to_install_; }
   RulesToProcess* get_mutable_gx_rules_to_install() { return &gx_to_install_; }
@@ -130,6 +137,7 @@ class ServiceAction {
   optional<AggregatedMaximumBitrate> ambr_;
   RulesToProcess gx_to_install_;
   RulesToProcess gy_to_install_;
+  int shard_id_;
 };
 
 }  // namespace magma

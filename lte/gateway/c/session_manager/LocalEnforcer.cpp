@@ -491,8 +491,9 @@ void LocalEnforcer::handle_activate_service_action(
   const Teids teids           = action_p->get_teids();
   const auto ambr             = action_p->get_ambr();
   RulesToProcess to_process   = action_p->get_gx_rules_to_install();
+  int shard_id                = action_p->get_shard_id();
   pipelined_client_->activate_flows_for_rules(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process, shard_id,
       std::bind(
           &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
           ip_addr, ipv6_addr, teids, _1, _2));
@@ -635,13 +636,14 @@ void LocalEnforcer::install_final_unit_action_flows(
                     session_id = action_p->get_session_id();
   const Teids teids            = action_p->get_teids();
   const auto fua_type          = action_p->get_type();
+  const int shard_id           = action_p->get_shard_id();
 
   MLOG(MINFO) << "Installing final unit action "
               << service_action_type_to_str(fua_type) << " flows for "
               << session_id;
   RulesToProcess to_process = action_p->get_gy_rules_to_install();
   pipelined_client_->add_gy_final_action_flow(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
+      imsi, ip_addr, ipv6_addr, teids, msisdn, to_process, shard_id);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
@@ -776,13 +778,14 @@ void LocalEnforcer::schedule_static_rule_activation(
         const Teids teids         = config.common_context.teids();
         const auto ambr           = config.get_apn_ambr();
         const std::string msisdn  = config.common_context.msisdn();
+        const int shard_id        = session->get_shard_id();
 
         RulesToProcess to_process;
         to_process.push_back(session->activate_static_rule(
             rule_id, session->get_rule_lifetime(rule_id), &uc));
 
         pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
+            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process, shard_id,
             std::bind(
                 &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
                 ip_addr, ipv6_addr, teids, _1, _2));
@@ -829,6 +832,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
         const Teids teids    = config.common_context.teids();
         const auto ambr      = config.get_apn_ambr();
         const auto msisdn    = config.common_context.msisdn();
+        const int shard_id   = session->get_shard_id();
 
         PolicyRule rule;
         if (!session->remove_scheduled_dynamic_rule(
@@ -842,7 +846,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
             rule, session->get_rule_lifetime(rule_id), &session_uc));
 
         pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
+            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process, shard_id,
             std::bind(
                 &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
                 ip_addr, ipv6_addr, teids, _1, _2));
@@ -1002,7 +1006,8 @@ void LocalEnforcer::handle_session_activate_rule_updates(
   // when no rule is provided as the parameter.
   const SessionConfig& config = session.get_config();
   propagate_rule_updates_to_pipelined(
-      config, pending_activation, pending_deactivation, true);
+      config, pending_activation, pending_deactivation, true,
+      session.get_shard_id());
 
   if (config.common_context.rat_type() == TGPP_LTE) {
     BearerUpdate bearer_updates = session.get_dedicated_bearer_updates(
@@ -1027,16 +1032,26 @@ void LocalEnforcer::add_ue_to_shard(
   auto sm_it     = session_map.find(imsi);
   auto& sessions = sm_it->second;
   // Check if UE has other sessions and reuse shard_id if so
-  for (auto session_it = sessions.begin(); session_it != sessions.end();
+  /*if (sm_it != session_map.end()){
+    std::cout << "Not the first session for shard\n";
+    session.set_shard_id(sessions[0]->get_shard_id());
+    std::cout << "The shard id set is: " << session.get_shard_id()
+                << "\n";
+    return;
+  }*/
+  /*for (auto session_it = sessions.begin(); session_it != sessions.end();
        ++session_it) {
     if ((*session_it)->get_session_id() != session.get_session_id()) {
       session.set_shard_id((*session_it)->get_shard_id());
+      std::cout << "The shard id set is: " << session.get_shard_id()
+                << "\n";
       return;
     }
-  }
+  }*/
   // if the UE doesn't have any other sessions, add to shard tracker and set id
   int shard_id = shard_tracker_->add_ue(imsi);
   session.set_shard_id(shard_id);
+  std::cout << "The shard id set is: " << session.get_shard_id() << "\n";
 }
 
 bool LocalEnforcer::remove_ue_from_shard(
@@ -1317,7 +1332,8 @@ void LocalEnforcer::remove_rules_for_suspended_credit(
   RulesToProcess rules_to_remove;
   session->get_rules_per_credit_key(ckey, &rules_to_remove, session_uc);
   propagate_rule_updates_to_pipelined(
-      session->get_config(), RulesToProcess{}, rules_to_remove, false);
+      session->get_config(), RulesToProcess{}, rules_to_remove, false,
+      session->get_shard_id());
 }
 
 void LocalEnforcer::add_rules_for_multiple_unsuspended_credit(
@@ -1355,7 +1371,8 @@ void LocalEnforcer::add_rules_for_unsuspended_credit(
   RulesToProcess rules_to_add;
   session->get_rules_per_credit_key(ckey, &rules_to_add, session_uc);
   propagate_rule_updates_to_pipelined(
-      session->get_config(), rules_to_add, RulesToProcess{}, false);
+      session->get_config(), rules_to_add, RulesToProcess{}, false,
+      session->get_shard_id());
 }
 
 bool LocalEnforcer::handle_credit_update_failure(
@@ -1499,7 +1516,8 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     handle_rule_scheduling(imsi, session_id, pending_scheduling);
 
     propagate_rule_updates_to_pipelined(
-        config, pending_activation, pending_deactivation, false);
+        config, pending_activation, pending_deactivation, false,
+        session->get_shard_id());
 
     if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
       actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
@@ -1642,7 +1660,8 @@ void LocalEnforcer::handle_set_session_rules(
 
       // Propagate these rule changes to PipelineD and MME (if 4G)
       propagate_rule_updates_to_pipelined(
-          config, pending_activation, pending_deactivation, false);
+          config, pending_activation, pending_deactivation, false,
+          session->get_shard_id());
       if (config.common_context.rat_type() == TGPP_LTE) {
         const BearerUpdate update = session->get_dedicated_bearer_updates(
             pending_bearer_setup, pending_deactivation, &uc);
@@ -1746,7 +1765,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
   handle_rule_scheduling(imsi, session->get_session_id(), pending_scheduling);
 
   propagate_rule_updates_to_pipelined(
-      session->get_config(), pending_activation, pending_deactivation, false);
+      session->get_config(), pending_activation, pending_deactivation, false,
+      session->get_shard_id());
 
   if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
     start_session_termination(session, true, &uc);
@@ -1759,7 +1779,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
 void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const SessionConfig& config, const RulesToProcess& pending_activation,
-    const RulesToProcess& pending_deactivation, bool always_send_activate) {
+    const RulesToProcess& pending_deactivation, bool always_send_activate,
+    uint16_t shard_id) {
   const std::string& imsi = config.get_imsi();
   const auto ip_addr      = config.common_context.ue_ipv4();
   const auto ipv6_addr    = config.common_context.ue_ipv6();
@@ -1777,6 +1798,7 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const auto msisdn = config.common_context.msisdn();
     pipelined_client_->activate_flows_for_rules(
         imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, pending_activation,
+        shard_id,
         std::bind(
             &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
             ip_addr, ipv6_addr, teids, _1, _2));
@@ -2101,7 +2123,8 @@ void LocalEnforcer::install_rule_after_bearer_creation(
               << " after allocating a dedicated bearer";
   RulesToProcess pending_activation{session.make_rule_to_process(*op_rule)};
   propagate_rule_updates_to_pipelined(
-      session.get_config(), pending_activation, {}, false);
+      session.get_config(), pending_activation, {}, false,
+      session.get_shard_id());
 }
 
 void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
@@ -2131,7 +2154,8 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
   if (remove_info) {
     RulesToProcess pending_deactivation{*remove_info};
     propagate_rule_updates_to_pipelined(
-        session.get_config(), {}, pending_deactivation, false);
+        session.get_config(), {}, pending_deactivation, false,
+        session.get_shard_id());
   }
 }
 

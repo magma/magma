@@ -14,8 +14,10 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <iostream>
 
 #include "ShardTracker.h"
+#include "magma_logging.h"
 
 namespace magma {
 
@@ -25,20 +27,29 @@ ShardTracker::ShardTracker() {
 }
 
 uint16_t ShardTracker::add_ue(const std::string imsi) {
-  for (size_t shard_id = 0; shard_id < imsis_per_shard_.size(); shard_id++) {
+  MLOG(MINFO) << "The max size for a shard is: " << max_shard_size_;
+  for (size_t shard_id = 0; shard_id < get_shard_list_size(); shard_id++) {
     // If the UE is already in the shard, return the shard id. This check
     // is meant to avoid multiple sessions for a UE being assigned duplicate
     // entries.
+    if (imsis_per_shard_[shard_id].find(imsi) !=
+        imsis_per_shard_[shard_id].end()) {
+      return shard_id;
+    }
     std::set<std::string>& imsis_at_id = imsis_per_shard_[shard_id];
     // If the shard has space, insert the UE
     if (imsis_at_id.size() < max_shard_size_) {
-      imsis_at_id.insert(imsi);
+      imsis_per_shard_[shard_id].insert(imsi);
+      std::cout << "\nThe size of this shard entry is: \n"
+                << imsis_per_shard_[shard_id].size() << "\n";
       return shard_id;
     }
   }
   // If all shards are filled, add a new shard and insert the UE,
   // return it's index
   imsis_per_shard_.push_back({imsi});
+  std::cout << "\nThe size of this shard entry is: "
+            << imsis_per_shard_[imsis_per_shard_.size() - 1].size() << "\n";
   return imsis_per_shard_.size() - 1;
 }
 

@@ -216,6 +216,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
+            logging.error("shard id is: " + request.shard_id)
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")

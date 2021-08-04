@@ -126,14 +126,14 @@ class MockPipelinedClient : public PipelinedClient {
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const std::vector<Teids>& teids,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD8(
+  MOCK_METHOD9(
       activate_flows_for_rules,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-          const RulesToProcess to_process,
+          const RulesToProcess to_process, uint16_t shard_id,
           std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
       add_ue_mac_flow,
@@ -154,12 +154,13 @@ class MockPipelinedClient : public PipelinedClient {
   MOCK_METHOD2(
       delete_ue_mac_flow,
       void(const SubscriberID& sid, const std::string& ue_mac_addr));
-  MOCK_METHOD6(
+  MOCK_METHOD7(
       add_gy_final_action_flow,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::string& msisdn, const RulesToProcess to_process));
+          const std::string& msisdn, const RulesToProcess to_process,
+          uint16_t shard_id));
   MOCK_METHOD2(
       set_upf_session,
       void(

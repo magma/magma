@@ -120,7 +120,7 @@ magma::ActivateFlowsRequest make_activate_req(
     const std::string& ipv6_addr, const magma::Teids teids,
     const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
-    const magma::RequestOriginType_OriginType origin_type) {
+    const magma::RequestOriginType_OriginType origin_type, uint16_t shard_id) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
@@ -132,6 +132,7 @@ magma::ActivateFlowsRequest make_activate_req(
   if (ambr) {
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
+  req.set_shard_id(shard_id);
   return req;
 }
 
@@ -156,12 +157,13 @@ magma::ActivateReqByTeids make_activate_req_by_teid(
     const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
     const magma::RulesToProcess& to_process,
-    const magma::RequestOriginType_OriginType origin_type) {
+    const magma::RequestOriginType_OriginType origin_type, uint16_t shard_id) {
   magma::ActivateReqByTeids activate_req_by_teids;
   if (to_process.empty()) {
     // Send an empty request with the default teid
     activate_req_by_teids[default_teids] = make_activate_req(
-        imsi, ip_addr, ipv6_addr, default_teids, msisdn, ambr, origin_type);
+        imsi, ip_addr, ipv6_addr, default_teids, msisdn, ambr, origin_type,
+        shard_id);
     return activate_req_by_teids;
   }
 
@@ -170,7 +172,8 @@ magma::ActivateReqByTeids make_activate_req_by_teid(
     if (activate_req_by_teids.find(dedicated_teids) ==
         activate_req_by_teids.end()) {
       activate_req_by_teids[dedicated_teids] = make_activate_req(
-          imsi, ip_addr, ipv6_addr, dedicated_teids, msisdn, ambr, origin_type);
+          imsi, ip_addr, ipv6_addr, dedicated_teids, msisdn, ambr, origin_type,
+          shard_id);
     }
     auto versioned_policy =
         activate_req_by_teids[dedicated_teids].mutable_policies()->Add();
@@ -219,14 +222,14 @@ magma::SetupPolicyRequest create_setup_policy_req(
   for (auto it = infos.begin(); it != infos.end(); it++) {
     magma::ActivateReqByTeids gx_activate_reqs = make_activate_req_by_teid(
         it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, it->ambr,
-        it->gx_rules, magma::RequestOriginType::GX);
+        it->gx_rules, magma::RequestOriginType::GX, it->shard_id);
     for (auto& activate_pair : gx_activate_reqs) {
       mut_requests->Add()->CopyFrom(activate_pair.second);
     }
 
     magma::ActivateReqByTeids gy_activate_reqs = make_activate_req_by_teid(
         it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, {},
-        it->gy_dynamic_rules, magma::RequestOriginType::GY);
+        it->gy_dynamic_rules, magma::RequestOriginType::GY, it->shard_id);
     for (auto& activate_pair : gy_activate_reqs) {
       mut_requests->Add()->CopyFrom(activate_pair.second);
     }
@@ -373,14 +376,14 @@ void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
-    const RulesToProcess to_process,
+    const RulesToProcess to_process, uint16_t shard_id,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << to_process.size() << " rules for " << imsi
                << " msisdn " << msisdn << " and ip " << ip_addr << " "
                << ipv6_addr;
   ActivateReqByTeids reqs = make_activate_req_by_teid(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
-      RequestOriginType::GX);
+      RequestOriginType::GX, shard_id);
   for (auto& activate_pair : reqs) {
     activate_flows_rpc(activate_pair.second, callback);
   }
@@ -446,11 +449,11 @@ void AsyncPipelinedClient::poll_stats(
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const RulesToProcess to_process) {
+    const RulesToProcess to_process, const uint16_t shard_id) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   ActivateReqByTeids reqs = make_activate_req_by_teid(
       imsi, ip_addr, ipv6_addr, teids, msisdn, {}, to_process,
-      RequestOriginType::GY);
+      RequestOriginType::GY, shard_id);
   auto cb = [imsi](Status status, ActivateFlowsResult resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not activate GY flows through pipelined for UE "
