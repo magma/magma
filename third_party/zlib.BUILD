@@ -1,4 +1,5 @@
-# Copied from https://github.com/protocolbuffers/protobuf/blob/master/third_party/zlib.BUILD
+# Taken from https://github.com/bazelbuild/bazel-federation third_party/zlib.BUILD @ 6ad33bc586701e9836a2bf4432c7aff1235b04d2
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # BSD/MIT-like license (for zlib)

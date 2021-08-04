@@ -3,12 +3,8 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     # TODO(@themarwhal) The library name will match the file names once we resolve GH8467
     name = "async_grpc_receiver",
-    srcs = [
-        "GRPCReceiver.cpp",
-    ],
-    hdrs = [
-        "includes/GRPCReceiver.h",
-    ],
+    srcs = ["GRPCReceiver.cpp"],
+    hdrs = ["includes/GRPCReceiver.h"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/async_grpc",
     deps = [

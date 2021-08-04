@@ -19,14 +19,8 @@ cc_library(
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/service303",
     deps = [
-        "//orc8r/gateway/c/common/config:service_config_loader",
-        "//orc8r/gateway/c/common/logging",
         "//orc8r/gateway/c/common/service_registry",
-        "//orc8r/protos:metrics_cpp_proto",
-        "//orc8r/protos:metricsd_cpp_proto",
         "//orc8r/protos:service303_cpp_grpc",
-        "@com_github_grpc_grpc//:grpc++",
         "@prometheus_cpp//:prometheus-cpp",
-        "@yaml-cpp//:yaml-cpp",
     ],
 )

@@ -4,7 +4,7 @@ load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 package(default_visibility = ["//visibility:public"])
 
 cpp_proto_library(
-    name = "metrics_cpp_proto",
+    name = "prometheus_client_model",
     protos = [":metrics_proto"],
 )
 

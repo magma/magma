@@ -1,6 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("//:third_party_repositories.bzl", "boost", "cpp_testing_deps", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yamlcpp", "zlib")
+load("//:third_party_repositories.bzl", "boost", "cpp_testing_deps", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp", "zlib")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -74,7 +74,7 @@ rules_cc_dependencies()
 ### PROTO / GRPC DEPENDENCIES ###
 protobuf()
 
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 protobuf_deps()
 
@@ -108,12 +108,11 @@ load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 
 boost_deps()
 
-yamlcpp()
+yaml_cpp()
 
 nlohmann_json()
 
 prometheus_cpp_deps()
-
 ### Dependencies for orc8r/gateway/c/common
 
 ### DEPENDENCY FOR TESTING

@@ -9,11 +9,6 @@ cpp_proto_library(
     protos = [":common_proto"],
 )
 
-cpp_grpc_library(
-    name = "common_cpp_grpc",
-    protos = [":common_proto"],
-)
-
 proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
@@ -22,26 +17,17 @@ proto_library(
 cpp_grpc_library(
     name = "eventd_cpp_grpc",
     protos = [":eventd_proto"],
-    deps = [
-        ":common_cpp_grpc",
-    ],
+    deps = [":common_cpp_proto"],
 )
 
 proto_library(
     name = "eventd_proto",
     srcs = ["eventd.proto"],
-    deps = [
-        ":common_proto",
-    ],
+    deps = [":common_proto"],
 )
 
 cpp_proto_library(
     name = "redis_cpp_proto",
-    protos = [":redis_proto"],
-)
-
-cpp_grpc_library(
-    name = "redis_cpp_grpc",
     protos = [":redis_proto"],
 )
 
@@ -54,9 +40,7 @@ proto_library(
     name = "mconfigs_proto",
     srcs = ["mconfig/mconfigs.proto"],
     strip_import_prefix = "mconfig/",
-    deps = [
-        ":common_proto",
-    ],
+    deps = [":common_proto"],
 )
 
 cpp_proto_library(
@@ -112,6 +96,6 @@ proto_library(
     deps = [
         ":common_proto",
         ":metricsd_proto",
-        "@com_google_protobuf//:wrappers_proto",
+        "@protobuf//:wrappers_proto",
     ],
 )

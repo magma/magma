@@ -1,8 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-def yamlcpp():
+def yaml_cpp():
     http_archive(
         name = "yaml-cpp",
         strip_prefix = "yaml-cpp-yaml-cpp-0.7.0",
@@ -25,6 +24,7 @@ def nlohmann_json():
     http_archive(
         name = "github_nlohmann_json",
         build_file = "//third_party:nlohmann_json.BUILD",
+        sha256 = "69cc88207ce91347ea530b227ff0776db82dcb8de6704e1a3d74f4841bc651cf",
         urls = [
             "https://github.com/nlohmann/json/releases/download/v3.6.1/include.zip",
         ],
@@ -40,7 +40,9 @@ def boost():
 
 def protobuf():
     git_repository(
-        name = "com_google_protobuf",
+        # The name is protobuf here as that is what prometheus-cpp expects
+        # See https://github.com/jupp0r/prometheus-cpp.git @ d8326b2bba945a435f299e7526c403d7a1f68c1f
+        name = "protobuf",
         # TODO(@themarwhal): Upgrade to latest release once we resolve GH8457
         commit = "ae50d9b9902526efd6c7a1907d09739f959c6297",
         remote = "https://github.com/protocolbuffers/protobuf",
@@ -80,9 +82,8 @@ def prometheus_cpp_deps():
         remote = "https://github.com/civetweb/civetweb.git",
     )
 
-    new_git_repository(
+    git_repository(
         name = "prometheus_cpp",
-        build_file = "//:third_party/prometheus-cpp.BUILD",
         commit = "d8326b2bba945a435f299e7526c403d7a1f68c1f",
         remote = "https://github.com/jupp0r/prometheus-cpp.git",
     )
