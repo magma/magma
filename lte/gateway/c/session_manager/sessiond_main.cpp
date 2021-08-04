@@ -347,8 +347,6 @@ int main(int argc, char* argv[]) {
   // Start off a thread to periodically poll stats from Pipelined
   // every fixed interval of time
   std::thread periodic_stats_requester_thread;
-  uint32_t interval;
-  MLOG(MINFO) << "Calling poll stats requester thread";
   if (config["enable_pull_stats"].IsDefined() &&
       config["enable_pull_stats"].as<bool>()) {
     auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
@@ -356,7 +354,6 @@ int main(int argc, char* argv[]) {
     periodic_stats_requester_thread = std::thread([&]() {
       // random value assigned for interval period, the value will be loaded
       // from a config field later
-      MLOG(MINFO) << "Inside of poll request thread";
       periodic_stats_requester->start_loop(local_enforcer, shard_tracker);
     });
   }

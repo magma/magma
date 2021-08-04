@@ -58,6 +58,8 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+import ryu.app.ofctl.api as ofctl_api
+from ryu.app.ofctl.exception import (InvalidDatapath, OFError, UnexpectedMultiReply)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -594,34 +596,30 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
-        Send a stats request containing cookie and cookie mask,
-        wait for response from OVS using a future, retrieve a response and
-        convert to a Rule Record Table and remove old flows
+        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
+        convert to a Rule Record Table
         """
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
             return RuleRecordTable()
+        parser = self._datapath.ofproto_parser
+        message = parser.OFPFlowStatsRequest(datapath=self._datapath, table_id = self.tbl_num, cookie = cookie, cookie_mask = cookie_mask)
         try:
-            xid = flows.send_stats_request(self._datapath, self.tbl_num, cookie,
-                                           cookie_mask)
-            self._poll_futures[xid] = Future()
-            res = self._poll_futures[xid].result(timeout=self._stats_wait_timeout)
-            del self._poll_futures[xid]
-
-            if not res:
+            response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
+                    reply_multi=True)
+            if response == None:
                 self.logger.error("No rule records match the specified cookie and cookie mask")
                 return RuleRecordTable()
-
-            usage = self._get_usage_from_flow_stat(res)
-            self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
-            record_table = RuleRecordTable(
-                records=usage.values(),
-                epoch=global_epoch)
-            return record_table
-        except concurrent.futures.TimeoutError:
-            self.logger.error("Could not obtain stats for cookie %d, processing timed out", cookie)
+            else:
+                record_table = RuleRecordTable()
+                for indiv_response in response:
+                    usage = self._get_usage_from_flow_stat(indiv_response.body)
+                    record_table.records.extend(usage.values())
+                record_table.epoch = global_epoch
+                return record_table
+        except (InvalidDatapath, OFError, UnexpectedMultiReply) as ex:
+            self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
             return RuleRecordTable()
-
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """

@@ -1029,29 +1029,9 @@ void LocalEnforcer::init_session(
 
 void LocalEnforcer::add_ue_to_shard(
     const std::string imsi, SessionMap& session_map, SessionState& session) {
-  auto sm_it     = session_map.find(imsi);
-  auto& sessions = sm_it->second;
-  // Check if UE has other sessions and reuse shard_id if so
-  /*if (sm_it != session_map.end()){
-    std::cout << "Not the first session for shard\n";
-    session.set_shard_id(sessions[0]->get_shard_id());
-    std::cout << "The shard id set is: " << session.get_shard_id()
-                << "\n";
-    return;
-  }*/
-  /*for (auto session_it = sessions.begin(); session_it != sessions.end();
-       ++session_it) {
-    if ((*session_it)->get_session_id() != session.get_session_id()) {
-      session.set_shard_id((*session_it)->get_shard_id());
-      std::cout << "The shard id set is: " << session.get_shard_id()
-                << "\n";
-      return;
-    }
-  }*/
   // if the UE doesn't have any other sessions, add to shard tracker and set id
   int shard_id = shard_tracker_->add_ue(imsi);
   session.set_shard_id(shard_id);
-  std::cout << "The shard id set is: " << session.get_shard_id() << "\n";
 }
 
 bool LocalEnforcer::remove_ue_from_shard(
