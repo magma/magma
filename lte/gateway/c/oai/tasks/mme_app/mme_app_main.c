@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
+#include "assertions.h"
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
@@ -484,7 +485,8 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(mme_app_task_zmq_ctx.event_loop);
-  mme_app_exit();
+  AssertFatal(
+      0, "Asserting as mme_app_thread should not be exiting on its own!");
   return NULL;
 }
 

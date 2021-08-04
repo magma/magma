@@ -148,7 +148,7 @@ static void* s6a_thread(void* args) {
   }
 
   zloop_start(s6a_task_zmq_ctx.event_loop);
-  s6a_exit();
+  AssertFatal(0, "Asserting as s6a_thread should not be exiting on its own!");
   return NULL;
 }
 

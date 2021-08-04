@@ -136,7 +136,7 @@ static void* sctp_thread(__attribute__((unused)) void* args_p) {
       handle_message, &sctp_task_zmq_ctx);
 
   zloop_start(sctp_task_zmq_ctx.event_loop);
-  sctp_exit();
+  AssertFatal(0, "Asserting as sctp_thread should not be exiting on its own!");
   return NULL;
 }
 
