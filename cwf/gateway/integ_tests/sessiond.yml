@@ -57,4 +57,4 @@ poll_stats_interval: 5
 enable_pull_stats: false
 
 # maximum number of UEs that can be assigned a particular shard id
-max_shard_size: 100
+max_shard_size: 300
