@@ -469,10 +469,10 @@ void mme_app_handle_conn_est_cnf(
 
   if (emm_context_p->_ue_network_capability.dcnr) {
     establishment_cnf_p->nr_ue_security_capabilities_encryption_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nea & ~(1 << 7))
+        ((uint16_t) emm_context_p->_nr_ue_security_capability.nea & ~(1 << 7))
         << 1;
     establishment_cnf_p->nr_ue_security_capabilities_integrity_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nia & ~(1 << 7))
+        ((uint16_t) emm_context_p->_nr_ue_security_capability.nia & ~(1 << 7))
         << 1;
   }
 
