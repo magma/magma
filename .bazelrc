@@ -1,2 +1,6 @@
-build --repository_cache=.bazel-cache/repo
+startup --output_user_root=/tmp/bazel
+
+# Can't mount the build cache as a volume on macOS without setting the spawn_strategy to local
+# See https://github.com/bazelbuild/rules_foreign_cc/issues/667
+build --spawn_strategy=local
 build --cxxopt=-std=c++14
