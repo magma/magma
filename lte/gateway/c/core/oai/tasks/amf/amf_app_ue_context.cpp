@@ -139,6 +139,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
     return NULL;
   }
+  memset(new_p, 0, sizeof(ue_m5gmm_context_s));
 
   new_p->amf_ue_ngap_id  = INVALID_AMF_UE_NGAP_ID;
   new_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
@@ -218,6 +219,7 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
 smf_context_t* amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
   smf_context_t smf_context;
+  memset(&smf_context, 0, sizeof(smf_context));
   std::vector<smf_context_t>::iterator i;
   int j = 0;
 
