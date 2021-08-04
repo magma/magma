@@ -108,7 +108,7 @@ status_code_e mme_api_get_emm_config(
   }
   OAILOG_INFO(
       LOG_NAS, "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
-
+#if 0
   config->tai_list.numberoflists = 0;
   // We can store 16 TAIs per list and have 16 partial lists maximum
   // As per TS 124.301 V15.4.0 Section 9.9.3.33, we will be sending at most
@@ -244,6 +244,7 @@ status_code_e mme_api_get_emm_config(
           mme_config_p->served_tai.list_type);
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
+#endif
   // Read GUMMEI List
   config->gummei.num_gummei = mme_config_p->gummei.nb;
   for (uint8_t num_gummei = 0; num_gummei < mme_config_p->gummei.nb;
