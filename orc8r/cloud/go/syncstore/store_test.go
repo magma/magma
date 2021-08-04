@@ -33,7 +33,11 @@ func TestSyncStore(t *testing.T) {
 	assert.NoError(t, err)
 	fact := blobstore.NewSQLBlobStorageFactory("last_resync_time", db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
-	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact)
+	config := syncstore.Config{
+		TableNamePrefix:              "test",
+		CacheWriterValidIntervalSecs: 150,
+	}
+	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, config)
 	assert.NoError(t, store.Initialize())
 
 	expectedDigestTree := &protos.DigestTree{
@@ -279,8 +283,7 @@ func TestSyncStore(t *testing.T) {
 		assert.NotEmpty(t, lastResync)
 
 		// Only track data from network n1
-		err = store.CollectGarbage([]string{"n1"})
-		assert.NoError(t, err)
+		store.CollectGarbage([]string{"n1"})
 
 		digestTrees, err = store.GetDigests([]string{}, clock.Now().Unix(), true)
 		assert.NoError(t, err)
@@ -301,24 +304,29 @@ func TestSyncStore(t *testing.T) {
 	})
 
 	t.Run("garbage collection with expired cacheWriters", func(t *testing.T) {
+		// No actions can be performed with a cacheWriter that has already completed a write
 		writer1, err := store.UpdateCache("n0")
 		assert.NoError(t, err)
-		clock.SetAndFreezeClock(t, clock.Now().Add(400*time.Second))
-		writer2, err := store.UpdateCache("n0")
+		err = writer1.InsertMany(objs1)
 		assert.NoError(t, err)
-
-		err = store.CollectGarbage([]string{"n0"})
+		err = writer1.Apply()
 		assert.NoError(t, err)
-
-		// No actions can be performed with an expired cacheWriter
 		err = writer1.InsertMany(objs1)
 		assert.EqualError(t, err, "attempt to insert into network n0 with invalid cache writer")
 		err = writer1.Apply()
 		assert.EqualError(t, err, "attempt to apply updates to network n0 with invalid cache writer")
 
-		err = writer2.InsertMany(objs1)
+		writer2, err := store.UpdateCache("n0")
 		assert.NoError(t, err)
-		err = writer2.Apply()
+		clock.SetAndFreezeClock(t, clock.Now().Add(300*time.Second))
+		writer3, err := store.UpdateCache("n0")
+		assert.NoError(t, err)
+		store.CollectGarbage([]string{"n0"})
+
+		// No actions can be performed with an expired cacheWriter
+		err = writer2.InsertMany(objs1)
+		assert.Error(t, err)
+		err = writer3.InsertMany(objs1)
 		assert.NoError(t, err)
 	})
 }

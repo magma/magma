@@ -17,31 +17,12 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-const (
-	digestTableName = "digests"
-	cacheTableName  = "cached_objs"
-
-	// idCol contains the network-wide unique identifiers of the objects.
-	idCol              = "id"
-	nidCol             = "network_id"
-	rootDigestCol      = "root_digest"
-	leafDigestsCol     = "leaf_digests"
-	objCol             = "obj"
-	lastUpdatedTimeCol = "last_updated_at"
-
-	lastResyncBlobstoreType  = "gateway_last_resync_time"
-	cacheWriterBlobstoreType = "cache_writer_creation_time"
-	// cacheWriterValidIntervalSecs specifies the time duration (in secs) after
-	// which a cacheWriter object is subject to garbage collection.
-	cacheWriterValidIntervalSecs = 300 // 5 minutes
-)
-
 type SyncStore interface {
 	SyncStoreReader
 
 	// CollectGarbage drops all store contents that aren't linked to
 	// one of the passed networks.
-	CollectGarbage(trackedNetworks []string) error
+	CollectGarbage(trackedNetworks []string)
 
 	// SetDigest sets the digest tree for a network.
 	SetDigest(network string, digests *protos.DigestTree) error
@@ -82,6 +63,4 @@ type CacheWriter interface {
 	InsertMany(objects map[string][]byte) error
 	// Apply completes the batch cache update.
 	Apply() error
-	// SetInvalid sets this writer to be invalid for future writes.
-	SetInvalid()
 }

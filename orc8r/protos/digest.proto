@@ -38,7 +38,10 @@ message LeafDigest {
   Digest digest = 2;
 }
 
-// LeafDigestsToSerialize is used to serialize a list of leaf digests en masse.
-message LeafDigestsToSerialize {
+// LeafDigests is used to encapsulate a list of leaf digests exclusively for
+// serialization en masse.
+// NOTE: In a proto message used by gRPC endpoints (e.g. DigestTree), the leaf
+// digests should still be represented directly as a list for simplicity.
+message LeafDigests {
   repeated LeafDigest digests = 1;
 }

@@ -16,6 +16,7 @@ package syncstore
 import (
 	"database/sql"
 	"encoding/binary"
+	"fmt"
 
 	"magma/orc8r/cloud/go/blobstore"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
@@ -29,19 +30,33 @@ import (
 	"github.com/pkg/errors"
 )
 
-type syncStoreReader struct {
-	db      *sql.DB
-	builder sqorc.StatementBuilder
-	fact    blobstore.BlobStorageFactory
+const (
+	// idCol contains the network-wide unique identifiers of the objects.
+	idCol              = "id"
+	nidCol             = "network_id"
+	rootDigestCol      = "root_digest"
+	leafDigestsCol     = "leaf_digests"
+	objCol             = "obj"
+	lastUpdatedTimeCol = "last_updated_at"
+
+	lastResyncBlobstoreType  = "gateway_last_resync_time"
+	cacheWriterBlobstoreType = "cache_writer_creation_time"
+)
+
+func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory, config Config) SyncStoreReader {
+	storeReader := &syncStore{
+		db: db, builder: builder, fact: fact,
+		cacheWriterValidIntervalSecs: config.CacheWriterValidIntervalSecs,
+		tableNamePrefix:              config.TableNamePrefix,
+		digestTableName:              fmt.Sprintf("%s_digest", config.TableNamePrefix),
+		cacheTableName:               fmt.Sprintf("%s_cached_objs", config.TableNamePrefix),
+	}
+	return storeReader
 }
 
-func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory) SyncStoreReader {
-	return &syncStoreReader{db: db, builder: builder, fact: fact}
-}
-
-func (l *syncStoreReader) Initialize() error {
+func (l *syncStore) Initialize() error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := l.builder.CreateTable(digestTableName).
+		_, err := l.builder.CreateTable(l.digestTableName).
 			IfNotExists().
 			Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
 			Column(rootDigestCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
@@ -54,7 +69,7 @@ func (l *syncStoreReader) Initialize() error {
 			return nil, errors.Wrap(err, "initialize digest store table")
 		}
 
-		_, err = l.builder.CreateTable(cacheTableName).
+		_, err = l.builder.CreateTable(l.cacheTableName).
 			IfNotExists().
 			Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
 			Column(idCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
@@ -68,7 +83,7 @@ func (l *syncStoreReader) Initialize() error {
 	return err
 }
 
-func (l *syncStoreReader) GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (map[string]*protos.DigestTree, error) {
+func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (map[string]*protos.DigestTree, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		filters := squirrel.And{squirrel.LtOrEq{lastUpdatedTimeCol: lastUpdatedBefore}}
 		if len(networks) > 0 {
@@ -76,7 +91,7 @@ func (l *syncStoreReader) GetDigests(networks []string, lastUpdatedBefore int64,
 		}
 		rows, err := l.builder.
 			Select(nidCol, rootDigestCol, leafDigestsCol, lastUpdatedTimeCol).
-			From(digestTableName).
+			From(l.digestTableName).
 			Where(filters).
 			RunWith(tx).
 			Query()
@@ -93,16 +108,14 @@ func (l *syncStoreReader) GetDigests(networks []string, lastUpdatedBefore int64,
 				return nil, errors.Wrapf(err, "get digests for network %+v, SQL row scan error", network)
 			}
 
-			digestTree := &protos.DigestTree{
-				RootDigest: &protos.Digest{Md5Base64Digest: rootDigest},
-			}
+			digestTree := &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: rootDigest}}
 			if loadLeaves {
-				leafDigests := &protos.LeafDigestsToSerialize{}
+				leafDigests := &protos.LeafDigests{}
 				err = proto.Unmarshal(leafDigestsMarshaled, leafDigests)
 				if err != nil {
 					return nil, errors.Wrapf(err, "unmarshal leaf digests for network %+v", network)
 				}
-				digestTree.LeafDigests = leafDigests.GetDigests()
+				digestTree.LeafDigests = leafDigests.Digests
 			}
 			digestTrees[network] = digestTree
 		}
@@ -121,15 +134,17 @@ func (l *syncStoreReader) GetDigests(networks []string, lastUpdatedBefore int64,
 	return ret, nil
 }
 
-func (l *syncStoreReader) GetCachedByID(network string, ids []string) ([][]byte, error) {
+func (l *syncStore) GetCachedByID(network string, ids []string) ([][]byte, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := l.builder.
 			Select(idCol, objCol).
-			From(cacheTableName).
-			Where(squirrel.And{
-				squirrel.Eq{nidCol: network},
-				squirrel.Eq{idCol: ids},
-			}).
+			From(l.cacheTableName).
+			Where(
+				squirrel.And{
+					squirrel.Eq{nidCol: network},
+					squirrel.Eq{idCol: ids},
+				},
+			).
 			OrderBy(idCol).
 			RunWith(tx).
 			Query()
@@ -143,7 +158,7 @@ func (l *syncStoreReader) GetCachedByID(network string, ids []string) ([][]byte,
 	return ret.([][]byte), err
 }
 
-func (l *syncStoreReader) GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error) {
+func (l *syncStore) GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error) {
 	lastIncludedId := ""
 	if token != "" {
 		decoded, err := configurator_storage.DeserializePageToken(token)
@@ -155,7 +170,7 @@ func (l *syncStoreReader) GetCachedByPage(network string, token string, pageSize
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := l.builder.
 			Select(idCol, objCol).
-			From(cacheTableName).
+			From(l.cacheTableName).
 			Where(squirrel.And{
 				squirrel.Eq{nidCol: network},
 				squirrel.Gt{idCol: lastIncludedId},
@@ -177,7 +192,7 @@ func (l *syncStoreReader) GetCachedByPage(network string, token string, pageSize
 	return info.objects, info.token, nil
 }
 
-func (l *syncStoreReader) GetLastResync(network string, gateway string) (uint64, error) {
+func (l *syncStore) GetLastResync(network string, gateway string) (uint64, error) {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return uint64(0), errors.Wrapf(err, "error starting transaction")
@@ -212,13 +227,12 @@ func parsePage(rows *sql.Rows, pageSize uint64) (*pageInfo, error) {
 	if uint64(len(objs)) < pageSize {
 		return &pageInfo{token: "", objects: objs}, nil
 	}
-	nextToken, err := configurator_storage.SerializePageToken(&configurator_storage.EntityPageToken{
-		LastIncludedEntity: lastIncludedId,
-	})
+	nextToken := &configurator_storage.EntityPageToken{LastIncludedEntity: lastIncludedId}
+	nextTokenSerialized, err := configurator_storage.SerializePageToken(nextToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "get next page token for cached objs store")
 	}
-	return &pageInfo{token: nextToken, objects: objs}, nil
+	return &pageInfo{token: nextTokenSerialized, objects: objs}, nil
 }
 
 func parseRows(rows *sql.Rows) ([][]byte, string, error) {

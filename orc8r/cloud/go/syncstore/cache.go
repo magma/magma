@@ -25,21 +25,22 @@ import (
 )
 
 type cacheWriter struct {
-	network       string
-	id            string
-	db            *sql.DB
-	builder       sqorc.StatementBuilder
-	invalidWriter bool
+	network        string
+	id             string
+	cacheTableName string
+	db             *sql.DB
+	builder        sqorc.StatementBuilder
+	invalid        bool
 }
 
-func NewCacheWriter(network string, id string, db *sql.DB, builder sqorc.StatementBuilder) CacheWriter {
-	return &cacheWriter{network: network, id: id, db: db, builder: builder, invalidWriter: false}
+func (l *syncStore) NewCacheWriter(network string, id string) CacheWriter {
+	return &cacheWriter{network: network, id: id, db: l.db, builder: l.builder, cacheTableName: l.cacheTableName, invalid: false}
 }
 
 // InsertMany inserts a batch of objects into the temporary table of the
 // CacheWriter object.
 func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
-	if l.invalidWriter {
+	if l.invalid {
 		return errors.Errorf("attempt to insert into network %+v with invalid cache writer", l.network)
 	}
 	if len(objects) == 0 {
@@ -66,7 +67,7 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 }
 
 func (l *cacheWriter) Apply() error {
-	if l.invalidWriter {
+	if l.invalid {
 		return errors.Errorf("attempt to apply updates to network %+v with invalid cache writer", l.network)
 	}
 	txFn := func(tx *sql.Tx) (interface{}, error) {
@@ -79,7 +80,7 @@ func (l *cacheWriter) Apply() error {
 		// AND
 		//	   (network_id, id) NOT IN (SELECT network_id, id FROM cached_objs_tmp)
 		_, err := l.builder.
-			Delete(cacheTableName).
+			Delete(l.cacheTableName).
 			Where(squirrel.And{
 				squirrel.Eq{nidCol: l.network},
 				squirrel.Expr(fmt.Sprintf(
@@ -102,7 +103,7 @@ func (l *cacheWriter) Apply() error {
 		// 	   DO UPDATE SET obj = cached_objs_tmp.obj
 		conflictUpdateTarget := sqorc.FmtConflictUpdateTarget(l.id, objCol)
 		_, err = l.builder.
-			Insert(cacheTableName).
+			Insert(l.cacheTableName).
 			Select(
 				l.builder.
 					Select(nidCol, idCol, objCol).
@@ -136,10 +137,6 @@ func (l *cacheWriter) Apply() error {
 		return err
 	}
 
-	l.invalidWriter = true
+	l.invalid = true
 	return nil
-}
-
-func (l *cacheWriter) SetInvalid() {
-	l.invalidWriter = true
 }
