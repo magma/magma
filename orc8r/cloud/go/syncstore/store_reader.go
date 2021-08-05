@@ -49,7 +49,9 @@ func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobsto
 		return nil, errors.Wrap(err, "invalid configs for syncstore reader")
 	}
 	storeReader := &syncStore{
-		db: db, builder: builder, fact: fact,
+		db:                           db,
+		builder:                      builder,
+		fact:                         fact,
 		cacheWriterValidIntervalSecs: config.CacheWriterValidIntervalSecs,
 		tableNamePrefix:              config.TableNamePrefix,
 		digestTableName:              fmt.Sprintf("%s_digest", config.TableNamePrefix),
@@ -175,10 +177,12 @@ func (l *syncStore) GetCachedByPage(network string, token string, pageSize uint6
 		rows, err := l.builder.
 			Select(idCol, objCol).
 			From(l.cacheTableName).
-			Where(squirrel.And{
-				squirrel.Eq{nidCol: network},
-				squirrel.Gt{idCol: lastIncludedID},
-			}).
+			Where(
+				squirrel.And{
+					squirrel.Eq{nidCol: network},
+					squirrel.Gt{idCol: lastIncludedID},
+				},
+			).
 			OrderBy(idCol).
 			Limit(pageSize).
 			RunWith(tx).

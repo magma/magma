@@ -25,8 +25,12 @@ import (
 )
 
 type cacheWriter struct {
-	network        string
-	id             string
+	network string
+	// id is the db-wide unique identifier of each cacheWriter object, and is
+	// also used to name the temporary table owned by the cacheWriter.
+	id string
+	// cacheTableName refers to the table with all the cached objects that the
+	// cacheWriter will apply batch update into.
 	cacheTableName string
 	db             *sql.DB
 	builder        sqorc.StatementBuilder
@@ -35,7 +39,8 @@ type cacheWriter struct {
 
 func (l *syncStore) NewCacheWriter(network string, id string) CacheWriter {
 	writer := &cacheWriter{
-		network: network, id: id,
+		network:        network,
+		id:             id,
 		db:             l.db,
 		builder:        l.builder,
 		cacheTableName: l.cacheTableName,

@@ -17,11 +17,11 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/syncstore"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
@@ -31,7 +31,7 @@ import (
 func TestSyncStore(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory("last_resync_time", db, sqorc.GetSqlBuilder())
+	fact := test_utils.NewSQLBlobstore(t, "last_resync_time")
 	assert.NoError(t, fact.InitializeFactory())
 	config := syncstore.Config{
 		TableNamePrefix:              "test",

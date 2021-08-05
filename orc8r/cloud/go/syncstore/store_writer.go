@@ -49,7 +49,9 @@ func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.Blo
 		return nil, errors.Wrap(err, "invalid configs for syncstore")
 	}
 	store := &syncStore{
-		db: db, builder: builder, fact: fact,
+		db:                           db,
+		builder:                      builder,
+		fact:                         fact,
 		cacheWriterValidIntervalSecs: config.CacheWriterValidIntervalSecs,
 		tableNamePrefix:              config.TableNamePrefix,
 		digestTableName:              fmt.Sprintf("%s_digest", config.TableNamePrefix),
