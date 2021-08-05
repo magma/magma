@@ -19,9 +19,11 @@ from datetime import datetime
 from typing import List, NamedTuple
 
 from lte.protos.subscriberdb_pb2 import (
-    Digest,
     SubscriberData,
-    SubscriberDigestWithID,
+)
+from orc8r.protos.digest_pb2 import (
+    Digest,
+    LeafDigest,
 )
 from magma.subscriberdb.sid import SIDUtils
 
@@ -30,8 +32,8 @@ from .onready import OnDataReady, OnDigestsReady
 
 DigestDBInfo = NamedTuple(
     'DigestDBInfo', [
-        ('flat_digest_db_location', str),
-        ('per_sub_digest_db_location', str),
+        ('root_digest_db_location', str),
+        ('leaf_digests_db_location', str),
     ],
 )
 
@@ -50,8 +52,8 @@ class SqliteStore(BaseStore):
         self._db_locations = self._create_db_locations(db_location, self._n_shards)
 
         digest_db_info = self._create_digest_db_locations(db_location)
-        self._digest_db_location = digest_db_info.flat_digest_db_location
-        self._per_sub_digest_db_location = digest_db_info.per_sub_digest_db_location
+        self._root_digest_db_location = digest_db_info.root_digest_db_location
+        self._leaf_digests_db_location = digest_db_info.leaf_digests_db_location
 
         self._create_store()
         self._on_ready = OnDataReady(loop=loop)
@@ -80,20 +82,20 @@ class SqliteStore(BaseStore):
         return db_location_list
 
     def _create_digest_db_locations(self, db_location: str) -> DigestDBInfo:
-        digest_db_location = 'file:' + db_location + \
-                             'subscriber-digest.db?cache=shared'
-        logging.info("digest db location: %s", digest_db_location)
+        root_digest_db_location = 'file:' + db_location + \
+                             'subscriber-root-digest.db?cache=shared'
+        logging.info("root digest db location: %s", root_digest_db_location)
 
-        per_sub_digest_db_location = 'file:' + db_location + \
-                                     'per-subscriber-digest.db?cache=shared'
+        leaf_digests_db_location = 'file:' + db_location + \
+                                     'subscriber-leaf-digests.db?cache=shared'
         logging.info(
-            "per-sub digest db location: %s",
-            per_sub_digest_db_location,
+            "leaf digests db location: %s",
+            leaf_digests_db_location,
         )
 
         digest_db_info = DigestDBInfo(
-            flat_digest_db_location=digest_db_location,
-            per_sub_digest_db_location=per_sub_digest_db_location,
+            root_digest_db_location=root_digest_db_location,
+            leaf_digests_db_location=leaf_digests_db_location,
         )
         return digest_db_info
 
@@ -113,21 +115,21 @@ class SqliteStore(BaseStore):
             finally:
                 conn.close()
 
-        conn = sqlite3.connect(self._digest_db_location, uri=True)
+        conn = sqlite3.connect(self._root_digest_db_location, uri=True)
         try:
             with conn:
                 conn.execute(
-                    "CREATE TABLE IF NOT EXISTS subscriber_digest"
+                    "CREATE TABLE IF NOT EXISTS subscriber_root_digest"
                     "(digest string PRIMARY KEY, updated_at timestamp)",
                 )
         finally:
             conn.close()
 
-        conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
+        conn = sqlite3.connect(self._leaf_digests_db_location, uri=True)
         try:
             with conn:
                 conn.execute(
-                    "CREATE TABLE IF NOT EXISTS per_subscriber_digest"
+                    "CREATE TABLE IF NOT EXISTS subscriber_leaf_digests"
                     "(sid string PRIMARY KEY, digest string)",
                 )
         finally:
@@ -355,15 +357,15 @@ class SqliteStore(BaseStore):
                 conn.close()
         self._on_ready.resync(subscribers)
 
-    def get_current_digest(self) -> str:
+    def get_current_root_digest(self) -> str:
         """
         Return the current subscriber digest stored in the db.
         """
-        conn = sqlite3.connect(self._digest_db_location, uri=True)
+        conn = sqlite3.connect(self._root_digest_db_location, uri=True)
         try:
             with conn:
                 res = conn.execute(
-                    "SELECT digest, updated_at FROM subscriber_digest "
+                    "SELECT digest, updated_at FROM subscriber_root_digest "
                     "ORDER BY updated_at DESC",
                 )
                 row = res.fetchone()
@@ -376,37 +378,37 @@ class SqliteStore(BaseStore):
         logging.info("get digest stored in gateway: %s", digest)
         return digest
 
-    def update_digest(self, new_digest: str) -> None:
+    def update_root_digest(self, new_digest: str) -> None:
         """
         Replace the old digest in the db with the new digest.
         """
-        conn = sqlite3.connect(self._digest_db_location, uri=True)
+        conn = sqlite3.connect(self._root_digest_db_location, uri=True)
         try:
             with conn:
-                conn.execute("DELETE FROM subscriber_digest")
+                conn.execute("DELETE FROM subscriber_root_digest")
 
                 conn.execute(
-                    "INSERT INTO subscriber_digest(digest, updated_at) "
+                    "INSERT INTO subscriber_root_digest(digest, updated_at) "
                     "VALUES (?, ?)", (new_digest, datetime.now()),
                 )
         finally:
             conn.close()
 
-        logging.info("update digest stored in gateway: %s", new_digest)
-        self._on_digests_ready.update_digest(new_digest)
+        logging.info("update root digest stored in gateway: %s", new_digest)
+        self._on_digests_ready.update_root_digest(new_digest)
 
-    def get_current_per_sub_digests(self) -> List[SubscriberDigestWithID]:
+    def get_current_leaf_digests(self) -> List[LeafDigest]:
         digests = []
-        conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
+        conn = sqlite3.connect(self._leaf_digests_db_location, uri=True)
         try:
             with conn:
                 res = conn.execute(
-                    "SELECT sid, digest FROM per_subscriber_digest ",
+                    "SELECT sid, digest FROM subscriber_leaf_digests ",
                 )
 
                 for row in res:
-                    digest = SubscriberDigestWithID(
-                        sid=SIDUtils.to_pb(row[0]),
+                    digest = LeafDigest(
+                        id=row[0],
                         digest=Digest(md5_base64_digest=row[1]),
                     )
                     digests.append(digest)
@@ -415,23 +417,23 @@ class SqliteStore(BaseStore):
 
         return digests
 
-    def update_per_sub_digests(self, new_digests: List[SubscriberDigestWithID]) -> None:
-        conn = sqlite3.connect(self._per_sub_digest_db_location, uri=True)
+    def update_leaf_digests(self, new_digests: List[LeafDigest]) -> None:
+        conn = sqlite3.connect(self._leaf_digests_db_location, uri=True)
         try:
             with conn:
                 conn.execute(
-                    "DELETE FROM per_subscriber_digest",
+                    "DELETE FROM subscriber_leaf_digests",
                 )
-                for digest_by_id in new_digests:
-                    sid = SIDUtils.to_str(digest_by_id.sid)
-                    digest = digest_by_id.digest.md5_base64_digest
+                for leaf_digest in new_digests:
+                    sid = leaf_digest.id
+                    digest = leaf_digest.digest.md5_base64_digest
                     conn.execute(
-                        "INSERT INTO per_subscriber_digest(sid, digest)"
+                        "INSERT INTO subscriber_leaf_digests(sid, digest)"
                         "VALUES (?, ?)", (sid, digest),
                     )
         finally:
             conn.close()
-        self._on_digests_ready.update_per_sub_digests(new_digests)
+        self._on_digests_ready.update_leaf_digests(new_digests)
 
     async def on_ready(self):
         return await self._on_ready.event.wait()

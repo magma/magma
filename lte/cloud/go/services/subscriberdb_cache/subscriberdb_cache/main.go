@@ -45,10 +45,13 @@ func main() {
 	}
 	// Garbage collection interval for syncstore cache writers is enforced to be half the time for the service worker's
 	// update interval, to prevent cache writers from outliving update cycles
-	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
 		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
 	})
+	if err != nil {
+		glog.Fatalf("Error creating new subscriber syncstore: %+v", err)
+	}
 	if err := store.Initialize(); err != nil {
 		glog.Fatalf("Error initializing subscriber syncstore")
 	}

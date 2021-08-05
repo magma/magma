@@ -161,7 +161,7 @@ func updateSubscribers(network string, store syncstore.SyncStore) error {
 // getNetworksToUpdate returns the networks that need to be updated, given that
 // all networks in store are tracked (but not all tracked networks are in store).
 func getNetworksToUpdate(store syncstore.SyncStore, tracked []string, updateIntervalSecs int) ([]string, error) {
-	inStoreDigests, err := store.GetDigests([]string{}, clock.Now().Unix(), false)
+	storedDigests, err := store.GetDigests([]string{}, clock.Now().Unix(), false)
 	if err != nil {
 		return nil, errors.Wrap(err, "Load digests in store for subscriberdb cache")
 	}
@@ -170,6 +170,6 @@ func getNetworksToUpdate(store syncstore.SyncStore, tracked []string, updateInte
 		return nil, errors.Wrap(err, "Load outdated digests in store for subscriberdb cache")
 	}
 
-	newlyCreated, _ := funk.DifferenceString(tracked, inStoreDigests.Networks())
+	newlyCreated, _ := funk.DifferenceString(tracked, storedDigests.Networks())
 	return append(newlyCreated, outdatedDigests.Networks()...), nil
 }

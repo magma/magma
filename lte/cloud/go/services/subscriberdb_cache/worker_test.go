@@ -267,7 +267,8 @@ func initializeSyncstore(t *testing.T) syncstore.SyncStore {
 	assert.NoError(t, err)
 	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
-	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
+	assert.NoError(t, err)
 	assert.NoError(t, store.Initialize())
 	return store
 }

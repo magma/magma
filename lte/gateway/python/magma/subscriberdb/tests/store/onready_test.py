@@ -18,9 +18,11 @@ import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import (
-    Digest,
     SubscriberData,
-    SubscriberDigestWithID,
+)
+from orc8r.protos.digest_pb2 import (
+    Digest,
+    LeafDigest,
 )
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.cached_store import CachedStore
@@ -139,14 +141,14 @@ class OnDigestsReadyMixinTests(unittest.TestCase):
     def tearDown(self):
         self._tmpfile.cleanup()
 
-    def test_per_sub_digests_update(self):
+    def test_leaf_digests_update(self):
         """
-        Test if per-subscriber digests update triggers ready
+        Test if leaf digests update triggers ready
         """
         self.assertEqual(self._store._on_digests_ready.event.is_set(), False)
-        self._store.update_per_sub_digests([
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI11111'),
+        self._store.update_leaf_digests([
+            LeafDigest(
+                id='IMSI11111',
                 digest=Digest(md5_base64_digest='digest_cherry'),
             ),
         ])
@@ -157,12 +159,12 @@ class OnDigestsReadyMixinTests(unittest.TestCase):
 
         self.assertEqual(self._store._on_digests_ready.event.is_set(), True)
 
-    def test_digest_update(self):
+    def test_root_digest_update(self):
         """
-        Test if flat digest update triggers ready
+        Test if root digest update triggers ready
         """
         self.assertEqual(self._store._on_digests_ready.event.is_set(), False)
-        self._store.update_digest("digest_apple")
+        self._store.update_root_digest("digest_apple")
 
         async def defer():
             await self._store.on_digests_ready()

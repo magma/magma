@@ -17,22 +17,30 @@ import tempfile
 import unittest
 from concurrent import futures
 from unittest.mock import MagicMock
+from google.protobuf.any_pb2 import Any
 
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.subscriberdb_pb2 import (
-    CheckSubscribersInSyncResponse,
-    Digest,
+    CheckInSyncRequest,
+    CheckInSyncResponse,
+    SyncRequest,
+    SyncResponse,
+    ListSubscribersRequest,
     ListSubscribersResponse,
     SubscriberData,
-    SubscriberDigestWithID,
     SubscriberID,
-    SyncSubscribersResponse,
 )
 from lte.protos.subscriberdb_pb2_grpc import (
     SubscriberDBCloudServicer,
     SubscriberDBCloudStub,
     add_SubscriberDBCloudServicer_to_server,
+)
+from orc8r.protos.digest_pb2 import (
+    Changeset,
+    Digest,
+    DigestTree,
+    LeafDigest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service_registry import ServiceRegistry
@@ -59,70 +67,80 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             self, server,
         )
 
-    def CheckSubscribersInSync(self, request, context):
+    def CheckInSync(self, request: CheckInSyncRequest, context) -> CheckInSyncResponse:
         """
-        Mock to trigger CheckSubscribersInSync-related test cases
+        Mock to trigger CheckInSync-related test cases
 
         Args:
-            request: CheckSubscribersInSyncRequest
+            request: CheckInSyncRequest
             context: request context
 
         Returns:
-            CheckSubscribersInSyncResponse
+            CheckInSyncResponse
         """
-        in_sync = request.flat_digest.md5_base64_digest == "flat_digest_apple"
-        return CheckSubscribersInSyncResponse(in_sync=in_sync)
+        in_sync = request.root_digest.md5_base64_digest == "root_digest_apple"
+        return CheckInSyncResponse(in_sync=in_sync)
 
-    def SyncSubscribers(self, request, context):
+    def Sync(self, request: SyncRequest, context) -> SyncResponse:
         """
-        Mock to trigger SyncSubscribers-related test cases
+        Mock to trigger Sync-related test cases
 
         Args:
-            request: SyncSubscribersRequest
+            request: SyncRequest
             context: request context
 
         Returns:
-            SyncSubscribersResponse
+            SyncResponse
         """
-        per_sub_digests = [
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI11111'),
+        leaf_digests = [
+            LeafDigest(
+                id='IMSI11111',
                 digest=Digest(md5_base64_digest="digest_apple"),
             ),
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI22222'),
+            LeafDigest(
+                id='IMSI22222',
                 digest=Digest(md5_base64_digest="digest_banana"),
             ),
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI33333'),
+            LeafDigest(
+                id='IMSI33333',
                 digest=Digest(md5_base64_digest="digest_cherry"),
             ),
         ]
 
-        client_per_sub_digest_ids = [
-            SIDUtils.to_str(digest.sid) for digest in request.per_sub_digests
+        client_leaf_digest_ids = [
+            digest.id for digest in request.leaf_digests
         ]
         to_renew = []
         deleted = []
-        if 'IMSI11111' not in client_per_sub_digest_ids:
+        if 'IMSI11111' not in client_leaf_digest_ids:
             to_renew.append(subscriber_data_by_id('IMSI11111'))
-        if 'IMSI22222' not in client_per_sub_digest_ids:
+        if 'IMSI22222' not in client_leaf_digest_ids:
             to_renew.append(subscriber_data_by_id('IMSI22222'))
-        if 'IMSI33333' not in client_per_sub_digest_ids:
+        if 'IMSI33333' not in client_leaf_digest_ids:
             to_renew.append(subscriber_data_by_id('IMSI33333'))
-        if 'IMSI00000' in client_per_sub_digest_ids:
+        if 'IMSI00000' in client_leaf_digest_ids:
             deleted.append('IMSI00000')
         resync = len(to_renew) >= 3
 
-        return SyncSubscribersResponse(
+        marshaled_to_renew = []
+        for data in to_renew:
+            anyVal = Any()
+            anyVal.Pack(data)
+            marshaled_to_renew.append(anyVal)
+
+        return SyncResponse(
             resync=resync,
-            flat_digest=Digest(md5_base64_digest="flat_digest_apple"),
-            per_sub_digests=per_sub_digests,
-            to_renew=to_renew,
-            deleted=deleted,
+            digests=DigestTree(
+                root_digest=Digest(md5_base64_digest="root_digest_apple"),
+                leaf_digests=leaf_digests,
+            ),
+            changeset=Changeset(
+                to_renew=marshaled_to_renew,
+                deleted=deleted,
+            ),
         )
 
-    def ListSubscribers(self, request, context):  # noqa: N802
+    def ListSubscribers(self, request: ListSubscribersRequest, context) -> ListSubscribersResponse:  # noqa: N802
         """
         List subscribers is a mock to trigger various test cases
 
@@ -137,8 +155,8 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             ListSubscribersResponse
         """
         # Add in logic to allow error handling testing
-        flat_digest = Digest(md5_base64_digest="")
-        per_sub_digests = []
+        root_digest = Digest(md5_base64_digest="")
+        leaf_digests = []
         if request.page_size == 1:
             raise grpc.RpcError("Test Exception")
         if request.page_token == "":
@@ -147,11 +165,11 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
                 SubscriberData(sid=SubscriberID(id="IMSI111")),
                 SubscriberData(sid=SubscriberID(id="IMSI222")),
             ]
-            flat_digest = Digest(md5_base64_digest="flat_digest_apple")
-            per_sub_digests = [
-                SubscriberDigestWithID(
-                    sid=SIDUtils.to_pb("IMSI11111"),
-                    digest=Digest(md5_base64_digest="per_sub_digests_apple"),
+            root_digest = Digest(md5_base64_digest="root_digest_apple")
+            leaf_digests = [
+                LeafDigest(
+                    id='IMSI11111',
+                    digest=Digest(md5_base64_digest="leaf_digests_apple"),
                 ),
             ]
         elif request.page_token == "aaa":
@@ -169,8 +187,10 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         return ListSubscribersResponse(
             subscribers=subscribers,
             next_page_token=next_page_token,
-            flat_digest=flat_digest,
-            per_sub_digests=per_sub_digests,
+            digests=DigestTree(
+                root_digest=root_digest,
+                leaf_digests=leaf_digests,
+            ),
         )
 
 
@@ -291,16 +311,13 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertTrue(ret is not None)
             self.assertEqual(self.get_all_subscribers(), ret.subscribers)
-            self.assertEqual("flat_digest_apple", ret.flat_digest.md5_base64_digest)
-            self.assertEqual(1, len(ret.per_sub_digests))
+            self.assertEqual("root_digest_apple", ret.root_digest.md5_base64_digest)
+            self.assertEqual(1, len(ret.leaf_digests))
             self.assertEqual(
-                ret.per_sub_digests[0].digest.md5_base64_digest,
-                "per_sub_digests_apple",
+                ret.leaf_digests[0].digest.md5_base64_digest,
+                "leaf_digests_apple",
             )
-            self.assertEqual(
-                SIDUtils.to_str(ret.per_sub_digests[0].sid),
-                "IMSI11111",
-            )
+            self.assertEqual(ret.leaf_digests[0].id, "IMSI11111")
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
@@ -370,7 +387,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
     )
     def test_check_subscribers_in_sync(self, get_grpc_mock):
         """
-        Test CheckSubscribersInSync RPC success
+        Test CheckInSync RPC success
 
         Args:
             get_grpc_mock: mock for service registry
@@ -382,7 +399,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertEqual(False, in_sync)
 
-            self.subscriberdb_cloud_client._store.update_digest("flat_digest_apple")
+            self.subscriberdb_cloud_client._store.update_root_digest("root_digest_apple")
             in_sync = (
                 await self.subscriberdb_cloud_client._check_subscribers_in_sync()
             )
@@ -397,7 +414,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
     )
     def test_sync_subscribers(self, get_grpc_mock):
         """
-        Test SyncSubscribers RPC success
+        Test Sync RPC success
 
         Args:
             get_grpc_mock: mock for service registry
@@ -410,13 +427,13 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertEqual(True, resync)
 
-            self.subscriberdb_cloud_client._store.update_per_sub_digests([
-                SubscriberDigestWithID(
-                    sid=SIDUtils.to_pb('IMSI11111'),
+            self.subscriberdb_cloud_client._store.update_leaf_digests([
+                LeafDigest(
+                    id='IMSI11111',
                     digest=Digest(md5_base64_digest="digest_apple"),
                 ),
-                SubscriberDigestWithID(
-                    sid=SIDUtils.to_pb('IMSI00000'),
+                LeafDigest(
+                    id='IMSI00000',
                     digest=Digest(md5_base64_digest="digest_zebra"),
                 ),
             ])
@@ -427,19 +444,19 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
                 subscriber_data_by_id('IMSI11111'),
             )
 
-            # the client subscriber db and per-subscriber digest db are updated
+            # the client subscriber db and leaf digests db are updated
             # when resync is False
-            expected_per_sub_digests = [
-                SubscriberDigestWithID(
-                    sid=SIDUtils.to_pb('IMSI11111'),
+            expected_leaf_digests = [
+                LeafDigest(
+                    id='IMSI11111',
                     digest=Digest(md5_base64_digest="digest_apple"),
                 ),
-                SubscriberDigestWithID(
-                    sid=SIDUtils.to_pb('IMSI22222'),
+                LeafDigest(
+                    id='IMSI22222',
                     digest=Digest(md5_base64_digest="digest_banana"),
                 ),
-                SubscriberDigestWithID(
-                    sid=SIDUtils.to_pb('IMSI33333'),
+                LeafDigest(
+                    id='IMSI33333',
                     digest=Digest(md5_base64_digest="digest_cherry"),
                 ),
             ]
@@ -448,16 +465,16 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertEqual(False, resync)
             self.assertEqual(
-                "flat_digest_apple",
-                self.subscriberdb_cloud_client._store.get_current_digest(),
+                "root_digest_apple",
+                self.subscriberdb_cloud_client._store.get_current_root_digest(),
             )
             self.assertEqual(
                 ['IMSI11111', 'IMSI22222', 'IMSI33333'],
                 self.subscriberdb_cloud_client._store.list_subscribers(),
             )
             self.assertEqual(
-                expected_per_sub_digests,
-                self.subscriberdb_cloud_client._store.get_current_per_sub_digests(),
+                expected_leaf_digests,
+                self.subscriberdb_cloud_client._store.get_current_leaf_digests(),
             )
 
         # Cancel the client's loop so there are no other activities

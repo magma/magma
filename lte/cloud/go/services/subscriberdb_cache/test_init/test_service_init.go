@@ -41,10 +41,11 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, err)
 	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
-	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
 		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
 	})
+	assert.NoError(t, err)
 	assert.NoError(t, store.Initialize())
 
 	go subscriberdb_cache.MonitorDigests(serviceConfig, store)

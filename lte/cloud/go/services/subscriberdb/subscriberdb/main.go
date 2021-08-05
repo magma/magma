@@ -60,7 +60,10 @@ func main() {
 	if err := syncstoreFact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
 	}
-	subscriberStore := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
+	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
+	if err != nil {
+		glog.Fatalf("Error creating new subscriber synsctore reader: %+v", err)
+	}
 	if err := subscriberStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing subscriber syncstore: %+v", err)
 	}
