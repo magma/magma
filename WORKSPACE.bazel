@@ -167,6 +167,6 @@ filegroup(
 http_archive(
     name = "folly",
     build_file_content = _ALL_CONTENT,
-    #strip_prefix = "folly-v2021.07.22.00",
+    sha256 = "c2022c509a63b5a370fb3e45709ada7a02183b95fc456c6510a523d4d6e92eb6",
     urls = ["https://github.com/facebook/folly/releases/download/v2021.07.22.00/folly-v2021.07.22.00.tar.gz"],
 )
