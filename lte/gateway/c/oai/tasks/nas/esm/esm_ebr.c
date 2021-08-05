@@ -182,13 +182,18 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
   /*
    * Stop the retransmission timer if still running
    */
-  if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
+  if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID || ebr_ctx->args) {
     OAILOG_INFO(
         LOG_NAS_ESM, "ESM-FSM   - Stop retransmission timer %ld\n",
         ebr_ctx->timer.id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-    ebr_ctx->timer.id =
-        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+    // stop the timer if it's running
+    if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
+      ebr_ctx->timer.id =
+          nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+    } else {  // Timer has expired, release the args
+      esm_ebr_timer_data = ebr_ctx->args;
+    }
     /*
      * Release the retransmisison timer parameters
      */
@@ -198,6 +203,7 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
       }
       free_wrapper((void**) &esm_ebr_timer_data);
     }
+    ebr_ctx->args = NULL;
   }
 
   /*
