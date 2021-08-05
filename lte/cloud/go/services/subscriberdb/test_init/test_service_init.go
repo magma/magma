@@ -26,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 
 	"magma/orc8r/lib/go/service/config"
@@ -58,16 +59,10 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, fact.InitializeFactory())
 	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, ipStore.Initialize())
-	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
-	perSubDigestFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
-	assert.NoError(t, perSubDigestFact.InitializeFactory())
-	perSubDigestStore := storage.NewPerSubDigestStore(perSubDigestFact)
-	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, subStore.Initialize())
-	lastResyncTimeFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.LastResyncTimeTableBlobstore, db, sqorc.GetSqlBuilder())
-	assert.NoError(t, lastResyncTimeFact.InitializeFactory())
-	lastResyncTimeStore := storage.NewLastResyncTimeStore(perSubDigestFact)
+	syncstoreFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, syncstoreFact.InitializeFactory())
+	subscriberStore := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
+	assert.NoError(t, subscriberStore.Initialize())
 
 	// Load service configs
 	var serviceConfig subscriberdb.Config
@@ -78,7 +73,7 @@ func StartTestService(t *testing.T) {
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subStore, lastResyncTimeStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	// Run service
 	go srv.RunTest(lis)

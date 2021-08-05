@@ -97,39 +97,39 @@ func GetPerSubscriberDigests(network string) ([]*orc8r_protos.LeafDigest, error)
 	return leafDigests, nil
 }
 
-// GetPerSubscriberDigestsDiff computes the changeset between two lists of per-subscriber digests,
-// ordered by their subscriber IDs (unique within a network). It returns
-// 1. A set of subscribers that have been added/modified, with the new digests.
-// 2. An ordered list of subscribers that have been removed.
-func GetPerSubscriberDigestsDiff(prev []*lte_protos.SubscriberDigestWithID, next []*lte_protos.SubscriberDigestWithID) (map[string]string, []string) {
+// GetLeafDigestsDiff computes the data changeset according to two lists of leaf digests,
+// ordered by their IDs. It returns
+// 1. The set of objects that have been added/modified, with the new digests.
+// 2. An ordered list of the objects that have been removed.
+func GetLeafDigestsDiff(prev []*orc8r_protos.LeafDigest, next []*orc8r_protos.LeafDigest) (map[string]string, []string) {
 	n, m, i, j := len(prev), len(next), 0, 0
 	toRenew := map[string]string{}
 	deleted := []string{}
 
 	for i < n && j < m {
-		iSid, jSid := lte_protos.SidString(prev[i].Sid), lte_protos.SidString(next[j].Sid)
-		if iSid == jSid {
+		iId, jId := prev[i].Id, next[j].Id
+		if iId == jId {
 			if prev[i].Digest.Md5Base64Digest != next[j].Digest.Md5Base64Digest {
-				toRenew[jSid] = next[j].Digest.Md5Base64Digest
+				toRenew[jId] = next[j].Digest.Md5Base64Digest
 			}
 			i++
 			j++
-		} else if iSid > jSid {
-			toRenew[jSid] = next[j].Digest.Md5Base64Digest
+		} else if iId > jId {
+			toRenew[jId] = next[j].Digest.Md5Base64Digest
 			j++
 		} else {
-			deleted = append(deleted, iSid)
+			deleted = append(deleted, iId)
 			i++
 		}
 	}
 
 	for ; i < n; i++ {
-		prevSid := lte_protos.SidString(prev[i].Sid)
-		deleted = append(deleted, prevSid)
+		prevId := prev[i].Id
+		deleted = append(deleted, prevId)
 	}
 	for ; j < m; j++ {
-		nextSid := lte_protos.SidString(next[j].Sid)
-		toRenew[nextSid] = next[j].Digest.Md5Base64Digest
+		nextId := next[j].Id
+		toRenew[nextId] = next[j].Digest.Md5Base64Digest
 	}
 
 	return toRenew, deleted

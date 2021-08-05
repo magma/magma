@@ -15,9 +15,10 @@ syntax = "proto3";
 
 package magma.orc8r;
 option go_package = "magma/orc8r/lib/go/protos";
+import "google/protobuf/any.proto";
 
 // DigestTree contains the full set of digest information for a particular network.
-// DigestTree is similar to a depth=2 Merkle tree.
+// DigestTree is seimilar to a depth=2 Merkle tree.
 message DigestTree {
   // root_digest is the amalgum of all leaf digests.
   Digest root_digest = 1;
@@ -44,4 +45,12 @@ message LeafDigest {
 // digests should still be represented directly as a list for simplicity.
 message LeafDigests {
   repeated LeafDigest digests = 1;
+}
+
+// Changeset contains the set of differences between two lists of objects.
+message Changeset {
+  // to_renew contains all objects which were added or updated, sorted by ID.
+  repeated google.protobuf.Any to_renew = 1;
+  // deleted lists the IDs for all objects which were deleted.
+  repeated string deleted = 2;
 }

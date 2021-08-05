@@ -32,6 +32,9 @@ func main() {
 		glog.Fatalf("Error creating service: %+v", err)
 	}
 
+	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
+	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
+
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
@@ -40,13 +43,15 @@ func main() {
 	if err := fact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
 	}
-	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact)
+	// Garbage collection interval for syncstore cache writers is enforced to be half the time for the service worker's
+	// update interval, to prevent cache writers from outliving update cycles
+	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
+		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
+		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
+	})
 	if err := store.Initialize(); err != nil {
 		glog.Fatalf("Error initializing subscriber syncstore")
 	}
-
-	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
-	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
 	go subscriberdb_cache.MonitorDigests(serviceConfig, store)
 

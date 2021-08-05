@@ -28,3 +28,17 @@ func JitterUint32(n uint32, key string, maxMultiplier float32) uint32 {
 	maxJitter := float32(n) * maxMultiplier
 	return uint32(multiplier * maxJitter)
 }
+
+// JitterInt64 returns a jitter of the given int64 value that is deterministic
+// based on the given key.
+func JitterInt64(n int64, key string, maxMultiplier float64) int64 {
+	// FNV-1 is a non-cryptographic hash function that is fast and very simple to implement
+	h := fnv.New32a()
+	_, err := h.Write([]byte(key))
+	if err != nil {
+		return 0
+	}
+	multiplier := float64(h.Sum32()%100) / 100.0
+	maxJitter := float64(n) * maxMultiplier
+	return int64(multiplier * maxJitter)
+}

@@ -57,10 +57,7 @@ func RenewDigests(config Config, store syncstore.SyncStore) (map[string]string, 
 	}
 	// Garbage collection needs to happen here to ensure that untracked networks are removed from store
 	// before the next step
-	err = store.CollectGarbage(tracked)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "collect garbage for subscriber syncstore")
-	}
+	store.CollectGarbage(tracked)
 	toUpdate, err := getNetworksToUpdate(store, tracked, config.UpdateIntervalSecs)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "get networks to update")
@@ -117,7 +114,7 @@ func updateDigestTree(network string, store syncstore.SyncStore) (string, []*pro
 	// not update, and will indicate outdated-ness instead, forcing a redo in the next loop.
 	leafDigests, err := subscriberdb.GetPerSubscriberDigests(network)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "get per sub dgests to update")
+		return "", nil, errors.Wrap(err, "get per-subscriber digests to update")
 	}
 	digestTree := &protos.DigestTree{
 		RootDigest:  &protos.Digest{Md5Base64Digest: rootDigest},

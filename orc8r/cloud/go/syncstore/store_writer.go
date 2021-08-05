@@ -61,7 +61,7 @@ func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.Blo
 }
 
 func (l *syncStore) SetDigest(network string, digests *protos.DigestTree) error {
-	rootDigest := digests.RootDigest.Md5Base64Digest
+	rootDigest := digests.RootDigest.GetMd5Base64Digest()
 	leafDigestsToSerialize := &protos.LeafDigests{Digests: digests.GetLeafDigests()}
 	leafDigests, err := proto.Marshal(leafDigestsToSerialize)
 	if err != nil {
@@ -121,7 +121,7 @@ func (l *syncStore) UpdateCache(network string) (CacheWriter, error) {
 	return l.NewCacheWriter(network, writerID), nil
 }
 
-func (l *syncStore) RecordResync(network string, gateway string, t uint64) error {
+func (l *syncStore) RecordResync(network string, gateway string, t int64) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrapf(err, "error starting transaction")
@@ -131,7 +131,7 @@ func (l *syncStore) RecordResync(network string, gateway string, t uint64) error
 	err = store.CreateOrUpdate(network, blobstore.Blobs{{
 		Type:  lastResyncBlobstoreType,
 		Key:   gateway,
-		Value: encodeUint64(t),
+		Value: encodeInt64(t),
 	}})
 	if err != nil {
 		return errors.Wrapf(err, "set last resync time of network %+v, gateway %+v in blobstore", network, gateway)
@@ -151,7 +151,7 @@ func (l *syncStore) recordCacheWriterStartTime(network string, writerID string) 
 	err = store.CreateOrUpdate(network, blobstore.Blobs{{
 		Type:  cacheWriterBlobstoreType,
 		Key:   writerID,
-		Value: encodeUint64(uint64(clock.Now().Unix())),
+		Value: encodeInt64(clock.Now().Unix()),
 	}})
 	if err != nil {
 		return errors.Wrapf(err, "set start time of network %+v, cachewriter %+v in blobstore", network, writerID)
@@ -396,8 +396,8 @@ func generateCacheWriterUUID(tableNamePrefix string) string {
 	return fmt.Sprintf("%s_cache_writer_%s", tableNamePrefix, id)
 }
 
-func encodeUint64(n uint64) []byte {
+func encodeInt64(n int64) []byte {
 	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, n)
+	binary.LittleEndian.PutUint64(bytes, uint64(n))
 	return bytes
 }

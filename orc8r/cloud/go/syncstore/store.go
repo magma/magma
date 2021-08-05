@@ -32,9 +32,6 @@ type SyncStore interface {
 	// UpdateCache returns a CacheWriter object that'll be used to update
 	// the cache of a network.
 	UpdateCache(network string) (CacheWriter, error)
-
-	// RecordResync tracks the last resync time of a gateway.
-	RecordResync(network string, gateway string, t uint64) error
 }
 
 type SyncStoreReader interface {
@@ -54,7 +51,10 @@ type SyncStoreReader interface {
 	GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error)
 
 	// GetLastResync returns the last resync time of a particular gateway.
-	GetLastResync(network string, gateway string) (uint64, error)
+	GetLastResync(network string, gateway string) (int64, error)
+
+	// RecordResync tracks the last resync time of a gateway.
+	RecordResync(network string, gateway string, t int64) error
 }
 
 type CacheWriter interface {
