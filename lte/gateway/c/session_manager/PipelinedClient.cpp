@@ -377,8 +377,8 @@ void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
 void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const optional<AggregatedMaximumBitrate>& ambr,
-    const RulesToProcess to_process, unsigned int shard_id,
+    const optional<AggregatedMaximumBitrate>& ambr, const unsigned int shard_id,
+    const RulesToProcess to_process,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << to_process.size() << " rules for " << imsi
                << " msisdn " << msisdn << " and ip " << ip_addr << " "

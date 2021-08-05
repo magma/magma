@@ -268,7 +268,7 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
-  uint16_t get_shard_id() const { return shard_id_; }
+  unsigned int get_shard_id() const { return shard_id_; }
 
   void set_shard_id(unsigned int shard_id) { shard_id_ = shard_id; }
 

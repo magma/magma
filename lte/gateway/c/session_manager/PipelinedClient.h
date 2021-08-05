@@ -128,7 +128,7 @@ class PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const RulesToProcess to_process, unsigned int shard_id,
+      const unsigned int shard_id, const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
@@ -260,7 +260,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const RulesToProcess to_process, unsigned int shard_id,
+      const unsigned int shard_id, const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow(

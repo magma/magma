@@ -116,7 +116,7 @@ class ServiceAction {
 
   const std::string& get_msisdn() const { return *msisdn_; }
 
-  const uint16_t get_shard_id() const { return shard_id_; }
+  const unsigned int get_shard_id() const { return shard_id_; }
 
   // RulesToProcess
   RulesToProcess get_gx_rules_to_install() const { return gx_to_install_; }

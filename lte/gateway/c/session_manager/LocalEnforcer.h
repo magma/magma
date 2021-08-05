@@ -457,9 +457,9 @@ class LocalEnforcer {
    * even if pending_activation is empty
    */
   void propagate_rule_updates_to_pipelined(
-      const SessionConfig& config, const RulesToProcess& pending_activation,
-      const RulesToProcess& pending_deactivation, bool always_send_activate,
-      unsigned int shard_id);
+      const SessionConfig& config, unsigned int shard_id,
+      const RulesToProcess& pending_activation,
+      const RulesToProcess& pending_deactivation, bool always_send_activate);
 
   /**
    * @brief for each element in RulesToSchedule, schedule rule
