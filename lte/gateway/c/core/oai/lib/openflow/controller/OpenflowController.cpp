@@ -44,6 +44,7 @@ OpenflowController::OpenflowController(
               .use_hello_elements(true)          // bitmask version negotiation
               .keep_data_ownership(false)),
       running_(true),
+      latest_ofconn_(nullptr),
       messenger_(messenger) {}
 
 OpenflowController::OpenflowController(
@@ -58,6 +59,9 @@ void OpenflowController::register_for_event(
 }
 
 void OpenflowController::stop() {
+  if (latest_ofconn_ != nullptr) {
+    latest_ofconn_->close();
+  }
   running_ = false;
   OFServer::stop();
 }
@@ -140,6 +144,10 @@ bool OpenflowController::is_controller_connected_to_switch(int conn_timeout) {
     OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNerror);
   };
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
+}
+
+fluid_base::OFConnection* OpenflowController::get_latest_of_connection() {
+  return latest_ofconn_;
 }
 
 }  // namespace openflow
