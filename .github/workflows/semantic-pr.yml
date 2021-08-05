@@ -43,6 +43,7 @@ jobs:
             csfb
             ctraced
             cwg
+            deps
             directoryd
             eap
             eap_aka

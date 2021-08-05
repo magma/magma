@@ -14,7 +14,7 @@ syntax = "proto3";
 
 package magma;
 
-option go_package = "test_protos";
+option go_package = "magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos";
 
 message Message1 {
     string field = 1;

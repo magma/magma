@@ -16,7 +16,7 @@ Magma's Orchestrator is a centralized controller for a set of networks. Orchestr
 configuration and metrics for network devices
 - **A southbound interface** which applies device configuration and reports device status
 
-![Orc8r Overview](../assets/orc8r/orc8r_overview.png)
+![Orc8r Overview](assets/orc8r/orc8r_overview.png)
 
 At a lower level, Orchestrator supports the following functionality
 
@@ -35,27 +35,27 @@ Orchestrator follows a modular design. Core Orchestrator services (located at `o
 
 Every Orchestrator service is deployed with its own Kubernetes service and pod.
 
-![Orc8r Service Mesh Architecture](../assets/orc8r/orc8r_service_mesh.png)
+![Orc8r Service Mesh Architecture](assets/orc8r/orc8r_service_mesh.png)
 
 ### Configuration
 
 The following diagram displays an example call flow for LTE gateway
 configuration
 
-![Orc8r Configuration](../assets/orc8r/orc8r_configuration.png)
+![Orc8r Configuration](assets/orc8r/orc8r_configuration.png)
 
 ### Metrics
 
 The following diagram displays the call flow for the metrics pipeline
 
-![Orc8r Metrics](../assets/orc8r/orc8r_metrics.png)
+![Orc8r Metrics](assets/orc8r/orc8r_metrics.png)
 
 ### Services
 
 This section outlines the functionality of each service in the core
 Orchestrator, LTE, and FeG modules.
 
-**Orchestrator**
+#### Orchestrator
 
 - *accessd* stores, manages and verifies operator identity objects and their rights to access (read/write) entities
 - *analytics* periodically fetches and aggregates metrics for all deployed Orchestrator modules, exporting the aggregations to Prometheus
@@ -78,7 +78,7 @@ Orchestrator by querying Kubernetes's API server
 - *streamer* fetches updates for various data streams (e.g. mconfig, subscribers, etc.) from the appropriate Orchestrator service, returning these to the gateways
 - *tenants* provides CRUD interface for managing NMS tenants
 
-**LTE**
+#### LTE
 
 - *ha* provides interface for secondary gateways in an HA deployment to find offload status for UEs
 - *lte* provides
@@ -88,7 +88,7 @@ Orchestrator by querying Kubernetes's API server
 - *smsd* provides CRUD support for SMS messages to be fetched by LTE gateways
 - *subscriberdb* manages subscribers via a northbound CRUD API and a southbound subscriber stream
 
-**FeG**
+#### FeG
 
 - *feg* provides
     - Mconfigs for configuration of FeG-related gateway service configurations (e.g. s6a_proxy, session_proxy)

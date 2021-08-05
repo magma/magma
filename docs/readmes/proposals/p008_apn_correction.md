@@ -1,6 +1,6 @@
 ---
 id: p008_apn_correction
-title: MME APN Correction 
+title: MME APN Correction
 hide_title: true
 ---
 
@@ -9,7 +9,6 @@ hide_title: true
 *Status: Accepted*\
 *Author: @ymasmoudi*\
 *Last Updated: 09/22*
-
 
 During session establishment, the phone may have an APN configured already.
 In this case, this APN will be used as it has a higher precedence over the
@@ -46,9 +45,9 @@ The APN correction, if enabled by setting enable_apn_correction to true, will
 overwrite the APN requested by UE for UEs with matching imsi_prefix filter
 specified as part of apn_correction_map_list with the value of key apn_override.
 
-
-```
+```bash
 cat /etc/magma/mme.yml
+
 ....
 enable_apn_correction: false
 apn_correction_map_list:
@@ -58,12 +57,11 @@ apn_correction_map_list:
 
 The configuration will be limited to a maximum of 10 imsi prefix filters.
 
-
 ## How We Will Change Magma
 
-**MME Change**
+### MME Change
 
-Two structures will be added to contain the mme apn correction configuration    
+Two structures will be added to contain the mme apn correction configuration
 
 typedef struct apn_map_s {
   bstring imsi_prefix;
@@ -75,7 +73,6 @@ typedef struct apn_map_config_s {
   apn_map_t apn_map[MAX_APN_CORRECTION_MAP_LIST];
 } apn_map_config_t;
 
-
 In addition, a new function will be introduced to filter and return the overridden
 APN based on the MME NAS config.
 
@@ -85,11 +82,10 @@ Connectivity Request.
 Mconfig proto description will be changed to support APN correction configuration
 pending the support of mme config in swagger and NMS.
 
-**ORC8R Change**
+### ORC8R Change
 
 Exposing MME configuration to swagger will be supported in a later phase.
 
-**NMS Change**
+### NMS Change
 
 Exposing APN correction configuration to NMS will be supported in a later phase.
-

@@ -202,7 +202,8 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
     OAILOG_INFO(LOG_NGAP, " sending SCTP_INIT_MSG to SCTP \n");
   }
   zloop_start(ngap_task_zmq_ctx.event_loop);
-  ngap_amf_exit();
+  AssertFatal(
+      0, "Asserting as ngap_amf_thread should not be exiting on its own!");
   return NULL;
 }
 

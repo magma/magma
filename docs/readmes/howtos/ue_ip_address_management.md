@@ -26,7 +26,7 @@ To configure an AGW in Non-NAT mode, you need to disable NAT on the AGW.
 Note that this is a gateway-level configuration, so you will need to change
 this for every AGW in the network that you want to run in Non-NAT mode.
 
-```
+```text
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
 {
   "epc": {
@@ -47,6 +47,7 @@ of the internet gateway in `/var/opt/magma/configs/pipelined.yml` with the key
 `uplink_gw_mac`.
 
 ### Router mode
+
 By default, the AGW is pre-configured in router mode where the AGW acts as the L3
 next hop for the UE allocated subnet (UEs can be allocated IP addresses via the
 IP address pool or Static assignment). Note that currently the AGW does not
@@ -56,6 +57,7 @@ with a static route pointing to the SGi interface for the UE subnet(s)
 This support is added in Release 1.6.
 
 ### Bridged mode
+
 Bridged mode is on along with router mode. The AGW does respond to ARP
 requests for each UE IP even when router mode is on. If you do not want router
 mode on you need to edit pipelined.yml file to change `dp_router_enabled` to
@@ -91,7 +93,7 @@ you configure will be passed down to all AGWs in that network.
 This is the default configuration for new AGWs. We call this "NAT" mode on the
 API.
 
-```
+```text
 API: /lte/{network_id}/cellular
 {
   "epc": {
@@ -116,7 +118,7 @@ NOTE: This feature requires installed `libpcap`.
 
 To enable this feature, set `ip_allocation_mode` to `DHCP_BROADCAST`.
 
-```
+```text
 API: /lte/{network_id}/cellular
 {
   "epc": {
@@ -142,7 +144,7 @@ strategy.
 
 To enable this feature, first set the appropriate feature flag on the network:
 
-```
+```text
 API: /lte/{network_id}/cellular
 {
   "epc": {
@@ -155,12 +157,12 @@ API: /lte/{network_id}/cellular
 After this, you can assign a static IP for a specific APN for any registered
 subscriber.
 
-````
+```text
 API: /lte/{network_id}/subscribers
 "static_ips": {
     "active_apn_name": "192.168.100.1",
   }
-````
+```
 
 Note you can only assign a static IP to an active APN (i.e. provision the
 corresponding APN first). The Static IP cannot overlap with the configured
@@ -175,7 +177,7 @@ NOTE: This is currently an experimental feature.
 
 Like static IP assignments, this is gated behind a network-wide feature flag:
 
-```
+```text
 API: /lte/{network_id}/cellular
 {
   "epc": {
@@ -201,7 +203,7 @@ on the respective L2 segment using the `ff:ff:ff:ff:ff:ff` MAC address.
 
 These configuration options are specified at the AGW level per APN:
 
-````
+````text
 API: /lte/{network_id}/gateways/{gateway_id}
   "apn_resources": {
     "inet": {
@@ -231,7 +233,7 @@ In Non-NAT mode this IP is set to uplink bridge interface.
 There is orc8r API to assign static IP and default Gateway for each AGW, both
 are required to successfully set the SGi IP address.
 
-```
+```text
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
 {
   "epc": {
@@ -245,7 +247,7 @@ API: /lte/{network_id}/gateways/{gateway_id}/cellular
 You can also set VLAN for SGi management port using following orc8r.
 This only works in Non-NAT mode.
 
-```
+```text
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
 {
   "epc": {

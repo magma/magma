@@ -13,9 +13,10 @@ This document attempts to give high level explanations of the purpose of each ch
 ## How to reach out to a check owner
 
 Below are some resources for finding who to contact:
-* [GitHub-to-Slack ID mappings](contribute_id_mappings)
-* [List of Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain/members)
-* [List of `approvers-*` teams and their members](https://github.com/orgs/magma/teams/?query=approvers)
+
+- [GitHub-to-Slack ID mappings](contribute_id_mappings)
+- [List of Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain/members)
+- [List of `approvers-*` teams and their members](https://github.com/orgs/magma/teams/?query=approvers)
 
 ## Blocking Checks
 
@@ -61,3 +62,4 @@ The CI checks listed below do not block merging on failure.
 | ci/circleci: cwag-build                       | Validate CWAG builds                                             | approvers-cwf      | TODO                                                 |
 | ci/circleci: feg-lint                         | Check FeG changes satisfies Go linter                            | approvers-feg      | TODO                                                 |
 | Python Format Check                           | Ensure Python changes are formatted                              | themarwhal         | [AGW formatting](../lte/dev_unit_testing#format-agw) |
+| markdown-lint | Ensure documentation changes are formatted | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit) |

@@ -15,6 +15,7 @@
  *      contact@openairinterface.org
  */
 
+#include <string>
 extern "C" {
 #include "assertions.h"
 #include "dynamic_memory_check.h"
@@ -35,7 +36,8 @@ constexpr char TUN_UE_ID_TABLE_NAME[]  = "mme_app_tun11_ue_context_htbl";
 constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
 constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
     "mme_app_enb_ue_s1ap_id_ue_context_htbl";
-constexpr char MME_TASK_NAME[] = "MME";
+constexpr char MME_TASK_NAME[]          = "MME";
+constexpr char MME_UEIP_IMSI_MAP_NAME[] = "mme_ueip_imsi_map";
 }  // namespace
 
 namespace magma {
@@ -52,7 +54,7 @@ MmeNasStateManager& MmeNasStateManager::getInstance() {
 
 // Constructor for MME NAS state object
 MmeNasStateManager::MmeNasStateManager()
-    : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS) {}
+    : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS), ueip_imsi_map{0} {}
 
 // Destructor for MME NAS state object
 MmeNasStateManager::~MmeNasStateManager() {
@@ -72,6 +74,7 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
   redis_client = std::make_unique<RedisClient>(persist_state_enabled);
   int rc       = read_state_from_db();
   read_ue_state_from_db();
+  create_mme_ueip_imsi_map();
   is_initialized = true;
   return rc;
 }
@@ -240,6 +243,40 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
     }
   }
   return RETURNok;
+}
+
+void MmeNasStateManager::create_mme_ueip_imsi_map() {
+  if (!persist_state_enabled) {
+    OAILOG_ERROR(log_task, "persist_state_enabled is not enabled \n");
+    return;
+  }
+  oai::MmeUeIpImsiMap ueip_proto = oai::MmeUeIpImsiMap();
+  redis_client->read_proto(MME_UEIP_IMSI_MAP_NAME, ueip_proto);
+
+  MmeNasStateConverter::mme_app_proto_to_ueip_imsi_map(
+      ueip_proto, ueip_imsi_map);
+  return;
+}
+
+void MmeNasStateManager::write_mme_ueip_imsi_map_to_db() {
+  if (!persist_state_enabled) {
+    OAILOG_ERROR(log_task, "persist_state_enabled is not enabled \n");
+    return;
+  }
+
+  oai::MmeUeIpImsiMap ueip_proto = oai::MmeUeIpImsiMap();
+  MmeNasStateConverter::mme_app_ueip_imsi_map_to_proto(
+      ueip_imsi_map, &ueip_proto);
+  std::string proto_msg;
+  redis_client->serialize(ueip_proto, proto_msg);
+
+  // ueip_imsi_map is not state service synced, so version will not be updated
+  redis_client->write_proto_str(MME_UEIP_IMSI_MAP_NAME, proto_msg, 0);
+  return;
+}
+
+UeIpImsiMap& MmeNasStateManager::get_mme_ueip_imsi_map(void) {
+  return ueip_imsi_map;
 }
 
 }  // namespace lte

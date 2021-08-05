@@ -158,7 +158,8 @@ Consider the following Markdown conventions
 
 Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magma/blob/master/.golangci.yml). The [Go style guide](https://github.com/golang/go/wiki/CodeReviewComments) and anything concrete from [Effective Go](https://golang.org/doc/effective_go) are authoritative. Aside from those, consider the following conventions
 
-**General**
+#### General
+
 - Familiarize yourself with these [3 common Go landmines](https://gist.github.com/lavalamp/4bd23295a9f32706a48f)
 - Check in generated code
 - Avoid init functions in Magma code
@@ -175,7 +176,8 @@ Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magm
     - Only use same-package tests when absolutely necessary, and in that case put them in a separate test file
 - When returning an error, all other returns should contain their [zero value](https://yourbasic.org/golang/default-zero-value/)
 
-**Logging**
+#### Logging
+
 - Use [the `golang/glog` package](https://pkg.go.dev/github.com/golang/glog) for all logging
     - Default to `-v=0` for all services
 - Deciding when to log errors
@@ -188,10 +190,11 @@ Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magm
     - `Warning` when something is probably wrong, but it's not possible to be sure it's an error. This is an infrequent use-case, prefer error.
     - `Info` for everything else, with appropriate verbosity.
 
-**Style**
+#### Style
+
 - Verbify function names
-  - Exception: composable method names with well-understood functionality, e.g. `foo.Filter(...).Keys().Sorted()`
-  - Exception: using `new*` or `New*` when instantiating new objects
+    - Exception: composable method names with well-understood functionality, e.g. `foo.Filter(...).Keys().Sorted()`
+    - Exception: using `new*` or `New*` when instantiating new objects
 - When import aliasing is required, prefer to alias with `snake_case` rather than `camelCase`
 - Prefer readable code over rigid adherence to max line lengths. Capping around 140 characters feels about right.
 
@@ -199,20 +202,21 @@ Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magm
 
 The [PEP 8 style guide](https://www.python.org/dev/peps/pep-0008/) is authoritative.
 
-**Type annotations**
+#### Type annotations
 
 - All new code should be fully type-annotated
-  - For reference, please look at this [type hints cheat sheet for Python 3](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
+    - For reference, please look at this [type hints cheat sheet for Python 3](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
 
-**Documentation**
+#### Documentation
 
 - Document all public functions and *keep those docs up to date* when you make changes
 - We use [Google style docstrings](https://google.github.io/styleguide/pyguide.html#383-functions-and-methods) in our codebase
-  - For VSCode users, [Python Docstring Generator](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) plugin is recommended
-  - For IntelliJ users, you can configure a doc string format via `Preferences->Tools->Python Integrated Tools->Docstring format`
+    - For VSCode users, [Python Docstring Generator](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) plugin is recommended
+    - For IntelliJ users, you can configure a doc string format via `Preferences->Tools->Python Integrated Tools->Docstring format`
 
 Example:
-```
+
+```python
 def foo(arg1: str) -> int:
     """Returns the length of arg1.
 
@@ -224,59 +228,63 @@ def foo(arg1: str) -> int:
     return len(arg1)
 ```
 
-**Logging**
+#### Logging
+
 - Use the [logging](https://docs.python.org/3/library/logging.html) module for all logging
 - Refer to the Go logging section for deciding between log levels
 
-
-**Linter**
+#### Linter
 
 - For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services
-  - On CI, the check gets run as part of the `lte-test` job
+    - On CI, the check gets run as part of the `lte-test` job
 - Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
-  - [Instructions on running the linter locally](../lte/dev_unit_testing#format-agw)
+    - [Instructions on running the linter locally](../lte/dev_unit_testing#format-agw)
 
-**Formatters**
+#### Formatters
 
 - Always [format Python changes locally](../lte/dev_unit_testing#format-agw)
 - We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.
-
 
 ### C++
 
 The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) is authoritative.
 
-**Documentation**
+#### Documentation
+
 - Always document your functions and classes in the header files over source files
 - Use Doxygen style documentation for functions
-  - For VSCode users, the [doxygen documentation generator plugin](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen) is recommended
+    - For VSCode users, the [doxygen documentation generator plugin](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen) is recommended
 
-**Types**
+#### Types
+
 - Be mindful when choosing input / output types when writing new functions
-  - Opt for return values over output parameters
-  - Non-optional input parameters should be values or const references
-  - Use non-const pointers to represent optional outputs and optional input/output parameters
+    - Opt for return values over output parameters
+    - Non-optional input parameters should be values or const references
+    - Use non-const pointers to represent optional outputs and optional input/output parameters
 
-**Headers**
+#### Headers
+
 - Always include what you use
-  - [cpplint](https://github.com/cpplint/cpplint) has include-what-you-use warnings
+    - [cpplint](https://github.com/cpplint/cpplint) has include-what-you-use warnings
 
-**Linter**
+#### Linter
+
 - We recommend Google's [cpplint](https://github.com/cpplint/cpplint) to lint your changes locally
-  - For VSCode users, the [cpplint plugin](https://marketplace.visualstudio.com/items?itemName=mine.cpplint) is recommended
+    - For VSCode users, the [cpplint plugin](https://marketplace.visualstudio.com/items?itemName=mine.cpplint) is recommended
 - We also have a [Reviewdog](https://github.com/reviewdog/reviewdog) annotatoer that runs [cpplint](https://github.com/cpplint/cpplint) to aid the code review process
 
-**Logging**
+#### Logging
+
 - For non-OAI C++ services, use the `MLOG` macros defined in `orc8r/gateway/c/common/logging/magma_logging.h`
 - For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/core/oai/common/log.h`
 - Refer to the Go logging section for deciding between log levels
-
 
 ### C
 
 Where applicable, the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) should be followed.
 
-**Exceptions, errors, and assertions**
+#### Exceptions, errors, and assertions
+
 - As an exception mechanism is not provided in C, any error handling should be done either with assertions or error codes
 - As a principle, library functions should never cause crashes, and higher level callers should be responsible for handling errors
 - When exception handling is required, prefer returning error codes over using assertions
@@ -298,25 +306,29 @@ Where applicable, the [Google C++ Style Guide](https://google.github.io/stylegui
 
 ### Javascript
 
-**General**
+#### General
+
 - Import order should be: types, default components, and named components with each separated by a newline
 - Use `TitleCase` for component file names
 - Favor `map` and `forEach` functions in place of regular `for` loops
 - Refrain from using literal strings/numbers without defining them
 - Use strict equality(`===`) when comparing values
 
-**Type annotations**
+#### Type annotations
+
 - All new code should be fully type anotatated
 - We have a mandatory unit test that runs the [Flow](https://docs.magmacore.org/docs/next/nms/dev_testing#pre-commit-tests#flow) type checker on the NMS codebase
     - On CI, the check gets run as part of the `nms-flow-test` job
 
-**Documentation**
+#### Documentation
+
 - Document all the components and functions you create
 - Keep the docs up to date when you make changes
 - Use [JSDoc](https://jsdoc.app/index.html) tags to document your code
 - Use `//` to comment line of code, if it is not clear in what it is doing
 
-**Linter**
+#### Linter
+
 - Run [ESLint](https://docs.magmacore.org/docs/next/nms/dev_testing#pre-commit-tests#eslint) to lint your changes locally
 - For mandatory lint checks, we have a unit test that runs `eslint` on JS code
     - On CI, the check gets run as part of the `eslint` job

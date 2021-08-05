@@ -15,7 +15,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 
 package magma.orc8r.device;
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/device/protos";
 
 message PhysicalEntity {
     // Globally unique identifier per type (MAC/SN)

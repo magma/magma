@@ -6,32 +6,21 @@ hide_title: true
 
 # Modularity
 
-The Orchestrator follows a modular design, supporting domain-specific applications under an extendable service mesh architecture. This
-document describes the Orchestrator's service mesh architecture motivations, implementation, and how to extend Orchestrator for your own
-domain-specific purposes.
+The Orchestrator follows a modular design, supporting domain-specific applications under an extendable service mesh architecture. This document describes the Orchestrator's service mesh architecture motivations, implementation, and how to extend Orchestrator for your own domain-specific purposes.
 
 ## Motivation
 
-The Magma platform aims to provide unified access network management, across domains. Operators should be able to use the same,
-familiar Orchestrator interface to provision and monitor deployments targeting use-cases from fixed wireless access, federated fixed
-wireless access, private LTE, carrier Wi-Fi, etc.
+The Magma platform aims to provide unified access network management, across domains. Operators should be able to use the same, familiar Orchestrator interface to provision and monitor deployments targeting use-cases from fixed wireless access, federated fixed wireless access, private LTE, carrier Wi-Fi, etc.
 
-To achieve this goal, the Orchestrator provides a set of core, domain-agnostic features, which are then extended by domain-specific
-functionality on a per-deployment basis. This logic-based extension occurs completely at runtime -- that is, while we provide Helm charts
-targeting a default set of use-cases, extending an Orchestrator deployment is, practically, as simple as spinning up a new service within
-the cluster.
+To achieve this goal, the Orchestrator provides a set of core, domain-agnostic features, which are then extended by domain-specific functionality on a per-deployment basis. This logic-based extension occurs completely at runtime -- that is, while we provide Helm charts targeting a default set of use-cases, extending an Orchestrator deployment is, practically, as simple as spinning up a new service within the cluster.
 
-For more background on microservice patterns, and the extension pattern specifically, refer to [this article on domain-oriented
-microservice architectures](https://eng.uber.com/microservice-architecture/).
+For more background on microservice patterns, and the extension pattern specifically, refer to [this article on domain-oriented microservice architectures](https://eng.uber.com/microservice-architecture/).
 
 ## Implementation
 
 ### Overview
 
-Orchestrator provides a discrete set of extensions for injecting functionality into the core services. These extensions (i.e. hooks)
-implement a per-extension gRPC servicer, where core Orchestrator services will handle making calls over-the-network to the servicer at
-the appropriate time. Each service in the deployment can implement any of the extensions, and the core services will automatically
-handle calling the extension implementation. Discovery is handled by assigning Kubernetes labels and annotations.
+Orchestrator provides a discrete set of extensions for injecting functionality into the core services. These extensions (i.e. hooks) implement a per-extension gRPC servicer, where core Orchestrator services will handle making calls over-the-network to the servicer at the appropriate time. Each service in the deployment can implement any of the extensions, and the core services will automatically handle calling the extension implementation. Discovery is handled by assigning Kubernetes labels and annotations.
 
 There are two categories of extensions
 
@@ -80,19 +69,22 @@ We currently support 7 extensions
 
 ### Example extension
 
-The interface between core service and extension implementation is defined per extension. Beyond that interface, functionality depends on
-the particular extension. For a concrete example, consider the state indexing diagram
-described in [State Indexers](./dev_indexers.md).
+The interface between core service and extension implementation is defined per extension. Beyond that interface, functionality depends on the particular extension. For a concrete example, consider the state indexing diagram described in [State Indexers](./dev_indexers.md).
+
+## Modules
+
+Magma modules encapsulate domain-specific functionality by defining reusable code and deployments that span Orc8r and gateways. At the Orc8r, these modules use the extension pattern to inject their functionality.
+
+You can see the full list of modules in [Module Dependencies](./dev_dependencies.md). These modules span both Orc8r and the relevant gateways, allowing domain-specific code to be shared and injected across the stack. As an example, the AGW, FeG, and CWAG are gateways that collectively share the *orc8r*, *lte*, *feg*, and *cwf* modules
+
+![Orc8r modules example](assets/orc8r/magma_modules.png)
 
 ## Extending Orchestrator
 
 ### Implement extension
 
-You'll need to define a service executable which implements the gRPC servicer definition for one of the above extensions. Then,
-when packaging your Helm charts, be sure to include the relevant labels and annotations for your new service. After deploying the Helm
-charts to your K8s cluster, the core services should automatically discover and incorporate the new extension implementation.
+You'll need to define a service executable which implements the gRPC servicer definition for one of the above extensions. Then, when packaging your Helm charts, be sure to include the relevant labels and annotations for your new service. After deploying the Helm charts to your K8s cluster, the core services should automatically discover and incorporate the new extension implementation.
 
 ### Add new extension
 
-Reach out to us! Follow the "Community" tab in the header to get connected. For compelling use-cases, we can add and/or guide the addition
-of new extensions.
+Reach out to us! Follow the "Community" tab in the header to get connected. For compelling use-cases, we can add and/or guide the addition of new extensions.

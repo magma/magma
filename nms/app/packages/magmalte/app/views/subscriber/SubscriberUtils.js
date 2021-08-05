@@ -27,6 +27,15 @@ export function getLabelUnit(val: number) {
   return [val.toFixed(2), 'bytes'];
 }
 
+/**
+ * Converts bits to megabits
+ * @param {number} val The value in bits to be converted
+ * @returns {string} Megabits value of the number passed in
+ */
+export function convertBitToMbit(val: number) {
+  return (val / mBIT).toFixed(2);
+}
+
 export function getPromValue(resp: promql_return_object) {
   const respArr = resp?.data?.result
     ?.map(item => {

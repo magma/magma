@@ -17,7 +17,7 @@ package magma.orc8r.metricsd;
 
 import "metrics.proto";
 
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/metricsd/protos";
 
 // MetricsExporter supports custom metric datasinks.
 service MetricsExporter {

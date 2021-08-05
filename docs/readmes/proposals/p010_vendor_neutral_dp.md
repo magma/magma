@@ -7,29 +7,29 @@ hide_title: true
 - [Proposal: Vendor Neutral CBSD Domain Proxy](#proposal-vendor-neutral-cbsd-domain-proxy)
 - [Abstract](#abstract)
 - [Background](#background)
-  - [References](#references)
+    - [References](#references)
 - [Proposal](#proposal)
-  - [Vendor Neutral Domain Proxy HLD](#vendor-neutral-domain-proxy-hld)
-  - [SAS Client Interface Requirements](#sas-client-interface-requirements)
-  - [CBSD Proxy Interface Requirements](#cbsd-proxy-interface-requirements)
-  - [Aggregation and Proxy Management Requirements](#aggregation-and-proxy-management-requirements)
-  - [User Interface Requirements](#user-interface-requirements)
-  - [Deployment Architecture Requirements](#deployment-architecture-requirements)
+    - [Vendor Neutral Domain Proxy HLD](#vendor-neutral-domain-proxy-hld)
+    - [SAS Client Interface Requirements](#sas-client-interface-requirements)
+    - [CBSD Proxy Interface Requirements](#cbsd-proxy-interface-requirements)
+    - [Aggregation and Proxy Management Requirements](#aggregation-and-proxy-management-requirements)
+    - [User Interface Requirements](#user-interface-requirements)
+    - [Deployment Architecture Requirements](#deployment-architecture-requirements)
 - [Rationale](#rationale)
 - [Compatibility](#compatibility)
 - [Observability and Debug](#observability-and-debug)
 - [Implementation](#implementation)
-  - [DP Microservices](#dp-microservices)
-  - [Component Interactions](#component-interactions)
-  - [Solution scaling](#solution-scaling)
-  - [Batching of messages](#batching-of-messages)
-  - [Architectural Discussion](#architectural-discussion)
-    - [Relational database](#relational-database)
-    - [Queuing mechanisms](#queuing-mechanisms)
-    - [Message Queue Pros/Cons](#message-queue-proscons)
-  - [Resource requirements and estimates](#resource-requirements-and-estimates)
-  - [System Architecture](#system-architecture)
-  - [Schedule and Milestones](#schedule-and-milestones)
+    - [DP Microservices](#dp-microservices)
+    - [Component Interactions](#component-interactions)
+    - [Solution scaling](#solution-scaling)
+    - [Batching of messages](#batching-of-messages)
+    - [Architectural Discussion](#architectural-discussion)
+        - [Relational database](#relational-database)
+        - [Queuing mechanisms](#queuing-mechanisms)
+        - [Message Queue Pros/Cons](#message-queue-proscons)
+    - [Resource requirements and estimates](#resource-requirements-and-estimates)
+    - [System Architecture](#system-architecture)
+    - [Schedule and Milestones](#schedule-and-milestones)
 - [Q/A Feedback](#qa-feedback)
 
 ---
@@ -37,22 +37,23 @@ hide_title: true
 # Proposal: Vendor Neutral CBSD Domain Proxy
 
 Authors:
-* Boris Renski
-* Joey Padden
+
+- Boris Renski
+- Joey Padden
 
 Co-Authors:
-* Vitalii Kostenko
-* Tomasz Jędrośka
-* Szymon Krasuski
-* Marcin Trojanowski
-* Wojciech Sadowy
-* Artur Dębski
+
+- Vitalii Kostenko
+- Tomasz Jędrośka
+- Szymon Krasuski
+- Marcin Trojanowski
+- Wojciech Sadowy
+- Artur Dębski
 
 Last updated: 20.04.2021
 
 Discussion at
 [https://github.com/magma/magma/issues/5514](https://github.com/magma/magma/issues/5514).
-
 
 # Abstract
 
@@ -462,23 +463,22 @@ The following section provides functional requirements for the CBSD Proxy Interf
 A vendor neutral Domain Proxy provides a number of benefits to a CBRS
 deployment:
 
--   The aggregation and proxy function allows for a single connection
+- The aggregation and proxy function allows for a single connection
     between a customer network of CBSDs and the SAS. This provides a
     small attack surface by reducing the number of outbound connections
     traversing the customer firewall and edge devices.
 
--   A domain proxy can be deployed in a controlled stable environment
+- A domain proxy can be deployed in a controlled stable environment
     allowing it to provide a consistent interface to the SAS on behalf
     of a CBSD which may be subject to intermittent loss of power or
     connectivity.
 
--   It provides a point of coordination/control for radio channel
+- It provides a point of coordination/control for radio channel
     allocation in a multi-vendor deployment.
 
--   It allows for the application of additional grant requesting and
+- It allows for the application of additional grant requesting and
     maintenance logic which can correct errant behavior and/or provide
     an optimization layer over vendor SAS client algorithms.
-
 
 # Compatibility
 
@@ -509,14 +509,14 @@ generic application resource use (CPU, RAM, etc.)
 
 Domain Proxy will consist of a number of components in a microservice architecture.
 
-* **API Gateway**
-  
+- **API Gateway**
+
   API Gateway will act as a central API router of the Domain Proxy.
   It will be responsible for receiving incoming CBSD requests
   and routing them to the appropriate Protocol Controllers
   based on the protocol.
 
-* **Protocol Controller (PC)**
+- **Protocol Controller (PC)**
 
   Protocol Controller is responsible for receiving the initial traffic
   from individual CBSDs (radios), translating the requests
@@ -536,20 +536,20 @@ Domain Proxy will consist of a number of components in a microservice architectu
   and tricks at the PC level and making the PC layer scalable
   according to the number of eNBs of each type.
 
-* **Radio Controller (RC)**
+- **Radio Controller (RC)**
 
   RC is responsible for receiving the requests from
   and sending responses to  PCs.
   It manages all request data and state within the Database.
 
-* **Configuration controller (CC)**
+- **Configuration controller (CC)**
 
   CC is used process requests and communicate with the SAS server
   using SAS protocol.
   This component issues a request to SAS and updates the request state
   after receiving a reply within the Database.
 
-* **Database**
+- **Database**
 
   Relational DB storing the state CBSD requests and responses.
 
@@ -557,33 +557,33 @@ Domain Proxy will consist of a number of components in a microservice architectu
 
 ## Component Interactions
 
-* **API Gateway**
+- **API Gateway**
   API gateway will receive incoming requests from CBSDs.
   Depending on the incoming protocol it will route the traffic to appropriate
   k8s protocol controller handling that protocol via a k8s service (which will act as a load balancer).
 
-* **Protocol Controller**
+- **Protocol Controller**
 
   PC will pass the requests it receives from CBSDs to the RC over gRPC.
 
   PC will check for the request response with RC via gRPC
   and send the response back to CBSD.
 
-* **Radio Controller**
+- **Radio Controller**
 
   RC receives requests from the PC over HTTPs and puts them in
   the DB.
 
   RC accepts incoming request response check requests from PC.
 
-* **Configuration Controller**
+- **Configuration Controller**
 
   CC fetches pending requests from the DB, batches them and sends them to SAS.
 
   After receiving the response from SAS, it updates the DB state
   for the requests processed.
 
-* **Database**
+- **Database**
 
   Handles DB queries coming from RC and CC.
 
@@ -641,10 +641,11 @@ Since there is a planned UI and additionally we need to store basic,
 well defined information about CBSD we suggest to reuse an already existing MySQL / PostgreSQL database
 from the Magma Orchestrator component (with a new schema).
 At the very beginning the database usage would be limited to:
-* storing records for CBSDs (registration parameters, SAS `cbsd_id`, name, configuration, name, location, etc.)
-* storing grants
-* storing all incoming CBSD requests and SAS responses
-* user administration & access rights within DP system
+
+- storing records for CBSDs (registration parameters, SAS `cbsd_id`, name, configuration, name, location, etc.)
+- storing grants
+- storing all incoming CBSD requests and SAS responses
+- user administration & access rights within DP system
 
 We do not intend to use the Database to store the state changes.
 This information will be logged with a possibility to expose it
@@ -673,27 +674,27 @@ and an increased transactional traffic to the DB.
 
 ### Message Queue Pros/Cons
 
-* **RabbitMQ**
-  * Pros:
-    - Out-of-the-box fulfills our requirement for batching requests
-    - Microservice approach: easier to split into components, mock & test
-    - Event-based flow is a reasonable way when there can be multiple consumers
-    - Utilizing a full-blown queue makes the architecture extendable - we don’t need to incorporate a pub/sub solution in each new subscribing component
-    - The component is purely internal - it won’t affect other architecture components built by the community
+- **RabbitMQ**
+    - Pros:
+        - Out-of-the-box fulfills our requirement for batching requests
+        - Microservice approach: easier to split into components, mock & test
+        - Event-based flow is a reasonable way when there can be multiple consumers
+        - Utilizing a full-blown queue makes the architecture extendable - we don’t need to incorporate a pub/sub solution in each new subscribing component
+        - The component is purely internal - it won’t affect other architecture components built by the community
 
-  * Cons:
-    - Additional infrastructure component to maintain (internal to th DP)
-    - Pub/Sub overhead (minor in our scenario)
+    - Cons:
+        - Additional infrastructure component to maintain (internal to th DP)
+        - Pub/Sub overhead (minor in our scenario)
 
-* **ZeroMQ**
-  * Pros:
-    - ZeroMQ implements queuing at a higher abstraction level - no need to deal with networking, sockets, etc.
-    - Component is already used in the ecosystem
+- **ZeroMQ**
+    - Pros:
+        - ZeroMQ implements queuing at a higher abstraction level - no need to deal with networking, sockets, etc.
+        - Component is already used in the ecosystem
 
-  * Cons:
-    - It’s a very simple queue, the required functionalities like message batching, persistency, still would need to be implemented and later maintained as separate components (potentially bug-prone)
-    - It would need to be separately added to each component which would need queuing functionalities
-    - Cannot be easily replaced, mocked, up- or downscaled basing on the needs
+    - Cons:
+        - It’s a very simple queue, the required functionalities like message batching, persistency, still would need to be implemented and later maintained as separate components (potentially bug-prone)
+        - It would need to be separately added to each component which would need queuing functionalities
+        - Cannot be easily replaced, mocked, up- or downscaled basing on the needs
 
 Based on the Magma Community discussion and feedback, the additional cost
 of development and DB transaction load is negligible. As a result, DP will
@@ -710,24 +711,24 @@ we estimate the following total system requirements for each DP service
 (if there is horizontal scaling,
 those requirements are divided among the number of containers):
 
-* **API Gateway**
+- **API Gateway**
   8 CPUs, 8GB RAM
 
-* **Protocol Controller**
+- **Protocol Controller**
   16 CPUs, 16GB RAM
 
-* **Radio Controller**
+- **Radio Controller**
   16 CPUs, 16GB RAM
 
-* **Configuration Controller**
+- **Configuration Controller**
   4 CPUs, 8GB RAM
 
 Assuming DP will handle 10000 CBSD devices simultaneously, with 1 min heartbeat interval
 we estimate the following Database traffic:
 
-* DB `select` - up to 20000 select queries per minute (check request states and responses, request polling) 
-* DB `insert` - up to 70000 insert queries per minute (each request, each response, cbsd and grant)
-* DB `update` - up to 35000 update queries per minute (update request state, update grant state, update cbsd state)
+- DB `select` - up to 20000 select queries per minute (check request states and responses, request polling)
+- DB `insert` - up to 70000 insert queries per minute (each request, each response, cbsd and grant)
+- DB `update` - up to 35000 update queries per minute (update request state, update grant state, update cbsd state)
 
 ## System Architecture
 

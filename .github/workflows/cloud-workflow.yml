@@ -47,10 +47,10 @@ jobs:
             git diff-index --quiet HEAD
       - name: Extract commit title
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        id: commit
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.2.0
@@ -58,7 +58,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
           SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "COMMIT TITLE:\n ${{env.COMMIT_TITLE}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
+          SLACK_MESSAGE: "COMMIT TITLE:\n ${{steps.commit.outputs.title}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -78,18 +78,17 @@ jobs:
             cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
             ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        id: commit
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action deploy-sync-checkin failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -118,18 +117,18 @@ jobs:
           files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
           flags: cloud_lint
       - name: Extract commit title
+        id: commit
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-lint failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -156,18 +155,18 @@ jobs:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
       - name: Extract commit title
+        id: commit
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-test failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -187,18 +186,18 @@ jobs:
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --publish --visibility=public --setdefault
       - name: Extract commit title
+        id: commit
         if: failure() && github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-upload failed"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -241,10 +240,10 @@ jobs:
             ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
       - name: Extract commit title
         if: github.ref == 'refs/heads/master'
-        env:
-          COMMIT_MESSAGE: ${{github.event.head_commit.message}}
+        id: commit
         run: |
-          echo COMMIT_TITLE="${COMMIT_MESSAGE%%$'\\n'*}"  >> $GITHUB_ENV
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@v2.2.0
@@ -253,7 +252,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action orc8r-build failed"
           SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -265,7 +264,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Orchestrator images have been published*"
-          SLACK_MESSAGE: "${{env.COMMIT_TITLE}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"

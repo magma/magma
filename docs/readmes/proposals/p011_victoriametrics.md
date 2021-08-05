@@ -16,6 +16,7 @@ Magma's TSDB for ingesting, storing, and querying time-series data. This will
 enable increased scale and at the same time require less compute resources.
 
 ## Background
+
 Magma is getting to the point where scaling is a primary concern. One of the
 areas that could be most impacted by larger scale is metrics, since there is a
 direct correlation with the number of subscribers/gateways and the amount of
@@ -27,7 +28,6 @@ more data. In addition to this, partners have been wanting to run magma at a
 lower cost, and compute resources is the most expensive part about running
 magma. The metrics pipeline can be a big resource hog so any improvements here
 can have direct improvements in the cost of running Magma.
-
 
 ## Tests
 
@@ -44,6 +44,7 @@ as well as the results of load testing and reasoning behind recommending or not
 recommending the solution.
 
 ### Prometheus-Edge-Hub Improvements
+
 Prometheus-edge-hub works by acting as a temporary store for prometheus
 datapoints which prometheus then scrapes. This is our current implementation
 and has been working for quite a while now, but it doesn’t appear to be able to
@@ -53,7 +54,7 @@ much smaller scrapes by splitting the metrics as they were ingested by the
 edge-hub. This allows prometheus to do many small scrapes which is how it
 typically operates and is what it’s optimized for.
 
-**Current implementation**
+#### Current implementation
 
 The main limitation is scrape times from prometheus. Scrapes would time out
 after 10s and then that data would be lost. It struggled to perform at 8M
@@ -64,7 +65,7 @@ We should use this number as our current limit with everything as-is. Adding
 worker nodes or getting a beefier one for prometheus or edge-hub would likely
 improve performance without any architecture change, but would just cost more.
 
-**With Improvements (Target Splitting)**
+#### With Improvements (Target Splitting)
 
 ~10M datapoints/minute with scrape times well within acceptable limits
 (~3s avg. with only 10 scrape targets).
@@ -154,8 +155,8 @@ those reasons.
 |Simple change on orc8r|Already seeing errors just during simple testing|
 |Thanos offers some benefits (e.g. remote object storage) that others don't provide|Thanos uses more resources than pure Prometheus or VictoriaMetrics|
 
-
 ### Conclusion
+
 VictoriaMetrics appears to be the clear winner. They claim to be able to
 replace a sizable cluster of competitor nodes with a single node of VM, and
 that was validated with these tests. If we wanted to ingest this much data with
@@ -179,17 +180,18 @@ require more engineering work for a likely worse product.
 ## Implementation
 
 The implementation for this is very straightforward.
-* Deploy VictoriaMetrics in a single node configuration and then use the
+
+- Deploy VictoriaMetrics in a single node configuration and then use the
 existing [remote exporter](https://github.com/magma/magma/blob/master/orc8r/cloud/go/services/orchestrator/servicers/exporter_servicer.go)
 to push metrics directly to VM.
-* Configure metricsd to direct queries to the VM query endpoint rather than
+- Configure metricsd to direct queries to the VM query endpoint rather than
 Prometheus
-* Deploy victoriametrics-alert to handle alert evaluation
-* Run prometheus-configmanager on the same node as victoriametrics-alert
+- Deploy victoriametrics-alert to handle alert evaluation
+- Run prometheus-configmanager on the same node as victoriametrics-alert
 (with affinity rules).
 
 Migrating data for existing deployments is also simple.
-* https://medium.com/@romanhavronenko/victoriametrics-how-to-migrate-data-from-prometheus-d44a6728f043
-* Write a simple script to take a snapshot of the prometheus data, and use an
-  init-container to load this data into the new VM server before the upgrade.
 
+- <https://medium.com/@romanhavronenko/victoriametrics-how-to-migrate-data-from-prometheus-d44a6728f043>
+- Write a simple script to take a snapshot of the prometheus data, and use an
+  init-container to load this data into the new VM server before the upgrade.

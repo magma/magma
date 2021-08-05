@@ -13,7 +13,9 @@ limitations under the License.
 
 import abc
 import logging
-from socket import AF_INET, inet_ntop
+from ctypes import c_ulong
+from functools import lru_cache
+from socket import AF_INET, AF_INET6, inet_ntop
 from struct import pack
 
 import psutil
@@ -63,6 +65,52 @@ class ByteCounter(EBPFHandler):
     ByteCounter is the front-end program for ebpf/byte_count.bpf.c
     """
 
+    def __init__(self, service_registry):
+        super().__init__(service_registry)
+        # Addr is a ctypes array of two 64-bit ints. It is used to hold an IPv6
+        # address of int128 type. This type can be converted to tuple and back
+        # to make it hashable for caching.
+        self.Addr = c_ulong * 2
+
+    @lru_cache(maxsize=1024)
+    def _get_cmdline(self, pid: int) -> list:
+        """
+        _get_cmdline returns the command line arguments that were password to
+        process with the given pid. It caches results in an LRU cache to reduce
+        cost of reading /proc every time.
+
+        Args:
+            pid: process id
+
+        Returns:
+            list of strings that make up the command line arguments
+
+        Raises:
+            psutil.NoSuchProcess when process with given pid does not exist.
+            Process may have already exited.
+        """
+        return psutil.Process(pid=pid).cmdline()
+
+    @lru_cache(maxsize=1024)
+    def _ip_addr_to_str(self, family: int, daddr: (int, int)) -> str:
+        """
+        _ip_addr_to_str returns a string representation of an IPv4 or IPv6
+        address. It caches results in an LRU cache to reduce cost of conversion
+
+        Args:
+            family: socket.AF_INET (v4) or socket.AF_INET6 (v6)
+            daddr: For IPv4, uint32 representation of address as the first item
+            in a tuple. For IPv6, 16-byte array representation of address.
+
+        Returns:
+            String representation of IP address, e.g., '127.0.0.1'
+        """
+        if family == AF_INET:
+            return inet_ntop(AF_INET, pack('I', daddr[0]))
+        elif family == AF_INET6:
+            # noinspection PyTypeChecker
+            return inet_ntop(AF_INET6, self.Addr(*daddr))
+
     def handle(self, bpf):
         """
         Handle() reads counters from the loaded byte_count program stored as
@@ -74,7 +122,7 @@ class ByteCounter(EBPFHandler):
         """
         table = bpf['dest_counters']
         for key, count in table.items():
-            d_host = inet_ntop(AF_INET, pack('I', key.daddr))
+            d_host = self._ip_addr_to_str(key.family, tuple(key.daddr))
             service_name = None
 
             try:
@@ -112,7 +160,7 @@ class ByteCounter(EBPFHandler):
         try:
             # get python service name from command line args
             # e.g. "python3 -m magma.state.main"
-            cmdline = psutil.Process(pid=key.pid).cmdline()
+            cmdline = self._get_cmdline(key.pid)
             if cmdline[2].startswith('magma.'):
                 return cmdline[2].split('.')[1]
         # key.pid process has exited or was not a Python service

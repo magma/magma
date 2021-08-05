@@ -1,10 +1,8 @@
 ---
-id: call_tracing 
+id: call_tracing
 title: Call Tracing
 hide_title: true
 ---
-
-*Last Updated: 1/20/2021*
 
 # Call Tracing
 
@@ -17,17 +15,17 @@ specific protocols and allowing custom options through tshark.
 
 Currently there is a 5MiB size limit for call traces.
 
-### Requirements
+## Requirements
 
 Ensure you have the following:
 
-* a functional orc8r
-* a configured LTE network
-* a configured LTE gateway with eNodeB
-* subscribers that can attach to your LTE gateway
-* network running in un-federated mode
+- a functional orc8r
+- a configured LTE network
+- a configured LTE gateway with eNodeB
+- subscribers that can attach to your LTE gateway
+- network running in un-federated mode
 
-### Initiating a Call Trace
+## Initiating a Call Trace
 
 ![Call Tracing Page](assets/nms/calltracing_page.png)
 
@@ -49,13 +47,13 @@ call trace to see these options.
 
 ![Call Tracing Actions](assets/nms/calltracing_actions.png)
 
-### Viewing a Call Trace
+## Viewing a Call Trace
 
 It is suggested that Wireshark is used to analyze call trace captures.
 
 ![Call Tracing Viewing](assets/nms/calltracing_wireshark.png)
 
-### Additional Configuration
+## Additional Configuration
 
 To do additional configuration for call traces, modify the `ctraced.yml` file
 on the access gateway.
@@ -80,7 +78,7 @@ The last configuration option of note in `ctraced.yml` is the `trace_tool`
 option. Two options are currently provided, for `tshark` or `tcpdump`. Most
 call trace options are only available if `tshark` is used.
 
-### API Guide
+## API Guide
 
 To view more detailed information on the API, see
 `magma/orc8r/cloud/go/services/ctraced/obsidian/models/swagger.v1.yml`
@@ -89,31 +87,32 @@ It is recommended that call tracing is started, stopped, and downloaded through
 the API, or use of the NMS which uses the API. We provide the following
 endpoints:
 
-**Get all call traces**
+### Get all call traces
 
 ```GET      /networks/{network_id}/tracing```
 
-**Get info on a specific call trace**
+### Get info on a specific call trace
 
 ```GET      /networks/{network_id}/tracing/{trace_id}```
 
 Example response payload:
-```
+
+```json
 {
-  config: {
-    gateway_id: "lte_gateway_1"
-    timeout: 300
-    trace_id: "example_call_trace"
-    trace_type: "GATEWAY"
+  "config": {
+    "gateway_id": "lte_gateway_1",
+    "timeout": 300,
+    "trace_id": "example_call_trace",
+    "trace_type": "GATEWAY"
   },
-  state: {
-    call_trace_available: false,
-    call_trace_ending: false
+  "state": {
+    "call_trace_available": false,
+    "call_trace_ending": false
   }
 }
 ```
 
-**Start a new call trace**
+### Start a new call trace
 
 ```POST     /networks/{network_id}/tracing/{trace_id}```
 
@@ -121,12 +120,13 @@ To start a new call trace, the payload must include the configuration of the
 call trace.
 
 Example payload:
-```
+
+```json
 {
-  gateway_id: "lte_gateway_1"
-  timeout: 300
-  trace_id: "example_call_trace"
-  trace_type: "GATEWAY"
+  "gateway_id": "lte_gateway_1",
+  "timeout": 300,
+  "trace_id": "example_call_trace",
+  "trace_type": "GATEWAY"
 }
 ```
 
@@ -140,7 +140,7 @@ trace.
 *timeout*: The time in seconds after which the call trace will automatically
 stop.
 
-**Stop a call trace**
+### Stop a call trace
 
 ```PUT      /networks/{network_id}/tracing/{trace_id}```
 
@@ -148,23 +148,25 @@ This API endpoint is used for updating call traces, but currently the only
 configurable option allows user control of ending a call trace.
 
 An example request payload to stop a call trace:
-```
+
+```json
 {
-  requested_end: true
+  "requested_end": true
 }
 ```
+
 No other fields can currently be specified for updating a call trace, so this
 endpoint is only used for stopping call traces.
 
-**Delete a call trace**
+### Delete a call trace
 
 ```DELETE   /networks/{network_id}/tracing/{trace_id}```
 
-**Download a call trace**
+### Download a call trace
 
 ```GET      /networks/{network_id}/tracing/{trace_id}/download```
 
-### Basic Troubleshooting
+## Basic Troubleshooting
 
 If you cannot get call tracing to work with the NMS, the API can be used
 directly.

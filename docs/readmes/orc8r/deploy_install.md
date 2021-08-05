@@ -281,7 +281,7 @@ the Route53 nameservers for the hosted zone for Orchestrator. Access these
 via `terraform output` (you have probably already noticed identical output
 from every `terraform apply`). Output should be of the form:
 
-```
+```text
 Outputs:
 
 nameservers = [

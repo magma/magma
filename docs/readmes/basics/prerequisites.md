@@ -84,7 +84,7 @@ aws configure
 Orchestrator deployment depends on the following components
 
 1. AWS account
-4. Registered domain for Orchestrator endpoints
+2. Registered domain for Orchestrator endpoints
 
 We recommend deploying the Orchestrator cloud component of Magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if

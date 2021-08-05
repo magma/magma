@@ -15,6 +15,7 @@ PartOf=magma@mme.service
 Before=magma@mme.service
 PartOf=magma@mobilityd.service
 After=magma@mobilityd.service
+PartOf=openvswitch-switch.service
 After=openvswitch-switch.service
 Wants=openvswitch-switch.service
 

@@ -15,6 +15,7 @@ Previously, Orc8r followed a basic data sync pattern that sent all subscriber co
 This introduces a number of issues at scale, namely significant network pressure. For example, to support 20k subscribers over 500 active gateways, subscriber config sync alone would generate at least [**20TB of network pressure per month per network**](../proposals/p010_subscriber_scaling.md#context).
 
 Therefore, starting with Magma v1.6, Orc8r uses deterministic protobuf digests to only sync subscriber configs when they're updated. This pattern utilizes the assumption `#reads >> #writes` to retain a [level-triggered architecture](http://haobaozhong.github.io/design/2019/08/28/level-edge-triggered.html), providing two major improvements
+
 1. Instead of syncing at every interval, only sync when AGW is out of sync
 2. Instead of syncing all data, only transmit updates
 

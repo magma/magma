@@ -113,7 +113,6 @@ This section includes a selection of notes and commands useful for debugging Orc
 - Certificate serial number is expected to be unique, but
   [uniqueness is *not* guaranteed](https://stackoverflow.com/questions/9104108/is-serial-number-a-unique-key-for-x509-certificate)
 
-
 ### Gateway information
 
 - `show_gateway_info.py` show gateway's hardware ID and (public part of) `gw_challenge.key`
@@ -216,7 +215,7 @@ grpcurl \
 
 Some HTTP requests to use with `s_client`
 
-```
+```text
 GET / HTTP/1.1
 Host: localhost:9443
 

@@ -39,7 +39,6 @@ that sends traffic.
 4. Minimize required infrastructure changes for metrics export and for
 deployment.
 
-
 ### Non-goals
 
 1. Change collection/export methods for existing data-path metrics.
@@ -89,7 +88,6 @@ the same destination port, so we may have to look at the [HTTP authority
 header](https://sourcegraph.com/github.com/magma/magma@v1.6/-/blob/orc8r/gateway/python/magma/common/service_registry.py?L165)
 to infer destination service.
 
-
 Once Prometheus counter values have been set, they will follow the existing
 Magma metrics path: the `magmad` service will read the counters from
 `kernsnoopd` and upload them to `metricsd` at the orchestrator every
@@ -110,7 +108,6 @@ Now we show a prototype of the eBPF program `kernsnoopd` will use:
 #include <uapi/linux/ptrace.h>
 #include <net/sock.h>
 
-
 struct key_t {
   // binary name (task->comm in the kernel)
   char comm[TASK_COMM_LEN];
@@ -119,7 +116,6 @@ struct key_t {
   u32 daddr;
   u16 dport;
 };
-
 
 // Create a hash map with `key_t` as key type and u64 as value type
 BPF_HASH(dest_counters, struct key_t);
@@ -365,7 +361,7 @@ AGW capacity in terms of number of UEs, varying attach/detach rates, data path
 traffic. We will also aim to compensate statistically for the jitter in AGW
 capacity measurements.
 
-## Original Design
+## Original design
 
 We have arrived at the above design after a few rounds of discussion and
 feedback from the team. In the original design, we had planned to
@@ -374,12 +370,14 @@ feedback from the team. In the original design, we had planned to
 The authors of `netqtop`, a similar tool included in the BCC distribution, have
 benchmarked their tool and observe 1.17 usec increase in packet "pingpong"
 latency [2]. When they benchmark bandwidth on the loopback interface, they
-observe a drop of around 27% in packets per second (PPS). To avoid this high
-penalty, we switched to attaching a _kprobe_ to the `tcp_sendmsg` syscall as an
-L2 hook would have higher performance impact. As a consequence, we lost the
-ability to observe L3 traffic such as that generated from the ping and
-traceroute probes that _magmad_ sends periodically. But since those probes
-should not be consuming much bandwidth, we are willing to ignore them.
+observe a drop of around 27% in packets per second (PPS). We also measured [the
+performance impact](#performance-impact-of-l2-instrumentation) and concluded
+that it was too high. To avoid this high penalty, we switched to attaching a
+_kprobe_ to the `tcp_sendmsg` syscall as an L2 hook would have higher
+performance impact. As a consequence, we lost the ability to observe L3 traffic
+such as that generated from the ping and traceroute probes that _magmad_ sends
+periodically. But since those probes should not be consuming much bandwidth, we
+are willing to ignore them.
 
 - Have packet counters in addition to byte counters. We dropped packet counters
 as it is not possible to get accurate packet counts even with
@@ -392,30 +390,52 @@ since destination IP addresses and ports have very large domains, the overhead
 of having separate time-series would be too high. We instead decided to label
 Magma traffic by destination cloud service.
 
+### Performance impact of L2 instrumentation
+
+We evaluated the performance impact of instrumenting the `net_dev_start_xmit`
+kernel event using the Spirent lab setup as we did for [`tcp_sendmsg`](#performance). Two
+tests were run, one with `net_dev_start_xmit` instrumentation disabled, and one
+with it enabled. Each test had 600 user devices, 5 MB download rate per device,
+and an attach rate of 10. The tests ran for 30 minutes each.
+
+When `net_dev_start_xmit` instrumentation was disabled, the mean download
+throughput was roughly 540 Mbps. When it was enabled, the mean download
+throughput reduced to 430 Mbps, a 20% reduction.
+
+We also stress-tested the `net_dev_start_xmit` instrumentation. The most
+expensive operation in the relevant callback is incrementing a value in the BPF
+hash map. We put the increment operation in a loop and iterated it `n` times.
+When `n = 100`, the mean download throughput reduction was modest: from 430 Mbps
+to 420 Mbps. For `n = 150` and `n = 175`, no noticeable reduction was observed
+compared to `n = 100`. However, at `n = 200`, download throughput collapsed
+completely and produced a mean of around 5.5 Mbps with the peak hitting 75 Mbps.
+This sudden drop in throughput may have to do with excessive packet loss because
+of the slow callback function.
+
 ## References
 
 [1]: Jay Schulist, Daniel Borkmann, Alexei Starovoitov. 2018. Linux Socket
 Filtering aka Berkeley Packet Filter (BPF).
-https://www.kernel.org/doc/Documentation/networking/filter.txt
+<https://www.kernel.org/doc/Documentation/networking/filter.txt>
 
 [2]: yonghong-song. 2020. Netqtop 3037.
-https://github.com/iovisor/bcc/pull/3048
+<https://github.com/iovisor/bcc/pull/3048>
 
 [3]: Brendan Gregg. 2018. TCP Tracepoints.
-https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html
+<https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html>
 
-[4]: pflua-bench. 2016. https://github.com/Igalia/pflua-bench
+[4]: pflua-bench. 2016. <https://github.com/Igalia/pflua-bench>
 
 [5]: Alexei Starovoitov. 2014. net: filter: rework/optimize internal BPF
 interpreter's instruction set.
-https://www.kernel.org/doc/Documentation/networking/filter.txt
+<https://www.kernel.org/doc/Documentation/networking/filter.txt>
 
 [6]: Alexei Starovoitov. 2019. bpf: introduce bounded loops.
-https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5
+<https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5>
 
 [7]: Quentin Monnet. 2021. eBPF Updates #4: In-Memory Loads Detection,
 Debugging QUIC, Local CI Runs, MTU Checks, but No Pancakes.
-https://ebpf.io/blog/ebpf-updates-2021-02
+<https://ebpf.io/blog/ebpf-updates-2021-02>
 
 [8]: Ivan Babrou. 2018. eBPF overhead benchmark.
-https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark
+<https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark>
