@@ -81,7 +81,7 @@ void* task_thread(task_thread_args_t* args) {
   return NULL;
 }
 
-class ITTIApiTest : public ::testing::Test {
+class ITTIMessagePassingTest : public ::testing::Test {
   virtual void SetUp() {
     itti_init(
         TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
@@ -124,7 +124,7 @@ class ITTIApiTest : public ::testing::Test {
   }
 };
 
-TEST_F(ITTIApiTest, TestMessageLatency) {
+TEST_F(ITTIMessagePassingTest, TestMessageLatency) {
   MessageDef* test_message_p;
   test_message_p = DEPRECATEDitti_alloc_new_message_fatal(
       task_zmq_ctx_test1.task_id, TEST_MESSAGE);
@@ -139,6 +139,49 @@ TEST_F(ITTIApiTest, TestMessageLatency) {
   // Sleep 2 seconds to allow message to be received and processed
   std::this_thread::sleep_for(std::chrono::seconds(2));
   ASSERT_GE(msg_latency, 1000000);
+}
+
+class ITTIApiTest : public ::testing::Test {
+  virtual void SetUp() {}
+
+  virtual void TearDown() {}
+};
+
+TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
+  uint16_t erab_no_of_items = 3;
+  uint16_t failed_erabs     = 4;
+  char ipv4string[16]       = "192.168.101.234";
+  MessageDef* message_p;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
+  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = 10;
+  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items =
+      erab_no_of_items;
+  for (int item = 0; item < erab_no_of_items; item++) {
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_setup_list.item[item]
+        .e_rab_id = (uint8_t) item;  // Arbitrary RAB ids
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_setup_list.item[item]
+        .gtp_teid = (uint32_t) item;
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_setup_list.item[item]
+        .transport_layer_address = blk2bstr(ipv4string, 15);
+  }
+  itti_mme_app_initial_context_setup_rsp_t* ics_rsp =
+      &(MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p));
+  for (int index = 0; index < failed_erabs; index++) {
+    ics_rsp->e_rab_failed_to_setup_list.item[index].e_rab_id =
+        (uint8_t) index;  // Arbitrary RAB ids
+    ics_rsp->e_rab_failed_to_setup_list.item[index].cause.present =
+        S1ap_Cause_PR_radioNetwork;
+    ics_rsp->e_rab_failed_to_setup_list.item[index].cause.choice.radioNetwork =
+        S1ap_CauseRadioNetwork_radio_resources_not_available;
+  }
+
+  // Now free the message
+  itti_free_msg_content(message_p);
+  free(message_p);
 }
 
 int main(int argc, char** argv) {
