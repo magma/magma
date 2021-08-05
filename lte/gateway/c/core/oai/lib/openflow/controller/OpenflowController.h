@@ -119,6 +119,11 @@ class OpenflowController : public fluid_base::OFServer {
       std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) );
   status_code_e is_controller_connected_to_switch(int conn_timeout);
 
+  /**
+   * @return latest saved connection of external event
+   */
+  fluid_base::OFConnection* get_latest_of_connection();
+
  private:
   std::shared_ptr<OpenflowMessenger> messenger_;
   std::unordered_map<uint32_t, std::vector<Application*>> event_listeners;
