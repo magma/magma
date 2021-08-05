@@ -61,7 +61,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       msg_latency = ITTI_MSG_LATENCY(received_message_p);
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   // Add sleep to introduce delay in pulling the next message
@@ -151,8 +153,7 @@ TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
   uint16_t erab_no_of_items = 3;
   uint16_t failed_erabs     = 4;
   char ipv4string[16]       = "192.168.101.234";
-  MessageDef* message_p;
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+  MessageDef* message_p     = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = 10;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items =
@@ -180,6 +181,56 @@ TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
   }
 
   // Now free the message
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+
+TEST_F(ITTIApiTest, TestHandoverRequest) {
+  char arbitrary_src_tgt_container[20] = "This is arbitrary";
+  MessageDef* message_p                = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, MME_APP_HANDOVER_REQUEST);
+  itti_mme_app_handover_request_t* ho_request_p =
+      &message_p->ittiMsg.mme_app_handover_request;
+
+  // fill in arbitrary values
+  ho_request_p->encryption_algorithm_capabilities = 1;
+  ho_request_p->integrity_algorithm_capabilities  = 2;
+  ho_request_p->mme_ue_s1ap_id                    = 10;
+  ho_request_p->target_sctp_assoc_id              = 1;
+  ho_request_p->target_enb_id                     = 2;
+  ho_request_p->cause.present                     = S1ap_Cause_PR_radioNetwork;
+  ho_request_p->cause.choice.radioNetwork =
+      S1ap_CauseRadioNetwork_handover_desirable_for_radio_reason;
+  ho_request_p->handover_type     = S1ap_HandoverType_intralte;
+  ho_request_p->src_tgt_container = blk2bstr(arbitrary_src_tgt_container, 10);
+  ho_request_p->ue_ambr.br_unit   = KBPS;
+  ho_request_p->ue_ambr.br_ul     = 1000;
+  ho_request_p->ue_ambr.br_dl     = 10000;
+  ho_request_p->e_rab_list.no_of_items = 2;
+  fteid_t s_gw_fteid_s1u               = {1};
+
+  for (int i = 0; i < ho_request_p->e_rab_list.no_of_items; ++i) {
+    ho_request_p->e_rab_list.item[i].e_rab_id = 1;
+    ho_request_p->e_rab_list.item[i].transport_layer_address =
+        fteid_ip_address_to_bstring(&s_gw_fteid_s1u);
+    ho_request_p->e_rab_list.item[i].gtp_teid                       = 1;
+    ho_request_p->e_rab_list.item[i].e_rab_level_qos_parameters.qci = 9;
+    ho_request_p->e_rab_list.item[i]
+        .e_rab_level_qos_parameters.allocation_and_retention_priority
+        .priority_level = 0;
+    ho_request_p->e_rab_list.item[i]
+        .e_rab_level_qos_parameters.allocation_and_retention_priority
+        .pre_emption_capability =
+        (pre_emption_capability_t) PRE_EMPTION_CAPABILITY_ENABLED;
+    ho_request_p->e_rab_list.item[i]
+        .e_rab_level_qos_parameters.allocation_and_retention_priority
+        .pre_emption_vulnerability =
+        (pre_emption_vulnerability_t) PRE_EMPTION_VULNERABILITY_DISABLED;
+  }
+  for (int i = 0; i < AUTH_NEXT_HOP_SIZE; ++i) {
+    ho_request_p->nh[i] = 0x11;
+  }
+  ho_request_p->ncc = 2;
   itti_free_msg_content(message_p);
   free(message_p);
 }
