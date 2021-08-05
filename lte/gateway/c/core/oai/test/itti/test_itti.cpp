@@ -61,9 +61,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       msg_latency = ITTI_MSG_LATENCY(received_message_p);
     } break;
 
-    default: {
-    } break;
-  }
+    default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   // Add sleep to introduce delay in pulling the next message
