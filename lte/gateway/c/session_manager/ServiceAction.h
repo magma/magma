@@ -116,7 +116,7 @@ class ServiceAction {
 
   const std::string& get_msisdn() const { return *msisdn_; }
 
-  const int get_shard_id() const { return shard_id_; }
+  const uint16_t get_shard_id() const { return shard_id_; }
 
   // RulesToProcess
   RulesToProcess get_gx_rules_to_install() const { return gx_to_install_; }
@@ -137,7 +137,7 @@ class ServiceAction {
   optional<AggregatedMaximumBitrate> ambr_;
   RulesToProcess gx_to_install_;
   RulesToProcess gy_to_install_;
-  int shard_id_;
+  uint16_t shard_id_;
 };
 
 }  // namespace magma
