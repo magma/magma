@@ -57,6 +57,7 @@ type SyncStoreReader interface {
 
 type CacheWriter interface {
 	// InsertMany adds objects to the list staged for the batch update.
+	//
 	// NOTE: Caller of the function should enforce that the max size of the
 	// insertion aligns reasonably with the max page size of its corresponding
 	// load source.

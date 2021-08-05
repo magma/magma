@@ -37,7 +37,8 @@ func TestSyncStore(t *testing.T) {
 		TableNamePrefix:              "test",
 		CacheWriterValidIntervalSecs: 150,
 	}
-	store := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, config)
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, config)
+	assert.NoError(t, err)
 	assert.NoError(t, store.Initialize())
 
 	expectedDigestTree := &protos.DigestTree{

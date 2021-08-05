@@ -43,7 +43,11 @@ const (
 	cacheWriterBlobstoreType = "cache_writer_creation_time"
 )
 
-func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory, config Config) SyncStoreReader {
+func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory, config Config) (SyncStoreReader, error) {
+	err := config.Validate(false)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid configs for syncstore reader")
+	}
 	storeReader := &syncStore{
 		db: db, builder: builder, fact: fact,
 		cacheWriterValidIntervalSecs: config.CacheWriterValidIntervalSecs,
@@ -51,7 +55,7 @@ func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobsto
 		digestTableName:              fmt.Sprintf("%s_digest", config.TableNamePrefix),
 		cacheTableName:               fmt.Sprintf("%s_cached_objs", config.TableNamePrefix),
 	}
-	return storeReader
+	return storeReader, nil
 }
 
 func (l *syncStore) Initialize() error {
@@ -159,13 +163,13 @@ func (l *syncStore) GetCachedByID(network string, ids []string) ([][]byte, error
 }
 
 func (l *syncStore) GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error) {
-	lastIncludedId := ""
+	lastIncludedID := ""
 	if token != "" {
 		decoded, err := configurator_storage.DeserializePageToken(token)
 		if err != nil {
 			return nil, "", err
 		}
-		lastIncludedId = decoded.LastIncludedEntity
+		lastIncludedID = decoded.LastIncludedEntity
 	}
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := l.builder.
@@ -173,7 +177,7 @@ func (l *syncStore) GetCachedByPage(network string, token string, pageSize uint6
 			From(l.cacheTableName).
 			Where(squirrel.And{
 				squirrel.Eq{nidCol: network},
-				squirrel.Gt{idCol: lastIncludedId},
+				squirrel.Gt{idCol: lastIncludedID},
 			}).
 			OrderBy(idCol).
 			Limit(pageSize).
@@ -214,11 +218,12 @@ func (l *syncStore) GetLastResync(network string, gateway string) (uint64, error
 
 // parsePage parses the list of cached serialized objs, as well as returns the next
 // page token based on the lastIncludedEntity in the current page.
+//
 // NOTE: The configurator_storage.EntityPageToken is used for simplicity & ease
 // of transition between loading from configurator to loading from this cache.
 // However, this generated token is unrelated to the configurator page tokens.
 func parsePage(rows *sql.Rows, pageSize uint64) (*pageInfo, error) {
-	objs, lastIncludedId, err := parseRows(rows)
+	objs, lastIncludedID, err := parseRows(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +232,7 @@ func parsePage(rows *sql.Rows, pageSize uint64) (*pageInfo, error) {
 	if uint64(len(objs)) < pageSize {
 		return &pageInfo{token: "", objects: objs}, nil
 	}
-	nextToken := &configurator_storage.EntityPageToken{LastIncludedEntity: lastIncludedId}
+	nextToken := &configurator_storage.EntityPageToken{LastIncludedEntity: lastIncludedID}
 	nextTokenSerialized, err := configurator_storage.SerializePageToken(nextToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "get next page token for cached objs store")
@@ -236,7 +241,7 @@ func parsePage(rows *sql.Rows, pageSize uint64) (*pageInfo, error) {
 }
 
 func parseRows(rows *sql.Rows) ([][]byte, string, error) {
-	objs, lastIncludedId := [][]byte{}, ""
+	objs, lastIncludedID := [][]byte{}, ""
 	for rows.Next() {
 		id, obj := "", []byte{}
 		err := rows.Scan(&id, &obj)
@@ -244,13 +249,13 @@ func parseRows(rows *sql.Rows) ([][]byte, string, error) {
 			return nil, "", errors.Wrap(err, "get serialized obj, SQL rows scan error")
 		}
 		objs = append(objs, obj)
-		lastIncludedId = id
+		lastIncludedID = id
 	}
 	err := rows.Err()
 	if err != nil {
 		return nil, "", errors.Wrap(err, "parse cached objs in store, SQL rows error")
 	}
-	return objs, lastIncludedId, nil
+	return objs, lastIncludedID, nil
 }
 
 type pageInfo struct {

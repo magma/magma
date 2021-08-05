@@ -13,9 +13,15 @@
 
 package syncstore
 
+import (
+	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
+)
+
 type Config struct {
 	// CacheWriterValidIntervalSecs specifies the time duration (in secs) after
 	// which a cacheWriter object is subject to garbage collection.
+	//
 	// NOTE: the caller should enforce that this value is smaller than the service
 	// worker loop interval, to prevent workers with "older" cache writers overwriting
 	// concurrent workers with "newer" ones.
@@ -23,4 +29,15 @@ type Config struct {
 	// TableNamePrefix is used to namespace all syncstore tables to prevent
 	// naming collisions among different services using syncstore.
 	TableNamePrefix string
+}
+
+func (config *Config) Validate(writer bool) error {
+	errs := &multierror.Error{}
+	if config.TableNamePrefix == "" {
+		multierror.Append(errs, errors.New("empty table name prefix for syncstore"))
+	}
+	if writer && config.CacheWriterValidIntervalSecs <= 0 {
+		multierror.Append(errs, errors.Errorf("invalid cache writer valid interval: %+v", config.CacheWriterValidIntervalSecs))
+	}
+	return errs.ErrorOrNil()
 }

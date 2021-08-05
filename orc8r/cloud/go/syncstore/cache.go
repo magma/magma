@@ -34,7 +34,14 @@ type cacheWriter struct {
 }
 
 func (l *syncStore) NewCacheWriter(network string, id string) CacheWriter {
-	return &cacheWriter{network: network, id: id, db: l.db, builder: l.builder, cacheTableName: l.cacheTableName, invalid: false}
+	writer := &cacheWriter{
+		network: network, id: id,
+		db:             l.db,
+		builder:        l.builder,
+		cacheTableName: l.cacheTableName,
+		invalid:        false,
+	}
+	return writer
 }
 
 // InsertMany inserts a batch of objects into the temporary table of the
