@@ -27,8 +27,8 @@ brew install go@1.13 pyenv
 echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
 echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
 exec $SHELL
-pyenv install 3.7.3
-pyenv global 3.7.3
+pyenv install 3.8.10
+pyenv global 3.8.10
 
 pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
