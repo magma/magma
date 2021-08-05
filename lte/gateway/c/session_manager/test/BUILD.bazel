@@ -1,0 +1,59 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_library(
+    name = "consts",
+    hdrs = ["Consts.h"],
+)
+
+cc_library(
+    name = "matchers",
+    hdrs = ["Matchers.h"],
+)
+
+cc_library(
+    name = "sessiond_mocks",
+    hdrs = ["SessiondMocks.h"],
+)
+
+cc_library(
+    name = "protobuf_creators",
+    hdrs = ["ProtobufCreators.h"],
+    srcs = ["ProtobufCreators.cpp"],
+    deps = [
+        ":consts",
+        "//lte/gateway/c/session_manager:diameter_codes",
+        "//lte/gateway/c/session_manager:stored_state",
+         "//lte/protos:mconfigs_cpp_proto",
+         "//lte/protos:pipelined_cpp_grpc",
+         "//lte/protos:session_manager_cpp_grpc",
+    ],
+)
+
+cc_test(
+    name = "session_store_test",
+    size = "small",
+    srcs = ["test_session_store.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:rule_store",
+        "//lte/gateway/c/session_manager:session_id",
+        "//lte/gateway/c/session_manager:session_state",
+        "//lte/gateway/c/session_manager:session_store",
+         "//orc8r/gateway/c/common/logging",
+         "//orc8r/gateway/c/common/service303",
+        "@com_google_googletest//:gtest_main",
+        "@com_github_google_glog//:glog",
+    ],
+)

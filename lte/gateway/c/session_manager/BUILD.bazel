@@ -9,14 +9,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
-
-USE_GLOG = "-DLOG_WITH_GLOG"
+package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
 
 cc_library(
     name = "diameter_codes",
     srcs = ["DiameterCodes.cpp"],
     hdrs = ["DiameterCodes.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -34,6 +34,8 @@ cc_library(
     name = "session_id",
     srcs = ["SessionID.cpp"],
     hdrs = ["SessionID.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -46,6 +48,8 @@ cc_library(
 cc_library(
     name = "credit_key",
     hdrs = ["CreditKey.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
     deps = [
         "//lte/protos:policydb_cpp_proto",
         "//lte/protos:session_manager_cpp_proto",
@@ -55,6 +59,8 @@ cc_library(
 cc_library(
     name = "types",
     hdrs = ["Types.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
     deps = [
         ":credit_key",
         "//lte/protos:pipelined_cpp_proto",
@@ -70,6 +76,8 @@ cc_library(
         ":types",
         "//lte/protos:session_manager_cpp_proto",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -104,12 +112,16 @@ cc_library(
         "//orc8r/gateway/c/common/service_registry",
         "@com_github_google_glog//:glog",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
     name = "stored_state",
     srcs = ["StoredState.cpp"],
     hdrs = ["StoredState.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
     deps = [
         ":credit_key",
         ":types",
@@ -132,6 +144,8 @@ cc_library(
         "//orc8r/gateway/c/common/service_registry",
         "@com_github_google_glog//:glog",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -156,6 +170,8 @@ cc_library(
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -178,6 +194,8 @@ cc_library(
         "//orc8r/gateway/c/common/service303",
         "@protobuf",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -189,6 +207,8 @@ cc_library(
         ":stored_state",
         "//orc8r/gateway/c/common/service303",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
@@ -211,6 +231,8 @@ cc_library(
         "@com_github_google_glog//:glog",
         "@cpp_redis",
     ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/session_manager",
 )
 
 cc_library(
