@@ -275,6 +275,18 @@ cc_library(
 )
 
 cc_library(
+    name = "amf_service_client",
+    srcs = ["AmfServiceClient.cpp"],
+    hdrs = ["AmfServiceClient.h"],
+    deps = [
+        "//lte/protos:session_manager_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+cc_library(
     name = "session_events",
     srcs = ["SessionEvents.cpp"],
     hdrs = ["SessionEvents.h"],
@@ -299,6 +311,29 @@ cc_library(
         "//lte/protos:mconfigs_cpp_proto",
         "//lte/protos:session_manager_cpp_proto",
     ],
+)
+
+cc_library(
+    name = "session_state_enforcer",
+    srcs = ["SessionStateEnforcer.cpp"],
+    hdrs = ["SessionStateEnforcer.h"],
+    deps = [
+        ":amf_service_client",
+        ":pipelined_client",
+        ":session_credit",
+        ":session_store",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/logging",
+        "@com_github_grpc_grpc//:grpc++",
+        "@protobuf",
+    ],
+)
+
+cc_library(
+    name = "stats_poller",
+    srcs = ["StatsPoller.cpp"],
+    hdrs = ["StatsPoller.h"],
+    deps = [":local_enforcer"],
 )
 
 cc_library(
@@ -338,8 +373,52 @@ cc_library(
 )
 
 cc_library(
-    name = "stats_poller",
-    srcs = ["StatsPoller.cpp"],
-    hdrs = ["StatsPoller.h"],
-    deps = [":local_enforcer"],
+    name = "set_message_manager_handler",
+    srcs = ["SetMessageManagerHandler.cpp"],
+    hdrs = ["SetMessageManagerHandler.h"],
+    deps = [
+        ":session_id",
+        ":session_state_enforcer",
+        "//lte/protos:session_manager_cpp_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+        "@protobuf",
+    ],
+)
+
+cc_library(
+    name = "upf_msg_manage_handler",
+    srcs = ["UpfMsgManageHandler.cpp"],
+    hdrs = ["UpfMsgManageHandler.h"],
+    deps = [
+        ":mobilityd_client",
+        ":session_id",
+        ":session_state_enforcer",
+        "//lte/protos:session_manager_cpp_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+cc_library(
+    name = "session_manager_server",
+    srcs = ["SessionManagerServer.cpp"],
+    hdrs = ["SessionManagerServer.h"],
+    deps = [
+        ":local_session_manager_handler",
+        ":session_proxy_responder_handler",
+        ":set_message_manager_handler",
+        ":upf_msg_manage_handler",
+    ],
+)
+
+cc_library(
+    name = "sessiond",
+    srcs = ["sessiond_main.cpp"],
+    deps = [
+        ":operational_states_handler",
+        ":policy_loader",
+        ":restart_handler",
+        ":session_manager_server",
+        ":stats_poller",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+    ],
 )
