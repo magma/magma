@@ -257,7 +257,6 @@ int amf_as_send_ng(const amf_as_t* msg) {
           &msg->u.security, &as_msg.msg.dl_info_transfer_req);
       break;
     case _AMFAS_ESTABLISH_REJ:
-      OAILOG_INFO(LOG_NAS_AMF, "in _AMFAS_ESTABLISH_REJ");
       as_msg.msg_id = amf_as_establish_rej(
           &msg->u.establish, &as_msg.msg.nas_establish_rsp);
       break;
@@ -288,9 +287,14 @@ int amf_as_send_ng(const amf_as_t* msg) {
               as_msg.msg.nas_establish_rsp.err_code);
           as_msg.msg.nas_establish_rsp.nas_msg = NULL;
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-        } else {
-          OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+          break;
         }
+        amf_app_handle_nas_dl_req(
+            as_msg.msg.nas_establish_rsp.ue_id,
+            as_msg.msg.nas_establish_rsp.nas_msg,
+            as_msg.msg.nas_establish_rsp.err_code);
+        as_msg.msg.nas_establish_rsp.nas_msg = NULL;
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       } break;
       case AS_NAS_RELEASE_REQ_:
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
@@ -1444,8 +1448,8 @@ int amf_send_registration_reject(
 ***************************************************************************/
 static int amf_as_establish_rej(
     const amf_as_establish_t* msg, nas5g_establish_rsp_t* as_msg) {
-  int size = 0;
-  amf_nas_message_t nas_msg;
+  int size                  = 0;
+  amf_nas_message_t nas_msg = {0};
   // Setting-up the AS message
   as_msg->ue_id = msg->ue_id;
   /*
@@ -1500,7 +1504,7 @@ static int amf_as_establish_rej(
     if (bytes > 0) {
       // This is to indicate AMF-APP to release the NGAP UE context after
       //       // sending the message.
-      as_msg->err_code = M5G_AS_SUCCESS;
+      as_msg->err_code = M5G_AS_TERMINATED_NAS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_NAS_ESTABLISH_RSP_);
     }
   }

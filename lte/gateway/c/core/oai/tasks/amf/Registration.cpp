@@ -235,15 +235,14 @@ int amf_proc_registration_request(
 int amf_proc_registration_reject(
     amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT message\n");
   int rc                 = RETURNerror;
   amf_context_t* amf_ctx = amf_context_get(ue_id);
 
   if (amf_ctx) {
     if (is_nas_specific_procedure_registration_running(amf_ctx)) {
       nas_amf_registration_proc_t* registration_proc =
-          (nas_amf_registration_proc_t*) (amf_ctx->amf_procedures
-                                              ->amf_specific_proc);
+          reinterpret_cast<nas_amf_registration_proc_t*>(
+              amf_ctx->amf_procedures->amf_specific_proc);
       registration_proc->amf_cause = amf_cause;
       rc = amf_registration_reject(amf_ctx, registration_proc);
       amf_sap_t amf_sap;

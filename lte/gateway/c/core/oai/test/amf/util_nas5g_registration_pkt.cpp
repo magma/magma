@@ -31,4 +31,19 @@ bool decode_registration_request_msg(
   return (decode_success);
 }
 
+//  API for testing encode registration reject
+bool encode_registration_reject_msg(
+    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len) {
+  bool encode_success = true;
+  uint8_t* encode_reg_buffer =
+      const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
+
+  if (reg_reject->EncodeRegistrationRejectMsg(
+          reg_reject, encode_reg_buffer, len) < 0) {
+    encode_success = false;
+  }
+
+  return (encode_success);
+}
+
 }  // namespace magma5g
