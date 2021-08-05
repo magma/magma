@@ -121,7 +121,7 @@ class SessionState {
     uint32_t ver_no;
     NodeId nodeId;
     FSid Seid;
-    uint16_t shard_id;
+    unsigned int shard_id;
     // 5G specific extension routines
   };
 
@@ -270,7 +270,7 @@ class SessionState {
 
   uint16_t get_shard_id() const { return shard_id_; }
 
-  void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }
+  void set_shard_id(unsigned int shard_id) { shard_id_ = shard_id; }
 
   std::string get_session_id() const { return session_id_; }
 
@@ -800,7 +800,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
-  uint16_t shard_id_;
+  unsigned int shard_id_;
 
  private:
   /**

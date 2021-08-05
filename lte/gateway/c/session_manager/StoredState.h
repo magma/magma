@@ -69,7 +69,7 @@ struct StoredSessionState {
   StoredMonitorMap monitor_map;
   std::string session_level_key;  // "" maps to nullptr
   std::string imsi;
-  uint16_t shard_id;
+  unsigned int shard_id;
   std::string session_id;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;

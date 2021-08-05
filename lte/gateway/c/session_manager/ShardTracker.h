@@ -28,14 +28,14 @@ class ShardTracker {
    * an addition
    * @return index(shard id) where UE was placed
    */
-  uint16_t add_ue(const std::string imsi);
+  unsigned int add_ue(const std::string imsi);
 
   /**
    * Remove UE from shard
    * @param shard_id location of UE to be removed
    * @return true for successful removal, false for failed removal
    */
-  bool remove_ue(const std::string imsi, const uint16_t shard_id);
+  bool remove_ue(const std::string imsi, const unsigned int shard_id);
 
   /**
    * Retrieve number of shards currently in shard tracker
@@ -47,7 +47,7 @@ class ShardTracker {
    * Retrieve a list of active shard ids
    * @return vector<int> representing shard IDs of shards that have UEs
    */
-  std::vector<int> get_active_shards();
+  std::vector<unsigned int> get_active_shards();
 
  private:
   /*

@@ -120,7 +120,8 @@ magma::ActivateFlowsRequest make_activate_req(
     const std::string& ipv6_addr, const magma::Teids teids,
     const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
-    const magma::RequestOriginType_OriginType origin_type, uint16_t shard_id) {
+    const magma::RequestOriginType_OriginType origin_type,
+    unsigned int shard_id) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
@@ -157,7 +158,8 @@ magma::ActivateReqByTeids make_activate_req_by_teid(
     const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
     const magma::RulesToProcess& to_process,
-    const magma::RequestOriginType_OriginType origin_type, uint16_t shard_id) {
+    const magma::RequestOriginType_OriginType origin_type,
+    unsigned int shard_id) {
   magma::ActivateReqByTeids activate_req_by_teids;
   if (to_process.empty()) {
     // Send an empty request with the default teid
@@ -376,7 +378,7 @@ void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
-    const RulesToProcess to_process, uint16_t shard_id,
+    const RulesToProcess to_process, unsigned int shard_id,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << to_process.size() << " rules for " << imsi
                << " msisdn " << msisdn << " and ip " << ip_addr << " "
@@ -449,7 +451,7 @@ void AsyncPipelinedClient::poll_stats(
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const RulesToProcess to_process, const uint16_t shard_id) {
+    const RulesToProcess to_process, const unsigned int shard_id) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   ActivateReqByTeids reqs = make_activate_req_by_teid(
       imsi, ip_addr, ipv6_addr, teids, msisdn, {}, to_process,

@@ -133,7 +133,7 @@ class MockPipelinedClient : public PipelinedClient {
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-          const RulesToProcess to_process, uint16_t shard_id,
+          const RulesToProcess to_process, unsigned int shard_id,
           std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
       add_ue_mac_flow,
@@ -160,7 +160,7 @@ class MockPipelinedClient : public PipelinedClient {
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn, const RulesToProcess to_process,
-          uint16_t shard_id));
+          unsigned int shard_id));
   MOCK_METHOD2(
       set_upf_session,
       void(

@@ -83,7 +83,7 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction& set_imsi(const uint16_t shard_id) {
+  ServiceAction& set_imsi(const unsigned int shard_id) {
     shard_id_ = shard_id;
     return *this;
   }
@@ -137,7 +137,7 @@ class ServiceAction {
   optional<AggregatedMaximumBitrate> ambr_;
   RulesToProcess gx_to_install_;
   RulesToProcess gy_to_install_;
-  uint16_t shard_id_;
+  unsigned int shard_id_;
 };
 
 }  // namespace magma

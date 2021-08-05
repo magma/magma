@@ -459,7 +459,7 @@ class LocalEnforcer {
   void propagate_rule_updates_to_pipelined(
       const SessionConfig& config, const RulesToProcess& pending_activation,
       const RulesToProcess& pending_deactivation, bool always_send_activate,
-      uint16_t shard_id);
+      unsigned int shard_id);
 
   /**
    * @brief for each element in RulesToSchedule, schedule rule

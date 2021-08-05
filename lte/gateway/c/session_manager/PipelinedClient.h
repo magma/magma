@@ -128,7 +128,7 @@ class PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const RulesToProcess to_process, uint16_t shard_id,
+      const RulesToProcess to_process, unsigned int shard_id,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
@@ -195,7 +195,7 @@ class PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const RulesToProcess to_process,
-      const uint16_t shard_id) = 0;
+      const unsigned int shard_id) = 0;
 
   /**
    * @brief Set up a Session of type SetMessage to be sent to UPF
@@ -260,7 +260,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const RulesToProcess to_process, uint16_t shard_id,
+      const RulesToProcess to_process, unsigned int shard_id,
       std::function<void(Status status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow(
@@ -284,7 +284,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const RulesToProcess to_process,
-      const uint16_t shard_id);
+      const unsigned int shard_id);
 
   void set_upf_session(
       const SessionState::SessionInfo info,

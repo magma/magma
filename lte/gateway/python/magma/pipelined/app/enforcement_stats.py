@@ -704,14 +704,14 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
-        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
+        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and
         convert to a Rule Record Table
         """
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
             return RuleRecordTable()
         parser = self._datapath.ofproto_parser
-        message = parser.OFPFlowStatsRequest(datapath=self._datapath, table_id = self.tbl_num, cookie = cookie, cookie_mask = cookie_mask)
+        message = parser.OFPFlowStatsRequest(datapath=self._datapath, table_id=self.tbl_num, cookie=cookie, cookie_mask=cookie_mask)
         try:
             response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
                     reply_multi=True)
@@ -729,7 +729,46 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
             return RuleRecordTable()
 
-def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
+    def _prepare_session_config_report(self, stats_msgs):
+        session_config_dict = {}
+
+        for flow_stats in stats_msgs:
+            for stat in flow_stats:
+                if stat.table_id != self.tbl_num:
+                    continue
+
+                local_f_teid_ng = _get_ng_local_f_id(stat)
+                if not local_f_teid_ng or local_f_teid_ng == REG_ZERO_VAL:
+                    continue
+                # Already present
+                if local_f_teid_ng in session_config_dict:
+                    if local_f_teid_ng != session_config_dict[local_f_teid_ng].local_f_teid:
+                        self.logger.error("Mismatch local TEID value. Need to investigate")
+
+                    continue
+
+                sid = _get_sid(stat)
+                if not sid:
+                    continue
+
+                rule_version = _get_version(stat)
+                if rule_version == 0:
+                    continue
+
+                session_config_dict[local_f_teid_ng] = \
+                                             UPFSessionState(
+                                                 subscriber_id=sid,
+                                                 session_version=rule_version,
+                                                 local_f_teid=local_f_teid_ng,
+                                             )
+
+        SessionStateManager.report_session_config_state(
+            session_config_dict,
+            self.ng_config.sessiond_setinterface,
+        )
+
+
+def _generate_rule_match(imsi, ip_addr, rule_num, version, direction, local_f_teid_ng=0):
     """
     Return a MagmaMatch that matches on the rule num and the version.
     """

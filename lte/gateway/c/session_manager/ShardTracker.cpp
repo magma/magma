@@ -14,10 +14,8 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <iostream>
 
 #include "ShardTracker.h"
-
 namespace magma {
 
 ShardTracker::ShardTracker() {
@@ -25,7 +23,7 @@ ShardTracker::ShardTracker() {
   imsis_per_shard_.push_back({});
 }
 
-uint16_t ShardTracker::add_ue(const std::string imsi) {
+unsigned int ShardTracker::add_ue(const std::string imsi) {
   for (size_t shard_id = 0; shard_id < get_shard_list_size(); shard_id++) {
     // If the UE is already in the shard, return the shard id. This check
     // is meant to avoid multiple sessions for a UE being assigned duplicate
@@ -47,7 +45,8 @@ uint16_t ShardTracker::add_ue(const std::string imsi) {
   return imsis_per_shard_.size() - 1;
 }
 
-bool ShardTracker::remove_ue(const std::string imsi, const uint16_t shard_id) {
+bool ShardTracker::remove_ue(
+    const std::string imsi, const unsigned int shard_id) {
   // Check if the shard id exists(shard ids are index based),
   // and whether the UE is actually part of the shard, before removal
   if (shard_id >= imsis_per_shard_.size() ||
@@ -62,8 +61,10 @@ uint16_t ShardTracker::get_shard_list_size() {
   return imsis_per_shard_.size();
 }
 
-std::vector<int> ShardTracker::get_active_shards() {
-  std::vector<int> active_shard_ids;
+std::vector<unsigned int> ShardTracker::get_active_shards() {
+  std::vector<unsigned int> active_shard_ids;
+  // iterate through all shard ids and add ids
+  // that have at least one UE in them
   for (size_t i = 0; i < imsis_per_shard_.size(); i++) {
     if (!imsis_per_shard_[i].empty()) {
       active_shard_ids.push_back(i);

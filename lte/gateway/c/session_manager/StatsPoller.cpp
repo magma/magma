@@ -26,16 +26,18 @@ void StatsPoller::start_loop(
   // to poll by cookie pass in a vector of shard ids, where
   // each element is a shard id that maps directly to a cookie
   while (true) {
-    // TODO(veshkemburu): add smart polling function to determine which
-    // shard ids to poll
-    std::vector<int> active_shard_ids = shard_tracker->get_active_shards();
+    std::vector<unsigned int> active_shard_ids =
+        shard_tracker->get_active_shards();
     uint32_t interval;
+    // Set interval to be per shard. Here the maximum amount of shards is
+    // ten, but this can be flexible
     if (active_shard_ids.size() == 0) {
       interval = 10;
     } else {
       interval = 10 / active_shard_ids.size();
     }
-
+    // Poll all stats when there are no active shards
+    // otherwise poll each shard id between intervals
     if (active_shard_ids.size() == 0) {
       local_enforcer->poll_stats_enforcer(0, 0);
       std::this_thread::sleep_for(std::chrono::seconds(interval));

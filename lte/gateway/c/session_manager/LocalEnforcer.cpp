@@ -513,7 +513,7 @@ void LocalEnforcer::handle_activate_service_action(
   const Teids teids           = action_p->get_teids();
   const auto ambr             = action_p->get_ambr();
   RulesToProcess to_process   = action_p->get_gx_rules_to_install();
-  uint16_t shard_id                = action_p->get_shard_id();
+  unsigned int shard_id       = action_p->get_shard_id();
   pipelined_client_->activate_flows_for_rules(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process, shard_id,
       std::bind(
@@ -658,7 +658,7 @@ void LocalEnforcer::install_final_unit_action_flows(
                     session_id = action_p->get_session_id();
   const Teids teids            = action_p->get_teids();
   const auto fua_type          = action_p->get_type();
-  const uint16_t shard_id           = action_p->get_shard_id();
+  const unsigned int shard_id  = action_p->get_shard_id();
 
   MLOG(MINFO) << "Installing final unit action "
               << service_action_type_to_str(fua_type) << " flows for "
@@ -794,13 +794,13 @@ void LocalEnforcer::schedule_static_rule_activation(
           return;
         }
 
-        auto config               = session->get_config();
-        const std::string ip_addr = config.common_context.ue_ipv4();
-        const auto ipv6_addr      = config.common_context.ue_ipv6();
-        const Teids teids         = config.common_context.teids();
-        const auto ambr           = config.get_apn_ambr();
-        const std::string msisdn  = config.common_context.msisdn();
-        const uint16_t shard_id        = session->get_shard_id();
+        auto config                 = session->get_config();
+        const std::string ip_addr   = config.common_context.ue_ipv4();
+        const auto ipv6_addr        = config.common_context.ue_ipv6();
+        const Teids teids           = config.common_context.teids();
+        const auto ambr             = config.get_apn_ambr();
+        const std::string msisdn    = config.common_context.msisdn();
+        const unsigned int shard_id = session->get_shard_id();
 
         RulesToProcess to_process;
         to_process.push_back(session->activate_static_rule(
@@ -848,13 +848,13 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
           return;
         }
 
-        auto config             = session->get_config();
-        const auto ip_addr      = config.common_context.ue_ipv4();
-        const auto ipv6_addr    = config.common_context.ue_ipv6();
-        const Teids teids       = config.common_context.teids();
-        const auto ambr         = config.get_apn_ambr();
-        const auto msisdn       = config.common_context.msisdn();
-        const uint16_t shard_id = session->get_shard_id();
+        auto config                 = session->get_config();
+        const auto ip_addr          = config.common_context.ue_ipv4();
+        const auto ipv6_addr        = config.common_context.ue_ipv6();
+        const Teids teids           = config.common_context.teids();
+        const auto ambr             = config.get_apn_ambr();
+        const auto msisdn           = config.common_context.msisdn();
+        const unsigned int shard_id = session->get_shard_id();
 
         PolicyRule rule;
         if (!session->remove_scheduled_dynamic_rule(
@@ -1052,7 +1052,7 @@ void LocalEnforcer::init_session(
 void LocalEnforcer::add_ue_to_shard(
     const std::string imsi, SessionMap& session_map, SessionState& session) {
   // if the UE doesn't have any other sessions, add to shard tracker and set id
-  uint16_t shard_id = shard_tracker_->add_ue(imsi);
+  unsigned int shard_id = shard_tracker_->add_ue(imsi);
   session.set_shard_id(shard_id);
 }
 
@@ -1782,7 +1782,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
 void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const SessionConfig& config, const RulesToProcess& pending_activation,
     const RulesToProcess& pending_deactivation, bool always_send_activate,
-    uint16_t shard_id) {
+    unsigned int shard_id) {
   const std::string& imsi = config.get_imsi();
   const auto ip_addr      = config.common_context.ue_ipv4();
   const auto ipv6_addr    = config.common_context.ue_ipv6();
