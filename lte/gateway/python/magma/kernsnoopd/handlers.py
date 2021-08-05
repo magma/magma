@@ -13,6 +13,7 @@ limitations under the License.
 
 import abc
 import logging
+from ctypes import c_ulong
 from functools import lru_cache
 from socket import AF_INET, AF_INET6, inet_ntop
 from struct import pack
@@ -64,6 +65,13 @@ class ByteCounter(EBPFHandler):
     ByteCounter is the front-end program for ebpf/byte_count.bpf.c
     """
 
+    def __init__(self, service_registry):
+        super().__init__(service_registry)
+        # Addr is a ctypes array of two 64-bit ints. It is used to hold an IPv6
+        # address of int128 type. This type can be converted to tuple and back
+        # to make it hashable for caching.
+        self.Addr = c_ulong * 2
+
     @lru_cache(maxsize=1024)
     def _get_cmdline(self, pid: int) -> list:
         """
@@ -84,7 +92,7 @@ class ByteCounter(EBPFHandler):
         return psutil.Process(pid=pid).cmdline()
 
     @lru_cache(maxsize=1024)
-    def _ip_addr_to_str(self, family: int, daddr) -> str:
+    def _ip_addr_to_str(self, family: int, daddr: (int, int)) -> str:
         """
         _ip_addr_to_str returns a string representation of an IPv4 or IPv6
         address. It caches results in an LRU cache to reduce cost of conversion
@@ -100,7 +108,8 @@ class ByteCounter(EBPFHandler):
         if family == AF_INET:
             return inet_ntop(AF_INET, pack('I', daddr[0]))
         elif family == AF_INET6:
-            return inet_ntop(AF_INET6, bytes(daddr))
+            # noinspection PyTypeChecker
+            return inet_ntop(AF_INET6, self.Addr(*daddr))
 
     def handle(self, bpf):
         """

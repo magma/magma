@@ -47,4 +47,4 @@ ovs_uplink_port_number: 2
 pipelined_managed_tbl0: false
 
 # To enable GTP-U echo response on all GTP tunnels.
-ovs_gtpu_echo_resp: false
+ovs_gtpu_echo_resp: true
