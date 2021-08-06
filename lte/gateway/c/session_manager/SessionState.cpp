@@ -1641,28 +1641,6 @@ DynamicRuleInstall SessionState::get_dynamic_rule_install(
   return rule_install;
 }
 
-// Charging Credits
-static FinalActionInfo get_final_action_info(
-    const magma::lte::ChargingCredit& credit) {
-  FinalActionInfo final_action_info;
-  if (credit.is_final()) {
-    final_action_info.final_action = credit.final_action();
-    switch (final_action_info.final_action) {
-      case ChargingCredit_FinalAction_REDIRECT:
-        final_action_info.redirect_server = credit.redirect_server();
-        break;
-      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-        for (auto rule : credit.restrict_rules()) {
-          final_action_info.restrict_rules.push_back(rule);
-        }
-        break;
-      default:  // do nothing;
-        break;
-    }
-  }
-  return final_action_info;
-}
-
 std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {
   std::vector<PolicyRule> rules;
   for (auto& credit_pair : credit_map_) {
