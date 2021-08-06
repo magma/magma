@@ -131,7 +131,7 @@ int amf_proc_deregistration_request(
         ue_id, params->de_reg_type);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-  amf_sap_t amf_sap;
+  amf_sap_t amf_sap     = {};
   amf_as_data_t* amf_as = &amf_sap.u.amf_as.u.data;
 
   /* if switched off, directly release all resources and

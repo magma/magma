@@ -249,9 +249,9 @@ int amf_proc_registration_reject(
   registration_proc->amf_cause = amf_cause;
   if (amf_ctx) {
     if (is_nas_specific_procedure_registration_running(amf_ctx)) {
-      rc = amf_registration_reject(amf_ctx, registration_proc);
-      amf_sap_t amf_sap;
-      amf_sap.primitive                   = AMFREG_REGISTRATION_REJ;
+      rc                = amf_registration_reject(amf_ctx, registration_proc);
+      amf_sap_t amf_sap = {};
+      amf_sap.primitive = AMFREG_REGISTRATION_REJ;
       amf_sap.u.amf_reg.ue_id             = ue_id;
       amf_sap.u.amf_reg.ctx               = amf_ctx;
       amf_sap.u.amf_reg.notify            = false;
@@ -276,8 +276,8 @@ int amf_proc_registration_reject(
 static int amf_registration_reject(
     amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
-  amf_sap_t amf_sap;
+  int rc            = RETURNerror;
+  amf_sap_t amf_sap = {};
   nas_amf_registration_proc_t* registration_proc =
       (nas_amf_registration_proc_t*) nas_base_proc;
   OAILOG_WARNING(
@@ -455,8 +455,8 @@ static int amf_registration_failure_authentication_cb(
       get_nas_specific_procedure_registration(amf_context);
 
   if (registration_proc) {
-    registration_proc->amf_cause = amf_context->amf_cause;
-    amf_sap_t amf_sap;
+    registration_proc->amf_cause        = amf_context->amf_cause;
+    amf_sap_t amf_sap                   = {};
     amf_sap.primitive                   = AMFREG_REGISTRATION_REJ;
     amf_sap.u.amf_reg.ue_id             = registration_proc->ue_id;
     amf_sap.u.amf_reg.ctx               = amf_context;
@@ -590,7 +590,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
   int rc = RETURNerror;
 
   if (amf_context) {
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap = {};
     nas_amf_registration_proc_t* registration_proc =
         get_nas_specific_procedure_registration(amf_context);
     ue_m5gmm_context_s* ue_m5gmm_context_p =
@@ -745,7 +745,7 @@ int amf_proc_registration_complete(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   nas_amf_registration_proc_t* registration_proc = NULL;
   int rc                                         = RETURNerror;
-  amf_sap_t amf_sap;
+  amf_sap_t amf_sap                              = {};
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_ctx, struct ue_m5gmm_context_s, amf_context)
           ->amf_ue_ngap_id;
@@ -862,8 +862,8 @@ int amf_handle_registration_complete_response(
  ***************************************************************************/
 
 int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx) {
-  int rc = RETURNerror;
-  amf_sap_t amf_sap;
+  int rc                 = RETURNerror;
+  amf_sap_t amf_sap      = {};
   amf_as_data_t* amf_as  = &amf_sap.u.amf_as.u.data;
   amf_context_t* amf_ctx = &(ue_amf_ctx->amf_context);
   OAILOG_FUNC_IN(LOG_NAS_AMF);

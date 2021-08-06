@@ -124,9 +124,9 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
-  amf_sap_t amf_sap;
-  int rc             = RETURNerror;
-  smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
+  amf_sap_t amf_sap                 = {};
+  int rc                            = RETURNerror;
+  smc_proc->T3560.id                = NAS5G_TIMER_INACTIVE_ID;
 
   if (smc_proc) {
     /*

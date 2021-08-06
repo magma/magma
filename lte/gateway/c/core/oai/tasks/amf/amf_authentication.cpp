@@ -445,7 +445,7 @@ int amf_proc_authentication_ksi(
     /*
      * Notify AMF that common procedure has been initiated
      */
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap       = {};
     amf_sap.primitive       = AMFREG_COMMON_PROC_REQ;
     amf_sap.u.amf_reg.ue_id = ue_id;
     amf_sap.u.amf_reg.ctx   = amf_context;
@@ -557,7 +557,7 @@ int amf_proc_authentication_complete(
         /*
          * Notify AMF that the authentication procedure failed
          */
-        amf_sap_t amf_sap;
+        amf_sap_t amf_sap                    = {};
         amf_sap.primitive                    = AMFAS_SECURITY_REJ;
         amf_sap.u.amf_as.u.security.ue_id    = ue_id;
         amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
@@ -571,7 +571,7 @@ int amf_proc_authentication_complete(
     /*
      * Notify AMF that the authentication procedure successfully completed
      */
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap               = {};
     amf_sap.primitive               = AMFREG_COMMON_PROC_CNF;
     amf_sap.u.amf_reg.ue_id         = ue_id;
     amf_sap.u.amf_reg.ctx           = amf_ctx;
@@ -709,7 +709,7 @@ int amf_proc_authentication_failure(
         /*
          * Notify AMF that the authentication procedure successfully completed
          */
-        amf_sap_t amf_sap;
+        amf_sap_t amf_sap                    = {};
         amf_sap.primitive                    = AMFAS_SECURITY_REJ;
         amf_sap.u.amf_as.u.security.ue_id    = ue_id;
         amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
@@ -770,7 +770,7 @@ int amf_send_authentication_request(
      * Notify AMF-AS SAP that Authentication Request message has to be sent
      * to the UE
      */
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap                = {};
     amf_sap.primitive                = AMFAS_SECURITY_REQ;
     amf_sap.u.amf_as.u.security.guti = {0};
     //    amf_sap.u.amf_as.u.security.ue_id    = auth_proc->ue_id;

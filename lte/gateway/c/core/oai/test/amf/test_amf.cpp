@@ -10,8 +10,28 @@
  */
 
 #include "util_nas5g_pkt.h"
-#include "dynamic_memory_check.h"
 #include <gtest/gtest.h>
+#include "../../tasks/amf/amf_app_ue_context_and_proc.h"
+
+extern "C" {
+#include "dynamic_memory_check.h"
+#define CHECK_PROTOTYPE_ONLY
+#include "intertask_interface_init.h"
+#undef CHECK_PROTOTYPE_ONLY
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_free_defined_msg.h"
+}
+
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
+
+const task_info_t tasks_info[] = {
+    {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
+#define TASK_DEF(tHREADiD)                                                     \
+  {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
+#include <tasks_def.h>
+#undef TASK_DEF
+};
 
 using ::testing::Test;
 
@@ -228,6 +248,28 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
   EXPECT_EQ(service_request.pdu_session_status.iei, PDU_SESSION_STATUS);
   EXPECT_EQ(service_request.pdu_session_status.len, 0x02);
   EXPECT_EQ(service_request.pdu_session_status.pduSessionStatus, 0x0020);
+}
+
+TEST(test_amf_data_struct, test_ue_context_creation) {
+  ue_m5gmm_context_s* ue_context = nullptr;
+
+  ue_context = amf_create_new_ue_context();
+  EXPECT_TRUE(nullptr != ue_context);
+  EXPECT_TRUE(0 == ue_context->amf_teid_n11);
+  EXPECT_TRUE(0 == ue_context->paging_context.paging_retx_count);
+  delete ue_context;
+}
+
+TEST(test_smf_context_struct, test_smf_context_creation) {
+  ue_m5gmm_context_s* ue_context = nullptr;
+  smf_context_t* smf_context     = nullptr;
+
+  ue_context             = amf_create_new_ue_context();
+  uint8_t pdu_session_id = 10;
+  smf_context            = amf_insert_smf_context(ue_context, pdu_session_id);
+  EXPECT_TRUE(0 == smf_context->n_active_pdus);
+  EXPECT_TRUE(0 == smf_context->pdu_session_version);
+  delete ue_context;
 }
 
 int main(int argc, char** argv) {
