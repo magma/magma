@@ -26,6 +26,8 @@ from lte.protos.pipelined_pb2 import (
     SessionSet,
     SetGroupFAR,
     SetGroupPDR,
+    VersionedPolicy,
+    VersionedPolicyID,
 )
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 from lte.protos.session_manager_pb2 import NodeID
@@ -96,17 +98,14 @@ class CreateSessionUtil:
         qos_enforce_rule = ActivateFlowsRequest(
                                   sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
                                   ip_addr=ue_ip_addr,
-                                  dynamic_rules=[
-                                      PolicyRule(
-                                        id=qos_enforce_rule.rule_id,
-                                        priority=qos_enforce_rule.priority,
-                                        hard_timeout=qos_enforce_rule.hard_timeout,
-                                        flow_list=flow_list,
-                                      ),
-                                  ],
-                                request_origin=RequestOriginType(type=RequestOriginType.N4),
-        )
-        return qos_enforce_rule
+                                  policies=[VersionedPolicy(rule = PolicyRule(
+                                  id=qos_enforce_rule.rule_id,
+                                  priority=qos_enforce_rule.priority,
+                                  hard_timeout=qos_enforce_rule.hard_timeout,
+                                  flow_list=flow_list), version=1,
+                                ),],
+                                request_origin=RequestOriginType(type=RequestOriginType.N4))
+        return  qos_enforce_rule
 
     @staticmethod
     def CreateDelQERinPDR(
@@ -117,9 +116,8 @@ class CreateSessionUtil:
         qos_enforce_rule = DeactivateFlowsRequest(
                                   sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
                                   ip_addr=ue_ip_addr,
-                                  rule_ids=[qos_enforce_rule.rule_id],
-                                  request_origin=RequestOriginType(type=RequestOriginType.N4),
-        )
+                                  policies=[VersionedPolicyID(rule_id=qos_enforce_rule.rule_id),],
+                                  request_origin=RequestOriginType(type=RequestOriginType.N4))
 
         return qos_enforce_rule
 
