@@ -21,13 +21,28 @@ git checkout v1.1
 
 2. **Install prerequisites**. Make sure you have installed all the tools specified in the prerequisites https://magma.github.io/magma/docs/basics/prerequisites#prerequisites
 
-3. **Build and create deb package**. In your local magma repo, go to the path `magma/lte/gateway` and run the command `fab dev package:vcs=git`
+3. **Build and create deb package**. 
+To build an AGW package, use the script located at `$MAGMA_ROOT/lte/gateway/fabfile.py`. The commands below will create a vagrant machine, then build and create a deb package.
 
-This command will create a vagrant magma machine, then build and create a deb package.
+The following commands are to be run from `$MAGMA_ROOT/lte/gateway` on your host machine.
+To create a package for production, run
+
+```bash
+fab test package:vcs=git
+```
+
+To create a package for development or testing, run
+
+```bash
+fab dev package:vcs=git
+```
+
+This will compile all C++ services with compiler flag `Debug` and enable ASAN. This is recommended for testing only as it will impact performance.
+
 
 4. **Locate the packages**. Once the above command finished. You need to enter the VM to verify the deb packages are there.
 
-```
+```bash
 vagrant ssh magma
 cd ~/magma-packages/
 ```
