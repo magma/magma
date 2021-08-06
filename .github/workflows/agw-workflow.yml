@@ -12,9 +12,6 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
       - 'v1.*'
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
 jobs:
   lte-test:
     runs-on: ubuntu-latest
