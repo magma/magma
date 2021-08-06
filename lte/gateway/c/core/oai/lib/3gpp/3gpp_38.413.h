@@ -250,10 +250,11 @@ typedef struct Ngap_initial_context_setup_request_s {
       Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
                        // PDU Session ID is specified in TS 23.501 [9].
   Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
-  bstring
-      PDU_Session_Resource_Setup_Transfer;  // Containing the PDU Session
-                                            // Resource Setup Request Transfer
-                                            // IE specified in subclause 9.3.4.1
+  Ngap_PDUSession_Resource_Setup_Request_List_t
+      PDU_Session_Resource_Setup_Transfer_List;  // Containing the PDU Session
+                                                 // Resource Setup Request
+                                                 // Transfer IE specified in
+                                                 // subclause 9.3.4.1
   Ngap_SNSSAI_t
       allowed_nssai;  // 9.3.1.31 Allowed NSSAI contains the allowed NSSAI.
   Ngap_ue_security_capabilities_t ue_security_capabilities;

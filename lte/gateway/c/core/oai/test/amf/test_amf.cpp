@@ -63,6 +63,11 @@ uint8_t NAS5GPktSnapShot::deregistrarion_request[17] = {
     0x7e, 0x00, 0x45, 0x01, 0x00, 0x0b, 0xf2, 0x22, 0xf2,
     0x54, 0x00, 0x00, 0x00, 0x18, 0x5d, 0x2e, 0x00};
 
+uint8_t NAS5GPktSnapShot::service_request[37] = {
+    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 
+    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40, 0x02, 0x20, 
+    0x00, 0x50, 0x02, 0x20, 0x00};
+
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   RegistrationRequestMsg reg_request;
@@ -196,6 +201,33 @@ TEST(test_amf_nas5g_pkt_process, test_amf_deregistration_request_msg) {
       &dereg_req, nas5g_pkt_snap.deregistrarion_request, len);
 
   EXPECT_EQ(decode_res, true);
+}
+
+/* Test for service type Data */
+TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ServiceRequestMsg service_request;
+  bool decode_res = 0;
+
+  uint32_t len = nas5g_pkt_snap.get_service_request_len();
+
+  memset(&service_request, 0, sizeof(ServiceRequestMsg));
+
+  decode_res = decode_service_request_msg(
+      &service_request, nas5g_pkt_snap.service_request, len);
+  EXPECT_EQ(decode_res, true);
+  EXPECT_EQ(
+	service_request.extended_protocol_discriminator.extended_proto_discriminator, M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t)0x00);
+  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 1);
+  EXPECT_EQ(service_request.service_type.service_type_value, SERVICE_TYPE_DATA);
+  EXPECT_EQ(service_request.uplink_data_status.iei, UP_LINK_DATA_STATUS);
+  EXPECT_EQ(service_request.uplink_data_status.len, 0x02);
+  EXPECT_EQ(service_request.uplink_data_status.uplinkDataStatus, 0x0020);
+  EXPECT_EQ(service_request.pdu_session_status.iei, PDU_SESSION_STATUS);
+  EXPECT_EQ(service_request.pdu_session_status.len, 0x02);
+  EXPECT_EQ(service_request.pdu_session_status.pduSessionStatus, 0x0020);
 }
 
 int main(int argc, char** argv) {

@@ -126,6 +126,7 @@ void ngap_amf_itti_ngap_initial_ue_message(
 
   OAILOG_INFO(LOG_NGAP, "ue context request recvd at ngap : %lu", ue_ctx_req);
   NGAP_INITIAL_UE_MESSAGE(message_p).ue_context_request = ue_ctx_req;
+  NGAP_INITIAL_UE_MESSAGE(message_p).tai                = *tai;
 
   if (opt_s_tmsi) {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = true;
