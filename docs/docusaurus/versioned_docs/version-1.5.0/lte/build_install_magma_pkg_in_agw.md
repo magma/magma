@@ -21,51 +21,50 @@ git checkout v1.1
 
 2. **Install prerequisites**. Make sure you have installed all the tools specified in the prerequisites https://magma.github.io/magma/docs/basics/prerequisites#prerequisites
 
-3. **Build and create deb package**. 
-To build an AGW package, use the script located at `$MAGMA_ROOT/lte/gateway/fabfile.py`. The commands below will create a vagrant machine, then build and create a deb package.
+3. **Build and create deb package**.
+    To build an AGW package, use the script located at `$MAGMA_ROOT/lte/gateway/fabfile.py`. The commands below will create a vagrant machine, then build and create a deb package.
 
-The following commands are to be run from `$MAGMA_ROOT/lte/gateway` on your host machine.
-To create a package for production, run
+    The following commands are to be run from `$MAGMA_ROOT/lte/gateway` on your host machine.
+    To create a package for production, run
 
-```bash
-fab test package:vcs=git
-```
+    ```bash
+    fab test package:vcs=git
+    ```
 
-To create a package for development or testing, run
+    To create a package for development or testing, run
 
-```bash
-fab dev package:vcs=git
-```
+    ```bash
+    fab dev package:vcs=git
+    ```
 
-This will compile all C++ services with compiler flag `Debug` and enable ASAN. This is recommended for testing only as it will impact performance.
+    This will compile all C++ services with compiler flag `Debug` and enable ASAN. This is recommended for testing only as it will impact performance.
 
 
 4. **Locate the packages**. Once the above command finished. You need to enter the VM to verify the deb packages are there.
 
-```bash
-vagrant ssh magma
-cd ~/magma-packages/
-```
-You will need only the ones that say `magma_1.1.XXX` and `magma-sctpd_1.1.XXX` (for v1.1 versions)
+    ```bash
+    vagrant ssh magma
+    cd ~/magma-packages/
+    ```
+
+    You will need only the ones that say `magma_1.1.XXX` and `magma-sctpd_1.1.XXX` (for v1.1 versions)
 
 5. **Download the package**. You can download the files to your computer from the vagrant machine. To do so, you can install a vagrant plugin in your computer and then download the package from the VM to your computer with the following commands:
 
-```
-vagrant plugin install vagrant-scp
-vagrant scp magma: ~/magma-packages/<deb_package>
-```
+    ```bash
+    vagrant plugin install vagrant-scp
+    vagrant scp magma: ~/magma-packages/<deb_package>
+    ```
 
 6. **Upload the package to AGW** that you would like to install.
 
-7. **Install the package**. In order to install the new deb package in AGW, you can run
-
-`sudo apt -f install <magma package>`
+7. **Install the package**. In order to install the new deb package in AGW, you can run `sudo apt -f install <magma package>`
 
 8. **Restart the magma services**
-```
-sudo service magma@* stop
-sudo service magma@magmad restart
-```
-9. You can **verify the installed version** with
 
-`apt show magma`
+    ```bash
+    sudo service magma@* stop
+    sudo service magma@magmad restart
+    ```
+
+9. You can **verify the installed version** with `apt show magma`
