@@ -33,13 +33,16 @@ func main() {
 	}
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
+	if serviceConfig.Validate() != nil {
+		glog.Fatalf("Invalid service configs for subscriberdb_cache")
+	}
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	fact := blobstore.NewEntStorage(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewEntStorage(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := fact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
 	}

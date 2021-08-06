@@ -373,7 +373,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 			SubProfile: "foo",
 		},
 	}
-	expectedProtosSerialized, err := subscriberdb.SerializeSubProtos(expectedProtos)
+	expectedProtosSerialized, err := subscriberdb.SerializeSubscribers(expectedProtos)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
 	err = writer.InsertMany(expectedProtosSerialized)
@@ -455,7 +455,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 		basicSubProtoFromSid("IMSI99995", ""), basicSubProtoFromSid("IMSI99996", ""),
 		basicSubProtoFromSid("IMSI99997", ""), basicSubProtoFromSid("IMSI99998", ""),
 	}
-	allProtosSerialized, err := subscriberdb.SerializeSubProtos(allProtos)
+	allProtosSerialized, err := subscriberdb.SerializeSubscribers(allProtos)
 	assert.NoError(t, err)
 	writer, err = store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -501,7 +501,7 @@ func TestListSubscribersSetLastResyncTime(t *testing.T) {
 		basicSubProtoFromSid("IMSI00002", ""),
 		basicSubProtoFromSid("IMSI00003", ""),
 	}
-	expectedProtosSerialized, err := subscriberdb.SerializeSubProtos(expectedProtos)
+	expectedProtosSerialized, err := subscriberdb.SerializeSubscribers(expectedProtos)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -656,7 +656,7 @@ func TestSyncSubscribers(t *testing.T) {
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
-	expectedToRenewDataSerialized, err := subscriberdb.SerializeSubProtos(expectedToRenewData)
+	expectedToRenewDataSerialized, err := subscriberdb.SerializeSubscribers(expectedToRenewData)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -709,7 +709,7 @@ func TestSyncSubscribers(t *testing.T) {
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
-	expectedToRenewDataSerialized, err = subscriberdb.SerializeSubProtos(expectedToRenewData)
+	expectedToRenewDataSerialized, err = subscriberdb.SerializeSubscribers(expectedToRenewData)
 	assert.NoError(t, err)
 	writer, err = store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -785,7 +785,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
-	expectedToRenewDataSerialized, err := subscriberdb.SerializeSubProtos(expectedToRenewData)
+	expectedToRenewDataSerialized, err := subscriberdb.SerializeSubscribers(expectedToRenewData)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -851,6 +851,8 @@ func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.Subscr
 func assertEqualAnyData(t *testing.T, expected []*any.Any, got []*any.Any) {
 	assert.Equal(t, len(expected), len(got))
 	for i := 0; i < len(expected); i++ {
+		// HACK: using the following workaround because in our current version of protobuf,
+		// proto.Equal can't be used on two objects of type *any.Any
 		assert.Equal(t, expected[i].TypeUrl, got[i].TypeUrl)
 		assert.Equal(t, expected[i].Value, got[i].Value)
 	}
@@ -859,7 +861,7 @@ func assertEqualAnyData(t *testing.T, expected []*any.Any, got []*any.Any) {
 func initializeStore(t *testing.T) (syncstore.SyncStoreReader, syncstore.SyncStore) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
 	assert.NoError(t, err)

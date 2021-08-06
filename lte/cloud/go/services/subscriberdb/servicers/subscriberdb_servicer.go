@@ -38,32 +38,19 @@ import (
 )
 
 type subscriberdbServicer struct {
-	digestsEnabled         bool
-	changesetSizeThreshold int
-	maxProtosLoadSize      uint64
-	resyncIntervalSecs     int64
-	store                  syncstore.SyncStoreReader
+	subscriberdb.Config
+	store syncstore.SyncStoreReader
 }
 
-func NewSubscriberdbServicer(
-	config subscriberdb.Config,
-	store syncstore.SyncStoreReader,
-) lte_protos.SubscriberDBCloudServer {
-	servicer := &subscriberdbServicer{
-		digestsEnabled:         config.DigestsEnabled,
-		changesetSizeThreshold: config.ChangesetSizeThreshold,
-		maxProtosLoadSize:      config.MaxProtosLoadSize,
-		resyncIntervalSecs:     config.ResyncIntervalSecs,
-		store:                  store,
-	}
-	return servicer
+func NewSubscriberdbServicer(config subscriberdb.Config, store syncstore.SyncStoreReader) lte_protos.SubscriberDBCloudServer {
+	return &subscriberdbServicer{store: store, Config: config}
 }
 
 func (s *subscriberdbServicer) CheckInSync(
 	ctx context.Context,
 	req *lte_protos.CheckInSyncRequest,
 ) (*lte_protos.CheckInSyncResponse, error) {
-	if !s.digestsEnabled {
+	if !s.DigestsEnabled {
 		return &lte_protos.CheckInSyncResponse{InSync: false}, nil
 	}
 
@@ -90,7 +77,7 @@ func (s *subscriberdbServicer) Sync(
 	ctx context.Context,
 	req *lte_protos.SyncRequest,
 ) (*lte_protos.SyncResponse, error) {
-	if !s.digestsEnabled {
+	if !s.DigestsEnabled {
 		return &lte_protos.SyncResponse{Resync: true}, nil
 	}
 
@@ -170,7 +157,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 
 	var subProtos []*lte_protos.SubscriberData
 	var nextToken string
-	if s.digestsEnabled {
+	if s.DigestsEnabled {
 		subProtos, nextToken, err = s.loadSubscribersPageFromCache(networkID, req, gateway)
 		if err != nil {
 			return nil, err
@@ -185,7 +172,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	rootDigest := &protos.Digest{Md5Base64Digest: ""}
 	leafDigests := []*protos.LeafDigest{}
 	// The digests are sent back during the request for the first page of subscriber data
-	if req.PageToken == "" && s.digestsEnabled {
+	if req.PageToken == "" && s.DigestsEnabled {
 		digestTree, _ := s.getDigestInfo(&protos.Digest{Md5Base64Digest: ""}, networkID)
 		if err != nil {
 			glog.Errorf("Failed to get digest tree from store for network %+v: %+v", networkID, err)
@@ -221,8 +208,8 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 // 3. If no resync, the list of subscriber IDs to be deleted.
 // 4. Any error that occurred.
 func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientDigests []*protos.LeafDigest, cloudDigests []*protos.LeafDigest) (bool, []*lte_protos.SubscriberData, []string, error) {
-	toRenew, deleted := subscriberdb.GetLeafDigestsDiff(clientDigests, cloudDigests)
-	if len(toRenew) > s.changesetSizeThreshold || len(toRenew) > int(s.maxProtosLoadSize) {
+	toRenew, deleted := syncstore.GetLeafDigestsDiff(clientDigests, cloudDigests)
+	if len(toRenew) > s.ChangesetSizeThreshold || len(toRenew) > int(s.MaxProtosLoadSize) {
 		return true, nil, nil, nil
 	}
 
@@ -231,7 +218,7 @@ func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientD
 	if err != nil {
 		return true, nil, nil, err
 	}
-	renewed, err := subscriberdb.DeserializeSubProtos(renewedSerialized)
+	renewed, err := subscriberdb.DeserializeSubscribers(renewedSerialized)
 	if err != nil {
 		return true, nil, nil, err
 	}
@@ -242,13 +229,13 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, re
 	// If request page size is 0, return max entity load size
 	pageSize := uint64(req.PageSize)
 	if req.PageSize == 0 {
-		pageSize = s.maxProtosLoadSize
+		pageSize = s.MaxProtosLoadSize
 	}
 	subProtosSerialized, nextToken, err := s.store.GetCachedByPage(networkID, req.PageToken, pageSize)
 	if err != nil {
 		return nil, "", err
 	}
-	subProtos, err := subscriberdb.DeserializeSubProtos(subProtosSerialized)
+	subProtos, err := subscriberdb.DeserializeSubscribers(subProtosSerialized)
 	if err != nil {
 		return nil, "", err
 	}
@@ -286,8 +273,8 @@ func (l *subscriberdbServicer) shouldResync(network string, gateway string) bool
 	}
 	// Add a deterministic jitter to AGW sync intervals in the range of
 	// [0, 0.5 * resyncIntervalSecs] to ameliorate the thundering herd effect
-	resyncIntervalJitter := math.JitterInt64(l.resyncIntervalSecs, gateway, 0.5)
-	shouldResync := time.Now().Unix()-lastResyncTime > l.resyncIntervalSecs+resyncIntervalJitter
+	resyncIntervalJitter := math.JitterInt64(l.ResyncIntervalSecs, gateway, 0.5)
+	shouldResync := time.Now().Unix()-lastResyncTime > l.ResyncIntervalSecs+resyncIntervalJitter
 	return shouldResync
 }
 

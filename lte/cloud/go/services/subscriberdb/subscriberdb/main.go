@@ -56,7 +56,7 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
 
-	syncstoreFact := blobstore.NewEntStorage(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
+	syncstoreFact := blobstore.NewEntStorage(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := syncstoreFact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
 	}

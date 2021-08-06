@@ -59,7 +59,7 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, fact.InitializeFactory())
 	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, ipStore.Initialize())
-	syncstoreFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
+	syncstoreFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, syncstoreFact.InitializeFactory())
 	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
 	assert.NoError(t, err)

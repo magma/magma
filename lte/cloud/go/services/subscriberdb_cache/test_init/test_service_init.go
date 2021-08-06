@@ -35,11 +35,12 @@ func StartTestService(t *testing.T) {
 	)
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
+	assert.NoError(t, serviceConfig.Validate())
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,

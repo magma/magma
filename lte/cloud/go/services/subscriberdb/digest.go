@@ -97,44 +97,6 @@ func GetPerSubscriberDigests(network string) ([]*orc8r_protos.LeafDigest, error)
 	return leafDigests, nil
 }
 
-// GetLeafDigestsDiff computes the data changeset according to two lists of leaf digests,
-// ordered by their IDs. It returns
-// 1. The set of objects that have been added/modified, with the new digests.
-// 2. An ordered list of the objects that have been removed.
-func GetLeafDigestsDiff(prev []*orc8r_protos.LeafDigest, next []*orc8r_protos.LeafDigest) (map[string]string, []string) {
-	n, m, i, j := len(prev), len(next), 0, 0
-	toRenew := map[string]string{}
-	deleted := []string{}
-
-	for i < n && j < m {
-		iId, jId := prev[i].Id, next[j].Id
-		if iId == jId {
-			if prev[i].Digest.Md5Base64Digest != next[j].Digest.Md5Base64Digest {
-				toRenew[jId] = next[j].Digest.Md5Base64Digest
-			}
-			i++
-			j++
-		} else if iId > jId {
-			toRenew[jId] = next[j].Digest.Md5Base64Digest
-			j++
-		} else {
-			deleted = append(deleted, iId)
-			i++
-		}
-	}
-
-	for ; i < n; i++ {
-		prevId := prev[i].Id
-		deleted = append(deleted, prevId)
-	}
-	for ; j < m; j++ {
-		nextId := next[j].Id
-		toRenew[nextId] = next[j].Digest.Md5Base64Digest
-	}
-
-	return toRenew, deleted
-}
-
 // getSubscribersDigest returns a deterministic digest of all subscribers in the network.
 func getSubscribersDigest(network string) (string, error) {
 	apnsByName, err := LoadApnsByName(network)

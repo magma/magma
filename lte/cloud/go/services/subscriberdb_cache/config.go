@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -35,4 +36,11 @@ func MustGetServiceConfig() Config {
 	}
 
 	return serviceConfig
+}
+
+func (config Config) Validate() error {
+	if config.SleepIntervalSecs < 60 {
+		return errors.Errorf("worker sleep interval smaller than 1 minute")
+	}
+	return nil
 }

@@ -64,7 +64,7 @@ func LoadSubProtosPage(
 	return subProtos, nextToken, nil
 }
 
-func SerializeSubProtos(subProtos []*lte_protos.SubscriberData) (map[string][]byte, error) {
+func SerializeSubscribers(subProtos []*lte_protos.SubscriberData) (map[string][]byte, error) {
 	subProtosSerialized := map[string][]byte{}
 	for _, subProto := range subProtos {
 		sid := lte_protos.SidString(subProto.Sid)
@@ -77,7 +77,7 @@ func SerializeSubProtos(subProtos []*lte_protos.SubscriberData) (map[string][]by
 	return subProtosSerialized, nil
 }
 
-func DeserializeSubProtos(subProtosSerialized [][]byte) ([]*lte_protos.SubscriberData, error) {
+func DeserializeSubscribers(subProtosSerialized [][]byte) ([]*lte_protos.SubscriberData, error) {
 	subProtos := []*lte_protos.SubscriberData{}
 	for _, serialized := range subProtosSerialized {
 		subProto := &lte_protos.SubscriberData{}
