@@ -17,36 +17,31 @@ import tempfile
 import unittest
 from concurrent import futures
 from unittest.mock import MagicMock
-from google.protobuf.any_pb2 import Any
 
 import grpc
+from google.protobuf.any_pb2 import Any
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.subscriberdb_pb2 import (
     CheckInSyncRequest,
     CheckInSyncResponse,
-    SyncRequest,
-    SyncResponse,
     ListSubscribersRequest,
     ListSubscribersResponse,
     SubscriberData,
     SubscriberID,
+    SyncRequest,
+    SyncResponse,
 )
 from lte.protos.subscriberdb_pb2_grpc import (
     SubscriberDBCloudServicer,
     SubscriberDBCloudStub,
     add_SubscriberDBCloudServicer_to_server,
 )
-from orc8r.protos.digest_pb2 import (
-    Changeset,
-    Digest,
-    DigestTree,
-    LeafDigest,
-)
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.client import SubscriberDBCloudClient
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.sqlite import SqliteStore
+from orc8r.protos.digest_pb2 import Changeset, Digest, DigestTree, LeafDigest
 
 
 class MockSubscriberDBServer(SubscriberDBCloudServicer):

@@ -374,6 +374,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 		},
 	}
 	expectedProtosSerialized, err := subscriberdb.SerializeSubscribers(expectedProtos)
+	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
 	err = writer.InsertMany(expectedProtosSerialized)

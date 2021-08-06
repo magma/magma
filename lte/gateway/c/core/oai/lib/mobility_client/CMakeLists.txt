@@ -16,7 +16,7 @@ set(RPC_LTE_CPP_PROTOS mobilityd apn subscriberdb)
 generate_cpp_protos("${RPC_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
-set(RPC_ORC8R_CPP_PROTOS common)
+set(RPC_ORC8R_CPP_PROTOS common digest)
 generate_cpp_protos("${RPC_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 

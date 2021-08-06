@@ -25,11 +25,6 @@ from lte.protos.subscriberdb_pb2 import (
     SubscriberData,
     SyncRequest,
 )
-from orc8r.protos.digest_pb2 import (
-    Digest,
-    LeafDigest,
-    Changeset,
-)
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
@@ -40,6 +35,7 @@ from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_SUCCESS_TOTAL,
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
+from orc8r.protos.digest_pb2 import Changeset, Digest, LeafDigest
 
 CloudSubscribersInfo = NamedTuple(
     'CloudSubscribersInfo', [
@@ -52,8 +48,9 @@ ProcessedChangeset = NamedTuple(
     'ProcessedChangeset', [
         ('to_renew', List[SubscriberData]),
         ('deleted', List[str]),
-    ]
+    ],
 )
+
 
 class SubscriberDBCloudClient(SDWatchdogTask):
     """

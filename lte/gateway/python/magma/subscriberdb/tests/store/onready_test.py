@@ -17,16 +17,11 @@ import asyncio
 import tempfile
 import unittest
 
-from lte.protos.subscriberdb_pb2 import (
-    SubscriberData,
-)
-from orc8r.protos.digest_pb2 import (
-    Digest,
-    LeafDigest,
-)
+from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.cached_store import CachedStore
 from magma.subscriberdb.store.sqlite import SqliteStore
+from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
 
 class OnReadyMixinTests(unittest.TestCase):

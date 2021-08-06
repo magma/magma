@@ -45,14 +45,19 @@ add_definitions(-DLOG_WITH_GLOG)
 
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
+create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
+
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 message("Proto_srcs are ${PROTO_SRCS}")
 set(LI_AGENT_LTE_CPP_PROTOS mconfig/mconfigs mobilityd
     mobilityd subscriberdb apn)
+set(LI_AGENT_ORC8R_CPP_PROTOS common digest)
 set(RPC_LTE_GRPC_PROTOS mobilityd)
 generate_cpp_protos("${LI_AGENT_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+generate_cpp_protos("${LI_AGENT_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+    "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 generate_grpc_protos("${RPC_LTE_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
     ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 

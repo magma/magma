@@ -18,14 +18,9 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import List, NamedTuple
 
-from lte.protos.subscriberdb_pb2 import (
-    SubscriberData,
-)
-from orc8r.protos.digest_pb2 import (
-    Digest,
-    LeafDigest,
-)
+from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
 from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
 from .onready import OnDataReady, OnDigestsReady
