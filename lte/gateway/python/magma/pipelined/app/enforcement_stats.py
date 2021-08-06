@@ -15,21 +15,16 @@ import os
 from collections import defaultdict
 from concurrent.futures import Future
 from datetime import datetime, timedelta
+from subprocess import check_output
 
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
-from magma.pipelined.app.base import (
-    ControllerType,
-    MagmaController,
-    global_epoch,
-)
-from magma.pipelined.app.policy_mixin import (
-    DROP_FLOW_STATS,
-    IGNORE_STATS,
-    PROCESS_STATS,
-    PolicyMixin,
-)
+
+from magma.pipelined.app.base import (ControllerType, MagmaController,
+                                      global_epoch)
+from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
+                                              PROCESS_STATS, PolicyMixin)
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
 from magma.pipelined.openflow import flows
@@ -116,6 +111,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
+        self._restart_info_store = kwargs['restart_info_store']
+        self._ovs_restarted = self._was_ovs_restarted()
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -432,7 +429,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Report usage to sessiond using rpc
         """
         record_table = RuleRecordTable(records=usage.values(),
-                                       epoch=global_epoch)
+                                       epoch=global_epoch,
+                                       update_rule_versions=self._ovs_restarted)
         if self._print_grpc_payload:
             record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
                 record_table.DESCRIPTOR.name, str(record_table))
@@ -576,6 +574,18 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         flows.delete_flow(self._datapath,
                           self.tbl_num,
                           match_out)
+
+    def _was_ovs_restarted(self):
+        try:
+            ovs_pid = int(check_output(["pidof","ovs-vswitchd"]).decode())
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.warning("Couldn't get ovs pid: %s", e)
+            ovs_pid = 0
+        stored_ovs_pid = self._restart_info_store["ovs-vswitchd"]
+        self._restart_info_store["ovs-vswitchd"] = ovs_pid
+        self.logger.info("Stored ovs_pid %d, new ovs pid %d",
+                         stored_ovs_pid, ovs_pid)
+        return ovs_pid != stored_ovs_pid
 
     def _get_rule_id(self, flow):
         """

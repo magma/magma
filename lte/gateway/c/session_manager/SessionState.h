@@ -291,7 +291,7 @@ class SessionState {
    *
    * @return SessionState::SessionInfo
    */
-  SessionState::SessionInfo get_session_info();
+  SessionState::SessionInfo get_session_info_for_setup();
 
   void set_tgpp_context(
       const magma::lte::TgppContext& tgpp_context,

@@ -56,6 +56,7 @@ export MAGMA_TAG=1.6.0-master  # or desired tag
 ```
 
 Checkout the v1.6 release branch
+
 ```bash
 cd ${MAGMA_ROOT}
 git fetch origin
@@ -137,7 +138,9 @@ $ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa # or chosen deployment type
 
 Uploaded orc8r charts successfully.
 ```
+
 You can add `-v` option to overwrite the versions of the chart.
+
 ```bash
 ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.6
 ```

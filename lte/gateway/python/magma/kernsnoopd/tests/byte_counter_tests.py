@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import unittest
-from socket import htons
+from socket import AF_INET, AF_INET6, htons
 from unittest.mock import MagicMock
 
 from magma.kernsnoopd.handlers import ByteCounter
@@ -88,10 +88,14 @@ class ByteCounterTests(unittest.TestCase):
 
         key = MagicMock()
         key.pid, key.comm = 0, b'subscriberdb'
+        key.family = AF_INET
         # 16777343 is "127.0.0.1" packed as a 4 byte int
-        key.daddr, key.dport = 16777343, htons(80)
+        key.daddr = self.byte_counter.Addr(16777343, 0)
+        key.dport = htons(80)
 
-        bpf = {'dest_counters': {key: 100}}
+        count = MagicMock()
+        count.value = 100
+        bpf = {'dest_counters': {key: count}}
 
         self.byte_counter.handle(bpf)
 
@@ -109,10 +113,15 @@ class ByteCounterTests(unittest.TestCase):
 
         key = MagicMock()
         key.pid, key.comm = 0, b'sshd'
-        # 16777343 is "127.0.0.1" packed as a 4 byte int
-        key.daddr, key.dport = 16777343, htons(443)
+        key.family = AF_INET6
+        # localhost in IPv6 with embedded IPv4
+        # ::ffff:127.0.0.1 = 0x0100007FFFFF0000
+        key.daddr = self.byte_counter.Addr(0, 0x0100007FFFFF0000)
+        key.dport = htons(443)
 
-        bpf = {'dest_counters': {key: 100}}
+        count = MagicMock()
+        count.value = 100
+        bpf = {'dest_counters': {key: count}}
 
         self.byte_counter.handle(bpf)
 

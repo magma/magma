@@ -30,7 +30,6 @@ access to a subset of the migrated data.
 
 If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`).
 
-
 ## Helm 3 Upgrade
 
 Orchestrator v1.2 requires an upgrade from Helm 2 to Helm 3. Helm provides a
@@ -72,7 +71,6 @@ $ helm3 2to3 move config
 2020/08/31 21:49:33 Helm v2 configuration will be moved to Helm v3 configuration.
 ...
 2020/08/31 21:49:33 Helm v2 configuration was moved successfully to Helm v3 configuration.
-
 
 $ helm3 repo list  # now correctly populated
 

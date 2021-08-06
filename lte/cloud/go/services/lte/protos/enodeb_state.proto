@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 package magma.lte.lte;
 
-option go_package = "protos";
+option go_package = "magma/lte/cloud/go/services/lte/protos";
 
 // EnodebStateLookup servicer provides methods for looking up an enodeb state
 // using gatewayID as an additional primary key.

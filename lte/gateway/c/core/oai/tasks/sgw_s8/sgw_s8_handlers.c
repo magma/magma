@@ -27,6 +27,7 @@ limitations under the License.
 #include "sgw_handlers.h"
 #include "directoryd.h"
 #include "conversions.h"
+#include "includes/MetricsHelpers.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;

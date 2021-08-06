@@ -10,7 +10,7 @@ This guide covers tips for quickly validating AGW changes.
 
 ## Run all unit tests on the dev VM
 
-In general, all unit testing for AGW is done on the magma dev VM. 
+In general, all unit testing for AGW is done on the magma dev VM.
 To SSH into the VM, run
 
 ```bash
@@ -25,6 +25,7 @@ To run all existing unit tests, run
 [VM] cd magma/lte/gateway
 [VM] make test
 ```
+
 Note: Running all unit tests can take close to 15 minutes.
 
 ### Test Python AGW services
@@ -36,13 +37,14 @@ To run only the Python unit tests, run
 [VM] make test_python
 ```
 
-The list of services to test are configured in the following files. 
-* `orc8r/gateway/python/defs.mk`
-* `lte/gateway/python/defs.mk`
+The list of services to test are configured in the following files.
+
+- `orc8r/gateway/python/defs.mk`
+- `lte/gateway/python/defs.mk`
 
 ### Test C/C++ AGW services
 
-We have several C/C++ services that live in `lte/gateway/c/`. 
+We have several C/C++ services that live in `lte/gateway/c/`.
 To run tests for those services, run
 
 ```bash
@@ -64,7 +66,7 @@ To test any changes, run
 
 ### Format Python
 
-Docker is required for running the steps below. 
+Docker is required for running the steps below.
 To use the `--diff` flag, the script will have to be on your host machine where the Magma repository lives.
 Refer to the script at `lte/gateway/python/precommit.py` for all available commands, but the main ones are as follows.
 

@@ -16,14 +16,17 @@ The binaries of the CLI can be found on all pods running in FeG under
 `/var/opt/magma/bin/`.
 
 You have different options to obtain and run the CLI:
+
 - Using `docker-compose` from the host:
-```
+
+```bash
 cd /var/opt/magma/docker
 sudo docker-compose exec s6a_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
 ```
 
 - Using the binary from inside the pod:
-```
+
+```bash
 cd /var/opt/magma/docker
 docker-compose exec s6a_proxy bash
 #inside pod
@@ -32,7 +35,8 @@ cd /var/opt/magma/bin/
 ```
 
 - Copying the binary outside the pod and running it from the host
-```
+
+```bash
 cd /var/opt/magma/docker
 sudo docker cp s8_proxy:/var/opt/magma/bin/s8_cli .
 # you can move the binary to AGW
@@ -41,7 +45,8 @@ chmod +x s8_cli
 ```
 
 - Building it from source
-```
+
+```bash
 #after cloning magma from github
 cd ~/magma/feg/gateway/docker
 docker-compose up -d test
@@ -76,7 +81,8 @@ graph LR;
 ## CLI example commands
 
 - s6a_cli Authentication Information Request (AIR).
-```
+
+```bash
 # from AGW
 ./s6a_cli air -remote_s6a 001002000000810
 # from FEG
@@ -87,7 +93,8 @@ graph LR;
 
 - s6a_cli AIR with 10 UEs starting from IMSI 001002000000810 with a rate of
 2 UE per second.
-```
+
+```bash
 ./s6a_cli air -remote_s6a -range 10 -rate 2 001002000000810
 ```
 
@@ -95,6 +102,7 @@ graph LR;
 with APN `inet`, with user plane TEID `2`, control plane TEID `4` (TEIDS are
 optional values). This command will send Delete Bearer Request 3 seconds
 later.
-```
+
+```bash
 s8_cli cs -server 192.168.32.118:2123 -delete 3 -apn inet -remote_s8 -uteid 2 -cteid 4 001002000000810
 ```

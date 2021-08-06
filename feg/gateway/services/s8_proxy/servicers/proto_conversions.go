@@ -134,6 +134,7 @@ func parseCreateBearerRequest(msg message.Message, senderAddr net.Addr) (*protos
 	glog.V(2).Infof("Received Create Bearer Request (gtp):\n%s", cbReqGtp.String())
 	cbReq := &protos.CreateBearerRequestPgw{}
 	cbReq.PgwAddrs = senderAddr.String()
+	cbReq.SequenceNumber = cbReqGtp.SequenceNumber
 
 	// cgw control plane teid
 	if !cbReqGtp.HasTEID() {
