@@ -38,7 +38,7 @@ void StatsPoller::start_loop(
     }
     // Poll all stats when there are no active shards
     // otherwise poll each shard id between intervals
-    if (active_shard_ids.size() == 0) {
+    if (!active_shard_ids.empty()) {
       local_enforcer->poll_stats_enforcer(0, 0);
       std::this_thread::sleep_for(std::chrono::seconds(interval));
     } else {

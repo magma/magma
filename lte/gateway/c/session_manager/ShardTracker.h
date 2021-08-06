@@ -57,7 +57,8 @@ class ShardTracker {
    */
   std::vector<std::set<std::string>> imsis_per_shard_;
   /*
-   * largest number of UEs that can fill a shard
+   * largest number of UEs that can fill a shard, best performing shard size
+   * from spirient testing. Will generate three shards for most cases.
    */
   const uint16_t max_shard_size_ = 300;
 };

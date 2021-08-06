@@ -13,6 +13,7 @@ limitations under the License.
 import json
 import threading
 from collections import namedtuple
+
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict, RedisHashDict
@@ -84,7 +85,7 @@ class SessionRuleToVersionMapper:
     """
 
     def __init__(self):
-        self._version_by_imsi_and_rule = {} 
+        self._version_by_imsi_and_rule = {}
         self._lock = threading.Lock()  # write lock
 
     def _save_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str,
@@ -220,6 +221,7 @@ class RuleVersionDict(RedisFlatDict):
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
         return None
+
 
 class RestartInfoStore(RedisHashDict):
     """
