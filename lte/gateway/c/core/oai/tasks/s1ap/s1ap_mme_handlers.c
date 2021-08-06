@@ -1058,14 +1058,10 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
     for (int index = 0; index < s1ap_e_rab_list->list.count; index++) {
       S1ap_E_RABItem_t* erab_item =
           (S1ap_E_RABItem_t*) s1ap_e_rab_list->list.array[index];
-      initial_context_setup_rsp->e_rab_failed_to_setup_list
-          .item[initial_context_setup_rsp->e_rab_failed_to_setup_list
-                    .no_of_items]
+      initial_context_setup_rsp->e_rab_failed_to_setup_list.item[index]
           .e_rab_id = erab_item->e_RAB_ID;
-      initial_context_setup_rsp->e_rab_failed_to_setup_list
-          .item[initial_context_setup_rsp->e_rab_failed_to_setup_list
-                    .no_of_items]
-          .cause = erab_item->cause;
+      initial_context_setup_rsp->e_rab_failed_to_setup_list.item[index].cause =
+          erab_item->cause;
     }
     initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items =
         s1ap_e_rab_list->list.count;

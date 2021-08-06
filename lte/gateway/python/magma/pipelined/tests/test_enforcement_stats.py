@@ -730,11 +730,11 @@ class EnforcementStatsTest(unittest.TestCase):
             policy.version = 2
             self.enforcement_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy], 0, 0,
+                [policy], 0,
             )
             self.enforcement_stats_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy], 0, 0,
+                [policy], 0,
             )
             pkt_sender.send(packet)
 
@@ -777,7 +777,7 @@ class EnforcementStatsTest(unittest.TestCase):
         # TODO Figure out why this one fails.
         # self.assertEqual(stats[enf_stat_name].bytes_tx,
         #                 num_pkts_tx_match * len(packet))
-        self.assertEqual(len(stats), 3)
+        self.assertEqual(len(stats), 2)
 
     def test_cookie_poll(self):
         """
