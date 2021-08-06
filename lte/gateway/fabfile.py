@@ -65,10 +65,13 @@ env.disable_known_hosts = True
 def dev():
     env.debug_mode = True
 
-
+# TODO(@themarwhal): Deprecate this
 def test():
+    print("Caution! This command will be deprecated soon.")
     env.debug_mode = False
-
+    
+def release():
+    env.debug_mode = False
 
 def package(
     vcs='git', all_deps="False",
@@ -87,7 +90,7 @@ def package(
     if not hasattr(env, 'debug_mode'):
         print(
             "Error: The Deploy target isn't specified. Specify one with\n\n"
-            "\tfab [dev|test] package",
+            "\tfab [dev|release] package",
         )
         exit(1)
 
