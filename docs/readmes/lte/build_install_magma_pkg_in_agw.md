@@ -20,7 +20,7 @@ hide_title: true
 
 2. **Install prerequisites**. Make sure you have installed all the tools specified in the prerequisites <https://magma.github.io/magma/docs/basics/prerequisites#prerequisites>
 
-3. **Build and create deb package**. In your local magma repo, go to the path `magma/lte/gateway` and run the command `fab dev package:vcs=git`
+3. **Build and create deb package**. In your local magma repo, go to the path `magma/lte/gateway` and run the command `fab release package:vcs=git`
 
     This command will create a vagrant magma machine, then build and create a deb package.
 

@@ -8,7 +8,7 @@ hide_title: true
 
 ## TL;DR
 
-1. Run `fab test package` on the host to create packages inside the
+1. Run `fab release package` on the host to create packages inside the
 gateway VM.
 2. Commit changes to build-magma.sh and magma.lockfile.ubuntu.
 
