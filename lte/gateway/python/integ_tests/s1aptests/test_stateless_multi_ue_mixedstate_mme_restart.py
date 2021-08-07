@@ -13,7 +13,6 @@ limitations under the License.
 
 import ctypes
 import ipaddress
-import time
 import unittest
 
 import gpp_types
