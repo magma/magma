@@ -338,6 +338,15 @@ int decode_attach_request(
         decoded += 1;  // Device Properties is 1 byte
         break;
 
+      case ATTACH_REQUEST_EXTENDED_DRX_PARAMETERS_IEI:
+        // Skip this IE.
+        OAILOG_INFO(
+            LOG_NAS_EMM,
+            "EMM-MSG - Extended DRX Parameters IE in Attach Request is not "
+            "supported. Skipping this IE.");
+        decoded += 3;  // Extended DRX Parameters is 3 bytes
+        break;
+
       default:
         errorCodeDecoder = TLV_UNEXPECTED_IEI;
         { OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_UNEXPECTED_IEI); }
