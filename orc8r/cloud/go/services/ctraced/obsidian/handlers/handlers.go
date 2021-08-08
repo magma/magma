@@ -195,7 +195,7 @@ func getDeleteCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(errors.Wrap(err, "failed to delete call trace data"), http.StatusInternalServerError)
 		}
 
-		err = configurator.DeleteEntity(networkID, orc8r.CallTraceEntityType, callTraceID)
+		err = configurator.DeleteEntity(c.Request().Context(), networkID, orc8r.CallTraceEntityType, callTraceID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}

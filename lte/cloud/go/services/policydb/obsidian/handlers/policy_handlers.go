@@ -206,7 +206,7 @@ func DeleteBaseName(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.BaseNameEntityType, baseName)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.BaseNameEntityType, baseName)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -396,7 +396,7 @@ func DeleteRule(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntityType, ruleID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.PolicyRuleEntityType, ruleID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -463,7 +463,7 @@ func deleteQoSProfile(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.PolicyQoSProfileEntityType, profileID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.PolicyQoSProfileEntityType, profileID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

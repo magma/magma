@@ -376,7 +376,7 @@ func DeleteMagmadGateway(ctx context.Context, networkID, gatewayID string, addit
 	deletes = append(deletes, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: gatewayID})
 	deletes = append(deletes, additionalDeletes...)
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "error deleting gateway"), http.StatusInternalServerError)
 	}

@@ -278,7 +278,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, expected, entities)
 
 	// Delete, Load
-	err = configurator.DeleteEntities(networkID1, []storage.TypeAndKey{entityID2})
+	err = configurator.DeleteEntities(context.Background(), networkID1, []storage.TypeAndKey{entityID2})
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,

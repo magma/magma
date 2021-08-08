@@ -192,13 +192,15 @@ func deleteGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	gwEnt, err := configurator.LoadEntity(nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil && err != merrors.ErrNotFound {
 		return obsidian.HttpError(err)
 	}
 
-	reqCtx := c.Request().Context()
 	err = configurator.DeleteEntities(
+		reqCtx,
 		nid,
 		[]storage.TypeAndKey{
 			{Type: orc8r.MagmadGatewayType, Key: gid},
@@ -341,6 +343,7 @@ func deleteMesh(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
@@ -355,7 +358,7 @@ func deleteMesh(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "can't delete a mesh with gateways!")
 	}
 
-	err = configurator.DeleteEntity(nid, wifi.MeshEntityType, mid)
+	err = configurator.DeleteEntity(reqCtx, nid, wifi.MeshEntityType, mid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

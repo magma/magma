@@ -229,7 +229,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	expected = digest
 
 	// Digest reflects changes in apn resource->apn associations
-	err = configurator.DeleteEntity("n1", lte.APNResourceEntityType, "resource1")
+	err = configurator.DeleteEntity(context2.Background(), "n1", lte.APNResourceEntityType, "resource1")
 	assert.NoError(t, err)
 	writes = []configurator.EntityWriteOperation{
 		configurator.NetworkEntity{
@@ -316,9 +316,9 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI00001")
+	err = configurator.DeleteEntity(context2.Background(), "n1", lte.SubscriberEntityType, "IMSI00001")
 	assert.NoError(t, err)
-	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI00002")
+	err = configurator.DeleteEntity(context2.Background(), "n1", lte.SubscriberEntityType, "IMSI00002")
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",

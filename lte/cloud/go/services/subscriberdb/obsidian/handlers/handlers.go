@@ -381,7 +381,7 @@ func deleteSubscriberHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := deleteSubscriber(networkID, subscriberID)
+	err := deleteSubscriber(c.Request().Context(), networkID, subscriberID)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -836,7 +836,7 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	return nil
 }
 
-func deleteSubscriber(networkID, key string) error {
+func deleteSubscriber(ctx context.Context, networkID, key string) error {
 	ent, err := configurator.LoadEntity(
 		networkID, lte.SubscriberEntityType, key,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
@@ -870,7 +870,7 @@ func deleteSubscriber(networkID, key string) error {
 	deletes = append(deletes, sub.ToTK())
 	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

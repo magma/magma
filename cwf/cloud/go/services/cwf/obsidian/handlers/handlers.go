@@ -429,7 +429,7 @@ func deleteHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := configurator.DeleteEntity(networkID, cwf.CwfHAPairType, haPairID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

@@ -409,7 +409,7 @@ func deleteEnodeb(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(nid, lte.CellularEnodebEntityType, eid)
+	err := configurator.DeleteEntity(c.Request().Context(), nid, lte.CellularEnodebEntityType, eid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -594,6 +594,7 @@ func deleteApnConfiguration(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	ent, err := configurator.LoadEntity(
 		networkID, lte.APNEntityType, apnName,
@@ -609,7 +610,7 @@ func deleteApnConfiguration(c echo.Context) error {
 	deletes = append(deletes, ent.ParentAssociations.MultiFilter(lte.APNResourceEntityType, lte.APNPolicyProfileEntityType)...)
 	deletes = append(deletes, ent.GetTypeAndKey())
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(reqCtx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -853,6 +854,7 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 	poolEnt, err := configurator.LoadEntity(networkID, lte.CellularGatewayPoolEntityType, poolID, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -873,7 +875,7 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 		)
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	err = configurator.DeleteEntity(networkID, lte.CellularGatewayPoolEntityType, poolID)
+	err = configurator.DeleteEntity(reqCtx, networkID, lte.CellularGatewayPoolEntityType, poolID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

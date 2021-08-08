@@ -138,7 +138,7 @@ func DeleteRatingGroup(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.RatingGroupEntityType, ratingGroupID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

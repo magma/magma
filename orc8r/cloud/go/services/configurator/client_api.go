@@ -385,19 +385,19 @@ func CreateOrUpdateEntityConfig(networkID string, entityType string, entityKey s
 	return err
 }
 
-func DeleteEntity(networkID string, entityType string, entityKey string) error {
-	return DeleteEntities(networkID, storage2.TKs{{Type: entityType, Key: entityKey}})
+func DeleteEntity(ctx context.Context, networkID string, entityType string, entityKey string) error {
+	return DeleteEntities(ctx, networkID, storage2.TKs{{Type: entityType, Key: entityKey}})
 }
 
 // DeleteEntities deletes the entities specified by networkID and tks.
 // We also have cascading deletes to delete foreign keys for assocs.
-func DeleteEntities(networkID string, ids storage2.TKs) error {
+func DeleteEntities(ctx context.Context, networkID string, ids storage2.TKs) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
 	}
 	_, err = client.DeleteEntities(
-		context.Background(),
+		ctx,
 		&protos.DeleteEntitiesRequest{
 			NetworkID: networkID,
 			ID:        tksToEntIDs(ids),
@@ -408,8 +408,8 @@ func DeleteEntities(networkID string, ids storage2.TKs) error {
 
 // DeleteInternalEntity is a loose wrapper around DeleteEntities to delete an
 // entity in the internal network structure
-func DeleteInternalEntity(entityType, entityKey string) error {
-	return DeleteEntity(storage.InternalNetworkID, entityType, entityKey)
+func DeleteInternalEntity(ctx context.Context, entityType, entityKey string) error {
+	return DeleteEntity(ctx, storage.InternalNetworkID, entityType, entityKey)
 }
 
 // GetPhysicalIDOfEntity gets the physicalID associated with the entity identified by (networkID, entityType, entityKey)

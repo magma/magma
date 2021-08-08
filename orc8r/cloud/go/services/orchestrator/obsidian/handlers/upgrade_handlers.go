@@ -108,7 +108,7 @@ func deleteChannelHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := configurator.DeleteInternalEntity(orc8r.UpgradeReleaseChannelEntityType, channelID)
+	err := configurator.DeleteInternalEntity(c.Request().Context(), orc8r.UpgradeReleaseChannelEntityType, channelID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -193,7 +193,7 @@ func deleteTierHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := configurator.DeleteEntity(networkID, orc8r.UpgradeTierEntityType, tierID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, orc8r.UpgradeTierEntityType, tierID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

@@ -188,8 +188,8 @@ func getDeleteNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		}
 
 		networkID, taskID := values[0], values[1]
-		storage.DeleteNProbeData(networkID, taskID)
-		err := configurator.DeleteEntity(networkID, lte.NetworkProbeTaskEntityType, taskID)
+		_ = storage.DeleteNProbeData(networkID, taskID)
+		err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.NetworkProbeTaskEntityType, taskID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -301,7 +301,7 @@ func deleteNetworkProbeDestination(c echo.Context) error {
 	}
 
 	networkID, destinationID := values[0], values[1]
-	err := configurator.DeleteEntity(networkID, lte.NetworkProbeDestinationEntityType, destinationID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.NetworkProbeDestinationEntityType, destinationID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
