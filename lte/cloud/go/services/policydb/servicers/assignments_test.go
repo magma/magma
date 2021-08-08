@@ -51,48 +51,44 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Initialize gateway -> subscriber, and create a policy rule
-	_, err = configurator.CreateEntities(
-		testNetworkId,
-		[]configurator.NetworkEntity{
-			{Type: lte.SubscriberEntityType, Key: testSubscriberId},
-			{
-				Type: lte.PolicyRuleEntityType,
-				Key:  testPolicyId,
-				Config: &models.PolicyRule{
-					ID:                  models.PolicyID(testPolicyId),
-					FlowList:            []*models.FlowDescription{},
-					Priority:            swag.Uint32(5),
-					RatingGroup:         *swag.Uint32(2),
-					TrackingType:        "ONLY_OCS",
-					AppName:             "INSTAGRAM",
-					AssignedSubscribers: []models.SubscriberID{},
-				},
-			},
-			{
-				Type: lte.BaseNameEntityType,
-				Key:  testBaseName,
-				Config: &models.BaseNameRecord{
-					AssignedSubscribers: []models.SubscriberID{},
-					Name:                models.BaseName(testBaseName),
-					RuleNames:           models.RuleNames([]string{}),
-				},
-			},
-			{
-				Type: lte.CellularGatewayEntityType, Key: testGwLogicalId,
-				Config: newDefaultGatewayConfig(),
-				Associations: []storage.TypeAndKey{
-					{Type: lte.SubscriberEntityType, Key: testSubscriberId},
-				},
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: testGwLogicalId,
-				Name: "foobar", Description: "foo bar",
-				PhysicalID:   testGwHwId,
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
+	_, err = configurator.CreateEntities(context2.Background(), testNetworkId, []configurator.NetworkEntity{
+		{Type: lte.SubscriberEntityType, Key: testSubscriberId},
+		{
+			Type: lte.PolicyRuleEntityType,
+			Key:  testPolicyId,
+			Config: &models.PolicyRule{
+				ID:                  models.PolicyID(testPolicyId),
+				FlowList:            []*models.FlowDescription{},
+				Priority:            swag.Uint32(5),
+				RatingGroup:         *swag.Uint32(2),
+				TrackingType:        "ONLY_OCS",
+				AppName:             "INSTAGRAM",
+				AssignedSubscribers: []models.SubscriberID{},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.BaseNameEntityType,
+			Key:  testBaseName,
+			Config: &models.BaseNameRecord{
+				AssignedSubscribers: []models.SubscriberID{},
+				Name:                models.BaseName(testBaseName),
+				RuleNames:           models.RuleNames([]string{}),
+			},
+		},
+		{
+			Type: lte.CellularGatewayEntityType, Key: testGwLogicalId,
+			Config: newDefaultGatewayConfig(),
+			Associations: []storage.TypeAndKey{
+				{Type: lte.SubscriberEntityType, Key: testSubscriberId},
+			},
+		},
+		{
+			Type: orc8r.MagmadGatewayType, Key: testGwLogicalId,
+			Name: "foobar", Description: "foo bar",
+			PhysicalID:   testGwHwId,
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Create an identity and context for sending requests as gateway

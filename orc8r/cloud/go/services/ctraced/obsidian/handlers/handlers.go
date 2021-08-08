@@ -96,6 +96,8 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 				CallTraceEnding:    false,
 			},
 		}
+		reqCtx := c.Request().Context()
+
 		exists, err := configurator.DoesEntityExist(networkID, orc8r.CallTraceEntityType, cfg.TraceID)
 		if exists {
 			return obsidian.HttpError(errors.New(fmt.Sprintf("Call trace id: %s already exists", cfg.TraceID)))
@@ -121,7 +123,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		}
 
 		createdEntity := ctr.ToEntity()
-		_, err = configurator.CreateEntity(networkID, createdEntity, serdes.Entity)
+		_, err = configurator.CreateEntity(reqCtx, networkID, createdEntity, serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to create call trace"), http.StatusInternalServerError)
 		}

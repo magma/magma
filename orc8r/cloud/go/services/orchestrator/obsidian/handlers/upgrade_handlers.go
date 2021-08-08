@@ -52,7 +52,7 @@ func createChannelHandler(c echo.Context) error {
 		Name:   channel.Name,
 		Config: channel,
 	}
-	_, err := configurator.CreateInternalEntity(entity, serdes.Entity)
+	_, err := configurator.CreateInternalEntity(c.Request().Context(), entity, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -139,7 +139,7 @@ func createTierHandler(c echo.Context) error {
 	}
 	tier := payload.(*models.Tier)
 	entity := tier.ToNetworkEntity()
-	_, err := configurator.CreateEntity(networkID, entity, serdes.Entity)
+	_, err := configurator.CreateEntity(c.Request().Context(), networkID, entity, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

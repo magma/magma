@@ -243,12 +243,13 @@ func createMesh(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &wifimodels.WifiMesh{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -258,6 +259,7 @@ func createMesh(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		nid,
 		configurator.NetworkEntity{
 			Type:         wifi.MeshEntityType,

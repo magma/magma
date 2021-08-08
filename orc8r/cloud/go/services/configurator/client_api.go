@@ -292,8 +292,8 @@ func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde
 }
 
 // CreateEntity creates a network entity.
-func CreateEntity(networkID string, entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
-	ret, err := CreateEntities(networkID, NetworkEntities{entity}, serdes)
+func CreateEntity(ctx context.Context, networkID string, entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
+	ret, err := CreateEntities(ctx, networkID, NetworkEntities{entity}, serdes)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
@@ -302,7 +302,7 @@ func CreateEntity(networkID string, entity NetworkEntity, serdes serde.Registry)
 
 // CreateEntities registers the given entities and returns the created network
 // entities.
-func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Registry) (NetworkEntities, error) {
+func CreateEntities(ctx context.Context, networkID string, entities NetworkEntities, serdes serde.Registry) (NetworkEntities, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
@@ -316,7 +316,7 @@ func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Reg
 		}
 		req.Entities = append(req.Entities, protoEnt)
 	}
-	res, err := client.CreateEntities(context.Background(), req)
+	res, err := client.CreateEntities(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -327,8 +327,8 @@ func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Reg
 
 // CreateInternalEntity is a loose wrapper around CreateEntity to create an
 // entity in the internal network structure
-func CreateInternalEntity(entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
-	return CreateEntity(storage.InternalNetworkID, entity, serdes)
+func CreateInternalEntity(ctx context.Context, entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
+	return CreateEntity(ctx, storage.InternalNetworkID, entity, serdes)
 }
 
 // UpdateEntity updates a network entity.

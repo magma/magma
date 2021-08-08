@@ -434,11 +434,13 @@ func createQoSProfile(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	profile := &models.PolicyQosProfile{}
 	if err := c.Bind(profile); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := profile.ValidateModel(context.Background()); err != nil {
+	if err := profile.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -450,7 +452,7 @@ func createQoSProfile(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	_, err = configurator.CreateEntity(networkID, profile.ToEntity(), serdes.Entity)
+	_, err = configurator.CreateEntity(reqCtx, networkID, profile.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

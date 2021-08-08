@@ -323,12 +323,13 @@ func createEnodeb(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if payload.AttachedGatewayID != "" {
@@ -336,6 +337,7 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		nid,
 		configurator.NetworkEntity{
 			Type:        lte.CellularEnodebEntityType,
@@ -517,16 +519,18 @@ func createApn(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		networkID,
 		configurator.NetworkEntity{
 			Type:   lte.APNEntityType,
@@ -780,14 +784,16 @@ func createGatewayPoolHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	gatewayPool := new(lte_models.MutableCellularGatewayPool)
 	if err := c.Bind(gatewayPool); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := gatewayPool.ValidateModel(context.Background()); err != nil {
+	if err := gatewayPool.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	_, err := configurator.CreateEntity(networkID, gatewayPool.ToEntity(), serdes.Entity)
+	_, err := configurator.CreateEntity(reqCtx, networkID, gatewayPool.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

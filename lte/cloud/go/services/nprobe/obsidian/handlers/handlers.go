@@ -92,12 +92,13 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		if nerr != nil {
 			return nerr
 		}
+		reqCtx := c.Request().Context()
 
 		payload := &models.NetworkProbeTask{}
 		if err := c.Bind(payload); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
-		if err := payload.ValidateModel(context.Background()); err != nil {
+		if err := payload.ValidateModel(reqCtx); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -119,6 +120,7 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		}
 
 		_, err := configurator.CreateEntity(
+			reqCtx,
 			networkID,
 			configurator.NetworkEntity{
 				Type:   lte.NetworkProbeTaskEntityType,
@@ -224,16 +226,18 @@ func createNetworkProbeDestination(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &models.NetworkProbeDestination{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		networkID,
 		configurator.NetworkEntity{
 			Type:   lte.NetworkProbeDestinationEntityType,

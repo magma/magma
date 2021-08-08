@@ -61,16 +61,17 @@ func CreateRatingGroup(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	group := new(models.RatingGroup)
 	if err := c.Bind(group); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := group.ValidateModel(context.Background()); err != nil {
+	if err := group.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.CreateEntity(networkID, group.ToEntity(), serdes.Entity)
+	_, err := configurator.CreateEntity(reqCtx, networkID, group.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

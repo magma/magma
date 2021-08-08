@@ -297,7 +297,7 @@ func createSubscriberHandler(c echo.Context) error {
 		return nerr
 	}
 
-	nerr = createSubscribers(networkID, payload)
+	nerr = createSubscribers(reqCtx, networkID, payload)
 	if nerr != nil {
 		return nerr
 	}
@@ -324,7 +324,7 @@ func createSubscribersV2Handler(c echo.Context) error {
 		return nerr
 	}
 
-	nerr = createSubscribers(networkID, payload...)
+	nerr = createSubscribers(reqCtx, networkID, payload...)
 	if nerr != nil {
 		return nerr
 	}
@@ -733,7 +733,7 @@ func loadMutableSubscriberPage(networkID string, pageSize uint32, pageToken stri
 	return subs, nextPageToken, nil
 }
 
-func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscriber) *echo.HTTPError {
+func createSubscribers(ctx context.Context, networkID string, subs ...*subscribermodels.MutableSubscriber) *echo.HTTPError {
 	var ents configurator.NetworkEntities
 	var ids []string
 	uniqueIDs := map[string]int{}
@@ -761,7 +761,7 @@ func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscr
 		return obsidian.HttpError(errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()), http.StatusBadRequest)
 	}
 
-	_, err = configurator.CreateEntities(networkID, ents, serdes.Entity)
+	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

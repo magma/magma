@@ -200,13 +200,9 @@ func TestFederationNetworks(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// setup fixtures in backend
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	seedFederationGateway(t)
@@ -277,13 +273,9 @@ func TestFederationGateways(t *testing.T) {
 	seedFederationNetworks(t)
 
 	// setup fixtures in backend
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Test CreateGateway

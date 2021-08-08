@@ -157,7 +157,7 @@ func TestConfiguratorService(t *testing.T) {
 	}
 
 	// Create, Load
-	_, err = configurator.CreateEntities(networkID1, []configurator.NetworkEntity{entity1, entity2}, entitySerdes)
+	_, err = configurator.CreateEntities(context.Background(), networkID1, []configurator.NetworkEntity{entity1, entity2}, entitySerdes)
 	assert.NoError(t, err)
 
 	entities, entitiesNotFound, err := configurator.LoadEntities(

@@ -58,7 +58,7 @@ func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, n
 			Name: name,
 		}
 	}
-	_, err := configurator.CreateEntity(networkID, gwEntity, serdes.Entity)
+	_, err := configurator.CreateEntity(context.Background(), networkID, gwEntity, serdes.Entity)
 	assert.NoError(t, err)
 }
 
