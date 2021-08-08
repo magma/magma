@@ -145,11 +145,13 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 		if nerr != nil {
 			return nerr
 		}
+		reqCtx := c.Request().Context()
+
 		mutableCallTrace := &models.MutableCallTrace{}
 		if err := c.Bind(mutableCallTrace); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
-		if err := mutableCallTrace.ValidateModel(context.Background()); err != nil {
+		if err := mutableCallTrace.ValidateModel(reqCtx); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -177,7 +179,7 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("failed to save call trace data, network-id: %s, gateway-id: %s, calltrace-id: %s", networkID, callTrace.Config.GatewayID, callTraceID)), http.StatusInternalServerError)
 		}
 
-		_, err = configurator.UpdateEntity(networkID, mutableCallTrace.ToEntityUpdateCriteria(callTraceID, *callTrace), serdes.Entity)
+		_, err = configurator.UpdateEntity(reqCtx, networkID, mutableCallTrace.ToEntityUpdateCriteria(callTraceID, *callTrace), serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}

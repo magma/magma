@@ -107,7 +107,7 @@ func TestGetDigestDeterministic(t *testing.T) {
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource"}},
 	}
 	writes = append(writes, write)
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context2.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	digest, err = subscriberdb.GetDigest("n1")
@@ -189,7 +189,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 			},
 		},
 	}
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context2.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 	expected, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
@@ -212,7 +212,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 			},
 		},
 	}
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context2.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	digest, err := subscriberdb.GetDigest("n1")
@@ -240,7 +240,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 			},
 		},
 	}
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context2.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	digest, err = subscriberdb.GetDigest("n1")
@@ -343,7 +343,7 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource"}},
 	}
 	writes = append(writes, write)
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context2.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Detect changes in apn resources data and reflect them in the ENTIRE set of generated digests

@@ -91,7 +91,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// ---
 	// Check for upgrade find version ahead of what tier is configured to
 	// ---
-	err = configurator.CreateOrUpdateEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1", &models2.Tier{Version: "0.0.0-0-abcdefg"}, serdes.Entity)
+	err = configurator.CreateOrUpdateEntityConfig(context.Background(), "n1", orc8r.UpgradeTierEntityType, "t1", &models2.Tier{Version: "0.0.0-0-abcdefg"}, serdes.Entity)
 	assert.NoError(t, err)
 	mockResp = &http.Response{Status: "200", Body: ioutil.NopCloser(bytes.NewBuffer(testdata))}
 	cli.On("Get", mock.AnythingOfType("string")).Return(mockResp, nil).Times(1)

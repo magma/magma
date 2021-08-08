@@ -386,10 +386,10 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
 	newConfig.Lte.State = desiredState
-	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig, serdes.Entity)
+	err = configurator.CreateOrUpdateEntityConfig(context.Background(), *config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig, serdes.Entity)
 	if err != nil {
 		// Restore subscriber to original config before erroring out
-		err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, cfg, serdes.Entity)
+		err = configurator.CreateOrUpdateEntityConfig(context.Background(), *config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, cfg, serdes.Entity)
 		if err != nil {
 			glog.Error(err)
 		}
@@ -411,6 +411,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 	pretext := fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "SUCCEEDED")
 	fallback := "Reconfig enodeb notification"
 	_, err := configurator.UpdateEntity(
+		context.Background(),
 		*config.NetworkID,
 		configurator.EntityUpdateCriteria{
 			Type:      lte.CellularEnodebEntityType,
@@ -593,6 +594,7 @@ func checkForUpgrade(machine *enodebdE2ETestStateMachine, config *models.Enodebd
 	newTierCfg := tierCfg
 	newTierCfg.Version = models2.TierVersion(repoVersion)
 	_, err = configurator.UpdateEntity(
+		context.Background(),
 		*config.NetworkID,
 		configurator.EntityUpdateCriteria{
 			Key:       *config.AgwConfig.TargetTier,

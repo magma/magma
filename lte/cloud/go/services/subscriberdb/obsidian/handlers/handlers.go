@@ -368,7 +368,7 @@ func updateSubscriberHandler(c echo.Context) error {
 		return nerr
 	}
 
-	err := updateSubscriber(networkID, payload)
+	err := updateSubscriber(reqCtx, networkID, payload)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -519,6 +519,7 @@ func updateSubscriberProfile(c echo.Context) error {
 	}
 
 	_, err = configurator.UpdateEntity(
+		reqCtx,
 		networkID,
 		configurator.EntityUpdateCriteria{Type: lte.SubscriberEntityType, Key: subscriberID, NewConfig: desiredCfg},
 		serdes.Entity,
@@ -535,6 +536,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		if nerr != nil {
 			return nerr
 		}
+		reqCtx := c.Request().Context()
 
 		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 		if err != nil {
@@ -543,7 +545,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 
 		newConfig := cfg.(*subscribermodels.SubscriberConfig)
 		newConfig.Lte.State = desiredState
-		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
+		err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -794,7 +796,7 @@ func getCreateSubscriberEnts(sub *subscribermodels.MutableSubscriber) configurat
 	return ents
 }
 
-func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber) error {
+func updateSubscriber(ctx context.Context, networkID string, sub *subscribermodels.MutableSubscriber) error {
 	var writes []configurator.EntityWriteOperation
 
 	existingSub, err := configurator.LoadEntity(
@@ -828,7 +830,7 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	}
 	writes = append(writes, subUpdate)
 
-	err = configurator.WriteEntities(networkID, writes, serdes.Entity)
+	err = configurator.WriteEntities(ctx, networkID, writes, serdes.Entity)
 	if err != nil {
 		return err
 	}

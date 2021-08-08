@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
@@ -104,12 +103,13 @@ func UpdateRatingGroup(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	ratingGroup := new(models.MutableRatingGroup)
 	if err := c.Bind(ratingGroup); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := ratingGroup.ValidateModel(context.Background()); err != nil {
+	if err := ratingGroup.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	groupID, err := swag.ConvertUint32(ratingGroupID)
@@ -126,7 +126,7 @@ func UpdateRatingGroup(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
-	_, err = configurator.UpdateEntity(networkID, ratingGroup.ToEntityUpdateCriteria(groupID), serdes.Entity)
+	_, err = configurator.UpdateEntity(reqCtx, networkID, ratingGroup.ToEntityUpdateCriteria(groupID), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"context"
 	"math/rand"
 	"net/http"
 	"time"
@@ -165,16 +164,17 @@ func updateNetworkProbeTask(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &models.NetworkProbeTask{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.UpdateEntity(networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
+	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -281,16 +281,17 @@ func updateNetworkProbeDestination(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &models.NetworkProbeDestination{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.UpdateEntity(networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
+	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

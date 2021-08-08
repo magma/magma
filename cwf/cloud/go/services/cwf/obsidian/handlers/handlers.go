@@ -398,11 +398,13 @@ func updateHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	mutableHaPair := new(cwfModels.MutableCwfHaPair)
 	if err := c.Bind(mutableHaPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := mutableHaPair.ValidateModel(context.Background()); err != nil {
+	if err := mutableHaPair.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if mutableHaPair.HaPairID != haPairID {
@@ -417,7 +419,7 @@ func updateHAPairHandler(c echo.Context) error {
 	if !exists {
 		return echo.ErrNotFound
 	}
-	_, err = configurator.UpdateEntity(networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID), serdes.Entity)
+	_, err = configurator.UpdateEntity(reqCtx, networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

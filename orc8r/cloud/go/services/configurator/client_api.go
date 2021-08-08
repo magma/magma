@@ -258,7 +258,7 @@ func UpdateNetworkConfig(ctx context.Context, networkID, configType string, conf
 // executed in order within a single transaction.
 // This function is all-or-nothing - any failure or error encountered during
 // any operation will rollback the entire batch.
-func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde.Registry) error {
+func WriteEntities(ctx context.Context, networkID string, writes []EntityWriteOperation, serdes serde.Registry) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
@@ -284,7 +284,7 @@ func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde
 		}
 	}
 
-	_, err = client.WriteEntities(context.Background(), req)
+	_, err = client.WriteEntities(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -332,8 +332,8 @@ func CreateInternalEntity(ctx context.Context, entity NetworkEntity, serdes serd
 }
 
 // UpdateEntity updates a network entity.
-func UpdateEntity(networkID string, update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
-	updates, err := UpdateEntities(networkID, []EntityUpdateCriteria{update}, serdes)
+func UpdateEntity(ctx context.Context, networkID string, update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
+	updates, err := UpdateEntities(ctx, networkID, []EntityUpdateCriteria{update}, serdes)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
@@ -344,7 +344,7 @@ func UpdateEntity(networkID string, update EntityUpdateCriteria, serdes serde.Re
 }
 
 // UpdateEntities updates the registered entities and returns the updated entities
-func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes serde.Registry) (NetworkEntities, error) {
+func UpdateEntities(ctx context.Context, networkID string, updates []EntityUpdateCriteria, serdes serde.Registry) (NetworkEntities, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
@@ -358,7 +358,7 @@ func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes ser
 		}
 		req.Updates = append(req.Updates, upProto)
 	}
-	res, err := client.UpdateEntities(context.Background(), req)
+	res, err := client.UpdateEntities(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -371,17 +371,17 @@ func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes ser
 
 // UpdateInternalEntity is a loose wrapper around UpdateEntity to update an
 // entity in the internal network structure.
-func UpdateInternalEntity(update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
-	return UpdateEntity(storage.InternalNetworkID, update, serdes)
+func UpdateInternalEntity(ctx context.Context, update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
+	return UpdateEntity(ctx, storage.InternalNetworkID, update, serdes)
 }
 
-func CreateOrUpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}, serdes serde.Registry) error {
+func CreateOrUpdateEntityConfig(ctx context.Context, networkID string, entityType string, entityKey string, config interface{}, serdes serde.Registry) error {
 	updateCriteria := EntityUpdateCriteria{
 		Key:       entityKey,
 		Type:      entityType,
 		NewConfig: config,
 	}
-	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria}, serdes)
+	_, err := UpdateEntities(ctx, networkID, []EntityUpdateCriteria{updateCriteria}, serdes)
 	return err
 }
 

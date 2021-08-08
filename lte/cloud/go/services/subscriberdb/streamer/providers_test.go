@@ -214,7 +214,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 		Key:               gw.Key,
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource1"}},
 	})
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{

@@ -96,7 +96,7 @@ func updateChannelHandler(c echo.Context) error {
 		NewName:   swag.String(channel.Name),
 		NewConfig: channel,
 	}
-	_, err := configurator.UpdateInternalEntity(update, serdes.Entity)
+	_, err := configurator.UpdateInternalEntity(c.Request().Context(), update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -161,7 +161,7 @@ func updateTierHandler(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("TierID in URL and payload do not match."), http.StatusBadRequest)
 	}
 	update := tier.ToUpdateCriteria()
-	_, err := configurator.UpdateEntity(networkID, update, serdes.Entity)
+	_, err := configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -217,7 +217,7 @@ func createTierImage(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	_, err = configurator.UpdateEntities(networkID, updates, serdes.Entity)
+	_, err = configurator.UpdateEntities(c.Request().Context(), networkID, updates, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -240,7 +240,7 @@ func deleteImage(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	_, err = configurator.UpdateEntity(networkID, update, serdes.Entity)
+	_, err = configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -258,7 +258,7 @@ func createTierGateway(c echo.Context) error {
 	}
 
 	update := (&models.TierGateways{}).ToAddGatewayUpdateCriteria(tierID, gatewayID)
-	_, err := configurator.UpdateEntity(networkID, update, serdes.Entity)
+	_, err := configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -275,7 +275,7 @@ func deleteTierGateway(c echo.Context) error {
 		return nerr
 	}
 	update := (&models.TierGateways{}).ToDeleteGatewayUpdateCriteria(tierID, gatewayID)
-	_, err := configurator.UpdateEntity(networkID, update, serdes.Entity)
+	_, err := configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
