@@ -66,37 +66,35 @@ git checkout v1.<span class="hljs-number">1</span>
 </code></pre>
 <ol start="2">
 <li><p><strong>Install prerequisites</strong>. Make sure you have installed all the tools specified in the prerequisites <a href="https://magma.github.io/magma/docs/basics/prerequisites#prerequisites">https://magma.github.io/magma/docs/basics/prerequisites#prerequisites</a></p></li>
-<li><p><strong>Build and create deb package</strong>. In your local magma repo, go to the path <code>magma/lte/gateway</code> and run the command <code>fab dev package:vcs=git</code></p></li>
+<li><p><strong>Build and create deb package</strong>.
+To build an AGW package, use the script located at <code>$MAGMA_ROOT/lte/gateway/fabfile.py</code>. The commands below will create a vagrant machine, then build and create a deb package.</p>
+<p>The following commands are to be run from <code>$MAGMA_ROOT/lte/gateway</code> on your host machine.
+To create a package for production, run</p>
+<pre><code class="hljs css language-bash">fab <span class="hljs-built_in">test</span> package:vcs=git
+</code></pre>
+<p>To create a package for development or testing, run</p>
+<pre><code class="hljs css language-bash">fab dev package:vcs=git
+</code></pre>
+<p>This will compile all C++ services with compiler flag <code>Debug</code> and enable ASAN. This is recommended for testing only as it will impact performance.</p></li>
 </ol>
-<p>This command will create a vagrant magma machine, then build and create a deb package.</p>
 <ol start="4">
-<li><strong>Locate the packages</strong>. Once the above command finished. You need to enter the VM to verify the deb packages are there.</li>
-</ol>
-<pre><code class="hljs">vagrant ssh magma
-<span class="hljs-keyword">cd</span> ~<span class="hljs-string">/magma-packages/</span>
+<li><p><strong>Locate the packages</strong>. Once the above command finished. You need to enter the VM to verify the deb packages are there.</p>
+<pre><code class="hljs css language-bash">vagrant ssh magma
+<span class="hljs-built_in">cd</span> ~/magma-packages/
 </code></pre>
-<p>You will need only the ones that say <code>magma_1.1.XXX</code> and <code>magma-sctpd_1.1.XXX</code> (for v1.1 versions)</p>
-<ol start="5">
-<li><strong>Download the package</strong>. You can download the files to your computer from the vagrant machine. To do so, you can install a vagrant plugin in your computer and then download the package from the VM to your computer with the following commands:</li>
-</ol>
-<pre><code class="hljs">vagrant plugin install vagrant-scp
-vagrant scp magma: ~<span class="hljs-meta-keyword">/magma-packages/</span><span class="hljs-params">&lt;deb_package&gt;</span>
-</code></pre>
-<ol start="6">
+<p>You will need only the ones that say <code>magma_1.1.XXX</code> and <code>magma-sctpd_1.1.XXX</code> (for v1.1 versions)</p></li>
+<li><p><strong>Download the package</strong>. You can download the files to your computer from the vagrant machine. To do so, you can install a vagrant plugin in your computer and then download the package from the VM to your computer with the following commands:</p>
+<pre><code class="hljs css language-bash">vagrant plugin install vagrant-scp
+vagrant scp magma: ~/magma-packages/&lt;deb_package&gt;
+</code></pre></li>
 <li><p><strong>Upload the package to AGW</strong> that you would like to install.</p></li>
-<li><p><strong>Install the package</strong>. In order to install the new deb package in AGW, you can run</p></li>
+<li><p><strong>Install the package</strong>. In order to install the new deb package in AGW, you can run <code>sudo apt -f install &lt;magma package&gt;</code></p></li>
+<li><p><strong>Restart the magma services</strong></p>
+<pre><code class="hljs css language-bash">sudo service magma@* stop
+sudo service magma@magmad restart
+</code></pre></li>
+<li><p>You can <strong>verify the installed version</strong> with <code>apt show magma</code></p></li>
 </ol>
-<p><code>sudo apt -f install &lt;magma package&gt;</code></p>
-<ol start="8">
-<li><strong>Restart the magma services</strong></li>
-</ol>
-<pre><code class="hljs">sudo<span class="hljs-built_in"> service </span>magma@* stop
-sudo<span class="hljs-built_in"> service </span>magma@magmad restart
-</code></pre>
-<ol start="9">
-<li>You can <strong>verify the installed version</strong> with</li>
-</ol>
-<p><code>apt show magma</code></p>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/lte/deploy_config_apn"><span class="arrow-prev">← </span><span>Configure an APN</span></a><a class="docs-next button" href="/magma/docs/orc8r/deploy_intro"><span>Introduction</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
