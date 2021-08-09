@@ -1,0 +1,170 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>proposals/p019_enodeb_cbrs_support · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Proposal: [Enodebd CBRS Support]"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="proposals/p019_enodeb_cbrs_support · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="Proposal: [Enodebd CBRS Support]"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">proposals/p019_enodeb_cbrs_support</h1></header><article><div><span><p>Proposal: [Enodebd CBRS Support]</p>
+<p>Author(s): [@amarpad]</p>
+<p>Last updated: [07/20/2021]</p>
+<p>Discussion at <a href="https://github.com/magma/magma/issues/8196">https://github.com/magma/magma/issues/8196</a>.</p>
+<p>Context &amp; scope
+CBRS radios require specific radio parameters to be set based on grants that
+can be obtained from third party spectrum databases called SAS. In Magma this
+requires communication between the enodebd service that manages the radio
+configuration and the domain proxy that runs in the orchestrator that acts as
+a single interface point towards the SAS on behalf of all radios on the network</p>
+<p>There are many advantages to having communication go through the proxy as
+opposed to directly from the enodeb including security. Further, having the
+desired state of the network including the radio parameters managed in the
+orchestrator has been a primary goal of Magma.</p>
+<p>Goals</p>
+<ul>
+<li>Allow enodebs to obtain spectrum leases from SAS on bring up</li>
+<li>Allow enodebs to heartbeat to the SAS and if needed the SAS can revoke the
+grant</li>
+<li>Deregister a cbrs eNB from the SAS when it is deleted from magma.</li>
+<li>Relinquish a grant if the eNB stops radiating.</li>
+</ul>
+<p>Non-goals/Simplifications</p>
+<ul>
+<li>For simplicity we collapse the need for a SAS grant with the transmit enabled
+status of the radio. i.e. if a CBRS radio is transmitting we assume it needs
+a grant.</li>
+</ul>
+<p>Proposal</p>
+<p>The top level goal of this proposal is to have the domain proxy on the
+orchestrator to serve as the truth and act as a desired state store for the
+enodeb and rely on a control channel between enodebd-&gt;domain proxy and
+enodeb-&gt;enodebd to keep the actual state in sync with the desired state.</p>
+<p>User facing:</p>
+<ul>
+<li>NMS: NMS will explicitly support specific CBRS certified radios from vendors.
+The knowledge of these radios being CBRS certified is obtained out of band.
+i.e. for practical purposes the onboarding of these radios are going to be
+similar to what we have today.</li>
+</ul>
+<p>API changes:</p>
+<ul>
+<li>Swagger: Swagger will introduce a new vendor name for CBRS certified radios</li>
+</ul>
+<p><strong>mconfig changes:</strong></p>
+<ul>
+<li>mconfig will be extended to introduce a new boolean field indicating if the
+radio is a CBRS radio.</li>
+</ul>
+<p><strong>enodebd changes: (only applies to CBRS enodebs)</strong></p>
+<p>There are two subcases for enodeb bring up, eNB provisioned for first time/after
+factory reset. eNB reconnecting to enodebd after reboot/disconnect etc.</p>
+<p><strong>New enodebd provisioning:</strong></p>
+<p>enodebd is in the new enodeb provisioning flow if there is no SAS related
+state for the eNB in Redis.</p>
+<p>Towards eNB:</p>
+<p>Precondition: SAS state in Redis and in-memory is none.</p>
+<ul>
+<li>Parse Inform message as today, if serial number maps to enodeb with CBRS
+enabled and gps location absent, transition to enabling GPS state (new state),
+else complete session state (same complete session as today).</li>
+<li>Enable GPS using model specific tr-69 node, disable transmit and transition
+to complete session state</li>
+<li>Read GPS location, serial number as part of next inform, complete session.</li>
+<li>Radio status here is GPS is enabled, but radio is not transmitting</li>
+</ul>
+<p>Towards cloud:</p>
+<p>Precondition: GPS state, serial number available.</p>
+<ul>
+<li>Make GRPC call to domain proxy for registration request with the following
+fields populated.
+<pre><code class="hljs">“cbsdSerialNumber”: “abcd1234”,
+“installationParam”: {
+  “latitude”: <span class="hljs-number">37.425056</span>,
+  “longitude”: <span class="hljs-number">-122.084113</span>,
+}
+</code></pre></li>
+<li>The domain proxy will persist this state in the database and will interact
+with the SAS on behalf of the enodeb using these parameters.</li>
+<li>On response from the SAS the domain proxy will persist the grant in the
+database.</li>
+<li>Enodebd will periodically poll the domain proxy to retrive the desired
+state of the radio, once the SAS grant has been recvd the domain proxy
+will respond with a payload like
+<pre><code class="hljs"><span class="hljs-string">"Tx enabled"</span>: yes
+<span class="hljs-string">"Tx Power"</span> : <span class="hljs-type">xxxx</span>
+<span class="hljs-string">"Frequency"</span> : <span class="hljs-type">yyyy</span>
+</code></pre>
+this poll frequency is configurable.</li>
+<li>Version 1: Restart enodebd, when enodebd comes back up it will be in the
+reboot/reconnect enodeb flow.</li>
+</ul>
+<p><strong>Reboot/Reconnect endoebd provisioning</strong>:</p>
+<ul>
+<li>Populate in-memory tx power, frequency and other SAS parameter states that
+specific vendors require on startup.</li>
+<li>On Inform message if serial number maps to CBRS enabled enodeb, set cbrs
+params and transmit + power like today. Enable transmit.</li>
+<li>enodebd will continue to poll the domain proxy as above for the transmit
+payload.</li>
+</ul>
+<p><strong>Hearbeat and spectrum revocation</strong></p>
+<p>The domain proxy will heartbeat with the SAS on behalf of all enodebs
+provisioned at a frequency specified by the SAS.</p>
+<ul>
+<li>On spectrum revocation the domain proxy will update the database state
+associated with the eNB to disable transmit.</li>
+<li>enodebd's periodic poll request will return the following
+<pre><code class="hljs"><span class="hljs-attr">"Tx enabled":</span> <span class="hljs-literal">false</span>
+</code></pre></li>
+<li>enodebd will remove the sas redis state associated with the radio and restart.</li>
+<li>enodebd will move into new enodebd provisioning flow.</li>
+</ul>
+<p><strong>Handling radio relocation</strong>
+The poll request from the enodebd can contain the lat/long associated with the
+enodeb, if the location changes, the domain proxy can reset the Tx enabled flag
+which will cause the enodeb to stop transmitting and restart provisioning based
+on the new lat long. The Domain proxy inturn will need to explicitly
+relinquish the grant from the SAS using the &quot;Relenquish&quot; method.</p>
+<p>Alternatives considered</p>
+<ul>
+<li><p>Leverage sync RPC or bi-directional GRPC for communication from the DP to
+the enodebd instead of a poll loop: We deprioritized this option to use
+poll for the following reasons:</p>
+<ul>
+<li>The domain proxy instance that receives the heartbeat revoking the
+spectrum grant might still need to persist the state in case the enodebd
+is unreachable. Further modeling the event as state is more Magmaesque.
+Poll is a simple way of state synchronization using a set interface</li>
+<li>Sync RPC and GRPC based streaming are more complicated.</li>
+</ul></li>
+<li><p>Not restarting the enodebd service when SAS gets configured: This is just
+a phase-1 implementation, further as the interface towards the enodebd is
+idempotent restarting the enodebd service should have no effect on traffic.</p></li>
+</ul>
+<p>Cross-cutting concerns</p>
+<ul>
+<li>SAS interactions are message oriented, by persisting the desired enodeb
+state we model this more as a level trigger. This comes at the expense of
+responsiveness (capped by poll frequency), but this is an explicit tradeoff.</li>
+</ul>
+<p>Compatibility</p>
+<p>N/A</p>
+<p>Observability and Debug</p>
+<p>enodebd_cli should be enhanced to show SAS related information</p>
+<p>Security &amp; privacy</p>
+<p>Reuse existing communication channels</p>
+<p>Open issues (if applicable)</p>
+<ul>
+<li>Optimize away the need to restart enodebd on SAS param changes</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
