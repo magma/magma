@@ -11,29 +11,13 @@
 
 #include "util_nas5g_pkt.h"
 #include <gtest/gtest.h>
+#include "intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
 
-extern "C" {
-#include "dynamic_memory_check.h"
-#define CHECK_PROTOTYPE_ONLY
-#include "intertask_interface_init.h"
-#undef CHECK_PROTOTYPE_ONLY
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
-}
-
-task_zmq_ctx_t grpc_service_task_zmq_ctx;
-
-const task_info_t tasks_info[] = {
-    {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
-  {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include <tasks_def.h>
-#undef TASK_DEF
-};
 
 using ::testing::Test;
+
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma5g {
 
