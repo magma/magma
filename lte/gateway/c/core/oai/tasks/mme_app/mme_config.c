@@ -324,8 +324,9 @@ void _copy_plmn(const served_tai_t served_tai, plmn_t* plmn, uint8_t idx) {
 
 void _create_partial_lists(mme_config_t* config_pP) {
   uint8_t elem_idx = 0, list_idx = 0;
-  // Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
-  // add the TAIs to a new partial list
+  /* Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
+   * add the TAIs to a new partial list
+   */
   config_pP->partial_list = calloc(
       config_pP->served_tai.nb_tai,
       config_pP->served_tai.nb_tai * sizeof(partial_list_t));
@@ -385,7 +386,7 @@ void _create_partial_lists(mme_config_t* config_pP) {
     if (is_many_plmn) {
       continue;
     }
-    // PLMNs are same so check if the TACs are consecutive
+    // PLMNs are same so check if the TACs are non-consecutive
     for (uint8_t idx = 1; idx < config_pP->partial_list[itr].nb_elem; idx++) {
       if (config_pP->partial_list[itr].tac[idx] !=
           (config_pP->partial_list[itr].tac[idx - 1] + 1)) {
@@ -918,8 +919,9 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
         n = stop_index;
       } while (0 != n);
-      // helper for creating multiple partial lists and determination of list
-      // type
+      /* helper for creating multiple partial lists and determination of list
+       * type
+       */
       _create_partial_lists(config_pP);
     }
 
@@ -1881,23 +1883,23 @@ void mme_config_display(mme_config_t* config_pP) {
     if (config_pP->partial_list) {
       switch (config_pP->partial_list[itr].list_type) {
         case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
-          OAILOG_INFO(
+          OAILOG_DEBUG(
               LOG_CONFIG,
               "- List [%d] - TAI list type one PLMN consecutive TACs\n", itr);
           break;
         case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
-          OAILOG_INFO(
+          OAILOG_DEBUG(
               LOG_CONFIG,
               "- List [%d] - TAI list type one PLMN non consecutive TACs\n",
               itr);
           break;
         case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
-          OAILOG_INFO(
+          OAILOG_DEBUG(
               LOG_CONFIG, "- List [%d] - TAI list type multiple PLMNs\n", itr);
           break;
         default:
-          Fatal(
-              "Invalid served TAI list type (%u) configured\n",
+          OAILOG_ERROR(
+              LOG_CONFIG, "Invalid served TAI list type (%u) configured\n",
               config_pP->partial_list[itr].list_type);
           break;
       }
