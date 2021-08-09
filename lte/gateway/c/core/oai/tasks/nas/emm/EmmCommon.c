@@ -52,6 +52,7 @@
 #include "log.h"
 #include "emm_data.h"
 #include "EmmCommon.h"
+#include "mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -499,4 +500,26 @@ void create_new_attach_info(
   emm_context_p->new_attach_info->ies            = ies;
   emm_context_p->new_attach_info->is_mm_ctx_new  = is_mm_ctx_new;
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
+}
+
+partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
+  partial_list_t* par_list = NULL;
+
+  for (uint8_t list_i = 0; list_i < mme_config.num_par_lists; list_i++) {
+    if (!mme_config.partial_list) {
+      OAILOG_ERROR(LOG_NAS_EMM, "partial_list in mme_config is NULL\n");
+      return par_list;
+    }
+    for (uint8_t elem_i = 0; elem_i < mme_config.partial_list[list_i].nb_elem;
+         elem_i++) {
+      if (((mme_config.partial_list[list_i].plmn) &&
+           (IS_PLMN_EQUAL(
+               orig_tai.plmn, mme_config.partial_list[list_i].plmn[elem_i]))) &&
+          (orig_tai.tac == mme_config.partial_list[list_i].tac[elem_i])) {
+        par_list = &mme_config.partial_list[list_i];
+        return par_list;
+      }
+    }
+  }
+  return par_list;
 }

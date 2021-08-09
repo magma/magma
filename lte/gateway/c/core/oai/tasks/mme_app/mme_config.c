@@ -322,14 +322,15 @@ void _copy_plmn(const served_tai_t served_tai, plmn_t* plmn, uint8_t idx) {
   }
 }
 
-void create_partial_lists(mme_config_t* config_pP) {
+void _create_partial_lists(mme_config_t* config_pP) {
   uint8_t elem_idx = 0, list_idx = 0;
-  // Copy TAIs from served_tai topartial lists
+  // Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
+  // add the TAIs to a new partial list
   config_pP->partial_list = calloc(
       config_pP->served_tai.nb_tai,
       config_pP->served_tai.nb_tai * sizeof(partial_list_t));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
-    if (elem_idx == 16) {
+    if (elem_idx == MAX_TAI_SUPPORTED) {
       list_idx++;
       elem_idx = 0;
     }
@@ -357,23 +358,11 @@ void create_partial_lists(mme_config_t* config_pP) {
 
   // Assign type
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
+    bool is_many_plmn = false;
+    // Default type ONE_PLMN_CONSECUTIVE_TACS
+    config_pP->partial_list[itr].list_type =
+        TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS;
     for (uint8_t idx = 1; idx < config_pP->partial_list[itr].nb_elem; idx++) {
-      /*if ((config_pP->partial_list[itr].plmn[idx].mcc_digit1 !=
-           config_pP->partial_list[itr].plmn[0].mcc_digit1) ||
-          (config_pP->partial_list[itr].plmn[idx].mcc_digit2 !=
-           config_pP->partial_list[itr].plmn[0].mcc_digit2) ||
-          (config_pP->partial_list[itr].plmn[idx].mcc_digit3 !=
-           config_pP->partial_list[itr].plmn[0].mcc_digit3) ||
-          (config_pP->partial_list[itr].plmn[idx].mnc_digit1 !=
-           config_pP->partial_list[itr].plmn[0].mnc_digit1) ||
-          (config_pP->partial_list[itr].plmn[idx].mnc_digit2 !=
-           config_pP->partial_list[itr].plmn[0].mnc_digit2) ||
-          (config_pP->partial_list[itr].plmn[idx].mnc_digit3 !=
-           config_pP->partial_list[itr].plmn[0].mnc_digit3)) {
-        config_pP->partial_list[itr].list_type =
-            TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-        return;
-      } else*/
       if ((config_pP->partial_list[itr].plmn[idx].mcc_digit1 !=
            config_pP->partial_list[itr].plmn[idx - 1].mcc_digit1) ||
           (config_pP->partial_list[itr].plmn[idx].mcc_digit2 !=
@@ -388,19 +377,23 @@ void create_partial_lists(mme_config_t* config_pP) {
            config_pP->partial_list[itr].plmn[idx - 1].mnc_digit3)) {
         config_pP->partial_list[itr].list_type =
             TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-        return;
+        is_many_plmn = true;
+        break;
       }
     }
+    // Move on to the next list if the PLMNs differ
+    if (is_many_plmn) {
+      continue;
+    }
+    // PLMNs are same so check if the TACs are consecutive
     for (uint8_t idx = 1; idx < config_pP->partial_list[itr].nb_elem; idx++) {
       if (config_pP->partial_list[itr].tac[idx] !=
           (config_pP->partial_list[itr].tac[idx - 1] + 1)) {
         config_pP->partial_list[itr].list_type =
             TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS;
-        return;
+        break;
       }
     }
-    config_pP->partial_list[itr].list_type =
-        TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS;
   }
   return;
 }
@@ -925,35 +918,9 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
         n = stop_index;
       } while (0 != n);
-      // helper for determination of list type (global view), we could make
-      // sublists with different types, but keep things simple for now
-      create_partial_lists(config_pP);
-
-      /*config_pP->served_tai.list_type =
-           TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS;
-       for (i = 1; i < config_pP->served_tai.nb_tai; i++) {
-         if ((config_pP->served_tai.plmn_mcc[i] !=
-              config_pP->served_tai.plmn_mcc[0]) ||
-             (config_pP->served_tai.plmn_mnc[i] !=
-              config_pP->served_tai.plmn_mnc[0])) {
-           config_pP->served_tai.list_type =
-               TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-           break;
-         } else if (
-             (config_pP->served_tai.plmn_mcc[i] !=
-              config_pP->served_tai.plmn_mcc[i - 1]) ||
-             (config_pP->served_tai.plmn_mnc[i] !=
-              config_pP->served_tai.plmn_mnc[i - 1])) {
-           config_pP->served_tai.list_type =
-               TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-           break;
-         }
-         if (config_pP->served_tai.tac[i] !=
-             (config_pP->served_tai.tac[i - 1] + 1)) {
-           config_pP->served_tai.list_type =
-               TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS;
-         }
-       }*/
+      // helper for creating multiple partial lists and determination of list
+      // type
+      _create_partial_lists(config_pP);
     }
 
     // GUMMEI SETTING
@@ -1907,40 +1874,8 @@ void mme_config_display(mme_config_t* config_pP) {
         config_pP->gummei.gummei[j].mme_gid,
         config_pP->gummei.gummei[j].mme_code);
   }
-  OAILOG_INFO(LOG_CONFIG, "- TAIs : (mcc.mnc:tac)\n");
-#if 0
-  switch (config_pP->served_tai.list_type) {
-    case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
-      OAILOG_INFO(LOG_CONFIG, "- TAI list type one PLMN consecutive TACs\n");
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
-      OAILOG_INFO(
-          LOG_CONFIG, "- TAI list type one PLMN non consecutive TACs\n");
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
-      OAILOG_INFO(LOG_CONFIG, "- TAI list type multiple PLMNs\n");
-      break;
-    default:
-      Fatal(
-          "Invalid served TAI list type (%u) configured\n",
-          config_pP->served_tai.list_type);
-      break;
-  }
-  for (j = 0; j < config_pP->served_tai.nb_tai; j++) {
-    if (config_pP->served_tai.plmn_mnc_len[j] == 2) {
-      OAILOG_INFO(
-          LOG_CONFIG, "            %3u.%3u:%u\n",
-          config_pP->served_tai.plmn_mcc[j], config_pP->served_tai.plmn_mnc[j],
-          config_pP->served_tai.tac[j]);
-    } else {
-      OAILOG_INFO(
-          LOG_CONFIG, "            %3u.%03u:%u\n",
-          config_pP->served_tai.plmn_mcc[j], config_pP->served_tai.plmn_mnc[j],
-          config_pP->served_tai.tac[j]);
-    }
-  }
-#endif
-  OAILOG_INFO(
+  OAILOG_DEBUG(LOG_CONFIG, "- PARTIAL TAIs\n");
+  OAILOG_DEBUG(
       LOG_CONFIG, "- Num of partial lists=%d\n", config_pP->num_par_lists);
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
     if (config_pP->partial_list) {
@@ -1970,14 +1905,14 @@ void mme_config_display(mme_config_t* config_pP) {
   }
 
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_CONFIG, "- Num of elements in list[%d]=%d\n", itr,
         config_pP->partial_list[itr].nb_elem);
     if (config_pP->partial_list) {
       for (uint8_t idx = 0; idx < config_pP->partial_list[itr].nb_elem; idx++) {
         if (config_pP->partial_list[itr].plmn &&
             config_pP->partial_list[itr].tac) {
-          OAILOG_INFO(
+          OAILOG_DEBUG(
               LOG_CONFIG,
               "            "
               "MCC1=%d\tMCC2=%d\tMCC3=%d\tMNC1=%d\tMNC2=%d\tMNC3=%d\t"
