@@ -107,6 +107,7 @@ typedef struct itti_s11_nw_init_actv_bearer_rsp_s {
                         ///< be
   ServingNetwork_t serving_network;
   UETimeZone_t ue_time_zone;
+  char* pgw_cp_address;
   Uli_t uli;
 } itti_s11_nw_init_actv_bearer_rsp_t;
 

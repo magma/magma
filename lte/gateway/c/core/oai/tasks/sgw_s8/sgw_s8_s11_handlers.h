@@ -49,5 +49,4 @@ imsi64_t sgw_s8_handle_create_bearer_request(
 
 void sgw_s8_handle_s11_create_bearer_response(
     sgw_state_t* sgw_state,
-    const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
-    imsi64_t imsi64);
+    itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64);

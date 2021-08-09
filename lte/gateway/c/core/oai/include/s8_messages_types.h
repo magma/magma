@@ -49,6 +49,8 @@ typedef struct s8_delete_session_response_s {
 } s8_delete_session_response_t;
 
 typedef struct s8_create_bearer_request_s {
+  uint32_t sequence_number;
+  char* pgw_cp_address;
   teid_t context_teid;
   ebi_t linked_eps_bearer_id;
   protocol_configuration_options_t pco;

@@ -1273,20 +1273,6 @@ func (m *CreateBearerResponsePgw) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateBearerResponsePgw proto.InternalMessageInfo
 
-func (m *CreateBearerResponsePgw) GetImsi() string {
-	if m != nil {
-		return m.Imsi
-	}
-	return ""
-}
-
-func (m *CreateBearerResponsePgw) GetSequenceNumber() uint32 {
-	if m != nil {
-		return m.SequenceNumber
-	}
-	return 0
-}
-
 func (m *CreateBearerResponsePgw) GetPgwAddrs() string {
 	if m != nil {
 		return m.PgwAddrs

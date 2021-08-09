@@ -72,10 +72,6 @@ extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
-static void generate_dl_flow(
-    packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
-    struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
-
 static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64);
@@ -1980,7 +1976,7 @@ void handle_failed_create_bearer_response(
 }
 
 // Fills up downlink (DL) flow match rule from packet filters of eps bearer
-static void generate_dl_flow(
+void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow) {
   // Prepare DL flow rule

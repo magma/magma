@@ -285,7 +285,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   // Create temporary dedicated bearer context
   rc = create_temporary_dedicated_bearer_context(
       &spgw_ctxt_p->sgw_eps_bearer_context_information, bearer_req_p,
-      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
+      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid, 0,
       LOG_SPGW_APP);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
@@ -579,7 +579,7 @@ int create_temporary_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
-    log_proto_t module) {
+    uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
       calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
@@ -620,6 +620,7 @@ int create_temporary_dedicated_bearer_context(
       sizeof(bearer_qos_t));
   // Save Policy Rule Name
   strcpy(eps_bearer_ctxt_p->policy_rule_name, bearer_req_p->policy_rule_name);
+  eps_bearer_ctxt_p->sgw_sequence_number = sequence_number;
 
   OAILOG_INFO_UE(
       module, sgw_ctxt_p->imsi64, "Number of DL packet filter rules: %d\n",
