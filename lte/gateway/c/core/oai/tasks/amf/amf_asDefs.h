@@ -119,6 +119,12 @@ typedef struct amf_as_establish_s {
       presencemask;  // Indicates the presence of some params like service type
   uint8_t service_type;  // Extended service request initiated for which service
                          // type
+#define AMF_AS_PDU_SESSION_STATUS 0x01
+#define AMF_AS_PDU_SESSION_REACTIVATION_STATUS 0x02
+  uint8_t pdu_sesion_status_ie;
+  uint16_t pdu_session_status;
+  uint16_t pdu_session_reactivation_status;
+  uint8_t ue_context_req;
 } amf_as_establish_t;
 
 /*
