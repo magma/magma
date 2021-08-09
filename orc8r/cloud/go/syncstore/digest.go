@@ -13,13 +13,13 @@
 
 package syncstore
 
-import orc8r_protos "magma/orc8r/lib/go/protos"
+import "magma/orc8r/lib/go/protos"
 
 // GetLeafDigestsDiff computes the data changeset according to two lists of leaf digests,
 // ordered by their IDs. It returns
 // 1. The set of objects that have been added/modified, with the new digests.
 // 2. An ordered list of the objects that have been removed.
-func GetLeafDigestsDiff(prev []*orc8r_protos.LeafDigest, next []*orc8r_protos.LeafDigest) (map[string]string, []string) {
+func GetLeafDigestsDiff(prev []*protos.LeafDigest, next []*protos.LeafDigest) (map[string]string, []string) {
 	n, m, i, j := len(prev), len(next), 0, 0
 	toRenew := map[string]string{}
 	deleted := []string{}

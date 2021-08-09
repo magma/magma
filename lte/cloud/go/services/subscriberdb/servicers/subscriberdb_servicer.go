@@ -218,7 +218,7 @@ func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientD
 	if err != nil {
 		return true, nil, nil, err
 	}
-	renewed, err := subscriberdb.DeserializeSubscribers(renewedSerialized)
+	renewed, err := subscriberdb.Subs(renewedSerialized)
 	if err != nil {
 		return true, nil, nil, err
 	}
@@ -235,7 +235,7 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, re
 	if err != nil {
 		return nil, "", err
 	}
-	subProtos, err := subscriberdb.DeserializeSubscribers(subProtosSerialized)
+	subProtos, err := subscriberdb.Subs(subProtosSerialized)
 	if err != nil {
 		return nil, "", err
 	}

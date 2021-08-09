@@ -373,7 +373,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 			SubProfile: "foo",
 		},
 	}
-	expectedProtosSerialized, err := subscriberdb.SerializeSubscribers(expectedProtos)
+	expectedProtosSerialized, err := subscriberdb.SubsSerialized(expectedProtos)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -456,7 +456,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 		basicSubProtoFromSid("IMSI99995", ""), basicSubProtoFromSid("IMSI99996", ""),
 		basicSubProtoFromSid("IMSI99997", ""), basicSubProtoFromSid("IMSI99998", ""),
 	}
-	allProtosSerialized, err := subscriberdb.SerializeSubscribers(allProtos)
+	allProtosSerialized, err := subscriberdb.SubsSerialized(allProtos)
 	assert.NoError(t, err)
 	writer, err = store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -502,7 +502,7 @@ func TestListSubscribersSetLastResyncTime(t *testing.T) {
 		basicSubProtoFromSid("IMSI00002", ""),
 		basicSubProtoFromSid("IMSI00003", ""),
 	}
-	expectedProtosSerialized, err := subscriberdb.SerializeSubscribers(expectedProtos)
+	expectedProtosSerialized, err := subscriberdb.SubsSerialized(expectedProtos)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -657,7 +657,7 @@ func TestSyncSubscribers(t *testing.T) {
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
-	expectedToRenewDataSerialized, err := subscriberdb.SerializeSubscribers(expectedToRenewData)
+	expectedToRenewDataSerialized, err := subscriberdb.SubsSerialized(expectedToRenewData)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -710,7 +710,7 @@ func TestSyncSubscribers(t *testing.T) {
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
-	expectedToRenewDataSerialized, err = subscriberdb.SerializeSubscribers(expectedToRenewData)
+	expectedToRenewDataSerialized, err = subscriberdb.SubsSerialized(expectedToRenewData)
 	assert.NoError(t, err)
 	writer, err = store.UpdateCache("n1")
 	assert.NoError(t, err)
@@ -786,7 +786,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
-	expectedToRenewDataSerialized, err := subscriberdb.SerializeSubscribers(expectedToRenewData)
+	expectedToRenewDataSerialized, err := subscriberdb.SubsSerialized(expectedToRenewData)
 	assert.NoError(t, err)
 	writer, err := store.UpdateCache("n1")
 	assert.NoError(t, err)

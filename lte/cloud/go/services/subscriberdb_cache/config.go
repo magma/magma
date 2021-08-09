@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 )
 
@@ -34,13 +35,19 @@ func MustGetServiceConfig() Config {
 	if err != nil {
 		glog.Fatalf("Failed parsing the subscriberdb_cache config file: %+v", err)
 	}
-
+	if err := serviceConfig.Validate(); err != nil {
+		glog.Fatalf("Invalid service configs for subscriberdb_cache: %+v", err)
+	}
 	return serviceConfig
 }
 
 func (config Config) Validate() error {
-	if config.SleepIntervalSecs < 60 {
-		return errors.Errorf("worker sleep interval smaller than 1 minute")
+	errs := &multierror.Error{}
+	if config.SleepIntervalSecs <= 0 {
+		multierror.Append(errs, errors.Errorf("invalid worker sleep interval"))
 	}
-	return nil
+	if config.UpdateIntervalSecs < 60 {
+		multierror.Append(errs, errors.Errorf("worker update interval smaller than 1 minute"))
+	}
+	return errs.ErrorOrNil()
 }

@@ -44,7 +44,7 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
-		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
+		CacheWriterValidIntervalSecs: int64(serviceConfig.UpdateIntervalSecs / 2),
 	})
 	assert.NoError(t, err)
 	assert.NoError(t, store.Initialize())

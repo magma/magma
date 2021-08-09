@@ -144,7 +144,7 @@ func updateSubscribers(network string, store syncstore.SyncStore) error {
 		if err != nil {
 			return err
 		}
-		subProtosSerialized, err := subscriberdb.SerializeSubscribers(subProtos)
+		subProtosSerialized, err := subscriberdb.SubsSerialized(subProtos)
 		if err != nil {
 			return err
 		}

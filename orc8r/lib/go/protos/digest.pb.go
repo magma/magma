@@ -22,7 +22,7 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // DigestTree contains the full set of digest information for a particular network.
-// DigestTree is seimilar to a depth=2 Merkle tree.
+// DigestTree is similar to a depth=2 Merkle tree.
 type DigestTree struct {
 	// root_digest is the amalgum of all leaf digests.
 	RootDigest *Digest `protobuf:"bytes,1,opt,name=root_digest,json=rootDigest,proto3" json:"root_digest,omitempty"`

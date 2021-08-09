@@ -33,9 +33,6 @@ func main() {
 	}
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
-	if serviceConfig.Validate() != nil {
-		glog.Fatalf("Invalid service configs for subscriberdb_cache")
-	}
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
@@ -50,7 +47,7 @@ func main() {
 	// update interval, to prevent cache writers from outliving update cycles
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
-		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
+		CacheWriterValidIntervalSecs: int64(serviceConfig.UpdateIntervalSecs / 2),
 	})
 	if err != nil {
 		glog.Fatalf("Error creating new subscriber syncstore: %+v", err)

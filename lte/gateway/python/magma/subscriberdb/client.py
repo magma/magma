@@ -252,9 +252,9 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         if changeset.deleted is not None:
             deleted = changeset.deleted
         if changeset.to_renew is not None:
-            for anyVal in changeset.to_renew:
+            for any_val in changeset.to_renew:
                 data = SubscriberData()
-                ok = anyVal.Unpack(data)
+                ok = any_val.Unpack(data)
                 if not ok:
                     raise ValueError(
                         'Cannot unpack Any type into message: %s' % data,

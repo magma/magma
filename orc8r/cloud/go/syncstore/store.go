@@ -15,8 +15,6 @@ package syncstore
 
 import (
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/thoas/go-funk"
 )
 
 type SyncStore interface {
@@ -71,5 +69,9 @@ type CacheWriter interface {
 type DigestTrees map[string]*protos.DigestTree
 
 func (digestTrees DigestTrees) Networks() []string {
-	return funk.Keys(digestTrees).([]string)
+	networks := []string{}
+	for network := range digestTrees {
+		networks = append(networks, network)
+	}
+	return networks
 }

@@ -16,8 +16,6 @@ package subscriberdb
 const (
 	ServiceName = "subscriberdb"
 
-	EntityType = "subscriber"
-
 	LookupTableBlobstore     = "subscriber_lookup_blobstore"
 	SyncstoreTableBlobstore  = "subscriber_syncstore_blobstore"
 	SyncstoreTableNamePrefix = "subscriber"
