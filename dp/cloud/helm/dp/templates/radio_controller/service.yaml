@@ -1,0 +1,19 @@
+{{- if .Values.radio_controller.enabled -}}
+{{- if .Values.radio_controller.service.enable -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "domain-proxy.radio_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.radio_controller.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.radio_controller.service.type }}
+  ports:
+    - port: {{ .Values.radio_controller.service.port }}
+      targetPort: 50053
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "domain-proxy.radio_controller.matchLabels" . | nindent 4 }}
+{{- end }}
+{{- end }}

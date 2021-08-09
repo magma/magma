@@ -1,0 +1,65 @@
+{{- if .Values.protocol_controller.enabled -}}
+apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "domain-proxy.protocol_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.protocol_controller.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.protocol_controller.autoscaling.enabled }}
+  replicas: {{ .Values.protocol_controller.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.protocol_controller.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.protocol_controller.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "domain-proxy.protocol_controller.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.protocol_controller.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.protocol_controller.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.protocol_controller.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.protocol_controller.name }}
+          securityContext:
+            {{- toYaml .Values.protocol_controller.securityContext | nindent 12 }}
+          image: >-
+            {{ .Values.protocol_controller.image.repository -}}:
+            {{- .Values.protocol_controller.image.tag | 
+            default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.protocol_controller.image.pullPolicy }}
+          {{- if .Values.protocol_controller.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.protocol_controller.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.protocol_controller.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.protocol_controller.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.protocol_controller.resources | nindent 12 }}
+          envFrom:
+          - configMapRef:
+              name: {{ include "domain-proxy.protocol_controller.fullname" . }}
+      {{- with .Values.protocol_controller.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.protocol_controller.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.protocol_controller.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

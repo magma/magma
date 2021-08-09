@@ -1,0 +1,76 @@
+{{- if .Values.configuration_controller.enabled -}}
+apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "domain-proxy.configuration_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.configuration_controller.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.configuration_controller.autoscaling.enabled }}
+  replicas: {{ .Values.configuration_controller.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.configuration_controller.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.configuration_controller.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "domain-proxy.configuration_controller.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.configuration_controller.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.configuration_controller.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.configuration_controller.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.configuration_controller.name }}
+          image: >-
+            {{ .Values.configuration_controller.image.repository -}}:
+            {{- .Values.configuration_controller.image.tag | 
+            default .Chart.AppVersion  }}
+          imagePullPolicy: {{ .Values.configuration_controller.image.pullPolicy }}
+          {{- if .Values.configuration_controller.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.configuration_controller.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.configuration_controller.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.configuration_controller.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.configuration_controller.resources | nindent 12 }}
+          volumeMounts:
+            - name: tls
+              mountPath: /backend/configuration_controller/certs
+              readOnly: true
+          envFrom:
+          - configMapRef:
+              name: {{ include "domain-proxy.configuration_controller.fullname" . }}
+      volumes:
+        - name: tls
+          projected:
+            sources:
+            - secret:
+                name: {{ include "domain-proxy.fullname" . -}}-cc
+            - secret:
+                name: {{ include "domain-proxy.fullname" . -}}-cc-ca
+
+      {{- with .Values.configuration_controller.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.configuration_controller.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.configuration_controller.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

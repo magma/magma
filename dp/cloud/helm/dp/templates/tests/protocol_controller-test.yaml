@@ -1,0 +1,17 @@
+{{- if .Values.protocol_controller.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ .Release.Name }}-pc-test"
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: {{ .Release.Name }}-pc-test
+      image: curlimages/curl
+      imagePullPolicy: "Always"
+      args:
+        - --silent
+        - http://{{ include "domain-proxy.protocol_controller.fullname" . }}:8080/sas/v1
+  restartPolicy: Never
+{{- end }}

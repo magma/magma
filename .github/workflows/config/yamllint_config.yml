@@ -9,6 +9,7 @@ yaml-files:
 
 ignore: |
   **/templates/*.yaml
+  **/templates/**/*.yaml
 
 rules:
   braces: enable
