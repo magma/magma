@@ -68,7 +68,7 @@ git checkout v1.1
 To build an AGW package, use the script located at <code>$MAGMA_ROOT/lte/gateway/fabfile.py</code>. The commands below will create a vagrant machine, then build and create a deb package.</p>
 <p>The following commands are to be run from <code>$MAGMA_ROOT/lte/gateway</code> on your host machine.
 To create a package for production, run</p>
-<pre><code class="hljs css language-bash">fab <span class="hljs-built_in">test</span> package:vcs=git
+<pre><code class="hljs css language-bash">fab release package:vcs=git
 </code></pre>
 <p>To create a package for development or testing, run</p>
 <pre><code class="hljs css language-bash">fab dev package:vcs=git
