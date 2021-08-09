@@ -121,6 +121,7 @@ message BearerContext {
     QosInformation qos = 3;
     uint32 charging_id = 4;
     magma.lte.oai.TrafficFlowTemplate tft = 5;
+    uint32 cause = 6;
 }
 
 message QosInformation {
