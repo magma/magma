@@ -27,6 +27,7 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_recv.h"
 #include "amf_identity.h"
+#include "amf_sap.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
@@ -37,40 +38,94 @@ int amf_handle_service_request(
     const amf_nas_message_decode_status_t decode_status) {
   int rc                         = RETURNok;
   ue_m5gmm_context_s* ue_context = nullptr;
+  bool tmsi_based_context_found  = false;
   notify_ue_event notify_ue_event_type;
+  amf_sap_t amf_sap;
   tmsi_t tmsi_rcv;
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  char ip_str[INET_ADDRSTRLEN];
+  uint16_t pdu_session_status      = 0;
+  uint16_t pdu_reactivation_result = 0;
+  uint32_t tmsi_stored;
 
+  OAILOG_INFO(
+      LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[1],
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[2],
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[3]);
   memcpy(
       &tmsi_rcv, &msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi,
       sizeof(tmsi_t));
+  memset(&amf_sap, 0, sizeof(amf_sap_s));
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  tmsi_rcv   = ntohl(tmsi_rcv);
 
-  ue_context = ue_context_loopkup_by_guti(tmsi_rcv);
-  if ((ue_context) && (ue_id != ue_context->amf_ue_ngap_id)) {
-    ue_context_update_ue_id(ue_context, ue_id);
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
+
+  tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
+  // Check TMSI and then check MAC
+  OAILOG_INFO(
+      LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n", tmsi_stored);
+  OAILOG_INFO(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
   if (ue_context) {
     OAILOG_INFO(
         LOG_NAS_AMF,
         "TMSI matched for the UE id %d "
-        " received TMSI %08X\n",
-        ue_id, tmsi_rcv);
-    // Calculate MAC and compare if matches send message to SMF
-    if (decode_status.mac_matched) {
-      OAILOG_INFO(
-          LOG_NAS_AMF, "MAC in security header matched for the UE id %d ",
-          ue_id);
-      // Set event type as service request
+        " receved TMSI %08X stored TMSI %08X \n",
+        ue_id, tmsi_rcv, tmsi_stored);
+
+    if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
+      OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
+      amf_sap.primitive = AMFAS_ESTABLISH_CNF;
+
+      amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+      amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+
+      /* GUTI have already updated in amf_context during Identification
+       * response complete, now assign to amf_sap
+       */
+      amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+      rc                                = amf_sap_send(&amf_sap);
+      ue_context->mm_state              = REGISTERED_CONNECTED;
+    } else if (
+        (msg->service_type.service_type_value == SERVICE_TYPE_DATA) ||
+        (msg->service_type.service_type_value ==
+         SERVICE_TYPE_HIGH_PRIORITY_ACCESS)) {
+      OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is Data \n");
+      for (uint16_t session_id = 1; session_id < (sizeof(session_id) * 8);
+           session_id++) {
+        if (msg->uplink_data_status.uplinkDataStatus & (1 << session_id)) {
+          smf_context_t* smf_context =
+              amf_smf_context_exists_pdu_session_id(ue_context, session_id);
+          if (smf_context) {
+            pdu_session_status |= (1 << session_id);
+            IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+            if (smf_context->pdu_address.pdn_type == IPv4) {
+              inet_ntop(
+                  AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr),
+                  ip_str, INET_ADDRSTRLEN);
+            }
+            OAILOG_INFO(
+                LOG_NAS_AMF,
+                "Sending session request to SMF on service request for "
+                "sessiond %u\n",
+                session_id);
+            notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
+            // construct the proto structure and send message to SMF
+            amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
+          }
+        }
+      }
+    } else if (
+        msg->service_type.service_type_value ==
+        SERVICE_TYPE_MOBILE_TERMINATED_SERVICES) {
       notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
-      // construct the proto structure and send message to SMF
-      rc = amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
-    }  // MAC matched
-    else {
-      OAILOG_INFO(
-          LOG_NAS_AMF,
-          "MAC in security header not matched for the UE id %d "
-          "and prepare for reject message on DL",
-          ue_id);
+      amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
     }
   } else {
     OAILOG_INFO(
@@ -80,8 +135,18 @@ int amf_handle_service_request(
         ue_id);
 
     // Send prepare and send reject message.
+    amf_sap.primitive                     = AMFAS_ESTABLISH_REJ;
+    amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+    amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+
+    /* GUTI have already updated in amf_context during Identification
+     * response complete, now assign to amf_sap
+     */
+    amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+    rc                                = amf_sap_send(&amf_sap);
   }
-  return rc;
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /* Identifies 5GS Registration type and processes the Message accordingly */
@@ -224,7 +289,7 @@ int amf_handle_registration_request(
         amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
-
+        ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
         imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
         guti_and_amf_id.amf_guti       = amf_guti;
         guti_and_amf_id.amf_ue_ngap_id = ue_id;

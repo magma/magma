@@ -13,22 +13,10 @@ limitations under the License.
 
 from prometheus_client import Counter
 
-MAGMA_PACKETS_SENT_TOTAL = Counter(
-    'magma_packets_sent_total',
-    'Total packets sent from Magma gateway services to Orc8r services',
-    ['service_name', 'dest_service'],
-)
-
 MAGMA_BYTES_SENT_TOTAL = Counter(
     'magma_bytes_sent_total',
     'Total bytes sent from Magma gateway services to Orc8r services',
     ['service_name', 'dest_service'],
-)
-
-LINUX_PACKETS_SENT_TOTAL = Counter(
-    'linux_packets_sent_total',
-    'Total packets sent from non-Magma-service binaries to any destination',
-    ['binary_name'],
 )
 
 LINUX_BYTES_SENT_TOTAL = Counter(

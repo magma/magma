@@ -735,14 +735,14 @@
       "Service": "sessiond"
     },
     {
-      "MetricName": "magma_bytes_sent",
+      "MetricName": "magma_bytes_sent_total",
       "PromQL": "magma_bytes_sent",
       "Description": "Total bytes sent from Magma gateway services to Orc8r services",
       "Category": "AGW",
       "Service": "kernsnoopd"
     },
     {
-      "MetricName": "linux_bytes_sent",
+      "MetricName": "linux_bytes_sent_total",
       "PromQL": "linux_bytes_sent",
       "Description": "Total bytes sent from non-Magma-service binaries to any destination",
       "Category": "AGW",

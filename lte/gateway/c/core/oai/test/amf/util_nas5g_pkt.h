@@ -16,6 +16,8 @@
 #include "M5gNasMessage.h"
 #include "M5GULNASTransport.h"
 #include "M5GDeRegistrationRequestUEInit.h"
+#include "M5GServiceRequest.h"
+#include "M5GServiceAccept.h"
 
 namespace magma5g {
 
@@ -28,6 +30,7 @@ class NAS5GPktSnapShot {
   static uint8_t pdu_session_est_req_type2[47];
   static uint8_t pdu_session_release_complete[12];
   static uint8_t deregistrarion_request[17];
+  static uint8_t service_request[37];
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);
@@ -53,6 +56,10 @@ class NAS5GPktSnapShot {
     return sizeof(pdu_session_release_complete) / sizeof(unsigned char);
   }
 
+  uint32_t get_service_request_len() {
+    return sizeof(service_request) / sizeof(uint8_t);
+  }
+
   uint32_t get_deregistrarion_request_len() {
     return sizeof(deregistrarion_request) / sizeof(unsigned char);
   }
@@ -74,4 +81,8 @@ bool decode_ul_nas_transport_msg(
 bool decode_ul_nas_deregister_request_msg(
     DeRegistrationRequestUEInitMsg* dereg_req, const uint8_t* buffer,
     uint32_t len);
+
+bool decode_service_request_msg(
+    ServiceRequestMsg *sv_request, const uint8_t* buffer,uint32_t len);
+
 }  // namespace magma5g

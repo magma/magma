@@ -18,6 +18,13 @@ namespace magma5g {
 class ServiceTypeMsg {
  public:
   uint8_t iei : 4;
+
+#define SERVICE_TYPE_SIGNALING 0X00
+#define SERVICE_TYPE_DATA 0X01
+#define SERVICE_TYPE_MOBILE_TERMINATED_SERVICES 0X02
+#define SERVICE_TYPE_EMERGENCY_SERVICE 0X03
+#define SERVICE_TYPE_EMERGENCY_SERVICE_FALL_BACK 0X04
+#define SERVICE_TYPE_HIGH_PRIORITY_ACCESS 0X05
   uint8_t service_type_value : 4;
 
   ServiceTypeMsg();

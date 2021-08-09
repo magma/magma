@@ -28,7 +28,7 @@ def get_status() -> ServiceExitStatus:
     @returns a populated service exit status object
     """
     service_result = os.environ.get("SERVICE_RESULT")
-    exit_code = os.environ.get("EXIT_CODE")
+    exit_code = os.environ.get("EXIT_CODE", "EXITED")
     exit_status = os.environ.get("EXIT_STATUS")
 
     # Populate the service exit status string and exit code.
@@ -47,8 +47,8 @@ def get_status() -> ServiceExitStatus:
     ):
         try:
             status_obj.latest_rc = int(exit_status)
-        except ValueError:
-            logging.error("Error parsing service exit status", exit_status)
+        except (ValueError, TypeError):
+            logging.error("Error parsing service exit status: %s", exit_status)
             pass
     return status_obj
 
