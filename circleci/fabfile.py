@@ -351,7 +351,7 @@ def _run_remote_lte_package(
                    f'cert_file={vagrant_cert},' \
                    f'proxy_config={vagrant_cp},' \
                    f'destroy_vm={destroy_vm}'
-        run(f'fab test package:{fab_args}')
+        run(f'fab release package:{fab_args}')
         # This will create /tmp/packages.tar.gz, /tmp/packages.txt on the
         # remote CI executor node (the current fab host)
         run('fab copy_packages')

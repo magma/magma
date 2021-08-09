@@ -18,6 +18,8 @@
 #include "M5GNASKeySetIdentifier.h"
 #include "M5GServiceType.h"
 #include "M5GSMobileIdentity.h"
+#include "M5GUplinkDataStatus.h"
+#include "M5GPDUSessionStatus.h"
 
 using namespace std;
 namespace magma5g {
@@ -32,12 +34,14 @@ class ServiceRequestMsg {
   NASKeySetIdentifierMsg nas_key_set_identifier;
   ServiceTypeMsg service_type;
   M5GSMobileIdentityMsg m5gs_mobile_identity;
+  M5GUplinkDataStatus uplink_data_status;
+  M5GPDUSessionStatus pdu_session_status;
 
   ServiceRequestMsg();
   ~ServiceRequestMsg();
   int DecodeServiceRequestMsg(
-      ServiceRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
+      ServiceRequestMsg* svc_request, uint8_t* buffer, uint32_t len);
   int EncodeServiceRequestMsg(
-      ServiceRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
+      ServiceRequestMsg* svc_request, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

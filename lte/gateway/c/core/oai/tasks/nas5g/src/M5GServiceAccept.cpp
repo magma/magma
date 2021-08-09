@@ -54,6 +54,19 @@ int ServiceAcceptMsg::EncodeServiceAcceptMsg(
     return encoded_result;
   else
     encoded += encoded_result;
+  if ((encoded_result = svc_acpt->pdu_session_status.EncodePDUSessionStatus(
+           &svc_acpt->pdu_session_status, 0, buffer + encoded, len - encoded)) <
+      0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = svc_acpt->pdu_re_activation_status
+                            .EncodePDUSessionReActivationResult(
+                                &svc_acpt->pdu_re_activation_status, 0,
+                                buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
 
   return encoded;
 }

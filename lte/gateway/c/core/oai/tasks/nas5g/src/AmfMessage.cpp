@@ -297,6 +297,10 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
       encode_result = msg->msg.dl_nas_transport.EncodeDLNASTransportMsg(
           &msg->msg.dl_nas_transport, buffer, len);
       break;
+    case M5G_SERVICE_ACCEPT:
+      encode_result = msg->msg.svc_acpt.EncodeServiceAcceptMsg(
+          &msg->msg.svc_acpt, buffer, len);
+      break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;
   }

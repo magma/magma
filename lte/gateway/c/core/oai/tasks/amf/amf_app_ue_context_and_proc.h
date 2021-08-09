@@ -824,6 +824,12 @@ void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void delete_wrapper(void** ptr);
 void format_plmn(amf_plmn_t* plmn);
+void amf_ue_context_on_new_guti(
+    ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
+ue_m5gmm_context_s* amf_ue_context_exists_guti(
+    amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
+void ambr_calculation_pdu_session(
+    smf_context_t* smf_context, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
 int amf_proc_registration_abort(
     amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
 ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
@@ -832,7 +838,5 @@ void ue_context_update_ue_id(
 ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
-void amf_ue_context_on_new_guti(
-    ue_m5gmm_context_t* const ue_context_p, const guti_m5_t* const guti_p);
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 }  // namespace magma5g

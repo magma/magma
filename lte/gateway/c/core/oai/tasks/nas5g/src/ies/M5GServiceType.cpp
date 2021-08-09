@@ -26,7 +26,7 @@ int ServiceTypeMsg::DecodeServiceTypeMsg(
     ServiceTypeMsg* svc_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  svc_type->service_type_value = (*buffer & 0x0f);
+  svc_type->service_type_value = ((*buffer & 0xf0) >> 4);
   MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << hex
                << int(svc_type->service_type_value) << endl;
 
