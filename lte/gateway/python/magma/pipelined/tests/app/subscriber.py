@@ -155,7 +155,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
                 policies=self._policies,
-                shard_id=0)
+                shard_id=0,
+                local_f_teid_ng=0)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
@@ -164,7 +165,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
                     policies=self._policies,
-                    shard_id=0)
+                    shard_id=0,
+                    local_f_teid_ng=0)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
