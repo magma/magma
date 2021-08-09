@@ -65,7 +65,7 @@ int amf_sap_send(amf_sap_t* msg) {
     msg->u.amf_cn.primitive = (amf_cn_primitive_t) primitive;
     rc                      = amf_cn_send(&msg->u.amf_cn);
   } else {
-    OAILOG_ERROR(LOG_NAS_AMF, "Wrong primitive type received\n");
+    OAILOG_ERROR(LOG_NAS_AMF, "wrong primitive type received\n");
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -106,7 +106,7 @@ void amf_as_data_t::amf_as_set_security_data(
      */
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "5GCN security context exists is new %u KSI %u SQN %u count %u\n",
+        "5gcn security context exists is new %u KSI %u SQN %u count %u\n",
         is_new, context->eksi, context->ul_count.seq_num,
         *(uint32_t*) (&context->ul_count));
     data->is_new = is_new;
@@ -135,7 +135,7 @@ void amf_as_data_t::amf_as_set_security_data(
        * * * * The AMF shall send the SECURITY MODE COMMAND message integrity
        * * * * protected and unciphered
        */
-      OAILOG_DEBUG(LOG_NAS_AMF, "5GCN security context exists knas_enc\n");
+      OAILOG_DEBUG(LOG_NAS_AMF, "5gcn security context exists knas_enc\n");
       data->is_knas_enc_present = true;
       memcpy(data->knas_enc, context->knas_enc, sizeof(data->knas_enc));
     }

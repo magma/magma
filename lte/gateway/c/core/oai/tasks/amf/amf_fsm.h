@@ -38,6 +38,7 @@ typedef enum {
   STATE_EVENT_CONTEXT_RELEASE,
   STATE_EVENT_MAX,
 } state_events;
+std::string get_state_event_string(state_events event);
 
 /*PDU session states*/
 typedef enum {
@@ -50,6 +51,7 @@ typedef enum {
   RELEASED,
   SESSION_MAX
 } SMSessionFSMState;
+std::string get_session_state_string(SMSessionFSMState s);
 
 /* UE states */
 enum m5gmm_state_t {
@@ -62,6 +64,7 @@ enum m5gmm_state_t {
   COMMON_PROCEDURE_INITIATED2,
   UE_STATE_MAX
 };
+std::string get_ue_state_string(m5gmm_state_t ueState);
 
 typedef struct UE_Handlers_s {
   const char* name;

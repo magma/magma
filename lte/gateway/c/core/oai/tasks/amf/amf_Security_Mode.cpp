@@ -46,9 +46,9 @@ int amf_handle_security_complete_response(
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
   int rc                            = RETURNerror;
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "Security mode procedures complete for "
+      "security mode procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
   /*
@@ -67,7 +67,7 @@ int amf_handle_security_complete_response(
     amf_app_stop_timer(smc_proc->T3560.id);
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "Timer: After stopping timer T3560 for securiy mode command"
+        "timer: after stopping timer t3560 for securiy mode command"
         " with id: %lu and ue_id: %d\n",
         smc_proc->T3560.id, ue_id);
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
@@ -93,9 +93,6 @@ int amf_handle_security_complete_response(
       }
     }
 
-    OAILOG_INFO(LOG_AMF_APP, " mm_state %d", ue_mm_context->mm_state);
-    OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_mm_context);
-
     /* FSM takes care of sending initial context setup request */
     ue_state_handle_message_initial(
         COMMON_PROCEDURE_INITIATED1, STATE_EVENT_SEC_MODE_COMPLETE,
@@ -104,9 +101,9 @@ int amf_handle_security_complete_response(
   } else {
     OAILOG_ERROR(
         LOG_NAS_AMF,
-        "AMF-PROC  - No 5GCN security context exists. Ignoring the Security "
-        "Mode "
-        "Complete message\n");
+        "amf-proc  - no 5gcn security context exists. ignoring the security "
+        "mode "
+        "complete message\n");
     rc = RETURNerror;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

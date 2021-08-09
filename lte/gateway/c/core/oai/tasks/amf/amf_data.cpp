@@ -46,11 +46,6 @@ void amf_ctx_set_valid_imsi(
   ctxt->imsi                     = *imsi;
   ctxt->imsi64                   = imsi64;
   ctxt->is_initial_identity_imsi = true;
-#if DEBUG_IS_ON
-  char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
-  IMSI64_TO_STRING(ctxt->imsi64, imsi_str, ctxt->imsi.length);
-  OAILOG_DEBUG(LOG_AMF_APP, "imsi : %s", imsi_str);
-#endif
 }
 
 /***************************************************************************

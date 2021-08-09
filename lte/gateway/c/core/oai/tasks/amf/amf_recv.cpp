@@ -73,7 +73,7 @@ int amf_handle_service_request(
   OAILOG_INFO(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
   if (ue_context) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_NAS_AMF,
         "TMSI matched for the UE id %d "
         " receved TMSI %08X stored TMSI %08X \n",
@@ -128,9 +128,9 @@ int amf_handle_service_request(
       amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
     }
   } else {
-    OAILOG_INFO(
+    OAILOG_WARNING(
         LOG_NAS_AMF,
-        "TMSI not matched for "
+        "tmsi not matched for "
         "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
         ue_id);
 
@@ -155,7 +155,6 @@ int amf_handle_registration_request(
     RegistrationRequestMsg* msg, const bool is_initial,
     const bool is_amf_ctx_new, int amf_cause,
     const amf_nas_message_decode_status_t decode_status) {
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   int rc = RETURNok;
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
@@ -164,21 +163,17 @@ int amf_handle_registration_request(
   /*
    * Handle message checking error
    */
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   if (amf_cause != AMF_CAUSE_SUCCESS) {
     rc = amf_proc_registration_reject(ue_id, amf_cause);
-    OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   }
   amf_registration_request_ies_t* params =
       new (amf_registration_request_ies_t)();
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   /*
    * Message processing
    */
   /*
    * Get the 5GS Registration type
    */
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_RESERVED;
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
@@ -195,14 +190,12 @@ int amf_handle_registration_request(
   } else {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
   }
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL for UE ID:%d \n", ue_id);
+    OAILOG_ERROR(LOG_AMF_APP, "ue_context is null for ue id:%d \n", ue_id);
     return RETURNerror;
   }
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   // Save the UE Security Capability into AMF's UE Context
   memcpy(
       &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
@@ -211,11 +204,7 @@ int amf_handle_registration_request(
       &(ue_context->amf_context.originating_tai), (const void*) originating_tai,
       sizeof(tai_t));
 
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
-  OAILOG_DEBUG(
-      LOG_NAS_AMF, "m5gs_reg_type.type_val :%d", msg->m5gs_reg_type.type_val);
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
-    OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
     /*
      * Get the AMF mobile identity. For new registration
      * mobility type suppose to be SUCI
@@ -259,11 +248,9 @@ int amf_handle_registration_request(
           params->imsi->u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
                                      (supi_imsi.plmn.mnc_digit3 & 0xf);
         }
-        OAILOG_INFO(
-            LOG_AMF_APP, "Value of SUPI/IMSI from params->imsi->u.value\n");
-        OAILOG_INFO(
+        OAILOG_DEBUG(
             LOG_AMF_APP,
-            "SUPI as IMSI derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
+            "supi as imsi derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
             params->imsi->u.value[0], params->imsi->u.value[1],
             params->imsi->u.value[2], params->imsi->u.value[3],
             params->imsi->u.value[4], params->imsi->u.value[5],
@@ -293,7 +280,6 @@ int amf_handle_registration_request(
         imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
         guti_and_amf_id.amf_guti       = amf_guti;
         guti_and_amf_id.amf_ue_ngap_id = ue_id;
-        OAILOG_DEBUG(LOG_AMF_APP, "imsi64 : " IMSI_64_FMT "\n", imsi64);
         if (amf_supi_guti_map.size() == 0) {
           // first entry.
           amf_supi_guti_map.insert(
@@ -317,12 +303,10 @@ int amf_handle_registration_request(
     } else if (
         msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
         M5GSMobileIdentityMsg_GUTI) {
-      OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST Id is GUTI\n");
       params->guti                        = new (guti_m5_t)();
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
     /*
@@ -334,9 +318,9 @@ int amf_handle_registration_request(
      *    3> Update amf_context and MAP
      *    4> call accept message API and send DL message.
      */
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "AMF_REGISTRATION_TYPE_PERIODIC_UPDATING processing"
+        "amf_registration_type_periodic_updating processing"
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
@@ -357,10 +341,10 @@ int amf_handle_registration_request(
           msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit3;
 
       amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-      OAILOG_INFO(
+      OAILOG_DEBUG(
           LOG_NAS_AMF,
-          "In process of periodic registration update"
-          " new 5G-TMSI value 0x%08" PRIx32 "\n",
+          "in process of periodic registration update"
+          " new 5g-tmsi value 0x%08" PRIx32 "\n",
           amf_guti.m_tmsi);
       /* Update this new GUTI in amf_context and map
        * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
@@ -388,10 +372,10 @@ int amf_handle_registration_request(
     } else {
       // UE context is new and/or UE identity type is not GUTI
       // add log message.
-      OAILOG_INFO(
+      OAILOG_ERROR(
           LOG_AMF_APP,
-          "UE context was not existing or UE identity type is not GUTI "
-          "Periodic Registration Update failed and sending reject message\n");
+          "ue context was not existing or ue identity type is not guti "
+          "periodic registration update failed and sending reject message\n");
       // TODO Implement Reject message
       return RETURNerror;
     }
@@ -402,11 +386,9 @@ int amf_handle_registration_request(
    * Execute the requested new UE registration procedure
    * This will initiate identity req in DL.
    */
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 
-  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   return rc;
 }
 
@@ -430,7 +412,6 @@ int amf_handle_identity_response(
     amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  OAILOG_DEBUG(LOG_NAS_AMF, "Received IDENTITY_RESPONSE message\n");
   int rc = RETURNerror;
   /*
    * Message processing
@@ -487,8 +468,8 @@ int amf_handle_identity_response(
        */
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "Invalid protection scheme  received "
-          " in identity response from UE \n");
+          "invalid protection scheme  received "
+          " in identity response from ue \n");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
 
@@ -500,7 +481,7 @@ int amf_handle_identity_response(
      * If authentication request rejected by UE, the MAP has to be cleared
      */
     amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-    OAILOG_DEBUG(LOG_NAS_AMF, "5G-TMSI as 0x%08" PRIx32 "\n", amf_guti.m_tmsi);
+    OAILOG_DEBUG(LOG_NAS_AMF, "5g-tmsi as 0x%08" PRIx32 "\n", amf_guti.m_tmsi);
 
     /* Need to store guti in amf_ctx as well for quick access
      * which will be used to send in DL message during registration
@@ -571,7 +552,6 @@ int amf_handle_authentication_response(
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNok;
-  OAILOG_DEBUG(LOG_NAS_AMF, "Received AUTHENTICATION_RESPONSE message\n");
   /*
    * Message checking
    */
@@ -579,7 +559,7 @@ int amf_handle_authentication_response(
     /*
      * RES parameter shall not be null
      */
-    OAILOG_DEBUG(LOG_AMF_APP, "Response parameter is null");
+    OAILOG_DEBUG(LOG_AMF_APP, "response parameter is null");
     amf_cause = AMF_CAUSE_INVALID_MANDATORY_INFO;
   }
   /*
@@ -618,7 +598,6 @@ int amf_handle_authentication_failure(
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNok;
-  OAILOG_DEBUG(LOG_NAS_AMF, "Received AUTHENTICATION_FAILURE message\n");
 
   /*
    * Handle message checking error

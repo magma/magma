@@ -237,7 +237,7 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
   amf_sap_t amf_sap;  //             = {0};
   int rc         = RETURNok;
   proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending AS IDENTITY_REQUEST\n");
+  OAILOG_DEBUG(LOG_AMF_APP, "sending as identity_request\n");
   /*
    * Notify AMF-AS SAP that Identity Request message has to be sent
    * to the UE
@@ -276,7 +276,7 @@ static int identification_t3570_handler(
 
   if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3570: Invalid Timer Id expiration, timer Id: %u\n",
+        LOG_AMF_APP, "t3570: invalid timer id expiration, timer id: %u\n",
         timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -293,7 +293,7 @@ static int identification_t3570_handler(
   amf_ctx = &ue_amf_context->amf_context;
   if (!(amf_ctx)) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3570: timer expired No AMF context for ue id: %d\n",
+        LOG_AMF_APP, "t3570: timer expired no amf context for ue id: %d\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -303,7 +303,7 @@ static int identification_t3570_handler(
 
   if (ident_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3570: Timer expired for timer id %lu ue id %d\n",
+        LOG_AMF_APP, "t3570: timer expired for timer id %lu ue id %d\n",
         ident_proc->T3570.id, ident_proc->ue_id);
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
     /*
@@ -311,7 +311,7 @@ static int identification_t3570_handler(
      */
     ident_proc->retransmission_count += 1;
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3570: Incrementing retransmission_count to %d\n",
+        LOG_AMF_APP, "t3570: incrementing retransmission_count to %d\n",
         ident_proc->retransmission_count);
 
     if (ident_proc->retransmission_count < IDENTIFICATION_COUNTER_MAX) {
@@ -320,7 +320,7 @@ static int identification_t3570_handler(
        */
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "T3570: timer has expired retransmitting Identification request \n");
+          "t3570: timer has expired retransmitting identification request \n");
       amf_identification_request(ident_proc);
     } else {
       /*
@@ -328,7 +328,7 @@ static int identification_t3570_handler(
        */
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "T3570: Maximum retires:%d, done hence Abort the "
+          "t3570: maximum retires:%d, done hence abort the "
           "identification "
           "procedure\n",
           ident_proc->retransmission_count);
@@ -416,7 +416,7 @@ int amf_nas_proc_authentication_info_answer(
 
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
 
-  OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
+  OAILOG_DEBUG(LOG_AMF_APP, "handling imsi " IMSI_64_FMT "\n", imsi64);
 
   ue_5gmm_context_p = lookup_ue_ctxt_by_imsi(imsi64);
 
@@ -426,7 +426,7 @@ int amf_nas_proc_authentication_info_answer(
 
   if (!(amf_ctxt_p)) {
     OAILOG_ERROR(
-        LOG_NAS_AMF, "That's embarrassing as we don't know this IMSI\n");
+        LOG_NAS_AMF, "that's embarrassing as we don't know this imsi\n");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
@@ -444,12 +444,12 @@ int amf_nas_proc_authentication_info_answer(
      * elements
      */
     if (aia->auth_info.nb_of_vectors > MAX_EPS_AUTH_VECTORS) {
-      OAILOG_ERROR(LOG_NAS_AMF, "nb_of_vectors > MAX_EPS_AUTH_VECTORS");
+      OAILOG_ERROR(LOG_NAS_AMF, "nb_of_vectors > max_eps_auth_vectors");
       return RETURNerror;
     }
 
     OAILOG_DEBUG(
-        LOG_NAS_AMF, "INFORMING NAS ABOUT AUTH RESP SUCCESS got %u vector(s)\n",
+        LOG_NAS_AMF, "informing nas about auth resp success got %u vector(s)\n",
         aia->auth_info.nb_of_vectors);
     rc = amf_nas_proc_auth_param_res(
         amf_ue_ngap_id, aia->auth_info.nb_of_vectors,
