@@ -70,7 +70,7 @@ func (l *PerSubDigestStore) GetDigest(network string) ([]*lte_protos.SubscriberD
 
 // SetDigest creates or updates the per-subscriber digests of a network.
 func (l *PerSubDigestStore) SetDigest(network string, digests []*lte_protos.SubscriberDigestWithID) error {
-	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "error starting transaction")
 	}

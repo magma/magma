@@ -292,7 +292,7 @@ func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
 // getInvalidCacheWriter returns a list of cache writer IDs from blobstore that
 // either belong to already deleted networks or have expired.
 func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidIntervalSecs int64) (map[string][]string, error) {
-	store, err := l.fact.StartTransaction(nil)
+	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "error starting transaction")
 	}

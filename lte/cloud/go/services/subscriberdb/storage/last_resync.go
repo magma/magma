@@ -56,7 +56,7 @@ func (l *LastResyncTimeStore) Get(network string, gateway string) (uint32, error
 }
 
 func (l *LastResyncTimeStore) Set(network string, gateway string, unixTime uint32) error {
-	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrapf(err, "error starting transaction")
 	}
