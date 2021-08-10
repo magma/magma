@@ -36,6 +36,7 @@ extern "C" {
 #include "M5gNasMessage.h"
 #include "dynamic_memory_check.h"
 #include "n11_messages_types.h"
+#include "amf_app_timer_management.h"
 
 #define QUADLET 4
 #define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
@@ -1103,6 +1104,7 @@ void ue_context_release_command(
 }
 
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_INFO(LOG_AMF_APP, "T3513: In Paging handler\n");
   int rc                                         = RETURNerror;
   amf_ue_ngap_id_t ue_id                         = 0;
   ue_m5gmm_context_s* ue_context                 = nullptr;
@@ -1111,11 +1113,18 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   MessageDef* message_p                          = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
 
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3513: Invalid Timer Id expiration, Timer Id: %u\n",
+        timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  if (!ue_context) {
-    OAILOG_ERROR(LOG_AMF_APP, "ue_context doest exist\n");
-    return -1;
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   // Get Paging Context
@@ -1123,22 +1132,26 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   paging_ctx = &ue_context->paging_context;
 
   paging_ctx->m5_paging_response_timer.id = NAS5G_TIMER_INACTIVE_ID;
-  /*
-   * Increment the retransmission counter
-   */
-  paging_ctx->paging_retx_count += 1;
-  OAILOG_ERROR(
-      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
-      paging_ctx->paging_retx_count);
 
   if (paging_ctx->paging_retx_count < MAX_PAGING_RETRY_COUNT) {
+    paging_ctx->paging_retx_count += 1;
+
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "T3513: timer has expired for ue id: %d with timer id: %d,"
+        "Sending Paging request again\n",
+        ue_id, timer_id);
+    /*
+     * Increment the retransmission counter
+     */
+    OAILOG_ERROR(
+        LOG_AMF_APP, "T3513: Incrementing retransmission_count to %d\n",
+        paging_ctx->paging_retx_count);
+
     /*
      * ReSend Paging request message to the UE
      */
-    OAILOG_DEBUG(LOG_AMF_APP, "Starting paging timer\n");
-    paging_ctx->m5_paging_response_timer.id = start_timer(
-        &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-        paging_t3513_handler, NULL);
+
     // Fill the itti msg based on context info produced in amf core
 
     message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -1151,10 +1164,13 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         amf_ctx->m5_guti.guamfi.amf_pointer;
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "Filling ngap structure for downlink amf_ctx dec "
+        "T3513: Filling NGAP structure for Downlink amf_ctx dec "
         "m_tmsi=%d",
         amf_ctx->m5_guti.m_tmsi);
     ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
+    OAILOG_INFO(
+        LOG_AMF_APP, "T3513: Filling NGAP structure for Downlink m_tmsi=%d",
+        ngap_paging_notify->UEPagingIdentity.m_tmsi);
     ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
         amf_ctx->m5_guti.guamfi.plmn.mcc_digit1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
@@ -1170,18 +1186,20 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
 
-    rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
+    rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    //    amf_paging_request(paging_ctx);
   } else {
     /*
      * Abort the Paging procedure
      */
     OAILOG_ERROR(
         LOG_AMF_APP,
-        "Timer: Maximum retires done hence Abort the Paging Request "
+        "T3513: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
-    return rc;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 // Doing Paging Request handling received from SMF in AMF CORE
@@ -1215,12 +1233,20 @@ int amf_app_handle_notification_received(
       amf_ctx    = &ue_context->amf_context;
       paging_ctx = &ue_context->paging_context;
 
-      OAILOG_DEBUG(LOG_AMF_APP, "Starting paging timer\n");
+      OAILOG_INFO(
+          LOG_AMF_APP, "T3513: Starting PAGING Timer for ue id: %d\n",
+          ue_context->amf_ue_ngap_id);
+      paging_ctx->paging_retx_count = 0;
       /* Start Paging Timer T3513 */
-      paging_ctx->m5_paging_response_timer.id = start_timer(
-          &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-          paging_t3513_handler, NULL);
+      paging_ctx->m5_paging_response_timer.id = amf_app_start_timer(
+          PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE, paging_t3513_handler,
+          ue_context->amf_ue_ngap_id);
       // Fill the itti msg based on context info produced in amf core
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "T3513: Starting PAGING Timer for ue id: %d and timer id: %d\n",
+          ue_context->amf_ue_ngap_id, paging_ctx->m5_paging_response_timer.id);
+
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
 
       ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
@@ -1244,7 +1270,8 @@ int amf_app_handle_notification_received(
           amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
       ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
       ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
-      rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
+      rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
       break;
 
     case UE_SERVICE_REQUEST_ON_PAGING:

@@ -28,6 +28,7 @@ extern "C" {
 #include "amf_recv.h"
 #include "amf_identity.h"
 #include "amf_sap.h"
+#include "amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
@@ -47,6 +48,7 @@ int amf_handle_service_request(
   uint16_t pdu_session_status      = 0;
   uint16_t pdu_reactivation_result = 0;
   uint32_t tmsi_stored;
+  paging_context_t* paging_ctx = nullptr;
 
   OAILOG_DEBUG(
       LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
@@ -78,6 +80,18 @@ int amf_handle_service_request(
         "TMSI matched for the UE id %d "
         " receved TMSI %08X stored TMSI %08X \n",
         ue_id, tmsi_rcv, tmsi_stored);
+
+    paging_ctx = &ue_context->paging_context;
+
+    if ((paging_ctx) &&
+        (NAS5G_TIMER_INACTIVE_ID != paging_ctx->m5_paging_response_timer.id) &&
+        (0 != paging_ctx->m5_paging_response_timer.id)) {
+      amf_app_stop_timer(paging_ctx->m5_paging_response_timer.id);
+      paging_ctx->m5_paging_response_timer.id = NAS5G_TIMER_INACTIVE_ID;
+      paging_ctx->paging_retx_count           = 0;
+      // Fill the itti msg based on context info produced in amf core
+      OAILOG_INFO(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
+    }
 
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
