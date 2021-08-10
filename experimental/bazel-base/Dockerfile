@@ -23,22 +23,17 @@ RUN apt-get update && \
         unzip \
         vim \
         wget \
-        # TODO(@themarwhal) Remove these Folly dependencies below - using these for now to get SessionD to build
+        # TODO(@themarwhal) Remove these Folly dependencies below - GH8577
+        # The full list of recommended dependencies are listed at https://github.com/facebook/folly/blob/master/README.md#ubuntu-1604-lts
+        # Omitting the following as they are not needed
+        # - Already built by bazel: libgoogle-glog-dev, libgflags-dev
+        # - Not used in Magma: ibjemalloc-dev, pkg-config, libunwind-dev, liblz4-dev
+        #                      liblzma-dev, libsnappy-dev, zlib1g-dev, binutils-dev
         libboost-all-dev \
         libevent-dev \
         libdouble-conversion-dev \
-        # libgoogle-glog-dev see folly BUILD.bazel file for how to specifiy custom paths
-        # libgflags-dev
         libiberty-dev \
-        liblz4-dev \
-        liblzma-dev \
-        libsnappy-dev \
-        zlib1g-dev \
-        binutils-dev \
-        libjemalloc-dev \
-        libssl-dev \
-        pkg-config \
-        libunwind-dev
+        libssl-dev 
 
 
 WORKDIR /usr/sbin

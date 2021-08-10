@@ -154,6 +154,7 @@ cc_test(
     name = "cloud_reporter_test",
     size = "small",
     srcs = ["test_cloud_reporter.cpp"],
+    tags = ["flaky"],
     deps = [
         ":sessiond_mocks",
         "//lte/gateway/c/session_manager:session_reporter",
