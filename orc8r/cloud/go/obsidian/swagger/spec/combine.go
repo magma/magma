@@ -34,12 +34,12 @@ func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
 
 	common, specs, errs := unmarshalToSwagger(yamlCommon, yamlSpecs)
 	if errs != nil {
-		multierror.Append(warnings, errs)
+		warnings = multierror.Append(warnings, errs)
 	}
 
 	combined, errs := combine(common, specs)
 	if errs != nil {
-		multierror.Append(warnings, errs)
+		warnings = multierror.Append(warnings, errs)
 	}
 
 	out, err := marshalToYAML(combined)
@@ -109,7 +109,7 @@ func unmarshalManyFromYAML(yamlSpecs []string, errs error) []swagger.Spec {
 	for _, yamlSpec := range yamlSpecs {
 		s, err := unmarshalFromYAML(yamlSpec)
 		if err != nil {
-			multierror.Append(errs, err)
+			errs = multierror.Append(errs, err)
 		} else {
 			specs = append(specs, s)
 		}
@@ -182,7 +182,7 @@ func combineTags(common []swagger.TagDefinition, others [][]swagger.TagDefinitio
 func merge(a, b map[string]interface{}, fieldName string, errs error) {
 	for k, v := range b {
 		if _, ok := a[k]; ok {
-			multierror.Append(errs, errors.Errorf("overwriting spec key '%s' in field '%s'", k, fieldName))
+			errs = multierror.Append(errs, errors.Errorf("overwriting spec key '%s' in field '%s'", k, fieldName))
 		}
 		a[k] = v
 	}
@@ -192,7 +192,7 @@ func merge(a, b map[string]interface{}, fieldName string, errs error) {
 func mergeTags(a map[string]string, b []swagger.TagDefinition, errs error) {
 	for _, tag := range b {
 		if _, ok := a[tag.Name]; ok {
-			multierror.Append(errs, errors.Errorf("overwriting tag '%s'", tag.Name))
+			errs = multierror.Append(errs, errors.Errorf("overwriting tag '%s'", tag.Name))
 		}
 		a[tag.Name] = tag.Description
 	}

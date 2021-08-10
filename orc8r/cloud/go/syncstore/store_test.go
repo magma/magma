@@ -14,6 +14,7 @@
 package syncstore_test
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -184,8 +185,8 @@ func TestSyncStore(t *testing.T) {
 		}
 		for i := 0; i <= 5; i++ {
 			objs := map[string][]byte{
-				string(i):     []byte("apple"),
-				string(i + 1): []byte("banana"),
+				strconv.Itoa(i):     []byte("apple"),
+				strconv.Itoa(i + 1): []byte("banana"),
 			}
 			go updateFunc(t, objs)
 		}
@@ -199,13 +200,13 @@ func TestSyncStore(t *testing.T) {
 
 		// The two objs should have IDs i and i+1, and values "apple" and "banana"
 		for i := 0; i <= 5; i++ {
-			objs1, err := store.GetCachedByID("n0", []string{string(i)})
+			objs1, err := store.GetCachedByID("n0", []string{strconv.Itoa(i)})
 			assert.NoError(t, err)
 			if len(objs1) == 0 {
 				continue
 			}
 			assert.Equal(t, []byte("apple"), objs1[0])
-			objs2, err := store.GetCachedByID("n0", []string{string(i + 1)})
+			objs2, err := store.GetCachedByID("n0", []string{strconv.Itoa(i + 1)})
 			assert.NoError(t, err)
 			assert.Len(t, objs2, 1)
 			assert.Equal(t, []byte("banana"), objs2[0])

@@ -69,7 +69,7 @@ func RenewDigests(config Config, store syncstore.SyncStore) (map[string]string, 
 	for _, network := range toUpdate {
 		rootDigest, leaveDigests, err := renewDigestsForNetwork(network, store)
 		if err != nil {
-			multierror.Append(errs, err)
+			errs = multierror.Append(errs, err)
 		}
 		rootDigestsByNetwork[network] = rootDigest
 		leafDigestsByNetwork[network] = leaveDigests
