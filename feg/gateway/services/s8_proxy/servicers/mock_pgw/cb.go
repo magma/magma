@@ -13,6 +13,7 @@ limitations under the License.
 
 package mock_pgw
 
+/*
 import (
 	"fmt"
 	"net"
@@ -173,3 +174,4 @@ func (mPgw *MockPgw) getHandleCreateBearerRequest() gtpv2.HandlerFunc {
 		return nil
 	}
 }
+*/
