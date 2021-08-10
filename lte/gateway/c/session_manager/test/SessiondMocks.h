@@ -12,7 +12,6 @@
  */
 #pragma once
 
-#include <folly/io/async/EventBase.h>
 #include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
