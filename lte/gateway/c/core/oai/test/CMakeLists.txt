@@ -20,10 +20,6 @@ add_subdirectory(spgw_task)
 add_subdirectory(ngap)
 add_subdirectory(itti)
 add_subdirectory(pipelined_client)
-<<<<<<< HEAD
-add_subdirectory(n11)
-=======
 add_subdirectory(amf)
 add_subdirectory(n11)
 add_subdirectory(s1ap_task)
->>>>>>> origin/master
