@@ -935,11 +935,36 @@ message RatSpecificContextAccess {
 
 message AmbrUnit {
   enum AmbrUnitType {
-   Kbps_0 = 0;
-   Kbps_1 = 1;
-   Kbps_4 = 2;
-   Kbps_16 = 3;
-   Kbps_64 = 4;
+   Kbps_0   = 0;
+   Kbps_1   = 1;
+   Kbps_4   = 2;
+   Kbps_16  = 3;
+   Kbps_64  = 4;
+   Kbps_256 = 5;
+
+   Mbps_1   = 6;
+   Mbps_4   = 7;
+   Mbps_16  = 8;
+   Mbps_64  = 9;
+   Mbps_256 = 10;
+
+   Gbps_1   = 11;
+   Gbps_4   = 12;
+   Gbps_16  = 13;
+   Gbps_64  = 14;
+   Gbps_256 = 15;
+
+   Tbps_1   = 16;
+   Tbps_4   = 17;
+   Tbps_16  = 18;
+   Tbps_64  = 19;
+   Tbps_256 = 20;
+
+   Pbps_1   = 21;
+   Pbps_4   = 22;
+   Pbps_16  = 23;
+   Pbps_64  = 24;
+   Pbps_256 = 25;
   }
   AmbrUnitType ambr_unit_type = 1;
 }

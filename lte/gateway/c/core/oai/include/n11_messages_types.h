@@ -179,12 +179,43 @@ typedef struct AggregatedMaximumBitrate_respose_t {
   uint32_t max_bandwidth_ul;
   uint32_t max_bandwidth_dl;
 } AggregatedMaximumBitrate_response;
+
 typedef enum AmbrUnit_response_e {
-  Kbps_0  = 0,
-  Kbps_1  = 1,
-  Kbps_4  = 2,
-  Kbps_16 = 3,
-  Kbps_64 = 4
+  Kbps_0   = 0,
+  Kbps_1   = Kbps_0 + 1,
+  Kbps_4   = Kbps_0 + 2,
+  Kbps_16  = Kbps_0 + 3,
+  Kbps_64  = Kbps_0 + 4,
+  Kbps_256 = Kbps_0 + 5,
+
+  Mbps_0   = Kbps_256,
+  Mbps_1   = Mbps_0 + 1,
+  Mbps_4   = Mbps_0 + 2,
+  Mbps_16  = Mbps_0 + 3,
+  Mbps_64  = Mbps_0 + 4,
+  Mbps_256 = Mbps_0 + 5,
+
+  Gbps_0   = Mbps_256,
+  Gbps_1   = Gbps_0 + 1,
+  Gbps_4   = Gbps_0 + 2,
+  Gbps_16  = Gbps_0 + 3,
+  Gbps_64  = Gbps_0 + 4,
+  Gbps_256 = Gbps_0 + 5,
+
+  Tbps_0   = Gbps_256,
+  Tbps_1   = Tbps_0 + 1,
+  Tbps_4   = Tbps_0 + 2,
+  Tbps_16  = Tbps_0 + 3,
+  Tbps_64  = Tbps_0 + 4,
+  Tbps_256 = Tbps_0 + 5,
+
+  Pbps_0   = Tbps_256,
+  Pbps_1   = Pbps_0 + 1,
+  Pbps_4   = Pbps_0 + 2,
+  Pbps_16  = Pbps_0 + 3,
+  Pbps_64  = Pbps_0 + 4,
+  Pbps_256 = Pbps_0 + 5
+
 } AmbrUnit_response;
 
 typedef struct SessionAmbr_response_s {

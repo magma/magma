@@ -134,9 +134,11 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.upf_endpoint.teid[2] = (nteid >> 8) & 0xFF;
   itti_msg.upf_endpoint.teid[3] = nteid & 0xFF;
 
-  memcpy(
-      itti_msg.upf_endpoint.end_ipv4_addr,
-      req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
+  if (req_m5g.upf_endpoint().end_ipv4_addr().size() > 0) {
+    inet_pton(
+        AF_INET, req_m5g.upf_endpoint().end_ipv4_addr().c_str(),
+        itti_msg.upf_endpoint.end_ipv4_addr);
+  }
 
   strcpy(
       (char*) itti_msg.procedure_trans_identity,

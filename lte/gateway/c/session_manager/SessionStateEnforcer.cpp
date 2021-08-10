@@ -576,12 +576,15 @@ void SessionStateEnforcer::prepare_response_to_access(
   /* AMBR value need to compared from AMF and PCF, then fill the required
    * values and sent to AMF.
    */
-  // For now its default QOS, AMBR has default values
+  // For now its default QOS, AMBR is 1 Gbps downlink
   rsp->mutable_downlink_unit_type()->set_ambr_unit_type(
-      magma::AmbrUnit::Kbps_64);
-  rsp->mutable_uplink_unit_type()->set_ambr_unit_type(magma::AmbrUnit::Kbps_64);
+      magma::AmbrUnit::Gbps_1);
   rsp->set_downlink_units(DEFAULT_AMBR_UNITS);
+
+  // For now its default QOS, AMBR is 1 Gbps uplink
+  rsp->mutable_uplink_unit_type()->set_ambr_unit_type(magma::AmbrUnit::Gbps_1);
   rsp->set_uplink_units(DEFAULT_AMBR_UNITS);
+
   auto* convg_qos = rsp->mutable_qos();
   convg_qos->set_qci(FlowQos_Qci_QCI_9);
   convg_qos->mutable_arp()->set_pre_vulnerability(
