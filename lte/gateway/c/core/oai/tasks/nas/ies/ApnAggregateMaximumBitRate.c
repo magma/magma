@@ -85,9 +85,9 @@ int encode_apn_aggregate_maximum_bit_rate(
   *(buffer + encoded) = apnaggregatemaximumbitrate->apnambrforuplink;
   encoded++;
 
-  if (apnaggregatemaximumbitrate->extensions &
-          APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT |
-      APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT) {
+  if (((apnaggregatemaximumbitrate->extensions) &
+       (APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT)) |
+      (APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT)) {
     *(buffer + encoded) =
         apnaggregatemaximumbitrate->apnambrfordownlink_extended;
     encoded++;

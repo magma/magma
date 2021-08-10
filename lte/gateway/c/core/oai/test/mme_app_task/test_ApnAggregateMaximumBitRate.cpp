@@ -18,16 +18,17 @@
 #include <gtest/gtest.h>
 #include <glog/logging.h>
 
-extern "C"{
+extern "C" {
 #include "conversions.h"
 #include "ApnAggregateMaximumBitRate.h"
 #include "3gpp_23.003.h"
 #include "log.h"
 }
 
-TEST(test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,bit_rate_value_to_eps_qos_for_apnambr_extended2_test ) {
+TEST(
+    test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,
+    bit_rate_value_to_eps_qos_for_apnambr_extended2_test) {
   ApnAggregateMaximumBitRate apn_testing;
-
 
   bit_rate_value_to_eps_qos(&apn_testing, 0, 0);
   ASSERT_EQ(apn_testing.apnambrfordownlink, 255);
@@ -204,7 +205,6 @@ TEST(test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,bit_rate_value_to
   ASSERT_EQ(apn_testing.apnambrfordownlink_extended, 0);
   ASSERT_EQ(apn_testing.apnambrforuplink_extended2, 255);
   ASSERT_EQ(apn_testing.apnambrfordownlink_extended2, 255);
-
 }
 
 int main(int argc, char** argv) {
