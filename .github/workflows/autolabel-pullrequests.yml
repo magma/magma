@@ -34,6 +34,7 @@ jobs:
   comment:
     runs-on: ubuntu-latest
     steps:
+      - uses: hmarr/debug-action@v2
       - uses: actions/github-script@v3
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
