@@ -15,6 +15,7 @@ from collections import defaultdict, namedtuple
 from datetime import datetime, timedelta
 from subprocess import check_output
 
+import ryu.app.ofctl.api as ofctl_api
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import (
@@ -46,11 +47,11 @@ from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
     IMSI_REG,
+    NG_SESSION_ID_REG,
+    REG_ZERO_VAL,
     RULE_NUM_REG,
     RULE_VERSION_REG,
     SCRATCH_REGS,
-    NG_SESSION_ID_REG,
-    REG_ZERO_VAL,
     Direction,
 )
 from magma.pipelined.policy_converters import (
@@ -60,12 +61,15 @@ from magma.pipelined.policy_converters import (
     get_ue_ip_match_args,
 )
 from magma.pipelined.utils import Utils
+from ryu.app.ofctl.exception import (
+    InvalidDatapath,
+    OFError,
+    UnexpectedMultiReply,
+)
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-import ryu.app.ofctl.api as ofctl_api
-from ryu.app.ofctl.exception import (InvalidDatapath, OFError, UnexpectedMultiReply)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -497,9 +501,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         Report usage to sessiond using rpc
         """
-        record_table = RuleRecordTable(records=usage.values(),
-                                       epoch=global_epoch,
-                                       update_rule_versions=self._ovs_restarted)
+        record_table = RuleRecordTable(
+            records=usage.values(),
+            epoch=global_epoch,
+            update_rule_versions=self._ovs_restarted,
+        )
         if self._print_grpc_payload:
             record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
                 record_table.DESCRIPTOR.name, str(record_table),
@@ -653,27 +659,37 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def _delete_flow(self, imsi, ip_addr, rule_id, rule_version, local_f_teid_ng=0):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule_id)
-        match_in = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
-                                        Direction.IN, local_f_teid_ng)
-        match_out = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
-                                         Direction.OUT, local_f_teid_ng)
-        flows.delete_flow(self._datapath,
-                          self.tbl_num,
-                          match_in)
-        flows.delete_flow(self._datapath,
-                          self.tbl_num,
-                          match_out)
+        match_in = _generate_rule_match(
+            imsi, ip_addr, rule_num, rule_version,
+            Direction.IN, local_f_teid_ng,
+        )
+        match_out = _generate_rule_match(
+            imsi, ip_addr, rule_num, rule_version,
+            Direction.OUT, local_f_teid_ng,
+        )
+        flows.delete_flow(
+            self._datapath,
+            self.tbl_num,
+            match_in,
+        )
+        flows.delete_flow(
+            self._datapath,
+            self.tbl_num,
+            match_out,
+        )
 
     def _was_ovs_restarted(self):
         try:
-            ovs_pid = int(check_output(["pidof","ovs-vswitchd"]).decode())
-        except Exception as e: # pylint: disable=broad-except
+            ovs_pid = int(check_output(["pidof", "ovs-vswitchd"]).decode())
+        except Exception as e:  # pylint: disable=broad-except
             self.logger.warning("Couldn't get ovs pid: %s", e)
             ovs_pid = 0
         stored_ovs_pid = self._restart_info_store["ovs-vswitchd"]
         self._restart_info_store["ovs-vswitchd"] = ovs_pid
-        self.logger.info("Stored ovs_pid %d, new ovs pid %d",
-                         stored_ovs_pid, ovs_pid)
+        self.logger.info(
+            "Stored ovs_pid %d, new ovs pid %d",
+            stored_ovs_pid, ovs_pid,
+        )
         return ovs_pid != stored_ovs_pid
 
     def _get_rule_id(self, flow):
@@ -706,11 +722,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             datapath=self._datapath,
             table_id=self.tbl_num,
             cookie=cookie,
-            cookie_mask=cookie_mask
+            cookie_mask=cookie_mask,
         )
         try:
-            response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
-                    reply_multi=False)
+            response = ofctl_api.send_msg(
+                self, message, reply_cls=parser.OFPFlowStatsReply,
+                reply_multi=False,
+            )
             if response == None:
                 self.logger.error("No rule records match the specified cookie and cookie mask")
                 return RuleRecordTable()
@@ -719,7 +737,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
                 record_table = RuleRecordTable(
                     records=usage.values(),
-                    epoch=global_epoch)
+                    epoch=global_epoch,
+                )
                 return record_table
         except (InvalidDatapath, OFError, UnexpectedMultiReply):
             self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
@@ -775,7 +794,6 @@ def _generate_rule_match(imsi, ip_addr, rule_num, version, direction, local_f_te
         rule_version=version, local_f_teid_ng=local_f_teid_ng,
         **ip_match,
     )
-
 
 
 def _get_sid(flow):

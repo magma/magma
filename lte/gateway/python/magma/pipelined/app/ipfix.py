@@ -214,15 +214,15 @@ class IPFIXController(MagmaController):
             pdp = 1
             actions = [
                 parser.NXActionSample2(
-                probability=self.ipfix_config.probability,
-                collector_set_id=self.ipfix_config.collector_set_id,
-                obs_domain_id=self.ipfix_config.obs_domain_id,
-                obs_point_id=self.ipfix_config.obs_point_id,
-                apn_mac_addr=[0, 0, 0, 0, 0, 0],
-                msisdn="defau".encode('ascii'),
-                apn_name="default".encode('ascii'),
-                pdp_start_epoch=pdp.to_bytes(8, byteorder='little'),
-                sampling_port=self.ipfix_config.sampling_port,
+                    probability=self.ipfix_config.probability,
+                    collector_set_id=self.ipfix_config.collector_set_id,
+                    obs_domain_id=self.ipfix_config.obs_domain_id,
+                    obs_point_id=self.ipfix_config.obs_point_id,
+                    apn_mac_addr=[0, 0, 0, 0, 0, 0],
+                    msisdn="defau".encode('ascii'),
+                    apn_name="default".encode('ascii'),
+                    pdp_start_epoch=pdp.to_bytes(8, byteorder='little'),
+                    sampling_port=self.ipfix_config.sampling_port,
                 ),
             ]
             flows.add_drop_flow(
@@ -265,15 +265,15 @@ class IPFIXController(MagmaController):
 
         actions = [
             parser.NXActionSample2(
-            probability=self.ipfix_config.probability,
-            collector_set_id=self.ipfix_config.collector_set_id,
-            obs_domain_id=self.ipfix_config.obs_domain_id,
-            obs_point_id=self.ipfix_config.obs_point_id,
-            apn_mac_addr=apn_mac_bytes,
-            msisdn=msisdn.encode('ascii'),
-            apn_name=apn_name.encode('ascii'),
-            pdp_start_epoch=pdp_start_time.to_bytes(8, byteorder='little'),
-            sampling_port=self.ipfix_config.sampling_port,
+                probability=self.ipfix_config.probability,
+                collector_set_id=self.ipfix_config.collector_set_id,
+                obs_domain_id=self.ipfix_config.obs_domain_id,
+                obs_point_id=self.ipfix_config.obs_point_id,
+                apn_mac_addr=apn_mac_bytes,
+                msisdn=msisdn.encode('ascii'),
+                apn_name=apn_name.encode('ascii'),
+                pdp_start_epoch=pdp_start_time.to_bytes(8, byteorder='little'),
+                sampling_port=self.ipfix_config.sampling_port,
             ),
         ]
 

@@ -853,11 +853,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         table_assignments = self._service_manager.get_all_table_assignments()
         return AllTableAssignments(
             table_assignments=[
-            TableAssignment(
-                app_name=app_name, main_table=tables.main_table,
-                scratch_tables=tables.scratch_tables,
-            ) for
-            app_name, tables in table_assignments.items()
+                TableAssignment(
+                    app_name=app_name, main_table=tables.main_table,
+                    scratch_tables=tables.scratch_tables,
+                ) for
+                app_name, tables in table_assignments.items()
             ],
         )
 
