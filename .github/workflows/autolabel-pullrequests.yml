@@ -5,6 +5,29 @@ on:  # yamllint disable-line rule:truthy
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
   pull_request_target:
     types: [opened, reopened, synchronize]
+    paths:
+      - 'orc8r/**'
+      - 'lte/**'
+      - 'ci-scripts/**'
+      - 'circleci/**'
+      - 'cn/**'
+      - 'cwf/**'
+      - 'docs/**'
+      - 'example/**'
+      - 'experimental/**'
+      - 'fbinternal/**'
+      - 'feg/**'
+      - 'lte/**'
+      - 'nms/**'
+      - 'openwrt/**'
+      - 'orc8r/**'
+      - 'protos/**'
+      - 'secrets/**'
+      - 'show-tech/**'
+      - 'third_party/**'
+      - 'wifi/**'
+      - 'xwf/**'
+      - 'scripts/**'
 
 jobs:
   # This job is to automatically apply labels to pull requests
