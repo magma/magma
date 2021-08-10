@@ -633,7 +633,7 @@ def __get_instructions_for_actions(
     if actions:
         instructions.append(
             ofproto_parser.OFPInstructionActions(
-            ofproto.OFPIT_APPLY_ACTIONS, actions,
+                ofproto.OFPIT_APPLY_ACTIONS, actions,
             ),
         )
     return instructions

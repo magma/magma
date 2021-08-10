@@ -78,8 +78,8 @@ class CreateSessionUtil:
             flow_list = [
                 FlowDescription(
                     match=FlowMatch(
-                    ip_dst=ip_dst,
-                    direction=qos_enforce_rule.direction,
+                        ip_dst=ip_dst,
+                        direction=qos_enforce_rule.direction,
                     ),
                     action=allow,
                 ),
@@ -88,8 +88,8 @@ class CreateSessionUtil:
             flow_list = [
                 FlowDescription(
                     match=FlowMatch(
-                    ip_src=ip_src,
-                    direction=qos_enforce_rule.direction,
+                        ip_src=ip_src,
+                        direction=qos_enforce_rule.direction,
                     ),
                     action=allow,
                 ),
@@ -98,14 +98,18 @@ class CreateSessionUtil:
         qos_enforce_rule = ActivateFlowsRequest(
                                   sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
                                   ip_addr=ue_ip_addr,
-                                  policies=[VersionedPolicy(rule = PolicyRule(
-                                  id=qos_enforce_rule.rule_id,
-                                  priority=qos_enforce_rule.priority,
-                                  hard_timeout=qos_enforce_rule.hard_timeout,
-                                  flow_list=flow_list), version=1,
-                                ),],
-                                request_origin=RequestOriginType(type=RequestOriginType.N4))
-        return  qos_enforce_rule
+                                  policies=[
+                                      VersionedPolicy(
+                                          rule=PolicyRule(
+                                            id=qos_enforce_rule.rule_id,
+                                            priority=qos_enforce_rule.priority,
+                                            hard_timeout=qos_enforce_rule.hard_timeout,
+                                            flow_list=flow_list,
+                                          ), version=1,
+                                      ), ],
+                                request_origin=RequestOriginType(type=RequestOriginType.N4),
+        )
+        return qos_enforce_rule
 
     @staticmethod
     def CreateDelQERinPDR(
@@ -116,8 +120,9 @@ class CreateSessionUtil:
         qos_enforce_rule = DeactivateFlowsRequest(
                                   sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
                                   ip_addr=ue_ip_addr,
-                                  policies=[VersionedPolicyID(rule_id=qos_enforce_rule.rule_id),],
-                                  request_origin=RequestOriginType(type=RequestOriginType.N4))
+                                  policies=[VersionedPolicyID(rule_id=qos_enforce_rule.rule_id)],
+                                  request_origin=RequestOriginType(type=RequestOriginType.N4),
+        )
 
         return qos_enforce_rule
 

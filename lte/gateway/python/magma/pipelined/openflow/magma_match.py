@@ -16,15 +16,16 @@ from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
     DPI_REG,
     IMSI_REG,
+    NG_SESSION_ID_REG,
     PASSTHROUGH_REG,
     PROXY_TAG_REG,
     RULE_NUM_REG,
     RULE_VERSION_REG,
     VLAN_TAG_REG,
-    NG_SESSION_ID_REG,
     Direction,
     is_valid_direction,
 )
+
 
 class MagmaMatch(object):
     """
@@ -33,11 +34,13 @@ class MagmaMatch(object):
     direction.
     """
 
-    def __init__(self, imsi: int = None, direction: Optional[Direction] = None,
-                 rule_num: int = None, rule_version: int = None,
-                 passthrough: int = None, vlan_tag: int = None,
-                 app_id: int = None, proxy_tag: int = None,
-                 local_f_teid_ng: int = None, **kwargs):
+    def __init__(
+        self, imsi: int = None, direction: Optional[Direction] = None,
+        rule_num: int = None, rule_version: int = None,
+        passthrough: int = None, vlan_tag: int = None,
+        app_id: int = None, proxy_tag: int = None,
+        local_f_teid_ng: int = None, **kwargs
+    ):
         self.imsi = imsi
         self.direction = direction
         self.rule_num = rule_num
