@@ -68,6 +68,7 @@ To target a specific release, checkout the Magma repository's relevant release b
 Values for recent Orchestrator releases are summarized below
 
 ### v1.6.0
+
 Verified with Terraform version `0.15.0`.
 
 - `v1.6` [patch branch](https://github.com/magma/magma/tree/v1.6)
@@ -78,6 +79,7 @@ Terraform module source
     - `9.6` PostgreSQL target release. Prefer `12.6` for new deployments.
 
 ### v1.5.0
+
 Verified with Terraform version `0.14.5`. Terraform `0.15.x` is *not* compatible.
 
 - `v1.5` [patch branch](https://github.com/magma/magma/tree/v1.5)
@@ -88,6 +90,7 @@ Terraform module source
     - `9.6` PostgreSQL target release, newer versions will likely work as well
 
 ### v1.4.0
+
 Verified with Terraform version `0.14.0`.
 
 - `v1.4` [patch branch](https://github.com/magma/magma/tree/v1.4)
@@ -98,6 +101,7 @@ Terraform module source
     - `9.6` PostgreSQL target release, newer versions will likely work as well
 
 ### v1.3.0
+
 Verified with Terraform version `0.13.1`.
 
 - `v1.3` [patch branch](https://github.com/magma/magma/tree/v1.3)
@@ -108,6 +112,7 @@ Terraform module source
     - `9.6` PostgreSQL target release, newer versions will likely work as well
 
 ### v1.2.0
+
 Verified with Terraform version `0.13.1`.
 
 - `v1.2` [patch branch](https://github.com/magma/magma/tree/v1.2)
@@ -118,6 +123,7 @@ Terraform module source
     - `9.6` PostgreSQL target release, newer versions will likely work as well
 
 ### v1.1.0
+
 Verified with Terraform version `0.12.29`.
 
 - `v1.1` [patch branch](https://github.com/magma/magma/tree/v1.1)
@@ -126,4 +132,3 @@ Terraform module source
 - `1.4.21` Helm chart version
 - Additional notes
     - `9.6` PostgreSQL target release, newer versions will likely work as well
-

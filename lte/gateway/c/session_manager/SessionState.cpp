@@ -29,6 +29,7 @@
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
+#include "ShardTracker.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -44,11 +45,6 @@ const char* DIRECTION_DOWN          = "down";
 // that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
-
-using magma::service303::increment_counter;
-using magma::service303::remove_counter;
-using magma::service303::remove_gauge;
-using magma::service303::set_gauge;
 
 namespace magma {
 
@@ -68,6 +64,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
+  marshaled.shard_id   = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
@@ -150,7 +147,8 @@ SessionState::SessionState(
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
       credit_map_(4, &ccHash, &ccEqual),
-      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy),
+      shard_id_(marshaled.shard_id) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
@@ -1020,7 +1018,8 @@ bool SessionState::is_radius_cwf_session() const {
 bool SessionState::is_5g_session() const {
   return (config_.common_context.rat_type() == RATType::TGPP_NR);
 }
-SessionState::SessionInfo SessionState::get_session_info() {
+
+SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   SessionState::SessionInfo info;
   info.imsi      = get_imsi();
   info.ip_addr   = config_.common_context.ue_ipv4();
@@ -1640,28 +1639,6 @@ DynamicRuleInstall SessionState::get_dynamic_rule_install(
   rule_install.mutable_deactivation_time()->set_seconds(
       lifetime.deactivation_time);
   return rule_install;
-}
-
-// Charging Credits
-static FinalActionInfo get_final_action_info(
-    const magma::lte::ChargingCredit& credit) {
-  FinalActionInfo final_action_info;
-  if (credit.is_final()) {
-    final_action_info.final_action = credit.final_action();
-    switch (final_action_info.final_action) {
-      case ChargingCredit_FinalAction_REDIRECT:
-        final_action_info.redirect_server = credit.redirect_server();
-        break;
-      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-        for (auto rule : credit.restrict_rules()) {
-          final_action_info.restrict_rules.push_back(rule);
-        }
-        break;
-      default:  // do nothing;
-        break;
-    }
-  }
-  return final_action_info;
 }
 
 std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {

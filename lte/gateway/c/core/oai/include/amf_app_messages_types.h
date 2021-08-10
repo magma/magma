@@ -18,6 +18,7 @@
 #include "3gpp_38.413.h"
 #include "3gpp_24.007.h"
 #include "3gpp_38.401.h"
+#include "3gpp_23.003.h"
 #include "common_types.h"
 #include "nas/securityDef.h"
 #include "amf_as_message.h"
@@ -35,6 +36,8 @@
 #define AMF_APP_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.amf_app_ul_data_ind
 #define AMF_APP_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.amf_app_dl_data_cnf
 #define AMF_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.amf_app_dl_data_rej
+#define AMF_APP_AUTH_RESPONSE_DATA(mSGpTR)                                     \
+  (mSGpTR)->ittiMsg.amf_app_subs_auth_info_resp
 
 typedef struct itti_amf_app_connection_establishment_cnf_s {
   Ngap_initial_context_setup_request_t contextSetupRequest;
@@ -42,7 +45,10 @@ typedef struct itti_amf_app_connection_establishment_cnf_s {
 
 typedef struct itti_amf_app_initial_context_setup_rsp_s {
   amf_ue_ngap_id_t ue_id;
-  Ngap_PDUSession_Resource_Setup_Request_List_t pdusesssion_setup_list;
+  Ngap_PDUSession_Resource_Setup_Response_List_t
+      PDU_Session_Resource_Setup_Response_Transfer;  // Containing the PDU
+                                                     // Session Resource
+                                                     // Setup Request
 } itti_amf_app_initial_context_setup_rsp_t;
 
 typedef struct itti_amf_app_initial_context_setup_failure_s {
@@ -79,3 +85,52 @@ typedef struct itti_amf_app_ul_data_ind_s {
   /* Indicating the cell from which the UE has sent the NAS message  */
   ecgi_t cgi;
 } itti_amf_app_ul_data_ind_t;
+
+typedef struct itti_amf_subs_auth_info_ans_s {
+  /* IMSI of the subscriber */
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+
+  /* Length of the Imsi. Mostly 15 */
+  uint8_t imsi_length;
+
+  /* Authentication is success or failure with code */
+  int result;
+
+  /* UE identifier */
+  amf_ue_ngap_id_t ue_id;
+
+  /* Authentication info containing the vector(s) */
+  m5g_authentication_info_t auth_info;
+
+} itti_amf_subs_auth_info_ans_t;
+
+typedef struct itti_amf_ip_allocation_response_s {
+  /* IMSI of the subscriber */
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+
+  /* Length of the Imsi. Mostly 15 */
+  uint8_t imsi_length;
+
+  uint8_t apn[101];
+
+  /* PDU Session Identity */
+  uint32_t pdu_session_id;
+
+  /* Procedure Tranction Identity */
+  uint8_t pti;
+
+  /* PDU Session Type */
+  uint32_t pdu_session_type;
+
+  /* GNB GTP Tunnel Identifier */
+  uint8_t gnb_gtp_teid[5];
+
+  /* GNB End Point IP address */
+  uint8_t gnb_gtp_teid_ip_addr[16];
+
+  /* UE IP Address Allocated by MobilityD */
+  paa_t paa;
+
+  /* Result Type of IP Allocation */
+  int result;
+} itti_amf_ip_allocation_response_t;

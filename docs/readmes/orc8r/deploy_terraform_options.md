@@ -74,7 +74,7 @@ Let's assume we want to install Postgres 12.6. This infra-related value is manag
 
 Checking the contents of [orc8r-aws/variables.tf](https://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf), we'll find the following block
 
-```
+```hcl
 variable "orc8r_db_engine_version" {
   description = "Postgres engine version for Orchestrator DB."
   type        = string
@@ -86,7 +86,7 @@ variable "orc8r_db_engine_version" {
 
 To override this value, go to your `main.tf` and define the variable in the `orc8r` module
 
-```
+```hcl
 module "orc8r" {
   # ...
   orc8r_db_engine_version     = "12.6"

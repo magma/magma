@@ -267,6 +267,10 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
+  uint16_t get_shard_id() const { return shard_id_; }
+
+  void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }
+
   std::string get_session_id() const { return session_id_; }
 
   uint32_t get_pdu_id() const;
@@ -287,7 +291,7 @@ class SessionState {
    *
    * @return SessionState::SessionInfo
    */
-  SessionState::SessionInfo get_session_info();
+  SessionState::SessionInfo get_session_info_for_setup();
 
   void set_tgpp_context(
       const magma::lte::TgppContext& tgpp_context,
@@ -795,6 +799,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  uint16_t shard_id_;
 
  private:
   /**

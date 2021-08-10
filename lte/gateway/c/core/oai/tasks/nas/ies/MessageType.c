@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 
+#include "assertions.h"
 #include "MessageType.h"
 
 //------------------------------------------------------------------------------

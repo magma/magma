@@ -113,9 +113,13 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 
 	if srv.config.GetAcctReportingEnabled() {
 		_, err = base_acct.Update(&fegpb.AcctUpdateReq{
-			Session:     baseAcctSessionFromCtx(s.GetCtx()),
-			OctetsIn:    uint64(octetsIn),
-			OctetsOut:   uint64(octetsOut),
+			Session: baseAcctSessionFromCtx(s.GetCtx()),
+			// Acct-Input/Output-Octets indicates how many octets have been received from/sent to
+			// the user over the course of this service (https://datatracker.ietf.org/doc/html/rfc2866#section-5.3)
+			// the counters represent AP point of view & need to be reversed for our accounting
+			// See: https://datatracker.ietf.org/doc/html/rfc2869#page-23 for Gigawords In/Out definition
+			OctetsIn:    (uint64(ur.GetGigawordsOut())) + uint64(octetsOut),
+			OctetsOut:   (uint64(ur.GetGigawordsIn())) + uint64(octetsIn),
 			SessionTime: uint32(uint64(time.Now().UnixNano()/NanoInMilli) - s.GetCtx().GetCreatedTimeMs()),
 		})
 	}
@@ -179,9 +183,13 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 
 	if baseAcctEnabled {
 		_, err = base_acct.Stop(&fegpb.AcctUpdateReq{
-			Session:     acctSession,
-			OctetsIn:    uint64(req.GetOctetsIn()),
-			OctetsOut:   uint64(req.GetOctetsOut()),
+			Session: acctSession,
+			// Acct-Input/Output-Octets indicates how many octets have been received from/sent to
+			// the user over the course of this service (https://datatracker.ietf.org/doc/html/rfc2866#section-5.3)
+			// the counters represent AP point of view & need to be reversed for our accounting.
+			// See: https://datatracker.ietf.org/doc/html/rfc2869#page-23 for Gigawords In/Out definition
+			OctetsIn:    (uint64(req.GetGigawordsOut()) << 32) + uint64(req.GetOctetsOut()),
+			OctetsOut:   (uint64(req.GetGigawordsIn()) << 32) + uint64(req.GetOctetsIn()),
 			SessionTime: uint32(uint64(time.Now().UnixNano()/NanoInMilli) - createdTimeMs),
 		})
 	}

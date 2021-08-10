@@ -41,8 +41,11 @@
 /lte/gateway/c/core/oai @magma/approvers-agw-mme
 /lte/gateway/c/sctpd @magma/approvers-agw-mme
 /lte/gateway/c/connection_tracker @koolzz @magma/approvers-agw-c
-/lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
 /lte/gateway/python/integ_tests @magma/approvers-agw-integtests
+
+# approvers-agw-pipelined
+/lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
+/third_party/gtp_ovs @magma/approvers-agw-pipelined
 
 # XWF Magma integrations
 /xwf/ @magma/approvers-xwf

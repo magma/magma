@@ -61,34 +61,38 @@ void S1apStateManager::init(
   is_initialized = true;
 }
 
-void S1apStateManager::create_state() {
+s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
   bstring ht_name;
 
-  state_cache_p = (s1ap_state_t*) calloc(1, sizeof(s1ap_state_t));
+  s1ap_state_t* state_cache_p =
+      static_cast<s1ap_state_t*>(calloc(1, sizeof(s1ap_state_t)));
 
   ht_name = bfromcstr(S1AP_ENB_COLL);
   hashtable_ts_init(
-      &state_cache_p->enbs, max_enbs_, nullptr, free_wrapper, ht_name);
-
-  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
+      &state_cache_p->enbs, max_enbs, nullptr, free_wrapper, ht_name);
   bdestroy(ht_name);
 
   ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
   hashtable_ts_init(
-      &state_cache_p->mmeid2associd, max_ues_, nullptr, hash_free_int_func,
+      &state_cache_p->mmeid2associd, max_ues, nullptr, hash_free_int_func,
       ht_name);
   bdestroy(ht_name);
 
   state_cache_p->num_enbs = 0;
+  return state_cache_p;
+}
+
+void S1apStateManager::create_state() {
+  state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
+
+  bstring ht_name = bfromcstr(S1AP_ENB_COLL);
+  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
+  bdestroy(ht_name);
 
   create_s1ap_imsi_map();
 }
 
-void S1apStateManager::free_state() {
-  AssertFatal(
-      is_initialized,
-      "S1apStateManager init() function should be called to initialize state.");
-
+void free_s1ap_state(s1ap_state_t* state_cache_p) {
   if (state_cache_p == nullptr) {
     return;
   }
@@ -107,23 +111,34 @@ void S1apStateManager::free_state() {
       assoc_id = (sctp_assoc_id_t) keys->keys[i];
       ht_rc    = hashtable_ts_get(
           &state_cache_p->enbs, (hash_key_t) assoc_id, (void**) &enb);
-      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
-      hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+      if (ht_rc != HASH_TABLE_OK) {
+        OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
+      } else {
+        hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+      }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-
   if (hashtable_ts_destroy(&state_cache_p->enbs) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occurred while destroying s1 eNB hash table");
+    OAILOG_ERROR(
+        LOG_S1AP, "An error occurred while destroying s1 eNB hash table");
   }
   if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
+    OAILOG_ERROR(
+        LOG_S1AP, "An error occurred while destroying assoc_id hash table");
   }
-  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
-  }
-  free_wrapper((void**) &state_cache_p);
+  free_wrapper(reinterpret_cast<void**>(&state_cache_p));
+}
 
+void S1apStateManager::free_state() {
+  AssertFatal(
+      is_initialized,
+      "S1apStateManager init() function should be called to initialize state.");
+  free_s1ap_state(state_cache_p);
+  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
+    OAILOG_ERROR(
+        LOG_S1AP, "An error occurred while destroying assoc_id hash table");
+  }
   clear_s1ap_imsi_map();
 }
 

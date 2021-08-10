@@ -171,3 +171,12 @@ message MmeNasState {
   uint32 nb_bearers_since_last_stat = 12; //TODO: remove
   uint32 mme_app_ue_s1ap_id_generator = 20;
 }
+
+message imsi_list {
+  repeated uint64 imsi = 1;
+}
+message MmeUeIpImsiMap {
+ // ue_ip is allocated at multiple PGWs, so there are chances to have same
+ // ueip for different UEs
+  map<string, imsi_list> mme_ueip_imsi_map = 1; // ue_ip => list of imsi64
+}

@@ -141,17 +141,17 @@ class ServiceManagerTest(unittest.TestCase):
     def test_is_app_enabled(self):
         self.assertTrue(
             self.service_manager.is_app_enabled(
-            EnforcementController.APP_NAME,
+                EnforcementController.APP_NAME,
             ),
         )
         self.assertTrue(
             self.service_manager.is_app_enabled(
-            DPIController.APP_NAME,
+                DPIController.APP_NAME,
             ),
         )
         self.assertTrue(
             self.service_manager.is_app_enabled(
-            EnforcementStatsController.APP_NAME,
+                EnforcementStatsController.APP_NAME,
             ),
         )
 
@@ -162,12 +162,12 @@ class ServiceManagerTest(unittest.TestCase):
     def test_allocate_scratch_tables(self):
         self.assertEqual(
             self.service_manager.allocate_scratch_tables(
-            EnforcementController.APP_NAME, 1,
+                EnforcementController.APP_NAME, 1,
             ), [21],
         )
         self.assertEqual(
             self.service_manager.allocate_scratch_tables(
-            EnforcementController.APP_NAME, 2,
+                EnforcementController.APP_NAME, 2,
             ), [22, 23],
         )
 
@@ -189,7 +189,7 @@ class ServiceManagerTest(unittest.TestCase):
 
         self.assertEqual(
             self.service_manager.get_scratch_table_nums(
-            EnforcementController.APP_NAME,
+                EnforcementController.APP_NAME,
             ), enforcement_scratch,
         )
 

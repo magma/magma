@@ -202,18 +202,12 @@ def _get_restricted_imeis(service_mconfig):
 
 
 def _get_service_area_maps(service_mconfig):
-    if service_mconfig.service_area_maps:
-      service_area_map = []
-      for sac in service_mconfig.service_area_maps:
-        tac_list = []
-        service_area_maps_dict = {}
-        for idx in service_mconfig.service_area_maps[sac].tac:
-          tac_list.append(idx)
-        service_area_maps_dict['sac'] = sac
-        service_area_maps_dict['tac'] = tac_list
-        service_area_map.append(service_area_maps_dict)
-      return service_area_map
-    return {}
+    if not service_mconfig.service_area_maps:
+        return {}
+    service_area_map = []
+    for sac, sam in service_mconfig.service_area_maps.items():
+        service_area_map.append({'sac': sac, 'tac': sam.tac.copy()})
+    return service_area_map
 
 
 def _get_congestion_control_config(service_mconfig):
@@ -236,6 +230,17 @@ def _get_congestion_control_config(service_mconfig):
         return service_mconfig.congestion_control_enabled
 
     return True
+
+
+def _get_converged_core_config(service_mconfig: object) -> bool:
+    """
+    Retrieves enable_converged_core config value,If it does not exist
+    it defaults to False. It gives precedence to the service_mconfig file.
+    """
+    if service_mconfig.enable_converged_core is not None:
+        return service_mconfig.enable_converged_core
+
+    return False
 
 
 def _get_context():
@@ -282,6 +287,8 @@ def _get_context():
             mme_service_config,
         ),
         "service_area_map": _get_service_area_maps(mme_service_config),
+        "sentry_config": mme_service_config.sentry_config,
+        "enable_converged_core": _get_converged_core_config(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(

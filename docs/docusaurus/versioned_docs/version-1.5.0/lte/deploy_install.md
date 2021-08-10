@@ -5,7 +5,7 @@ hide_title: true
 original_id: deploy_install
 ---
 
-For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](https://magma.github.io/magma/docs/feg/deploy_install_ubuntu)
+For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](deploy_install_ubuntu)
 # Install Access Gateway (Bare Metal)
 
 ## Prerequisites

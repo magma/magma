@@ -282,6 +282,11 @@ class MetricsCollector(object):
                     self.scrape_done, future, target,
                 ),
             )
+        
+        self._loop.call_later(
+            target.interval,
+            self.scrape_prometheus_target, target,
+        )
 
     def scrape_done(self, collect_future, target):
         """
@@ -298,11 +303,6 @@ class MetricsCollector(object):
                 "Prometheus Target Metrics upload success: %s",
                 target.name,
             )
-
-        self._loop.call_later(
-            target.interval,
-            self.scrape_prometheus_target, target,
-        )
 
 
 def _parse_metrics_response(response_text: str) -> [metrics_pb2.MetricFamily]:

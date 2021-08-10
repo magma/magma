@@ -12,19 +12,18 @@ original_id: deploy_config_agw
 Before beginning to configure your Magma Access Gateway, you will need to make
 sure that it is running all services without crashing. You will also need a
 working Orchestrator setup. Please follow the instructions in
-"[Deploying Orchestrator](
-https://magma.github.io/magma/docs/orc8r/deploying)" for a
+"[Deploying Orchestrator](../orc8r/deploy_intro)" for a
 successful Orchestrator installation.
 
 You will need to set up a super-user in a valid NMS Organization in order to
-use the NMS. See "[NMS Multitenancy](https://magma.github.io/magma/docs/nms/nms_organizations)"
+use the NMS. See "[NMS Multitenancy](../nms/nms_organizations)"
 to complete this step.
 
-You also should have completed all the steps in "[Install Access Gateway (On Bare Metal)](https://magma.github.io/magma/docs/lte/deploy_install)".
+You also should have completed all the steps in "[Install Access Gateway (On Bare Metal)](deploy_install)".
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
 
-In this latest version, Magma Access Gateway no longer has a hardwired default Access Point Name (APN). Therefore, each UE must have a subscription profile that includes at least one APN to be able to attach to the network. Please follow the instructions in "[APN Configuration](deploy_config_apn.md)".
+In this latest version, Magma Access Gateway no longer has a hardwired default Access Point Name (APN). Therefore, each UE must have a subscription profile that includes at least one APN to be able to attach to the network. Please follow the instructions in "[APN Configuration](deploy_config_apn)".
 
 ## Access Gateway Configuration
 

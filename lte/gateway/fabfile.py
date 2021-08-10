@@ -66,7 +66,14 @@ def dev():
     env.debug_mode = True
 
 
+# TODO: Deprecate
 def test():
+    print("Caution! 'test' will be deprecated soon. Please migrate to using 'release'.")
+    env.debug_mode = False
+
+
+def release():
+    """Set debug_mode to False, should be used for producing a production AGW package"""
     env.debug_mode = False
 
 
@@ -87,7 +94,7 @@ def package(
     if not hasattr(env, 'debug_mode'):
         print(
             "Error: The Deploy target isn't specified. Specify one with\n\n"
-            "\tfab [dev|test] package",
+            "\tfab [dev|release] package",
         )
         exit(1)
 

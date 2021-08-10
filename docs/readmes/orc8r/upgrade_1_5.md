@@ -11,25 +11,25 @@ to v1.5.
 
 ## Prerequisites
 
-**Terraform Version**
+### Terraform Version
 
 Use Terraform version `0.14.5` for this Orc8r upgrade.
 Current Terraform scripts are *not* compatible with Terraform `0.15.0`.
 
-**Helm Charts and Application Containers**
+### Helm Charts and Application Containers
 
 Have all application containers, and Helm charts built and published.
 These should be from the head of the release branch.
 You can follow the [Build Orchestrator](https://docs.magmacore.org/docs/orc8r/deploy_build)
 guide for instructions on this process.
 
-**Terraform State**
+### Terraform State
 
 If you are using local Terraform state (the default), ensure all Terraform
 state files are located in your working directory before proceeding.
 As a check of this, `terraform show` should list existing state, rather than outputting `No state`.
 
-**Kubernetes Cluster Access**
+### Kubernetes Cluster Access
 
 You should be able to access your Kubernetes cluster from the machine you are
 using to initiate the upgrade process through the `kubectl` CLI.
@@ -38,7 +38,7 @@ If you cannot access your Kubernetes cluster through `kubectl`, set your
 `KUBECONFIG` environment variable to point to your Orc8r cluster's kubeconfig
 file.
 
-**Kubernetes Cluster Version**
+### Kubernetes Cluster Version
 
 Have the Kubernetes version running on your cluster ready.
 This version number will be used to set `cluster_version` later on during
@@ -58,7 +58,7 @@ the left hand side of the screen. Note the `Kubernetes version` for the
 
 ## Upgrade Process
 
-#### 1. NMS DB Data Migration
+### 1. NMS DB Data Migration
 
 This process prepares your cluster for Orc8r-NMS DB unification. (In release 1.5 and going forward, the default DB type is Postgres for both NMS and Orc8r.)
 
@@ -71,15 +71,14 @@ wget https://raw.githubusercontent.com/magma/magma/master/nms/app/packages/magma
 The defaults options should likely work, unless the script cannot find the
 right pods, or you have your cluster namespaced differently.
 
-#### 2. Terraform main.tf Sanitization
+### 2. Terraform main.tf Sanitization
 
 The following variables should be removed from the main.tf Terraform file:
-```
-- nms_db_host
-- nms_db_name
-- nms_db_user
-- nms_db_pass
-```
+
+- `nms_db_host`
+- `nms_db_name`
+- `nms_db_user`
+- `nms_db_pass`
 
 If you are using a non-Postgres DB instance for your Orc8r setup, you will
 need to modify `orc8r_db_dialect`.
@@ -87,7 +86,7 @@ This variable was added in 1.5, and defaults to `postgres`.
 Common dialects will be `mysql`, `postgres`, and `mariadb`.
 See the [sequelize docs](https://sequelize.org/v5/manual/dialects.html) for a list.
 
-#### 3. Upgrade Terraform Modules
+### 3. Upgrade Terraform Modules
 
 Set the `source` values for each of the Orchestrator modules in your root
 Terraform module to point to this release's modules and bump chart and
@@ -124,7 +123,7 @@ terraform init --upgrade
 terraform refresh
 ```
 
-#### 4. Terraform Apply
+### 4. Terraform Apply
 
 Terraform the upgrade.
 
@@ -137,7 +136,7 @@ terraform apply     # Check this output VERY carefully!
 After the Terraform command completes, all application components should be
 successfully upgraded.
 
-#### 5. (Optional) Post-Upgrade: Sync Pre-defined Alerts
+### 5. (Optional) Post-Upgrade: Sync Pre-defined Alerts
 
 A new `Duplicate Request Alert` has been added, which triggers when more than
 100 alerts within the last 5 minutes have been raised.
@@ -149,19 +148,18 @@ on this process.
 
 ## Additional Details
 
-#### NMS DB Data Migration
+### NMS DB Data Migration
 
 Before upgrading Orc8r to 1.5, the NMS DB migration needs to be completed.
 This migration copies all NMS data to the same database housing Orc8r data.
 
 These NMS tables are named
-```
-- Users
-- Organizations
-- FeatureFlags
-- AuditLogEntry
-- SequelizeMeta
-```
+
+- `Users`
+- `Organizations`
+- `FeatureFlags`
+- `AuditLogEntry`
+- `SequelizeMeta`
 
 A single script is provided to perform this migration for you, and should
 tell you whether or not it was successful.
@@ -172,7 +170,7 @@ The script will ask for various inputs, and the defaults can be chosen unless
 the script fails to find certain information, such as pod names.
 It uses `kubectl` internally to run commands inside the pods.
 
-#### New Pre-defined Alerts
+### New Pre-defined Alerts
 
 "Duplicate request alert" is raised as a critical alert, when we receive more
 than 100 alerts within last 5 minutes.

@@ -34,8 +34,7 @@ using magma::lte::oai::Ngap_UeDescription;
 
 namespace magma5g {
 
-NgapStateManager::NgapStateManager()
-    : max_ues_(0), max_gnbs_(0), ngap_imsi_map_hash_(0) {}
+NgapStateManager::NgapStateManager() : max_ues_(0), max_gnbs_(0) {}
 
 NgapStateManager::~NgapStateManager() {
   free_state();

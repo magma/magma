@@ -22,6 +22,11 @@
 #include "ngap_state.h"
 struct ngap_message_s;
 
+#define FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)                             \
+  DevCheck((aSN).size == 2, (aSN).size, 0, 0);                                 \
+  DevCheck((aSN).bits_unused == 6, (aSN).bits_unused, 6, 0);                   \
+  Amf_Set_Id = (aSN.buf[0] << 2) + ((aSN.buf[1] >> 6) & 0x03);
+
 /** \brief Handle an Initial UE message.
  * \param assocId lower layer assoc id (SCTP)
  * \param stream SCTP stream on which data had been received
@@ -65,6 +70,10 @@ status_code_e ngap_amf_handle_nas_non_delivery(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
+void ngap_handle_conn_est_cnf(
+    ngap_state_t* state,
+    const Ngap_initial_context_setup_request_t* const conn_est_cnf_p);
+
 /** \brief communicates amf_ue_id to Ngap.
  * \param state ngap state
  * \param notification_p common structure for sharing msg
@@ -83,6 +92,11 @@ void ngap_handle_amf_ue_id_notification(
 status_code_e ngap_amf_handle_nas_non_delivery(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
+
+status_code_e ngap_amf_nas_pdusession_resource_setup_stream(
+    itti_ngap_pdusession_resource_setup_req_t* const
+        pdusession_resource_setup_req,
+    m5g_ue_description_t* ue_ref, bstring* stream);
 
 status_code_e ngap_generate_ngap_pdusession_resource_setup_req(
     ngap_state_t* state, itti_ngap_pdusession_resource_setup_req_t* const

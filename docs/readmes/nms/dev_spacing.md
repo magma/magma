@@ -26,4 +26,3 @@ theme.spacing(5) // = 8 * 5 (40px)
 ```
 
 With this in mind, always try and leverage the scaling system when building out components rather than using static `px` values. Reason being, in the case the scaling factor is ever changed in the future, it will automatically update across all sizing.
-

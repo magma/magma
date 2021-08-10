@@ -39,8 +39,13 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, (uint32_t) REGISTRATION_RESULT_MIN_LENGTH, len);
+  if (buffer == NULL) {
+    return TLV_BUFFER_NULL;
+  }
+
+  if (len < REGISTRATION_RESULT_MIN_LENGTH) {
+    return TLV_BUFFER_TOO_SHORT;
+  }
 
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char) m5gs_reg_result->iei);

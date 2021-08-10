@@ -204,6 +204,14 @@ router.use(
   }),
 );
 
+router.use(
+  '/magma/v1/about/version',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: (req, _res) => req.method === 'GET',
+  }),
+);
+
 router.use('', (req: FBCNMSRequest, res: ExpressResponse) => {
   if (req.user.isReadOnlyUser && MUTATORS.includes(req.method)) {
     res.status(403).send('Mutation forbidden. Readonly access');

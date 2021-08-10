@@ -21,7 +21,11 @@ from typing import Union
 import fire
 import jsonpickle
 from lte.protos.keyval_pb2 import IPDesc
-from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
+from lte.protos.oai.mme_nas_state_pb2 import (
+    MmeNasState,
+    MmeUeIpImsiMap,
+    UeContext,
+)
 from lte.protos.oai.s1ap_state_pb2 import S1apImsiMap, S1apState, UeDescription
 from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
 from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
@@ -100,6 +104,7 @@ class StateCLI(object):
         'mme_nas_state': MmeNasState,
         'spgw_state': SpgwState,
         's1ap_state': S1apState,
+        'mme_ueip_imsi_map': MmeUeIpImsiMap,
         's1ap_imsi_map': S1apImsiMap,
         'mme': UeContext,
         'spgw': SpgwUeContext,

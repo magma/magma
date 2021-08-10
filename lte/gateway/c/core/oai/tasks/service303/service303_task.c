@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 
+#include "assertions.h"
 #include "log.h"
 #include "intertask_interface.h"
 #include "common_defs.h"
@@ -70,7 +71,10 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
       handle_service303_server_message, &service303_server_task_zmq_ctx);
 
   zloop_start(service303_server_task_zmq_ctx.event_loop);
-  service303_server_exit();
+  AssertFatal(
+      0,
+      "Asserting as service303_server_thread should not be exiting on its "
+      "own!");
   return NULL;
 }
 
@@ -115,7 +119,8 @@ static void* service303_thread(void* args) {
       &service303_message_task_zmq_ctx);
   start_display_stats_timer((size_t) service303_data->stats_display_timer_sec);
   zloop_start(service303_message_task_zmq_ctx.event_loop);
-  service303_message_exit();
+  AssertFatal(
+      0, "Asserting as service303_thread should not be exiting on its own!");
   return NULL;
 }
 

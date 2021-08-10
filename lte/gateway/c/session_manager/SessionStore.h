@@ -110,7 +110,7 @@ class SessionStore {
    * storage interface.
    * @param req
    * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * for subscribers that do not have active sessions.
    */
   SessionMap read_sessions(const SessionRead& req);
 
@@ -118,7 +118,7 @@ class SessionStore {
    * Read the last written values for all existing sessions through the
    * storage interface.
    * @return Last written values for all sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * for subscribers that do not have active sessions.
    */
   SessionMap read_all_sessions();
 
@@ -157,8 +157,8 @@ class SessionStore {
    * NOTE: Here, it is expected that the caller will use one additional
    *       request_number for each session.
    * @param req
-   * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * @return Last written values for requested sessions. Returns an empty
+   * vector for subscribers that do not have active sessions.
    */
   SessionMap read_sessions_for_deletion(const SessionRead& req);
 

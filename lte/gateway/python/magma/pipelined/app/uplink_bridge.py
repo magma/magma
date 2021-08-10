@@ -22,6 +22,7 @@ from ryu.lib import hub
 
 UPLINK_OVS_BRIDGE_NAME = 'uplink_br0'
 
+
 class UplinkBridgeController(MagmaController):
     """
     This controller manages uplink bridge flows

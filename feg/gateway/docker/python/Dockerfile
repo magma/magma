@@ -11,7 +11,7 @@ RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
  apt-utils software-properties-common apt-transport-https git openjdk-8-jdk ant
 
 # Install protobuf compiler.
-RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
+RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
   unzip protoc3.zip -d protoc3 && \
   mv protoc3/bin/protoc /usr/bin/protoc && \
   chmod a+rx /usr/bin/protoc && \

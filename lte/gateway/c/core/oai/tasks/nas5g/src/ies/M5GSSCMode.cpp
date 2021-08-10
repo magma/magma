@@ -26,10 +26,9 @@ int SSCModeMsg::DecodeSSCModeMsg(
     SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  // CHECKING IEI
+  // Storing the IEI Information
   if (iei > 0) {
-    ssc_mode->iei = (*buffer & 0xf0) >> 4;
-    CHECK_IEI_ENCODER((unsigned char) iei, ssc_mode->iei);
+    ssc_mode->iei = *buffer;
     MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << hex << int(ssc_mode->iei);
     decoded++;
   }

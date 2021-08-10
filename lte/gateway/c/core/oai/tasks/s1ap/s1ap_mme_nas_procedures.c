@@ -76,6 +76,7 @@
 #include "s1ap_mme_handlers.h"
 #include "S1ap_ProtocolIE-Field.h"
 #include "s1ap_common.h"
+#include "includes/MetricsHelpers.h"
 
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;

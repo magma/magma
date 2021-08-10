@@ -24,6 +24,7 @@ extern "C" {
 #include <sstream>
 #include "lte/protos/oai/mme_nas_state.pb.h"
 #include "state_converter.h"
+#include "mme_app_ueip_imsi_map.h"
 
 /******************************************************************************
  * This is a helper class to encapsulate all functions for converting in-memory
@@ -62,6 +63,12 @@ class MmeNasStateConverter : public StateConverter {
       guti_t* guti_p, const std::string& guti_str);
 
   static char* mme_app_convert_guti_to_string(guti_t* guti_p);
+
+  static void mme_app_ueip_imsi_map_to_proto(
+      const UeIpImsiMap& ueip_map, oai::MmeUeIpImsiMap* ueip_proto);
+
+  static void mme_app_proto_to_ueip_imsi_map(
+      const oai::MmeUeIpImsiMap& ueip_proto, UeIpImsiMap& ueip_imsi_map);
 
  private:
   /***********************************************************

@@ -18,7 +18,7 @@ import "lte/protos/subscriberdb.proto";
 
 package magma.lte.subscriberdb;
 
-option go_package = "protos";
+option go_package = "magma/lte/cloud/go/services/subscriberdb/protos";
 
 // SubscriberLookup servicer provides methods for looking up a subscriber by
 // alternative identifiers.

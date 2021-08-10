@@ -151,7 +151,7 @@ TEST_F(Service303Test, test_get_service_info) {
 
 // Tests that Service303 can instrument counters and read them over gRPC.
 TEST_F(Service303Test, test_counters) {
-  service303::increment_counter("test_counter", 3, NO_LABELS);
+  increment_counter("test_counter", 3, NO_LABELS);
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily& family =
@@ -165,8 +165,7 @@ TEST_F(Service303Test, test_counters) {
 // Tests that Service303 can instrument gauges and read them over gRPC.
 TEST_F(Service303Test, test_gauges) {
   // Increment gauge with labels
-  service303::increment_gauge(
-      "test_gauge", 3, 2, "key", "value", "test", "test");
+  increment_gauge("test_gauge", 3, 2, "key", "value", "test", "test");
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily* family =
@@ -177,7 +176,7 @@ TEST_F(Service303Test, test_gauges) {
   EXPECT_EQ(metric->label().size(), 2);
 
   // Increment another gauge
-  service303::increment_gauge("test_gauge", 3, NO_LABELS);
+  increment_gauge("test_gauge", 3, NO_LABELS);
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
@@ -185,7 +184,7 @@ TEST_F(Service303Test, test_gauges) {
   EXPECT_EQ(gauge->value(), 3);
 
   // Decrement back to zero
-  service303::decrement_gauge("test_gauge", 3, NO_LABELS);
+  decrement_gauge("test_gauge", 3, NO_LABELS);
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
@@ -193,7 +192,7 @@ TEST_F(Service303Test, test_gauges) {
   EXPECT_EQ(gauge->value(), 0);
 
   // Set the gauge to 10
-  service303::set_gauge("test_gauge", 10, NO_LABELS);
+  set_gauge("test_gauge", 10, NO_LABELS);
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
@@ -204,7 +203,7 @@ TEST_F(Service303Test, test_gauges) {
 // Tests that Service303 can instrument histograms and read them over gRPC.
 TEST_F(Service303Test, test_histograms) {
   // First observation in a histogram without buckets
-  service303::observe_histogram("test_hist", 3, NO_LABELS, NO_BOUNDARIES);
+  observe_histogram("test_hist", 3, NO_LABELS, NO_BOUNDARIES);
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily* family =
@@ -222,7 +221,7 @@ TEST_F(Service303Test, test_histograms) {
 
   // Adding another observation with buckets won't add another metric or
   // more buckets but it will add another observation to the metric
-  service303::observe_histogram("test_hist", 7, NO_LABELS, 3, 1, 10, 100);
+  observe_histogram("test_hist", 7, NO_LABELS, 3, 1, 10, 100);
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_hist");
   EXPECT_EQ(family->name(), "test_hist");
@@ -238,8 +237,7 @@ TEST_F(Service303Test, test_histograms) {
 
   // Since we define a new metric using labels, it should construct with the
   // boundary definitions
-  service303::observe_histogram(
-      "test_hist", 50, 1, "key", "value", 3, 1., 10., 100.);
+  observe_histogram("test_hist", 50, 1, "key", "value", 3, 1., 10., 100.);
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_hist");
   EXPECT_EQ(family->metric().size(), 2);
@@ -305,7 +303,7 @@ TEST_F(Service303Test, test_memory_metrics) {
 TEST_F(Service303Test, test_enum_conversions) {
   // enum values (from metricsd.proto):
   // s1_setup => 500, result => 0
-  service303::increment_counter(
+  increment_counter(
       "mme_new_association", 3, 2, "result", "success", "gateway", "1234");
 
   MetricsContainer metrics_container;

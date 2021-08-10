@@ -31,6 +31,7 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     OffendingIE,
+    PdrState,
     RequestOriginType,
     RuleModResult,
     SessionSet,
@@ -220,8 +221,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")
             deactivate_req = get_deactivate_req(request)
-            self._loop.call_soon_threadsafe(self._deactivate_flows,
-                                            deactivate_req)
+            self._loop.call_soon_threadsafe(
+                self._deactivate_flows,
+                deactivate_req,
+            )
             return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
@@ -283,6 +286,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
             if request.request_origin.type == RequestOriginType.GX:
+                self._update_version(request, ipv4)
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
@@ -291,6 +295,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
             if request.request_origin.type == RequestOriginType.GX:
+                self._update_version(request, ipv6)
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
@@ -306,6 +311,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _install_flows_gx(
         self, request: ActivateFlowsRequest,
         ip_address: IPAddress,
+        local_f_teid_ng: int = 0,
     ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
@@ -315,11 +321,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GX flows for %s', request.sid.id)
-        self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies,
+            request.policies, request.shard_id, local_f_teid_ng,
         )
 
         failed_policies_results = \
@@ -330,7 +335,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         enforcement_res = self._activate_rules_in_enforcement(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            policies,
+            policies, request.shard_id, local_f_teid_ng,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -355,7 +360,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies,
+            request.policies, request.shard_id,
         )
 
         failed_policies_results = \
@@ -367,7 +372,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         gy_res = self._activate_rules_in_gy(
             request.sid.id, request.msisdn, request.uplink_tunnel,
             ip_address, request.apn_ambr,
-            policies,
+            policies, request.shard_id,
         )
 
         # Include the failed rules from enforcement_stats in the response.
@@ -381,6 +386,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
+        shard_id: int,
+        local_f_teid_ng: int = 0,
     ) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME,
@@ -388,22 +395,26 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id, local_f_teid_ng,
         )
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
     def _activate_rules_in_enforcement(
-        self, imsi: str, msisdn: bytes,
+        self, imsi: str,
+        msisdn: bytes,
         uplink_tunnel: int,
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
+        shard_id: int,
+        local_f_teid_ng: int = 0,
     ) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
+            shard_id, local_f_teid_ng,
         )
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
@@ -415,11 +426,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ip_addr: IPAddress,
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
+        shard_id: int,
     ) -> ActivateFlowsResult:
         gy_res = self._gy_app.activate_rules(
             imsi, msisdn, uplink_tunnel,
             ip_addr, apn_ambr,
-            policies,
+            policies, shard_id, 0,
         )
         # TODO: add metrics
         return gy_res
@@ -489,7 +501,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             )
             if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
                 self._loop.call_soon_threadsafe(
-                    self._ipfix_app.delete_ue_sample_flow, request.sid.id
+                    self._ipfix_app.delete_ue_sample_flow, request.sid.id,
                 )
 
         rule_ids = [policy.rule_id for policy in request.policies]
@@ -841,11 +853,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         table_assignments = self._service_manager.get_all_table_assignments()
         return AllTableAssignments(
             table_assignments=[
-            TableAssignment(
-                app_name=app_name, main_table=tables.main_table,
-                scratch_tables=tables.scratch_tables,
-            ) for
-            app_name, tables in table_assignments.items()
+                TableAssignment(
+                    app_name=app_name, main_table=tables.main_table,
+                    scratch_tables=tables.scratch_tables,
+                ) for
+                app_name, tables in table_assignments.items()
             ],
         )
 
@@ -877,6 +889,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Setup the 5G Session flows for the subscriber
         """
+        self._log_grpc_payload(request)
+
         # if 5G Services are not enabled return UNAVAILABLE
         if not self._service_manager.is_ng_app_enabled(
                 NGServiceController.APP_NAME,
@@ -886,7 +900,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return UPFSessionContextState()
 
         fut = Future()
-        self._log_grpc_payload(request)
         self._loop.call_soon_threadsafe(\
                       self.ng_update_session_flows, request, fut,
         )
@@ -907,27 +920,39 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             'Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
             request.subscriber_id, request.session_version,
         )
-
         # Convert message containing PDR to Named Tuple Rules.
         process_pdr_rules = OrderedDict()
-        response = self._ng_servicer_app.ng_session_message_handler(request, process_pdr_rules)
+        response = self._ng_servicer_app.ng_session_message_handler(
+            request,
+            process_pdr_rules,
+        )
 
         # Failure in message processing return failure
         if response.cause_info.cause_ie == CauseIE.REQUEST_ACCEPTED:
             for _, pdr_entries in process_pdr_rules.items():
                 # Create the Tunnel
-                ret = self._ng_tunnel_update(pdr_entries, request.subscriber_id)
-                if ret == False:
+                ret = self._ng_tunnel_update(
+                    pdr_entries,
+                    request.subscriber_id,
+                )
+                if ret:
+                    # Install the Rules
+                    failed_policy_rule_results =\
+                            self._ng_qer_update(request, pdr_entries)
+
+                if (not ret or failed_policy_rule_results):
                     offending_ie = OffendingIE(
                         identifier=pdr_entries.pdr_id,
                         version=pdr_entries.pdr_version,
+                        qos_enforce_rule_results=ActivateFlowsResult(\
+                                               policy_results=[failed_policy_rule_results],
+                        ),
                     )
 
                     # Session information is filled already
                     response.cause_info.cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
                     response.failure_rule_id.pdr.extend([offending_ie])
                     break
-
         fut.set_result(response)
 
     def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
@@ -937,7 +962,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             pdr_entry.precedence,
             pdr_entry.local_f_teid,
             pdr_entry.far_action.o_teid,
-            pdr_entry.ue_ip_addr,
+            convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr),
             pdr_entry.far_action.gnb_ip_addr,
             encode_imsi(subscriber_id),
             True,
@@ -956,7 +981,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
-                EnforcementController.APP_NAME):
+                EnforcementController.APP_NAME,
+        ):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
@@ -969,6 +995,148 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         except concurrent.futures.TimeoutError:
             logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
+
+    def _ng_qer_update(
+        self, request: SessionSet, pdr_entry: PDRRuleEntry,
+    ) -> Tuple[List[RuleModResult], List[RuleModResult]]:
+        enforcement_res = []
+        failed_policy_rules_results = []
+
+        session_version = request.session_version
+        local_f_teid_ng = request.local_f_teid
+
+        # PDR is deleted with ActiveRules or DelActive rules recieved
+        if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
+            qos_enforce_rule = pdr_entry.del_qos_enforce_rule
+            if qos_enforce_rule.ip_addr:
+                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+                self._ng_deactivate_qer_flows(
+                    ipv4, local_f_teid_ng,
+                    qos_enforce_rule, session_version,
+                )
+            if qos_enforce_rule.ipv6_addr:
+                ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
+                self._ng_deactivate_qer_flows(
+                    ipv6, local_f_teid_ng,
+                    qos_enforce_rule, session_version,
+                )
+
+        elif pdr_entry.pdr_state == PdrState.Value('IDLE'):
+            qos_enforce_rule = pdr_entry.add_qos_enforce_rule
+            if qos_enforce_rule.ip_addr:
+                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+                self._ng_inactivate_qer_flows(ipv4, qos_enforce_rule, session_version)
+            if qos_enforce_rule.ipv6_addr:
+                ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
+                self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule, session_version)
+
+        # Install PDR rules
+        elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+            qos_enforce_rule = pdr_entry.add_qos_enforce_rule
+            if qos_enforce_rule.ip_addr:
+                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+
+                enforcement_res = \
+                      self._ng_activate_qer_flow(
+                          ipv4, local_f_teid_ng,
+                          qos_enforce_rule, session_version,
+                      )
+                failed_policy_rules_results = \
+                    _retrieve_failed_results(enforcement_res)
+
+            if qos_enforce_rule.ipv6_addr:
+                ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
+                enforcement_res = \
+                      self._ng_activate_qer_flow(
+                          ipv6, local_f_teid_ng,
+                          qos_enforce_rule, session_version,
+                      )
+                failed_policy_rules_results = \
+                    _retrieve_failed_results(enforcement_res)
+
+        return failed_policy_rules_results
+
+    def _ng_inactivate_qer_flows(
+        self, ip: IPAddress, qos_enforce_rule: ActivateFlowsRequest,
+        session_version,
+    ):
+
+        self._ng_update_version(
+            qos_enforce_rule.sid.id, qos_enforce_rule,
+            ip, session_version,
+        )
+
+        rule_ids = [policy.rule.id for policy in qos_enforce_rule.policies]
+
+        if rule_ids:
+            self._enforcer_app.deactivate_rules(
+                qos_enforce_rule.sid.id, ip,
+                rule_ids,
+            )
+
+    def _ng_activate_qer_flow(
+        self, ip: IPAddress, local_f_teid_ng,
+        qos_enforce_rule: ActivateFlowsRequest, session_version,
+    ):
+
+        self._ng_update_version(
+            qos_enforce_rule.sid.id, qos_enforce_rule,
+            ip, session_version,
+        )
+        enforcement_res = self._install_flows_gx(qos_enforce_rule, ip, local_f_teid_ng)
+        return enforcement_res
+
+    def _ng_deactivate_qer_flows(
+        self, ip: IPAddress, local_f_teid_ng,
+        qos_enforce_rule: DeactivateFlowsRequest, session_version,
+    ):
+        logging.debug('Deactivating N4 flows for %s', qos_enforce_rule.sid.id)
+
+        rule_ids = []
+        rule_ids = [policy.rule_id for policy in qos_enforce_rule.policies]
+
+        self._ng_remove_version(
+            qos_enforce_rule.sid.id, qos_enforce_rule,
+            ip, session_version,
+        )
+
+        self._enforcement_stats.deactivate_default_flow(
+            qos_enforce_rule.sid.id, ip,
+            local_f_teid_ng,
+        )
+
+        if rule_ids:
+            self._enforcer_app.deactivate_rules(
+                qos_enforce_rule.sid.id, ip,
+                rule_ids,
+            )
+
+    def _ng_update_version(
+        self, imsi: str, request: ActivateFlowsRequest,
+        ip: IPAddress, session_version: int,
+    ):
+        """
+        Update 5G version for a given subscriber as QOS is installed.
+        """
+        for policy in request.policies:
+            self._service_manager.session_rule_version_mapper.save_version(
+                           imsi, ip, policy.rule.id, session_version,
+            )
+
+    def _ng_remove_version(
+        self, imsi: str, request: DeactivateFlowsRequest,
+        ip: IPAddress, session_version: int,
+    ):
+        """
+        Remove 5G version for a given subscriber as QOS is installed.
+        """
+        for policy in request.policies:
+            self._service_manager.session_rule_version_mapper \
+                .remove(
+                    imsi, ip,
+                    policy.rule_id, session_version,
+                )
+
 
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
@@ -1024,7 +1192,7 @@ def _report_enforcement_stats_failures(
 
 def get_deactivate_req(request: ActivateFlowsRequest):
     versioned_policy_ids = [
-        VersionedPolicyID(rule_id = p.rule.id, version=p.version) for
+        VersionedPolicyID(rule_id=p.rule.id, version=p.version) for
         p in request.policies
     ]
     return DeactivateFlowsRequest(
@@ -1035,5 +1203,5 @@ def get_deactivate_req(request: ActivateFlowsRequest):
         remove_default_drop_flows=True,
         uplink_tunnel=request.uplink_tunnel,
         downlink_tunnel=request.downlink_tunnel,
-        policies=versioned_policy_ids
+        policies=versioned_policy_ids,
     )

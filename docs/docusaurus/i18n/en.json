@@ -44,6 +44,9 @@
       "cwf/deploy_intro": {
         "title": "Introduction"
       },
+      "cwf/dev_testing": {
+        "title": "Test CWAG"
+      },
       "cwf/healthchecker": {
         "title": "Health Checker",
         "sidebar_label": "Health Checker"
@@ -51,8 +54,14 @@
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
       },
+      "docs/docs_overview": {
+        "title": "Documentation Overview"
+      },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
+      },
+      "feg/architecture_overview": {
+        "title": "Overview"
       },
       "feg/debug_cli": {
         "title": "FeG CLI"
@@ -74,16 +83,6 @@
       },
       "feg/docker_setup": {
         "title": "FeG Docker Setup"
-      },
-      "feg/legacy/docker_setup": {
-        "title": "FeG Docker Setup"
-      },
-      "feg/legacy/faq": {
-        "title": "FAQ"
-      },
-      "feg/legacy/readme": {
-        "title": "Federated Gateway (FeG)",
-        "sidebar_label": "Overview"
       },
       "feg/session_proxy": {
         "title": "feg/session_proxy"
@@ -167,7 +166,7 @@
         "title": "Developer Notes"
       },
       "lte/dev_unit_testing": {
-        "title": "Unit Testing"
+        "title": "Test AGW"
       },
       "lte/eventd": {
         "title": "Event Reporting"
@@ -253,6 +252,9 @@
       "nms/dev_spacing": {
         "title": "Spacing Guidelines"
       },
+      "nms/dev_testing": {
+        "title": "Test NMS"
+      },
       "nms/dev_themes": {
         "title": "Themes"
       },
@@ -261,9 +263,6 @@
       },
       "nms/federation": {
         "title": "Federation"
-      },
-      "nms/legacy/grafana": {
-        "title": "Custom Grafana Dashboards"
       },
       "nms/metrics": {
         "title": "Metrics"
@@ -328,35 +327,17 @@
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
+      "orc8r/dev_rest_api": {
+        "title": "REST API"
+      },
       "orc8r/dev_security": {
         "title": "Security"
       },
+      "orc8r/dev_sub_digests": {
+        "title": "Subscriber Digests"
+      },
       "orc8r/dev_testing": {
         "title": "Test Orchestrator"
-      },
-      "orc8r/legacy/docker_setup": {
-        "title": "Docker Setup"
-      },
-      "orc8r/legacy/generic_commands": {
-        "title": "Using the generic command framework",
-        "sidebar_label": "Generic commands framework"
-      },
-      "orc8r/legacy/nms_setup": {
-        "title": "Setting up the NMS"
-      },
-      "orc8r/legacy/packer": {
-        "title": "Packer Build"
-      },
-      "orc8r/legacy/remote_cli": {
-        "title": "Orchestrator Remote CLI - Creating commands guide",
-        "sidebar_label": "Orchestrator Remote CLI"
-      },
-      "orc8r/legacy/rest_apis": {
-        "title": "Swagger UI for REST APIs"
-      },
-      "orc8r/legacy/testing": {
-        "title": "Testing in Orchestrator",
-        "sidebar_label": "Testing"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
@@ -406,8 +387,8 @@
       "proposals/p008_inbound_roaming_with_SubscriberDb": {
         "title": "Header enrichment"
       },
-      "proposals/p008_mandatory_integration_tests_for_each_PR": {
-        "title": "proposals/p008_mandatory_integration_tests_for_each_PR"
+      "proposals/p006_mandatory_integration_tests_for_each_PR.md": {
+        "title": "Enable integration tests as a mandatory check required to merge any PR"
       },
       "proposals/p009_nms_mariadb_migration": {
         "title": "NMS MariaDB Migration"
@@ -450,9 +431,6 @@
       },
       "proposals/README": {
         "title": "proposals/README"
-      },
-      "proposals/proposal_template": {
-        "title": "Title of Design Doc"
       },
       "resources/ref_magma_metrics": {
         "title": "Life of a Magma Metric"

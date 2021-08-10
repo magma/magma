@@ -31,11 +31,14 @@ import (
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/mproto"
 	"magma/orc8r/cloud/go/services/configurator"
+	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/sqorc"
+	storage2 "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,6 +54,8 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
 	}
+	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subStore.Initialize())
 
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -64,11 +69,15 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	perSubDigests, err := perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.Empty(t, perSubDigests)
+	subProtos, nextToken, err := subStore.GetSubscribersPage("n1", "", 100)
+	assert.NoError(t, err)
+	assert.Empty(t, subProtos)
+	assert.Empty(t, nextToken)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
 	assert.NoError(t, err)
 	digest, err = storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
@@ -76,6 +85,10 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.Empty(t, perSubDigests)
+	subProtos, nextToken, err = subStore.GetSubscribersPage("n1", "", 100)
+	assert.NoError(t, err)
+	assert.Empty(t, subProtos)
+	assert.Empty(t, nextToken)
 	digestExpected := digest
 
 	// Detect outdated digests and update
@@ -104,7 +117,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
 	assert.NoError(t, err)
 	digest, err = storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
@@ -141,13 +154,21 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.True(t, strings.HasPrefix(perSubDigests[1].Digest.GetMd5Base64Digest(), expectedDigestPrefix2))
 	clock.UnfreezeClock(t)
 
+	subProtos, nextToken, err = subStore.GetSubscribersPage("n1", "", 2)
+	assert.NoError(t, err)
+	assert.Len(t, subProtos, 2)
+	assert.True(t, proto.Equal(sub1, subProtos[0]))
+	assert.True(t, proto.Equal(sub2, subProtos[1]))
+	expectedNextToken := getTokenByLastIncludedEntity(t, "IMSI99999")
+	assert.Equal(t, expectedNextToken, nextToken)
+
 	// Detect newly added and removed networks
 	err = configurator.CreateNetwork(configurator.Network{ID: "n2"}, serdes.Network)
 	assert.NoError(t, err)
 	configurator.DeleteNetwork("n1")
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(20*time.Minute))
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
 	assert.NoError(t, err)
 	digest, err = storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
@@ -155,16 +176,108 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.Empty(t, perSubDigests)
+	subProtos, nextToken, err = subStore.GetSubscribersPage("n1", "", 100)
+	assert.NoError(t, err)
+	assert.Empty(t, subProtos)
+	assert.Empty(t, nextToken)
 
 	digest, err = storage.GetDigest(digestStore, "n2")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, digest)
-	perSubDigests, err = perSubDigestStore.GetDigest("n1")
+	perSubDigests, err = perSubDigestStore.GetDigest("n2")
 	assert.NoError(t, err)
 	assert.Empty(t, perSubDigests)
+	subProtos, nextToken, err = subStore.GetSubscribersPage("n2", "", 100)
+	assert.NoError(t, err)
+	assert.Empty(t, subProtos)
+	assert.Empty(t, nextToken)
 
 	allNetworks, err = storage.GetAllNetworks(digestStore)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"n2"}, allNetworks)
 	clock.UnfreezeClock(t)
+}
+
+// TestUpdateSubProtosByNetworkNoChange checks that, given there's no error in
+// digest generation for the network, subscribers cache is only updated when
+// the newly generated flat digest is different from the previous digest.
+func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
+	db, err := test_utils.GetSharedMemoryDB()
+	assert.NoError(t, err)
+	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, digestStore.Initialize())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	perSubDigestStore := storage.NewPerSubDigestStore(fact)
+	serviceConfig := subscriberdb_cache.Config{
+		SleepIntervalSecs:  5,
+		UpdateIntervalSecs: 300,
+	}
+	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subStore.Initialize())
+
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: "apn1", Config: &lte_models.ApnConfiguration{}},
+			{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+			{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+			{Type: lte.SubscriberEntityType, Key: "IMSI00003", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	assert.NoError(t, err)
+	_, err = subscriberdb.GetDigest("n1")
+	assert.NoError(t, err)
+	page, _, err := subStore.GetSubscribersPage("n1", "", 3)
+	assert.NoError(t, err)
+	assert.Len(t, page, 3)
+	assert.True(t, proto.Equal(subProtoFromID("IMSI00001"), page[0]))
+	assert.True(t, proto.Equal(subProtoFromID("IMSI00002"), page[1]))
+	assert.True(t, proto.Equal(subProtoFromID("IMSI00003"), page[2]))
+
+	// If the generated flat digest matches the one in store, the update for subStore wouldn't be triggered
+	err = configurator.DeleteEntities(
+		"n1",
+		storage2.MakeTKs(lte.SubscriberEntityType, []string{"IMSI00001", "IMSI00002", "IMSI00003"}),
+	)
+	assert.NoError(t, err)
+	newDigest, err := subscriberdb.GetDigest("n1")
+	assert.NoError(t, err)
+	err = digestStore.SetDigest("n1", newDigest)
+	assert.NoError(t, err)
+
+	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	assert.NoError(t, err)
+	page, _, err = subStore.GetSubscribersPage("n1", "", 3)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, page)
+}
+
+func getTokenByLastIncludedEntity(t *testing.T, sid string) string {
+	token := &configurator_storage.EntityPageToken{
+		LastIncludedEntity: sid,
+	}
+	encoded, err := configurator_storage.SerializePageToken(token)
+	assert.NoError(t, err)
+	return encoded
+}
+
+func subProtoFromID(sid string) *lte_protos.SubscriberData {
+	subProto := &lte_protos.SubscriberData{
+		Sid:        lte_protos.SidFromString(sid),
+		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
+		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+		NetworkId:  &protos.NetworkID{Id: "n1"},
+		SubProfile: "default",
+	}
+	return subProto
 }

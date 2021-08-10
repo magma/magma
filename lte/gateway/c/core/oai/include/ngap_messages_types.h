@@ -82,6 +82,8 @@ typedef uint32_t teid_t;
 #define NGAP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.ngap_nas_dl_data_req
 #define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR)                                 \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_req
+#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                                 \
+  (mSGpTR)->ittiMsg.ngap_initial_context_setup_rsp
 #define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
 #define NGAP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.ngap_path_switch_request
@@ -184,6 +186,7 @@ typedef struct itti_ngap_gnb_initiated_reset_ack_s {
 enum Ngcause {
   NGAP_INVALID_CAUSE = 0,
   NGAP_NAS_NORMAL_RELEASE,
+  NGAP_NAS_AUTHENTICATION_FAILURE,
   NGAP_NAS_DEREGISTER,
   NGAP_RADIO_NR_GENERATED_REASON,
   NGAP_IMPLICIT_CONTEXT_RELEASE,
@@ -192,7 +195,8 @@ enum Ngcause {
   NGAP_INITIAL_CONTEXT_SETUP_TMR_EXPRD,
   NGAP_INVALID_GNB_ID,
   NGAP_CSFB_TRIGGERED,
-  NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS
+  NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  NGAP_USER_INACTIVITY
 };
 typedef struct itti_ngap_ue_context_release_command_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
@@ -211,7 +215,6 @@ typedef struct itti_ngap_ue_context_release_req_s {
   ue_context_pduSession_t pduSession;
   uint32_t gnb_id;
   enum Ngcause relCause;
-  Ngap_Cause_t cause;
 } itti_ngap_ue_context_release_req_t;
 
 typedef struct itti_ngap_dl_nas_data_req_s {
@@ -238,6 +241,10 @@ typedef struct itti_ngap_paging_request_s {
 
 } itti_ngap_paging_request_t;
 
+typedef enum m5g_uecontextrequest {  // ue context requested supported enum
+  M5G_UEContextRequest_requested = 1,
+} m5g_uecontextrequest_t;
+
 typedef struct itti_ngap_initial_ue_message_s {
   sctp_assoc_id_t sctp_assoc_id;  // key stored in AMF_APP for AMF_APP forward
                                   // NAS response to NGAP
@@ -250,7 +257,8 @@ typedef struct itti_ngap_initial_ue_message_s {
   ecgi_t ecgi; /* Indicating the cell from which the UE has sent the NAS
                   message. */
   m5g_rrc_establishment_cause_t
-      m5g_rrc_establishment_cause; /* Establishment cause */
+      m5g_rrc_establishment_cause;           /* Establishment cause */
+  m5g_uecontextrequest_t ue_context_request; /* UeContextRequest */
   bool is_s_tmsi_valid;
   bool is_csg_id_valid;
   bool is_guamfi_valid;

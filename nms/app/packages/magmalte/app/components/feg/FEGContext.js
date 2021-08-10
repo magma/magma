@@ -17,6 +17,7 @@
 import * as React from 'react';
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGNetworkContext from '../context/FEGNetworkContext';
+import FEGSubscriberContext from '../context/FEGSubscriberContext';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
@@ -28,9 +29,14 @@ import type {
   gateway_id,
   network_id,
   network_type,
+  subscriber_state,
 } from '@fbcnms/magma-api';
 
-import {InitGatewayState} from '../../state/feg/EquipmentState';
+import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
+import {
+  InitGatewayState,
+  SetGatewayState,
+} from '../../state/feg/EquipmentState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -40,6 +46,53 @@ type Props = {
   networkType: network_type,
   children: React.Node,
 };
+
+/**
+ * Fetches and saves the subscriber session states of networks
+ * serviced by this federation network and whose subscriber
+ * information is not managed by the HSS.
+ *
+ * @param {network_id} networkId Id of the network
+ * @param {network_type} networkType Type of the network
+ */
+export function FEGSubscriberContextProvider(props: Props) {
+  const {networkId} = props;
+  const [sessionState, setSessionState] = useState<{
+    [networkId: network_id]: {[string]: subscriber_state},
+  }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  useEffect(() => {
+    const fetchFegState = async () => {
+      if (networkId == null) {
+        return;
+      }
+      const sessionState = await FetchFegSubscriberState({
+        networkId,
+        enqueueSnackbar,
+      });
+      setSessionState(sessionState);
+      setIsLoading(false);
+    };
+    fetchFegState();
+  }, [networkId, enqueueSnackbar]);
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <FEGSubscriberContext.Provider
+      value={{
+        sessionState: sessionState,
+        setSessionState: newSessionState => {
+          return setSessionState(newSessionState);
+        },
+      }}>
+      {props.children}
+    </FEGSubscriberContext.Provider>
+  );
+}
 
 /**
  * Fetches and returns the federation gateways, their health status and
@@ -81,6 +134,20 @@ export function FEGGatewayContextProvider(props: Props) {
     <FEGGatewayContext.Provider
       value={{
         state: fegGateways,
+        setState: (key, value?, newState?) => {
+          return SetGatewayState({
+            networkId,
+            fegGateways,
+            fegGatewaysHealthStatus,
+            setFegGateways,
+            setFegGatewaysHealthStatus,
+            setActiveFegGatewayId,
+            key,
+            value,
+            newState,
+            enqueueSnackbar,
+          });
+        },
         health: fegGatewaysHealthStatus,
         activeFegGatewayId,
       }}>
@@ -145,9 +212,11 @@ export function FEGContextProvider(props: Props) {
 
   return (
     <FEGNetworkContextProvider {...{networkId, networkType}}>
-      <FEGGatewayContextProvider {...{networkId, networkType}}>
-        {props.children}
-      </FEGGatewayContextProvider>
+      <FEGSubscriberContextProvider {...{networkId, networkType}}>
+        <FEGGatewayContextProvider {...{networkId, networkType}}>
+          {props.children}
+        </FEGGatewayContextProvider>
+      </FEGSubscriberContextProvider>
     </FEGNetworkContextProvider>
   );
 }

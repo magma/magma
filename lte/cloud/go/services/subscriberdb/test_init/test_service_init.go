@@ -34,6 +34,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	// testMaxProtosLoadSize is the maxProtosLoadSize used in a test
+	// subscriberdb service.
+	testMaxProtosLoadSize = 10
+)
+
 func StartTestService(t *testing.T) {
 	// Create service
 	labels := map[string]string{
@@ -57,16 +63,22 @@ func StartTestService(t *testing.T) {
 	perSubDigestFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, perSubDigestFact.InitializeFactory())
 	perSubDigestStore := storage.NewPerSubDigestStore(perSubDigestFact)
+	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subStore.Initialize())
+	lastResyncTimeFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.LastResyncTimeTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, lastResyncTimeFact.InitializeFactory())
+	lastResyncTimeStore := storage.NewLastResyncTimeStore(perSubDigestFact)
 
 	// Load service configs
 	var serviceConfig subscriberdb.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
+	serviceConfig.MaxProtosLoadSize = testMaxProtosLoadSize
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore, subStore, lastResyncTimeStore))
 
 	// Run service
 	go srv.RunTest(lis)

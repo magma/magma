@@ -234,7 +234,7 @@ class Classifier(MagmaController):
         )
         future.add_done_callback(
                               lambda future: self.loop.call_soon_threadsafe(
-                              self._paging_msg_sent_callback, future,
+                                  self._paging_msg_sent_callback, future,
                               ),
         )
 
@@ -642,14 +642,15 @@ class Classifier(MagmaController):
             ),
         ]
 
-        flows.add_output_flow(
-            self._datapath, self.tbl_num,
-            match=match, actions=actions,
-            priority=Utils.PAGING_RULE_PRIORITY,
-            cookie=local_f_teid,
-            output_port=ofproto.OFPP_CONTROLLER,
-            max_len=ofproto.OFPCML_NO_BUFFER,
-        )
+        if local_f_teid:
+            flows.add_output_flow(
+                self._datapath, self.tbl_num,
+                match=match, actions=actions,
+                priority=Utils.PAGING_RULE_PRIORITY,
+                cookie=local_f_teid,
+                output_port=ofproto.OFPP_CONTROLLER,
+                max_len=ofproto.OFPCML_NO_BUFFER,
+            )
         return True
 
     def remove_paging_flow(self, ue_ip_addr: IPAddress):
@@ -719,6 +720,9 @@ class Classifier(MagmaController):
             session_state == PdrState.Value('INSTALL')
             or session_state == UESessionState.ACTIVE
         ):
+            # TODO: Will make same priority value for paging as active session
+            # then probably not required remove_paging_flow call.
+            self.remove_paging_flow(ue_ip_addr)
             self.add_tunnel_flows(
                 precedence, local_f_teid,
                 o_teid, ue_ip_addr,
