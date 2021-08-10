@@ -117,7 +117,7 @@ def cpp_redis():
         build_file = "//third_party:cpp_redis.BUILD",
     )
 
-def glog():
+def gflags():
     http_archive(
         name = "com_github_gflags_gflags",
         sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
@@ -125,9 +125,11 @@ def glog():
         urls = ["https://github.com/gflags/gflags/archive/v2.2.2.tar.gz"],
     )
 
+def glog():
     http_archive(
         name = "com_github_google_glog",
-        sha256 = "21bc744fb7f2fa701ee8db339ded7dce4f975d0d55837a97be7d46e8382dea5a",
-        strip_prefix = "glog-0.5.0",
-        urls = ["https://github.com/google/glog/archive/v0.5.0.zip"],
+        strip_prefix = "glog-0.4.0",
+        urls = [
+            "https://github.com/google/glog/archive/v0.4.0.tar.gz",
+        ],
     )

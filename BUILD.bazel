@@ -54,17 +54,24 @@ cmake(
         "LIBFMT_LIBRARY": "$EXT_BUILD_DEPS/lib/liblibfmt.a",
     },
     lib_source = "@folly//:all_srcs",
+    linkopts = [
+        "-ldl",
+        "-levent",
+        "-ldouble-conversion",
+        "-liberty",
+    ],
 
     # We are selecting the resulting static library to be passed in C/C++ provider
     # as the result of the build;
-    # However, the cmake_external dependants could use other artefacts provided by the build,
+    # However, the cmake_external dependants could use other artifacts provided by the build,
     # according to their CMake script
     out_static_libs = ["libfolly.a"],
     deps = [
         "@com_github_google_glog//:glog",
         "@com_github_gflags_gflags//:gflags",
-        "@com_github_fmtlib_fmt//:libfmt",
-        # TODO(@themarwhal) should be able to load boost as deps.. Getting complaints about finding
+        "@fmt//:libfmt",
+        #"@double-conversion",
+        # TODO(@themarwhal) should be able to load boost as deps.. Getting complaints about finding the sublibraries
         # "@boost//:context",
         # "@boost//:filesystem",
         # "@boost//:program_options",

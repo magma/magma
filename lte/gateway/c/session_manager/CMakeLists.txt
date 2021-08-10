@@ -87,11 +87,6 @@ generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 
 set(SMGR_CWF_CPP_PROTOS accounting context)
 
-message("SMGR_CWF_CPP_PROTOS: ${SMGR_CWF_CPP_PROTOS}")
-message("PROTO_SRCS: ${PROTO_SRCS}")
-message("PROTO_HDRS: ${PROTO_HDRS}")
-message("CWF_PROTO_DIR: ${CWF_PROTO_DIR}")
-message("CWF_CPP_OUT_DIR: ${CWF_CPP_OUT_DIR}")
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
