@@ -322,7 +322,7 @@ void _copy_plmn(const served_tai_t served_tai, plmn_t* plmn, uint8_t idx) {
   }
 }
 
-void _create_partial_lists(mme_config_t* config_pP) {
+void create_partial_lists(mme_config_t* config_pP) {
   uint8_t elem_idx = 0, list_idx = 0;
   /* Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
    * add the TAIs to a new partial list
@@ -922,7 +922,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       /* helper for creating multiple partial lists and determination of list
        * type
        */
-      _create_partial_lists(config_pP);
+      create_partial_lists(config_pP);
     }
 
     // GUMMEI SETTING

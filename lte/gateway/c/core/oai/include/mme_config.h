@@ -454,7 +454,7 @@ void mme_config_init(mme_config_t*);
 int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 int mme_config_parse_file(mme_config_t*);
 void mme_config_display(mme_config_t*);
-
+void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \
