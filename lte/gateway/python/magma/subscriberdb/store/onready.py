@@ -48,20 +48,19 @@ class OnDataReady:
 
 class OnDigestsReady:
     """
-    A thread-safe Event mixin interface for triggering a ready event
-    when per-subscriber digests are resynced in the store. Routines can wait on
-    the _ready_ event to block until a flat digest or a per-subscriber digests
-    datastore update is triggered.
+    A thread-safe Event mixin interface for triggering a ready event when
+    digests are resynced in the store. Routines can wait on the _ready_ event
+    to block until a digest datastore update is triggered.
     """
 
     def __init__(self, loop=None):
         self.loop = loop if loop else asyncio.new_event_loop()
         self.event = asyncio.Event(loop=self.loop)
 
-    def update_digest(self, _):
+    def update_root_digest(self, _):
         self.loop.call_soon_threadsafe(self.trigger_ready)
 
-    def update_per_sub_digests(self, _):
+    def update_leaf_digests(self, _):
         self.loop.call_soon_threadsafe(self.trigger_ready)
 
     def trigger_ready(self):

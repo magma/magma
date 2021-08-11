@@ -139,6 +139,10 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 		return nil, err
 	}
 
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
 	whereCondition := getWhereCondition(networkID, ids)
 	rows, err := store.builder.Select(typeCol, keyCol, valCol, verCol).From(store.tableName).
 		Where(whereCondition).
@@ -297,6 +301,10 @@ func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter)
 func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	if err := store.validateTx(); err != nil {
 		return err
+	}
+
+	if len(ids) == 0 {
+		return nil
 	}
 
 	whereCondition := getWhereCondition(networkID, ids)

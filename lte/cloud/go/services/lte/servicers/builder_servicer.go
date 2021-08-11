@@ -667,6 +667,5 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 // herd effect at the Orc8r.
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
-	jitter := math.JitterUint32(syncInterval, gwKey, 0.2)
-	return syncInterval + jitter
+	return math.JitterUint32(syncInterval, gwKey, 0.2)
 }

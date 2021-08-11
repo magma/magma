@@ -16,12 +16,13 @@ package main
 import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/syncstore"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -32,30 +33,35 @@ func main() {
 		glog.Fatalf("Error creating service: %+v", err)
 	}
 
+	var serviceConfig subscriberdb_cache.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb_cache.ServiceName, &serviceConfig)
+	if err := serviceConfig.Validate(); err != nil {
+		glog.Fatalf("Invalid subscriberdb_cache service configs: %+v", err)
+	}
+	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
+
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
-	if err := digestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing digest storage: %+v", err)
-	}
-
-	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewEntStorage(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := fact.InitializeFactory(); err != nil {
-		glog.Fatalf("Error initializing per-sub digest storage: %+v", err)
+		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
 	}
-	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(fact)
-
-	subStore := subscriberdb_storage.NewSubStore(db, sqorc.GetSqlBuilder())
-	if err := subStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing subscriber proto storage: %+v", err)
+	// Garbage collection interval for syncstore cache writers is enforced to be half the time for the service worker's
+	// update interval, to prevent cache writers from outliving update cycles
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
+		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
+		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
+	})
+	if err != nil {
+		glog.Fatalf("Error creating new subscriber syncstore: %+v", err)
+	}
+	if err := store.Initialize(); err != nil {
+		glog.Fatalf("Error initializing subscriber syncstore")
 	}
 
-	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
-	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
-
-	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	go subscriberdb_cache.MonitorDigests(serviceConfig, store)
 
 	err = srv.Run()
 	if err != nil {

@@ -14,17 +14,14 @@ limitations under the License.
 import tempfile
 import unittest
 
-from lte.protos.subscriberdb_pb2 import (
-    Digest,
-    SubscriberData,
-    SubscriberDigestWithID,
-)
+from lte.protos.subscriberdb_pb2 import SubscriberData
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import (
     DuplicateSubscriberError,
     SubscriberNotFoundError,
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
+from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
 
 class StoreTests(unittest.TestCase):
@@ -150,46 +147,46 @@ class StoreTests(unittest.TestCase):
         """
         Test if digest gets & updates work as expected
         """
-        self.assertEqual(self._store.get_current_digest(), "")
-        self._store.update_digest("digest_apple")
-        self.assertEqual(self._store.get_current_digest(), "digest_apple")
-        self._store.update_digest("digest_banana")
-        self.assertEqual(self._store.get_current_digest(), "digest_banana")
+        self.assertEqual(self._store.get_current_root_digest(), "")
+        self._store.update_root_digest("digest_apple")
+        self.assertEqual(self._store.get_current_root_digest(), "digest_apple")
+        self._store.update_root_digest("digest_banana")
+        self.assertEqual(self._store.get_current_root_digest(), "digest_banana")
 
-    def test_per_sub_digests(self):
+    def test_leaf_digests(self):
         """
-        Test if per-sub digest gets & updates work as expected
+        Test if leaf digests gets & updates work as expected
         """
-        self.assertEqual(self._store.get_current_per_sub_digests(), [])
+        self.assertEqual(self._store.get_current_leaf_digests(), [])
         digests1 = [
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI11111'),
+            LeafDigest(
+                id='IMSI11111',
                 digest=Digest(md5_base64_digest='digest_apple'),
             ),
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI22222'),
-                digest=Digest(md5_base64_digest='digest_cherry'),
-            ),
-        ]
-        self._store.update_per_sub_digests(digests1)
-        self.assertEqual(self._store.get_current_per_sub_digests(), digests1)
-
-        digests2 = [
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI11111'),
-                digest=Digest(md5_base64_digest='digest_apple'),
-            ),
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI33333'),
+            LeafDigest(
+                id='IMSI22222',
                 digest=Digest(md5_base64_digest='digest_banana'),
             ),
-            SubscriberDigestWithID(
-                sid=SIDUtils.to_pb('IMSI44444'),
-                digest=Digest(md5_base64_digest='digest_orange'),
+        ]
+        self._store.update_leaf_digests(digests1)
+        self.assertEqual(self._store.get_current_leaf_digests(), digests1)
+
+        digests2 = [
+            LeafDigest(
+                id='IMSI11111',
+                digest=Digest(md5_base64_digest='digest_apple'),
+            ),
+            LeafDigest(
+                id='IMSI33333',
+                digest=Digest(md5_base64_digest='digest_cherry'),
+            ),
+            LeafDigest(
+                id='IMSI44444',
+                digest=Digest(md5_base64_digest='digest_dragonfruit'),
             ),
         ]
-        self._store.update_per_sub_digests(digests2)
-        self.assertEqual(self._store.get_current_per_sub_digests(), digests2)
+        self._store.update_leaf_digests(digests2)
+        self.assertEqual(self._store.get_current_leaf_digests(), digests2)
 
 
 if __name__ == "__main__":
