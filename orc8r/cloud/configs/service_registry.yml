@@ -49,6 +49,7 @@ services:
         /magma/v1/channels,
         /magma/v1/networks,
         /magma/v1/networks/:network_id,
+        /magma/v1/about,
 
   streamer:
     host: "localhost"

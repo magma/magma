@@ -126,8 +126,8 @@ class RestartMixin(metaclass=ABCMeta):
                 )
                 msg_list.append(
                     flows.get_delete_flow_msg(
-                    self._datapath, tbl, match, cookie=flow.cookie,
-                    cookie_mask=flows.OVS_COOKIE_MATCH_ALL,
+                        self._datapath, tbl, match, cookie=flow.cookie,
+                        cookie_mask=flows.OVS_COOKIE_MATCH_ALL,
                     ),
                 )
         if msg_list:

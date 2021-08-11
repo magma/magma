@@ -15,6 +15,8 @@ schemes:
 tags:
 - description: Access point name
   name: APNs
+- description: Version info
+  name: About
 - description: Configuring alerting rules on time-series data
   name: Alerts
 - description: Endpoints related to call tracing
@@ -62,6 +64,18 @@ tags:
 - description: End to end testing
   name: e2e
 paths:
+  /about/version:
+    get:
+      responses:
+        "200":
+          description: Version
+          schema:
+            $ref: '#/definitions/version_info'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get version
+      tags:
+      - About
   /channels:
     get:
       responses:
@@ -11755,6 +11769,15 @@ definitions:
   untyped_subscriber_state:
     description: Arbitrary untyped JSON object that represents replicated subscriber-related
       state
+    type: object
+  version_info:
+    properties:
+      container_image_version:
+        example: 1.6.0
+        type: string
+      helm_chart_version:
+        example: 1.5.21
+        type: string
     type: object
   virtual_apn_rule:
     description: Virtual APN Rule configuration

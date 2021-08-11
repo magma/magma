@@ -22,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/mproto"
 	mproto_protos "magma/orc8r/cloud/go/mproto/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
@@ -55,7 +56,7 @@ func GetDigest(network string) (string, error) {
 }
 
 // GetPerSubscriberDigests generates a set of individual subscriber digests ordered by their IDs.
-func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWithID, error) {
+func GetPerSubscriberDigests(network string) ([]*orc8r_protos.LeafDigest, error) {
 	// HACK: apn resources digest is concatenated to every individual subscriber digest
 	// so that the entire set of per-sub digests would capture changes in apn resources
 	apnDigest, err := getApnResourcesDigest(network)
@@ -68,7 +69,7 @@ func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWith
 	if err != nil {
 		return nil, err
 	}
-	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
+	leafDigests := []*orc8r_protos.LeafDigest{}
 	token := ""
 	foundEmptyToken := false
 	for !foundEmptyToken {
@@ -83,56 +84,17 @@ func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWith
 			if err != nil {
 				return nil, errors.Wrapf(err, "Failed to generate digest for subscriber %+v of network %+v", subProto.Sid.Id, network)
 			}
-			fullDigest := digest + apnDigest
-			perSubDigest := &lte_protos.SubscriberDigestWithID{
-				Digest: &lte_protos.Digest{Md5Base64Digest: fullDigest},
-				Sid:    subProto.Sid,
+			leafDigest := &orc8r_protos.LeafDigest{
+				Id:     lte_protos.SidString(subProto.Sid),
+				Digest: &orc8r_protos.Digest{Md5Base64Digest: digest + apnDigest},
 			}
-			perSubDigests = append(perSubDigests, perSubDigest)
+			leafDigests = append(leafDigests, leafDigest)
 		}
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 	}
 
-	return perSubDigests, nil
-}
-
-// GetPerSubscriberDigestsDiff computes the changeset between two lists of per-subscriber digests,
-// ordered by their subscriber IDs (unique within a network). It returns
-// 1. A set of subscribers that have been added/modified, with the new digests.
-// 2. An ordered list of subscribers that have been removed.
-func GetPerSubscriberDigestsDiff(prev []*lte_protos.SubscriberDigestWithID, next []*lte_protos.SubscriberDigestWithID) (map[string]string, []string) {
-	n, m, i, j := len(prev), len(next), 0, 0
-	toRenew := map[string]string{}
-	deleted := []string{}
-
-	for i < n && j < m {
-		iSid, jSid := lte_protos.SidString(prev[i].Sid), lte_protos.SidString(next[j].Sid)
-		if iSid == jSid {
-			if prev[i].Digest.Md5Base64Digest != next[j].Digest.Md5Base64Digest {
-				toRenew[jSid] = next[j].Digest.Md5Base64Digest
-			}
-			i++
-			j++
-		} else if iSid > jSid {
-			toRenew[jSid] = next[j].Digest.Md5Base64Digest
-			j++
-		} else {
-			deleted = append(deleted, iSid)
-			i++
-		}
-	}
-
-	for ; i < n; i++ {
-		prevSid := lte_protos.SidString(prev[i].Sid)
-		deleted = append(deleted, prevSid)
-	}
-	for ; j < m; j++ {
-		nextSid := lte_protos.SidString(next[j].Sid)
-		toRenew[nextSid] = next[j].Digest.Md5Base64Digest
-	}
-
-	return toRenew, deleted
+	return leafDigests, nil
 }
 
 // getSubscribersDigest returns a deterministic digest of all subscribers in the network.
