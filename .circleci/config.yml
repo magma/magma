@@ -254,11 +254,18 @@ commands:
       tag-latest:
         default: false
         type: boolean
+      tag-release:
+        type: boolean
+        default: false
+      force-push:
+        type: boolean
+        default: false
     steps:
       - run:
           name: << parameters.job_name >>
           command: |
-            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            FORCE_PUSH=<< parameters.force-push >>
+            if [ "${CIRCLE_BRANCH}" != "master" && "$FORCE_PUSH" = false ]; then
               echo "Push only happens for master branch"
               exit 0
             fi
@@ -290,6 +297,9 @@ commands:
               tag_and_push "$TAG"
               if [ "$TAG_LATEST" = true ]; then
                 tag_and_push "latest"
+              fi
+              if [ "$TAG_RELEASE" = true ]; then
+                tag_and_push "1.7.0"
               fi
             done
 
@@ -415,7 +425,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-1.7.0/$i;deb.distribution=focal-1.7.0;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -704,6 +714,8 @@ jobs:
           registry: $JFROG_DOCKER_ORC8R_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -843,7 +855,8 @@ jobs:
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
-          tag-latest: <<parameters.tag-latest>>
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -944,6 +957,8 @@ jobs:
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -1250,6 +1265,8 @@ jobs:
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1354,6 +1371,8 @@ jobs:
           registry: $JFROG_DOCKER_ORC8R_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: nms
       - notify-magma:
@@ -1476,8 +1495,8 @@ jobs:
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="1.6.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
-              echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
+              echo export VERSION="1.7.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
+              echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
               # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
