@@ -64,32 +64,31 @@ func LoadSubProtosPage(
 	return subProtos, nextToken, nil
 }
 
-// SubsSerialized serializes the given list of subscribers.
-func SubsSerialized(subProtos []*lte_protos.SubscriberData) (map[string][]byte, error) {
-	subProtosSerialized := map[string][]byte{}
+func SerializeSubscribers(subProtos []*lte_protos.SubscriberData) (map[string][]byte, error) {
+	subsSerialized := map[string][]byte{}
 	for _, subProto := range subProtos {
 		sid := lte_protos.SidString(subProto.Sid)
 		serialized, err := proto.Marshal(subProto)
 		if err != nil {
 			return nil, errors.Wrap(err, "serialize subscriber proto")
 		}
-		subProtosSerialized[sid] = serialized
+		subsSerialized[sid] = serialized
 	}
-	return subProtosSerialized, nil
+	return subsSerialized, nil
 }
 
-// Subs deserializes the given list of serialized representations of subscribers.
-func Subs(subProtosSerialized [][]byte) ([]*lte_protos.SubscriberData, error) {
-	subProtos := []*lte_protos.SubscriberData{}
+// DeserializeSubscribers deserializes the given list of serialized representations of subscribers.
+func DeserializeSubscribers(subProtosSerialized [][]byte) ([]*lte_protos.SubscriberData, error) {
+	subs := []*lte_protos.SubscriberData{}
 	for _, serialized := range subProtosSerialized {
 		subProto := &lte_protos.SubscriberData{}
 		err := proto.Unmarshal(serialized, subProto)
 		if err != nil {
 			return nil, errors.Wrap(err, "deserialize subscriber proto")
 		}
-		subProtos = append(subProtos, subProto)
+		subs = append(subs, subProto)
 	}
-	return subProtos, nil
+	return subs, nil
 }
 
 func LoadSubProtosByID(

@@ -69,7 +69,7 @@ type CacheWriter interface {
 type DigestTrees map[string]*protos.DigestTree
 
 func (digestTrees DigestTrees) Networks() []string {
-	networks := []string{}
+	var networks []string
 	for network := range digestTrees {
 		networks = append(networks, network)
 	}

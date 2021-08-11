@@ -15,26 +15,32 @@ package math
 
 import "hash/fnv"
 
-// JitterUint32 returns a jitter of the given uint32 value that is deterministic
-// based on the given key.
+// JitterUint32 jitters the given uint32 value deterministically, based on the
+// given key.
 func JitterUint32(n uint32, key string, maxMultiplier float32) uint32 {
-	fnv1Hash := getFNV1Hash(key)
-	multiplier := maxMultiplier * float32(fnv1Hash%100) / 100.0
-	if multiplier >= 1 {
+	hash := getFNV1Hash(key)
+	multiplier := maxMultiplier * float32(hash%100) / 100.0
+	jittered := float32(n) * (1 + multiplier)
+	// Check for integer overflow
+	if uint32(jittered) < n {
 		return n
 	}
-	return uint32(multiplier * float32(n))
+
+	return uint32(jittered)
 }
 
-// JitterInt64 returns a jitter of the given int64 value that is deterministic
-// based on the given key.
+// JitterInt64 jitters the given int64 value deterministically, based on the
+// given key.
 func JitterInt64(n int64, key string, maxMultiplier float64) int64 {
 	hash := getFNV1Hash(key)
 	multiplier := maxMultiplier * float64(hash%100) / 100.0
-	if multiplier >= 1 {
+	jittered := float64(n) * (1 + multiplier)
+	// Check for integer overflow
+	if int64(jittered) < n {
 		return n
 	}
-	return int64(multiplier * float64(n))
+
+	return int64(jittered)
 }
 
 func getFNV1Hash(key string) uint32 {

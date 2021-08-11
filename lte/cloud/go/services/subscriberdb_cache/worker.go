@@ -64,8 +64,8 @@ func RenewDigests(config Config, store syncstore.SyncStore) (map[string]string, 
 	}
 
 	errs := &multierror.Error{}
-	leafDigestsByNetwork := map[string][]*protos.LeafDigest{}
 	rootDigestsByNetwork := map[string]string{}
+	leafDigestsByNetwork := map[string][]*protos.LeafDigest{}
 	for _, network := range toUpdate {
 		rootDigest, leaveDigests, err := renewDigestsForNetwork(network, store)
 		if err != nil {
@@ -144,7 +144,7 @@ func updateSubscribers(network string, store syncstore.SyncStore) error {
 		if err != nil {
 			return err
 		}
-		subProtosSerialized, err := subscriberdb.SubsSerialized(subProtos)
+		subProtosSerialized, err := subscriberdb.SerializeSubscribers(subProtos)
 		if err != nil {
 			return err
 		}

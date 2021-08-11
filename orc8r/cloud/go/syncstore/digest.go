@@ -22,7 +22,7 @@ import "magma/orc8r/lib/go/protos"
 func GetLeafDigestsDiff(prev []*protos.LeafDigest, next []*protos.LeafDigest) (map[string]string, []string) {
 	n, m, i, j := len(prev), len(next), 0, 0
 	toRenew := map[string]string{}
-	deleted := []string{}
+	var deleted []string
 
 	for i < n && j < m {
 		iId, jId := prev[i].Id, next[j].Id

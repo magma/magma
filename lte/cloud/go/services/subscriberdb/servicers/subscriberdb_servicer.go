@@ -215,7 +215,7 @@ func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientD
 	if err != nil {
 		return true, nil, nil, err
 	}
-	renewed, err := subscriberdb.Subs(renewedSerialized)
+	renewed, err := subscriberdb.DeserializeSubscribers(renewedSerialized)
 	if err != nil {
 		return true, nil, nil, err
 	}
@@ -232,7 +232,7 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, re
 	if err != nil {
 		return nil, "", err
 	}
-	subProtos, err := subscriberdb.Subs(subProtosSerialized)
+	subProtos, err := subscriberdb.DeserializeSubscribers(subProtosSerialized)
 	if err != nil {
 		return nil, "", err
 	}
@@ -268,10 +268,8 @@ func (l *subscriberdbServicer) shouldResync(network string, gateway string) bool
 		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gateway, network, err)
 		return false
 	}
-	// Add a deterministic jitter to AGW sync intervals in the range of
-	// [0, 0.5 * resyncIntervalSecs] to ameliorate the thundering herd effect
-	resyncIntervalJitter := math.JitterInt64(l.ResyncIntervalSecs, gateway, 0.5)
-	shouldResync := time.Now().Unix()-lastResyncTime > l.ResyncIntervalSecs+resyncIntervalJitter
+	// Jitter the AGW sync interval by a fraction in the range of [0, 0.5] to ameliorate the thundering herd effect
+	shouldResync := time.Now().Unix()-lastResyncTime > math.JitterInt64(l.ResyncIntervalSecs, gateway, 0.5)
 	return shouldResync
 }
 
