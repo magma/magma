@@ -18,13 +18,12 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
-	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 
-	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,17 +33,22 @@ func StartTestService(t *testing.T) {
 		t, lte.ModuleName, subscriberdb_cache.ServiceName, labels, annotations,
 	)
 
+	serviceConfig := subscriberdb_cache.Config{
+		UpdateIntervalSecs: 300,
+		SleepIntervalSecs:  120,
+	}
+
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
-	perSubDigestStore := storage.NewPerSubDigestStore(fact)
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
+		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
+		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, store.Initialize())
 
-	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
-	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
-
-	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore)
+	go subscriberdb_cache.MonitorDigests(serviceConfig, store)
 	srv.RunTest(lis)
 }

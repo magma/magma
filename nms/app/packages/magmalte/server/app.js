@@ -112,7 +112,12 @@ const lteMetricsJsonData = fs.readFileSync(
   path.join(__dirname, '..', 'data/LteMetrics.json'),
   'utf-8',
 );
+const alertLinksJsonData = fs.readFileSync(
+  path.join(__dirname, '..', 'data/AlertLinks.json'),
+  'utf-8',
+);
 app.get('/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
+app.get('/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
 
 // Trigger syncing of automatically generated alerts
 app.use('/sync_alerts', access(USER), require('../alerts/routes.js').default);

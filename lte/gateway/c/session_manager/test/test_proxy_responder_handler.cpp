@@ -59,9 +59,10 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     auto aaa_client      = std::make_shared<MockAAAClient>();
     auto events_reporter = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
+    auto shard_tracker   = std::make_shared<ShardTracker>();
     local_enforcer       = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig);
+        spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
@@ -84,9 +85,12 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
-    return std::make_unique<SessionState>(
-        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_context, pdp_start_time,
-        CreateSessionResponse{});
+    auto session        = std::make_unique<SessionState>(
+        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    session->set_tgpp_context(tgpp_context, nullptr);
+    session->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session->set_create_session_response(CreateSessionResponse(), nullptr);
+    return session;
   }
 
   UsageMonitoringUpdateResponse get_monitoring_update() {

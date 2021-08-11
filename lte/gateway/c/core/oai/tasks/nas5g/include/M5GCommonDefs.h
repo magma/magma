@@ -4,6 +4,12 @@
 #include "magma_logging.h"
 #include "glogwrapper/glog_logging.h"
 
+// AMF_TEST scheme output  nibbles needs to be reversed
+#define REV_NIBBLE(bUFFER, sIZE)                                               \
+  for (int i = 0; i < sIZE; i++) {                                             \
+    bUFFER[i] = (((bUFFER[i] & 0xf0) >> 4) | ((bUFFER[i] & 0x0f) << 4));       \
+  }
+
 #define CHECK_IEI_DECODER(iEI, bUFFER)                                         \
   if (iEI != bUFFER) {                                                         \
     MLOG(MERROR) << "Error: " << std::dec << TLV_UNEXPECTED_IEI;               \
@@ -68,9 +74,9 @@
 
 #define BUFFER_PRINT_LOG(bUFFER, lEN)                                          \
   {                                                                            \
-    int iLEN = 0;                                                              \
+    uint32_t iLEN = 0;                                                         \
     if (bUFFER != NULL) {                                                      \
-      while (iLEN < ((int) lEN)) {                                             \
+      while (iLEN < (uint32_t) lEN) {                                          \
         MLOG(MDEBUG) << " 0x" << std::hex << int(*(bUFFER + iLEN));            \
         iLEN++;                                                                \
       }                                                                        \

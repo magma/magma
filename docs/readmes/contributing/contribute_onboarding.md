@@ -63,26 +63,26 @@ Part of setting up the development environment involves updating your [shell rc 
 
 Note: this guide assumes you have access to an IntelliJ Ultimate Edition license. The majority of the functionality should still work without the license. Also, plenty of Magma developers use VS Code, and a minority also use other IDEs.
 
-**Howto**
+#### Howto
 
 1. [Import](https://support.google.com/chrome/answer/96816?hl=en) @hcgatewood's Google Chrome bookmarks: [bookmarks-hcgatewood.html](https://www.dropbox.com/s/rvhcofsrkpvkbfm/bookmarks-hcgatewood.html?dl=0). These bookmarks provide a starting point for accessing resources across the Magma ecosystem.
 2. Add the following to your shell rc file, then restart your terminal
 
-```
-# MAGMA_ROOT denotes the root of the Magma repo
-export MAGMA_ROOT=~/magma
+    ```bash
+    # MAGMA_ROOT denotes the root of the Magma repo
+    export MAGMA_ROOT=~/magma
 
-# noti sends notification based on previous command success/fail
-# Default sound is "default"
-function noti() {
-    if [[ $? = 0 ]] ; then
-        title="✅" ; sound="ping"
-    else
-        title="❌" ; sound="basso"
-    fi
-    terminal-notifier -title "$title" -message "Finished at $(date +%X)" -sound "$sound"
-}
-```
+    # noti sends notification based on previous command success/fail
+    # Default sound is "default"
+    function noti() {
+        if [[ $? = 0 ]] ; then
+            title="✅" ; sound="ping"
+        else
+            title="❌" ; sound="basso"
+        fi
+        terminal-notifier -title "$title" -message "Finished at $(date +%X)" -sound "$sound"
+    }
+    ```
 
 3. Install the [Homebrew package manager](https://brew.sh/)
 4. Install [terminal-notifier](https://github.com/julienXX/terminal-notifier) via `brew install terminal-notifier`
@@ -94,7 +94,7 @@ function noti() {
 
 Install Magma locally and get everything running.
 
-**Howto**
+#### Howto
 
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
 2. (Optional) If you opt to use IntelliJ IDEA as your local IDE, follow the instructions in the [Set up IntelliJ](#set-up-intellij) section below before you proceed
@@ -108,11 +108,13 @@ Install Magma locally and get everything running.
 Note: remember to periodically call `docker system prune` to clear outdated Docker artifacts from your dev machine.
 
 ### Set Up IntelliJ
+
 We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for general Magma development, or [Visual Studio Code](https://code.visualstudio.com/) for a free alternative.
 
 For IntelliJ IDEA, we provide a set of run configurations that support rapidly testing Magma code. See [Testing Tips](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips) for more details.
 
 To set up your local IntelliJ environment, perform the following
+
 1. After cloning the Magma repo, open the directory in IntelliJ
 2. Ensure the [Go plugin](https://plugins.jetbrains.com/plugin/9568-go) has been installed by going to `Preferences > Plugins > search for the plugin "Go"`
 3. [Specify the location of the Go SDK](https://www.jetbrains.com/help/idea/quick-start-guide-goland.html#step-1-open-or-create-a-project) by going to `Preferences > Languages & Frameworks > Go > GOROOT` and selecting the relevant location
@@ -146,4 +148,3 @@ As you get acquainted with the codebase, consider the following sources of docum
 - Magma Docusaurus. This site! First stop for documentation.
 - `doc.go` files. Many Go packages have a `doc.go` file with a summary of the package's functionality.
 - Tests. Tests provide both testing and documentation of expected functionality.
-

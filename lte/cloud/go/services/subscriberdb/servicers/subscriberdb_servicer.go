@@ -15,49 +15,45 @@ package servicers
 
 import (
 	"context"
+	"time"
 
 	"magma/lte/cloud/go/services/subscriberdb"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"magma/orc8r/cloud/go/orc8r/math"
+	"magma/orc8r/cloud/go/syncstore"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type subscriberdbServicer struct {
-	flatDigestEnabled     bool
-	changesetSizeTheshold int
-	digestStore           storage.DigestStore
-	perSubDigestStore     *storage.PerSubDigestStore
+	subscriberdb.Config
+	store syncstore.SyncStoreReader
 }
 
-func NewSubscriberdbServicer(
-	config subscriberdb.Config,
-	digestStore storage.DigestStore,
-	perSubDigestStore *storage.PerSubDigestStore,
-) lte_protos.SubscriberDBCloudServer {
-	servicer := &subscriberdbServicer{
-		flatDigestEnabled:     config.FlatDigestEnabled,
-		changesetSizeTheshold: config.ChangesetSizeTheshold,
-		digestStore:           digestStore,
-		perSubDigestStore:     perSubDigestStore,
-	}
-	return servicer
+func NewSubscriberdbServicer(config subscriberdb.Config, store syncstore.SyncStoreReader) lte_protos.SubscriberDBCloudServer {
+	return &subscriberdbServicer{store: store, Config: config}
 }
 
-func (s *subscriberdbServicer) CheckSubscribersInSync(
+func (s *subscriberdbServicer) CheckInSync(
 	ctx context.Context,
-	req *lte_protos.CheckSubscribersInSyncRequest,
-) (*lte_protos.CheckSubscribersInSyncResponse, error) {
+	req *lte_protos.CheckInSyncRequest,
+) (*lte_protos.CheckInSyncResponse, error) {
+	if !s.DigestsEnabled {
+		return &lte_protos.CheckInSyncResponse{InSync: false}, nil
+	}
+
 	gateway := protos.GetClientGateway(ctx)
 	if gateway == nil {
 		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
@@ -65,17 +61,26 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 	if !gateway.Registered() {
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
-	networkID := gateway.NetworkId
-	_, inSync := s.getDigestInfo(req.FlatDigest, networkID)
 
-	res := &lte_protos.CheckSubscribersInSyncResponse{InSync: inSync}
+	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
+	if s.shouldResync(networkID, gatewayID) {
+		return &lte_protos.CheckInSyncResponse{InSync: false}, nil
+	}
+
+	_, inSync := s.getDigestInfo(req.RootDigest, networkID)
+	res := &lte_protos.CheckInSyncResponse{InSync: inSync}
 	return res, nil
 }
 
-func (s *subscriberdbServicer) SyncSubscribers(
+func (s *subscriberdbServicer) Sync(
 	ctx context.Context,
-	req *lte_protos.SyncSubscribersRequest,
-) (*lte_protos.SyncSubscribersResponse, error) {
+	req *lte_protos.SyncRequest,
+) (*lte_protos.SyncResponse, error) {
+	if !s.DigestsEnabled {
+		return &lte_protos.SyncResponse{Resync: true}, nil
+	}
+
 	gateway := protos.GetClientGateway(ctx)
 	if gateway == nil {
 		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
@@ -83,38 +88,47 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if !gateway.Registered() {
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
+
 	networkID := gateway.NetworkId
-	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
-	if err != nil {
-		return nil, err
+	gatewayID := gateway.LogicalId
+	if s.shouldResync(networkID, gatewayID) {
+		return &lte_protos.SyncResponse{Resync: true}, nil
 	}
 
-	flatDigest, err := storage.GetDigest(s.digestStore, networkID)
+	digestTree, err := syncstore.GetDigestTree(s.store, networkID)
 	if err != nil {
 		return nil, err
+	}
+	resync, renewed, deleted, err := s.getSubscribersChangeset(networkID, req.LeafDigests, digestTree.LeafDigests)
+	if err != nil {
+		return nil, err
+	}
+	if resync {
+		return &lte_protos.SyncResponse{Resync: true}, nil
 	}
 
-	clientPerSubDigests := req.PerSubDigests
-	cloudPerSubDigests, err := s.perSubDigestStore.GetDigest(networkID)
+	// Since the cached protos don't contain gateway-specific information, inject
+	// the apn resource configs related to the gateway
+	renewed, err = injectAPNResources(renewed, gateway)
 	if err != nil {
 		return nil, err
 	}
-	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientPerSubDigests, cloudPerSubDigests)
-	if len(toRenew) > s.changesetSizeTheshold {
-		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
-	}
-	sids := funk.Keys(toRenew).([]string)
-	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
-	if err != nil {
-		return nil, err
+	renewedMarshaled := []*any.Any{}
+	for _, subProto := range renewed {
+		anyVal, err := ptypes.MarshalAny(subProto)
+		if err != nil {
+			return nil, errors.Wrapf(err, "marshal subscriber protos for network %+v", networkID)
+		}
+		renewedMarshaled = append(renewedMarshaled, anyVal)
 	}
 
-	res := &lte_protos.SyncSubscribersResponse{
-		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
-		PerSubDigests: cloudPerSubDigests,
-		ToRenew:       subProtosById,
-		Deleted:       deleted,
-		Resync:        false,
+	res := &lte_protos.SyncResponse{
+		Digests: digestTree,
+		Changeset: &protos.Changeset{
+			ToRenew: renewedMarshaled,
+			Deleted: deleted,
+		},
+		Resync: false,
 	}
 	return res, nil
 }
@@ -134,54 +148,129 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
 
 	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
 	if err != nil {
 		return nil, err
 	}
-	subProtos, nextToken, err := subscriberdb.LoadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
-	if err != nil {
-		return nil, err
+
+	var subProtos []*lte_protos.SubscriberData
+	var nextToken string
+	if s.DigestsEnabled {
+		subProtos, nextToken, err = s.loadSubscribersPageFromCache(networkID, req, gateway)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		subProtos, nextToken, err = subscriberdb.LoadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	flatDigest := &lte_protos.Digest{Md5Base64Digest: ""}
-	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
+	rootDigest := &protos.Digest{Md5Base64Digest: ""}
+	leafDigests := []*protos.LeafDigest{}
 	// The digests are sent back during the request for the first page of subscriber data
-	if req.PageToken == "" {
-		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
-		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
+	if req.PageToken == "" && s.DigestsEnabled {
+		digestTree, _ := s.getDigestInfo(&protos.Digest{Md5Base64Digest: ""}, networkID)
+		rootDigest = digestTree.RootDigest
+		leafDigests = digestTree.LeafDigests
+	}
+
+	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current time.
+	// NOTE: Since the resync is Orc8r-directed, and Orc8r doesn't track the request status on the AGW side,
+	// Orc8r takes the AGW request for the last page as an approximate indication of the completion of a resync.
+	if nextToken == "" {
+		err := s.store.RecordResync(networkID, gatewayID, time.Now().Unix())
 		if err != nil {
-			glog.Errorf("Failed to get per-sub digests from store for network %+v: %+v", networkID, err)
+			glog.Errorf("Failed to set last resync time for gateway %+v of network %+v: %+v", gatewayID, networkID, err)
 		}
 	}
 
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
-		FlatDigest:    flatDigest,
-		PerSubDigests: perSubDigests,
+		Digests: &protos.DigestTree{
+			RootDigest:  rootDigest,
+			LeafDigests: leafDigests,
+		},
 	}
 	return listRes, nil
 }
 
+// getSubscribersChangeset compares the cloud and AGW digests and returns
+// 1. Whether a resync is required for this AGW.
+// 2. If no resync, the list of subscriber configs to be renewed.
+// 3. If no resync, the list of subscriber IDs to be deleted.
+// 4. Any error that occurred.
+func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientDigests []*protos.LeafDigest, cloudDigests []*protos.LeafDigest) (bool, []*lte_protos.SubscriberData, []string, error) {
+	toRenew, deleted := syncstore.GetLeafDigestsDiff(clientDigests, cloudDigests)
+	if len(toRenew) > s.ChangesetSizeThreshold || len(toRenew) > int(s.MaxProtosLoadSize) {
+		return true, nil, nil, nil
+	}
+
+	sids := funk.Keys(toRenew).([]string)
+	renewedSerialized, err := s.store.GetCachedByID(networkID, sids)
+	if err != nil {
+		return true, nil, nil, err
+	}
+	renewed, err := subscriberdb.DeserializeSubscribers(renewedSerialized)
+	if err != nil {
+		return true, nil, nil, err
+	}
+	return false, renewed, deleted, nil
+}
+
+func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, req *lte_protos.ListSubscribersRequest, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, string, error) {
+	// If request page size is 0, return max entity load size
+	pageSize := uint64(req.PageSize)
+	if req.PageSize == 0 {
+		pageSize = s.MaxProtosLoadSize
+	}
+	subProtosSerialized, nextToken, err := s.store.GetCachedByPage(networkID, req.PageToken, pageSize)
+	if err != nil {
+		return nil, "", err
+	}
+	subProtos, err := subscriberdb.DeserializeSubscribers(subProtosSerialized)
+	if err != nil {
+		return nil, "", err
+	}
+	subProtos, err = injectAPNResources(subProtos, gateway)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return subProtos, nextToken, nil
+}
+
 // getDigestInfo returns the correctly formatted Digest and NoUpdates values
 // according to the client digest.
-func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, networkID string) (*lte_protos.Digest, bool) {
-	// The flat digest functionality is currently placed behind a feature flag
-	if !s.flatDigestEnabled {
-		return &lte_protos.Digest{Md5Base64Digest: ""}, false
-	}
-
-	digest, err := storage.GetDigest(s.digestStore, networkID)
+func (s *subscriberdbServicer) getDigestInfo(clientDigest *protos.Digest, networkID string) (*protos.DigestTree, bool) {
+	digestTree, err := syncstore.GetDigestTree(s.store, networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {
-		glog.Errorf("Generating digest for network %s failed: %+v", networkID, err)
-		return &lte_protos.Digest{Md5Base64Digest: ""}, false
+		glog.Errorf("Load digest for network %s failed: %+v", networkID, err)
+		return &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: ""}}, false
 	}
+	rootDigest := digestTree.RootDigest.GetMd5Base64Digest()
+	noUpdates := rootDigest != "" && rootDigest == clientDigest.GetMd5Base64Digest()
 
-	noUpdates := digest != "" && digest == clientDigest.GetMd5Base64Digest()
-	digestProto := &lte_protos.Digest{Md5Base64Digest: digest}
-	return digestProto, noUpdates
+	return digestTree, noUpdates
+}
+
+// shouldResync returns whether a gateway requires an Orc8r-directed resync by checking its
+// last resync time.
+func (l *subscriberdbServicer) shouldResync(network string, gateway string) bool {
+	lastResyncTime, err := l.store.GetLastResync(network, gateway)
+	// If check last resync time in store fails, swallow the error and stick to the original callpath
+	if err != nil {
+		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gateway, network, err)
+		return false
+	}
+	// Jitter the AGW sync interval by a fraction in the range of [0, 0.5] to ameliorate the thundering herd effect
+	shouldResync := time.Now().Unix()-lastResyncTime > math.JitterInt64(l.ResyncIntervalSecs, gateway, 0.5)
+	return shouldResync
 }
 
 func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
@@ -206,4 +295,25 @@ func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfi
 	}
 
 	return apnsByName, apnResources, nil
+}
+
+// injectAPNResources adds the gateway-specific apn resources data to subscriber
+// protos before returning to AGWs.
+func injectAPNResources(subProtos []*lte_protos.SubscriberData, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, error) {
+	_, apnResources, err := loadAPNs(gateway)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, subProto := range subProtos {
+		if subProto.GetNon_3Gpp().GetApnConfig() == nil {
+			continue
+		}
+		for _, apnConfig := range subProto.Non_3Gpp.ApnConfig {
+			if apnResourceModel, ok := apnResources[apnConfig.ServiceSelection]; ok {
+				apnConfig.Resource = apnResourceModel.ToProto()
+			}
+		}
+	}
+	return subProtos, nil
 }

@@ -18,7 +18,7 @@ import "lte/protos/subscriberdb.proto";
 
 package magma.lte.subscriberdb;
 
-option go_package = "protos";
+option go_package = "magma/lte/cloud/go/services/subscriberdb/protos";
 
 // SubscriberLookup servicer provides methods for looking up a subscriber by
 // alternative identifiers.
@@ -126,11 +126,4 @@ message ApnResourceInternal {
   repeated string assoc_gateways = 2;
   // apn_resource is the original apn resource proto message.
   APNConfiguration.APNResource apn_resource = 3;
-}
-
-// SubscriberDigestWithIDs is used in per-subscriber store to serialize and deserialize
-// a list of per-sub digests.
-message SubscriberDigestWithIDs {
-  // digests is the list of per-sub digests to be (de)serialized.
-  repeated SubscriberDigestWithID digests = 1;
 }

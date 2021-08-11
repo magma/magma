@@ -17,7 +17,7 @@ package magma.orc8r.state;
 import "orc8r/protos/service303.proto";
 import "orc8r/protos/state.proto";
 
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/state/protos";
 
 // Indexer servicer provides methods for managing a service's indexer.
 service Indexer {

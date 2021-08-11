@@ -29,6 +29,7 @@
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
+#include "ShardTracker.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -44,11 +45,6 @@ const char* DIRECTION_DOWN          = "down";
 // that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
-
-using magma::service303::increment_counter;
-using magma::service303::remove_counter;
-using magma::service303::remove_gauge;
-using magma::service303::set_gauge;
 
 namespace magma {
 
@@ -68,6 +64,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
   marshaled.imsi       = get_imsi();
+  marshaled.shard_id   = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
@@ -150,7 +147,8 @@ SessionState::SessionState(
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
       credit_map_(4, &ccHash, &ccEqual),
-      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy),
+      shard_id_(marshaled.shard_id) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
@@ -189,28 +187,22 @@ SessionState::SessionState(
 }
 
 SessionState::SessionState(
-    const std::string& imsi, const std::string& session_id,
-    const SessionConfig& cfg, StaticRuleStore& rule_store,
-    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
-    const CreateSessionResponse& csr)
-    : imsi_(imsi),
+    const std::string& session_id, const SessionConfig& cfg,
+    StaticRuleStore& rule_store, uint64_t pdp_start_time)
+    : imsi_(cfg.get_imsi()),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
-      curr_state_(SESSION_ACTIVE),
+      curr_state_(CREATING),
       config_(cfg),
       pdp_start_time_(pdp_start_time),
       pdp_end_time_(0),
+      current_version_(0),
       rtx_counter_(0),
-      tgpp_context_(tgpp_context),
-      create_session_response_(csr),
+      subscriber_quota_state_(SubscriberQuotaUpdate_Type_VALID_QUOTA),
       static_rules_(rule_store),
-      credit_map_(4, &ccHash, &ccEqual) {
-  // other default initializations
-  current_version_        = 0;
-  session_level_key_      = "";
-  subscriber_quota_state_ = SubscriberQuotaUpdate_Type_VALID_QUOTA;
-}
+      credit_map_(4, &ccHash, &ccEqual),
+      session_level_key_("") {}
 
 /*For 5G which doesn't have response context*/
 SessionState::SessionState(
@@ -233,7 +225,7 @@ uint32_t SessionState::get_current_version() {
 }
 
 void SessionState::set_current_version(
-    int new_session_version, SessionStateUpdateCriteria* session_uc) {
+    uint32_t new_session_version, SessionStateUpdateCriteria* session_uc) {
   current_version_ = new_session_version;
   if (session_uc) {
     session_uc->is_current_version_updated = true;
@@ -244,7 +236,7 @@ void SessionState::set_current_version(
 
 /* Add PDR rule to this rules session list */
 void SessionState::insert_pdr(
-    SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc) {
+    SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc) {
   // Check if it already exists
   int32_t Pdr_index;
   Pdr_index = get_pdr_index(rule->pdr_id());
@@ -256,7 +248,9 @@ void SessionState::insert_pdr(
     pdr_list_.push_back(*rule);
   }
   // update criteria to be updated
-  if (crit_add) session_uc->pdrs_to_install.push_back(*rule);
+  if (session_uc) {
+    session_uc->pdrs_to_install.push_back(*rule);
+  }
 }
 
 /* method to change the PDR state */
@@ -413,6 +407,11 @@ bool SessionState::apply_update_criteria(
   // Rule versions
   if (session_uc.policy_version_and_stats) {
     policy_version_and_stats_ = *session_uc.policy_version_and_stats;
+  }
+
+  // CreateSessionResponse
+  if (session_uc.create_session_response) {
+    create_session_response_ = *session_uc.create_session_response;
   }
 
   // Manually update these policy structures to avoid incrementing version
@@ -902,8 +901,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    SessionCreditUpdateCriteria* credit_uc =
-        get_credit_uc(credit_pair.first, session_uc);
+    auto credit_uc    = get_credit_uc(credit_pair.first, session_uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
@@ -1016,7 +1014,11 @@ bool SessionState::is_radius_cwf_session() const {
   return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
 }
 
-SessionState::SessionInfo SessionState::get_session_info() {
+bool SessionState::is_5g_session() const {
+  return (config_.common_context.rat_type() == RATType::TGPP_NR);
+}
+
+SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   SessionState::SessionInfo info;
   info.imsi      = get_imsi();
   info.ip_addr   = config_.common_context.ue_ipv4();
@@ -1565,11 +1567,16 @@ bool SessionState::is_active() {
 void SessionState::set_fsm_state(
     SessionFsmState new_state, SessionStateUpdateCriteria* session_uc) {
   // Only log and reflect change into update criteria if the state is new
+  uint32_t local_teid_ = get_upf_local_teid();
   if (curr_state_ != new_state) {
-    MLOG(MDEBUG) << "Session " << session_id_ << " Teid " << local_teid_
+    MLOG(MDEBUG) << "Session: " << session_id_ << " Teid: " << local_teid_
                  << " FSM state change from "
                  << session_fsm_state_to_str(curr_state_) << " to "
-                 << session_fsm_state_to_str(new_state);
+                 << session_fsm_state_to_str(new_state)
+                 << " of imsi: " << get_imsi();
+    if (is_5g_session()) {
+      MLOG(MDEBUG) << " 5G specific-PDU Id: " << get_pdu_id();
+    }
     curr_state_ = new_state;
     if (session_uc) {
       session_uc->is_fsm_updated    = true;
@@ -1631,28 +1638,6 @@ DynamicRuleInstall SessionState::get_dynamic_rule_install(
   rule_install.mutable_deactivation_time()->set_seconds(
       lifetime.deactivation_time);
   return rule_install;
-}
-
-// Charging Credits
-static FinalActionInfo get_final_action_info(
-    const magma::lte::ChargingCredit& credit) {
-  FinalActionInfo final_action_info;
-  if (credit.is_final()) {
-    final_action_info.final_action = credit.final_action();
-    switch (final_action_info.final_action) {
-      case ChargingCredit_FinalAction_REDIRECT:
-        final_action_info.redirect_server = credit.redirect_server();
-        break;
-      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-        for (auto rule : credit.restrict_rules()) {
-          final_action_info.restrict_rules.push_back(rule);
-        }
-        break;
-      default:  // do nothing;
-        break;
-    }
-  }
-  return final_action_info;
 }
 
 std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {
@@ -2741,6 +2726,15 @@ uint32_t SessionState::get_incremented_rtx_counter() {
 /* Reset sesison throttle count */
 void SessionState::reset_rtx_counter() {
   rtx_counter_ = 0;
+}
+
+void SessionState::set_create_session_response(
+    const CreateSessionResponse response,
+    SessionStateUpdateCriteria* session_uc) {
+  create_session_response_ = response;
+  if (session_uc) {
+    session_uc->create_session_response = response;
+  }
 }
 
 CreateSessionResponse SessionState::get_create_session_response() {

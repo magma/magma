@@ -2,11 +2,11 @@ syntax = "proto3";
 
 import "google/protobuf/wrappers.proto";
 
-import "magma/orc8r/protos/common.proto";
-import "magma/fbinternal/cloud/go/services/testcontroller/storage/storage.proto";
+import "orc8r/protos/common.proto";
+import "fbinternal/cloud/go/services/testcontroller/storage/storage.proto";
 
 package magma.fbinternal.testcontroller;
-option go_package = "protos";
+option go_package = "magma/fbinternal/cloud/go/services/testcontroller/protos";
 
 // TestController is an RPC service for managing and executing end to end test
 // cases.

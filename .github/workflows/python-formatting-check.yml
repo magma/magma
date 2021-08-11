@@ -7,10 +7,7 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
     paths:  # order matters here, always put includes then excludes
-      - 'lte/gateway/python/**.py'
-      - 'orc8r/gateway/python/**.py'
-      - '!**/scripts/**.py'
-      - '!lte/gateway/python/magma/pipelined/**.py'  # TODO add back
+      - '**.py'
 
 jobs:
   run-formatters-and-check-for-errors:
@@ -43,7 +40,7 @@ jobs:
               echo "Running formatting commands for $file...";
               set -e
               isort --check-only $file;
-              autopep8 --exit-code --select W291,W293,E2,E3 -r --in-place  $file;
+              autopep8 --exit-code --select W191,W291,W292,W293,W391,E2,E3 -r --in-place  $file;
               add-trailing-comma --py35-plus $file;
             done;
       - name: Look here for instructions for when the check fails
@@ -51,3 +48,14 @@ jobs:
         run: |
           echo "::error Use the formatter script 'lte/gateway/python/precommit.py' to run the formatters locally."
           echo "::error Run './precommit.py --build' to build the setup, and then run './precommit.py --format --diff'"
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: failure()
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: pr
+          path: pr/

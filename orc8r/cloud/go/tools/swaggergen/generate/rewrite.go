@@ -142,6 +142,8 @@ func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTy
 	ast.Inspect(fileNode, func(n ast.Node) bool {
 		switch n.(type) {
 		case *ast.TypeSpec:
+			// Arbitrary-depth type declarations, within type definitions for structs or arrays
+			// Example: type MagmadGateways []models.MagmadGateway
 			typeSpec := n.(*ast.TypeSpec)
 			switch typeSpec.Type.(type) {
 			case *ast.StructType:
@@ -162,6 +164,17 @@ func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTy
 				if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
 					identsToChange[ident] = true
 				}
+			}
+		case *ast.CallExpr:
+			// Single-depth explicit type conversions
+			// Example: models.MagmadGateway(m.Gateway)
+			callFun := n.(*ast.CallExpr).Fun
+			ident, ok := callFun.(*ast.Ident)
+			if !ok {
+				break
+			}
+			if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
+				identsToChange[ident] = true
 			}
 		}
 		return true

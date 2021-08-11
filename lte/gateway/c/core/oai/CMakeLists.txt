@@ -60,19 +60,6 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=lea
 set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 
 ################################################################
-# Add a flag to enable sentry if the library exists
-################################################################
-## TODO we can enable by default after we migrate to ubuntu 20.04
-find_library(SENTRY_LIB NAMES sentry sentry-native)
-if (SENTRY_LIB)
-  message("Building with sentry!")
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
-endif ()
-
-################################################################
 # Set proto directory for state proto definitions
 ################################################################
 set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
@@ -117,6 +104,7 @@ find_package(SERVICE_REGISTRY REQUIRED)
 find_package(EVENTD REQUIRED)
 find_package(SERVICE303_LIB REQUIRED)
 find_package(MAGMA_LOGGING REQUIRED)
+find_package(MAGMA_SENTRY REQUIRED)
 
 
 ################################################################

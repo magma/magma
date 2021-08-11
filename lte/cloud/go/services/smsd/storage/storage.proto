@@ -16,7 +16,7 @@ package magma.lte.smsd.storage;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "storage";
+option go_package = "magma/lte/cloud/go/services/smsd/storage";
 
 // Since the gateway-facing GRPC interface for this service doesn't actually
 // use these proto types and the REST handlers are implemented by directly

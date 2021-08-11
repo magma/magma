@@ -28,6 +28,7 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/orc8r/math"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -177,6 +178,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
 			SentryConfig:             getNetworkSentryConfig(&network),
+			EnableConvergedCore:      swag.BoolValue(nwEpc.EnableConvergedCore),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -196,7 +198,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
-			SyncInterval:    s.getSyncInterval(nwEpc, gwEpc),
+			SyncInterval:    s.getRandomizedSyncInterval(cellGW.Key, nwEpc, gwEpc),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -603,8 +605,12 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 
 	for _, ent := range ents {
 		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
-		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
+		if task.TaskDetails.DeliveryType == nprobe_models.NetworkProbeTaskDetailsDeliveryTypeEventsOnly {
+			// data plane is not requested.
+			continue
+		}
 
+		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
 		switch task.TaskDetails.TargetType {
 		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImsi:
 			liUes.Imsis = append(liUes.Imsis, task.TaskDetails.TargetID)
@@ -634,7 +640,7 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 	}
 }
 
-// getSyncInterval takes network-wide subscriberdb sync interval and overrides it if also set for gateway.
+// getSyncInterval takes network-wide subscriberdb sync interval in seconds and overrides it if also set for gateway.
 // If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/lte.yml
 func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	// minSyncInterval enforces a minimum sync interval to prevent too many
@@ -653,4 +659,13 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 		return s.defaultSubscriberdbSyncInterval
 	}
 	return minSyncInterval
+}
+
+// getRandomizedSyncInterval returns the interval received from getSyncInterval
+// as seconds and increases it by a random jitter in the range of
+// [0, 0.2 * getSyncInterval()]. Increased sync interval ameliorates the thundering
+// herd effect at the Orc8r.
+func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
+	return math.JitterUint32(syncInterval, gwKey, 0.2)
 }

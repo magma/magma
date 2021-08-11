@@ -59,9 +59,11 @@ ip_blocks_list = []
 
 def add_to_ip_blocks_list(subnet: str):
     block = ipaddress.ip_network(subnet)
-    ip_block = IPBlock(version=IPAddress.IPV4,
-                       net_address=block.network_address.packed,
-                       prefix_len=block.prefixlen)
+    ip_block = IPBlock(
+        version=IPAddress.IPV4,
+        net_address=block.network_address.packed,
+        prefix_len=block.prefixlen,
+    )
     ip_blocks_list.append(ip_block)
 
 
@@ -89,8 +91,10 @@ class ArpTableTest(unittest.TestCase):
     MTR_IP = '5.6.7.8'
     MTR_MAC = "FF:EE:DD:CC:49:4b"
 
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+    @unittest.mock.patch(
+        'netifaces.ifaddresses',
+        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+    )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUp(self, *_):
         """
@@ -113,7 +117,7 @@ class ArpTableTest(unittest.TestCase):
             apps=[
                 PipelinedController.Arp,
                 PipelinedController.Testing,
-                PipelinedController.StartupFlows
+                PipelinedController.StartupFlows,
             ],
             references={
                 PipelinedController.Arp:
@@ -175,8 +179,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(dlink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet, count=4)
@@ -201,8 +207,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(uplink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet, count=4)
@@ -226,8 +234,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(uplink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet, count=4)
@@ -251,8 +261,10 @@ class ArpTableTest(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(uplink_args, self.testing_controller)
         time.sleep(1)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet, count=4)
@@ -273,8 +285,10 @@ class ArpTableTestRouterIP(unittest.TestCase):
     MTR_IP = '5.6.7.8'
     MTR_MAC = "FF:EE:DD:CC:49:4b"
 
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+    @unittest.mock.patch(
+        'netifaces.ifaddresses',
+        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+    )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUp(self, *_):
         """
@@ -299,7 +313,7 @@ class ArpTableTestRouterIP(unittest.TestCase):
             apps=[
                 PipelinedController.Arp,
                 PipelinedController.Testing,
-                PipelinedController.StartupFlows
+                PipelinedController.StartupFlows,
             ],
             references={
                 PipelinedController.Arp:
@@ -361,8 +375,10 @@ class ArpTableTestRouterIP(unittest.TestCase):
             .build_requests()
         isolator = RyuDirectTableIsolator(dlink_args, self.testing_controller)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, snapshot_verifier:
             pkt_sender.send(arp_packet, count=4)

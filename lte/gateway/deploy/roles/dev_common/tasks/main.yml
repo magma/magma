@@ -432,4 +432,4 @@
   copy:
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: ansible_distribution == "Ubuntu"

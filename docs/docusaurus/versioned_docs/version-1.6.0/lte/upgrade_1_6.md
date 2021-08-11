@@ -9,7 +9,7 @@ original_id: upgrade_1_6
 
 ### Fresh Install Notes
 
-Instructions on fresh gateway installs are provided in the [Install AGW section](https://magma.github.io/magma/docs/lte/deploy_install)
+Instructions on fresh gateway installs are provided in the [Install AGW section](deploy_install)
 
 ### Upgrading from previous releases
 
@@ -20,7 +20,7 @@ To upgrade an existing AGW, please run the following upgrade script
 ```bash
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/release/upgrade_magma.sh
 chmod +x upgrade_magma.sh
-./upgrade_magma_sh
+./upgrade_magma.sh
 ```
 
 ### Image Version

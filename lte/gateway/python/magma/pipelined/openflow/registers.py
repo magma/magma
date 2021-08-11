@@ -32,6 +32,8 @@ PROXY_TAG_REG = 'reg10'
 SCRATCH_REGS = ['reg0', 'reg3']
 RULE_VERSION_REG = 'reg4'
 
+NG_SESSION_ID_REG = 'reg11'
+
 # Register values
 REG_ZERO_VAL = 0x0
 PASSTHROUGH_REG_VAL = 0x1
@@ -68,6 +70,7 @@ def load_direction(parser, direction: Direction):
         raise Exception("Invalid direction")
     return parser.NXActionRegLoad2(dst=DIRECTION_REG, value=direction.value)
 
+
 def load_imsi(parser, imsi):
     """
     Wrapper for loading the direction register
@@ -90,7 +93,7 @@ def set_proxy_tag(parser, value=PROXY_TAG_TO_PROXY):
     return parser.NXActionRegLoad2(dst=PROXY_TAG_REG, value=value)
 
 
-def set_tun_id(parser, tun_id:str):
+def set_tun_id(parser, tun_id: str):
     """
     Wrapper for setting proxy flow tag.
     """

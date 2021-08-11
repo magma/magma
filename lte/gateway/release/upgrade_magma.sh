@@ -44,3 +44,6 @@ apt install -y magma -o Dpkg::Options::="--force-overwrite"
 
 #Upgrade OVS
 ovs-kmod-upgrade.sh -y
+
+# Apply latest service configs.
+systemctl daemon-reload

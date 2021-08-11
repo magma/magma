@@ -129,20 +129,21 @@ func parseDeleteSessionResponse(msg message.Message) (
 	return dsRes, nil
 }
 
-func parseCreateBearerRequest(msg message.Message) (*protos.CreateBearerRequestPgw, *protos.GtpError, error) {
+func parseCreateBearerRequest(msg message.Message, senderAddr net.Addr) (*protos.CreateBearerRequestPgw, *protos.GtpError, error) {
 	cbReqGtp := msg.(*message.CreateBearerRequest)
 	glog.V(2).Infof("Received Create Bearer Request (gtp):\n%s", cbReqGtp.String())
-
-	cbRes := &protos.CreateBearerRequestPgw{}
+	cbReq := &protos.CreateBearerRequestPgw{}
+	cbReq.PgwAddrs = senderAddr.String()
+	cbReq.SequenceNumber = cbReqGtp.SequenceNumber
 
 	// cgw control plane teid
 	if !cbReqGtp.HasTEID() {
 		return nil, errorIeMissing(ie.FullyQualifiedTEID), nil
 	}
-	cbRes.CAgwTeid = cbReqGtp.TEID()
+	cbReq.CAgwTeid = cbReqGtp.TEID()
 
 	if linkedEBI := cbReqGtp.LinkedEBI; linkedEBI != nil {
-		cbRes.LinkedBearerId = uint32(linkedEBI.MustEPSBearerID())
+		cbReq.LinkedBearerId = uint32(linkedEBI.MustEPSBearerID())
 	} else {
 		return nil, errorIeMissing(ie.EPSBearerID), nil
 	}
@@ -153,7 +154,7 @@ func parseCreateBearerRequest(msg message.Message) (*protos.CreateBearerRequestP
 		if err != nil || gtpError != nil {
 			return nil, gtpError, err
 		}
-		cbRes.BearerContext = bearerContext
+		cbReq.BearerContext = bearerContext
 	} else {
 		return nil, errorIeMissing(ie.BearerContext), nil
 	}
@@ -165,10 +166,10 @@ func parseCreateBearerRequest(msg message.Message) (*protos.CreateBearerRequestP
 			err = fmt.Errorf("Couldn't get Protocol Configuration Options: %s ", err)
 			return nil, nil, err
 		}
-		cbRes.ProtocolConfigurationOptions = pco
+		cbReq.ProtocolConfigurationOptions = pco
 	}
 
-	return cbRes, nil, nil
+	return cbReq, nil, nil
 }
 
 func handleCause(causeIE *ie.IE, msg message.Message) (*protos.GtpError, error) {
@@ -351,12 +352,14 @@ func handleBearerCtx(brCtxIE *ie.IE) (*protos.BearerContext, *protos.GtpError, e
 			}
 			bearerCtx.Qos = qos
 
-		case ie.BearerTFT:
-			bearerTFT, err := handleTFT(childIE)
-			if err != nil {
-				return nil, nil, err
-			}
-			bearerCtx.Tft = bearerTFT
+			/*
+				case ie.BearerTFT:
+					bearerTFT, err := handleTFT(childIE)
+					if err != nil {
+						return nil, nil, err
+					}
+					bearerCtx.Tft = bearerTFT
+			*/
 		}
 	}
 	return bearerCtx, nil, nil

@@ -14,12 +14,18 @@
  * @format
  */
 
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {
   gateway_he_config,
+  gateway_id,
   lte_gateway,
   mutable_cellular_gateway_pool,
   network_dns_config,
+  network_id,
+  service_status_health,
 } from '@fbcnms/magma-api';
+
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';
@@ -175,13 +181,37 @@ type GatewayStatusPayload = {
   kernel_versions_installed?: Array<string>,
 };
 
+export type FederationGatewayHealthStatus = {
+  status: string,
+  service_status: {
+    [string]: service_status_health,
+  },
+};
+
 const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
 
-export const HEALTHY_GATEWAY = 'Good';
+export const GatewayTypeEnum = Object.freeze({
+  HEALTHY_GATEWAY: 'Good',
+  UNHEALTHY_GATEWAY: 'Bad',
+  UNKNOWN: '-',
+});
 
-export const UNHEALTHY_GATEWAY = 'Bad';
+// health status used for federation gateways
+export const HEALTHY_STATUS = 'HEALTHY';
 
-export default function isGatewayHealthy({status}: lte_gateway) {
+export const UNHEALTHY_STATUS = 'UNHEALTHY';
+
+// availability status of federation gateway health service
+export const AVAILABLE_STATUS = 'AVAILABLE';
+
+export const ServiceTypeEnum = Object.freeze({
+  HEALTHY_SERVICE: 'Up',
+  UNHEALTHY_SERVICE: 'Down',
+  UNENABLED_SERVICE: 'Not Enabled',
+  UNAVAILABLE_SERVICE: 'N/A',
+});
+
+export default function isGatewayHealthy({status}: lte_gateway): boolean {
   if (status != null) {
     const checkin = status.checkin_time;
     if (checkin != null) {
@@ -189,6 +219,45 @@ export default function isGatewayHealthy({status}: lte_gateway) {
     }
   }
   return false;
+}
+
+/**
+ * Returns health status of the federation gateway.
+ *
+ * @param {network_id} networkId: Id of the federation network.
+ * @param {gateway_id} gatewayId: Id of the gateway
+ * @param {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error
+ * @returns the health status of the gateway or an empty string for an error.
+ */
+export async function getFederationGatewayHealthStatus(
+  networkId: network_id,
+  gatewayId: gateway_id,
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
+): Promise<FederationGatewayHealthStatus> {
+  try {
+    const gwHealthStatus = await MagmaV1API.getFegByNetworkIdGatewaysByGatewayIdHealthStatus(
+      {
+        networkId,
+        gatewayId,
+      },
+    );
+    return {
+      status: gwHealthStatus.status,
+      service_status: gwHealthStatus.service_status ?? {},
+    };
+  } catch (e) {
+    enqueueSnackbar?.(
+      'failed fetching health status information for federation gateway with id ' +
+        gatewayId,
+      {
+        variant: 'error',
+      },
+    );
+    return {status: '', service_status: {}};
+  }
 }
 
 export const DynamicServices = Object.freeze({

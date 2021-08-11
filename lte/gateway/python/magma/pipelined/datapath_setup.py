@@ -10,9 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import subprocess
-import os
 import logging
+import os
+import subprocess
+
+from magma.common.misc_utils import call_process
+from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
 
 irq_utility = '/usr/local/bin/set_irq_affinity'
 ethtool_utility = '/usr/sbin/ethtool'
@@ -69,8 +72,10 @@ def tune_datapath(config_dict):
 
     # ethtool -G eth1 rx 1024 tx 1024
     s1_queue_size = tune_dp_irqs['S1_queue_size']
-    set_s1_queue_sz = [ethtool_utility, '-G', s1_interface,
-                       'rx', str(s1_queue_size), 'tx', str(s1_queue_size)]
+    set_s1_queue_sz = [
+        ethtool_utility, '-G', s1_interface,
+        'rx', str(s1_queue_size), 'tx', str(s1_queue_size),
+    ]
     logging.debug("cmd: %s", set_s1_queue_sz)
     try:
         subprocess.check_call(set_s1_queue_sz)
@@ -78,8 +83,10 @@ def tune_datapath(config_dict):
         logging.debug('%s failed with: %s', set_s1_queue_sz, ex)
 
     sgi_queue_size = tune_dp_irqs['SGi_queue_size']
-    set_sgi_queue_sz = [ethtool_utility, '-G', sgi_interface,
-                        'rx', str(sgi_queue_size), 'tx', str(sgi_queue_size)]
+    set_sgi_queue_sz = [
+        ethtool_utility, '-G', sgi_interface,
+        'rx', str(sgi_queue_size), 'tx', str(sgi_queue_size),
+    ]
     logging.debug("cmd: %s", set_sgi_queue_sz)
     try:
         subprocess.check_call(set_sgi_queue_sz)
@@ -87,10 +94,46 @@ def tune_datapath(config_dict):
         logging.debug('%s failed with: %s', set_sgi_queue_sz, ex)
 
 
+def setup_masquerade_rule(config, loop):
+    # Figure out right egress device for the rule.
+    if config.get('setup_type') == 'LTE':
+        enable_nat = config['enable_nat']
+
+        if enable_nat is False:
+            add_dev = config.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
+            del_dev = config['nat_iface']
+        else:
+            add_dev = config['nat_iface']
+            del_dev = config.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
+    else:
+        add_dev = config['nat_iface']
+        del_dev = None
+
+    # update iptable rules
+    def callback(returncode):
+        if returncode != 0:
+            logging.error(
+                "Failed to set MASQUERADE: %d", returncode,
+            )
+    if del_dev:
+        ip_table_rule_del = 'POSTROUTING -o %s -j MASQUERADE' % del_dev
+        rule_del = 'iptables -t nat -D %s || true' % ip_table_rule_del
+        logging.debug("Del Masquerade rule: %s", rule_del)
+        call_process(rule_del, callback, loop)
+
+    ip_table_rule = 'POSTROUTING -o %s -j MASQUERADE' % add_dev
+    check_and_add = 'iptables -t nat -C %s || iptables -t nat -A %s' % \
+                    (ip_table_rule, ip_table_rule)
+    logging.debug("Add Masquerade rule: %s", check_and_add)
+    call_process(check_and_add, callback, loop)
+
+
 def _check_util_failed(path: str):
     if not os.path.isfile(path) or not os.access(path, os.X_OK):
-        logging.info("missing %s: path: %s perm: %s", path,
-                     os.path.isfile(path),
-                     os.access(path, os.X_OK))
+        logging.info(
+            "missing %s: path: %s perm: %s", path,
+            os.path.isfile(path),
+            os.access(path, os.X_OK),
+        )
         return True
     return False

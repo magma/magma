@@ -8,13 +8,12 @@ hide_title: true
 
 ## Prerequisites
 
-Make sure you follow the instructions in "[Deploying Orchestrator](
-https://magma.github.io/magma/docs/orc8r/deploying)" for successful
-installation of Orchestrator and the instructions in "[AGW Configuration](
-https://magma.github.io/magma/docs/lte/deploy_config_agw)" to provision and
+Make sure you follow the instructions in "[Deploying Orchestrator](../orc8r/deploy_intro.md)" for successful
+installation of Orchestrator and the instructions in "[AGW Configuration](deploy_config_agw.md)" to provision and
 configure your Access Gateway (AGW).
 
 ## S1 interface
+
 Connect your eNodeB to the `eth1` interface of Magma gateway. Magma uses `eth1`
 as the default `S1` interface. If you have more than one eNodeB, use an L2
 switch to connect all `S1` interfaces. For debugging purposes, you may find it
@@ -30,20 +29,24 @@ This will allow you to do live packet captures with Wireshark from your host to
 debug the S1 interface between the enodeB and the AGW (filter for SCTP).
 
 ## Automatic configuration
+
 *Magma officially supports auto-configuration of the following devices:*
-* Baicells Nova-243 Outdoor FDD/TDD eNodeB
-  - Firmware Version: BaiBS_RTS_3.1.6
-  - Firmware Version: BaiBS_RTSH_2.6.0.1
-* Baicells mBS1100 LTE-TDD Base Station
-  - Firmware Version: BaiStation_V100R001C00B110SPC003
-* Baicells Neutrino-244 ID FDD/TDD enodeB
+
+- Baicells Nova-243 Outdoor FDD/TDD eNodeB
+    - Firmware Version: BaiBS_RTS_3.1.6
+    - Firmware Version: BaiBS_RTSH_2.6.0.1
+- Baicells mBS1100 LTE-TDD Base Station
+    - Firmware Version: BaiStation_V100R001C00B110SPC003
+- Baicells Neutrino-244 ID FDD/TDD enodeB
 
 *Magma supports the following management protocols:*
-* TR-069 (CWMP)
+
+- TR-069 (CWMP)
 
 *Magma supports configuration of the following data models:*
-* TR-196 data model
-* TR-181 data model
+
+- TR-196 data model
+- TR-181 data model
 
 The Magma team plans to add support for more devices and management protocols.
 
@@ -81,6 +84,7 @@ Make sure that transmit is enabled.
 ![Connecting an eNodeB](assets/nms/connect_enb.png)
 
 ### Basic Troubleshooting
+
 After connecting your eNodeB(s) to the gateway through the `eth1` interface, you
 may want to check a few things if auto-configuration is not working.
 
@@ -88,8 +92,9 @@ Magma will be running a DHCP server to assign an IP address to your connected
 eNodeB. Check if an IP address gets assigned to your eNodeB by either checking
 the eNodeB UI or monitoring the `dnsd` service.
 
-```
+```bash
 journalctl -u magma@dnsd -f
+
 # Check for a similar log
 # DHCPDISCOVER(eth1) 48:bf:74:07:68:ee
 # DHCPOFFER(eth1) 10.0.2.246 48:bf:74:07:68:ee
@@ -101,8 +106,9 @@ Use the `enodebd_cli.py` tool to check basic status of eNodeB(s). It also allows
 for querying the value of parameters, setting them, and sending reboot requests
 to the eNodeB. The following example gets the status of all connected eNodeBs.
 
-```
+```bash
 enodebd_cli.py get_all_status
+
 # --- eNodeB Serial: 120200002618AGP0001 ---
 # IP Address..................10.0.2.246
 # eNodeB connected.....................1
@@ -122,13 +128,15 @@ It may take time for the eNodeB to start transmitting because `enodebd` will
 reboot the eNodeB to apply new configurations. Monitor the progress of `enodebd`
 using the following command
 
-```
+```bash
 journalctl -u magma@enodebd -f
+
 # Check for a similar log
 # INFO:root:Successfully configured CPE parameters!
 ```
 
 ## Manual configuration
+
 Manual configuration of connected eNodeB(s) is always possible. Magma was tested
 with multiple Airspan eNodeB models configured through NetSpan management
 software.
@@ -154,6 +162,7 @@ that of the Magma cellular configuration. Pay special attention to the
 configuration of `PLMN`, `EARFCN` and `TAC`.
 
 ### Basic Troubleshooting
+
 When manually configuring your eNodeB, you can use the manufacturers tools or
 interfaces to monitor and troubleshoot the eNodeB configuration.
 
@@ -161,7 +170,7 @@ You can also listen to the `S1` interface traffic and validate a proper `S1`
 setup and handshake. Below are the `SCTP` packets exchanged between the eNodeB
 and MME.
 
-```
+```text
 Source        Destination    Protocol  Length   Info
 10.0.2.246    10.0.2.1       SCTP      66       INIT
 10.0.2.1      10.0.2.246     SCTP      298      INIT_ACK

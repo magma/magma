@@ -15,6 +15,7 @@
  *      contact@openairinterface.org
  */
 
+#include <vector>
 extern "C" {
 #include "bytes_to_ie.h"
 #include "dynamic_memory_check.h"
@@ -532,11 +533,9 @@ void MmeNasStateConverter::ue_context_to_proto(
     const ue_mm_context_t* state_ue_context, oai::UeContext* ue_context_proto) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_proto->Clear();
-
-  char* msisdn_buffer = bstr2cstr(state_ue_context->msisdn, (char) '?');
-  if (msisdn_buffer) {
-    ue_context_proto->set_msisdn(msisdn_buffer);
-    bcstrfree(msisdn_buffer);
+  if (state_ue_context->msisdn && state_ue_context->msisdn->slen) {
+    BSTRING_TO_STRING(
+        state_ue_context->msisdn, ue_context_proto->mutable_msisdn());
   } else {
     ue_context_proto->set_msisdn("");
   }
@@ -836,5 +835,33 @@ void MmeNasStateConverter::proto_to_ue(
     const oai::UeContext& ue_ctxt_proto, ue_mm_context_t* ue_ctxt) {
   proto_to_ue_mm_context(ue_ctxt_proto, ue_ctxt);
 }
+
+void MmeNasStateConverter::mme_app_ueip_imsi_map_to_proto(
+    const UeIpImsiMap& ueip_map, oai::MmeUeIpImsiMap* ueip_proto) {
+  auto proto_map = ueip_proto->mutable_mme_ueip_imsi_map();
+  for (const auto& itr : ueip_map) {
+    oai::imsi_list imsi_list_proto = oai::imsi_list();
+    for (const auto& it_vec : itr.second) {
+      imsi_list_proto.add_imsi(it_vec);
+    }
+    (*proto_map)[itr.first] = imsi_list_proto;
+  }
+  return;
+}
+
+void MmeNasStateConverter::mme_app_proto_to_ueip_imsi_map(
+    const oai::MmeUeIpImsiMap& ueip_proto, UeIpImsiMap& ueip_imsi_map) {
+  std::vector<uint64_t> vec = {};
+  auto proto_map            = ueip_proto.mme_ueip_imsi_map();
+  for (auto const& itr : proto_map) {
+    oai::imsi_list imsi_list_proto = itr.second;
+    for (auto idx = 0; idx < imsi_list_proto.imsi_size(); idx++) {
+      vec.insert(vec.begin(), imsi_list_proto.imsi(idx));
+    }
+    ueip_imsi_map[itr.first] = vec;
+    vec.clear();
+  }
+}
+
 }  // namespace lte
 }  // namespace magma

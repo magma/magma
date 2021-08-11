@@ -69,6 +69,7 @@ struct StoredSessionState {
   StoredMonitorMap monitor_map;
   std::string session_level_key;  // "" maps to nullptr
   std::string imsi;
+  uint16_t shard_id;
   std::string session_id;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
@@ -163,6 +164,8 @@ struct SessionStateUpdateCriteria {
   std::unordered_map<std::string, SessionCreditUpdateCriteria>
       monitor_credit_map;
   TgppContext updated_tgpp_context;
+  // The value should be set only when there is an update
+  optional<CreateSessionResponse> create_session_response;
   magma::lte::SubscriberQuotaUpdate_Type updated_subscriber_quota_state;
 
   bool is_bearer_mapping_updated;

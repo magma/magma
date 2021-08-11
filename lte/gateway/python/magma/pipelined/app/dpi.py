@@ -30,11 +30,13 @@ from magma.pipelined.policy_converters import (
 # Current classification will finalize if found in APP_PROTOS, if found in
 # PARENT_PROTOS we will also add the SERVICE_IDS id to the final classification
 PARENT_PROTOS = {"facebook": 10, "google_gen": 20, "viber": 30, "imo": 40}
-APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
-              "gmail": 4, "google_docs": 5, "netflix": 6,
-              "apple": 7, "microsoft": 8, 'reddit': 9, 'whatsapp': 101,
-              "google_play": 102, "appstore": 103, "amazon": 104, "wechat": 105,
-              "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109}
+APP_PROTOS = {
+    "facebook_messenger": 1, "instagram": 2, "youtube": 3,
+    "gmail": 4, "google_docs": 5, "netflix": 6,
+    "apple": 7, "microsoft": 8, 'reddit': 9, 'whatsapp': 101,
+    "google_play": 102, "appstore": 103, "amazon": 104, "wechat": 105,
+    "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109,
+}
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 DEFAULT_DPI_ID = 0
 # Max register value
@@ -58,7 +60,8 @@ class DPIController(MagmaController):
         super(DPIController, self).__init__(*args, **kwargs)
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = self._service_manager.get_next_table_num(
-            self.APP_NAME)
+            self.APP_NAME,
+        )
         self.setup_type = kwargs['config']['setup_type']
         self._datapath = None
         self._dpi_enabled = kwargs['config']['dpi']['enabled']
@@ -96,12 +99,16 @@ class DPIController(MagmaController):
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
-        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num,
-                                          cookie=self.tbl_num)
+        flows.delete_all_flows_from_table(
+            datapath, self._app_set_tbl_num,
+            cookie=self.tbl_num,
+        )
         flows.delete_all_flows_from_table(datapath, self._classify_app_tbl_num)
 
-    def add_classify_flow(self, flow_match, flow_state, app: str,
-                          service_type: str):
+    def add_classify_flow(
+        self, flow_match, flow_state, app: str,
+        service_type: str,
+    ):
         """
         Parse DPI output and set the register for future packets matching this
         flow. APP is split into tokens as the top level app is not supported,
@@ -128,12 +135,16 @@ class DPIController(MagmaController):
         actions = [parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
         # No reason to create a flow here
         if flow_state != FlowRequest.FLOW_CREATED:
-            flows.add_flow(self._datapath, self._classify_app_tbl_num,
+            flows.add_flow(
+                self._datapath, self._classify_app_tbl_num,
                 ul_match, actions, priority=flows.DEFAULT_PRIORITY,
-                idle_timeout=self._idle_timeout)
-            flows.add_flow(self._datapath, self._classify_app_tbl_num,
+                idle_timeout=self._idle_timeout,
+            )
+            flows.add_flow(
+                self._datapath, self._classify_app_tbl_num,
                 dl_match, actions, priority=flows.DEFAULT_PRIORITY,
-                idle_timeout=self._idle_timeout)
+                idle_timeout=self._idle_timeout,
+            )
 
     def remove_classify_flow(self, flow_match):
         try:
@@ -163,30 +174,41 @@ class DPIController(MagmaController):
         # Setup flows to classify & mirror to sampling port
         match = MagmaMatch()
         actions = [
-            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
+            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num),
+        ]
 
         if self._dpi_enabled:
             actions.append(parser.OFPActionOutput(self._mon_port_number))
 
-        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
-                                             match, actions,
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num,
+            match, actions,
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+        )
 
         # Setup flows for internal IPFIX sampling
         actions = [
-            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
+            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num),
+        ]
 
         flows.add_resubmit_next_service_flow(
             self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
             priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
-            resubmit_table=self._imsi_set_tbl_num)
+            resubmit_table=self._imsi_set_tbl_num,
+        )
 
         # Setup flows for the application reg classifier tbl
-        actions = [parser.NXActionRegLoad2(dst=DPI_REG,
-                                           value=UNCLASSIFIED_PROTO_ID)]
-        flows.add_flow(datapath, self._classify_app_tbl_num, MagmaMatch(),
-                       actions, priority=flows.MINIMUM_PRIORITY)
+        actions = [
+            parser.NXActionRegLoad2(
+                dst=DPI_REG,
+                value=UNCLASSIFIED_PROTO_ID,
+            ),
+        ]
+        flows.add_flow(
+            datapath, self._classify_app_tbl_num, MagmaMatch(),
+            actions, priority=flows.MINIMUM_PRIORITY,
+        )
 
     def _create_monitor_port(self):
         """
@@ -230,8 +252,10 @@ def get_app_id(app: str, service_type: str) -> int:
 
     if (len(app_match) == 1):
         app_id = APP_PROTOS[app_match[0]]
-        LOG.debug("Classified %s-%s as %d", app, service_type,
-                            app_id)
+        LOG.debug(
+            "Classified %s-%s as %d", app, service_type,
+            app_id,
+        )
         return app_id
     parent_match = [app for app in tokens if app in PARENT_PROTOS]
 

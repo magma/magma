@@ -1,0 +1,79 @@
+---
+name: Update PR on check failure
+on:  # yamllint disable-line rule:truthy
+  workflow_run:
+    workflows:
+      - DCO check
+      - Python Format Check
+      - Semantic PR
+    types:
+      - completed
+
+jobs:
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    env:
+      CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
+    steps:
+      # Retrieve PR number from triggering workflow artifacts
+      - name: 'Download artifact'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: unzip pr.zip
+      - name: DCO comment message
+        if: ${{ github.event.workflow.name == 'DCO check' }}
+        run: |
+          echo "Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
+          ### Howto
+          - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
+          - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357/git-sign-off-previous-commits)
+          - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)
+          - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
+      - name: Python format comment message
+        if: ${{ github.event.workflow.name == 'Python Format Check' }}
+        run: |
+          echo "Oops! Looks like you failed the \`Python Format Check\`.
+          ### Howto
+          - [Instructions on running the formatter locally are provided](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit)
+          - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
+      - name: Semantic PR comment message
+        if: ${{ github.event.workflow.name == 'Semantic PR' }}
+        run: |
+          echo "Oops! Looks like you failed the \`Semantic PR check\`.
+          ### Howto
+          - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - For PRs with only one commit, the commit message must also be semantic. See [Changing a commit message](https://docs.github.com/en/github/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message) for a howto
+          - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
+      - name: Comment on PR
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var fs = require('fs');
+            var issue_number = Number(fs.readFileSync('./NR'));
+            const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
+
+            github.issues.createComment({
+              issue_number: issue_number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: msg,
+            })

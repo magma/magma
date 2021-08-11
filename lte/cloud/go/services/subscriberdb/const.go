@@ -16,10 +16,9 @@ package subscriberdb
 const (
 	ServiceName = "subscriberdb"
 
-	EntityType = "subscriber"
-
-	LookupTableBlobstore       = "subscriber_lookup_blobstore"
-	PerSubDigestTableBlobstore = "per_sub_digest_blobstore"
+	LookupTableBlobstore     = "subscriber_lookup_blobstore"
+	SyncstoreTableBlobstore  = "subscriber_syncstore_blobstore"
+	SyncstoreTableNamePrefix = "subscriber"
 
 	// MinimumSyncInterval is the the minimum interval in seconds between
 	// gateway requests to sync its subscriberdb with the cloud.

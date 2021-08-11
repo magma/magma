@@ -13,6 +13,7 @@ limitations under the License.
 
 package mock_pgw
 
+/*
 import (
 	"fmt"
 	"net"
@@ -23,16 +24,28 @@ import (
 	"github.com/wmnsk/go-gtp/gtpv2/message"
 )
 
+type DedicatedBearerContext struct {
+	DedicatedBearereID uint8
+	Pgw_u_ip           string
+	Pgw_u_teid         uint32
+}
+
 type CreateBearerRequest struct {
 	Imsi               string
-	DedicatedBearereID uint8
 	QosQCI             uint8
 	ChargingID         uint32
 	BiFilterProtocolId uint8
-	BiFilterPort       uint16
+	BiLocalFilterPort  uint16
+	BiRemoteFilterPort uint16
+	BearerContext      DedicatedBearerContext
 }
 
-func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (*message.CreateBearerResponse, error) {
+type CBReq struct {
+	Res *message.CreateBearerResponse
+	Err error
+}
+
+func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, error) {
 	session, err := mPgw.GetSessionByIMSI(req.Imsi)
 	if err != nil {
 		return nil, err
@@ -55,35 +68,51 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (*message.Crea
 	if err != nil {
 		return nil, err
 	}
+	mPgw.LastSequenceNumber = sequence
 
-	// wait for getHandleCreateBearerRequest to process the response of sgw
-	incomingMsg, err := session.WaitMessage(sequence, mPgw.GtpTimeout)
-	if err != nil {
-		fmt.Printf("mockPgw couldn't process received CreateBearerResponse: %s\n", err)
-		return nil, err
-	}
-	var cbRspFromSGW *message.CreateBearerResponse
-	switch m := incomingMsg.(type) {
-	case *message.CreateBearerResponse:
-		// move forward
-		cbRspFromSGW = m
-	default:
-		errMsg := "mockPgw couldn't parse CreateBearerResponse"
-		fmt.Println(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	fmt.Printf("mockPGW received GreateBearerResponse: %s\n", cbRspFromSGW.String())
-	return cbRspFromSGW, nil
+	out := make(chan CBReq)
+	// this routine is needed due to the fact AGW req/res is splitted into two grpc servers
+	go func() {
+		// wait for getHandleCreateBearerRequest to process the response of sgw
+		incomingMsg, err := session.WaitMessage(sequence, mPgw.GtpTimeout)
+		if err != nil {
+			fmt.Printf("mockPgw couldn't process received CreateBearerResponse: %s\n", err)
+			out <- CBReq{Err: err}
+			return
+		}
+		var cbRspFromSGW *message.CreateBearerResponse
+		switch m := incomingMsg.(type) {
+		case *message.CreateBearerResponse:
+			// move forward
+			cbRspFromSGW = m
+		default:
+			errMsg := "mockPgw couldn't parse CreateBearerResponse"
+			fmt.Println(errMsg)
+			out <- CBReq{Err: errors.New(errMsg)}
+			return
+		}
+		fmt.Printf("mockPGW received GreateBearerResponse: %s\n", cbRspFromSGW.String())
+		out <- CBReq{
+			Res: cbRspFromSGW,
+			Err: nil,
+		}
+	}()
+
+	return out, nil
 }
 
 func buildCreateBearerRequestIEs(session *gtpv2.Session, req CreateBearerRequest) ([]*ie.IE, error) {
+	pgwFTEIDu := ie.NewFullyQualifiedTEID(
+		gtpv2.IFTypeS5S8PGWGTPU, req.BearerContext.Pgw_u_teid, req.BearerContext.Pgw_u_ip, "").WithInstance(1)
+
 	ies := []*ie.IE{
 		ie.NewEPSBearerID(session.GetDefaultBearer().EBI),
 		ie.NewBearerContext(
-			ie.NewEPSBearerID(req.DedicatedBearereID),
+			ie.NewEPSBearerID(req.BearerContext.DedicatedBearereID),
 			buildNewBearerTFTCreateNewTFT(req),
 			ie.NewBearerQoS(1, 0, 1, req.QosQCI, 0x1111111111, 0x2222222222, 0x1111111111, 0x2222222222),
 			ie.NewChargingID(req.ChargingID),
+			pgwFTEIDu,
 		),
 	}
 	return ies, nil
@@ -96,15 +125,29 @@ func buildNewBearerTFTCreateNewTFT(req CreateBearerRequest) *ie.IE {
 		[]*ie.TFTPacketFilter{
 			ie.NewTFTPacketFilter(
 				ie.TFTPFBidirectional, 0, 0,
+				// component 0
 				ie.NewTFTPFComponentSecurityParameterIndex(0xdeadbeef),
+				// component 1
 				ie.NewTFTPFComponentIPv4RemoteAddress(net.IP{127, 0, 0, 1}, net.IPMask{255, 255, 255, 0}),
+				// component 2
 				ie.NewTFTPFComponentProtocolIdentifierNextHeader(req.BiFilterProtocolId),
-				ie.NewTFTPFComponentSingleLocalPort(req.BiFilterPort),
+				// component 3
+				ie.NewTFTPFComponentTypeOfServiceTrafficClass(1, 2),
+				// component 4
+				ie.NewTFTPFComponentSingleLocalPort(req.BiLocalFilterPort),
+				// component 5
+				ie.NewTFTPFComponentSingleRemotePort(req.BiRemoteFilterPort),
 			),
 			ie.NewTFTPacketFilter(
 				ie.TFTPFDownlinkOnly, 1, 0,
+				// component 6
 				ie.NewTFTPFComponentProtocolIdentifierNextHeader(1),
-				ie.NewTFTPFComponentLocalPortRange(20, 21),
+				// component 7
+				ie.NewTFTPFComponentSecurityParameterIndex(0xdeadbeef),
+				// component 8
+				ie.NewTFTPFComponentLocalPortRange(req.BiLocalFilterPort, req.BiLocalFilterPort+10),
+				// component 9
+				ie.NewTFTPFComponentRemotePortRange(req.BiRemoteFilterPort, req.BiRemoteFilterPort+10),
 			),
 		},
 		[]*ie.TFTParameter{
@@ -131,3 +174,4 @@ func (mPgw *MockPgw) getHandleCreateBearerRequest() gtpv2.HandlerFunc {
 		return nil
 	}
 }
+*/

@@ -48,6 +48,7 @@ class ScapyPacketInjector(PacketInjector):
     Scapy Packet Injector, the pkt arg for send, get_response
     can be either bytes or Scapy pkts
     """
+
     def __init__(self, iface, pcap_filename=None):
         self._iface = iface
         self._pcap_filename = pcap_filename

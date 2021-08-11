@@ -133,10 +133,8 @@ class SessionState {
 
  public:
   SessionState(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& cfg, StaticRuleStore& rule_store,
-      const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
-      const CreateSessionResponse& csr);
+      const std::string& session_id, const SessionConfig& cfg,
+      StaticRuleStore& rule_store, uint64_t pdp_start_time);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -154,11 +152,12 @@ class SessionState {
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
 
+  /* method to set update the session current version */
   void set_current_version(
-      int new_session_version, SessionStateUpdateCriteria* session_uc);
+      uint32_t new_session_version, SessionStateUpdateCriteria* session_uc);
 
-  void insert_pdr(
-      SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc);
+  /* method to add new PDR rules to session */
+  void insert_pdr(SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc);
 
   /* method to change the PDR state */
   void set_all_pdrs(enum PdrState);
@@ -266,6 +265,10 @@ class SessionState {
 
   std::string get_imsi() const { return config_.common_context.sid().id(); }
 
+  uint16_t get_shard_id() const { return shard_id_; }
+
+  void set_shard_id(uint16_t shard_id) { shard_id_ = shard_id; }
+
   std::string get_session_id() const { return session_id_; }
 
   uint32_t get_pdu_id() const;
@@ -286,7 +289,7 @@ class SessionState {
    *
    * @return SessionState::SessionInfo
    */
-  SessionState::SessionInfo get_session_info();
+  SessionState::SessionInfo get_session_info_for_setup();
 
   void set_tgpp_context(
       const magma::lte::TgppContext& tgpp_context,
@@ -316,6 +319,10 @@ class SessionState {
   void increment_request_number(uint32_t incr);
 
   SessionTerminateRequest make_termination_request(
+      SessionStateUpdateCriteria* session_uc);
+
+  void set_create_session_response(
+      const CreateSessionResponse response,
       SessionStateUpdateCriteria* session_uc);
 
   CreateSessionResponse get_create_session_response();
@@ -794,6 +801,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  uint16_t shard_id_;
 
  private:
   /**

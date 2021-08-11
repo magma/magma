@@ -152,6 +152,7 @@ s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
+s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
@@ -160,6 +161,8 @@ s1aptests/test_attach_complete_after_ics_timer_expiry.py \
 s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
 s1aptests/test_send_error_ind_for_erab_setup_req.py \
 s1aptests/test_attach_detach_with_ipv6_pcscf_and_dns_addr.py \
+s1aptests/test_concurrent_secondary_pdns.py \
+s1aptests/test_concurrent_secondary_pdn_reject.py \
 s1aptests/test_ipv4v6_secondary_pdn_rs_retransmit.py \
 s1aptests/test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py \
 s1aptests/test_ipv6_secondary_pdn_rs_retransmit.py \

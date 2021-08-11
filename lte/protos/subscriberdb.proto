@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "orc8r/protos/digest.proto";
 import "lte/protos/apn.proto";
 import "google/protobuf/field_mask.proto";
 
@@ -206,45 +207,39 @@ service SubscriberDB {
 service SubscriberDBCloud {
   // CheckSubscribersInSync checks whether the client subscribers flat digest
   // is up-to-date.
-  rpc CheckSubscribersInSync (CheckSubscribersInSyncRequest) returns (CheckSubscribersInSyncResponse) {}
+  rpc CheckInSync (CheckInSyncRequest) returns (CheckInSyncResponse) {}
   // SyncSubscribers returns the changeset of subscribers between client and
   // cloud if the set is small; if the set is large, returns signal to resync.
-  rpc SyncSubscribers (SyncSubscribersRequest) returns (SyncSubscribersResponse) {}
+  rpc Sync (SyncRequest) returns (SyncResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
 }
 
-message CheckSubscribersInSyncRequest {
-  // flat_digest is the deterministic digest of the full set of subscriber
+message CheckInSyncRequest {
+  // root_digest is the deterministic digest of the full set of config
   // objects stored on the client side.
-  Digest flat_digest = 1;
+  magma.orc8r.Digest root_digest = 1;
 }
 
-message CheckSubscribersInSyncResponse {
-  // in_sync is true if client's existing subscribers match those on the server.
+message CheckInSyncResponse {
+  // in_sync is true if client's existing configs match those on the cloud.
   bool in_sync = 1;
 }
 
-message SyncSubscribersRequest {
-  // per_sub_digest is a list of digests for each client-side subscriber, ordered
-  // by their IDs (IMSI).
-  repeated SubscriberDigestWithID per_sub_digests = 1;
+message SyncRequest {
+  // leaf_digests contains a list of digests for each client-side config object,
+  // ordered by their IDs.
+  repeated magma.orc8r.LeafDigest leaf_digests = 1;
 }
 
-message SyncSubscribersResponse {
+message SyncResponse {
   // resync is true if the client-server data difference is too big and an
   // overall resync is needed. If true, all subscriber changesets will be empty.
   bool resync = 1;
-  // flat_digest is the deterministic digest of all server-side subscribers.
-  Digest flat_digest = 2;
-  // per_sub_digests is a list of digests for each server-side subscriber, ordered
-  // by their IDs (IMSI).
-  repeated SubscriberDigestWithID per_sub_digests = 3;
-  // to_renew is the set of all subscriber data modified/added on the server side,
-  // indexed by their IDs (IMSI).
-  map<string, SubscriberData> to_renew = 4;
-  // deleted is a list of IDs for subscribers removed on the server side.
-  repeated string deleted = 5;
+  // digests contains all digests for the network.
+  magma.orc8r.DigestTree digests = 2;
+  // changeset contains the client-server data difference.
+  magma.orc8r.Changeset changeset = 3;
 }
 
 message ListSubscribersRequest {
@@ -259,22 +254,6 @@ message ListSubscribersResponse {
   // next_page_token is a serialized entity page token for subsequent paginated
   // loads.
   string next_page_token = 2;
-  // flat_digest is the server-defined, deterministic digest of the full set of
-  // returned subscriber objects.
-  Digest flat_digest = 3;
-  // per_sub_digests is a set of per-subscriber digests, ordered by their
-  // subscriber IDs.
-  repeated SubscriberDigestWithID per_sub_digests = 4;
-}
-
-message SubscriberDigestWithID {
-  // id is the id of the subscriber.
-  SubscriberID sid = 1;
-  // digest is the deterministic digest of the single subscriber data object.
-  Digest digest = 2;
-}
-
-message Digest {
-  // md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
-  string md5_base64_digest = 1;
+  // digests contains all digests for the network.
+  magma.orc8r.DigestTree digests = 3;
 }

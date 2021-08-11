@@ -93,7 +93,7 @@ func TestNHRouting(t *testing.T) {
 	testHealthServiser := setupNeutralHostNetworks(t)
 
 	// test # 1: Verify, relay finds the right serving FeG for IMSI's PLMN ID
-	foundFegHwId, err := gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi)
+	foundFegHwId, err := gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi)
 	assert.NoError(t, err)
 	assert.Equal(t, fegHwId, foundFegHwId)
 
@@ -224,11 +224,11 @@ func TestNHRouting(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that NH FeG will be used as "catch all" for all but nhPlmnId
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, "") // no IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, "") // no IMSI
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
 
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi) // NH IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi) // NH IMSI
 	assert.NoError(t, err)
 	assert.Equal(t, fegHwId, foundFegHwId)
 
@@ -272,13 +272,13 @@ func TestNHRouting(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify, relay now finds the NH local FeG for any IMSI
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi)
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi)
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nonNhImsi)
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nonNhImsi)
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
-	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, "") // no IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, "") // no IMSI
 	assert.NoError(t, err)
 	assert.Equal(t, nhFegHwId, foundFegHwId)
 

@@ -32,14 +32,21 @@ namespace magma {
 using namespace orc8r;
 using std::experimental::optional;
 
+// Utility struct to capture all actions that could result from handling a
+// LocalCreateSessionRequest
 struct SessionActionOrStatus {
   bool create_new_session;
+  // If true, end the existing session registered (in SessionD and policy
+  // component) for the IMSI and APN in the request
   bool end_existing_session;
+  // SessionID that needs to be sent back with LocalCreateSessionResponse
   std::string session_id_to_send_back;
-  // if this value is set, we should respond back to access immediately
+  // If this value is set, we should respond back to access immediately
   optional<grpc::Status> status_back_to_access;
   SessionActionOrStatus()
-      : create_new_session(false), end_existing_session(false) {}
+      : create_new_session(false),
+        end_existing_session(false),
+        status_back_to_access({}) {}
   static SessionActionOrStatus create_new_session_action(
       const std::string session_id) {
     SessionActionOrStatus action;
@@ -205,7 +212,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void check_usage_for_reporting(
       SessionMap session_map, SessionUpdate& session_uc);
   bool is_pipelined_restarted();
-  void call_setup_pipelined(const std::uint64_t& epoch);
+  void call_setup_pipelined(
+      const std::uint64_t& epoch, const bool update_rule_versions);
 
   void end_session(
       SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
@@ -302,6 +310,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * @return status::OK if SessionD is ready to accept requests
    */
   grpc::Status check_sessiond_is_ready();
+
+  bool initialize_session(
+      SessionMap& session_map, const std::string& session_id,
+      const SessionConfig& cfg);
 };
 
 }  // namespace magma

@@ -93,7 +93,7 @@ async def _run_subprocess(
     process = await asyncio.create_subprocess_exec(
         *cmd_list,
         stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        stderr=asyncio.subprocess.PIPE,
     )
 
     stdout, stderr = await process.communicate()

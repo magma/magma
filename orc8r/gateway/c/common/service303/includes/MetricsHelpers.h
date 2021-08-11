@@ -15,8 +15,9 @@
 
 #include <stdio.h>  // for size_t
 
-namespace magma {
-namespace service303 {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Remove the counter metric that matches name+labels given
@@ -72,6 +73,14 @@ void decrement_gauge(const char* name, double decrement, size_t n_labels, ...);
 void set_gauge(const char* name, double value, size_t n_labels, ...);
 
 /**
+ * Returns value for Gauge metric
+ * @param name
+ * @param n_labels number of labels
+ * @param ... label args (name, value)
+ */
+double get_gauge(const char* name, size_t n_labels, ...);
+
+/**
  * Updates value of Histogram metric
  * @param name
  * @param value to observe
@@ -81,5 +90,6 @@ void set_gauge(const char* name, double value, size_t n_labels, ...);
 void observe_histogram(
     const char* name, double observation, size_t n_labels, ...);
 
-}  // namespace service303
-}  // namespace magma
+#ifdef __cplusplus
+}
+#endif

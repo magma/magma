@@ -16,6 +16,8 @@ package servicers
 import (
 	"context"
 
+	orc8r_protos "magma/orc8r/lib/go/protos"
+
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
@@ -68,6 +70,15 @@ func (s S8RelayRouter) SendEcho(c context.Context, req *protos.EchoRequest) (*pr
 	}
 	defer cancel()
 	return client.SendEcho(ctx, req)
+}
+
+func (s S8RelayRouter) CreateBearerResponse(c context.Context, req *protos.CreateBearerResponsePgw) (*orc8r_protos.Void, error) {
+	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+	return client.CreateBearerResponse(ctx, req)
 }
 
 func (s S8RelayRouter) getS8Client(c context.Context, imsi string) (protos.S8ProxyClient, context.Context, context.CancelFunc, error) {

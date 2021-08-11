@@ -59,15 +59,8 @@ int main(int argc, char** argv) {
           printf("IP allocated: %s\n", str);
           printf("Releasing IP address...\n");
 
-          int release_status =
-              MobilityServiceClient::getInstance().ReleaseIPv4Address(
-                  "0001", apn, ipv4_addr1);
-          if (release_status) {
-            printf(
-                "release_ipv4_address error %d for sid %s\n", release_status,
-                "0001");
-            return -1;
-          }
+          MobilityServiceClient::getInstance().ReleaseIPv4Address(
+              "0001", apn, ipv4_addr1);
           return 0;
         });
 
@@ -89,15 +82,8 @@ int main(int argc, char** argv) {
           tmp.s_addr = htonl(ipv4_addr2.s_addr);
           inet_ntop(AF_INET, &tmp, str, INET_ADDRSTRLEN);
           printf("IP allocated: %s\n", str);
-          int release_status2 =
-              MobilityServiceClient::getInstance().ReleaseIPv4Address(
-                  "0002", apn, ipv4_addr2);
-          if (release_status2) {
-            printf(
-                "release_ipv4_address error %d for sid %s\n", release_status2,
-                "0002");
-            return -1;
-          }
+          MobilityServiceClient::getInstance().ReleaseIPv4Address(
+              "0002", apn, ipv4_addr2);
           return 0;
         });
 

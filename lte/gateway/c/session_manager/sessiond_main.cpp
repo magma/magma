@@ -23,10 +23,10 @@
 #include "includes/MagmaService.h"
 #include "includes/MConfigLoader.h"
 #include "OperationalStatesHandler.h"
-#include "includes/PolicyLoader.h"
+#include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
-#include "SentryWrappers.h"
+#include "includes/SentryWrapper.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "SessionCredit.h"
 #include "SessionManagerServer.h"
@@ -208,7 +208,12 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  initialize_sentry(mconfig.sentry_config());
+  sentry_config_t sentry_config;
+  sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
+  strncpy(
+      sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
+      MAX_URL_LENGTH);
+  initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool converged_access          = false;
   uint32_t session_max_rtx_count = 0;
@@ -315,10 +320,11 @@ int main(int argc, char* argv[]) {
 
   // Some setup work for the SessionCredit class
   set_consts(config);
+  auto shard_tracker = std::make_shared<magma::ShardTracker>();
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
       reporter, rule_store, *session_store, pipelined_client, events_reporter,
-      spgw_client, aaa_client,
+      spgw_client, aaa_client, shard_tracker,
       config["session_force_termination_timeout_ms"].as<long>(),
       get_quota_exhaust_termination_time(config), mconfig);
 

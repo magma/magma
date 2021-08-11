@@ -70,6 +70,11 @@ class MmeNasStateManager
   MmeNasStateManager(MmeNasStateManager const&) = delete;
   MmeNasStateManager& operator=(MmeNasStateManager const&) = delete;
 
+  // Serializes ueip_imsi_map to proto and saves it into data store
+  void write_mme_ueip_imsi_map_to_db();
+  // Returns a reference to UeIpImsiMap
+  UeIpImsiMap& get_mme_ueip_imsi_map(void);
+
  private:
   // Constructor for MME NAS state manager
   MmeNasStateManager();
@@ -97,6 +102,15 @@ class MmeNasStateManager
 
   // Clean-up the in-memory hashtables
   void clear_mme_nas_hashtables();
+
+  // creates map of ue_ip addresses
+  void create_mme_ueip_imsi_map();
+  /* ue_ip address is allocated by either roaming PGWs or mobilityd
+   * So there is possibility of allocating same ue ip address for different UEs.
+   * So defining ue_ip_imsi map with key as ue_ip and value as list of imsis
+   * having same ue_ip
+   */
+  UeIpImsiMap ueip_imsi_map;  // ueip => list of imsi64
 };
 }  // namespace lte
 }  // namespace magma

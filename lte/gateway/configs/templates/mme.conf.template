@@ -30,6 +30,9 @@ MME :
     EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC            = "no";    # DO NOT CHANGE
     EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST             = "no";    # DO NOT CHANGE
 
+    # Report/Display MME statistics (expressed in seconds)
+    STATS_TIMER_SEC                    = 60;
+
     USE_STATELESS = "{{ use_stateless }}";
     USE_HA = "{{ use_ha }}";
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
@@ -319,4 +322,13 @@ MME :
      }{% if not loop.last %},{% endif %}
      {% endfor %}
    );
+
+   SENTRY_CONFIG = {
+     {% if sentry_config %}
+       # Sentry.io configuration sent from the Orc8r
+       SAMPLE_RATE      = {{ sentry_config.sample_rate }};
+       UPLOAD_MME_LOG   = "{{ sentry_config.upload_mme_log }}";
+       URL_NATIVE       = "{{ sentry_config.url_native }}"
+     {%- endif %}
+   }
 };

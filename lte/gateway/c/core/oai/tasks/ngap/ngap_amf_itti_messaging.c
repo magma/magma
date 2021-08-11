@@ -53,8 +53,8 @@ status_code_e ngap_amf_itti_send_sctp_request(
 }
 
 status_code_e ngap_amf_itti_nas_uplink_ind(
-    const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
-    const tai_t* const tai, const ecgi_t* const cgi) {
+    const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload, const tai_t* tai,
+    const ecgi_t* cgi) {
   MessageDef* message_p = NULL;
   imsi64_t imsi64       = INVALID_IMSI64;
 #if 0
@@ -90,14 +90,13 @@ TODO: laterthis maps to state
 void ngap_amf_itti_ngap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t gnb_id,
     const gnb_ue_ngap_id_t gnb_ue_ngap_id, const uint8_t* const nas_msg,
-    const size_t nas_msg_length, const tai_t* const tai,
-    const ecgi_t* const ecgi, const long rrc_cause,
-    const s_tmsi_m5_t* const opt_s_tmsi, const csg_id_t* const opt_csg_id,
-    const guamfi_t* const opt_guamfi,
+    const size_t nas_msg_length, const tai_t* tai, const ecgi_t* ecgi,
+    const long rrc_cause, const s_tmsi_m5_t* opt_s_tmsi,
+    const csg_id_t* opt_csg_id, const guamfi_t* opt_guamfi,
     const void* opt_cell_access_mode,           // unused
     const void* opt_cell_gw_transport_address,  // unused
-    const void* opt_relay_node_indicator)       // unused
-{
+    const void* opt_relay_node_indicator,       // unused
+    const long ue_ctx_req) {
   MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -125,13 +124,17 @@ void ngap_amf_itti_ngap_initial_ue_message(
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
       rrc_cause + 1;
 
+  OAILOG_INFO(LOG_NGAP, "ue context request recvd at ngap : %lu", ue_ctx_req);
+  NGAP_INITIAL_UE_MESSAGE(message_p).ue_context_request = ue_ctx_req;
+  NGAP_INITIAL_UE_MESSAGE(message_p).tai                = *tai;
+
   if (opt_s_tmsi) {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = true;
     NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi      = *opt_s_tmsi;
   } else {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = false;
   }
-#if 0
+#if 0  
   if (opt_guamfi) {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_guamfi_valid = true;
     NGAP_INITIAL_UE_MESSAGE(message_p).opt_guamfi = *opt_guamfi;
@@ -140,7 +143,7 @@ void ngap_amf_itti_ngap_initial_ue_message(
   }
 #endif
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gnb_ue_ngap_id;
-
+  NGAP_INITIAL_UE_MESSAGE(message_p).tai            = *tai;
   send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_INFO(LOG_NGAP, "iniUEmsg sent to TASK_AMF_APP");
   OAILOG_FUNC_OUT(LOG_NGAP);

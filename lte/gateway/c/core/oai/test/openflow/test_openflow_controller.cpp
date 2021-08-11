@@ -86,6 +86,12 @@ TEST_F(ControllerTest, TestRunningAssertion) {
       std::runtime_error);
 }
 
+// Ensure controller closes lastest OF connection
+TEST_F(ControllerTest, TestClosedOFConnection) {
+  controller->stop();
+  EXPECT_EQ(controller->get_latest_of_connection(), nullptr);
+}
+
 // Test that with multiple apps registered, the correct apps receive the
 // correct events in order.
 TEST_F(ControllerTest, TestMultipleApplications) {

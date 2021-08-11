@@ -104,3 +104,6 @@ services:
   liagentd:
     ip_address: 127.0.0.1
     port: 50083
+  kernsnoopd:
+    ip_address: 127.0.0.1
+    port: 50084

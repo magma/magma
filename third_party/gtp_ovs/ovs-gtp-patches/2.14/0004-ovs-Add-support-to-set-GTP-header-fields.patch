@@ -1,7 +1,7 @@
-From a8c20610f041c87448d2d1d721ccf4c507a17099 Mon Sep 17 00:00:00 2001
+From c914c7fc3d6c77da28bfa8eaeb2dc7b2c5e40860 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 00:58:18 -0800
-Subject: [PATCH 04/19] ovs: Add support to set GTP header fields.
+Subject: [PATCH 04/20] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
@@ -456,7 +456,7 @@ index 1c5a4930a..a59c0f9bf 100644
       * OXM: NXOXM_ET_GTPU_MSGTYPE(16) since v2.13.
       */
 diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
-index ef7ffe506..cd98a6980 100644
+index 10c522ef0..d68cc7e36 100644
 --- a/lib/dpif-netlink.c
 +++ b/lib/dpif-netlink.c
 @@ -2520,8 +2520,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,

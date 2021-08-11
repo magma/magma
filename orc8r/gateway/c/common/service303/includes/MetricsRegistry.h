@@ -13,14 +13,15 @@
 #pragma once
 
 #include <unordered_map>
+#include <numeric>
 
 #include <prometheus/registry.h>
 #include <prometheus/family.h>
 #include <prometheus/counter.h>
 #include <prometheus/gauge.h>
 #include <prometheus/histogram.h>
+#include <prometheus/metrics.pb.h>  // for MetricFamily
 
-#include <prometheus/metrics.pb.h>
 #include <orc8r/protos/metricsd.pb.h>
 
 using prometheus::Family;

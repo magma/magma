@@ -16,5 +16,5 @@ from setuptools import setup
 setup(
     name='magmaexample',
     version='0.1',
-    packages=['magmaexample.hello']
+    packages=['magmaexample.hello'],
 )

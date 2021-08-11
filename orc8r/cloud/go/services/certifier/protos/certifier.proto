@@ -19,7 +19,7 @@ import "orc8r/protos/identity.proto";
 import "google/protobuf/timestamp.proto";
 
 package magma.orc8r.certifier;
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/certifier/protos";
 
 message CertificateInfo {
   Identity id = 1;

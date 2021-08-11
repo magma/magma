@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
+#include "assertions.h"
 #include "bstrlib.h"
 #include "log.h"
 #include "intertask_interface.h"
@@ -64,6 +65,7 @@ bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
 static long epc_stats_timer_id;
+static size_t epc_stats_timer_sec = 60;
 
 mme_congestion_params_t mme_congestion_params;
 
@@ -521,7 +523,8 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(mme_app_task_zmq_ctx.event_loop);
-  mme_app_exit();
+  AssertFatal(
+      0, "Asserting as mme_app_thread should not be exiting on its own!");
   return NULL;
 }
 
@@ -553,6 +556,9 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   mme_congestion_control_enabled = mme_config_p->enable_congestion_control;
   mme_app_init_congestion_params(mme_config_p);
 
+  // Initialize global stats timer
+  epc_stats_timer_sec = (size_t) mme_config_p->stats_timer_sec;
+
   /*
    * Create the thread associated with MME applicative layer
    */
@@ -578,7 +584,7 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
 
 static void start_stats_timer(void) {
   epc_stats_timer_id = start_timer(
-      &mme_app_task_zmq_ctx, EPC_STATS_TIMER_MSEC, TIMER_REPEAT_FOREVER,
+      &mme_app_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
       handle_stats_timer, NULL);
 }
 

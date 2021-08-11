@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 package magma.orc8r.state;
 
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/state/protos";
 
 // IndexerManager provides methods for manually viewing and managing state indexers.
 service IndexerManager {

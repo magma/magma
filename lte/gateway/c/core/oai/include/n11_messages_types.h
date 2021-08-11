@@ -49,10 +49,10 @@ typedef struct non_dynamic_5QI_descriptor_s {
 
 typedef struct qos_characteristics_s {
   non_dynamic_5QI_descriptor non_dynamic_5QI_desc;
-} qos_characteristics;
+} qos_characteristics_t;
 
 typedef struct qos_flow_level_qos_parameters_s {
-  qos_characteristics qos_characteristic;
+  qos_characteristics_t qos_characteristic;
   m5g_allocation_and_retention_priority alloc_reten_priority;
 } qos_flow_level_qos_parameters;
 
@@ -64,7 +64,7 @@ typedef struct qos_flow_setup_request_item_s {
 
 typedef struct qos_flow_request_list_s {
   qos_flow_setup_request_item qos_flow_req_item;
-} qos_flow_request_list;
+} qos_flow_request_list_t;
 
 typedef struct amf_pdn_type_value_s {
   pdn_type_value_t pdn_type;
@@ -88,7 +88,7 @@ typedef struct pdu_session_resource_setup_request_transfer_s {
   amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
   up_transport_layer_information_t up_transport_layer_info;
   amf_pdn_type_value_t pdu_ip_type;
-  qos_flow_request_list qos_flow_setup_request_list;
+  qos_flow_request_list_t qos_flow_setup_request_list;
 } pdu_session_resource_setup_request_transfer_t;
 
 /***********************pdu_res_set_change ends*************************/
@@ -217,13 +217,16 @@ typedef struct itti_n11_create_pdu_session_response_s {
   bool m5gsm_congetion_re_attempt_indicator;
   redirect_server_t pdu_address;
 
-  qos_flow_request_list qos_list;
+  qos_flow_request_list_t qos_list;
   TeidSet_response upf_endpoint;
   uint8_t procedure_trans_identity[2];
 } itti_n11_create_pdu_session_response_t;
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_response
+
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.n11_notification_received
 
 // Resource relese request
 // typedef enum radio_network_layer_cause_e
@@ -354,3 +357,49 @@ typedef struct cause_s {
 typedef struct pdu_session_resource_release_command_transfer_s {
   cause_t cause;
 } pdu_session_resource_release_command_transfer;
+
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.n11_notification_received
+
+// RequestType
+typedef enum RequestType_received_s {
+  INITIAL_REQUEST                = 0,
+  EXISTING_PDU_SESSION           = 1,
+  INITIAL_EMERGENCY_REQUEST      = 2,
+  EXISTING_EMERGENCY_PDU_SESSION = 3,
+  MODIFICATION_REQUEST           = 4,
+} RequestType_received;
+
+// M5GSMCapability
+typedef struct M5GSMCapability_received_s {
+  bool reflective_qos;
+  bool multi_homed_ipv6_pdu_session;
+} M5GSMCapability_received;
+
+#define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
+  (mSGpTR)->ittiMsg.n11_create_pdu_session_response
+
+typedef enum {
+  PDU_SESSION_INACTIVE_NOTIFY,         // AMF <=> SMF
+  UE_IDLE_MODE_NOTIFY,                 // AMF  => SMF
+  UE_PAGING_NOTIFY,                    // SMF  => AMF
+  UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY,  // AMF  => SMF
+  PDU_SESSION_STATE_NOTIFY,            // SMF <=> AMF
+  UE_SERVICE_REQUEST_ON_PAGING,        // AMF <=> SMF
+} notify_ue_event;
+
+typedef struct itti_n11_received_notification_s {
+  // common context
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  SMSessionFSMState_response sm_session_fsm_state;
+  uint32_t sm_session_version;
+  // rat specific
+  uint32_t pdu_session_id;
+  RequestType_received request_type;
+  // PduSessionType_response pdu_session_type;
+  M5GSMCapability_received m5g_sm_capability;
+  m5g_sm_cause_t m5gsm_cause;
+  pdu_session_type_t pdu_session_type;
+  // Idle/paging/periodic_reg events and UE state notification
+  notify_ue_event notify_ue_evnt;
+} itti_n11_received_notification_t;

@@ -67,7 +67,7 @@ typedef struct ngap_ue_aggregate_maximum_bit_rate_s {
   bit_rate_t ul;
 } ngap_ue_aggregate_maximum_bit_rate_t;
 
-typedef uint32_t amf_ue_ngap_id_ty;
+typedef uint32_t amf_ue_ngap_id_t;
 typedef uint32_t ran_ue_ngap_id_t;
 
 typedef struct pdusession_setup_item_s {
@@ -173,7 +173,7 @@ typedef struct Ngap_PDUSession_Resource_TO_Release_List_s {
 // Direction: AMF → NG-RAN node
 typedef struct PDU_Session_resource_setup_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_ty
+  amf_ue_ngap_id_t
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
@@ -239,7 +239,7 @@ typedef struct Ngap_ue_security_capabilities_s {
 // Direction: AMF → NG-RAN node
 typedef struct Ngap_initial_context_setup_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_ty
+  amf_ue_ngap_id_t
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
@@ -250,10 +250,11 @@ typedef struct Ngap_initial_context_setup_request_s {
       Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
                        // PDU Session ID is specified in TS 23.501 [9].
   Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
-  bstring
-      PDU_Session_Resource_Setup_Transfer;  // Containing the PDU Session
-                                            // Resource Setup Request Transfer
-                                            // IE specified in subclause 9.3.4.1
+  Ngap_PDUSession_Resource_Setup_Request_List_t
+      PDU_Session_Resource_Setup_Transfer_List;  // Containing the PDU Session
+                                                 // Resource Setup Request
+                                                 // Transfer IE specified in
+                                                 // subclause 9.3.4.1
   Ngap_SNSSAI_t
       allowed_nssai;  // 9.3.1.31 Allowed NSSAI contains the allowed NSSAI.
   Ngap_ue_security_capabilities_t ue_security_capabilities;
@@ -319,7 +320,7 @@ typedef struct PDU_Session_Resource_Setup_Response_Transfer_s {
 // Direction: NG-RAN node → AMF
 typedef struct Ngap_initial_context_setup_response_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_ty
+  amf_ue_ngap_id_t
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t

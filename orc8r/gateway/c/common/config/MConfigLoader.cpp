@@ -16,7 +16,7 @@
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
 #include <cstdlib>                           // for getenv
 #include <fstream>                           // for operator<<, char_traits
-#include <json.hpp>                          // for basic_json<>::iterator
+#include <nlohmann/json.hpp>                 // for basic_json<>::iterator
 #include "magma_logging.h"                   // for MLOG
 namespace google {
 namespace protobuf {

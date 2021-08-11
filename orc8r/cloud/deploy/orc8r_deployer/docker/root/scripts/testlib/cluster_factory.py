@@ -18,7 +18,8 @@ from testlib.cluster_definitions import ClusterTemplate, ClusterType
 
 class ClusterFactory():
     def create_cluster(
-            self, typ, template: str = "", **kwargs):
+            self, typ, template: str = "", **kwargs
+    ):
         if typ == ClusterType.AWS:
             return AWSClusterFactory().create_cluster(template, **kwargs)
         elif typ == ClusterType.LOCAL:

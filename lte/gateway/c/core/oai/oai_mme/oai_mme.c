@@ -33,7 +33,7 @@
 #include "mme_config.h"
 #include "amf_config.h"
 #include "shared_ts_log.h"
-#include "sentry_wrapper.h"
+#include "includes/SentryWrapper.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
@@ -100,27 +100,26 @@ int main(int argc, char* argv[]) {
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL));
 
+  /*
+   * Parse the command line for options and set the mme_config accordingly.
+   */
+#if EMBEDDED_SGW
+  CHECK_INIT_RETURN(mme_config_embedded_spgw_parse_opt_line(
+      argc, argv, &mme_config, &amf_config, &spgw_config));
+#else
+  CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
+#endif
   // Initialize Sentry error collection (Currently only supported on
   // Ubuntu 20.04)
   // We have to initialize here for now since itti_init asserts on there being
   // only 1 thread
-  initialize_sentry();
+  initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
 
   CHECK_INIT_RETURN(timer_init());
   // Could not be launched before ITTI initialization
   shared_log_itti_connect();
   OAILOG_ITTI_CONNECT();
   CHECK_INIT_RETURN(main_init());
-
-  /*
-   * Parse the command line for options and set the mme_config accordingly.
-   */
-#if EMBEDDED_SGW
-  CHECK_INIT_RETURN(mme_config_embedded_spgw_parse_opt_line(
-      argc, argv, &mme_config, &spgw_config));
-#else
-  CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
-#endif
 
   pid_file_name = get_pid_file_name(mme_config.pid_dir);
 
@@ -139,6 +138,9 @@ int main(int argc, char* argv[]) {
   event_client_init();
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
+  if (mme_config.enable_converged_core) {
+    CHECK_INIT_RETURN(amf_app_init(&amf_config));
+  }
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));

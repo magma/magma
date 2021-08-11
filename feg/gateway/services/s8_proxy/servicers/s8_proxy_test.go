@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,10 +22,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
-	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/s8_proxy/servicers/mock_feg_relay"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
-	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,15 +33,20 @@ import (
 const (
 	GtpTimeoutForTest = gtp.DefaultGtpTimeout // use the same the default value defined in s8_proxy
 	//port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
-	s8proxyAddrs    = ":0" // equivalent to sgwAddrs
-	pgwAddrs        = "127.0.0.1:0"
-	IMSI1           = "123456789012345"
-	BEARER          = 5
-	DEDICATEDBEARER = 6
-	AGWTeidU        = uint32(10)
-	AGWTeidC        = uint32(2)
-	PDNType         = protos.PDNType_IPV4
-	PAA             = "10.0.0.10"
+	s8proxyAddrs      = ":0" // equivalent to sgwAddrs
+	pgwAddrs          = "127.0.0.1:0"
+	IMSI1             = "123456789012345"
+	BEARER            = 5
+	DEDICATEDBEARER   = 6
+	AGWTeidU          = uint32(10)
+	AGWTeidC          = uint32(2)
+	DedicatedPGWTeidU = uint32(16)
+	DedicatedAGWTeidU = uint32(44)
+	DedicatedAGWTeidC = uint32(667)
+	DedicatedPGWuIP   = "127.0.0.10"
+	DedicatedAGWuIP   = "192.1.43.11"
+	PDNType           = protos.PDNType_IPV4
+	PAA               = "10.0.0.10"
 )
 
 func TestS8proxyCreateAndDeleteSession(t *testing.T) {
@@ -631,6 +632,7 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 	assert.Nil(t, csRes.ProtocolConfigurationOptions)
 }
 
+/*
 func TestCreateBearerRequest(t *testing.T) {
 	// set up client ans server
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
@@ -654,62 +656,176 @@ func TestCreateBearerRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
 	require.Nil(t, csRes.GtpError)
-	_, err = mockPgw.GetSessionByIMSI(IMSI1)
+	_, err = mockPgw.GetSessionByIMSI(csReq.Imsi)
 	assert.NoError(t, err)
 
 	// create the PGW Bearer Request
 	pgwCreateBearerRequest :=
 		mock_pgw.CreateBearerRequest{
-			Imsi:               IMSI1,
-			DedicatedBearereID: DEDICATEDBEARER,
+			Imsi:               csReq.Imsi,
 			QosQCI:             7,
 			ChargingID:         99,
 			BiFilterProtocolId: 4,
-			BiFilterPort:       8888,
+			BiLocalFilterPort:  8888,
+			BiRemoteFilterPort: 9990,
+			BearerContext: mock_pgw.DedicatedBearerContext{
+				DedicatedBearereID: DEDICATEDBEARER,
+				Pgw_u_ip:           DedicatedPGWuIP,
+				Pgw_u_teid:         DedicatedPGWTeidU,
+			},
 		}
 
-	// load the response on Feg Relay test service
-	fegRelayTestSrv.DefaultCreateBearerRes =
-		&protos.CreateBearerResponsePgw{
-			CPgwTeid:                     uint32(111),
-			ServingNetwork:               &protos.ServingNetwork{Mcc: "011", Mnc: "99"},
-			Cause:                        uint32(gtpv2.CauseRequestAccepted),
-			BearerContext:                csReq.BearerContext,
-			ProtocolConfigurationOptions: csReq.ProtocolConfigurationOptions,
-			TimeZone:                     &protos.TimeZone{DeltaSeconds: 1, DaylightSavingTime: 1},
-			Uli:                          &protos.UserLocationInformation{Rac: 1, Tac: 1},
-		}
-
-	// Send CreateBearerRequest from PGW to S8_proxy
-	cbRes, err := mockPgw.CreateBearerRequest(pgwCreateBearerRequest)
-	cbReqReceived := fegRelayTestSrv.ReceivedCreateBearerRequest
+	// Send CreateBearerRequest from mockPGW to S8_proxy and obtain outCBR channel to wait for the response
+	outCBR, err := mockPgw.CreateBearerRequest(pgwCreateBearerRequest)
 	require.NoError(t, err)
-	require.NotEmpty(t, cbReqReceived)
-	require.NotEmpty(t, cbRes)
 
-	// check if all the exptected objects exist
+	// wait for mock feg_relay to process the request
+	<-fegRelayTestSrv.Ready
+
+	// here we know PGW already sent grpc message to feg relay successfully so we can check what feg relay received
+	cbReqReceived := fegRelayTestSrv.ReceivedCreateBearerRequest
+	require.NotEmpty(t, cbReqReceived)
+	// check if all the expected objects exist
 	require.NotEmpty(t, cbReqReceived.BearerContext)
 	require.NotEmpty(t, cbReqReceived.BearerContext.Qos)
 	require.NotEmpty(t, cbReqReceived.BearerContext.Tft)
 	require.NotNil(t, cbReqReceived.BearerContext.Tft.PacketFilterList)
 	require.NotEmpty(t, cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft)
 	require.NotEmpty(t, cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[0].PacketFilterContents)
+	require.NotNil(t, cbReqReceived.BearerContext.UserPlaneFteid)
+	require.Equal(t, DedicatedPGWTeidU, cbReqReceived.BearerContext.UserPlaneFteid.Teid)
+	require.Equal(t, DedicatedPGWuIP, cbReqReceived.BearerContext.UserPlaneFteid.Ipv4Address)
 
 	// check values
 	assert.Equal(t, csRes.BearerContext.Id, cbReqReceived.LinkedBearerId)
 	assert.Equal(t, csReq.CAgwTeid, cbReqReceived.CAgwTeid)
 	assert.Equal(t, uint32(DEDICATEDBEARER), cbReqReceived.BearerContext.Id)
 	assert.Equal(t, uint32(pgwCreateBearerRequest.QosQCI), cbReqReceived.BearerContext.Qos.Qci)
-	tft := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[0]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	tftContents := tft.PacketFilterContents
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterPort), tftContents.SingleLocalPort)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterPort), tftContents.SingleLocalPort)
-	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterProtocolId), tftContents.ProtocolIdentifierNextheader)
-}
+	packetFilterComponents := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft
+	assert.Equal(t, 10, len(packetFilterComponents))
 
+	// check filter components
+	// component 0
+	tft := packetFilterComponents[0]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompSecurityParameterIndex, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, uint32(0xdeadbeef), tft.PacketFilterContents.SecurityParameterIndex)
+
+	// component 1
+	tft = packetFilterComponents[1]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompIPv4RemoteAddress, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, ip2Long("127.0.0.1"), tft.PacketFilterContents.Ipv4RemoteAddresses[0].Addr)
+
+	// component 2
+	tft = packetFilterComponents[2]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompProtocolIdentifierNextHeader, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiFilterProtocolId, uint8(tft.PacketFilterContents.ProtocolIdentifierNextheader))
+
+	// component 3
+	tft = packetFilterComponents[3]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompTypeOfServiceTrafficClass, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, uint32(1), tft.PacketFilterContents.TypeOfServiceTrafficClass.Value)
+	assert.Equal(t, uint32(2), tft.PacketFilterContents.TypeOfServiceTrafficClass.Mask)
+
+	// component 4
+	tft = packetFilterComponents[4]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompSingleLocalPort, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.PacketFilterContents.SingleLocalPort))
+
+	// component 5
+	tft = packetFilterComponents[5]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	assert.Equal(t, uint32(0), tft.Identifier)
+	assert.Equal(t, ie.PFCompSingleRemotePort, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.PacketFilterContents.SingleRemotePort))
+
+	// component 8
+	tft = packetFilterComponents[8]
+	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft.Direction)
+	assert.Equal(t, uint32(1), tft.Identifier)
+	assert.Equal(t, ie.PFCompLocalPortRange, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.PacketFilterContents.LocalPortRange.LowLimit))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort+10, uint16(tft.PacketFilterContents.LocalPortRange.HighLimit))
+
+	// component 9
+	tft = packetFilterComponents[9]
+	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft.Direction)
+	assert.Equal(t, uint32(1), tft.Identifier)
+	assert.Equal(t, ie.PFCompRemotePortRange, uint8(tft.PacketFilterContents.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.PacketFilterContents.RemotePortRange.LowLimit))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort+10, uint16(tft.PacketFilterContents.RemotePortRange.HighLimit))
+
+	// send the response from agw to feg
+	cbResGrpc := &protos.CreateBearerResponsePgw{
+		PgwAddrs:       cbReqReceived.PgwAddrs,
+		Imsi:           csReq.Imsi,
+		SequenceNumber: mockPgw.LastSequenceNumber,
+		CPgwTeid:       PgwTEIDc,
+		UPgwFteid: &protos.Fteid{
+			Ipv4Address: DedicatedPGWuIP,
+			Teid:        DedicatedPGWTeidU,
+		},
+
+		ServingNetwork: &protos.ServingNetwork{Mcc: "011", Mnc: "99"},
+		Cause:          uint32(gtpv2.CauseRequestAccepted),
+		BearerContext: &protos.BearerContext{
+			Id: DEDICATEDBEARER,
+			UserPlaneFteid: &protos.Fteid{
+				Ipv4Address: DedicatedAGWuIP,
+				Teid:        DedicatedAGWTeidU,
+			},
+		},
+		ProtocolConfigurationOptions: csReq.ProtocolConfigurationOptions,
+		TimeZone:                     &protos.TimeZone{DeltaSeconds: 1, DaylightSavingTime: 1},
+		Uli:                          &protos.UserLocationInformation{Rac: 1, Tac: 1},
+	}
+
+	_, err = s8p.CreateBearerResponse(context.Background(), cbResGrpc)
+	require.NoError(t, err)
+
+	// wait for the answer to be sent from agw to feg
+	cbResFromChan := <-outCBR
+	require.NoError(t, cbResFromChan.Err)
+	cbResGtp := cbResFromChan.Res
+	require.NotEmpty(t, cbResGtp)
+
+	assert.Equal(t, mockPgw.LastSequenceNumber, cbResGtp.Sequence())
+	assert.Equal(t, PgwTEIDc, cbResGtp.TEID())
+	require.NotEmpty(t, cbResGtp.BearerContexts)
+
+	// cehck teids
+	for _, childIE := range cbResGtp.BearerContexts.ChildIEs {
+		switch childIE.Type {
+		case ie.FullyQualifiedTEID:
+			switch childIE.Instance() {
+			case 2:
+				assert.Equal(t, gtpv2.IFTypeS5S8SGWGTPU, childIE.MustInterfaceType())
+				assert.Equal(t, DedicatedAGWTeidU, childIE.MustTEID())
+				assert.Equal(t, DedicatedAGWuIP, childIE.MustIP().String())
+			case 3:
+				assert.Equal(t, gtpv2.IFTypeS5S8PGWGTPU, childIE.MustInterfaceType())
+				assert.Equal(t, DedicatedPGWTeidU, childIE.MustTEID())
+				assert.Equal(t, DedicatedPGWuIP, childIE.MustIP().String())
+			default:
+				assert.FailNow(t, "There should not be other teid types")
+			}
+		case ie.EPSBearerID:
+			assert.Equal(t, uint8(DEDICATEDBEARER), childIE.MustEPSBearerID())
+		}
+	}
+}
+*/
 func TestS8proxyEcho(t *testing.T) {
-	s8p, mockPgw := startSgwAndPgw(t, 100*time.Second)
+	s8p, mockPgw := startSgwAndPgw(t, 3*time.Second)
 	defer mockPgw.Close()
 
 	//------------------------------------

@@ -17,8 +17,13 @@
 
 using namespace std;
 namespace magma5g {
-AmfMsg::AmfMsg(){};
+AmfMsg::AmfMsg() {
+  memset(&msg, 0, sizeof(MMsg_u));
+};
+
 AmfMsg::~AmfMsg(){};
+MMsg_u::MMsg_u(){};
+MMsg_u::~MMsg_u(){};
 
 // Decode AMF NAS Header and Message
 int AmfMsg::M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
@@ -73,7 +78,9 @@ int AmfMsg::M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     MLOG(MERROR) << "Error : Encoding AMF Message Failed" << endl;
     return (RETURNerror);
   }
-  return (header_result + encode_result);
+
+  // return (header_result + encode_result);
+  return (encode_result);
 }
 
 // Decode AMF Message Header
@@ -108,15 +115,16 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
     AmfMsgHeader_s* hdr, uint8_t* buffer, uint32_t len) {
   int size = 0;
 
-  MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg:";
+  MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg: ";
+
   if (len > 0 || buffer != NULL) {
     ENCODE_U8(buffer + size, hdr->extended_protocol_discriminator, size);
     ENCODE_U8(buffer + size, hdr->sec_header_type, size);
     ENCODE_U8(buffer + size, hdr->message_type, size);
     MLOG(MDEBUG) << "epd = 0x" << hex
                  << int(hdr->extended_protocol_discriminator)
-                 << "security hdr = 0x" << hex << int(hdr->sec_header_type)
-                 << "hdr type = 0x" << hex << int(hdr->message_type);
+                 << " security hdr = 0x" << hex << int(hdr->sec_header_type)
+                 << " hdr type = 0x" << hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);
@@ -126,6 +134,7 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
     MLOG(MERROR) << "Error : TLV not supported";
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
+
   return (size);
 }
 
@@ -139,6 +148,7 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURNerror);
   }
   MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.message_type);
+
   switch ((unsigned char) msg->header.message_type) {
     case REG_REQUEST:
       decode_result = msg->msg.reg_request.DecodeRegistrationRequestMsg(
@@ -205,6 +215,10 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     case ULNASTRANSPORT:
       decode_result = msg->msg.ul_nas_transport.DecodeULNASTransportMsg(
           &msg->msg.ul_nas_transport, buffer, len);
+      break;
+    case M5G_SERVICE_REQUEST:
+      decode_result = msg->msg.svc_req.DecodeServiceRequestMsg(
+          &msg->msg.svc_req, buffer, len);
       break;
     default:
       decode_result = TLV_WRONG_MESSAGE_TYPE;
@@ -282,6 +296,10 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     case DLNASTRANSPORT:
       encode_result = msg->msg.dl_nas_transport.EncodeDLNASTransportMsg(
           &msg->msg.dl_nas_transport, buffer, len);
+      break;
+    case M5G_SERVICE_ACCEPT:
+      encode_result = msg->msg.svc_acpt.EncodeServiceAcceptMsg(
+          &msg->msg.svc_acpt, buffer, len);
       break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;

@@ -6,15 +6,9 @@ hide_title: true
 
 # Deploy on Minikube
 
-Deploying orchestrator on minikube is the easiest way to test changes to the helm
-charts. Most steps are similar to the main deployment guide, but there are some
-significant differences and many things in there you don't need to worry about.
+Deploying Orc8r on Minikube is the easiest way to test changes to the Helm charts. Most steps are similar to the main deployment guide, with a few differences.
 
-> Note: All terminal commands are run from HOST unless otherwise specified
-
-> Helm commands are written for Helm 3
-
-## Steps
+## Prerequisites
 
 ### Build and publish images
 
@@ -22,104 +16,107 @@ significant differences and many things in there you don't need to worry about.
 
 Follow the instructions at [Building Orchestrator](./dev_build.md#build-and-publish-container-images).
 
-In the end you should have your container images published to a registry.
+In the end, your container images should be published to a registry.
 
-### Setup Minikube and Helm
+### Spin up Minikube
 
-Setup minikube with the following command to give it enough resources and seed the
-metrics config files:
+Set up Minikube with the following command, including sufficient resources and seeding the metrics config files
 
+```bash
+minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
 ```
-$ minikube start --memory=8192 --cpus=8 --kubernetes-version=v1.18.0 --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
-```
 
-> Note: This has been tested on MacOS. There are a lot of things that can go wrong
-> with spinning up minikube, so if you have problems check for documentation specific
-> to your system. Also make sure you are not connected to a VPN when running this command.
+> Note: This has been tested on MacOS. There are a lot of things that can go wrong with spinning up Minikube, so if you have problems check for documentation specific to your system. Also make sure you are not connected to a VPN when running this command.
 
-Now you can install preqrequisites for orc8r and create the magma namespace in kubernetes:
+Now install prerequisites for Orc8r and create the `orc8r` K8s namespace
 
-```
-$ helm install \
-    postgresql \
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm upgrade --install \
     --create-namespace \
-    --namespace magma \
+    --namespace orc8r \
     --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql \
+    postgresql \
     bitnami/postgresql
 ```
 
-Mysql is a requirement to run the NMS (you can skip this step if you don't want the NMS)
+## Install
 
-```
-$ helm install mysql \
-  --namespace magma \
-  --set mysqlRootPassword=password,mysqlUser=magma,mysqlPassword=password,mysqlDatabase=magma \
-    stable/mysql
-```
+### Generate secrets
 
-> Note: You may need to run `helm repo add bitnami https://charts.bitnami.com/bitnami` if the chart is not found
+If you haven't already, the easiest way to generate these secrets is temporarily spinning up a local, Docker-based deployment
 
-### Generate Secrets
-
-First you'll need to create a few certs and the kubernetes secrets that orchestrator
-uses.
-
-Generate the NMS certificate
-
-```
-$ cd ${MAGMA_ROOT}/.cache/test_certs
-$ openssl req -nodes -new -x509 -batch -keyout nms_nginx.key -out nms_nginx.pem -subj "/CN=*.localhost"
+```bash
+export CERTS_DIR=${MAGMA_ROOT}/.cache/test_certs
+cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py && ./run.py && sleep 30 && docker-compose down && ls -l ${CERTS_DIR} && cd -
 ```
 
-Move the certs to the charts directory
+### Apply secrets
 
-```
-$ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
-$ mkdir -p charts/secrets/.secrets/certs
-$ cp -r ../../../../.cache/test_certs/* charts/secrets/.secrets/certs/.
-```
+Create the K8s secrets
 
-Create the kubernetes secrets
+```bash
+export IMAGE_REGISTRY_URL=docker.artifactory.magmacore.org  # or replace with your registry
+export IMAGE_REGISTRY_USERNAME=''
+export IMAGE_REGISTRY_PASSWORD=''
 
-```
+export CERTS_DIR=${MAGMA_ROOT}/.cache/test_certs  # mirrored from above
+
+cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
 helm template orc8r charts/secrets \
-    --namespace magma \
-    --set-string secret.certs.enabled=true \
-    --set-file secret.certs.files."rootCA\.pem"=charts/secrets/.secrets/certs/rootCA.pem \
-    --set-file secret.certs.files."bootstrapper\.key"=charts/secrets/.secrets/certs/bootstrapper.key \
-    --set-file secret.certs.files."controller\.crt"=charts/secrets/.secrets/certs/controller.crt \
-    --set-file secret.certs.files."controller\.key"=charts/secrets/.secrets/certs/controller.key \
-    --set-file secret.certs.files."admin_operator\.pem"=charts/secrets/.secrets/certs/admin_operator.pem \
-    --set-file secret.certs.files."admin_operator\.key\.pem"=charts/secrets/.secrets/certs/admin_operator.key.pem \
-    --set-file secret.certs.files."certifier\.pem"=charts/secrets/.secrets/certs/certifier.pem \
-    --set-file secret.certs.files."certifier\.key"=charts/secrets/.secrets/certs/certifier.key \
-    --set-file secret.certs.files."nms_nginx\.pem"=charts/secrets/.secrets/certs/nms_nginx.pem \
-    --set-file secret.certs.files."nms_nginx\.key\.pem"=charts/secrets/.secrets/certs/nms_nginx.key \
-    --set=docker.registry=$DOCKER_REGISTRY \
-    --set=docker.username=$DOCKER_USERNAME \
-    --set=docker.password=$DOCKER_PASSWORD |
-    kubectl apply -f -
+  --namespace orc8r \
+  --set-string secret.certs.enabled=true \
+  --set-file 'secret.certs.files.rootCA\.pem'=${CERTS_DIR}/rootCA.pem \
+  --set-file 'secret.certs.files.bootstrapper\.key'=${CERTS_DIR}/bootstrapper.key \
+  --set-file 'secret.certs.files.controller\.crt'=${CERTS_DIR}/controller.crt \
+  --set-file 'secret.certs.files.controller\.key'=${CERTS_DIR}/controller.key \
+  --set-file 'secret.certs.files.admin_operator\.pem'=${CERTS_DIR}/admin_operator.pem \
+  --set-file 'secret.certs.files.admin_operator\.key\.pem'=${CERTS_DIR}/admin_operator.key.pem \
+  --set-file 'secret.certs.files.certifier\.pem'=${CERTS_DIR}/certifier.pem \
+  --set-file 'secret.certs.files.certifier\.key'=${CERTS_DIR}/certifier.key \
+  --set-file 'secret.certs.files.nms_nginx\.pem'=${CERTS_DIR}/controller.crt \
+  --set-file 'secret.certs.files.nms_nginx\.key\.pem'=${CERTS_DIR}/controller.key \
+  --set=docker.registry=${IMAGE_REGISTRY_URL} \
+  --set=docker.username=${IMAGE_REGISTRY_USERNAME} \
+  --set=docker.password=${IMAGE_REGISTRY_PASSWORD} |
+  kubectl apply -f -
 ```
 
-### Create Values File
+### Create values file
 
-A minimum values file that can be used to deploy orc8r is at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube_values.yml`.
-Use that file and make sure to replace `<DOCKER_REGISTRY>` with your registry and `<TAG>` with your tag.
+A minimal values file is at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube_values.yml`
 
-Save this file wherever you want.
+- Copy that file to `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml`
+- Replace `IMAGE_REGISTRY_URL` with your registry and `IMAGE_TAG` with your tag
+- Make additional edits as desired
 
-### Install with Helm
+### Install charts
 
+This section describes how to install based on local charts. However, you can also install charts from the official chart repositories
+
+- Stable: <https://artifactory.magmacore.org/artifactory/helm/>
+- Test: <https://artifactory.magmacore.org/artifactory/helm-test/>
+
+Install base `orc8r` chart
+
+```bash
+cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
+helm dep update
+helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml orc8r .
 ```
-$ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
-$ helm dep update
-$ helm install orc8r --namespace magma . --values=<path-to-values-file>
+
+Optionally install other charts, like the `lte` charts, similarly
+
+```bash
+cd ${MAGMA_ROOT}/lte/cloud/helm/lte-orc8r
+helm dep update
+helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm/lte.values.yaml lte .
 ```
 
-If everything worked you should get something like this:
+If successful, you should get something like this
 
-```
-$ kubectl -n magma get pods
+```bash
+$ kubectl --namespace orc8r get pods
 
 NAME                                             READY   STATUS    RESTARTS   AGE
 mysql-57955549d5-n69pd                           1/1     Running   0          6m14s
@@ -136,40 +133,52 @@ orc8r-user-grafana-6498bb6959-rchx5              1/1     Running   0          2m
 postgresql-0                                     1/1     Running   4          6d23h
 ```
 
-### Access API
+## Configure
 
-Create an admin user:
+### Access Orc8r
 
+Create an Orc8r admin user
+
+```bash
+kubectl exec -it --namespace orc8r deploy/orc8r-orchestrator -- \
+  /var/opt/magma/bin/accessc \
+  add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem \
+  admin_operator
 ```
-kubectl exec -it -n magma \
-    $(kubectl get pod -n magma -l app.kubernetes.io/component=controller -o jsonpath="{.items[0].metadata.name}") -- \
-    /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
-```
 
-Now make sure that the API and your certs are working:
+Now ensure the API and your certs are working
 
-```
+```bash
 # Tab 1
-kubectl -n magma port-forward $(kubectl -n magma get pods -l app.kubernetes.io/component=nginx-proxy -o jsonpath="{.items[0].metadata.name}") 9443:9443
-```
+kubectl --namespace orc8r port-forward svc/orc8r-nginx-proxy 7443:8443 7444:8444 9443:443
 
-```
 # Tab 2
-$ curl -k \
-  --cert MAGMA_ROOT/orc8r/cloud/helm/orc8r/charts/secrets/.secrets/certs/admin_operator.pem \
-  --key MAGMA_ROOT/orc8r/cloud/helm/orc8r/charts/secrets/.secrets/certs/admin_operator.key.pem \
-https://localhost:9443
-"hello"
+# Assumes CERTS_DIR is set
+curl \
+  --insecure \
+  --cert ${CERTS_DIR}/admin_operator.pem \
+  --key ${CERTS_DIR}/admin_operator.key.pem \
+  https://localhost:9443
+
+# Should output: "hello"
 ```
 
 ### Access NMS
 
-Follow the instructions to [Create an admin user](./deploy_install.md#create-an-nms-admin-user)
+Follow the instructions to [create an NMS admin user](./deploy_install.md#create-an-nms-admin-user)
 
-Port-forward nginx:
+Port-forward Nginx
 
+```bash
+kubectl --namespace orc8r port-forward svc/nginx-proxy 8081:443
 ```
-kubectl -n magma port-forward svc/nginx-proxy  8443:443
-```
 
-Login to NMS at https://magma-test.localhost:8443 using credentials: admin@magma.test/password1234
+Log in to NMS at <https://magma-test.localhost:8081> using credentials: `admin@magma.test/password1234`
+
+## Appendix
+
+### Minikube configs
+
+We use the [HyperKit driver](https://minikube.sigs.k8s.io/docs/drivers/hyperkit/) instead of the default [Docker driver](https://minikube.sigs.k8s.io/docs/drivers/docker/) because the former is more performant in supporting [hairpin mode](https://github.com/kubernetes/minikube/issues/1568) (via the [CNI network plugin](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)). I.e., Orc8r has some services that make requests to themselves, which requires K8s support.
+
+You could also accomplish this with `--cni=bridge --driver=docker`, but this causes a 2x increase in pod startup times.

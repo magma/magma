@@ -53,9 +53,10 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   tmp = encoded;
 
   // SMF NAS Message Decode
-  encoded = payload_container->smf_msg.SmfMsgEncodeMsg(
+  encoded += payload_container->smf_msg.SmfMsgEncodeMsg(
       &payload_container->smf_msg, payload_container->contents,
       payload_container->len);
+
   BUFFER_PRINT_LOG(payload_container->contents, payload_container->len);
   memcpy(buffer + tmp, payload_container->contents, payload_container->len);
 

@@ -10,7 +10,7 @@ create_proto_dir("orc8r" ORC8R_OUT_DIR)
 create_proto_dir("feg" FEG_OUT_DIR)
 
 # Common protos
-set(ORC8R_CPP_PROTOS common)
+set(ORC8R_CPP_PROTOS common digest)
 generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 
@@ -69,12 +69,13 @@ generate_grpc_protos("${HASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 # AMF
-set(AMFSRV_M5G_CPP_PROTOS apn subscriberdb session_manager)
-set(AMFSRV_M5G_GRPC_PROTOS session_manager)
+set(AMFSRV_M5G_CPP_PROTOS apn subscriberdb session_manager subscriberauth)
+set(AMFSRV_M5G_GRPC_PROTOS session_manager subscriberauth)
 generate_cpp_protos("${AMFSRV_M5G_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${AMFSRV_M5G_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
     AmfServiceImpl.cpp

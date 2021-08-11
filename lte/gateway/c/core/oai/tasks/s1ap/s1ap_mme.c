@@ -43,7 +43,7 @@
 #include "s1ap_mme_handlers.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
-#include "service303.h"
+#include "includes/MetricsHelpers.h"
 #include "service303_message_utils.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
@@ -77,6 +77,7 @@ bool s1ap_dump_ue_hash_cb(
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
+static size_t epc_stats_timer_sec = 60;
 
 bool hss_associated = false;
 static int indent   = 0;
@@ -374,7 +375,8 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
-  s1ap_mme_exit();
+  AssertFatal(
+      0, "Asserting as s1ap_mme_thread should not be exiting on its own!");
   return NULL;
 }
 
@@ -393,6 +395,9 @@ status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
 
   s1ap_congestion_control_enabled = mme_config_p->enable_congestion_control;
   s1ap_zmq_th                     = mme_config_p->s1ap_zmq_th;
+
+  // Initialize global stats timer
+  epc_stats_timer_sec = (size_t) mme_config_p->stats_timer_sec;
 
   if (s1ap_state_init(
           mme_config_p->max_ues, mme_config_p->max_enbs,
@@ -630,6 +635,6 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
 
 static void start_stats_timer(void) {
   epc_stats_timer_id = start_timer(
-      &s1ap_task_zmq_ctx, EPC_STATS_TIMER_MSEC, TIMER_REPEAT_FOREVER,
+      &s1ap_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
       handle_stats_timer, NULL);
 }

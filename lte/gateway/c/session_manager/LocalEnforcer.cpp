@@ -62,16 +62,18 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<EventsReporter> events_reporter,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
+    std::shared_ptr<ShardTracker> shard_tracker,
     long session_force_termination_timeout_ms,
     long quota_exhaustion_termination_on_init_ms,
     magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
+      session_store_(session_store),
       pipelined_client_(pipelined_client),
       events_reporter_(events_reporter),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
-      session_store_(session_store),
+      shard_tracker_(shard_tracker),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
@@ -109,7 +111,7 @@ void LocalEnforcer::setup(
   bool cwf = false;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
-      session_infos.push_back(session->get_session_info());
+      session_infos.push_back(session->get_session_info_for_setup());
       const auto& config = session->get_config();
       msisdns.push_back(config.common_context.msisdn());
 
@@ -262,13 +264,36 @@ void LocalEnforcer::handle_pipelined_response(
   }
 }
 
-void LocalEnforcer::poll_stats_enforcer() {
+void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
   // we need to pass in a function pointer. Binding is required because
   // the function is part of the LocalEnforcer class and has arguments
   // so we bind to the object and the two arguments the function needs
   // which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
-      0, 0, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+      cookie, cookie_mask,
+      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+}
+
+void LocalEnforcer::increment_all_policy_versions(SessionMap& session_map) {
+  auto session_update = SessionStore::get_default_session_update(session_map);
+  for (auto it = session_map.begin(); it != session_map.end(); it++) {
+    for (const auto& session : it->second) {
+      auto session_info = session->get_session_info_for_setup();
+      SessionStateUpdateCriteria& uc =
+          session_update[session_info.imsi][session->get_session_id()];
+      for (const magma::RuleToProcess val : session_info.gx_rules) {
+        session->increment_rule_stats(val.rule.id(), &uc);
+      }
+      for (const magma::RuleToProcess val : session_info.gy_dynamic_rules) {
+        session->increment_rule_stats(val.rule.id(), &uc);
+      }
+    }
+  }
+  bool update_success = session_store_.update_sessions(session_update);
+  if (!update_success) {
+    MLOG(MINFO) << "Failed to update rule versions after ovs restart";
+  }
+  MLOG(MINFO) << "Successfully updated rule versions after ovs restart";
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
@@ -1008,15 +1033,50 @@ void LocalEnforcer::handle_session_activate_rule_updates(
   }
 }
 
-void LocalEnforcer::init_session(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg,
-    const CreateSessionResponse& response) {
-  const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
-  auto session                = std::make_unique<SessionState>(
-      imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
-      time_since_epoch, response);
-  session_map[imsi].push_back(std::move(session));
+std::unique_ptr<SessionState> LocalEnforcer::create_initializing_session(
+    const std::string& session_id, const SessionConfig& cfg) {
+  return std::make_unique<SessionState>(
+      session_id, cfg, *rule_store_, magma::get_time_in_sec_since_epoch());
+}
+
+void LocalEnforcer::update_session_with_policy_response(
+    std::unique_ptr<SessionState>& session,
+    const CreateSessionResponse& response,
+    SessionStateUpdateCriteria* session_uc) {
+  session->set_tgpp_context(response.tgpp_ctx(), session_uc);
+  session->set_create_session_response(response, session_uc);
+  session->set_fsm_state(SESSION_ACTIVE, session_uc);
+}
+
+void LocalEnforcer::add_ue_to_shard(
+    const std::string imsi, SessionMap& session_map, SessionState& session) {
+  auto sm_it     = session_map.find(imsi);
+  auto& sessions = sm_it->second;
+  // Check if UE has other sessions and reuse shard_id if so
+  for (auto session_it = sessions.begin(); session_it != sessions.end();
+       ++session_it) {
+    if ((*session_it)->get_session_id() != session.get_session_id()) {
+      session.set_shard_id((*session_it)->get_shard_id());
+      return;
+    }
+  }
+  // if the UE doesn't have any other sessions, add to shard tracker and set id
+  int shard_id = shard_tracker_->add_ue(imsi);
+  session.set_shard_id(shard_id);
+}
+
+bool LocalEnforcer::remove_ue_from_shard(
+    const std::string imsi, SessionMap& session_map, SessionState& session) {
+  auto session_map_it = session_map.find(imsi);
+  auto& sessions      = session_map_it->second;
+
+  // check if this is the last session for the UE, because a UE is only fully
+  // gone once all instances of the session are gone
+  if (sessions.size() == 1) {
+    shard_tracker_->remove_ue(imsi, session.get_shard_id());
+    return true;
+  }
+  return false;
 }
 
 bool LocalEnforcer::update_tunnel_ids(
@@ -1049,6 +1109,8 @@ bool LocalEnforcer::update_tunnel_ids(
     auto uc = get_default_update_criteria();
     session->receive_monitor(monitor, nullptr);
   }
+
+  add_ue_to_shard(imsi, session_map, *session);
 
   handle_session_activate_rule_updates(
       *session, csr, charging_credits_received);
@@ -1209,6 +1271,9 @@ void LocalEnforcer::complete_termination(
 
   // clear all metrics associated with this session
   session->clear_session_metrics();
+
+  // remove UE from shard tracker
+  remove_ue_from_shard(imsi, session_map, *session);
 
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;

@@ -85,8 +85,6 @@ case $BUILD_TYPE in
 esac
 
 case $OS in
-    debian)
-    ;;
     ubuntu)
     echo "Ubuntu package build"
     ;;
@@ -135,18 +133,12 @@ MAGMA_DEPS=(
     "libmnl-dev" # required for Connection tracker
     "getenvoy-envoy" # for envoy dep
     "uuid-dev" # for liagentd
+    "libprotobuf17 >= 3.0.0"
+    "nlohmann-json3-dev"
+    "sentry-native"   # sessiond
+    "td-agent-bit >= 1.7.8"
+    "bpfcc-tools" # required for kernsnoopd
     )
-
-if grep -q stretch /etc/os-release; then
-    MAGMA_DEPS+=("libprotobuf10 >= 3.0.0")
-    MAGMA_DEPS+=("nlohmann-json-dev")
-    MAGMA_DEPS+=("td-agent-bit >= 1.3.2")
-else
-    MAGMA_DEPS+=("libprotobuf17 >= 3.0.0")
-    MAGMA_DEPS+=("nlohmann-json3-dev")
-    MAGMA_DEPS+=("sentry-native")   # sessiond
-    MAGMA_DEPS+=("td-agent-bit >= 1.7.8")
-fi
 
 # OAI runtime dependencies
 OAI_DEPS=(
@@ -159,36 +151,18 @@ OAI_DEPS=(
     "libsctp-dev"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
+    "libasan5"
+    "oai-freediameter >= 0.0.2"
     )
 
-if grep -q stretch /etc/os-release; then
-    OAI_DEPS+=("libasan3")
-    OAI_DEPS+=("oai-freediameter >= 1.2.0-1")
-    OAI_DEPS+=("oai-gtp >= 4.9-9")
-else
-    OAI_DEPS+=("libasan5")
-    OAI_DEPS+=("oai-freediameter >= 0.0.2")
-fi
-
 # OVS runtime dependencies
-if [[ "$OS" == "debian" ]]; then
-    OVS_DEPS=(
-        "magma-libfluid >= 0.1.0.6"
-        "libopenvswitch >= 2.8.10"
-        "openvswitch-switch >= 2.8.10"
-        "openvswitch-common >= 2.8.10"
-        "python-openvswitch >= 2.8.10"
-        "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
-        )
-else
-    OVS_DEPS=(
-        "magma-libfluid >= 0.1.0.6"
-        "libopenvswitch >= 2.14"
-        "openvswitch-switch >= 2.14"
-        "openvswitch-common >= 2.14"
-        "openvswitch-datapath-dkms >= 2.14"
-        )
-fi
+OVS_DEPS=(
+      "magma-libfluid >= 0.1.0.6"
+      "libopenvswitch >= 2.14.3-13"
+      "openvswitch-switch >= 2.14.3-13"
+      "openvswitch-common >= 2.14.3-13"
+      "openvswitch-datapath-dkms >= 2.14.3-13"
+      )
 
 # generate string for FPM
 SYSTEM_DEPS=""
@@ -209,12 +183,7 @@ RELEASE_DIR=${MAGMA_ROOT}/lte/gateway/release
 POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
-# python3.5 on stretch, python3.8 on focal
-if grep -q stretch /etc/os-release; then
-    PY_VERSION=python3.5
-else
-    PY_VERSION=python3.8
-fi
+PY_VERSION=python3.8
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
@@ -405,6 +374,7 @@ $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/p
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/templates/) \
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
+$(glob_files "${MAGMA_ROOT}/lte/gateway/python/magma/kernsnoopd/ebpf/*" /etc/magma/ebpf/) \
 ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
 $(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
@@ -422,6 +392,7 @@ ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
 ${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \
+${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
@@ -429,14 +400,3 @@ $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 " # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
-
-if grep -q stretch /etc/os-release; then
-  cd "${MAGMA_ROOT}"
-  OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
-
-  # if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
-  if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
-      cd "${PWD}"
-      "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
-  fi
-fi

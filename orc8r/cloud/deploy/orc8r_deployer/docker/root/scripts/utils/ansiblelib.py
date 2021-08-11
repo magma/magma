@@ -45,7 +45,8 @@ def run_playbook(play: AnsiblePlay) -> int:
     """
     if play.inventory:
         env = {"ANSIBLE_HOST_KEY_CHECKING": "False"}
-        return execute_command([
+        return execute_command(
+            [
             "ansible-playbook",
             "-i",
             play.inventory,
@@ -53,7 +54,9 @@ def run_playbook(play: AnsiblePlay) -> int:
             json.dumps(play.extra_vars),
             "--tags",
             ",".join(play.tags),
-            play.playbook], env=env)
+            play.playbook,
+            ], env=env,
+        )
 
     context.CLIARGS = ImmutableDict(
         tags=play.tags,
@@ -67,7 +70,8 @@ def run_playbook(play: AnsiblePlay) -> int:
         check=False,
         syntax=None,
         start_at_task=None,
-        diff=False)
+        diff=False,
+    )
     loader = DataLoader()
     variable_manager = VariableManager(loader=loader)
     variable_manager.extra_vars.update(play.extra_vars)
@@ -79,5 +83,6 @@ def run_playbook(play: AnsiblePlay) -> int:
         inventory=inventory,
         variable_manager=variable_manager,
         loader=loader,
-        passwords=passwords)
+        passwords=passwords,
+    )
     return pbex.run()

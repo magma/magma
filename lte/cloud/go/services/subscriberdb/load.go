@@ -27,6 +27,7 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
@@ -63,11 +64,38 @@ func LoadSubProtosPage(
 	return subProtos, nextToken, nil
 }
 
+func SerializeSubscribers(subProtos []*lte_protos.SubscriberData) (map[string][]byte, error) {
+	subsSerialized := map[string][]byte{}
+	for _, subProto := range subProtos {
+		sid := lte_protos.SidString(subProto.Sid)
+		serialized, err := proto.Marshal(subProto)
+		if err != nil {
+			return nil, errors.Wrap(err, "serialize subscriber proto")
+		}
+		subsSerialized[sid] = serialized
+	}
+	return subsSerialized, nil
+}
+
+// DeserializeSubscribers deserializes the given list of serialized representations of subscribers.
+func DeserializeSubscribers(subProtosSerialized [][]byte) ([]*lte_protos.SubscriberData, error) {
+	subs := []*lte_protos.SubscriberData{}
+	for _, serialized := range subProtosSerialized {
+		subProto := &lte_protos.SubscriberData{}
+		err := proto.Unmarshal(serialized, subProto)
+		if err != nil {
+			return nil, errors.Wrap(err, "deserialize subscriber proto")
+		}
+		subs = append(subs, subProto)
+	}
+	return subs, nil
+}
+
 func LoadSubProtosByID(
 	sids []string, networkID string,
 	apnsByName map[string]*lte_models.ApnConfiguration,
 	apnResourcesByAPN lte_models.ApnResources,
-) (map[string]*lte_protos.SubscriberData, error) {
+) ([]*lte_protos.SubscriberData, error) {
 	lc := configurator.EntityLoadCriteria{
 		LoadConfig:         true,
 		LoadAssocsToThis:   true,
@@ -80,21 +108,19 @@ func LoadSubProtosByID(
 		lc, serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Load added/modified subscriber entities")
+		return nil, errors.Wrap(err, "load added/modified subscriber entities")
 	}
 
-	subProtosById := map[string]*lte_protos.SubscriberData{}
+	subProtos := []*lte_protos.SubscriberData{}
 	for _, subEnt := range subEnts {
 		subProto, err := ConvertSubEntsToProtos(subEnt, apnsByName, apnResourcesByAPN)
 		if err != nil {
-			return nil, errors.Wrapf(err, "convert subscriber entity into proto object")
+			return nil, errors.Wrap(err, "convert subscriber entity into proto object")
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
-
-		sid := lte_protos.SidString(subProto.Sid)
-		subProtosById[sid] = subProto
+		subProtos = append(subProtos, subProto)
 	}
-	return subProtosById, nil
+	return subProtos, nil
 }
 
 func LoadApnsByName(networkID string) (map[string]*lte_models.ApnConfiguration, error) {
@@ -171,10 +197,10 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 				MaxBandwidthDl: *(apnConfig.Ambr.MaxBandwidthDl),
 			},
 			QosProfile: &lte_protos.APNConfiguration_QoSProfile{
-				ClassId:                 *(apnConfig.QosProfile.ClassID),
-				PriorityLevel:           *(apnConfig.QosProfile.PriorityLevel),
-				PreemptionCapability:    *(apnConfig.QosProfile.PreemptionCapability),
-				PreemptionVulnerability: *(apnConfig.QosProfile.PreemptionVulnerability),
+				ClassId:                 swag.Int32Value(apnConfig.QosProfile.ClassID),
+				PriorityLevel:           swag.Uint32Value(apnConfig.QosProfile.PriorityLevel),
+				PreemptionCapability:    swag.BoolValue(apnConfig.QosProfile.PreemptionCapability),
+				PreemptionVulnerability: swag.BoolValue(apnConfig.QosProfile.PreemptionVulnerability),
 			},
 			Resource: apnResource,
 		}

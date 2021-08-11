@@ -53,7 +53,7 @@ installation process to get an IP using DHCP.
 
 ```bash
 su
-wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.5/lte/gateway/deploy/agw_install_ubuntu.sh
 bash agw_post_install_ubuntu.sh
 ```
 

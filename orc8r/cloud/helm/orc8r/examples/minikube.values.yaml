@@ -1,0 +1,143 @@
+# Be sure to replace IMAGE_REGISTRY_URL and IMAGE_TAG with your specific values.
+
+imagePullSecrets:
+  - name: orc8r-secrets-registry
+
+secret:
+  configs:
+    orc8r: orc8r-secrets-configs-orc8r
+  envdir: orc8r-secrets-envdir
+  certs: orc8r-secrets-certs
+
+controller:
+  tolerations: []
+  affinity: {}
+  nodeSelector: {}
+  replicas: 1
+  image:
+    repository: IMAGE_REGISTRY_URL/controller  # change this
+    tag: IMAGE_TAG  # change this
+  migration:
+    new_handlers: 1
+    new_mconfigs: 1
+  spec:
+    # Postgres/mysql configuration
+    database:
+      driver: postgres # mysql/postgres
+      sql_dialect: psql # maria/psql
+      db: magma # DB Name
+      protocol: tcp
+      host: postgresql
+      port: 5432
+      user: postgres
+      pass: postgres
+
+## NMS
+nms:
+  secret:
+    certs: orc8r-secrets-certs
+  imagePullSecrets:
+    - name: orc8r-secrets-registry
+  pod:
+    replicas:
+      nginx:
+        server: 1
+      magmalte:
+        server: 1
+  magmalte:
+    manifests:
+      configmap: true
+      secrets: true
+      deployment: true
+      service: true
+    #      rbac: true
+    env:
+      api_host: orc8r-nginx-proxy:443
+      mapbox_access_token: ""
+      mysql_host: mysql
+      #labels:
+      #node_selector_key: extraRuntime
+      #node_selector_value: virtlet
+    image:
+      repository: IMAGE_REGISTRY_URL/magmalte  # change this
+      tag: IMAGE_TAG  # change this
+  nginx:
+    manifests:
+      configmap: true
+      secrets: true
+      deployment: true
+      service: true
+      rbac: true
+      #labels:
+      #node_selector_key: extraRuntime
+      #node_selector_value: virtlet
+    service:
+      type: LoadBalancer
+      port:
+        api:
+          targetPort: 9443
+
+  rbac: true
+
+## Metrics
+metrics:
+  enabled: true
+  imagePullSecrets:
+    - name: orc8r-secrets-registry
+
+  metrics:
+    volumes:
+      prometheusData:
+        volumeSpec:
+          emptyDir: {}
+      prometheusConfig:
+        volumeSpec:
+          hostPath:
+            path: /configs/prometheus
+            type: DirectoryOrCreate
+  prometheus:
+    create: true
+
+  prometheusConfigurer:
+    create: true
+  alertmanagerConfigurer:
+    create: true
+
+  alertmanager:
+    create: true
+  prometheusCache:
+    create: true
+    limit: 500000
+  userGrafana:
+    create: true
+    volumes:
+      datasources:
+        emptyDir: {}
+      dashboardproviders:
+        emptyDir: {}
+      dashboards:
+        emptyDir: {}
+      grafanaData:
+        emptyDir: {}
+
+logging:
+  enabled: false
+nginx:
+  secret:
+    certs: orc8r-secrets-certs
+  create: true
+  replicas: 1
+  podDisruptionBudget:
+    enabled: true
+
+  service:
+    name: bootstrapper-orc8r-nginx-proxy
+    type: LoadBalancer
+
+  image:
+    repository: IMAGE_REGISTRY_URL/nginx  # change this
+    tag: IMAGE_TAG  # change this
+    pullPolicy: IfNotPresent
+
+  spec:
+    hostname: controller.magma.test

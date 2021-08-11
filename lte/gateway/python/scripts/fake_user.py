@@ -26,10 +26,12 @@ from magma.subscriberdb.sid import SIDUtils
 
 
 def sample_commands():
-    return ('Example commands to run as fake_user:\n'
-            'ping -I fake_user 8.8.8.8\n'
-            'sudo curl --interface fake_user -vvv --ipv4 http://www.google.com'
-            ' > /dev/null')
+    return (
+        'Example commands to run as fake_user:\n'
+        'ping -I fake_user 8.8.8.8\n'
+        'sudo curl --interface fake_user -vvv --ipv4 http://www.google.com'
+        ' > /dev/null'
+    )
 
 
 def output(str, color=None):
@@ -56,9 +58,11 @@ def run(command, ignore_errors=False):
 def add_flow(table, filter, actions, priority=300):
     """ Adds/modifies an OVS flow.
         We use '0xface0ff' as the cookie for all flows created by this tool """
-    run('sudo ovs-ofctl add-flow gtp_br0 "cookie=0xface0ff, '
+    run(
+        'sudo ovs-ofctl add-flow gtp_br0 "cookie=0xface0ff, '
         'table=%d, priority=%d,%s actions=%s"' %
-        (table, priority, filter, actions))
+        (table, priority, filter, actions),
+    )
 
 
 def pcef_create_session(args):
@@ -66,7 +70,8 @@ def pcef_create_session(args):
     client = LocalSessionManagerStub(chan)
     request = LocalCreateSessionRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        ue_ipv4=args.user_ip)
+        ue_ipv4=args.user_ip,
+    )
     client.CreateSession(request)
 
 
@@ -79,8 +84,10 @@ def pcef_end_session(args):
 def create_fake_user(args):
     output('Creating fake_user...')
     # Create the OVS port and interface
-    run('sudo ovs-vsctl add-port gtp_br0 fake_user -- '
-        'set interface fake_user type=internal', ignore_errors=True)
+    run(
+        'sudo ovs-vsctl add-port gtp_br0 fake_user -- '
+        'set interface fake_user type=internal', ignore_errors=True,
+    )
     run('sudo ifconfig fake_user up %s netmask 255.255.255.0' % args.iface_ip)
 
     if environment.is_dev_mode():
@@ -89,13 +96,17 @@ def create_fake_user(args):
 
     # Create table 0 flows to set the metadata, and to replace with iface_ip
     metadata = encode_imsi(args.imsi)
-    add_flow(0, 'ip,ip_src=%s' % args.iface_ip,
-             'set_field:%s->metadata,resubmit(,1)' % (metadata))
+    add_flow(
+        0, 'ip,ip_src=%s' % args.iface_ip,
+        'set_field:%s->metadata,resubmit(,1)' % (metadata),
+    )
     iface_mac = mac_from_iface('fake_user')
-    add_flow(0, 'ip,ip_dst=%s' % args.user_ip,
-             'set_field:%s->metadata,set_field:%s->ip_dst,'
-             'set_field:%s->eth_dst,resubmit(,1)' %
-             (metadata, args.iface_ip, iface_mac))
+    add_flow(
+        0, 'ip,ip_dst=%s' % args.user_ip,
+        'set_field:%s->metadata,set_field:%s->ip_dst,'
+        'set_field:%s->eth_dst,resubmit(,1)' %
+        (metadata, args.iface_ip, iface_mac),
+    )
 
     # Create a table 1 flow to set 0x1 as direction bit for pkts from fake_user
     add_flow(1, 'in_port=fake_user', 'set_field:0x1->reg1,resubmit(,2)')
@@ -104,19 +115,23 @@ def create_fake_user(args):
     # This doesn't happen with GTP, since the UEs by default send it to the
     # tunnel. Here we manually set the next hop as gtp_br0.
     gateway_mac = mac_from_iface('gtp_br0')
-    add_flow(2, 'arp,reg1=0x1',
-             'move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:%s,'
-             'load:0x2->NXM_OF_ARP_OP[],'
-             'load:0x3243f1395144->NXM_NX_ARP_SHA[],'
-             'move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],'
-             'move:NXM_OF_ARP_TPA[]->NXM_NX_REG0[],'
-             'move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],'
-             'move:NXM_NX_REG0[]->NXM_OF_ARP_SPA[],IN_PORT' % gateway_mac)
+    add_flow(
+        2, 'arp,reg1=0x1',
+        'move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:%s,'
+        'load:0x2->NXM_OF_ARP_OP[],'
+        'load:0x3243f1395144->NXM_NX_ARP_SHA[],'
+        'move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],'
+        'move:NXM_OF_ARP_TPA[]->NXM_NX_REG0[],'
+        'move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],'
+        'move:NXM_NX_REG0[]->NXM_OF_ARP_SPA[],IN_PORT' % gateway_mac,
+    )
 
     # Create a table 20 flow to output the pkts to face_user after swapping
     # back the destination ip.
-    add_flow(20, 'ip,ip_src=%s' % args.iface_ip,
-             'set_field:%s->ip_src,output:LOCAL' % (args.user_ip))
+    add_flow(
+        20, 'ip,ip_src=%s' % args.iface_ip,
+        'set_field:%s->ip_src,output:LOCAL' % (args.user_ip),
+    )
     add_flow(20, 'ip,ip_dst=%s' % args.iface_ip, 'output:fake_user')
 
     # Create session with PCEF if needed
@@ -143,15 +158,20 @@ def main():
     parser = argparse.ArgumentParser(
         description='CLI for managing the fake_user interface:\n\n' +
                     sample_commands(),
-        formatter_class=argparse.RawTextHelpFormatter)
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
     # Create fake_user
     subparser = subparsers.add_parser('create', help='Creates the fake_user')
-    subparser.add_argument('--user_ip', help='IP address to use for the user',
-                           default='192.168.128.200')
-    subparser.add_argument('--iface_ip', help='IP address of the interface',
-                           default='10.10.10.10')
+    subparser.add_argument(
+        '--user_ip', help='IP address to use for the user',
+        default='192.168.128.200',
+    )
+    subparser.add_argument(
+        '--iface_ip', help='IP address of the interface',
+        default='10.10.10.10',
+    )
     subparser.add_argument('--imsi', help='IMSI the user', default='IMSI12345')
     subparser.add_argument('--pcef', help='PCEF to create session', default='')
     subparser.set_defaults(func=create_fake_user)

@@ -129,6 +129,7 @@ RUN yum install -y \
 WORKDIR /patches
 COPY  lte/gateway/c/core/oai/patches/folly-gflagslib-fix.patch .
 COPY  lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch .
+COPY  lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch .
 COPY  lte/gateway/c/core/oai/patches/libzmq-strncpy.patch .
 COPY  lte/gateway/c/core/oai/patches/czmq-strncat.patch .
 
@@ -327,6 +328,7 @@ RUN cd freediameter && \
     git log -n1 && \
     echo "Patching dict_S6as6d" && \
     patch -p1 < /patches/0001-opencoord.org.freeDiameter.patch && \
+    patch -p1 < /patches/0002-opencoord.org.freeDiameter.patch && \
     mkdir build && \
     cd build && \
     cmake3 ../ && \
@@ -344,8 +346,7 @@ RUN cd json && \
     cd _build && \
     cmake3 -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .. && \
     make -j`nproc` && \
-    make install && \
-    cp /usr/local/include/nlohmann/json.hpp /usr/local/include/
+    make install
 
 ##### lib yaml-cpp
 RUN cd yaml-cpp && \
@@ -458,6 +459,7 @@ RUN yum update -y && \
       libasan \
       liblsan \
       psmisc \
+      procps-ng \
       tcpdump \
       openssl \
       net-tools \

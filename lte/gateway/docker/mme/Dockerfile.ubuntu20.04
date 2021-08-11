@@ -87,9 +87,7 @@ RUN echo "Install 3rd party dependencies" && \
     libyaml-cpp-dev nlohmann-json3-dev && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python && \
-    # TODO(fixup this include in source code @ MConfigLoader.cpp)
-    ln -s /usr/include/nlohmann/json.hpp /usr/include/json.hpp
+    ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
@@ -269,6 +267,7 @@ COPY lte/gateway/c/core/oai/patches/ /tmp/
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < /tmp/0001-opencoord.org.freeDiameter.patch && \
+    patch -p1 < /tmp/0002-opencoord.org.freeDiameter.patch && \
     mkdir build && \
     cd build && \
     cmake -DDISABLE_SCTP:BOOL=ON ../ && \
