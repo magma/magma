@@ -9,8 +9,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
-buildifier(
-    name = "buildifier",
+cc_test(
+    name = "service_registry_test",
+    size = "small",
+    srcs = ["test_service_registry.cpp"],
+    deps = [
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_google_googletest//:gtest_main",
+    ],
 )

@@ -9,8 +9,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+package(default_visibility = ["//visibility:public"])
 
-buildifier(
-    name = "buildifier",
+cc_library(
+    name = "service_registry",
+    srcs = ["ServiceRegistrySingleton.cpp"],
+    hdrs = ["includes/ServiceRegistrySingleton.h"],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
+    strip_include_prefix = "/orc8r/gateway/c/common/service_registry",
+    deps = [
+        "//orc8r/gateway/c/common/config:service_config_loader",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
 )

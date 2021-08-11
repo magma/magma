@@ -9,8 +9,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+package(default_visibility = ["//visibility:public"])
 
-buildifier(
-    name = "buildifier",
+cc_library(
+    name = "logging",
+    hdrs = [
+        "magma_logging.h",
+        "magma_logging_init.h",
+    ],
+    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
+    strip_include_prefix = "/orc8r/gateway/c/common/logging",
 )
