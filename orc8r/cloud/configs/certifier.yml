@@ -18,6 +18,7 @@ certsDirectory: "/var/opt/magma/certs/"
 orchestratorCerts:
   - "rootCA.pem"
   - "admin_operator.pem"
+  - "nms_operator.pem"
   - "controller.crt"
   - "certifier.pem"
   - "fluentd.pem"
