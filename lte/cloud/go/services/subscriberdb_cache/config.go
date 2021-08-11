@@ -14,10 +14,6 @@
 package subscriberdb_cache
 
 import (
-	"magma/lte/cloud/go/lte"
-	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 )
@@ -27,18 +23,6 @@ type Config struct {
 	SleepIntervalSecs int `yaml:"sleepIntervalSecs"`
 	// UpdateIntervalSecs is the target time interval to update each digest.
 	UpdateIntervalSecs int `yaml:"updateIntervalSecs"`
-}
-
-func MustGetServiceConfig() Config {
-	var serviceConfig Config
-	_, _, err := config.GetStructuredServiceConfig(lte.ModuleName, ServiceName, &serviceConfig)
-	if err != nil {
-		glog.Fatalf("Failed parsing the subscriberdb_cache config file: %+v", err)
-	}
-	if err := serviceConfig.Validate(); err != nil {
-		glog.Fatalf("Invalid service configs for subscriberdb_cache: %+v", err)
-	}
-	return serviceConfig
 }
 
 func (config Config) Validate() error {

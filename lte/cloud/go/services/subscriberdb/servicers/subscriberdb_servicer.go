@@ -174,9 +174,6 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	// The digests are sent back during the request for the first page of subscriber data
 	if req.PageToken == "" && s.DigestsEnabled {
 		digestTree, _ := s.getDigestInfo(&protos.Digest{Md5Base64Digest: ""}, networkID)
-		if err != nil {
-			glog.Errorf("Failed to get digest tree from store for network %+v: %+v", networkID, err)
-		}
 		rootDigest = digestTree.RootDigest
 		leafDigests = digestTree.LeafDigests
 	}

@@ -11,6 +11,6 @@
 # limitations under the License.
 
 # sleepIntervalSecs is the time interval between each service worker loop.
-sleepIntervalSecs: 5
+sleepIntervalSecs: 120
 # updateIntervalSecs is the target time interval to update each digest.
 updateIntervalSecs: 300

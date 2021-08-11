@@ -22,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/cloud/go/syncstore"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -32,7 +33,11 @@ func main() {
 		glog.Fatalf("Error creating service: %+v", err)
 	}
 
-	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
+	var serviceConfig subscriberdb_cache.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb_cache.ServiceName, &serviceConfig)
+	if err := serviceConfig.Validate(); err != nil {
+		glog.Fatalf("Invalid subscriberdb_cache service configs: %+v", err)
+	}
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
@@ -47,7 +52,7 @@ func main() {
 	// update interval, to prevent cache writers from outliving update cycles
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
-		CacheWriterValidIntervalSecs: int64(serviceConfig.UpdateIntervalSecs / 2),
+		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
 	})
 	if err != nil {
 		glog.Fatalf("Error creating new subscriber syncstore: %+v", err)

@@ -328,7 +328,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 			continue
 		}
 
-		invalid := []string{}
+		var invalid []string
 		for _, blob := range blobs {
 			creationTime := binary.LittleEndian.Uint64(blob.Value)
 			if clock.Now().Unix()-int64(creationTime) > cacheWriterValidIntervalSecs {
@@ -336,6 +336,10 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 			}
 		}
 		invalidByNetwork[network] = invalid
+	}
+	err = store.Commit()
+	if err != nil {
+		multierror.Append(errs, err)
 	}
 	return invalidByNetwork, errs.ErrorOrNil()
 }

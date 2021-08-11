@@ -24,7 +24,6 @@ import (
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 
-	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,9 +33,10 @@ func StartTestService(t *testing.T) {
 		t, lte.ModuleName, subscriberdb_cache.ServiceName, labels, annotations,
 	)
 
-	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
-	assert.NoError(t, serviceConfig.Validate())
-	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
+	serviceConfig := subscriberdb_cache.Config{
+		UpdateIntervalSecs: 300,
+		SleepIntervalSecs:  120,
+	}
 
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
@@ -44,7 +44,7 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,
-		CacheWriterValidIntervalSecs: int64(serviceConfig.UpdateIntervalSecs / 2),
+		CacheWriterValidIntervalSecs: int64(serviceConfig.SleepIntervalSecs / 2),
 	})
 	assert.NoError(t, err)
 	assert.NoError(t, store.Initialize())

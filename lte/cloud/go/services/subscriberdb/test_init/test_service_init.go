@@ -29,16 +29,7 @@ import (
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 
-	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	// testMaxProtosLoadSize is the maxProtosLoadSize used in a test
-	// subscriberdb service.
-	testMaxProtosLoadSize = 10
 )
 
 func StartTestService(t *testing.T) {
@@ -65,11 +56,13 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, subscriberStore.Initialize())
 
-	// Load service configs
-	var serviceConfig subscriberdb.Config
-	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
-	glog.Infof("Subscriberdb service config %+v", serviceConfig)
-	serviceConfig.MaxProtosLoadSize = testMaxProtosLoadSize
+	// Sane default service configs
+	serviceConfig := subscriberdb.Config{
+		DigestsEnabled:         true,
+		ChangesetSizeThreshold: 500,
+		MaxProtosLoadSize:      10,
+		ResyncIntervalSecs:     86400,
+	}
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
