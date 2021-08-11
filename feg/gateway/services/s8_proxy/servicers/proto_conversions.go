@@ -352,14 +352,12 @@ func handleBearerCtx(brCtxIE *ie.IE) (*protos.BearerContext, *protos.GtpError, e
 			}
 			bearerCtx.Qos = qos
 
-			/*
-				case ie.BearerTFT:
-					bearerTFT, err := handleTFT(childIE)
-					if err != nil {
-						return nil, nil, err
-					}
-					bearerCtx.Tft = bearerTFT
-			*/
+		case ie.BearerTFT:
+			bearerTFT, err := handleTFT(childIE)
+			if err != nil {
+				return nil, nil, err
+			}
+			bearerCtx.Tft = bearerTFT
 		}
 	}
 	return bearerCtx, nil, nil
