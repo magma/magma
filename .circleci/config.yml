@@ -337,7 +337,7 @@ commands:
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
-            COMMIT_HASH_WITH_VERSION="1.7.0-${CIRCLE_SHA1:0:8}"
+            COMMIT_HASH_WITH_VERSION="1.8.0-${CIRCLE_SHA1:0:8}"
             sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
@@ -1482,8 +1482,8 @@ jobs:
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
-              echo export VERSION="1.7.0" >> $BASH_ENV
+              echo export PACKAGE_VERSION="1.8.0" >> $BASH_ENV
+              echo export VERSION="1.8.0" >> $BASH_ENV
             fi
             echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian" >> $BASH_ENV
             echo export GIT_REF="${CIRCLE_SHA1}" >> $BASH_ENV

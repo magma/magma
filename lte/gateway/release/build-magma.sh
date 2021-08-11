@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.7.0 # magma version number
-SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.8.0 # magma version number
+SCTPD_MIN_VERSION=1.8.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
