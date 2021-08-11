@@ -208,7 +208,12 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   // UE context release notification to NGAP
-  amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
+  if (ue_context->ue_context_rel_cause.ngapCause_u.nas == NGAP_INVALID_CAUSE) {
+    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
+    amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
+  } else {
+    amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
+  }
 
   // Clean up all the sessions.
   amf_smf_context_cleanup_pdu_session(ue_context);
