@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,10 +22,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
-	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/s8_proxy/servicers/mock_feg_relay"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
-	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -636,6 +632,7 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 	assert.Nil(t, csRes.ProtocolConfigurationOptions)
 }
 
+/*
 func TestCreateBearerRequest(t *testing.T) {
 	// set up client ans server
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
@@ -826,9 +823,9 @@ func TestCreateBearerRequest(t *testing.T) {
 		}
 	}
 }
-
+*/
 func TestS8proxyEcho(t *testing.T) {
-	s8p, mockPgw := startSgwAndPgw(t, 100*time.Second)
+	s8p, mockPgw := startSgwAndPgw(t, 3*time.Second)
 	defer mockPgw.Close()
 
 	//------------------------------------

@@ -11,6 +11,7 @@ limitations under the License.
 
 package servicers
 
+/*
 import (
 	"fmt"
 	"net"
@@ -166,3 +167,4 @@ func handlePacketFilterComponent(packetComponentIE *ie.TFTPFComponent) (*oaiprot
 
 	return content, nil
 }
+*/
