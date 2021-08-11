@@ -196,6 +196,8 @@ int emm_recv_attach_request(
         ue_id, *emm_cause);
     rc         = emm_proc_attach_reject(ue_id, *emm_cause);
     *emm_cause = EMM_CAUSE_SUCCESS;
+    // Free the ESM container
+    bdestroy(msg->esmmessagecontainer);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 

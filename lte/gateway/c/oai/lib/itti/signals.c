@@ -156,7 +156,7 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
     perror("sigwait");
     return ret;
   }
-  // printf("Received signal %d\n", info.si_signo);
+  printf("Received signal %d\n", info.si_signo);
 
   /*
    * Real-time signals are non constant and are therefore not suitable for

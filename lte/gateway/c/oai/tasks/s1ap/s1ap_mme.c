@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <netinet/in.h>
+#include <czmq.h>
 
 #include "bstrlib.h"
 #include "hashtable.h"
@@ -328,6 +329,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     put_s1ap_imsi_map();
     put_s1ap_ue_state(imsi64);
   }
+  OAILOG_INFO(LOG_MME_APP, "zsys_interrupted: %d", zsys_interrupted);
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
@@ -345,7 +347,12 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   }
   start_stats_timer();
 
-  zloop_start(s1ap_task_zmq_ctx.event_loop);
+  zloop_set_verbose(s1ap_task_zmq_ctx.event_loop, true);
+  int zloop_s1ap_task_res = zloop_start(s1ap_task_zmq_ctx.event_loop);
+  OAILOG_INFO(
+      LOG_S1AP, "spgw_app_thread zloop exit result: %d",
+      zloop_s1ap_task_res);
+  OAILOG_INFO(LOG_S1AP, "zsys_interrupted: %d", zsys_interrupted);
   AssertFatal(
       0, "Asserting as s1ap_mme_thread should not be exiting on its own!");
   return NULL;

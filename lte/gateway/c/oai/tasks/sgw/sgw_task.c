@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <czmq.h>
 
 #include "assertions.h"
 #include "bstrlib.h"
@@ -196,6 +197,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_spgw_state();
   put_spgw_ue_state(spgw_state, imsi64);
 
+  OAILOG_INFO(LOG_MME_APP, "zsys_interrupted: %d", zsys_interrupted);
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
@@ -208,7 +210,12 @@ static void* spgw_app_thread(__attribute__((unused)) void* args) {
       TASK_SPGW_APP, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
       &spgw_app_task_zmq_ctx);
 
-  zloop_start(spgw_app_task_zmq_ctx.event_loop);
+  zloop_set_verbose(spgw_app_task_zmq_ctx.event_loop, true);
+  int zloop_spgw_task_res = zloop_start(spgw_app_task_zmq_ctx.event_loop);
+  OAILOG_INFO(
+      LOG_SPGW, "spgw_app_thread zloop exit result: %d",
+      zloop_spgw_task_res);
+  OAILOG_INFO(LOG_SPGW, "zsys_interrupted: %d", zsys_interrupted);
   AssertFatal(
       0, "Asserting as spgw_app_thread should not be exiting on its own!");
   return NULL;

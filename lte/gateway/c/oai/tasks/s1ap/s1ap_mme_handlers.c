@@ -1224,10 +1224,6 @@ int s1ap_mme_handle_ue_context_release_request(
         (uint32_t) mme_ue_s1ap_id, (uint32_t) enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
-    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_get(
-        imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
-        &imsi64);
     if (ue_ref_p->sctp_assoc_id == assoc_id &&
         ue_ref_p->enb_ue_s1ap_id == enb_ue_s1ap_id) {
       /*
@@ -1235,6 +1231,10 @@ int s1ap_mme_handle_ue_context_release_request(
        * Send a UE context Release Command to eNB after releasing S1-U bearer
        * tunnel mapping for all the bearers.
        */
+      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(
+          imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+          &imsi64);
       rc = s1ap_send_mme_ue_context_release(
           state, ue_ref_p, s1_release_cause, ie->value.choice.Cause, imsi64);
 
@@ -1253,7 +1253,7 @@ int s1ap_mme_handle_ue_context_release_request(
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
-      OAILOG_DEBUG_UE(
+      OAILOG_INFO_UE(
           LOG_S1AP, imsi64,
           "UE_CONTEXT_RELEASE_REQUEST ignored, cause mismatch enb_ue_s1ap_id: "
           "ctxt " ENB_UE_S1AP_ID_FMT " != request " ENB_UE_S1AP_ID_FMT " ",

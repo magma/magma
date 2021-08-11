@@ -45,7 +45,7 @@ void mme_app_resume_timer(
   OAILOG_FUNC_IN(LOG_MME_APP);
   time_t current_time = time(NULL);
   time_t lapsed_time  = current_time - start_time;
-  OAILOG_DEBUG(LOG_MME_APP, "Handling :%s timer \n", timer_name);
+  OAILOG_INFO(LOG_MME_APP, "Handling :%s timer \n", timer_name);
 
   /* Below condition validates whether timer has expired before MME recovers
    * from restart, so MME shall handle as timer expiry
@@ -55,7 +55,7 @@ void mme_app_resume_timer(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   uint32_t remaining_time_in_seconds = timer->sec - lapsed_time;
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_MME_APP,
       "Current_time :%ld %s timer start time :%ld "
       "lapsed time:%ld remaining time:%d \n",
@@ -73,7 +73,7 @@ void mme_app_resume_timer(
         timer_name, ue_mm_context_pP->mme_ue_s1ap_id);
     timer->id = MME_APP_TIMER_INACTIVE_ID;
   } else {
-    OAILOG_DEBUG_UE(
+    OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Started %s timer for UE id " MME_UE_S1AP_ID_FMT "\n", timer_name,
         ue_mm_context_pP->mme_ue_s1ap_id);
@@ -96,6 +96,7 @@ int MmeUeContext::StartTimer(
            &mme_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
     mme_app_timers.insert(std::pair<int, uint32_t>(timer_id, arg));
   }
+  OAILOG_INFO(LOG_MME_APP, "Started timer with id: %d", timer_id);
   return timer_id;
 }
 //------------------------------------------------------------------------------

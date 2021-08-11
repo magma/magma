@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <czmq.h>
 
 #include "assertions.h"
 #include "bstrlib.h"
@@ -466,6 +467,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_mme_nas_state();
   put_mme_ue_state(mme_app_desc_p, imsi64);
 
+  OAILOG_INFO(LOG_MME_APP, "zsys_interrupted: %d", zsys_interrupted);
+
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
@@ -484,7 +487,11 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);
   start_stats_timer();
 
-  zloop_start(mme_app_task_zmq_ctx.event_loop);
+  zloop_set_verbose(mme_app_task_zmq_ctx.event_loop, true);
+  int zloop_mme_task_res = zloop_start(mme_app_task_zmq_ctx.event_loop);
+  OAILOG_INFO(
+      LOG_MME_APP, "mme_app_thread zloop exit result: %d", zloop_mme_task_res);
+  OAILOG_INFO(LOG_MME_APP, "zsys_interrupted: %d", zsys_interrupted);
   AssertFatal(
       0, "Asserting as mme_app_thread should not be exiting on its own!");
   return NULL;

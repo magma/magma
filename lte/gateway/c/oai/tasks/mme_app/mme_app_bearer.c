@@ -287,7 +287,7 @@ void mme_app_handle_conn_est_cnf(
   itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
   int rc                                                           = RETURNok;
 
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_MME_APP,
       "Handle MME_APP_CONNECTION_ESTABLISHMENT_CNF for "
       "ue-id " MME_UE_S1AP_ID_FMT "\n",
@@ -315,7 +315,7 @@ void mme_app_handle_conn_est_cnf(
      * send IMSI Detach towads UE to re-attach for non-eps services
      * otherwise send itti SGS Service request message to SGS
      */
-    OAILOG_DEBUG_UE(
+    OAILOG_INFO_UE(
         LOG_MME_APP, emm_context_p->_imsi64,
         "CSFB Service Type = (%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
         ue_context_p->sgs_context->csfb_service_type,
@@ -334,7 +334,7 @@ void mme_app_handle_conn_est_cnf(
         ue_context_p->sgs_context->csfb_service_type ==
         CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI) {
       // Inform NAS module to send network initiated IMSI detach request to UE
-      OAILOG_DEBUG_UE(
+      OAILOG_INFO_UE(
           LOG_MME_APP, emm_context_p->_imsi64,
           "Send SGS intiated Detach request to NAS module for ue_id "
           "= " MME_UE_S1AP_ID_FMT
@@ -408,7 +408,7 @@ void mme_app_handle_conn_est_cnf(
       LOG_MME_APP, emm_context_p->_imsi64, "CSFB Fallback indicator = (%d)\n",
       establishment_cnf_p->cs_fallback_indicator);
   // Copy UE radio capabilities into message if it exists
-  OAILOG_DEBUG_UE(
+  OAILOG_INFO_UE(
       LOG_MME_APP, emm_context_p->_imsi64,
       "UE radio context already cached: %s\n",
       ue_context_p->ue_radio_capability ? "yes" : "no");
@@ -489,11 +489,11 @@ void mme_app_handle_conn_est_cnf(
       establishment_cnf_p->kenb, emm_context_p->_security.next_hop,
       &emm_context_p->_security.next_hop_chaining_count);
 
-  OAILOG_DEBUG_UE(
+  OAILOG_INFO_UE(
       LOG_MME_APP, emm_context_p->_imsi64,
       "security_capabilities_encryption_algorithms 0x%04X\n",
       establishment_cnf_p->ue_security_capabilities_encryption_algorithms);
-  OAILOG_DEBUG_UE(
+  OAILOG_INFO_UE(
       LOG_MME_APP, emm_context_p->_imsi64,
       "security_capabilities_integrity_algorithms  0x%04X\n",
       establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
