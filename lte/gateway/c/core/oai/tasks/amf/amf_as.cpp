@@ -211,7 +211,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       break;
     default:
       OAILOG_DEBUG(
-          LOG_NAS_AMF, "unknown message type: %d, in %s ",
+          LOG_NAS_AMF, "Unknown message type: %d, in %s ",
           amf_msg->header.message_type, __FUNCTION__);
   }
   return rc;
@@ -725,7 +725,7 @@ uint16_t amf_as_data_req(
     if (bytes > 0) {
       as_msg->err_code = M5G_AS_SUCCESS;
     } else {
-      OAILOG_ERROR(LOG_AMF_APP, "nas encoding failed bytes=%d\n", bytes);
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed bytes=%d\n", bytes);
     }
 
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
@@ -993,7 +993,7 @@ static int amf_as_security_req(
               &(ue_context->amf_context.ue_sec_capability),
               sizeof(UESecurityCapabilityMsg));
         } else {
-          OAILOG_ERROR(LOG_AMF_APP, "ue not found :%u", as_msg->ue_id);
+          OAILOG_ERROR(LOG_AMF_APP, "UE not found :%u", as_msg->ue_id);
           return -2;
         }
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
@@ -1009,7 +1009,7 @@ static int amf_as_security_req(
       default:
         OAILOG_WARNING(
             LOG_NAS_AMF,
-            "amfas-sap - type of nas security "
+            "AMFAS-SAP - Type of NAS security "
             "message 0x%.2x is not valid\n",
             msg->msg_type);
     }
@@ -1045,7 +1045,7 @@ static int amf_as_security_req(
       as_msg->err_code = M5G_AS_SUCCESS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
     } else {
-      OAILOG_ERROR(LOG_AMF_APP, "nas encoding failed");
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
   }
@@ -1107,7 +1107,7 @@ static int amf_as_security_rej(
             AUTH_REJECT;
         break;
       }
-      default: { OAILOG_DEBUG(LOG_AMF_APP, " invalid as msg type \n"); }
+      default: { OAILOG_DEBUG(LOG_AMF_APP, " Invalid as msg type \n"); }
     }
 
   if (size > 0) {
@@ -1141,7 +1141,7 @@ static int amf_as_security_rej(
       as_msg->err_code = M5G_AS_TERMINATED_NAS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
     } else {
-      OAILOG_ERROR(LOG_AMF_APP, "nas encoding failed");
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
   }
@@ -1164,7 +1164,7 @@ int initial_context_setup_request(
   if (message_p == NULL) {
     OAILOG_ERROR(
         LOG_AMF_APP,
-        "failed to allocate memory for ngap_initial_context_setup_req\n");
+        "Failed to allocate memory for ngap_initial_context_setup_req\n");
     return RETURNerror;
   }
   req = &message_p->ittiMsg.ngap_initial_context_setup_req;
@@ -1246,7 +1246,7 @@ int initial_context_setup_request(
   if (nas_msg) {
     req->nas_pdu = nas_msg;
   } else {
-    OAILOG_DEBUG(LOG_AMF_APP, "invalid nas_msg for registration accept");
+    OAILOG_DEBUG(LOG_AMF_APP, "Invalid nas_msg for registration accept");
     return RETURNerror;
   }
 
@@ -1278,7 +1278,7 @@ uint16_t amf_as_establish_cnf(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "send as connection establish confirmation for (ue_id = "
+      "Send AS connection establish confirmation for (ue_id = "
       "%d)\n",
       msg->ue_id);
   amf_nas_message_t nas_msg = {0};
@@ -1333,7 +1333,7 @@ uint16_t amf_as_establish_cnf(
     default:
       OAILOG_WARNING(
           LOG_NAS_AMF,
-          "amfas-sap - type of initial nas "
+          "AMFAS-SAP - Type of initial NAS "
           "message 0x%.2x is not valid\n",
           msg->nas_info);
       break;
@@ -1363,20 +1363,16 @@ uint16_t amf_as_establish_cnf(
           amf_security_context->kgnb);
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
       registration_proc->registration_accept_sent++;
-      OAILOG_INFO(
-          LOG_AMF_APP, "registration_accept_sent: %d",
-          registration_proc->registration_accept_sent);
       registration_proc->registration_accept_sent++;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
     } else if (state == REGISTERED_IDLE) {
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
-      OAILOG_INFO(LOG_AMF_APP, "service_accept_sent");
     }
 
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val          = AS_NAS_ESTABLISH_CNF_;
   } else {
-    OAILOG_ERROR(LOG_AMF_APP, "nas encoding failed");
+    OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);

@@ -64,8 +64,8 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
     } else {
       OAILOG_ERROR(
           LOG_NAS_AMF,
-          "emm-proc  - "
-          "failed to find auth_info procedure associated to ue %d\n",
+          "EMM-PROC  - "
+          "Failed to find Auth_info procedure associated to UE %d\n",
           msg->ue_id);
     }
   }
@@ -93,7 +93,7 @@ int amf_cn_send(const amf_cn_t* msg) {
   }
 
   if (rc != RETURNok) {
-    OAILOG_ERROR(LOG_NAS_AMF, "amf-sap - failed to process primitive \n");
+    OAILOG_ERROR(LOG_NAS_AMF, "AMF-SAP - Failed to process primitive \n");
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

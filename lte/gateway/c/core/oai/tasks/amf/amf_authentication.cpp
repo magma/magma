@@ -135,14 +135,14 @@ static int start_authentication_information_procedure(
   if (is_initial_req) {
     OAILOG_INFO(
         LOG_AMF_APP,
-        "sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info\n",
+        "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info\n",
         imsi_str);
     AsyncM5GAuthenticationServiceClient::getInstance().get_subs_auth_info(
         imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), ue_id);
   } else if (auts->data) {
     OAILOG_INFO(
         LOG_AMF_APP,
-        "sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info-resync\n",
+        "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info-resync\n",
         imsi_str);
     AsyncM5GAuthenticationServiceClient::getInstance()
         .get_subs_auth_info_resync(
@@ -236,7 +236,7 @@ static int amf_authentication_abort(
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "amf-proc  - abort authentication procedure invoked "
+        "AMF-PROC  - Abort authentication procedure invoked "
         "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
         ue_mm_context->amf_ue_ngap_id);
 
@@ -417,7 +417,7 @@ int amf_proc_authentication_ksi(
     OAILOG_DEBUG(
         LOG_NAS_AMF,
         "ue_id= " AMF_UE_NGAP_ID_FMT
-        " amf-proc  - initiate authentication ksi = %d\n",
+        " AMF-PROC  - Initiate Authentication KSI = %d\n",
         ue_id, ksi);
     if (auth_proc) {
       if (AMF_SPEC_PROC_TYPE_REGISTRATION == amf_specific_proc->type)
@@ -453,7 +453,7 @@ int amf_proc_authentication_ksi(
     /*
      * Notify AMF that common procedure has been initiated
      */
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap       = {};
     amf_sap.primitive       = AMFREG_COMMON_PROC_REQ;
     amf_sap.u.amf_reg.ue_id = ue_id;
     amf_sap.u.amf_reg.ctx   = amf_context;
@@ -497,7 +497,7 @@ int amf_proc_authentication_complete(
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "authentication  procedures complete for "
+      "Authentication  procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
   ue_m5gmm_context_s* ue_mm_context = NULL;
@@ -508,7 +508,7 @@ int amf_proc_authentication_complete(
   if (!ue_mm_context) {
     OAILOG_WARNING(
         LOG_NAS_AMF,
-        "amf-proc - failed to authenticate the ue due to null"
+        "AMF-PROC - Failed to authenticate the UE due to NULL"
         "ue_mm_context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
@@ -522,7 +522,7 @@ int amf_proc_authentication_complete(
     /*    Stop Timer T3560 */
     OAILOG_DEBUG(
         LOG_NAS_EMM,
-        "timer:  stopping authentication timer t3560 with id = %lu\n",
+        "Timer:  Stopping Authentication Timer T3560 with id = %lu\n",
         auth_proc->T3560.id);
     amf_app_stop_timer(auth_proc->T3560.id);
     auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
@@ -549,7 +549,7 @@ int amf_proc_authentication_complete(
     if (is_xres_validation_failed) {
       auth_proc->retransmission_count++;
       OAILOG_WARNING(
-          LOG_NAS_AMF, "authentication failure due to res,xres mismatch \n");
+          LOG_NAS_AMF, "Authentication failure due to RES,XRES mismatch \n");
       if (registration_proc &&
           (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
         rc = amf_proc_identification(
@@ -573,12 +573,12 @@ int amf_proc_authentication_complete(
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }
 
-    OAILOG_DEBUG(LOG_NAS_AMF, "authentication of the ue is successful\n");
+    OAILOG_DEBUG(LOG_NAS_AMF, "Authentication of the UE is Successful\n");
 
     /*
      * Notify AMF that the authentication procedure successfully completed
      */
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap               = {};
     amf_sap.primitive               = AMFREG_COMMON_PROC_CNF;
     amf_sap.u.amf_reg.ue_id         = ue_id;
     amf_sap.u.amf_reg.ctx           = amf_ctx;
@@ -587,7 +587,7 @@ int amf_proc_authentication_complete(
     amf_sap.u.amf_reg.u.common_proc = &auth_proc->amf_com_proc;
     rc                              = amf_sap_send(&amf_sap);
   } else {
-    OAILOG_ERROR(LOG_NAS_AMF, "auth proc is null");
+    OAILOG_ERROR(LOG_NAS_AMF, "Auth proc is null");
   }
   /* Completing Authentication response and invoking Security Request
    * Invoking success directly to handle security mode command
@@ -642,7 +642,7 @@ int amf_proc_authentication_failure(
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "authentication  procedures failed for "
+      "Authentication  procedures failed for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
 
@@ -654,7 +654,7 @@ int amf_proc_authentication_failure(
   if (!ue_mm_context) {
     OAILOG_WARNING(
         LOG_NAS_AMF,
-        "amf-proc - failed to authenticate the ue due to null"
+        "AMF-PROC - Failed to authenticate the UE due to NULL"
         "ue_mm_context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
@@ -671,7 +671,7 @@ int amf_proc_authentication_failure(
   /*	Stop Timer T3560 */
   OAILOG_DEBUG(
       LOG_NAS_EMM,
-      "timer:  stopping authentication timer t3560 with id = %lu\n",
+      "Timer:  Stopping Authentication Timer T3560 with id = %lu\n",
       auth_proc->T3560.id);
   amf_app_stop_timer(auth_proc->T3560.id);
   auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
@@ -683,13 +683,13 @@ int amf_proc_authentication_failure(
   switch (msg->m5gmm_cause.m5gmm_cause) {
     case AMF_CAUSE_NGKSI_ALREADY_INUSE: {
       OAILOG_WARNING(
-          LOG_NAS_AMF, "authentication failure received with ngski\n");
+          LOG_NAS_AMF, "Authentication failure received with NGSKI\n");
       nas_amf_registration_proc_t* registration_proc =
           get_nas_specific_procedure_registration(amf_ctx);
 
       amf_ctx->_security.eksi = auth_proc->ksi;
 
-      OAILOG_DEBUG(LOG_NAS_AMF, "updated eksi %d\n", amf_ctx->_security.eksi);
+      OAILOG_DEBUG(LOG_NAS_AMF, "Updated EKSI %d\n", amf_ctx->_security.eksi);
       amf_start_registration_proc_authentication(amf_ctx, registration_proc);
       break;
     }
@@ -716,7 +716,7 @@ int amf_proc_authentication_failure(
         /*
          * Notify AMF that the authentication procedure successfully completed
          */
-        amf_sap_t amf_sap;
+        amf_sap_t amf_sap                    = {};
         amf_sap.primitive                    = AMFAS_SECURITY_REJ;
         amf_sap.u.amf_as.u.security.ue_id    = ue_id;
         amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
@@ -747,7 +747,7 @@ int amf_proc_authentication_failure(
 
     } break;
     default: {
-      OAILOG_DEBUG(LOG_NAS_AMF, "unsupported 5gmm cause\n");
+      OAILOG_DEBUG(LOG_NAS_AMF, "Unsupported 5gmm cause\n");
       break;
     }
   }
@@ -777,7 +777,7 @@ int amf_send_authentication_request(
      * Notify AMF-AS SAP that Authentication Request message has to be sent
      * to the UE
      */
-    amf_sap_t amf_sap;
+    amf_sap_t amf_sap                = {};
     amf_sap.primitive                = AMFAS_SECURITY_REQ;
     amf_sap.u.amf_as.u.security.guti = {0};
     //    amf_sap.u.amf_as.u.security.ue_id    = auth_proc->ue_id;
@@ -799,7 +799,7 @@ int amf_send_authentication_request(
 
     if (rc != RETURNerror) {
       OAILOG_WARNING(
-          LOG_NAS_AMF, " t3560:start authenthication timer for ue id:%d\n",
+          LOG_NAS_AMF, " T3560:Start Authenthication Timer for ue id:%d\n",
           auth_proc->ue_id);
       auth_proc->T3560.id = amf_app_start_timer(
           AUTHENTICATION_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
@@ -830,11 +830,11 @@ static int calculate_amf_serving_network_name(
       snprintf(snni_buffer, 40, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
 
   if (snni_buf_len != 32) {
-    OAILOG_ERROR(LOG_NAS_AMF, "failed to create proper snni string: %s ", snni);
+    OAILOG_ERROR(LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   } else {
     memcpy(snni, snni_buffer, snni_buf_len);
-    OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s\n", snni);
+    OAILOG_DEBUG(LOG_NAS_AMF, "Serving network name: %s\n", snni);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
@@ -880,7 +880,7 @@ int amf_authentication_proc_success(amf_context_t* amf_ctx) {
   }
 
   OAILOG_DEBUG(
-      LOG_AMF_APP, "security eksi:%x, eksi=%x", amf_ctx->_security.eksi, eksi);
+      LOG_AMF_APP, "Security eksi:%x, eksi=%x", amf_ctx->_security.eksi, eksi);
 
   rc = calculate_amf_serving_network_name(amf_ctx, snni);
   if (rc != RETURNok) {
@@ -934,7 +934,7 @@ static int authenthication_t3560_handler(
 
   if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "t3560: invalid timer id expiration, timer id: %u\n",
+        LOG_AMF_APP, "T3560: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -944,7 +944,7 @@ static int authenthication_t3560_handler(
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
-        LOG_NAS_AMF, "t3560: ue_amf_context is null for ue id: %d\n", ue_id);
+        LOG_NAS_AMF, "T3560: ue_amf_context is NULL for ue id: %d\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
@@ -952,7 +952,7 @@ static int authenthication_t3560_handler(
 
   if (!(amf_ctx)) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "t3560: timer expired no amf context for ue id: %d\n",
+        LOG_AMF_APP, "T3560: Timer expired no amf context for ue id: %d\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -961,7 +961,7 @@ static int authenthication_t3560_handler(
       get_nas5g_common_procedure_authentication(amf_ctx);
   if (auth_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "t3560: timer expired timer id %lu ue id %d\n",
+        LOG_AMF_APP, "T3560: timer expired timer id %lu ue id %d\n",
         auth_proc->T3560.id, auth_proc->ue_id);
     auth_proc->T3560.id = -1;
     /*
@@ -969,18 +969,18 @@ static int authenthication_t3560_handler(
      */
     auth_proc->retransmission_count += 1;
     OAILOG_WARNING(
-        LOG_NAS_AMF, "t3560: Timer expired, retransmission counter = %d\n",
+        LOG_NAS_AMF, "T3560: Timer expired, retransmission counter = %d\n",
         auth_proc->retransmission_count);
 
     if (auth_proc->retransmission_count < AUTHENTICATION_COUNTER_MAX) {
       OAILOG_ERROR(
           LOG_NAS_AMF,
-          "t3560: retransmitting amf_send_authentication_request\n");
+          "T3560: Retransmitting amf_send_authentication_request\n");
       amf_send_authentication_request(amf_ctx, auth_proc);
     } else {
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "t3560: maximum retires done hence abort the authentication "
+          "T3560: Maximum retires done hence Abort the authentication "
           "procedure\n");
       amf_proc_registration_abort(amf_ctx, ue_amf_context);
     }

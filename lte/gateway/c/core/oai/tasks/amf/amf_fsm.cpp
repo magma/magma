@@ -168,7 +168,7 @@ int ue_state_handle_message_initial(
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "[%s] event triggered, ue switches from [%s] to [%s] and PDU session "
+        "[%s] Event triggered, UE switches from [%s] to [%s] and PDU session "
         ":[%s]",
         get_state_event_string((state_events) event).c_str(),
         get_ue_state_string(cur_state).c_str(),
@@ -184,7 +184,7 @@ int ue_state_handle_message_initial(
         ue_state_matrix[cur_state][event][session_state].handler.func)(
         amf_context);
   } else {
-    OAILOG_ERROR(LOG_NAS_AMF, "fsm %s: no proper handler found\n", __func__);
+    OAILOG_ERROR(LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 }
@@ -209,7 +209,7 @@ int ue_state_handle_message_reg_conn(
         ue_state_matrix[cur_state][event][session_state].handler.func)(
         ue_id, smf_msg_pP, amf_cause, decode_status);
   } else {
-    OAILOG_ERROR(LOG_NAS_AMF, "fsm %s: no proper handler found\n", __func__);
+    OAILOG_ERROR(LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 }
@@ -232,7 +232,7 @@ int ue_state_handle_message_dereg(
     return reinterpret_cast<int (*)(amf_ue_ngap_id_t)>(
         ue_state_matrix[cur_state][event][session_state].handler.func)(ue_id);
   } else {
-    OAILOG_ERROR(LOG_NAS_AMF, "fsm %s: no proper handler found\n", __func__);
+    OAILOG_ERROR(LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 }
@@ -252,7 +252,7 @@ int pdu_state_handle_message(
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "[%s] event triggered, pdu session state switches from [%s] to [%s] "
+        "[%s] Event triggered, PDU session state switches from [%s] to [%s] "
         "and "
         "UE state :[%s]",
         get_state_event_string((state_events) event).c_str(),
@@ -286,7 +286,7 @@ int pdu_state_handle_message(
 
       default:
         OAILOG_ERROR(
-            LOG_NAS_AMF, "fsm %s: no proper handler found\n", __func__);
+            LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
         OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
   }

@@ -117,13 +117,13 @@ int amf_proc_identification_complete(
     const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsi, guti_m5_t* amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
-  amf_sap_t amf_sap;
+  int rc                 = RETURNerror;
+  amf_sap_t amf_sap      = {};
   amf_context_t* amf_ctx = NULL;
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "identification procedure complete for "
+      "Identification procedure complete for "
       "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
 
@@ -141,7 +141,7 @@ int amf_proc_identification_complete(
      */
 
     OAILOG_DEBUG(
-        LOG_AMF_APP, "timer: stopping identity timer with id %lu\n",
+        LOG_AMF_APP, "Timer: Stopping Identity timer with ID %lu\n",
         ident_proc->T3570.id);
     amf_app_stop_timer(ident_proc->T3570.id);
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
@@ -200,7 +200,7 @@ void amf_app_generate_guti_on_supi(
   amf_guti->guamfi.amf_set_id  = amf_config.guamfi.guamfi[0].amf_set_id;
   amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_AMF_APP, "amf_region_id %u amf_set_id %u amf_pointer %u",
       amf_config.guamfi.guamfi[0].amf_regionid,
       amf_config.guamfi.guamfi[0].amf_set_id,

@@ -62,7 +62,7 @@ int amf_smf_handle_pdu_establishment_request(
   int smf_cause = SMF_CAUSE_SUCCESS;
   OAILOG_DEBUG(
       LOG_AMF_APP,
-      "amf smf handler- received pdn connectivity request message ");
+      "AMF SMF Handler- Received PDN Connectivity Request message ");
 
   // Procedure transaction identity checking
   if ((msg->header.procedure_transaction_id ==
@@ -289,17 +289,17 @@ int amf_smf_send(
           &(msg->payload_container.smf_msg), &amf_smf_msg);
       OAILOG_DEBUG(
           LOG_AMF_APP,
-          "sending pdu session resource release request to gnb \n");
+          "sending PDU session resource release request to gNB \n");
       rc = pdu_session_resource_release_request(ue_context, ue_id, smf_ctx);
       if (rc != RETURNok) {
         OAILOG_DEBUG(
             LOG_AMF_APP,
-            "pdu session resource release request to gnb failed"
+            "PDU session resource release request to gNB failed"
             "\n");
       }
       OAILOG_DEBUG(
           LOG_AMF_APP,
-          "notifying smf about pdu session release n_active_pdus=%d\n",
+          "notifying SMF about PDU session release n_active_pdus=%d\n",
           smf_ctx->n_active_pdus);
 
       if (smf_ctx->n_active_pdus) {
@@ -377,7 +377,7 @@ int amf_smf_notification_send(
 
   OAILOG_DEBUG(
       LOG_AMF_APP,
-      " notification grpc filled with imsi %s and "
+      " Notification gRPC filled with IMSI %s and "
       "ue_state_idle is set to true \n",
       imsi);
 
@@ -437,7 +437,7 @@ int amf_smf_handle_ip_address_response(
   if (rc < 0) {
     OAILOG_ERROR(
         LOG_AMF_APP,
-        "smf context for pdu not found or address "
+        "SMF Context for PDU not found or Address "
         "type not supported\n");
     return rc;
   }
@@ -455,7 +455,7 @@ int amf_smf_handle_ip_address_response(
         response_p->gnb_gtp_teid_ip_addr, ip_str);
 
     if (rc < 0) {
-      OAILOG_ERROR(LOG_AMF_APP, "create ipv4 session \n");
+      OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
     }
   }
 

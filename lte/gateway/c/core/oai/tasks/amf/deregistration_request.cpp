@@ -56,7 +56,7 @@ int amf_handle_deregistration_ue_origin_req(
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
-      LOG_NAS_AMF, "ue originated deregistration procedures started\n");
+      LOG_NAS_AMF, "UE originated deregistration procedures started\n");
   int rc = RETURNerror;
   amf_deregistration_request_ies_t params;
   if (msg->m5gs_de_reg_type.switchoff) {
@@ -70,26 +70,26 @@ int amf_handle_deregistration_ue_origin_req(
       params.de_reg_access_type = AMF_3GPP_ACCESS;
       OAILOG_DEBUG(
           LOG_NAS_AMF,
-          "access type is amf_3gpp_access for deregistration request from "
-          "ue\n");
+          "Access type is AMF_3GPP_ACCESS for deregistration request from "
+          "UE\n");
       break;
     case NON_AMF_3GPP_ACCESS:
       params.de_reg_access_type = AMF_NONE_3GPP_ACCESS;
       OAILOG_DEBUG(
           LOG_NAS_AMF,
-          "access type amf_none_3gpp_access for deregistration request from "
-          "ue\n");
+          "Access type AMF_NONE_3GPP_ACCESS for deregistration request from "
+          "UE\n");
       break;
     case AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS:
       params.de_reg_access_type = AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS;
       OAILOG_DEBUG(
           LOG_NAS_AMF,
-          "access type amf_3gpp_access_and_none_3gpp_access for deregistration "
-          "request from ue\n");
+          "Access type AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS for deregistration "
+          "request from UE\n");
       break;
     default:
       OAILOG_WARNING(
-          LOG_NAS_AMF, "wrong access type received for deregistration\n");
+          LOG_NAS_AMF, "Wrong access type received for deregistration\n");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
       break;
   }
@@ -110,7 +110,7 @@ int amf_proc_deregistration_request(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "processing deregistration ue-id = %d "
+      "Processing deregistration UE-id = %d "
       "type = %d\n",
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
@@ -125,12 +125,12 @@ int amf_proc_deregistration_request(
   if (!amf_ctx) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "amf context not present for ue-id = %d "
+        "AMF icontext not present for UE-id = %d "
         "type = %d\n",
         ue_id, params->de_reg_type);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-  amf_sap_t amf_sap;
+  amf_sap_t amf_sap     = {};
   amf_as_data_t* amf_as = &amf_sap.u.amf_as.u.data;
 
   /* if switched off, directly release all resources and
@@ -201,7 +201,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   // but proceeding to release all the resources and notify NGAP
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   if (!amf_app_desc_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "failed to fetch amf_app_desc_p \n");
+    OAILOG_ERROR(LOG_AMF_APP, "Failed to fetch amf_app_desc_p \n");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   // UE context release notification to NGAP
@@ -265,7 +265,7 @@ void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   if (found_ue_id != ue_context_map.end()) {
     OAILOG_DEBUG(
-        LOG_AMF_APP, "removed ue id = %u entry from the ue context map\n",
+        LOG_AMF_APP, "Removed ue id = %u entry from the ue context map\n",
         ue_context_p->amf_ue_ngap_id);
     ue_context_map.erase(found_ue_id);
   }

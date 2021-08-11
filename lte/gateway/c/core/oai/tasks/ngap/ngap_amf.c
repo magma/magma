@@ -85,7 +85,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   AssertFatal(state != NULL, "failed to retrieve ngap state (was null)");
 
   OAILOG_INFO(
-      LOG_NGAP, "received msg from :[%s] id:[%d] name:[%s]\n",
+      LOG_NGAP, "Received msg from :[%s] id:[%d] name:[%s]\n",
       ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
       ITTI_MSG_NAME(received_message_p));
 
@@ -204,7 +204,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   if (ngap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_NGAP, "Error while sending SCTP_INIT_MSG to SCTP \n");
   } else {
-    OAILOG_DEBUG(LOG_NGAP, " sending SCTP_INIT_MSG to SCTP \n");
+    OAILOG_DEBUG(LOG_NGAP, " Sending SCTP_INIT_MSG to SCTP \n");
   }
   zloop_start(ngap_task_zmq_ctx.event_loop);
   AssertFatal(
@@ -375,7 +375,7 @@ status_code_e ngap_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
   OAILOG_INFO(
-      LOG_NGAP, "sending msg to :[%s] id: [%d]-[%s]\n",
+      LOG_NGAP, "Sending msg to :[%s] id: [%d]-[%s]\n",
       itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
       ITTI_MSG_NAME(message));
 

@@ -59,7 +59,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
 
   OAILOG_INFO(
-      LOG_AMF_APP, "received msg from :[%s] id:[%d] name:[%s]\n",
+      LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
       ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
       ITTI_MSG_NAME(received_message_p));
 
@@ -183,7 +183,7 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   /*Initialize UE state matrix */
   create_state_matrix();
   if (itti_create_task(TASK_AMF_APP, &amf_app_thread, NULL) < 0) {
-    OAILOG_CRITICAL(LOG_AMF_APP, "amf app create task failed\n");
+    OAILOG_CRITICAL(LOG_AMF_APP, "Amf app create task failed\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
@@ -216,7 +216,7 @@ status_code_e amf_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
   OAILOG_INFO(
-      LOG_AMF_APP, "sending msg to :[%s] id: [%d]-[%s]\n",
+      LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
       itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
       ITTI_MSG_NAME(message));
 

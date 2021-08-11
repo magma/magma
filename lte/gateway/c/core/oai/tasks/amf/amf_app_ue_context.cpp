@@ -55,7 +55,7 @@ void notify_ngap_new_ue_amf_ngap_id_association(
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, " null ue context!\n");
+    OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
   message_p =
@@ -82,17 +82,16 @@ int amf_insert_ue_context(
     amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
     ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-
   if (amf_ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "invalid amf ue context received\n");
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "invalid ue context received\n");
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   if (ue_context_p->gnb_ngap_id_key == INVALID_GNB_UE_NGAP_ID_KEY) {
-    OAILOG_ERROR(LOG_AMF_APP, "invalid gnb_ngap_id_key received\n");
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid gnb_ngap_id_key received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
@@ -113,7 +112,7 @@ int amf_insert_ue_context(
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
       OAILOG_DEBUG(
-          LOG_AMF_APP, "overwriting the existing entry ue_id=%u\n", ue_id);
+          LOG_AMF_APP, "Overwriting the Existing entry UE_ID=%u\n", ue_id);
     }
   }
 
@@ -133,10 +132,9 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   ue_m5gmm_context_s* new_p = new ue_m5gmm_context_s();
 
   if (!new_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "failed to allocate memory for ue context \n");
+    OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
     return NULL;
   }
-  memset(new_p, 0, sizeof(ue_m5gmm_context_s));
 
   new_p->amf_ue_ngap_id  = INVALID_AMF_UE_NGAP_ID;
   new_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
@@ -180,7 +178,7 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
     if (ue_mm_context) {
       amf_context_p = &ue_mm_context->amf_context;
     }
-    OAILOG_DEBUG(LOG_NAS_AMF, "stored ue id " AMF_UE_NGAP_ID_FMT " \n", ue_id);
+    OAILOG_DEBUG(LOG_NAS_AMF, "Stored UE id " AMF_UE_NGAP_ID_FMT " \n", ue_id);
   }
   return amf_context_p;
 }
@@ -215,8 +213,7 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
  ***************************************************************************/
 smf_context_t* amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
-  smf_context_t smf_context;
-  memset(&smf_context, 0, sizeof(smf_context));
+  smf_context_t smf_context = {};
   std::vector<smf_context_t>::iterator i;
   int j = 0;
 

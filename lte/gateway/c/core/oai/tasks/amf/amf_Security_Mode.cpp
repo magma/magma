@@ -48,7 +48,7 @@ int amf_handle_security_complete_response(
   int rc                            = RETURNerror;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "security mode procedures complete for "
+      "Security mode procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
   /*
@@ -67,20 +67,17 @@ int amf_handle_security_complete_response(
     amf_app_stop_timer(smc_proc->T3560.id);
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "timer: after stopping timer t3560 for securiy mode command"
+        "Timer: After stopping timer T3560 for securiy mode command"
         " with id: %lu and ue_id: %d\n",
         smc_proc->T3560.id, ue_id);
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "ue_context_request : %d",
-        ue_mm_context->ue_context_request);
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       if (M5G_UEContextRequest_requested != ue_mm_context->ue_context_request) {
         /*
          * Notify AMF that the authentication procedure successfully completed
          */
-        amf_sap_t amf_sap;
+        amf_sap_t amf_sap                = {};
         amf_sap.primitive                = AMFCN_CS_RESPONSE;
         amf_sap.u.amf_reg.ue_id          = ue_id;
         amf_sap.u.amf_reg.ctx            = amf_ctx;
@@ -101,9 +98,9 @@ int amf_handle_security_complete_response(
   } else {
     OAILOG_ERROR(
         LOG_NAS_AMF,
-        "amf-proc  - no 5gcn security context exists. ignoring the security "
-        "mode "
-        "complete message\n");
+        "AMF-PROC  - No 5GCN security context exists. Ignoring the Security "
+        "Mode "
+        "Complete message\n");
     rc = RETURNerror;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

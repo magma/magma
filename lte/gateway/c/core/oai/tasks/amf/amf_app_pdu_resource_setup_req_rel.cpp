@@ -269,7 +269,7 @@ int pdu_session_resource_release_request(
     bdestroy(buffer);
   } else {
     bdestroy(buffer);
-    OAILOG_ERROR(LOG_AMF_APP, "nas encode failed for pdu release command\n");
+    OAILOG_ERROR(LOG_AMF_APP, "NAS encode failed for PDU Release Command\n");
     return RETURNerror;
   }
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
