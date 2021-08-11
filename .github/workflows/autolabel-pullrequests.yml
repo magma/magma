@@ -1,13 +1,11 @@
 ---
-name: Auto Label Pull Requests
+name: Auto Label lte component Pull Requests
 on:  # yamllint disable-line rule:truthy
   # Use pull_request_target to gain write permissions.
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - 'orc8r/**'
-      - 'lte/**'
       - 'ci-scripts/**'
       - 'circleci/**'
       - 'cn/**'
@@ -30,16 +28,14 @@ on:  # yamllint disable-line rule:truthy
       - 'scripts/**'
 
 jobs:
-  # This job is to automatically apply labels to pull requests
+  # This job is to automatically apply lte labels to pull requests
   comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: hmarr/debug-action@v2
       - uses: actions/github-script@v3
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            var lbl = `component: agw`
+            var lbl = `component: lte`
 
             github.issues.addLabels({
               issue_number: context.issue.number,
