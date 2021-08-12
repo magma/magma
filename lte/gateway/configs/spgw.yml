@@ -42,3 +42,6 @@ ovs_multi_tunnel: true
 
 # Non-NAT specific config
 ovs_uplink_port_number: 2
+
+# To enable GTP-U echo response on all GTP tunnels.
+ovs_gtpu_echo_resp: true
