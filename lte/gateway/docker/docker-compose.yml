@@ -22,6 +22,7 @@ x-generic-service: &service
 # Generic python anchor to avoid repetition for agw python services
 x-agw-python-service: &pyservice
   <<: *service
+  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
 
 # Generic anchor for lte c services
 x-lte-cservice: &ltecservice
@@ -37,51 +38,74 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: /usr/bin/env python3 -m magma.magmad.main
   mobilityd:
     <<: *pyservice
     container_name: mobilityd
-    image: mobilityd:${IMAGE_VERSION}
     depends_on:
       - redis
+    command: /usr/bin/env python3 -m magma.mobilityd.main
   directoryd:
     <<: *pyservice
     container_name: directoryd
-    image: directoryd:${IMAGE_VERSION}
     depends_on:
       - redis
+    command: /usr/bin/env python3 -m magma.directoryd.main
   subscriberdb:
     <<: *pyservice
     container_name: subscriberdb
-    image: subscriberdb:${IMAGE_VERSION}
+    command: /usr/bin/env python3 -m magma.subscriberdb.main
   policydb:
     <<: *pyservice
     container_name: policydb
-    image: policydb:${IMAGE_VERSION}
     depends_on:
       - redis
+    command: /usr/bin/env python3 -m magma.policydb.main
   pipelined:
     <<: *pyservice
     container_name: pipelined
-    image: pipelined:${IMAGE_VERSION}
-
+    command: /usr/bin/env python3 -m magma.pipelined.main
+  enodebd:
+    <<: *pyservice
+    container_name: enodebd
+    command: /usr/bin/env python3 -m magma.enodebd.main
   state:
     <<: *pyservice
     container_name: state
-    image: state:${IMAGE_VERSION}
     depends_on:
       - redis
+    command: /usr/bin/env python3 -m magma.state.main
   eventd:
     <<: *pyservice
     container_name: eventd
-    image: eventd:${IMAGE_VERSION}
+    command: /usr/bin/env python3 -m magma.eventd.main
+  health:
+    <<: *pyservice
+    container_name: health
+    command: /usr/bin/env python3 -m magma.health.main
+  monitord:
+    <<: *pyservice
+    container_name: monitord
+    command: /usr/bin/env python3 -m magma.monitord.main
+  redirectd:
+    <<: *pyservice
+    container_name: redirectd
+    command: /usr/bin/env python3 -m magma.redirectd.main
+  smsd:
+    <<: *pyservice
+    container_name: smsd
+    command: /usr/bin/env python3 -m magma.smsd.main
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
-    image: control_proxy:${IMAGE_VERSION}
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py && \
+             /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
   ctraced:
     <<: *pyservice
     container_name: ctraced
-    image: ctraced:${IMAGE_VERSION}
+    command: /usr/bin/env python3 -m magma.ctraced.main
 
 
   sessiond:
