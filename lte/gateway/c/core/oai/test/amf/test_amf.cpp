@@ -93,6 +93,8 @@ uint8_t NAS5GPktSnapShot::service_request[37] = {
 
 uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
+uint8_t NAS5GPktSnapShot::security_mode_reject[4] = {0x7e, 0x00, 0x5f, 0x24};
+
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   RegistrationRequestMsg reg_request;
@@ -614,6 +616,28 @@ TEST(test_dlnastransport, test_dlnastransport) {
       static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED));
   bdestroy(buffer);
 }
+
+/* Test for security mode reject Data */
+TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  SecurityModeRejectMsg sm_reject;
+  bool decode_res = 0;
+
+  uint32_t len = nas5g_pkt_snap.get_security_mode_reject_len();
+
+  memset(&sm_reject, 0, sizeof(SecurityModeRejectMsg));
+
+  decode_res = decode_security_mode_reject_msg(
+      &sm_reject, nas5g_pkt_snap.security_mode_reject, len);
+  EXPECT_EQ(decode_res, true);
+  EXPECT_EQ(
+      sm_reject.extended_protocol_discriminator.extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(sm_reject.sec_header_type.sec_hdr, (uint8_t) 0x00);
+  EXPECT_EQ(sm_reject.message_type.msg_type, SEC_MODE_REJECT);
+  EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -781,7 +781,7 @@ int amf_handle_security_mode_reject(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  if (msg->m5gmm_cause.m5gmm_cause == AMF_CAUSE_UE_SECURITY_CAP_MISMATCH) {
+  if (msg->m5gmm_cause.m5gmm_cause == AMF_CAUSE_UE_SEC_CAP_MISSMATCH) {
     increment_counter(
         "security_mode_reject_received", 1, 1, "cause", "ue_sec_cap_mismatch");
   } else {
