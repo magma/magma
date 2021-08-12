@@ -103,12 +103,14 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
-  itti_msg.session_ambr.uplink_unit_type = static_cast<AmbrUnit_response>(
-      req_m5g.uplink_unit_type().ambr_unit_type());
-  itti_msg.session_ambr.uplink_units       = (uint32_t) req_m5g.uplink_units();
-  itti_msg.session_ambr.downlink_unit_type = static_cast<AmbrUnit_response>(
-      req_m5g.downlink_unit_type().ambr_unit_type());
-  itti_msg.session_ambr.downlink_units = (uint32_t) req_m5g.downlink_units();
+
+  itti_msg.session_ambr.uplink_unit_type = req_m5g.session_ambr().br_unit();
+  itti_msg.session_ambr.uplink_units =
+      (uint32_t) req_m5g.session_ambr().max_bandwidth_ul();
+
+  itti_msg.session_ambr.downlink_unit_type = req_m5g.session_ambr().br_unit();
+  itti_msg.session_ambr.downlink_units =
+      (uint32_t) req_m5g.session_ambr().max_bandwidth_dl();
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = 5;
 

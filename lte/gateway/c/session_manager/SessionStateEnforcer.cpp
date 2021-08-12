@@ -34,7 +34,7 @@
 #include "EnumToString.h"
 #include "SessionStateEnforcer.h"
 
-#define DEFAULT_AMBR_UNITS 1
+#define DEFAULT_AMBR_UNITS (1024 * 1024)
 #define DEFAULT_UP_LINK_PDR_ID 1
 #define DEFAULT_DOWN_LINK_PDR_ID 2
 #define DEFAULT_RULE_COUNT 2
@@ -577,13 +577,9 @@ void SessionStateEnforcer::prepare_response_to_access(
    * values and sent to AMF.
    */
   // For now its default QOS, AMBR is 1 Gbps downlink
-  rsp->mutable_downlink_unit_type()->set_ambr_unit_type(
-      magma::AmbrUnit::Gbps_1);
-  rsp->set_downlink_units(DEFAULT_AMBR_UNITS);
-
-  // For now its default QOS, AMBR is 1 Gbps uplink
-  rsp->mutable_uplink_unit_type()->set_ambr_unit_type(magma::AmbrUnit::Gbps_1);
-  rsp->set_uplink_units(DEFAULT_AMBR_UNITS);
+  rsp->mutable_session_ambr()->set_br_unit(AggregatedMaximumBitrate::KBPS);
+  rsp->mutable_session_ambr()->set_max_bandwidth_ul(DEFAULT_AMBR_UNITS);
+  rsp->mutable_session_ambr()->set_max_bandwidth_dl(DEFAULT_AMBR_UNITS);
 
   auto* convg_qos = rsp->mutable_qos();
   convg_qos->set_qci(FlowQos_Qci_QCI_9);

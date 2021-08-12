@@ -933,42 +933,6 @@ message RatSpecificContextAccess {
 // e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
 // description provided by the UE in an IMS session.
 
-message AmbrUnit {
-  enum AmbrUnitType {
-   Kbps_0   = 0;
-   Kbps_1   = 1;
-   Kbps_4   = 2;
-   Kbps_16  = 3;
-   Kbps_64  = 4;
-   Kbps_256 = 5;
-
-   Mbps_1   = 6;
-   Mbps_4   = 7;
-   Mbps_16  = 8;
-   Mbps_64  = 9;
-   Mbps_256 = 10;
-
-   Gbps_1   = 11;
-   Gbps_4   = 12;
-   Gbps_16  = 13;
-   Gbps_64  = 14;
-   Gbps_256 = 15;
-
-   Tbps_1   = 16;
-   Tbps_4   = 17;
-   Tbps_16  = 18;
-   Tbps_64  = 19;
-   Tbps_256 = 20;
-
-   Pbps_1   = 21;
-   Pbps_4   = 22;
-   Pbps_16  = 23;
-   Pbps_64  = 24;
-   Pbps_256 = 25;
-  }
-  AmbrUnitType ambr_unit_type = 1;
-}
-
 message M5GSMSessionContextAccess{
     // received from UE. For 5G pdu_session_id.
     uint32 pdu_session_id = 1;
@@ -982,12 +946,7 @@ message M5GSMSessionContextAccess{
 
     // TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
     AggregatedMaximumBitrate session_ambr = 5;
-    AmbrUnit downlink_unit_type = 6;
-    // Only to use lower 2 bytes (16 bit values)
-    uint32   downlink_units = 7;
-    AmbrUnit uplink_unit_type = 8;
-    // Only to use lower 2 bytes (16 bit values)
-    uint32   uplink_units = 9;
+
     // TS-24501 - 9.11.4.2
     M5GSMCause M5gsm_cause = 10;
     // PDU session is requested to be established as always-on PDU session.
