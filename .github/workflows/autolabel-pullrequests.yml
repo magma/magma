@@ -36,7 +36,7 @@ jobs:
         with:
           script: |
             var lbl1 = `component: lte`
-            var lbl2 = `component: lte`
+            var lbl2 = `component: agw`
 
             github.issues.addLabels({
               issue_number: context.issue.number,
