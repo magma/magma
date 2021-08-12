@@ -35,12 +35,12 @@ jobs:
       - uses: actions/github-script@v3
         with:
           script: |
-            var lbl1 = `component: lte`
+            var lbl1 = `component: lte,component: agw`
             var lbl2 = `component: agw`
 
             github.issues.addLabels({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: [lbl1, lbl2],
+              labels: [lbl1],
             })
