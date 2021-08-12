@@ -27,7 +27,7 @@ Once your PR has been approved and passed all CI checks, use the [`ready2merge`]
 
 - [Supported commit types](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json):
 `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`
-- [Supported scopes](https://github.com/magma/magma/blob/a7ff21e6144ece504cbf2e78d51d319b54b8a391/.github/workflows/semantic-pr.yml): `agw`, `orc8r`, `nms`, `feg`, and more
+- [Supported scopes](https://github.com/magma/magma/blob/master/.github/workflows/semantic-pr.yml): `agw`, `orc8r`, `nms`, `feg`, and more
 - Note: single-commit PRs also require that commit's title to follow the semantic format
 
 **Required: label backward-breaking pull requests.** Use the [`breaking change` label](https://github.com/magma/magma/issues?q=label%3A%22breaking+change%22+). All breaking changes and their mitigation steps will be aggregated in the subsequent release notes. A breaking change fits one or more of the following criteria
