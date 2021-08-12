@@ -265,7 +265,7 @@ commands:
           name: << parameters.job_name >>
           command: |
             FORCE_PUSH=<< parameters.force-push >>
-            if [ "${CIRCLE_BRANCH}" != "master" && "$FORCE_PUSH" = false ]; then
+            if [[ "${CIRCLE_BRANCH}" != "master" && "$FORCE_PUSH" = false ]]; then
               echo "Push only happens for master branch"
               exit 0
             fi
@@ -281,6 +281,7 @@ commands:
             PROJECT=<< parameters.project >>
             TAG=<< parameters.tag >>
             TAG_LATEST=<< parameters.tag-latest >>
+            TAG_RELEASE=<< parameters.tag-release >>
 
             function tag_and_push {
               docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
