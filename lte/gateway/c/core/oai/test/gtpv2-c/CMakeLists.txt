@@ -9,18 +9,18 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(mme_app_task)
-add_subdirectory(mobility_client)
-add_subdirectory(openflow)
-add_subdirectory(spgw_task)
-add_subdirectory(ngap)
-add_subdirectory(itti)
-add_subdirectory(pipelined_client)
-add_subdirectory(amf)
-add_subdirectory(n11)
-add_subdirectory(s1ap_task)
-add_subdirectory(gtpv2-c)
+set(LIB_GTPV2C $ENV{C_BUILD}/oai/lib/gtpv2-c)
+include_directories(${LIB_GTPV2C})
+include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/include")
+include_directories("${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/shared")
+include_directories(NWGTPV2C_IE_FORMATTER_DIR)
+
+add_executable(gtpv2c_test test_fteid.cpp)
+target_link_libraries(gtpv2c_test ${CONFIG} LIB_GTPV2C
+        COMMON gtest gtest_main pthread rt yaml-cpp)
+add_test(test_gtpv2c gtpv2c_test)
