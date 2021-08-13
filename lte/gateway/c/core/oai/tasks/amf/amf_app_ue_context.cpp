@@ -217,7 +217,7 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
  ***************************************************************************/
 smf_context_t* amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
-  smf_context_t smf_context;
+  smf_context_t smf_context = {};
   std::vector<smf_context_t>::iterator i;
   int j = 0;
 

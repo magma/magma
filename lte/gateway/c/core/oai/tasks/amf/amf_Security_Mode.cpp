@@ -80,7 +80,7 @@ int amf_handle_security_complete_response(
         /*
          * Notify AMF that the authentication procedure successfully completed
          */
-        amf_sap_t amf_sap;
+        amf_sap_t amf_sap                = {};
         amf_sap.primitive                = AMFCN_CS_RESPONSE;
         amf_sap.u.amf_reg.ue_id          = ue_id;
         amf_sap.u.amf_reg.ctx            = amf_ctx;
