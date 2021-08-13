@@ -1,7 +1,7 @@
-From 619ba66cdd60bdf651c8234d6722caa0214d4628 Mon Sep 17 00:00:00 2001
+From 909886e0e4dd16cd439374ae200930c591b14523 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:29:56 +0000
-Subject: [PATCH 02/20] userspace: IPFIX: Add tunnel type GTP
+Subject: [PATCH 02/17] userspace: IPFIX: Add tunnel type GTP
 
 Add support for ingress/egress tunnel type GTP
 in IPFIX.
@@ -56,10 +56,10 @@ index b89dfdd52..50f95e637 100644
  
  int
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 2a7d14e99..0f3d587e0 100644
+index a1e2a7adf..af4a1808e 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
-@@ -578,6 +578,7 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+@@ -583,6 +583,7 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
      memset(&tnl_cfg, 0, sizeof tnl_cfg);
  
      /* Add a default destination port for tunnel ports if none specified. */
@@ -67,7 +67,7 @@ index 2a7d14e99..0f3d587e0 100644
      if (!strcmp(type, "geneve")) {
          tnl_cfg.dst_port = htons(GENEVE_DST_PORT);
      }
-@@ -596,11 +597,11 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+@@ -601,11 +602,11 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
  
      if (!strcmp(type, "gtpu")) {
          tnl_cfg.dst_port = htons(GTPU_DST_PORT);
@@ -80,7 +80,7 @@ index 2a7d14e99..0f3d587e0 100644
      SMAP_FOR_EACH (node, args) {
          if (!strcmp(node->key, "remote_ip")) {
              err = parse_tunnel_ip(node->value, false, &tnl_cfg.ip_dst_flow,
-@@ -645,6 +646,10 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+@@ -650,6 +651,10 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
              }
          } else if (!strcmp(node->key, "dst_port") && needs_dst_port) {
              tnl_cfg.dst_port = htons(atoi(node->value));
@@ -92,10 +92,10 @@ index 2a7d14e99..0f3d587e0 100644
              if (!strcmp(node->value, "true")) {
                  tnl_cfg.csum = true;
 diff --git a/lib/netdev.h b/lib/netdev.h
-index c01fa026e..4877df5ff 100644
+index 799cafeb5..b67ae08f8 100644
 --- a/lib/netdev.h
 +++ b/lib/netdev.h
-@@ -140,6 +140,8 @@ struct netdev_tunnel_config {
+@@ -141,6 +141,8 @@ struct netdev_tunnel_config {
      bool erspan_idx_flow;
      bool erspan_dir_flow;
      bool erspan_hwid_flow;
@@ -150,7 +150,7 @@ index 796eb6f88..ed0a4ace0 100644
              return 4;
          case DPIF_IPFIX_TUNNEL_VXLAN:
 diff --git a/ofproto/ofproto-dpif-sflow.c b/ofproto/ofproto-dpif-sflow.c
-index b39482dbf..9de054456 100644
+index 864c136b5..4bb8f0b59 100644
 --- a/ofproto/ofproto-dpif-sflow.c
 +++ b/ofproto/ofproto-dpif-sflow.c
 @@ -61,7 +61,8 @@ enum dpif_sflow_tunnel_type {

@@ -1,18 +1,35 @@
-From 65a999b3224a2f2a26526ec4447e63b03af605bb Mon Sep 17 00:00:00 2001
+From a256e5cc5cbb22b1ba9dd406791195b6c905e810 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 06:54:04 +0000
-Subject: [PATCH 06/20] ovs: test: add gtp marker test
+Subject: [PATCH 06/17] ovs: test: add gtp marker test
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- tests/system-layer3-tunnels.at | 60 ++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ tests/system-layer3-tunnels.at | 65 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 83c9c4593..2b8a70c6d 100644
+index 8f9feac70..90a330281 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
-@@ -398,3 +398,63 @@ RX: 1 TX: 1 remote ip: 172.31.1.2, seq 3, pending send 0
+@@ -253,6 +253,7 @@ AT_CLEANUP
+ AT_SETUP([layer3 - ping over GTP])
+ OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
+ OVS_CHECK_GTP_L3()
++OVS_CHECK_MIN_KERNEL(4,10)
+ 
+ ADD_BR([br-underlay])
+ 
+@@ -270,6 +271,8 @@ dnl linux device inside the namespace.
+ ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
+ AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
+ NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
++dnl kernel 4.9
++dnl NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.2 172.31.1.100], [0], [ignore], [ignore])
+ NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
+ NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
+ NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])
+@@ -494,3 +497,65 @@ RX: 1 TX: 1 remote ip: 172.31.1.2, seq 3, pending send 0
  
  OVS_TRAFFIC_VSWITCHD_STOP
  AT_CLEANUP
@@ -20,7 +37,7 @@ index 83c9c4593..2b8a70c6d 100644
 +AT_SETUP([layer3 - GTP end marker test])
 +OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
 +OVS_CHECK_GTP_L3()
-+
++OVS_CHECK_MIN_KERNEL(4,10)
 +ADD_BR([br-underlay])
 +
 +ADD_NAMESPACES(at_ns0)
@@ -37,6 +54,8 @@ index 83c9c4593..2b8a70c6d 100644
 +ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24], [options:key=flow])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
++dnl for 4.9
++dnl NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.2 172.31.1.100], [0], [ignore], [ignore])
 +NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
 +NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
 +NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])

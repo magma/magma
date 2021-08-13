@@ -1,7 +1,7 @@
-From e9e17000c3238bba5e2558b1db27767101a4988b Mon Sep 17 00:00:00 2001
+From 2a585138639b04d44ad730557e0a977abac35532 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 4 Jul 2021 19:31:58 +0000
-Subject: [PATCH 20/20] net: Fix zero-copy head len calculation.
+Subject: [PATCH 17/17] net: Fix zero-copy head len calculation.
 
 In some cases skb head could be locked and all header
 data pull from skb. When skb_zerocopy() called in such cases, following
@@ -50,11 +50,10 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
  datapath/linux/compat/include/linux/skbuff.h | 2 --
  datapath/linux/compat/skbuff-openvswitch.c   | 8 +++++---
- debian/changelog                             | 2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/datapath/linux/compat/include/linux/skbuff.h b/datapath/linux/compat/include/linux/skbuff.h
-index ac0a8f237..32ca1bed0 100644
+index 396a5e406..e6de8e37e 100644
 --- a/datapath/linux/compat/include/linux/skbuff.h
 +++ b/datapath/linux/compat/include/linux/skbuff.h
 @@ -261,10 +261,8 @@ static inline int skb_orphan_frags(struct sk_buff *skb, gfp_t gfp_mask)
@@ -102,16 +101,6 @@ index 4cdeedc58..9db943da1 100644
  #ifndef HAVE_SKB_ZEROCOPY
  /**
   *	skb_zerocopy - Zero copy skb to skb
-diff --git a/debian/changelog b/debian/changelog
-index d817479b0..a2896d041 100644
---- a/debian/changelog
-+++ b/debian/changelog
-@@ -1,4 +1,4 @@
--openvswitch (2.14.3-8) unstable; urgency=low
-+openvswitch (2.14.3-13) unstable; urgency=low
-    [ Open vSwitch team ]
-    * New upstream version
- 
 -- 
 2.17.1
 

@@ -1,7 +1,7 @@
-From f2e3039cf4be98bca09026513b56aaa79e7ad053 Mon Sep 17 00:00:00 2001
+From 4dbe4faf9306971f19e59b6c95ce67db9b9a51d4 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 23:09:50 -0800
-Subject: [PATCH 11/20] fixes for 2.14
+Subject: [PATCH 08/17] fixes for 2.14
 
 ---
  datapath/flow_netlink.c                       |  2 ++
@@ -9,11 +9,10 @@ Subject: [PATCH 11/20] fixes for 2.14
  .../linux/compat/include/linux/openvswitch.h  |  3 --
  .../linux/compat/include/net/ip_tunnels.h     |  7 ++--
  lib/odp-util.c                                | 16 +++++++++
- manpages.mk                                   |  5 ++-
- 6 files changed, 47 insertions(+), 20 deletions(-)
+ 5 files changed, 45 insertions(+), 17 deletions(-)
 
 diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
-index f7e54cfc1..a1842e1c3 100644
+index 4b633a650..d7e7cd31a 100644
 --- a/datapath/flow_netlink.c
 +++ b/datapath/flow_netlink.c
 @@ -41,9 +41,11 @@
@@ -109,10 +108,10 @@ index 46add66dc..20ad23ecb 100644
  }
  
 diff --git a/datapath/linux/compat/include/linux/openvswitch.h b/datapath/linux/compat/include/linux/openvswitch.h
-index 2d884312f..cc41bbea4 100644
+index 875de2025..ae7772ba3 100644
 --- a/datapath/linux/compat/include/linux/openvswitch.h
 +++ b/datapath/linux/compat/include/linux/openvswitch.h
-@@ -405,10 +405,7 @@ enum ovs_tunnel_key_attr {
+@@ -414,10 +414,7 @@ enum ovs_tunnel_key_attr {
  	OVS_TUNNEL_KEY_ATTR_IPV6_DST,		/* struct in6_addr dst IPv6 address. */
  	OVS_TUNNEL_KEY_ATTR_PAD,
  	OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS,	/* struct erspan_metadata */
@@ -124,7 +123,7 @@ index 2d884312f..cc41bbea4 100644
  };
  
 diff --git a/datapath/linux/compat/include/net/ip_tunnels.h b/datapath/linux/compat/include/net/ip_tunnels.h
-index 66bd252ea..21f3676e8 100644
+index 08d576913..4cfaa50c8 100644
 --- a/datapath/linux/compat/include/net/ip_tunnels.h
 +++ b/datapath/linux/compat/include/net/ip_tunnels.h
 @@ -9,9 +9,6 @@
@@ -137,7 +136,7 @@ index 66bd252ea..21f3676e8 100644
  #define ovs_ip_tunnel_encap ip_tunnel_encap
  
  #ifndef HAVE_IP_TUNNEL_INFO_OPTS_SET_FLAGS
-@@ -514,6 +511,10 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
+@@ -511,6 +508,10 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
  #define skb_is_encapsulated ovs_skb_is_encapsulated
  bool ovs_skb_is_encapsulated(struct sk_buff *skb);
  
@@ -189,43 +188,6 @@ index 43f81876d..cce43d9a4 100644
              mask->flags = flags_ma;
              mask->msgtype = msgtype_ma;
          }
-diff --git a/manpages.mk b/manpages.mk
-index dc201484c..5f04b9c2c 100644
---- a/manpages.mk
-+++ b/manpages.mk
-@@ -104,7 +104,6 @@ utilities/bugtool/ovs-bugtool.8: \
- utilities/bugtool/ovs-bugtool.8.in:
- lib/ovs.tmac:
- 
--
- utilities/ovs-dpctl-top.8: \
- 	utilities/ovs-dpctl-top.8.in \
- 	lib/ovs.tmac
-@@ -155,8 +154,6 @@ lib/common-syn.man:
- lib/common.man:
- lib/ovs.tmac:
- 
--lib/ovs.tmac:
--
- utilities/ovs-testcontroller.8: \
- 	utilities/ovs-testcontroller.8.in \
- 	lib/common.man \
-@@ -211,6 +208,7 @@ vswitchd/ovs-vswitchd.8: \
- 	lib/coverage-unixctl.man \
- 	lib/daemon.man \
- 	lib/dpctl.man \
-+	lib/dpdk-unixctl.man \
- 	lib/dpif-netdev-unixctl.man \
- 	lib/memory-unixctl.man \
- 	lib/netdev-dpdk-unixctl.man \
-@@ -230,6 +228,7 @@ lib/common.man:
- lib/coverage-unixctl.man:
- lib/daemon.man:
- lib/dpctl.man:
-+lib/dpdk-unixctl.man:
- lib/dpif-netdev-unixctl.man:
- lib/memory-unixctl.man:
- lib/netdev-dpdk-unixctl.man:
 -- 
 2.17.1
 

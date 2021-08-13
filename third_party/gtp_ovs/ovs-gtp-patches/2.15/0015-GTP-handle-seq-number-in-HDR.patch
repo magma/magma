@@ -1,12 +1,11 @@
-From 85349c9b2f502212b7cd90c0dbf9f14a5a23e06f Mon Sep 17 00:00:00 2001
+From 3f18e19ab80c5daa08e6fc823d4c0853dbb00954 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 28 May 2021 16:06:54 +0000
-Subject: [PATCH 18/20] GTP: handle seq number in HDR
+Subject: [PATCH 15/17] GTP: handle seq number in HDR
 
 ---
  datapath/linux/compat/gtp.c | 11 ++++++++---
- debian/changelog            |  2 +-
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
 index 00103b47f..75c5c547c 100644
@@ -44,16 +43,6 @@ index 00103b47f..75c5c547c 100644
 +        netdev_dbg(gtp->dev, "flags %x type: %x\n", gtp1->flags, gtp1->type);
  	if ((gtp1->flags >> 5) != GTP_V1)
  		return 1;
- 
-diff --git a/debian/changelog b/debian/changelog
-index a555e214b..661dfb991 100644
---- a/debian/changelog
-+++ b/debian/changelog
-@@ -1,4 +1,4 @@
--openvswitch (2.14.3-1) unstable; urgency=low
-+openvswitch (2.14.3-3) unstable; urgency=low
-    [ Open vSwitch team ]
-    * New upstream version
  
 -- 
 2.17.1

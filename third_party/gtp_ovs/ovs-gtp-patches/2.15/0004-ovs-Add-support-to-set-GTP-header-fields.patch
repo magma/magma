@@ -1,7 +1,7 @@
-From c914c7fc3d6c77da28bfa8eaeb2dc7b2c5e40860 Mon Sep 17 00:00:00 2001
+From 02b0c2107b1312cc559204cb74b1ee9ef7dd9e0a Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 00:58:18 -0800
-Subject: [PATCH 04/20] ovs: Add support to set GTP header fields.
+Subject: [PATCH 04/17] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
@@ -12,7 +12,7 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  datapath/flow_netlink.c                       |  54 ++++++-
  datapath/linux/compat/gtp.c                   | 137 ++++++++++++------
  datapath/linux/compat/include/linux/gtp.h     |   9 ++
- .../linux/compat/include/net/ip_tunnels.h     |   8 +-
+ .../linux/compat/include/net/ip_tunnels.h     |   7 +-
  datapath/vport.c                              |   1 +
  include/openvswitch/meta-flow.h               |   6 +-
  lib/dpif-netlink.c                            |   3 +-
@@ -23,10 +23,10 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  tests/odp.at                                  |   1 +
  tests/ofproto.at                              |   2 +-
  tests/tunnel.at                               |  26 ++++
- 14 files changed, 275 insertions(+), 82 deletions(-)
+ 14 files changed, 275 insertions(+), 81 deletions(-)
 
 diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
-index d3fd77106..f7e54cfc1 100644
+index 996041602..4b633a650 100644
 --- a/datapath/flow_netlink.c
 +++ b/datapath/flow_netlink.c
 @@ -23,6 +23,7 @@
@@ -392,14 +392,13 @@ index 6d3443389..3da797926 100644
 +};
  #endif
 diff --git a/datapath/linux/compat/include/net/ip_tunnels.h b/datapath/linux/compat/include/net/ip_tunnels.h
-index 617a753c7..a0dcc2667 100644
+index 617a753c7..08d576913 100644
 --- a/datapath/linux/compat/include/net/ip_tunnels.h
 +++ b/datapath/linux/compat/include/net/ip_tunnels.h
-@@ -108,11 +108,11 @@ void rpl_ip_tunnel_xmit(struct sk_buff *skb, struct net_device *dev,
- #define TUNNEL_GENEVE_OPT	__cpu_to_be16(0x0800)
+@@ -109,10 +109,11 @@ void rpl_ip_tunnel_xmit(struct sk_buff *skb, struct net_device *dev,
  #define TUNNEL_VXLAN_OPT	__cpu_to_be16(0x1000)
  #define TUNNEL_NOCACHE		__cpu_to_be16(0x2000)
--#define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
+ #define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
 +#define TUNNEL_GTPU_OPT		__cpu_to_be16(0x8000)
  
  #undef TUNNEL_OPTIONS_PRESENT
@@ -409,7 +408,7 @@ index 617a753c7..a0dcc2667 100644
  
  struct tnl_ptk_info {
  	__be16 flags;
-@@ -510,4 +510,8 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
+@@ -510,4 +511,8 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
  #define skb_is_encapsulated ovs_skb_is_encapsulated
  bool ovs_skb_is_encapsulated(struct sk_buff *skb);
  
@@ -419,10 +418,10 @@ index 617a753c7..a0dcc2667 100644
 +
  #endif /* __NET_IP_TUNNELS_H */
 diff --git a/datapath/vport.c b/datapath/vport.c
-index dfb6dcca4..1304c06be 100644
+index bc9574015..d7352b644 100644
 --- a/datapath/vport.c
 +++ b/datapath/vport.c
-@@ -557,6 +557,7 @@ int ovs_vport_receive(struct vport *vport, struct sk_buff *skb,
+@@ -558,6 +558,7 @@ int ovs_vport_receive(struct vport *vport, struct sk_buff *skb,
  		kfree_skb(skb);
  		return error;
  	}
@@ -431,7 +430,7 @@ index dfb6dcca4..1304c06be 100644
  	return 0;
  }
 diff --git a/include/openvswitch/meta-flow.h b/include/openvswitch/meta-flow.h
-index 1c5a4930a..a59c0f9bf 100644
+index e88a401f9..17548f548 100644
 --- a/include/openvswitch/meta-flow.h
 +++ b/include/openvswitch/meta-flow.h
 @@ -514,7 +514,7 @@ enum OVS_PACKED_ENUM mf_field_id {
@@ -456,10 +455,10 @@ index 1c5a4930a..a59c0f9bf 100644
       * OXM: NXOXM_ET_GTPU_MSGTYPE(16) since v2.13.
       */
 diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
-index 10c522ef0..d68cc7e36 100644
+index e6cb3ca7f..a9bcc65e6 100644
 --- a/lib/dpif-netlink.c
 +++ b/lib/dpif-netlink.c
-@@ -2520,8 +2520,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,
+@@ -2525,8 +2525,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,
  {
      static const struct nl_policy ovs_packet_policy[] = {
          /* Always present. */
@@ -470,7 +469,7 @@ index 10c522ef0..d68cc7e36 100644
  
          /* OVS_PACKET_CMD_ACTION only. */
 diff --git a/lib/meta-flow.xml b/lib/meta-flow.xml
-index e72ba52ec..266cc7072 100644
+index 28865f88c..fbbf4d67a 100644
 --- a/lib/meta-flow.xml
 +++ b/lib/meta-flow.xml
 @@ -1876,6 +1876,17 @@ ovs-ofctl add-flow br-int 'in_port=3,tun_src=192.168.1.1,tun_id=5001 actions=1'
@@ -674,10 +673,10 @@ index e1199d1da..43f81876d 100644
  
  #define MASK(PTR, FIELD) PTR ? &PTR->FIELD : NULL
 diff --git a/lib/packets.h b/lib/packets.h
-index 395bc869e..c326bf1bb 100644
+index 481bc22fa..6edf85f05 100644
 --- a/lib/packets.h
 +++ b/lib/packets.h
-@@ -1501,14 +1501,31 @@ static inline ovs_be32 get_erspan_ts(enum erspan_ts_gra gra)
+@@ -1426,14 +1426,31 @@ static inline ovs_be32 get_erspan_ts(enum erspan_ts_gra gra)
  #define GTPU_MSGTYPE_REPL   2   /* Echo Reply. */
  #define GTPU_MSGTYPE_GPDU   255 /* User Payload. */
  
@@ -724,7 +723,7 @@ index b762ebb2b..8658fce87 100644
  tnl_push(tnl_port(4),header(size=42,type=3,eth(dst=f8:bc:12:44:34:b6,src=f8:bc:12:46:58:e0,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=47,tos=0,ttl=64,frag=0x4000),gre((flags=0x2000,proto=0x6558),key=0x1e241)),out_port(1))
  tnl_push(tnl_port(4),header(size=46,type=3,eth(dst=f8:bc:12:44:34:b6,src=f8:bc:12:46:58:e0,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=47,tos=0,ttl=64,frag=0x4000),gre((flags=0xa000,proto=0x6558),csum=0x0,key=0x1e241)),out_port(1))
 diff --git a/tests/ofproto.at b/tests/ofproto.at
-index 76a3be44d..44559374d 100644
+index 08c0a20b6..dc03347d5 100644
 --- a/tests/ofproto.at
 +++ b/tests/ofproto.at
 @@ -2350,7 +2350,7 @@ head_table () {
