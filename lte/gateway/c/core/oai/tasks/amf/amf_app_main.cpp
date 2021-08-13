@@ -58,16 +58,19 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
 
+  OAILOG_INFO(
+      LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
+      ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
+      ITTI_MSG_NAME(received_message_p));
+
   switch (ITTI_MSG_ID(received_message_p)) {
     /* Handle Initial UE message from NGAP */
     case NGAP_INITIAL_UE_MESSAGE:
-      OAILOG_INFO(LOG_AMF_APP, "NGAP_INITIAL_UE_MESSAGE received\n");
       amf_app_handle_initial_ue_message(
           amf_app_desc_p, &NGAP_INITIAL_UE_MESSAGE(received_message_p));
       break;
     /* Handle uplink NAS message Recevied from the UE */
     case AMF_APP_UPLINK_DATA_IND:
-      OAILOG_DEBUG(LOG_AMF_APP, "UPLINK_NAS_MESSAGE received\n");
       amf_app_handle_uplink_nas_message(
           amf_app_desc_p, AMF_APP_UL_DATA_IND(received_message_p).nas_msg,
           AMF_APP_UL_DATA_IND(received_message_p).ue_id,
@@ -80,30 +83,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
     /* Handle PDU session Response from UE */
     case N11_CREATE_PDU_SESSION_RESPONSE:
-      OAILOG_DEBUG(LOG_AMF_APP, "PDU SESSION RESPONSE received\n");
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "session created in SMF for imsi:%s for session_id:%d \n",
-          N11_CREATE_PDU_SESSION_RESPONSE(received_message_p).imsi,
-          N11_CREATE_PDU_SESSION_RESPONSE(received_message_p).pdu_session_id);
       amf_app_handle_pdu_session_response(
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
       break;
     case AMF_APP_SUBS_AUTH_INFO_RESP:
-      // response_p =
-      // &(received_message_p->ittiMsg.amf_app_subs_auth_info_resp); auth_info =
-      // &(response_p->auth_info);
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
       break;
 
     case AMF_IP_ALLOCATION_RESPONSE:
       itti_amf_ip_allocation_response_t* response_p;
-
       response_p = &(received_message_p->ittiMsg.amf_ip_allocation_response);
-
       amf_smf_handle_ip_address_response(response_p);
-
       break;
 
     /* Handle PDU session resource setup response */
@@ -111,8 +102,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This is non-nas message and can be handled directly to check if failure
        * or success messages are coming from NGAP
        */
-      OAILOG_DEBUG(
-          LOG_AMF_APP, "NGAP_PDU SESSION RESOURCE SETUP RESPONSE received\n");
       amf_app_handle_resource_setup_response(
           NGAP_PDUSESSIONRESOURCE_SETUP_RSP(received_message_p));
       break;
@@ -121,7 +110,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This is non-nas message and can be handled directly to check if failure
        * or success messages are coming from NGAP
        */
-      OAILOG_DEBUG(LOG_AMF_APP, "NGAP_PDUSESSIONRESOURCE_REL_RSP received\n");
       amf_app_handle_resource_release_response(
           NGAP_PDUSESSIONRESOURCE_REL_RSP(received_message_p));
       break;
@@ -129,13 +117,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This case handles Notification Received for Paging or other events
        * or success messages are coming from NGAP
        */
-      OAILOG_INFO(LOG_AMF_APP, "N11_NOTIFICATION_RECEIVED received\n");
       imsi64 = itti_get_associated_imsi(received_message_p);
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "imsi ===============> %lu PAGING NOTIFICATION =======> "
-          "message_type = %d \n",
-          imsi64, ITTI_MSG_ID(received_message_p));
       amf_app_handle_notification_received(
           &N11_NOTIFICATION_RECEIVED(received_message_p));
       break;
@@ -145,25 +127,17 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This is non-nas message and handled directly from NGAP sent to AMF
        * on RRC-Inactive mode to change UE's CM-connected to CM-idle state.
        */
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          " NGAP UE context release message to AMF"
-          " when gNB experiences RRC-Inactive \n");
       amf_app_handle_cm_idle_on_ue_context_release(
           NGAP_UE_CONTEXT_RELEASE_REQ(received_message_p));
       break;
     /* Handle Terminate message */
     case TERMINATE_MESSAGE:
-      OAILOG_DEBUG(LOG_AMF_APP, "TERMINATE_MESSAGE received\n");
       itti_free_msg_content(received_message_p);
       free(received_message_p);
       amf_app_exit();
       break;
     default:
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "default message received, returning with message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_AMF_APP, "default message received");
       break;
   }
   return RETURNok;
@@ -209,7 +183,7 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   /*Initialize UE state matrix */
   create_state_matrix();
   if (itti_create_task(TASK_AMF_APP, &amf_app_thread, NULL) < 0) {
-    OAILOG_ERROR(LOG_AMF_APP, "AMF APP create task failed\n");
+    OAILOG_CRITICAL(LOG_AMF_APP, "Amf app create task failed\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
@@ -229,5 +203,23 @@ void amf_app_exit(void) {
   destroy_task_context(&amf_app_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_AMF_APP terminated\n");
   pthread_exit(NULL);
+}
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_send_msg_to_task()                                        **
+ **                                                                        **
+ ** Description:  wrapper api for itti send                                **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+status_code_e amf_send_msg_to_task(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
+    MessageDef* message) {
+  OAILOG_INFO(
+      LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
+      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
+      ITTI_MSG_NAME(message));
+
+  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }
 }  // namespace magma5g

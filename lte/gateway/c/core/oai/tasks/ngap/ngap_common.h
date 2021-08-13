@@ -25,6 +25,16 @@ struct ngap_message_s;
 #pragma once
 
 #include "bstrlib.h"
+#ifdef __cplusplus
+
+extern "C" {
+#endif
+#include "log.h"
+#include "intertask_interface_types.h"
+#include "intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
 /* Defined in asn_internal.h */
 extern int asn_debug;
@@ -773,3 +783,7 @@ ssize_t ngap_generate_unsuccessful_outcome(
  @returns void
  **/
 void ngap_handle_criticality(Ngap_Criticality_t criticality);
+
+status_code_e ngap_send_msg_to_task(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
+    MessageDef* message);

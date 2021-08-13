@@ -46,7 +46,7 @@ int amf_handle_security_complete_response(
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
   int rc                            = RETURNerror;
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Security mode procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
@@ -72,9 +72,6 @@ int amf_handle_security_complete_response(
         smc_proc->T3560.id, ue_id);
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "ue_context_request : %d",
-        ue_mm_context->ue_context_request);
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       if (M5G_UEContextRequest_requested != ue_mm_context->ue_context_request) {
         /*
@@ -92,9 +89,6 @@ int amf_handle_security_complete_response(
         rc = amf_sap_send(&amf_sap);
       }
     }
-
-    OAILOG_INFO(LOG_AMF_APP, " mm_state %d", ue_mm_context->mm_state);
-    OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_mm_context);
 
     /* FSM takes care of sending initial context setup request */
     ue_state_handle_message_initial(

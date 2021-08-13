@@ -168,16 +168,11 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
         smc_proc->is_new, false);
     rc = amf_sap_send(&amf_sap);
     if (rc != RETURNerror) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
           LOG_AMF_APP, "Timer: Security Mode Calling start_timer_T3560 \n");
       smc_proc->T3560.id = amf_app_start_timer(
           SECURITY_MODE_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
           security_mode_t3560_handler, smc_proc->ue_id);
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "Timer:  After starting SECURITY_MODE_TIMER timer T3560 "
-          "with id %lu\n",
-          smc_proc->T3560.id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -201,7 +196,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP, "T3560: ue_amf_context is NULL for ue id: %d\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -380,7 +375,7 @@ int amf_proc_security_mode_control(
             LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
       } else {
-        OAILOG_INFO(LOG_NAS_AMF, "serving network name: %s", snni);
+        OAILOG_DEBUG(LOG_NAS_AMF, "Serving network name: %s", snni);
       }
 
       memcpy(
@@ -422,7 +417,7 @@ int amf_proc_security_mode_control(
     smc_proc->retransmission_count                          = 0;
     smc_proc->ksi          = amf_ctx->_security.eksi;
     smc_proc->selected_eea = amf_ctx->_security.selected_algorithms.encryption;
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_NAS_AMF,
         "5G CN encryption algorithm selected is (%d) for ue_id (%u) "
         "smc_proc->ksi=%d\n",

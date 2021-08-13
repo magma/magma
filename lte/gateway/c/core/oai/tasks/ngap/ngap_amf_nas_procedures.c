@@ -76,7 +76,7 @@ status_code_e ngap_amf_handle_initial_ue_message(
       Ngap_InitialUEMessage_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_NGAP,
       "Received NGAP INITIAL_UE_MESSAGE GNB_UE_NGAP_ID " GNB_UE_NGAP_ID_FMT
       "\n",
@@ -90,7 +90,7 @@ status_code_e ngap_amf_handle_initial_ue_message(
   // gNB UE NGAP ID is limited to 24 bits
   gnb_ue_ngap_id =
       (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
-  OAILOG_ERROR(
+  OAILOG_DEBUG(
       LOG_NGAP,
       "New Initial UE message received with gNB UE NGAP ID: " GNB_UE_NGAP_ID_FMT
       "\n",
@@ -289,7 +289,7 @@ status_code_e ngap_amf_handle_uplink_nas_transport(
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
     }
   } else {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_NGAP,
         "Received NGAP UPLINK_NAS_TRANSPORT message "
         "AMF_UE_NGAP_ID " AMF_UE_NGAP_ID_FMT "\n",
@@ -576,7 +576,7 @@ void ngap_handle_conn_est_cnf(
   OAILOG_FUNC_IN(LOG_NGAP);
   DevAssert(conn_est_cnf_pP != NULL);
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_NGAP,
       "Received Connection Establishment Confirm from AMF_APP for "
       "amf_ue_ngap_id = %u\n",
