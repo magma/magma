@@ -50,7 +50,7 @@ typedef struct nw_gtpv2c_grouped_ie_parse_info_s {
   struct {
     uint8_t ieMinLength;
     uint8_t iePresence;
-  } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM+1];
+  } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM + 1];
 
 } nw_gtpv2c_grouped_ie_parse_info_t;
 
@@ -63,7 +63,7 @@ typedef struct nw_gtpv2c_msg_ie_parse_info_s {
     uint8_t ieMinLength;
     uint8_t iePresence;
     nw_gtpv2c_grouped_ie_parse_info_t* pGroupedIeInfo;
-  } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM+1];
+  } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM + 1];
 
 } nw_gtpv2c_msg_ie_parse_info_t;
 
