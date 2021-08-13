@@ -16,6 +16,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
@@ -85,6 +86,9 @@ const (
 	ListEnodebsPath    = ManageNetworkPath + obsidian.UrlSep + Enodebs
 	ManageEnodebPath   = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
 	GetEnodebStatePath = ManageEnodebPath + obsidian.UrlSep + "state"
+
+	ParamPageSize  = "page_size"
+	ParamPageToken = "page_token"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -300,21 +304,40 @@ func listEnodebs(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	var pageSize uint64 = 0
+	var err error
 
-	ents, _, err := configurator.LoadAllEntitiesOfType(
+	if pageSizeParam := c.QueryParam(ParamPageSize); pageSizeParam != "" {
+		pageSize, err = strconv.ParseUint(pageSizeParam, 10, 32)
+		if err != nil {
+			err := fmt.Errorf("invalid page size parameter: %s", err)
+			return obsidian.HttpError(err, http.StatusBadRequest)
+		}
+	}
+
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
 		nid, lte.CellularEnodebEntityType,
-		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+		configurator.EntityLoadCriteria{
+			LoadMetadata:     true,
+			LoadConfig:       true,
+			LoadAssocsToThis: true,
+			PageSize:         uint32(pageSize),
+			PageToken:        c.QueryParam(ParamPageToken)},
 		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := make(map[string]*lte_models.Enodeb, len(ents))
+	enodeBs := make(map[string]*lte_models.Enodeb, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
+		enodeBs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
 	}
-	return c.JSON(http.StatusOK, ret)
+	paginatedEnodebs := &lte_models.PaginatedEnodebs{
+		Enodebs:       enodeBs,
+		NextPageToken: lte_models.NextPageToken(nextPageToken),
+	}
+	return c.JSON(http.StatusOK, paginatedEnodebs)
 }
 
 func createEnodeb(c echo.Context) error {
