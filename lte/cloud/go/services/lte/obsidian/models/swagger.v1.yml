@@ -1372,13 +1372,15 @@ paths:
         - EnodeBs
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
       responses:
         '200':
-          description: All enodeBs registered in the network
+          description: All enodeBs registered in the network with pagination support
           schema:
             type: object
             additionalProperties:
-              $ref: '#/definitions/enodeb'
+              $ref: '#/definitions/paginated_enodebs'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -2611,3 +2613,25 @@ definitions:
         pattern: '^(\d{6})$'
         example: '176148'
         x-nullable: false
+
+  paginated_enodebs:
+    description: Page of enodebs
+    properties:
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      enodebs:
+        additionalProperties:
+          $ref: '#/definitions/enodeb'
+          x-nullable: true
+        type: object
+      total_count:
+        description: estimated total number of enodebs
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+      - next_page_token
+      - enodebs
+      - total_count
+    type: object

@@ -13,7 +13,7 @@ apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for magma orchestrator's lte module
 name: lte-orc8r
-version: 0.2.5
+version: 0.2.6
 engine: gotpl
 sources:
   - https://github.com/magma/magma
