@@ -2334,12 +2334,14 @@ paths:
     get:
       parameters:
       - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
       responses:
         "200":
-          description: All enodeBs registered in the network
+          description: All enodeBs registered in the network with pagination support
           schema:
             additionalProperties:
-              $ref: '#/definitions/enodeb'
+              $ref: '#/definitions/paginated_enodebs'
             type: object
         default:
           $ref: '#/responses/UnexpectedError'
@@ -10550,6 +10552,27 @@ definitions:
       version:
         example: 0.0.0
         type: string
+    type: object
+  paginated_enodebs:
+    description: Page of enodebs
+    properties:
+      enodebs:
+        additionalProperties:
+          $ref: '#/definitions/enodeb'
+          x-nullable: true
+        type: object
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      total_count:
+        description: estimated total number of enodebs
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+    - next_page_token
+    - enodebs
+    - total_count
     type: object
   paginated_subscribers:
     description: Page of subscribers

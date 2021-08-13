@@ -10,7 +10,7 @@ import (
 )
 
 // NextPageToken Base 64 encoded page token for subsequent paginated API requests
-// swagger:model nextPageToken
+// swagger:model next_page_token
 type NextPageToken string
 
 // Validate validates this next page token

@@ -405,7 +405,7 @@ definitions:
         example: 10
         x-nullable: false
       next_page_token:
-        $ref: '#/definitions/next_page_token'
+        $ref: './orc8r-swagger-common.yml#/definitions/next_page_token'
       subscribers:
         type: object
         additionalProperties:
@@ -578,7 +578,3 @@ definitions:
     example:
       - 'internet'
       - 'ims'
-
-  next_page_token:
-    type: string
-    description: Base 64 encoded page token for subsequent paginated API requests
