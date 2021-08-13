@@ -68,7 +68,7 @@ extern "C" {
                      __FILE__, __LINE__);                                      \
       Fatal("Do not use this Mem manager");                                    \
     } else {                                                                   \
-      _mem = (_type) calloc(1,_size);                                            \
+      _mem = (_type) calloc(1, _size);                                         \
     }                                                                          \
   } while (0)
 
