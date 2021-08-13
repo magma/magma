@@ -329,13 +329,14 @@ func listEnodebs(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	enodeBs := make(map[string]*lte_models.Enodeb, len(ents))
+	enodebs := make(map[string]*lte_models.Enodeb, len(ents))
 	for _, ent := range ents {
-		enodeBs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
+		enodebs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
 	}
 	paginatedEnodebs := &lte_models.PaginatedEnodebs{
-		Enodebs:       enodeBs,
+		Enodebs:       enodebs,
 		NextPageToken: lte_models.NextPageToken(nextPageToken),
+		TotalCount:    int64(len(enodebs)),
 	}
 	return c.JSON(http.StatusOK, paginatedEnodebs)
 }
