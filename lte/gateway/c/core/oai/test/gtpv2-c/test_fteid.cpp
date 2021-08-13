@@ -45,7 +45,7 @@ TEST(test_create_session_request_pdn1, create_session_request_pdn1) {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0x00, 0x01, 0x00, 0x00};
   EXPECT_EQ(NW_OK, nwGtpv2cInitialize(&s11_mme_stack_handle));
-  nw_gtpv2c_stack_t* pGtpv2c_stack = (nw_gtpv2c_stack_t*) s11_mme_stack_handle;
+  nw_gtpv2c_stack_t* pGtpv2c_stack = reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
     EXPECT_TRUE(
         sizeof(shift_buffer) >= (128 + sizeof(create_session_request_pdn1)));
@@ -62,7 +62,7 @@ TEST(test_create_session_request_pdn1, create_session_request_pdn1) {
                        s11_mme_stack_handle, &shift_buffer[s],
                        sizeof(create_session_request_pdn1), &hMsg));
 
-      nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*) hMsg;
+      nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 167);
       EXPECT_EQ(pMsg->version, 2);
       EXPECT_TRUE(pMsg->teidPresent);
@@ -92,17 +92,17 @@ TEST(test_create_session_request_pdn1, create_session_request_pdn1) {
       EXPECT_TRUE(
           pMsg->isIeValid[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO]);
       fteid_t fteid;
-      memset((void*) &fteid, 0xAB, sizeof(fteid));
+      memset(reinterpret_cast<void*>(&fteid), 0xAB, sizeof(fteid));
       nw_gtpv2c_ie_tlv_t* pIe =
-          (nw_gtpv2c_ie_tlv_t*)
-              pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO];
+          reinterpret_cast<nw_gtpv2c_ie_tlv_t*>(
+              pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO]);
       uint16_t ieLength = ntohs(pIe->l);
       EXPECT_EQ(
           NW_OK,
           gtpv2c_fteid_ie_get(
               NW_GTPV2C_IE_FTEID, ieLength, NW_GTPV2C_IE_INSTANCE_ZERO,
               &pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO][4],
-              (void*) &fteid));
+              reinterpret_cast<void*>(&fteid)));
       EXPECT_EQ(fteid.interface_type, S11_MME_GTP_C);
       EXPECT_EQ(fteid.teid, 0x00000001);
       EXPECT_EQ(fteid.ipv4_address.s_addr, 0x0441a8c0);
@@ -139,7 +139,7 @@ TEST(test_create_session_response_pdn1, create_session_response_pdn1) {
       0x00, 0x00, 0x00, 0x01, 0xc0, 0xa8, 0x41, 0x06};
 
   EXPECT_EQ(NW_OK, nwGtpv2cInitialize(&s11_mme_stack_handle));
-  nw_gtpv2c_stack_t* pGtpv2c_stack = (nw_gtpv2c_stack_t*) s11_mme_stack_handle;
+  nw_gtpv2c_stack_t* pGtpv2c_stack = reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
     EXPECT_TRUE(
         sizeof(shift_buffer) >= (128 + sizeof(create_session_response_pdn1)));
@@ -155,7 +155,7 @@ TEST(test_create_session_response_pdn1, create_session_response_pdn1) {
           NW_OK, nwGtpv2cMsgFromBufferNew(
                        s11_mme_stack_handle, &shift_buffer[s],
                        sizeof(create_session_response_pdn1), &hMsg));
-      nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*) hMsg;
+      nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 85);
       EXPECT_EQ(pMsg->version, 2);
       EXPECT_TRUE(pMsg->teidPresent);
@@ -171,17 +171,17 @@ TEST(test_create_session_response_pdn1, create_session_response_pdn1) {
       EXPECT_TRUE(
           pMsg->isIeValid[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO]);
       fteid_t fteid;
-      memset((void*) &fteid, 0xAB, sizeof(fteid));
+      memset(reinterpret_cast<void*>(&fteid), 0xAB, sizeof(fteid));
       nw_gtpv2c_ie_tlv_t* pIe =
-          (nw_gtpv2c_ie_tlv_t*)
-              pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO];
+          reinterpret_cast<nw_gtpv2c_ie_tlv_t*>(
+              pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO]);
       uint16_t ieLength = ntohs(pIe->l);
       EXPECT_EQ(
           NW_OK,
           gtpv2c_fteid_ie_get(
               NW_GTPV2C_IE_FTEID, ieLength, NW_GTPV2C_IE_INSTANCE_ZERO,
               &pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO][4],
-              (void*) &fteid));
+              reinterpret_cast<void*>(&fteid)));
       EXPECT_EQ(fteid.interface_type, S11_SGW_GTP_C);
       EXPECT_EQ(fteid.teid, 0x00000001);
       EXPECT_EQ(fteid.ipv4_address.s_addr, 0x0541a8c0);
@@ -211,7 +211,7 @@ TEST(test_modify_bearer_request_pdn1, modify_bearer_request_pdn1) {
       0x5d, 0x00, 0x12, 0x00, 0x49, 0x00, 0x01, 0x00, 0x05, 0x57, 0x00, 0x09,
       0x00, 0x80, 0x00, 0x00, 0x00, 0x01, 0xc0, 0xa8, 0x96, 0x01};
   EXPECT_EQ(NW_OK, nwGtpv2cInitialize(&s11_mme_stack_handle));
-  nw_gtpv2c_stack_t* pGtpv2c_stack = (nw_gtpv2c_stack_t*) s11_mme_stack_handle;
+  nw_gtpv2c_stack_t* pGtpv2c_stack = reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
     EXPECT_TRUE(
         sizeof(shift_buffer) >= (128 + sizeof(modify_bearer_request_pdn1)));
@@ -226,7 +226,7 @@ TEST(test_modify_bearer_request_pdn1, modify_bearer_request_pdn1) {
       EXPECT_EQ(NW_OK, nwGtpv2cMsgFromBufferNew(
                        s11_mme_stack_handle, &shift_buffer[s],
                        sizeof(modify_bearer_request_pdn1), &hMsg));
-      nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*) hMsg;
+      nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 34);
       EXPECT_EQ(pMsg->version, 2);
       EXPECT_TRUE(pMsg->teidPresent);
@@ -257,7 +257,7 @@ TEST(test_modify_bearer_response_pdn1, modify_bearer_response_pdn1) {
       0x00, 0x81, 0x00, 0x00, 0x00, 0x01, 0xc0, 0xa8, 0x41, 0x06};
 
   EXPECT_EQ(NW_OK, nwGtpv2cInitialize(&s11_mme_stack_handle));
-  nw_gtpv2c_stack_t* pGtpv2c_stack = (nw_gtpv2c_stack_t*) s11_mme_stack_handle;
+  nw_gtpv2c_stack_t* pGtpv2c_stack = reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
     EXPECT_TRUE(
         sizeof(shift_buffer) >= (128 + sizeof(modify_bearer_response_pdn1)));
@@ -272,7 +272,7 @@ TEST(test_modify_bearer_response_pdn1, modify_bearer_response_pdn1) {
       EXPECT_EQ(NW_OK, nwGtpv2cMsgFromBufferNew(
                        s11_mme_stack_handle, &shift_buffer[s],
                        sizeof(modify_bearer_response_pdn1), &hMsg));
-      nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*) hMsg;
+      nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 46);
       EXPECT_EQ(pMsg->version, 2);
       EXPECT_TRUE(pMsg->teidPresent);
@@ -303,7 +303,7 @@ TEST(test_delete_session_request_pdn1, delete_session_request_pdn1) {
       0x4d, 0x00, 0x03, 0x00, 0x08, 0x00, 0x00};
 
   EXPECT_EQ(NW_OK, nwGtpv2cInitialize(&s11_mme_stack_handle));
-  nw_gtpv2c_stack_t* pGtpv2c_stack = (nw_gtpv2c_stack_t*) s11_mme_stack_handle;
+  nw_gtpv2c_stack_t* pGtpv2c_stack = reinterpret_cast<nw_gtpv2c_stack_t*>(s11_mme_stack_handle);
   {
     EXPECT_TRUE(
         sizeof(shift_buffer) >= (128 + sizeof(delete_session_request_pdn1)));
@@ -319,7 +319,7 @@ TEST(test_delete_session_request_pdn1, delete_session_request_pdn1) {
           NW_OK == nwGtpv2cMsgFromBufferNew(
                        s11_mme_stack_handle, &shift_buffer[s],
                        sizeof(delete_session_request_pdn1), &hMsg));
-      nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*) hMsg;
+      nw_gtpv2c_msg_t* pMsg = reinterpret_cast<nw_gtpv2c_msg_t*>(hMsg);
       EXPECT_EQ(pMsg->msgLen, 37);
       EXPECT_EQ(pMsg->version, 2);
       EXPECT_TRUE(pMsg->teidPresent);
@@ -334,16 +334,16 @@ TEST(test_delete_session_request_pdn1, delete_session_request_pdn1) {
       EXPECT_TRUE(
           pMsg->isIeValid[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO]);
       fteid_t fteid;
-      memset((void*) &fteid, 0xAB, sizeof(fteid));
+      memset(reinterpret_cast<void*>(&fteid), 0xAB, sizeof(fteid));
       nw_gtpv2c_ie_tlv_t* pIe =
-          (nw_gtpv2c_ie_tlv_t*)
-              pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO];
+          reinterpret_cast<nw_gtpv2c_ie_tlv_t*>
+              (pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO]);
       uint16_t ieLength = ntohs(pIe->l);
       EXPECT_EQ(NW_OK,
           gtpv2c_fteid_ie_get(
               NW_GTPV2C_IE_FTEID, ieLength, NW_GTPV2C_IE_INSTANCE_ZERO,
               &pMsg->pIe[NW_GTPV2C_IE_FTEID][NW_GTPV2C_IE_INSTANCE_ZERO][4],
-              (void*) &fteid));
+              reinterpret_cast<void*>(&fteid)));
       EXPECT_EQ(fteid.interface_type, S11_MME_GTP_C);
       EXPECT_EQ(fteid.teid, 0x00000062);
       EXPECT_EQ(fteid.ipv4_address.s_addr, 0x0441a8c0);
