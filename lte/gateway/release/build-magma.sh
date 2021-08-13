@@ -24,7 +24,7 @@ VERSION=1.7.0 # magma version number
 SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
-BUILD_TYPE=Debug
+BUILD_TYPE=RelWithDebInfo
 
 # Cmdline options that overwrite the version configs above
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
@@ -90,7 +90,7 @@ case $OS in
     ;;
     *)
     echo "Error: unknown OS option:" $OS
-    echo "Usage: [--os debian|ubuntu]"
+    echo "Usage: [--os ubuntu]"
     exit 1
     ;;
 esac
