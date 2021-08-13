@@ -15,7 +15,7 @@
  */
 
 import type {DataRows} from '../../components/DataGrid';
-import type {feg_network} from '@fbcnms/magma-api';
+import type {feg_network} from '../../../generated/MagmaAPIBindings';
 
 import DataGrid from '../../components/DataGrid';
 import React from 'react';

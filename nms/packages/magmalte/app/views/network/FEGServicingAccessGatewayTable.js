@@ -22,7 +22,7 @@ import type {
   lte_gateway,
   network_id,
   network_name,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';

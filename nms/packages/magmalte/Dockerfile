@@ -7,7 +7,6 @@ WORKDIR /usr/src/
 # Copy project dependencies
 COPY package.json yarn.lock babel.config.js ./
 COPY packages/magmalte/package.json packages/magmalte/
-COPY packages/fbcnms-magma-api/package.json packages/fbcnms-magma-api/
 
 # Install node dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD "true"

@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {apn_list, subscriber} from '@fbcnms/magma-api';
+import type {apn_list, subscriber} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -29,7 +29,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';

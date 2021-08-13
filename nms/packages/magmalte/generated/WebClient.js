@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from './MagmaAPIBindings.js';
 import axios from 'axios';
 
 export default class WebClient extends MagmaAPIBindings {

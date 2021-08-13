@@ -18,9 +18,9 @@ import type {
   feg_network,
   network_id,
   network_subscriber_config,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 
 export type UpdateNetworkProps = {
   networkId: network_id,

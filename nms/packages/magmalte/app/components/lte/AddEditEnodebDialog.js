@@ -14,7 +14,10 @@
  * @format
  */
 
-import type {enodeb, enodeb_configuration} from '@fbcnms/magma-api';
+import type {
+  enodeb,
+  enodeb_configuration,
+} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -24,7 +27,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import EnodebPropertySelector from './EnodebPropertySelector';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React, {useState} from 'react';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';

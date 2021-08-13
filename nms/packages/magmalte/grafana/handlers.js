@@ -48,7 +48,7 @@ import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
-import type {network_type, tenant} from '@fbcnms/magma-api';
+import type {network_type, tenant} from '../generated/MagmaAPIBindings';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 

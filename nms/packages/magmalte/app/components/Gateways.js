@@ -16,7 +16,7 @@
 
 import type {GatewayV1} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../generated/MagmaAPIBindings';
 
 import AddGatewayDialog from './AddGatewayDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -25,7 +25,7 @@ import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';

@@ -15,7 +15,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';

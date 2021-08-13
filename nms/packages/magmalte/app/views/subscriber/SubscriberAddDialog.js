@@ -13,7 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {mutable_subscribers, subscriber} from '@fbcnms/magma-api';
+import type {
+  mutable_subscribers,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';

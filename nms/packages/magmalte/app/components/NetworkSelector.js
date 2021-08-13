@@ -19,7 +19,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import NetworkContext from './context/NetworkContext';
 import Popout from '@fbcnms/ui/components/Popout';
 import React from 'react';

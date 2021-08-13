@@ -18,7 +18,7 @@ import type {
   gateway_status,
   gateway_wifi_configs,
   wifi_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import type {

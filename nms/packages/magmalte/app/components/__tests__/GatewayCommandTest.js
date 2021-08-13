@@ -14,7 +14,7 @@
  * @format
  */
 import 'jest-dom/extend-expect';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
@@ -25,7 +25,7 @@ import {TroubleshootingControl} from '../GatewayCommandFields';
 import {cleanup, render, wait} from '@testing-library/react';
 
 afterEach(cleanup);
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 const Wrapper = () => (

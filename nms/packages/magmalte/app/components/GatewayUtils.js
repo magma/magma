@@ -23,9 +23,9 @@ import type {
   network_dns_config,
   network_id,
   service_status_health,
-} from '@fbcnms/magma-api';
+} from '../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 
 export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';

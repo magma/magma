@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {prom_alert_config} from '@fbcnms/magma-api';
+import type {prom_alert_config} from '../generated/MagmaAPIBindings';
 
 export const xwfmAlerts: {[string]: prom_alert_config} = {
   'Test Auto Alert': {

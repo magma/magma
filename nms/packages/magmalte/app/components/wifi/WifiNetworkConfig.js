@@ -14,13 +14,13 @@
  * @format
  */
 
-import type {network_wifi_configs} from '@fbcnms/magma-api';
+import type {network_wifi_configs} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 

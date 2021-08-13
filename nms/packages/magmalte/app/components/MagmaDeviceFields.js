@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {magmad_gateway_configs} from '@fbcnms/magma-api';
+import type {magmad_gateway_configs} from '../../generated/MagmaAPIBindings';
 
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';

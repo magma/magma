@@ -15,7 +15,10 @@
  */
 
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {federation_gateway, gateway_id} from '@fbcnms/magma-api';
+import type {
+  federation_gateway,
+  gateway_id,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';

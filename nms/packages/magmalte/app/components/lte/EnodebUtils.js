@@ -14,8 +14,8 @@
  * @format
  */
 
-import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
-import type {enodeb_configuration} from '@fbcnms/magma-api';
+import type {enodeb, enodeb_state} from '../../../generated/MagmaAPIBindings';
+import type {enodeb_configuration} from '../../../generated/MagmaAPIBindings';
 
 export const EnodebDeviceClass: {
   [string]: $PropertyType<enodeb_configuration, 'device_class'>,

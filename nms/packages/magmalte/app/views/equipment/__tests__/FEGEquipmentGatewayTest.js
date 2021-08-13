@@ -16,7 +16,7 @@
 
 import 'jest-dom/extend-expect';
 import FEGEquipmentGateway from '../FEGEquipmentGateway';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
@@ -36,10 +36,14 @@ import type {
   promql_return_object,
   s6a,
   swx,
-} from '@fbcnms/magma-api';
+} from '../../../../generated/MagmaAPIBindings.js';
 
+const enqueueSnackbarMock = jest.fn();
+jest
+  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(enqueueSnackbarMock);
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 

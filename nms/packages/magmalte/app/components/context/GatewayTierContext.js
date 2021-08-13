@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {tier, tier_id} from '@fbcnms/magma-api';
+import type {tier, tier_id} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

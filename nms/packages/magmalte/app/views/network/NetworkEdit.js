@@ -13,7 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {lte_network, network_epc_configs} from '@fbcnms/magma-api';
+import type {
+  lte_network,
+  network_epc_configs,
+} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

@@ -22,7 +22,7 @@ import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
@@ -48,7 +48,7 @@ import type {
   rating_group,
   subscriber_id,
   tier,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import {FEG_LTE, LTE} from '@fbcnms/types/network';

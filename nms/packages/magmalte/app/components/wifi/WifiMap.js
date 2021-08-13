@@ -23,7 +23,7 @@ import Drawer from '@material-ui/core/Drawer';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import MapView from '../insights/map/MapView';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';

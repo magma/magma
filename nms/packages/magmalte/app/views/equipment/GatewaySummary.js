@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 import DataGrid from '../../components/DataGrid';
 import React from 'react';

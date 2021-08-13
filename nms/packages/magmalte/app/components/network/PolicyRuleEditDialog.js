@@ -15,7 +15,10 @@
  */
 
 import type {NetworkType} from '@fbcnms/types/network';
-import type {policy_qos_profile, policy_rule} from '@fbcnms/magma-api';
+import type {
+  policy_qos_profile,
+  policy_rule,
+} from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -26,7 +29,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';

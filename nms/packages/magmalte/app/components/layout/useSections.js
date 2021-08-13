@@ -18,7 +18,7 @@ import type {NetworkType} from '@fbcnms/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../context/NetworkContext';
 import {CWF, FEG, LTE, WIFI, coalesceNetworkType} from '@fbcnms/types/network';
 

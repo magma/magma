@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {network_ran_configs} from '@fbcnms/magma-api';
+import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormControl from '@material-ui/core/FormControl';
@@ -25,7 +25,7 @@ import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';

@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {network_epc_configs} from '@fbcnms/magma-api';
+import type {network_epc_configs} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';

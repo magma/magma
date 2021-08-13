@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 

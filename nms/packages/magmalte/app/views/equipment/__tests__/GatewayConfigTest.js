@@ -13,7 +13,11 @@
  * @flow strict-local
  * @format
  */
-import type {apn, lte_gateway, lte_network} from '@fbcnms/magma-api';
+import type {
+  apn,
+  lte_gateway,
+  lte_network,
+} from '../../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
 
@@ -22,7 +26,7 @@ import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
 import GatewayContext from '../../../components/context/GatewayContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default.js';
@@ -38,7 +42,7 @@ import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();

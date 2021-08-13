@@ -16,7 +16,7 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {EditProps} from './GatewayDetailConfigEdit';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';

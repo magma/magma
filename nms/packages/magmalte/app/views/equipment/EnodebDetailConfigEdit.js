@@ -18,7 +18,7 @@ import type {
   enodeb_configuration,
   network_ran_configs,
   unmanaged_enodeb_configuration,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

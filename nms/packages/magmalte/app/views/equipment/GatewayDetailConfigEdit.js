@@ -27,7 +27,7 @@ import type {
   lte_gateway,
   magmad_gateway_configs,
   package_type,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';

@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {magmad_gateway} from '@fbcnms/magma-api';
+import type {magmad_gateway} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 import Table from '@material-ui/core/Table';

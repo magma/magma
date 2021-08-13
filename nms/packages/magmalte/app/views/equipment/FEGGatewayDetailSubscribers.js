@@ -14,7 +14,10 @@
  * @format
  */
 
-import type {federation_gateway, subscriber} from '@fbcnms/magma-api';
+import type {
+  federation_gateway,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
@@ -91,7 +94,7 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
       //TODO: - @andreilee bulk fetch from a paginated api endpoint
       await Promise.all(
         Object.keys(subscriberToNetworkIdMap).map(async subscriberImsi => {
-          // $FlowIgnore[incompatible-call] because it can be called with different values when getting paginated subscribers
+          // $FlowIgnore because it can be called with different values when getting paginated subscribers
           const subscriberInfo: subscriber = await FetchSubscribers({
             networkId: subscriberToNetworkIdMap[subscriberImsi],
             id: subscriberImsi,

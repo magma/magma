@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
-import MagmaV1API from '../generated/WebClient';
+import MagmaV1API from './WebClient';
 
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -28,7 +28,6 @@ export default function <TParams: {...}, TResponse>(
   response: ?TResponse,
   // we can't really do better than this for now
   // eslint-disable-next-line flowtype/no-weak-types
-  // $FlowFixMe[unclear-type] TODO(andreilee): migrated from fbcnms-ui
   error: any,
   isLoading: boolean,
 } {

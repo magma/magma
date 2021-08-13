@@ -14,7 +14,10 @@
  * @format
  */
 
-import type {allowed_gre_peers, ipdr_export_dst} from '@fbcnms/magma-api';
+import type {
+  allowed_gre_peers,
+  ipdr_export_dst,
+} from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Button from '@material-ui/core/Button';

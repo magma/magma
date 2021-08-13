@@ -13,7 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {prom_alert_labels, prom_firing_alert} from '@fbcnms/magma-api';
+import type {
+  prom_alert_labels,
+  prom_firing_alert,
+} from '../../generated/MagmaAPIBindings';
 
 import ActionTable from './ActionTable';
 import CardTitleRow from './layout/CardTitleRow';
@@ -24,7 +27,7 @@ import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
