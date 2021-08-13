@@ -29,6 +29,7 @@ import (
 type TestS8ProxyResponderServer struct {
 	protos.S8ProxyResponderServer
 	ReceivedCreateBearerRequest *protos.CreateBearerRequestPgw
+	ReceivedDeleteBearerRequest *protos.DeleteBearerRequestPgw
 	ListAddr                    string
 	Ready                       chan struct{}
 }
@@ -48,7 +49,21 @@ func (ts *TestS8ProxyResponderServer) CreateBearer(
 	}()
 	ts.ReceivedCreateBearerRequest = cbReq
 	if cbReq == nil || cbReq.BearerContext == nil || cbReq.CAgwTeid == 0 {
-		return nil, fmt.Errorf("Create Bearer Request missing Bearer Contexct or TEID")
+		return nil, fmt.Errorf("mock feg_relay Create Bearer Request missing Bearer Contexct or TEID")
+	}
+	return &orc8r_protos.Void{}, nil
+}
+
+func (ts *TestS8ProxyResponderServer) DeleteBearerRequest(
+	_ context.Context,
+	dbReq *protos.DeleteBearerRequestPgw) (*orc8r_protos.Void, error) {
+	defer func() {
+		// comunicate through the channel that we are done processing the call
+		ts.Ready <- struct{}{}
+	}()
+	ts.ReceivedDeleteBearerRequest = dbReq
+	if dbReq == nil || dbReq.CAgwTeid == 0 {
+		return nil, fmt.Errorf("mock feg_relay Delete Bearer Request missing Bearer Contexct or TEID")
 	}
 	return &orc8r_protos.Void{}, nil
 }
