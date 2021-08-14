@@ -498,9 +498,7 @@ export function RanEdit(props: Props) {
                   placeholder="Enter PA"
                   fullWidth={true}
                   value={optConfig.pa}
-                  onChange={({target}) =>
-                    handleOptChange('pa', target.value)
-                  }
+                  onChange={({target}) => handleOptChange('pa', target.value)}
                 />
               </AltFormField>
               <AltFormField label={'PB'}>
@@ -509,9 +507,7 @@ export function RanEdit(props: Props) {
                   placeholder="Enter PB"
                   fullWidth={true}
                   value={optConfig.pb}
-                  onChange={({target}) =>
-                    handleOptChange('pb', target.value)
-                  }
+                  onChange={({target}) => handleOptChange('pb', target.value)}
                 />
               </AltFormField>
               <AltFormField label={'MME POOL 1'}>
@@ -730,7 +726,9 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     response['tac'] = parseInt(optConfig.tac);
   }
   if (optConfig.reference_signal_power !== '') {
-    response['reference_signal_power'] = parseInt(optConfig.reference_signal_power);
+    response['reference_signal_power'] = parseInt(
+      optConfig.reference_signal_power,
+    );
   }
   if (optConfig.pa !== '') {
     response['pa'] = parseInt(optConfig.pa);

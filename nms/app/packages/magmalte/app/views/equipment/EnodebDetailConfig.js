@@ -237,7 +237,9 @@ function EnodebManagedRanConfig({
     [
       {
         category: 'Reference Signal Power',
-        value: enbInfo.enb.enodeb_config?.managed_config?.reference_signal_power ?? '-',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.reference_signal_power ??
+          '-',
       },
     ],
     [

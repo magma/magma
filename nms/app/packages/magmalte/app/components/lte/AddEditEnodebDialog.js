@@ -86,10 +86,8 @@ export default function AddEditEnodebDialog(props: Props) {
   const [reference_signal_power, setReferenceSignalPower] = useState(
     String(editingEnodeb?.config.reference_signal_power || ''),
   );
-  const [pb, setPB] = useState(String(editingEnodeb?.config.pb || ''),
-  );
-  const [pa, setPA] = useState(String(editingEnodeb?.config.pa || ''),
-  );
+  const [pb, setPB] = useState(String(editingEnodeb?.config.pb || ''));
+  const [pa, setPA] = useState(String(editingEnodeb?.config.pa || ''));
   const [mme_pool_1, setMmePool1] = useState(
     String(editingEnodeb?.config.mme_pool_1 || ''),
   );
@@ -333,14 +331,14 @@ export default function AddEditEnodebDialog(props: Props) {
           onChange={({target}) => setPA(target.value)}
           placeholder="-3"
         />
-       <TextField
+        <TextField
           label="MME POOL 1"
           className={classes.input}
           value={mme_pool_1}
           onChange={({target}) => setMmePool1(target.value)}
           placeholder=""
         />
-       <TextField
+        <TextField
           label="MME POOL 2"
           className={classes.input}
           value={mme_pool_2}
