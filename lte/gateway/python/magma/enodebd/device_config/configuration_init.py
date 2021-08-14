@@ -49,6 +49,8 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'reference_signal_power',
+        'pa','pb','mme_pool_1','mme_pool_2',
     ],
 )
 
@@ -102,6 +104,16 @@ def build_desired_config(
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
     _set_cell_id(cfg_desired, enb_config.cell_id)
+    if enb_config.pa is not None:
+        _set_power_control_pa(cfg_desired, data_model, enb_config.pa)
+    if enb_config.pb is not None:
+        _set_power_control_pb(cfg_desired, enb_config.pb)
+    if enb_config.reference_signal_power is not None:
+        _set_power_control_referencePower(cfg_desired, data_model, enb_config.reference_signal_power)
+    if enb_config.mme_pool_1 is not None:
+        _set_mme_pool_1(cfg_desired, data_model, enb_config.mme_pool_1)
+    if enb_config.mme_pool_2 is not None:
+        _set_mme_pool_2(cfg_desired, data_model, enb_config.mme_pool_2)
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
@@ -187,6 +199,16 @@ def _get_enb_config(
     device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
+
+    # define the singleEnodeb param
+    mme_address = None
+    mme_port = DEFAULT_S1_PORT
+    mme_pool_1 = None
+    mme_pool_2 = None
+    reference_signal_power = None
+    pa = None
+    pb = None
+
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
         enb_serial = \
@@ -199,6 +221,17 @@ def _get_enb_config(
             tac = enb_config.tac
             bandwidth_mhz = enb_config.bandwidth_mhz
             cell_id = enb_config.cell_id
+            if enb_config.reference_signal_power:
+                reference_signal_power = enb_config.reference_signal_power
+            if enb_config.pa:
+                pa = enb_config.pa
+            if enb_config.pb:
+                pb = enb_config.pb
+            if enb_config.mme_pool_1 is not None and enb_config.mme_pool_1 != '':
+                mme_pool_1 = enb_config.mme_pool_1
+            if enb_config.mme_pool_2 is not None and enb_config.mme_pool_2 != '':
+                mme_pool_2 = enb_config.mme_pool_2
+            mme_address = enb_config.mme_ip
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None
@@ -244,8 +277,13 @@ def _get_enb_config(
         bandwidth_mhz=bandwidth_mhz,
         cell_id=cell_id,
         allow_enodeb_transmit=allow_enodeb_transmit,
-        mme_address=None,
-        mme_port=None,
+        mme_address=mme_address,
+        mme_port=mme_port,
+        mme_pool_1=mme_pool_1,
+        mme_pool_2=mme_pool_2,
+        reference_signal_power=reference_signal_power,
+        pa=pa,
+        pb=pb,
     )
     return single_enodeb_config
 
@@ -261,6 +299,73 @@ def _set_pci(
     if pci not in range(0, 504 + 1):
         raise ConfigurationError('Invalid PCI (%d)' % pci)
     cfg.set_parameter(ParameterName.PCI, pci)
+
+def _set_power_control_pa(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    pa: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - PA
+    """
+    _set_param_if_present(cfg, data_model, ParameterName.PA, pa)
+
+def _set_power_control_pb(
+    cfg: EnodebConfiguration,
+    pb: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - PB
+    """
+    cfg.set_parameter(ParameterName.PB, pb)
+
+def _set_power_control_referencePower(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    reference_signal_power: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - reference_signal_power
+    """
+    _set_param_if_present(cfg, data_model, ParameterName.REFERENCE_SIGNAL_POWER, reference_signal_power)
+
+def _set_mme_pool_1(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_1: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_1
+    """
+    _set_mme_pool_enable(cfg, data_model, True)
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_1, mme_pool_1)
+
+def _set_mme_pool_2(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_2: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_1
+    """
+    _set_mme_pool_enable(cfg,data_model,True)
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_2, mme_pool_2)
+
+def _set_mme_pool_enable(
+    cfg: EnodebConfiguration,
+    data_model: DataModel,
+    mme_pool_enable: Any,
+) -> None:
+    """
+    Set the following parameters:
+    - mme_pool_enable
+    """
+    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_ENABLE, mme_pool_enable)
 
 
 def _set_bandwidth(

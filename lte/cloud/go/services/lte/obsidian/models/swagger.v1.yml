@@ -2179,7 +2179,7 @@ definitions:
       - 'SN09876554321'
 
   enodeb:
-    description: Representation of an enodeB
+    description: Representation of an enodeBc
     type: object
     minLength: 1
     required:
@@ -2291,6 +2291,26 @@ definitions:
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
+      mme_pool_1:
+        type: string
+        format: ipv4
+        example: ''
+      mme_pool_2:
+        type: string
+        format: ipv4
+        example: ''
+      reference_signal_power:
+        type: integer
+        format: int32
+        example: 12
+      pb:
+        type: integer
+        format: int32
+        example: 3
+      pa:
+        type: integer
+        format: int32
+        example: -3
 
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.

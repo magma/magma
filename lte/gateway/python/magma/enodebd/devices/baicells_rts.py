@@ -203,6 +203,10 @@ class BaicellsRTSTrDataModel(DataModel):
             FAPSERVICE_PATH
             + 'FAPControl.LTE.Gateway.X_BAICELLS_COM_MmePool.Enable', True, TrParameterType.BOOLEAN, False,
         ),
+        ParameterName.MME_POOL_1:
+            TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.X_BAICELLS_COM_MmePool.MmePool1List', True, TrParameterType.STRING, False),
+        ParameterName.MME_POOL_2:
+            TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.X_BAICELLS_COM_MmePool.MmePool2List', True, TrParameterType.STRING, False),
 
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE:
@@ -220,7 +224,13 @@ class BaicellsRTSTrDataModel(DataModel):
         ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(
             DEVICE_PATH + 'FAP.PerfMgmt.Config.1.URL', False, TrParameterType.STRING, False,
         ),
-
+        # Power control parameters
+        ParameterName.REFERENCE_SIGNAL_POWER:
+            TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ReferenceSignalPower', False, TrParameterType.INT, False,),
+        ParameterName.PA:
+            TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.PDSCH.Pa', False, TrParameterType.INT, False),
+        ParameterName.PB:
+            TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.PDSCH.Pb', True, TrParameterType.UNSIGNED_INT, False),
     }
 
     NUM_PLMNS_IN_CONFIG = 6

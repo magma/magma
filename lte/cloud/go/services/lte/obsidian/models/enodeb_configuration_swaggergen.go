@@ -36,10 +36,27 @@ type EnodebConfiguration struct {
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
 
+	// mme pool 1
+	// Format: ipv4
+	MmePool1 strfmt.IPv4 `json:"mme_pool_1,omitempty"`
+
+	// mme pool 2
+	// Format: ipv4
+	MmePool2 strfmt.IPv4 `json:"mme_pool_2,omitempty"`
+
+	// pa
+	Pa int32 `json:"pa,omitempty"`
+
+	// pb
+	Pb int32 `json:"pb,omitempty"`
+
 	// pci
 	// Maximum: 503
 	// Minimum: > 0
 	Pci uint32 `json:"pci,omitempty"`
+
+	// reference signal power
+	ReferenceSignalPower int32 `json:"reference_signal_power,omitempty"`
 
 	// special subframe pattern
 	// Maximum: 9
@@ -72,6 +89,14 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDeviceClass(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMmePool1(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMmePool2(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -194,6 +219,32 @@ func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error
 
 	// value enum
 	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateMmePool1(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MmePool1) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("mme_pool_1", "body", "ipv4", m.MmePool1.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateMmePool2(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MmePool2) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("mme_pool_2", "body", "ipv4", m.MmePool2.String(), formats); err != nil {
 		return err
 	}
 

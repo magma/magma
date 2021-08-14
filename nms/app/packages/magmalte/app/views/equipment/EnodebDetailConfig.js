@@ -236,6 +236,36 @@ function EnodebManagedRanConfig({
     ],
     [
       {
+        category: 'Reference Signal Power',
+        value: enbInfo.enb.enodeb_config?.managed_config?.reference_signal_power ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'PA',
+        value: enbInfo.enb.enodeb_config?.managed_config?.pa ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'PB',
+        value: enbInfo.enb.enodeb_config?.managed_config?.pb ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'MME Pool 1',
+        value: enbInfo.enb.enodeb_config?.managed_config?.mme_pool_1 ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'MME Pool 2',
+        value: enbInfo.enb.enodeb_config?.managed_config?.mme_pool_2 ?? '-',
+      },
+    ],
+    [
+      {
         category: 'Transmit',
         value: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled
           ? 'Enabled'

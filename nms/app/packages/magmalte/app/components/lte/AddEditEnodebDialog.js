@@ -83,6 +83,19 @@ export default function AddEditEnodebDialog(props: Props) {
   );
   const [serialId, setSerialId] = useState<string>(editingEnodeb?.serial || '');
   const [tac, setTac] = useState(String(editingEnodeb?.config.tac || ''));
+  const [reference_signal_power, setReferenceSignalPower] = useState(
+    String(editingEnodeb?.config.reference_signal_power || ''),
+  );
+  const [pb, setPB] = useState(String(editingEnodeb?.config.pb || ''),
+  );
+  const [pa, setPA] = useState(String(editingEnodeb?.config.pa || ''),
+  );
+  const [mme_pool_1, setMmePool1] = useState(
+    String(editingEnodeb?.config.mme_pool_1 || ''),
+  );
+  const [mme_pool_2, setMmePool2] = useState(
+    String(editingEnodeb?.config.mme_pool_2 || ''),
+  );
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
     editingEnodeb?.config.transmit_enabled ?? false,
   );
@@ -161,6 +174,21 @@ export default function AddEditEnodebDialog(props: Props) {
     }
     if (tac !== '') {
       enb.config.tac = parseInt(tac);
+    }
+    if (reference_signal_power !== '') {
+      enb.config.reference_signal_power = reference_signal_power;
+    }
+    if (pa !== '') {
+      enb.config.pa = pa;
+    }
+    if (pb !== '') {
+      enb.config.pb = pb;
+    }
+    if (mme_pool_1 !== '') {
+      enb.config.mme_pool_1 = mme_pool_1;
+    }
+    if (mme_pool_2 !== '') {
+      enb.config.mme_pool_2 = mme_pool_2;
     }
 
     try {
@@ -283,6 +311,41 @@ export default function AddEditEnodebDialog(props: Props) {
           value={cellNumber}
           onChange={({target}) => setCellNumber(target.value)}
           error={!isCellNumberValid}
+        />
+        <TextField
+          label="Peference Signal Power"
+          className={classes.input}
+          value={reference_signal_power}
+          onChange={({target}) => setReferenceSignalPower(target.value)}
+          placeholder="13"
+        />
+        <TextField
+          label="PB"
+          className={classes.input}
+          value={pb}
+          onChange={({target}) => setPB(target.value)}
+          placeholder="1"
+        />
+        <TextField
+          label="PA"
+          className={classes.input}
+          value={pa}
+          onChange={({target}) => setPA(target.value)}
+          placeholder="-3"
+        />
+       <TextField
+          label="MME POOL 1"
+          className={classes.input}
+          value={mme_pool_1}
+          onChange={({target}) => setMmePool1(target.value)}
+          placeholder=""
+        />
+       <TextField
+          label="MME POOL 2"
+          className={classes.input}
+          value={mme_pool_2}
+          onChange={({target}) => setMmePool2(target.value)}
+          placeholder=""
         />
         <FormControl className={classes.input}>
           <FormControlLabel

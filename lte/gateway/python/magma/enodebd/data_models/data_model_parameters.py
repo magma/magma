@@ -61,6 +61,8 @@ class ParameterName():
     NUM_PLMNS = 'Num PLMNs'
     PLMN = 'PLMN'
     PLMN_LIST = 'PLMN List'
+    MME_POOL_1 = 'MME Pool 1'
+    MME_POOL_2 = 'MME Pool 2'
 
     # PLMN parameters
     PLMN_N = 'PLMN %d'
@@ -85,6 +87,10 @@ class ParameterName():
     PERF_MGMT_USER = 'Perf mgmt username'
     PERF_MGMT_PASSWORD = 'Perf mgmt password'
 
+    # Power control parameters
+    REFERENCE_SIGNAL_POWER = 'Reference Signal Power'
+    PA = 'PA'
+    PB = 'PB'
 
 class TrParameterType():
     BOOLEAN = 'boolean'

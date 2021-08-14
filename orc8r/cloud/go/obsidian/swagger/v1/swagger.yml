@@ -8050,12 +8050,32 @@ definitions:
         example: 44590
         format: uint32
         type: integer
+      mme_pool_1:
+        example: ""
+        format: ipv4
+        type: string
+      mme_pool_2:
+        example: ""
+        format: ipv4
+        type: string
+      pa:
+        example: -3
+        format: int32
+        type: integer
+      pb:
+        example: 3
+        format: int32
+        type: integer
       pci:
         example: 260
         exclusiveMinimum: true
         format: uint32
         maximum: 503
         minimum: 0
+        type: integer
+      reference_signal_power:
+        example: 12
+        format: int32
         type: integer
       special_subframe_pattern:
         example: 7

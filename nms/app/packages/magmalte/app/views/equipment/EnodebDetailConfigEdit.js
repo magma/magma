@@ -233,6 +233,11 @@ type OptConfig = {
   subframeAssignment: string,
   pci: string,
   tac: string,
+  reference_signal_power: string,
+  pa: string,
+  pb: string,
+  mme_pool_1: string,
+  mme_pool_2: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -279,6 +284,11 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
+    reference_signal_power: String(config.reference_signal_power ?? ''),
+    pa: String(config.pa ?? ''),
+    pb: String(config.pb ?? ''),
+    mme_pool_1: String(config.mme_pool_1 ?? ''),
+    mme_pool_2: String(config.mme_pool_2 ?? ''),
   });
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -471,7 +481,61 @@ export function RanEdit(props: Props) {
                   onChange={({target}) => handleOptChange('tac', target.value)}
                 />
               </AltFormField>
-
+              <AltFormField label={'Reference Signal Power'}>
+                <OutlinedInput
+                  data-testid="reference_signal_power"
+                  placeholder="Enter Reference Signal Power"
+                  fullWidth={true}
+                  value={optConfig.reference_signal_power}
+                  onChange={({target}) =>
+                    handleOptChange('reference_signal_power', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'PA'}>
+                <OutlinedInput
+                  data-testid="pa"
+                  placeholder="Enter PA"
+                  fullWidth={true}
+                  value={optConfig.pa}
+                  onChange={({target}) =>
+                    handleOptChange('pa', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'PB'}>
+                <OutlinedInput
+                  data-testid="pb"
+                  placeholder="Enter PB"
+                  fullWidth={true}
+                  value={optConfig.pb}
+                  onChange={({target}) =>
+                    handleOptChange('pb', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'MME POOL 1'}>
+                <OutlinedInput
+                  data-testid="mme_pool_1"
+                  placeholder="Enter MME POOL 1"
+                  fullWidth={true}
+                  value={optConfig.mme_pool_1}
+                  onChange={({target}) =>
+                    handleOptChange('mme_pool_1', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'MME POOL 2'}>
+                <OutlinedInput
+                  data-testid="mme_pool_2"
+                  placeholder="Enter MME POOL 2"
+                  fullWidth={true}
+                  value={optConfig.mme_pool_2}
+                  onChange={({target}) =>
+                    handleOptChange('mme_pool_2', target.value)
+                  }
+                />
+              </AltFormField>
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
                   <Select
@@ -665,6 +729,20 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     }
     response['tac'] = parseInt(optConfig.tac);
   }
-
+  if (optConfig.reference_signal_power !== '') {
+    response['reference_signal_power'] = parseInt(optConfig.reference_signal_power);
+  }
+  if (optConfig.pa !== '') {
+    response['pa'] = parseInt(optConfig.pa);
+  }
+  if (optConfig.pb !== '') {
+    response['pb'] = parseInt(optConfig.pb);
+  }
+  if (optConfig.mme_pool_1 !== '') {
+    response['mme_pool_1'] = String(optConfig.mme_pool_1);
+  }
+  if (optConfig.mme_pool_2 !== '') {
+    response['mme_pool_2'] = String(optConfig.mme_pool_2);
+  }
   return response;
 }
