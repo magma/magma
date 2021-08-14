@@ -477,7 +477,7 @@ class RestartResilienceTest(unittest.TestCase):
             FlowDescription(
                 match=FlowMatch(
                     ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
-            direction=FlowMatch.UPLINK,
+                    direction=FlowMatch.UPLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
@@ -486,7 +486,7 @@ class RestartResilienceTest(unittest.TestCase):
             FlowDescription(
                 match=FlowMatch(
                     ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
-            direction=FlowMatch.DOWNLINK,
+                    direction=FlowMatch.DOWNLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),

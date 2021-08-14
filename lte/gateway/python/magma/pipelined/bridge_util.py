@@ -327,7 +327,7 @@ class BridgeTools:
                     cls.TABLE_NUM_REGEX,
                     lambda match: 'table={}'.format(
                         annotated_table_num(
-                        match.group(1),
+                            match.group(1),
                         ),
                     ),
                 ),

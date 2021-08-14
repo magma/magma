@@ -614,30 +614,25 @@ void SpgwStateConverter::proto_to_traffic_flow_template(
   auto* pft_state = &tft_state->packetfilterlist;
   switch (tft_proto.tft_operation_code()) {
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
-      tft_state->numberofpacketfilters =
-          pft_proto.delete_packet_filter_identifier_size();
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
         pft_state->deletepacketfilter[i].identifier =
             pft_proto.delete_packet_filter_identifier(i);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
-      tft_state->numberofpacketfilters = pft_proto.create_new_tft_size();
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
         proto_to_packet_filter(
             pft_proto.create_new_tft(i), &pft_state->createnewtft[i]);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
-      tft_state->numberofpacketfilters = pft_proto.add_packet_filter_size();
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
         proto_to_packet_filter(
             pft_proto.add_packet_filter(i), &pft_state->addpacketfilter[i]);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
-      tft_state->numberofpacketfilters = pft_proto.replace_packet_filter_size();
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
         proto_to_packet_filter(
             pft_proto.replace_packet_filter(i),
             &pft_state->replacepacketfilter[i]);
@@ -646,7 +641,6 @@ void SpgwStateConverter::proto_to_traffic_flow_template(
     default:
       break;
   };
-  OAILOG_ERROR(LOG_SPGW_APP, "Rashmi exit proto_to_traffic_flow_templat \n");
 }
 
 void SpgwStateConverter::port_range_to_proto(
@@ -672,164 +666,177 @@ void SpgwStateConverter::packet_filter_to_proto(
   packet_filter_proto->set_identifier(packet_filter->identifier);
   packet_filter_proto->set_eval_precedence(packet_filter->eval_precedence);
 
-  auto* packet_filter_contents =
-      packet_filter_proto->mutable_packet_filter_contents();
-  packet_filter_contents->set_flags(packet_filter->packetfiltercontents.flags);
-  packet_filter_contents->set_protocol_identifier_nextheader(
-      packet_filter->packetfiltercontents.protocolidentifier_nextheader);
-  packet_filter_contents->set_single_local_port(
-      packet_filter->packetfiltercontents.singlelocalport);
-  packet_filter_contents->set_single_remote_port(
-      packet_filter->packetfiltercontents.singleremoteport);
-  packet_filter_contents->set_security_parameter_index(
-      packet_filter->packetfiltercontents.securityparameterindex);
-  packet_filter_contents->set_flow_label(
-      packet_filter->packetfiltercontents.flowlabel);
-
-  for (auto& ip : packet_filter->packetfiltercontents.ipv4remoteaddr) {
-    auto* ipv4_proto = packet_filter_contents->add_ipv4_remote_addresses();
-    ipv4_proto->set_addr(ip.addr);
-    ipv4_proto->set_mask(ip.mask);
+  uint16_t flag = TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+  while (flag <= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
+    auto* pf_content = packet_filter_proto->add_packet_filter_contents();
+    switch (packet_filter->packetfiltercontents.flags & flag) {
+      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR);
+        for (auto& ip : packet_filter->packetfiltercontents.ipv4remoteaddr) {
+          auto* ipv4_proto = pf_content->add_ipv4_remote_addresses();
+          ipv4_proto->set_addr(ip.addr);
+          ipv4_proto->set_mask(ip.mask);
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR);
+        for (auto& ip : packet_filter->packetfiltercontents.ipv6remoteaddr) {
+          auto* ipv6_proto = pf_content->add_ipv6_remote_addresses();
+          ipv6_proto->set_addr(ip.addr);
+          ipv6_proto->set_mask(ip.mask);
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
+        pf_content->set_protocol_identifier_nextheader(
+            packet_filter->packetfiltercontents.protocolidentifier_nextheader);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
+        pf_content->set_single_local_port(
+            packet_filter->packetfiltercontents.singlelocalport);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
+        pf_content->set_single_remote_port(
+            packet_filter->packetfiltercontents.singleremoteport);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
+        pf_content->set_security_parameter_index(
+            packet_filter->packetfiltercontents.securityparameterindex);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG: {
+        pf_content->set_flags(
+            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
+        pf_content->mutable_type_of_service_traffic_class()->set_value(
+            packet_filter->packetfiltercontents.typdeofservice_trafficclass
+                .value);
+        pf_content->mutable_type_of_service_traffic_class()->set_mask(
+            packet_filter->packetfiltercontents.typdeofservice_trafficclass
+                .mask);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL);
+        pf_content->set_flow_label(
+            packet_filter->packetfiltercontents.flowlabel);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE);
+        port_range_to_proto(
+            &packet_filter->packetfiltercontents.localportrange,
+            pf_content->mutable_local_port_range());
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE);
+        port_range_to_proto(
+            &packet_filter->packetfiltercontents.remoteportrange,
+            pf_content->mutable_remote_port_range());
+      } break;
+      default:
+        break;
+    }
+    flag = flag << 1;
   }
-
-  for (auto& ip : packet_filter->packetfiltercontents.ipv6remoteaddr) {
-    auto* ipv6_proto = packet_filter_contents->add_ipv6_remote_addresses();
-    ipv6_proto->set_addr(ip.addr);
-    ipv6_proto->set_mask(ip.mask);
-  }
-
-  port_range_to_proto(
-      &packet_filter->packetfiltercontents.localportrange,
-      packet_filter_contents->mutable_local_port_range());
-  port_range_to_proto(
-      &packet_filter->packetfiltercontents.remoteportrange,
-      packet_filter_contents->mutable_remote_port_range());
-
-  packet_filter_contents->mutable_type_of_service_traffic_class()->set_value(
-      packet_filter->packetfiltercontents.typdeofservice_trafficclass.value);
-  packet_filter_contents->mutable_type_of_service_traffic_class()->set_mask(
-      packet_filter->packetfiltercontents.typdeofservice_trafficclass.mask);
 }
 
 void SpgwStateConverter::proto_to_packet_filter(
     const oai::PacketFilter& packet_filter_proto,
     packet_filter_t* packet_filter) {
-  OAILOG_ERROR(LOG_SPGW_APP, "Rashmi enter  proto_to_packet_filter \n");
   packet_filter->spare           = packet_filter_proto.spare();
   packet_filter->direction       = packet_filter_proto.direction();
   packet_filter->identifier      = packet_filter_proto.identifier();
   packet_filter->eval_precedence = packet_filter_proto.eval_precedence();
-  packet_filter->length          = packet_filter_proto.length();
 
-  OAILOG_ERROR(
-      LOG_SPGW_APP, "Rashmi packet_filter->length:%d \n",
-      packet_filter->length);
   auto* packet_filter_contents = &packet_filter->packetfiltercontents;
-  auto& packet_filter_contents_proto =
-      packet_filter_proto.packet_filter_contents();
-  switch (packet_filter_contents_proto.flags()) {
-    case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR:
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE:
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS:
-      packet_filter_contents->flags =
-          TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      break;
-    case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->flags = TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
-      break;
-    default:
-      OAILOG_ERROR(
-          LOG_SGW_S8, "Invalid packet filter component identifier :%d \n",
-          packet_filter_contents_proto.flags());
-      break;
-  }
-
-  packet_filter_contents->protocolidentifier_nextheader =
-      packet_filter_contents_proto.protocol_identifier_nextheader();
-
-  packet_filter_contents->singlelocalport =
-      packet_filter_contents_proto.single_local_port();
-  packet_filter_contents->singleremoteport =
-      packet_filter_contents_proto.single_remote_port();
-  packet_filter_contents->securityparameterindex =
-      packet_filter_contents_proto.security_parameter_index();
-  packet_filter_contents->flowlabel = packet_filter_contents_proto.flow_label();
-
-  if (packet_filter_contents_proto.ipv4_remote_addresses_size()) {
-    int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
-    for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->ipv4remoteaddr[local_idx].addr =
-          packet_filter_contents_proto.ipv4_remote_addresses(0).addr() >>
-          (i * 8);
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi \n");
-      packet_filter_contents->ipv4remoteaddr[local_idx].mask =
-          packet_filter_contents_proto.ipv4_remote_addresses(0).mask() >>
-          (i * 8);
-      --local_idx;
+  for (uint32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
+       i++) {
+    auto& packet_filter_content_proto =
+        packet_filter_proto.packet_filter_contents(i);
+    switch (packet_filter_content_proto.flags()) {
+      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR: {
+        if (packet_filter_content_proto.ipv4_remote_addresses_size()) {
+          packet_filter_contents->flags =
+              TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+          int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
+          for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
+            packet_filter_contents->ipv4remoteaddr[local_idx].addr =
+                packet_filter_content_proto.ipv4_remote_addresses(0).addr() >>
+                (i * 8);
+            packet_filter_contents->ipv4remoteaddr[local_idx].mask =
+                packet_filter_content_proto.ipv4_remote_addresses(0).mask() >>
+                (i * 8);
+            --local_idx;
+          }
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR: {
+        if (packet_filter_content_proto.ipv6_remote_addresses_size()) {
+          packet_filter_contents->flags =
+              TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+          int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE - 1;
+          for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
+            packet_filter_contents->ipv6remoteaddr[local_idx].addr =
+                packet_filter_content_proto.ipv6_remote_addresses(i).addr();
+            packet_filter_contents->ipv6remoteaddr[local_idx].mask =
+                packet_filter_content_proto.ipv6_remote_addresses(i).mask();
+            --local_idx;
+          }
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
+        packet_filter_contents->protocolidentifier_nextheader =
+            packet_filter_content_proto.protocol_identifier_nextheader();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
+        packet_filter_contents->singlelocalport =
+            packet_filter_content_proto.single_local_port();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
+        packet_filter_contents->singleremoteport =
+            packet_filter_content_proto.single_remote_port();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
+        packet_filter_contents->securityparameterindex =
+            packet_filter_content_proto.security_parameter_index();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
+        packet_filter_contents->typdeofservice_trafficclass.value =
+            packet_filter_content_proto.type_of_service_traffic_class().value();
+        packet_filter_contents->typdeofservice_trafficclass.mask =
+            packet_filter_content_proto.type_of_service_traffic_class().mask();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL: {
+        packet_filter_contents->flags = TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
+        packet_filter_contents->flowlabel =
+            packet_filter_content_proto.flow_label();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
+        proto_to_port_range(
+            packet_filter_content_proto.local_port_range(),
+            &packet_filter_contents->localportrange);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE: {
+        packet_filter_contents->flags =
+            TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
+        proto_to_port_range(
+            packet_filter_content_proto.remote_port_range(),
+            &packet_filter_contents->remoteportrange);
+      } break;
     }
   }
-  if (packet_filter_contents_proto.ipv6_remote_addresses_size()) {
-    int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE - 1;
-    for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
-      packet_filter_contents->ipv6remoteaddr[local_idx].addr =
-          packet_filter_contents_proto.ipv6_remote_addresses(i).addr();
-      packet_filter_contents->ipv6remoteaddr[local_idx].mask =
-          packet_filter_contents_proto.ipv6_remote_addresses(i).mask();
-      --local_idx;
-    }
-  }
-
-  proto_to_port_range(
-      packet_filter_contents_proto.local_port_range(),
-      &packet_filter_contents->localportrange);
-  proto_to_port_range(
-      packet_filter_contents_proto.remote_port_range(),
-      &packet_filter_contents->remoteportrange);
-
-  packet_filter_contents->typdeofservice_trafficclass.value =
-      packet_filter_contents_proto.type_of_service_traffic_class().value();
-  packet_filter_contents->typdeofservice_trafficclass.mask =
-      packet_filter_contents_proto.type_of_service_traffic_class().mask();
 }
 
 void SpgwStateConverter::eps_bearer_qos_to_proto(

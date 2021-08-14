@@ -214,7 +214,7 @@ func TestSyncStore(t *testing.T) {
 	})
 
 	t.Run("last resync set and get", func(t *testing.T) {
-		expectedLastResyncTime := uint64(time.Now().Unix())
+		expectedLastResyncTime := time.Now().Unix()
 
 		err := store.RecordResync("n0", "g0", expectedLastResyncTime+1)
 		assert.NoError(t, err)
@@ -259,11 +259,11 @@ func TestSyncStore(t *testing.T) {
 		assert.NoError(t, err)
 		err = writer.Apply()
 		assert.NoError(t, err)
-		err = store.RecordResync("n0", "g0", uint64(clock.Now().Unix()))
+		err = store.RecordResync("n0", "g0", clock.Now().Unix())
 		assert.NoError(t, err)
-		err = store.RecordResync("n0", "g1", uint64(clock.Now().Unix()))
+		err = store.RecordResync("n0", "g1", clock.Now().Unix())
 		assert.NoError(t, err)
-		err = store.RecordResync("n1", "g0", uint64(clock.Now().Unix()))
+		err = store.RecordResync("n1", "g0", clock.Now().Unix())
 		assert.NoError(t, err)
 
 		digestTrees, err := store.GetDigests([]string{}, clock.Now().Unix(), true)

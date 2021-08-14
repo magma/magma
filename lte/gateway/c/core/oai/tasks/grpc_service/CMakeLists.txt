@@ -10,7 +10,7 @@ create_proto_dir("orc8r" ORC8R_OUT_DIR)
 create_proto_dir("feg" FEG_OUT_DIR)
 
 # Common protos
-set(ORC8R_CPP_PROTOS common)
+set(ORC8R_CPP_PROTOS common digest)
 generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 

@@ -106,7 +106,7 @@ class RyuForwardFlowArgsBuilder():
             Self
         """
         self._reg_sets.append(
-            {"type": "SET_FIELD", "field": reg_name, "value": value}
+            {"type": "SET_FIELD", "field": reg_name, "value": value},
         )
         return self
 
@@ -143,11 +143,15 @@ class RyuForwardFlowArgsBuilder():
             Self
         """
         self._ip = ip
-        self._ulink_action = {"type": "SET_FIELD", "field": DIRECTION_REG,
-                              "value": Direction.OUT}
+        self._ulink_action = {
+            "type": "SET_FIELD", "field": DIRECTION_REG,
+            "value": Direction.OUT,
+        }
 
-        self._dlink_action = {"type": "SET_FIELD", "field": DIRECTION_REG,
-                              "value": Direction.IN}
+        self._dlink_action = {
+            "type": "SET_FIELD", "field": DIRECTION_REG,
+            "value": Direction.IN,
+        }
         return self
 
     def set_eth_match(self, eth_src, eth_dst):
@@ -170,24 +174,28 @@ class RyuForwardFlowArgsBuilder():
 
         uplink["instructions"].append({
             "type": "APPLY_ACTIONS",
-            "actions": self._reg_sets + [self._ulink_action]
+            "actions": self._reg_sets + [self._ulink_action],
         })
         downlink["instructions"].append({
             "type": "APPLY_ACTIONS",
-            "actions": self._reg_sets + [self._dlink_action]
+            "actions": self._reg_sets + [self._dlink_action],
         })
 
         ip_addr = convert_ip_str_to_ip_proto(self._ip)
         if ip_addr.version == IPAddress.IPV4:
             uplink["match"].update(
-                {"ipv4_src": self._ip})
+                {"ipv4_src": self._ip},
+            )
             downlink["match"].update(
-                {"ipv4_dst": self._ip})
+                {"ipv4_dst": self._ip},
+            )
         else:
             uplink["match"].update(
-                {"ipv6_src": self._ip})
+                {"ipv6_src": self._ip},
+            )
             downlink["match"].update(
-                {"ipv6_dst": self._ip})
+                {"ipv6_dst": self._ip},
+            )
         return [uplink, downlink]
 
     def set_eth_type_arp(self):
@@ -215,7 +223,7 @@ class RyuForwardFlowArgsBuilder():
         else:
             if self._reg_sets:
                 self._request["instructions"].append(
-                    {"type": "APPLY_ACTIONS", "actions": self._reg_sets}
+                    {"type": "APPLY_ACTIONS", "actions": self._reg_sets},
                 )
             return [self._request]
 

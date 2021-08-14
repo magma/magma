@@ -19,13 +19,11 @@ import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 from lte.protos.subscriberdb_pb2 import (
-    CheckSubscribersInSyncRequest,
-    Digest,
+    CheckInSyncRequest,
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
-    SubscriberDigestWithID,
-    SyncSubscribersRequest,
+    SyncRequest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
@@ -37,12 +35,19 @@ from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_SUCCESS_TOTAL,
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
+from orc8r.protos.digest_pb2 import Changeset, Digest, LeafDigest
 
 CloudSubscribersInfo = NamedTuple(
     'CloudSubscribersInfo', [
         ('subscribers', List[SubscriberData]),
-        ('flat_digest', Optional[Digest]),
-        ('per_sub_digests', Optional[List[SubscriberDigestWithID]]),
+        ('root_digest', Optional[Digest]),
+        ('leaf_digests', Optional[List[LeafDigest]]),
+    ],
+)
+ProcessedChangeset = NamedTuple(
+    'ProcessedChangeset', [
+        ('to_renew', List[SubscriberData]),
+        ('deleted', List[str]),
     ],
 )
 
@@ -105,26 +110,26 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         # Process subscriber data before digest data, in case there's a gateway
         # failure between the calls
         self._process_subscribers(subscribers_info.subscribers)
-        self._update_flat_digest(subscribers_info.flat_digest)
-        self._update_per_sub_digests(subscribers_info.per_sub_digests)
+        self._update_root_digest(subscribers_info.root_digest)
+        self._update_leaf_digests(subscribers_info.leaf_digests)
 
     async def _check_subscribers_in_sync(self) -> bool:
         """
         Check if the local subscriber data is up-to-date with the cloud by
-        comparing flat digests
+        comparing root digests
 
         Returns:
             boolean value for whether the local data is in sync
         """
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
-        req = CheckSubscribersInSyncRequest(
-            flat_digest=Digest(
-                md5_base64_digest=self._store.get_current_digest(),
+        req = CheckInSyncRequest(
+            root_digest=Digest(
+                md5_base64_digest=self._store.get_current_root_digest(),
             ),
         )
         try:
             res = await grpc_async_wrapper(
-                subscriberdb_cloud_client.CheckSubscribersInSync.future(
+                subscriberdb_cloud_client.CheckInSync.future(
                     req,
                     self.SUBSCRIBERDB_REQUEST_TIMEOUT,
                 ),
@@ -147,12 +152,12 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             boolean value for whether a resync with cloud is needed
         """
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
-        req = SyncSubscribersRequest(
-            per_sub_digests=self._store.get_current_per_sub_digests(),
+        req = SyncRequest(
+            leaf_digests=self._store.get_current_leaf_digests(),
         )
         try:
             res = await grpc_async_wrapper(
-                subscriberdb_cloud_client.SyncSubscribers.future(
+                subscriberdb_cloud_client.Sync.future(
                     req,
                     self.SUBSCRIBERDB_REQUEST_TIMEOUT,
                 ),
@@ -166,23 +171,24 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             return True
 
         if not res.resync:
-            self._update_flat_digest(res.flat_digest)
-            self._update_per_sub_digests(res.per_sub_digests)
+            self._update_root_digest(res.digests.root_digest)
+            self._update_leaf_digests(res.digests.leaf_digests)
 
             # TODO(hcgatewood): switch to bulk editing subscriber data rows
-            for subscriber_data in res.to_renew:
+            changeset = self._process_changeset(res.changeset)
+            for subscriber_data in changeset.to_renew:
                 self._store.upsert_subscriber(subscriber_data)
-            for sid in res.deleted:
+            for sid in changeset.deleted:
                 self._store.delete_subscriber(sid)
-            self._detach_subscribers_by_ids(res.deleted)
+            self._detach_subscribers_by_ids(changeset.deleted)
 
         return res.resync
 
     async def _get_all_subscribers(self) -> Optional[CloudSubscribersInfo]:
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
         subscribers = []
-        flat_digest = None
-        per_sub_digests = None
+        root_digest = None
+        leaf_digests = None
         req_page_token = ""  # noqa: S105
         found_empty_token = False
         sync_start = datetime.datetime.now()
@@ -204,8 +210,8 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 subscribers.extend(res.subscribers)
                 # Cloud sends back digests during request for the first page
                 if req_page_token == "":
-                    flat_digest = res.flat_digest
-                    per_sub_digests = res.per_sub_digests
+                    root_digest = res.digests.root_digest
+                    leaf_digests = res.digests.leaf_digests
 
                 req_page_token = res.next_page_token
                 found_empty_token = req_page_token == ""
@@ -233,23 +239,42 @@ class SubscriberDBCloudClient(SDWatchdogTask):
 
         subscribers_info = CloudSubscribersInfo(
             subscribers=subscribers,
-            flat_digest=flat_digest,
-            per_sub_digests=per_sub_digests,
+            root_digest=root_digest,
+            leaf_digests=leaf_digests,
         )
         return subscribers_info
 
-    def _update_flat_digest(self, flat_digest: Optional[Digest]) -> None:
-        if Digest is None:
-            return
-        self._store.update_digest(flat_digest.md5_base64_digest)
+    def _process_changeset(self, changeset: Optional[Changeset]) -> ProcessedChangeset:
+        if changeset is None:
+            return ProcessedChangeset(to_renew=[], deleted=[])
 
-    def _update_per_sub_digests(
-            self,
-            per_sub_digests: Optional[List[SubscriberDigestWithID]],
-    ) -> None:
-        if per_sub_digests is None:
+        to_renew, deleted = [], []
+        if changeset.deleted is not None:
+            deleted = changeset.deleted
+        if changeset.to_renew is not None:
+            for any_val in changeset.to_renew:
+                data = SubscriberData()
+                ok = any_val.Unpack(data)
+                if not ok:
+                    raise ValueError(
+                        'Cannot unpack Any type into message: %s' % data,
+                    )
+                to_renew.append(data)
+
+        return ProcessedChangeset(to_renew=to_renew, deleted=deleted)
+
+    def _update_root_digest(self, root_digest: Optional[Digest]) -> None:
+        if root_digest is None:
             return
-        self._store.update_per_sub_digests(per_sub_digests)
+        self._store.update_root_digest(root_digest.md5_base64_digest)
+
+    def _update_leaf_digests(
+            self,
+            leaf_digests: Optional[List[LeafDigest]],
+    ) -> None:
+        if leaf_digests is None:
+            return
+        self._store.update_leaf_digests(leaf_digests)
 
     def _process_subscribers(self, subscribers: List[SubscriberData]) -> None:
         active_subscriber_ids = []

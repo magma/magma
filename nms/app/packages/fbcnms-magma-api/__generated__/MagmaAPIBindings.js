@@ -516,6 +516,7 @@ export type gateway_epc_configs = {
     sgi_management_iface_gw ? : string,
     sgi_management_iface_static_ip ? : string,
     sgi_management_iface_vlan ? : string,
+    subscriberdb_sync_interval ? : subscriberdb_sync_interval,
 };
 export type gateway_federation_configs = {
     aaa_server: aaa_server,
@@ -944,6 +945,7 @@ export type network_epc_configs = {
     cloud_subscriberdb_enabled ? : boolean,
     congestion_control_enabled ? : boolean,
     default_rule_id ? : string,
+    enable_converged_core ? : boolean,
     gx_gy_relay_enabled: boolean,
     hss_relay_enabled: boolean,
     lte_auth_amf: string,
@@ -982,6 +984,7 @@ export type network_epc_configs = {
             max_ul_bit_rate: number,
         },
     },
+    subscriberdb_sync_interval ? : subscriberdb_sync_interval,
     tac: number,
 };
 export type network_features = {
@@ -1026,8 +1029,11 @@ export type network_probe_destination = {
     destination_id: network_probe_destination_id,
 };
 export type network_probe_destination_details = {
+    certificate: string,
     delivery_address: string,
     delivery_type: "all" | "events_only",
+    private_key: string,
+    skip_verify_server: boolean,
 };
 export type network_probe_destination_id = string;
 export type network_probe_task = {
@@ -1039,6 +1045,7 @@ export type network_probe_task_details = {
     delivery_type: "all" | "events_only",
     domain_id ? : string,
     duration ? : number,
+    operator_id ? : number,
     target_id: string,
     target_type: "imsi" | "imei" | "msisdn",
     timestamp ? : string,
@@ -1413,6 +1420,7 @@ export type subscriber_static_ips = {
 export type subscriber_status = {
     icmp ? : icmp_status,
 };
+export type subscriberdb_sync_interval = number;
 export type subscription_profile = {
     max_dl_bit_rate ? : number,
     max_ul_bit_rate ? : number,
@@ -1481,6 +1489,10 @@ export type unmanaged_enodeb_configuration = {
 };
 export type untyped_mme_state = {};
 export type untyped_subscriber_state = {};
+export type version_info = {
+    container_image_version ? : string,
+    helm_chart_version ? : string,
+};
 export type virtual_apn_rule = {
     apn_filter ? : string,
     apn_overwrite ? : string,
@@ -1529,6 +1541,14 @@ export default class MagmaAPIBindings {
     ) {
         throw new Error("Must be implemented");
     }
+    static async getAboutVersion(): Promise < version_info >
+        {
+            let path = '/about/version';
+            let body;
+            let query = {};
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getChannels(): Promise < Array < channel_id >
         >
         {

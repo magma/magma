@@ -19,6 +19,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import {FEG} from '@fbcnms/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
+import {VersionContextProvider} from '../context/VersionContext';
 import {coalesceNetworkType} from '@fbcnms/types/network';
 import type {NetworkType} from '@fbcnms/types/network';
 import type {Theme} from '@material-ui/core';
@@ -121,16 +122,18 @@ function NetworkContextProvider(props: Props) {
   const {networkId, networkType} = props;
 
   return (
-    <NetworkContext.Provider value={{networkId, networkType}}>
-      {networkType === FEG ? (
-        <FEGContextProvider networkId={networkId} networkType={networkType}>
-          {props.children}
-        </FEGContextProvider>
-      ) : (
-        <LteContextProvider networkId={networkId} networkType={networkType}>
-          {props.children}
-        </LteContextProvider>
-      )}
-    </NetworkContext.Provider>
+    <VersionContextProvider>
+      <NetworkContext.Provider value={{networkId, networkType}}>
+        {networkType === FEG ? (
+          <FEGContextProvider networkId={networkId} networkType={networkType}>
+            {props.children}
+          </FEGContextProvider>
+        ) : (
+          <LteContextProvider networkId={networkId} networkType={networkType}>
+            {props.children}
+          </LteContextProvider>
+        )}
+      </NetworkContext.Provider>
+    </VersionContextProvider>
   );
 }

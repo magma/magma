@@ -27,7 +27,7 @@ hide_title: true
     To create a package for production, run
 
     ```bash
-    fab test package:vcs=git
+    fab release package:vcs=git
     ```
 
     To create a package for development or testing, run

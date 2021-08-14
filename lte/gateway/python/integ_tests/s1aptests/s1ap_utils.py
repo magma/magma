@@ -30,7 +30,7 @@ from integ_tests.gateway.rpc import get_rpc_channel
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from lte.protos.abort_session_pb2 import AbortSessionRequest, AbortSessionResult
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
-from lte.protos.ha_service_pb2 import EnbOffloadType, StartAgwOffloadRequest
+from lte.protos.ha_service_pb2 import StartAgwOffloadRequest
 from lte.protos.ha_service_pb2_grpc import HaServiceStub
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import (

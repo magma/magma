@@ -22,10 +22,12 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
+import VersionContext from './context/VersionContext';
 
 import {GetCurrentTabPos} from './TabUtils';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -56,6 +58,9 @@ const useStyles = makeStyles(theme => ({
   dateTimeText: {
     color: colors.primary.selago,
   },
+  versionText: {
+    textAlign: 'right',
+  },
 }));
 
 type BarLabel = {
@@ -75,6 +80,7 @@ export default function TopBar(props: Props) {
     match.url,
     props.tabs.map(tab => tab.to.slice(1)),
   );
+  const {nmsVersion, orc8rVersion} = useContext(VersionContext);
   function tabLabel(label, icon) {
     const Icon = icon;
 
@@ -88,7 +94,27 @@ export default function TopBar(props: Props) {
   return (
     <>
       <div className={classes.topBar}>
-        <Text variant="body2">{props.header}</Text>
+        <Grid
+          container
+          direction="row"
+          justify="space-between"
+          alignItems="center">
+          <Grid item xs>
+            <Text variant="body2">{props.header}</Text>
+          </Grid>
+          <Grid item xs>
+            <div className={classes.versionText}>
+              <Text variant="overline" weight="light">
+                {'NMS: ' + nmsVersion}
+              </Text>
+            </div>
+            <div className={classes.versionText}>
+              <Text variant="overline" weight="light">
+                {'Orc8r: ' + orc8rVersion}
+              </Text>
+            </div>
+          </Grid>
+        </Grid>
       </div>
       <AppBar position="static" color="default" className={classes.tabBar}>
         <Grid

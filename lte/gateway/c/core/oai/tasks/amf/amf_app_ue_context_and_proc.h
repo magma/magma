@@ -40,6 +40,7 @@ extern "C" {
 #include "amf_app_messages_types.h"
 #include "M5GRegistrationRequest.h"
 #include "ngap_messages_types.h"
+#include "amf_common.h"
 
 // NAS messages
 #include "M5GDLNASTransport.h"
@@ -839,4 +840,5 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
+
 }  // namespace magma5g

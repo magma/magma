@@ -356,7 +356,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     /* This check is not used in this PR and code got changed in upcoming PRs
      * hence not-used functions are take out
      */
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP,
         "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
     guti.guamfi.plmn         = {0};
@@ -450,21 +450,27 @@ imsi64_t amf_app_handle_initial_ue_message(
 
   // create a new ue context if nothing is found
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(LOG_AMF_APP, " UE context doesn't exist -> create one\n");
     if (!(ue_context_p = amf_create_new_ue_context())) {
-      OAILOG_INFO(LOG_AMF_APP, "Failed to create context \n");
+      OAILOG_ERROR(LOG_AMF_APP, "Failed to create ue_m5gmm_context for ue \n");
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
     }
+
     // Allocate new amf_ue_ngap_id
     ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
         &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
     if (ue_context_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
-      OAILOG_CRITICAL(
-          LOG_AMF_APP,
-          "AMF_APP_INITIAL_UE_MESSAGE. AMF_UE_NGAP_ID allocation Failed.\n");
+      OAILOG_ERROR(LOG_AMF_APP, "amf_ue_ngap_id allocation failed.\n");
       amf_remove_ue_context(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
     }
+
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "Creating new ue_m5gmm_context: [%p]"
+        "for amf_ue_ngap_id: [%u]\n",
+        ue_context_p, ue_context_p->amf_ue_ngap_id);
+
     AMF_APP_GNB_NGAP_ID_KEY(
         ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
         initial_pP->gnb_ue_ngap_id);
@@ -478,7 +484,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   // UEContextRequest
   ue_context_p->ue_context_request = initial_pP->ue_context_request;
   OAILOG_DEBUG(
-      LOG_AMF_APP, "ue_context_requext received: %d\n ",
+      LOG_AMF_APP, "UE context request received: %d\n ",
       ue_context_p->ue_context_request);
 
   notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
@@ -487,6 +493,11 @@ imsi64_t amf_app_handle_initial_ue_message(
   } else {
     s_tmsi.amf_pointer = 0;
     s_tmsi.m_tmsi      = INVALID_M_TMSI;
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        " Sending nas establishment indication to nas for ue_id = "
+        "(%d)\n",
+        ue_context_p->amf_ue_ngap_id);
   }
   is_mm_ctx_new = true;
 
@@ -520,7 +531,6 @@ int amf_app_handle_uplink_nas_message(
     const tai_t originating_tai) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-  OAILOG_DEBUG(LOG_AMF_APP, " Received NAS UPLINK DATA from NGAP\n");
   if (msg) {
     amf_sap_t amf_sap = {};
     /*
@@ -616,7 +626,7 @@ void amf_app_handle_pdu_session_response(
       ue_context->mm_state == REGISTERED_CONNECTED;
     }
   } else {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP,
         "Sending message to gNB for PDUSessionResourceSetupRequest "
         "**n_active_pdus=%d **\n",
@@ -671,7 +681,7 @@ int amf_app_handle_pdu_session_accept(
   if (ue_context) {
     smf_ctx = &(ue_context->amf_context.smf_context);
   } else {
-    OAILOG_INFO(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
+    OAILOG_ERROR(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
   }
 
   // updating session state
@@ -780,11 +790,7 @@ int amf_app_handle_pdu_session_accept(
   //  bytes = encode_msg.EncodeDLNASTransportMsg(&encode_msg, buffer->data,
   //  len);
   encode_msg->payload_container.len = 30;
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "AMF_TEST: start NAS encoding for PDU Session Establishment Accept\n");
-
-  len = 41;  // originally 38 and 30
+  len                               = 41;  // originally 38 and 30
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
@@ -795,11 +801,7 @@ int amf_app_handle_pdu_session_accept(
     /*
      * Expand size of protected NAS message
      */
-    OAILOG_INFO(
-        LOG_AMF_APP, "AMF_TEST:before adding sec header, length %d ", len);
     len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
-    OAILOG_INFO(
-        LOG_AMF_APP, "AMF_TEST:after adding sec header, length %d ", len);
     /*
      * Set header of plain NAS message
      */
@@ -811,13 +813,11 @@ int amf_app_handle_pdu_session_accept(
   bytes  = nas5g_message_encode(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "NAS encode success, sent PDU Establishment Accept to UE\n");
     buffer->slen = bytes;
     amf_app_handle_nas_dl_req(ue_id, buffer, rc);
 
   } else {
+    OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
     bdestroy_wrapper(&buffer);
   }
   return rc;
@@ -840,14 +840,15 @@ void amf_app_handle_resource_setup_response(
    * will be handled later
    */
   OAILOG_DEBUG(
-      LOG_AMF_APP, " handling uplink PDU session setup response message\n");
+      LOG_AMF_APP, "Handling uplink PDU session setup response message\n");
+
   if (session_seup_resp.pduSessionResource_setup_list.no_of_items > 0) {
     ue_id = session_seup_resp.amf_ue_ngap_id;
 
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context == NULL) {
       OAILOG_ERROR(
-          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+          LOG_AMF_APP, "UE context not found for the ue_id=%u\n", ue_id);
       return;
     }
     smf_ctx = amf_smf_context_exists_pdu_session_id(
@@ -855,7 +856,7 @@ void amf_app_handle_resource_setup_response(
         session_seup_resp.pduSessionResource_setup_list.item[0].Pdu_Session_ID);
     if (smf_ctx == NULL) {
       OAILOG_ERROR(
-          LOG_AMF_APP, "pdu session  not found for session_id = %lu\n",
+          LOG_AMF_APP, "PDU session  not found for session_id = %lu\n",
           session_seup_resp.pduSessionResource_setup_list.item[0]
               .Pdu_Session_ID);
       return;
@@ -864,10 +865,6 @@ void amf_app_handle_resource_setup_response(
     /* This is success case and we need not to send message to SMF
      * and drop the message here
      */
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        " this is success case and no need to hadle anything and drop "
-        "the message\n");
     amf_ue_ngap_id_t ue_id;
     amf_smf_establish_t amf_smf_grpc_ies;
     ue_m5gmm_context_s* ue_context = nullptr;
@@ -879,10 +876,9 @@ void amf_app_handle_resource_setup_response(
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     // Handling of ue context
     if (!ue_context) {
-      OAILOG_INFO(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
+      OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
     }
     smf_ctx = &ue_context->amf_context.smf_context;
-    OAILOG_DEBUG(LOG_AMF_APP, "filling gNB TEID info in smf context \n");
     // Store gNB ip and TEID in respective smf_context
     memset(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
@@ -892,18 +888,16 @@ void amf_app_handle_resource_setup_response(
         &session_seup_resp.pduSessionResource_setup_list.item[0]
              .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
         4);
-    OAILOG_DEBUG(LOG_AMF_APP, "filling gNB TEID info in gtp_ip_address \n");
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
         &session_seup_resp.pduSessionResource_setup_list.item[0]
              .PDU_Session_Resource_Setup_Response_Transfer.tunnel
              .transportLayerAddress,
         4);  // time being 4 byte is copying.
-    OAILOG_DEBUG(LOG_AMF_APP, "printing both teid and ip_address of gNB\n");
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "IP address %02x %02x %02x %02x  and TEID %02x "
-        "%02x %02x %02x \n",
+        "gnb_gtp_teid_ipaddr: [%02x %02x %02x %02x]  and gnb_gtp_teid [%02x "
+        "%02x %02x %02x ]\n",
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
@@ -1005,8 +999,8 @@ void amf_app_handle_cm_idle_on_ue_context_release(
   ue_id                          = cm_idle_req.amf_ue_ngap_id;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: ue_context is NULL\n");
+  if (!ue_context) {
+    return;
   }
 
   // if UE on REGISTERED_IDLE, so no need to do anyting
@@ -1019,8 +1013,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
           ue_context, &ue_context->amf_context);
 
       if (rc != RETURNok) {
-        OAILOG_ERROR(
-            LOG_AMF_APP, "AMF_APP: Failed Transitioning to IDLE Mode\n");
+        OAILOG_WARNING(LOG_AMF_APP, "Failed transitioning to idle mode\n");
       }
 
       ue_context_release_command(
@@ -1028,9 +1021,9 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       ue_context->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
     } else {
-      OAILOG_DEBUG(
+      OAILOG_WARNING(
           LOG_AMF_APP,
-          " UE in REGISTERED_CONNECTED state, but cause from NGAP"
+          " UE in registered_connected state, but cause from NGAP"
           " is wrong for UE ID %d and return\n",
           cm_idle_req.amf_ue_ngap_id);
       return;
@@ -1061,7 +1054,7 @@ void ue_context_release_command(
   itti_ngap_ue_context_release_command_t* ctx_rel_cmd = nullptr;
   MessageDef* message_p                               = nullptr;
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_AMF_APP,
       "preparing for context release command to NGAP "
       "for ue_id %d\n",
@@ -1076,19 +1069,11 @@ void ue_context_release_command(
   ctx_rel_cmd->gnb_ue_ngap_id = gnb_ue_ngap_id;
   ctx_rel_cmd->cause          = ng_cause;
   // Send message to NGAP task
-  OAILOG_INFO(LOG_AMF_APP, "sent context release command to NGAP\n");
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "sent context release command to NGAP "
-      "for ue_id %d\n",
-      amf_ue_ngap_id);
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
-  OAILOG_INFO(LOG_AMF_APP, "Timer: In Paging handler\n");
-  OAILOG_INFO(LOG_AMF_APP, "Timer: identification T3513 handler \n");
   int rc                                         = RETURNerror;
   amf_ue_ngap_id_t ue_id                         = 0;
   ue_m5gmm_context_s* ue_context                 = nullptr;
@@ -1099,8 +1084,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+  if (!ue_context) {
+    OAILOG_ERROR(LOG_AMF_APP, "ue_context doest exist\n");
     return -1;
   }
 
@@ -1121,11 +1106,10 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     /*
      * ReSend Paging request message to the UE
      */
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: In Handler Starting PAGING Timer\n");
+    OAILOG_DEBUG(LOG_AMF_APP, "Starting paging timer\n");
     paging_ctx->m5_paging_response_timer.id = start_timer(
         &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
         paging_t3513_handler, NULL);
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After Starting PAGING Timer\n");
     // Fill the itti msg based on context info produced in amf core
 
     message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -1136,15 +1120,12 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         amf_ctx->m5_guti.guamfi.amf_set_id;
     ngap_paging_notify->UEPagingIdentity.amf_pointer =
         amf_ctx->m5_guti.guamfi.amf_pointer;
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP,
-        "AMF_APP: Filling NGAP structure for Downlink amf_ctx dec "
+        "Filling ngap structure for downlink amf_ctx dec "
         "m_tmsi=%d",
         amf_ctx->m5_guti.m_tmsi);
     ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
-    OAILOG_INFO(
-        LOG_AMF_APP, "AMF_APP: Filling NGAP structure for Downlink m_tmsi=%d",
-        ngap_paging_notify->UEPagingIdentity.m_tmsi);
     ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
         amf_ctx->m5_guti.guamfi.plmn.mcc_digit1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
@@ -1160,11 +1141,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
 
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
-    rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-    OAILOG_ERROR(
-        LOG_AMF_APP, "Timer: timer has expired Sending Paging request again\n");
-    //    amf_paging_request(paging_ctx);
+    rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   } else {
     /*
      * Abort the Paging procedure
@@ -1189,45 +1166,36 @@ int amf_app_handle_notification_received(
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
   int rc                                         = RETURNok;
 
-  OAILOG_INFO(LOG_AMF_APP, "AMF_APP: PAGING NOTIFICATION received from SMF\n");
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "AMF_APP: IMSI is %s %lu\n", notification->imsi, imsi64);
+  OAILOG_DEBUG(LOG_AMF_APP, "IMSI is %s %lu\n", notification->imsi, imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
 
-  if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+  if (!ue_context) {
+    OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
     return -1;
   }
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "AMF_APP: IMSI is %d\n", notification->notify_ue_evnt);
   switch (notification->notify_ue_evnt) {
     case UE_PAGING_NOTIFY:
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: PAGING NOTIFICATION received\n");
+      OAILOG_DEBUG(LOG_AMF_APP, "Paging notification received\n");
 
       // Get Paging Context
       amf_ctx    = &ue_context->amf_context;
       paging_ctx = &ue_context->paging_context;
 
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Starting PAGING Timer\n");
+      OAILOG_DEBUG(LOG_AMF_APP, "Starting paging timer\n");
       /* Start Paging Timer T3513 */
       paging_ctx->m5_paging_response_timer.id = start_timer(
           &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
           paging_t3513_handler, NULL);
       // Fill the itti msg based on context info produced in amf core
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After Starting PAGING Timer\n");
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Allocating memory ");
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
-
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: ngap_paging_notify");
 
       ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
       memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Filling NGAP structure for Downlink");
       ngap_paging_notify->UEPagingIdentity.amf_set_id =
           amf_ctx->m5_guti.guamfi.amf_set_id;
       ngap_paging_notify->UEPagingIdentity.amf_pointer =
@@ -1247,16 +1215,14 @@ int amf_app_handle_notification_received(
           amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
       ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
       ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
-      rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+      rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
       break;
 
     case UE_SERVICE_REQUEST_ON_PAGING:
-      OAILOG_INFO(
-          LOG_AMF_APP, "AMF_APP: SERVICE ACCEPT NOTIFICATION received\n");
+      OAILOG_DEBUG(LOG_AMF_APP, "Service Accept notification received\n");
       // TODO: Service Accept code to be implemented in upcoming PR
     default:
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP : default case nothing to do\n");
+      OAILOG_DEBUG(LOG_AMF_APP, "default case nothing to do\n");
       break;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

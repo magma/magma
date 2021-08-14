@@ -81,9 +81,12 @@ class SessionStoreTest : public ::testing::Test {
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan_context);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
-    return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
-        response1);
+    auto session        = std::make_unique<SessionState>(
+        session_id, cfg, *rule_store, pdp_start_time);
+    session->set_tgpp_context(tgpp_context, nullptr);
+    session->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session->set_create_session_response(response1, nullptr);
+    return session;
   }
 
   std::unique_ptr<SessionState> get_lte_session(
@@ -108,9 +111,12 @@ class SessionStoreTest : public ::testing::Test {
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
-    return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
-        response1);
+    auto session        = std::make_unique<SessionState>(
+        session_id, cfg, *rule_store, pdp_start_time);
+    session->set_tgpp_context(tgpp_context, nullptr);
+    session->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session->set_create_session_response(response1, nullptr);
+    return session;
   }
   UsageMonitoringUpdateResponse get_monitoring_update() {
     UsageMonitoringUpdateResponse response;

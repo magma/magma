@@ -145,7 +145,7 @@ func (a *accessdBlobstore) PutACL(id *protos.Identity, acl *accessprotos.AccessC
 		return status.Error(codes.InvalidArgument, "nil AccessControl_List")
 	}
 
-	store, err := a.factory.StartTransaction(&storage.TxOptions{})
+	store, err := a.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
@@ -177,7 +177,7 @@ func (a *accessdBlobstore) UpdateACLWithEntities(id *protos.Identity, entities [
 		return status.Error(codes.InvalidArgument, "nil AccessControl_Entity slice")
 	}
 
-	store, err := a.factory.StartTransaction(&storage.TxOptions{})
+	store, err := a.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
@@ -223,7 +223,7 @@ func (a *accessdBlobstore) DeleteACL(id *protos.Identity) error {
 		return status.Error(codes.InvalidArgument, "nil Identity")
 	}
 
-	store, err := a.factory.StartTransaction(&storage.TxOptions{})
+	store, err := a.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}

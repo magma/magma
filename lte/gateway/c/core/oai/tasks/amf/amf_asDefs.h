@@ -90,17 +90,12 @@ class amf_as_data_t {
       bool is_ciphered);
 };
 
-typedef struct amf_as_pdusession_identity_s {
-  const guti_m5_t* guti;  // The GUTI, if valid
-} amf_as_pdusession_identity_t;
-
 // Structure to handle UL/DL NAS message in AMF
 typedef struct amf_as_establish_s {
-  amf_ue_ngap_id_t ue_id;               // UE lower layer identifier
-  uint64_t puid;                        // linked to procedure UID
-  amf_as_pdusession_identity_t pds_id;  // UE's 5g cn mobile identity
-  amf_as_security_data_t sctx;          // 5g cn NAS security context
-  bool is_initial;                      // true if contained in initial message
+  amf_ue_ngap_id_t ue_id;       // UE lower layer identifier
+  uint64_t puid;                // linked to procedure UID
+  amf_as_security_data_t sctx;  // 5g cn NAS security context
+  bool is_initial;              // true if contained in initial message
   bool is_amf_ctx_new;
   uint8_t amf_cause;  // amf failure cause code
   tai_t tai;          // The first tracking area the UE is registered

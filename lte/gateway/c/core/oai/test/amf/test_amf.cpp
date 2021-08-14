@@ -10,10 +10,14 @@
  */
 
 #include "util_nas5g_pkt.h"
-#include "dynamic_memory_check.h"
 #include <gtest/gtest.h>
+#include "intertask_interface.h"
+#include "../../tasks/amf/amf_app_ue_context_and_proc.h"
+
 
 using ::testing::Test;
+
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma5g {
 
@@ -64,9 +68,10 @@ uint8_t NAS5GPktSnapShot::deregistrarion_request[17] = {
     0x54, 0x00, 0x00, 0x00, 0x18, 0x5d, 0x2e, 0x00};
 
 uint8_t NAS5GPktSnapShot::service_request[37] = {
-    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 
-    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40, 0x02, 0x20, 
-    0x00, 0x50, 0x02, 0x20, 0x00};
+    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4,
+    0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 0x7e, 0x00, 0x4c, 0x10,
+    0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40,
+    0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
 
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
@@ -217,8 +222,10 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
       &service_request, nas5g_pkt_snap.service_request, len);
   EXPECT_EQ(decode_res, true);
   EXPECT_EQ(
-	service_request.extended_protocol_discriminator.extended_proto_discriminator, M5G_MOBILITY_MANAGEMENT_MESSAGES);
-  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t)0x00);
+      service_request.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
   EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 1);
   EXPECT_EQ(service_request.service_type.service_type_value, SERVICE_TYPE_DATA);
@@ -228,6 +235,28 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
   EXPECT_EQ(service_request.pdu_session_status.iei, PDU_SESSION_STATUS);
   EXPECT_EQ(service_request.pdu_session_status.len, 0x02);
   EXPECT_EQ(service_request.pdu_session_status.pduSessionStatus, 0x0020);
+}
+
+TEST(test_amf_data_struct, test_ue_context_creation) {
+  ue_m5gmm_context_s* ue_context = nullptr;
+
+  ue_context = amf_create_new_ue_context();
+  EXPECT_TRUE(nullptr != ue_context);
+  EXPECT_TRUE(0 == ue_context->amf_teid_n11);
+  EXPECT_TRUE(0 == ue_context->paging_context.paging_retx_count);
+  delete ue_context;
+}
+
+TEST(test_smf_context_struct, test_smf_context_creation) {
+  ue_m5gmm_context_s* ue_context = nullptr;
+  smf_context_t* smf_context     = nullptr;
+
+  ue_context             = amf_create_new_ue_context();
+  uint8_t pdu_session_id = 10;
+  smf_context            = amf_insert_smf_context(ue_context, pdu_session_id);
+  EXPECT_TRUE(0 == smf_context->n_active_pdus);
+  EXPECT_TRUE(0 == smf_context->pdu_session_version);
+  delete ue_context;
 }
 
 int main(int argc, char** argv) {
