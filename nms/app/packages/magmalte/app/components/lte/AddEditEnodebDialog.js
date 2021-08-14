@@ -176,13 +176,13 @@ export default function AddEditEnodebDialog(props: Props) {
       enb.config.tac = parseInt(tac);
     }
     if (reference_signal_power !== '') {
-      enb.config.reference_signal_power = reference_signal_power;
+      enb.config.reference_signal_power = parseInt(reference_signal_power);
     }
     if (pa !== '') {
-      enb.config.pa = pa;
+      enb.config.pa = parseInt(pa);
     }
     if (pb !== '') {
-      enb.config.pb = pb;
+      enb.config.pb = parseInt(pb);
     }
     if (mme_pool_1 !== '') {
       enb.config.mme_pool_1 = mme_pool_1;
