@@ -2473,17 +2473,15 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
       LOG_NAS_EMM,
       "Process new Attach Request for ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
-  new_attach_info_t* attach_info = ue_context_p->emm_context.new_attach_info;
-  if (!attach_info) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_EMM, ue_context_p->emm_context._imsi64,
-        "New attach request within EMM context is null \n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
-  }
+  new_attach_info_t attach_info = {0};
+  memcpy(
+      &attach_info, ue_context_p->emm_context.new_attach_info,
+      sizeof(new_attach_info_t));
+  free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
 
   /* The new Attach Request is received in s1ap initial ue message,
    * So release previous Attach Request's contexts */
-  if (attach_info->is_mm_ctx_new) {
+  if (attach_info.is_mm_ctx_new) {
     ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
@@ -2511,15 +2509,14 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
   }
   /* Proceed with new attach request */
   ue_mm_context_t* ue_mm_context =
-      mme_ue_context_exists_mme_ue_s1ap_id(attach_info->mme_ue_s1ap_id);
+      mme_ue_context_exists_mme_ue_s1ap_id(attach_info.mme_ue_s1ap_id);
   emm_context_t* new_emm_ctx = &ue_mm_context->emm_context;
   bdestroy(new_emm_ctx->esm_msg);
   emm_init_context(new_emm_ctx, true);
 
   new_emm_ctx->num_attach_request++;
-  new_emm_ctx->attach_type = attach_info->ies->type;
-  new_emm_ctx->additional_update_type =
-      attach_info->ies->additional_update_type;
+  new_emm_ctx->attach_type            = attach_info.ies->type;
+  new_emm_ctx->additional_update_type = attach_info.ies->additional_update_type;
   OAILOG_NOTICE(
       LOG_NAS_EMM,
       "EMM-PROC  - Create EMM context ue_id = " MME_UE_S1AP_ID_FMT "\n",
@@ -2527,16 +2524,16 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
   new_emm_ctx->is_dynamic = true;
   new_emm_ctx->emm_cause  = EMM_CAUSE_SUCCESS;
   // Store Voice Domain pref IE to be sent to MME APP
-  if (attach_info->ies->voicedomainpreferenceandueusagesetting) {
+  if (attach_info.ies->voicedomainpreferenceandueusagesetting) {
     memcpy(
         &new_emm_ctx->volte_params.voice_domain_preference_and_ue_usage_setting,
-        attach_info->ies->voicedomainpreferenceandueusagesetting,
+        attach_info.ies->voicedomainpreferenceandueusagesetting,
         sizeof(voice_domain_preference_and_ue_usage_setting_t));
     new_emm_ctx->volte_params.presencemask |=
         VOICE_DOMAIN_PREF_UE_USAGE_SETTING;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
-    emm_proc_create_procedure_attach_request(ue_mm_context, attach_info->ies);
+    emm_proc_create_procedure_attach_request(ue_mm_context, attach_info.ies);
   }
   emm_attach_run_procedure(&ue_mm_context->emm_context);
   free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
