@@ -48,10 +48,4 @@ class AmfClientServicer {
       const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id);
 };
 
-// Initialize the client servicer layer
-void amf_client_servicer_init();
-
-// Fetch the Client Servicer object
-AmfClientServicer& get_amf_client_server_ref();
-
 }  // namespace magma5g

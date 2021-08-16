@@ -24,7 +24,6 @@
 static bool parse_bool(const char* str);
 
 struct amf_config_s amf_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
-
 /***************************************************************************
 **                                                                        **
 ** Name:    log_amf_config_init()                                         **

@@ -152,10 +152,4 @@ AsyncM5GAuthenticationServiceClient::AsyncM5GAuthenticationServiceClient() {
   resp_loop_thread.detach();
 }
 
-AsyncM5GAuthenticationServiceClient&
-AsyncM5GAuthenticationServiceClient::getInstance() {
-  static AsyncM5GAuthenticationServiceClient instance;
-  return instance;
-}
-
 }  // namespace magma5g

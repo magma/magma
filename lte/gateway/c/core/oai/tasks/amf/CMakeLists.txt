@@ -20,6 +20,7 @@ link_directories(
 
 add_library(TASK_AMF_APP
     amf_fsm.cpp
+    amf_metadata_util.cpp
     amf_app_main.cpp
     amf_config.c
     amf_app_handler.cpp

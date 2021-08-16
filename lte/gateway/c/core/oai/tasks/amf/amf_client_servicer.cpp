@@ -16,21 +16,6 @@
 
 namespace magma5g {
 
-AmfClientServicer amf_client_servicer_g;
-
-// Fetch the amf client servicer reference
-AmfClientServicer& get_amf_client_server_ref() {
-  return amf_client_servicer_g;
-}
-
-// Initialize the client servicer layer
-void amf_client_servicer_init() {
-  auto authentication_client =
-      std::make_shared<AsyncM5GAuthenticationServiceClient>();
-
-  amf_client_servicer_g = AmfClientServicer(authentication_client);
-}
-
 // For authentication to subscriberdb
 bool AmfClientServicer::get_subscriber_authentication_info(
     const std::string& imsi, uint8_t imsi_length, const char* snni,

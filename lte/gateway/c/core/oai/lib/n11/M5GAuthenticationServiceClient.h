@@ -69,8 +69,6 @@ class AsyncM5GAuthenticationServiceClient
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id);
 
-  static AsyncM5GAuthenticationServiceClient& getInstance();
-
   AsyncM5GAuthenticationServiceClient(
       AsyncM5GAuthenticationServiceClient const&) = delete;
   void operator=(AsyncM5GAuthenticationServiceClient const&) = delete;
