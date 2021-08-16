@@ -34,7 +34,7 @@ jobs:
           python-version: '3.8.5'
       - name: Install python3-aioeventlet from the magma apt repo
         run: |
-            cd nms/app
+            cd nms
             # Install python3-aioeventlet from the magma apt repo
             cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
             echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list

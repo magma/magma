@@ -2,7 +2,7 @@ version: 2.1
 
 aliases:
   - &appdir
-    working_directory: "nms/app"
+    working_directory: "nms"
   - &only_master
     filters:
       branches:
@@ -168,7 +168,7 @@ commands:
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:
-            - yarn-packages-{{ checksum "nms/app/yarn.lock" }}
+            - yarn-packages-{{ checksum "nms/yarn.lock" }}
       - run:
           name: Install Dependencies
           <<: *appdir
@@ -180,7 +180,7 @@ commands:
             yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "nms/app/yarn.lock" }}
+          key: yarn-packages-{{ checksum "nms/yarn.lock" }}
           paths:
             - ~/.cache/yarn
 
@@ -1307,7 +1307,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
+      NMS_ROOT: ${MAGMA_ROOT}/nms/packages/magmalte
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     steps:
@@ -1323,7 +1323,7 @@ jobs:
           command: |
             source $NVM_DIR/nvm.sh
             nvm install stable
-            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
+            cd ${MAGMA_ROOT}/nms/packages/magmalte
             ./e2e_test_setup.sh
       - store_artifacts:
           path: /tmp/nms_artifacts
@@ -1333,7 +1333,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
+      NMS_ROOT: ${MAGMA_ROOT}/nms/packages/magmalte
     steps:
       - checkout
       - build/determinator:
@@ -1342,7 +1342,7 @@ jobs:
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
+            cd ${MAGMA_ROOT}/nms/packages/magmalte
             docker-compose build magmalte
       - tag-push-docker:
           project: magmalte
