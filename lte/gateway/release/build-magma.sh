@@ -183,10 +183,10 @@ if [[ "$OS" == "debian" ]]; then
 else
     OVS_DEPS=(
         "magma-libfluid >= 0.1.0.6"
-        "libopenvswitch >= 2.14.3-7"
-        "openvswitch-switch >= 2.14.3-7"
-        "openvswitch-common >= 2.14.3-7"
-        "openvswitch-datapath-dkms >= 2.14.3-7"
+        "libopenvswitch >= 2.14.3-13"
+        "openvswitch-switch >= 2.14.3-13"
+        "openvswitch-common >= 2.14.3-13"
+        "openvswitch-datapath-dkms >= 2.14.3-13"
         )
 fi
 
