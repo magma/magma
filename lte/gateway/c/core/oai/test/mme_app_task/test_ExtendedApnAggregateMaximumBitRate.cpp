@@ -28,13 +28,37 @@ extern "C" {
 TEST(test_extended_bit_rate_value_test, extended_bit_rate_value_test) {
   ExtendedApnAggregateMaximumBitRate apn_testing;
 
-  extended_bit_rate_value(&apn_testing, 0, 0);
-  // ASSERT_EQ(apn_testing.apnambrfordownlink, 255);
-  // ASSERT_EQ(apn_testing.apnambrforuplink, 255);
-  // ASSERT_EQ(apn_testing.apnambrforuplink_extended, 0);
-  // ASSERT_EQ(apn_testing.apnambrfordownlink_extended, 0);
-  // ASSERT_EQ(apn_testing.apnambrforuplink_extended2, 0);
-  // ASSERT_EQ(apn_testing.apnambrfordownlink_extended2, 0);
+  extended_bit_rate_value(&apn_testing, 65000000000, 65000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 3);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 3);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 122);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 63);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 122);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 63);
+
+  extended_bit_rate_value(&apn_testing, 100000000000, 100000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 3);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 3);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 168);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 168);
+
+  extended_bit_rate_value(&apn_testing, 1000000000000, 1000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 4);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 4);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 36);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 36);
+
+  extended_bit_rate_value(&apn_testing, 2500000000000, 2500000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 5);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 5);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 150);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 150);
+
+  extended_bit_rate_value(&apn_testing, 250000000000000, 250000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 8);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 8);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 107);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 107);
 }
 
 int main(int argc, char** argv) {

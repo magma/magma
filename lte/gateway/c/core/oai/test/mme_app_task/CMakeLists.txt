@@ -61,4 +61,4 @@ target_include_directories(test_nas_extended_apn_ambr PUBLIC
 
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_emm_decode COMMAND test_mme_app_emm_decode)
-add_test(NAME test_nas_apn_ambr COMMAND test_nas_extended_apn_ambr)
+add_test(NAME test_nas_extended_apn_ambr COMMAND test_nas_extended_apn_ambr)

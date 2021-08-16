@@ -98,19 +98,25 @@ void extended_bit_rate_value(
     uint64_t ambr_ul) {
   uint64_t enc_ambr_dl = ambr_dl / 4000000;  // ambr_dl is expected in bps
   uint64_t enc_ambr_ul = ambr_ul / 4000000;  // ambr_ul is expected in bps
-  uint8_t unit         = 3;
-  while (enc_ambr_dl && 0xffffffffffff0000) {
+
+  uint8_t unit_dl = 3;
+  while (enc_ambr_dl & 0xffffffffffff0000) {
     enc_ambr_dl =
         enc_ambr_dl >> 2;  // fit in 16 bits, right shift by 2 for a step of 4
-    unit += 1;
-    extended_apn_ambr->extendedapnambrfordownlinkunit = unit;
-    extended_apn_ambr->extendedapnambrfordownlink     = enc_ambr_dl;
+    unit_dl += 1;
   }
+  extended_apn_ambr->extendedapnambrfordownlinkunit = unit_dl;
 
-  while (enc_ambr_ul && 0xffffffffffff0000) {
+  extended_apn_ambr->extendedapnambrfordownlink = (enc_ambr_dl & 0xffff);
+  extended_apn_ambr->extendedapnambrfordownlink_continued = (enc_ambr_dl >> 8);
+
+  uint8_t unit_ul = 3;
+  while (enc_ambr_ul & 0xffffffffffff0000) {
     enc_ambr_ul = enc_ambr_ul >> 2;
-    unit += 1;
-    extended_apn_ambr->extendedapnambrforuplinkunit = unit;
-    extended_apn_ambr->extendedapnambrforuplink     = enc_ambr_ul;
+    unit_ul += 1;
   }
+  extended_apn_ambr->extendedapnambrforuplinkunit = unit_ul;
+
+  extended_apn_ambr->extendedapnambrforuplink = (enc_ambr_ul & 0xffff);
+  extended_apn_ambr->extendedapnambrforuplink_continued = (enc_ambr_ul >> 8);
 }
