@@ -9,11 +9,11 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NextPageToken Base 64 encoded page token for subsequent paginated API requests
-// swagger:model next_page_token
-type NextPageToken string
+// PageToken Base64-encoded page token for subsequent paginated API requests
+// swagger:model page_token
+type PageToken string
 
-// Validate validates this next page token
-func (m NextPageToken) Validate(formats strfmt.Registry) error {
+// Validate validates this page token
+func (m PageToken) Validate(formats strfmt.Registry) error {
 	return nil
 }

@@ -1376,11 +1376,9 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
       responses:
         '200':
-          description: All enodeBs registered in the network with pagination support
+          description: List eNodeBs registered registered in the network with pagination support
           schema:
-            type: object
-            additionalProperties:
-              $ref: '#/definitions/paginated_enodebs'
+            $ref: '#/definitions/paginated_enodebs'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -2615,23 +2613,24 @@ definitions:
         x-nullable: false
 
   paginated_enodebs:
-    description: Page of enodebs
-    properties:
-      next_page_token:
-        $ref: './orc8r-swagger-common.yml#/definitions/next_page_token'
-      enodebs:
-        additionalProperties:
-          $ref: '#/definitions/enodeb'
-          x-nullable: true
-        type: object
-      total_count:
-        description: estimated total number of enodebs
-        example: 10
-        format: int64
-        type: integer
-        x-nullable: false
+    description: Page of eNodeBs
     required:
-      - next_page_token
+      - page_token
       - enodebs
       - total_count
     type: object
+    properties:
+      page_token:
+        $ref: './orc8r-swagger-common.yml#/definitions/page_token'
+      enodebs:
+        additionalProperties:
+          $ref: '#/definitions/enodeb'
+          # The x-nullable flag is set to true to generate a map of pointers
+          x-nullable: true
+        type: object
+      total_count:
+        description: Estimated total number of eNodeBs
+        example: 10
+        format: uint64
+        type: integer
+        x-nullable: false

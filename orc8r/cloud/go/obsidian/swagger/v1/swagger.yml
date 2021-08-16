@@ -2338,11 +2338,10 @@ paths:
       - $ref: '#/parameters/page_token'
       responses:
         "200":
-          description: All enodeBs registered in the network with pagination support
+          description: List eNodeBs registered registered in the network with pagination
+            support
           schema:
-            additionalProperties:
-              $ref: '#/definitions/paginated_enodebs'
-            type: object
+            $ref: '#/definitions/paginated_enodebs'
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List all enodeBs in the network
@@ -10516,9 +10515,6 @@ definitions:
         example: theuamsecret
         type: string
     type: object
-  next_page_token:
-    description: Base 64 encoded page token for subsequent paginated API requests
-    type: string
   nh_routes:
     additionalProperties:
       type: string
@@ -10553,24 +10549,27 @@ definitions:
         example: 0.0.0
         type: string
     type: object
+  page_token:
+    description: Base64-encoded page token for subsequent paginated API requests
+    type: string
   paginated_enodebs:
-    description: Page of enodebs
+    description: Page of eNodeBs
     properties:
       enodebs:
         additionalProperties:
           $ref: '#/definitions/enodeb'
           x-nullable: true
         type: object
-      next_page_token:
-        $ref: '#/definitions/next_page_token'
+      page_token:
+        $ref: '#/definitions/page_token'
       total_count:
-        description: estimated total number of enodebs
+        description: Estimated total number of eNodeBs
         example: 10
-        format: int64
+        format: uint64
         type: integer
         x-nullable: false
     required:
-    - next_page_token
+    - page_token
     - enodebs
     - total_count
     type: object
@@ -10578,7 +10577,7 @@ definitions:
     description: Page of subscribers
     properties:
       next_page_token:
-        $ref: '#/definitions/next_page_token'
+        $ref: '#/definitions/page_token'
       subscribers:
         additionalProperties:
           $ref: '#/definitions/subscriber'

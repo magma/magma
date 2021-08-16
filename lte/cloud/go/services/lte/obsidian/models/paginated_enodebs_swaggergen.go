@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// PaginatedEnodebs Page of enodebs
+// PaginatedEnodebs Page of eNodeBs
 // swagger:model paginated_enodebs
 type PaginatedEnodebs struct {
 
@@ -21,13 +21,13 @@ type PaginatedEnodebs struct {
 	// Required: true
 	Enodebs map[string]*Enodeb `json:"enodebs"`
 
-	// next page token
+	// page token
 	// Required: true
-	NextPageToken NextPageToken `json:"next_page_token"`
+	PageToken PageToken `json:"page_token"`
 
-	// estimated total number of enodebs
+	// Estimated total number of eNodeBs
 	// Required: true
-	TotalCount int64 `json:"total_count"`
+	TotalCount uint64 `json:"total_count"`
 }
 
 // Validate validates this paginated enodebs
@@ -38,7 +38,7 @@ func (m *PaginatedEnodebs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateNextPageToken(formats); err != nil {
+	if err := m.validatePageToken(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -70,11 +70,11 @@ func (m *PaginatedEnodebs) validateEnodebs(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *PaginatedEnodebs) validateNextPageToken(formats strfmt.Registry) error {
+func (m *PaginatedEnodebs) validatePageToken(formats strfmt.Registry) error {
 
-	if err := m.NextPageToken.Validate(formats); err != nil {
+	if err := m.PageToken.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("next_page_token")
+			return ve.ValidateName("page_token")
 		}
 		return err
 	}
@@ -84,7 +84,7 @@ func (m *PaginatedEnodebs) validateNextPageToken(formats strfmt.Registry) error 
 
 func (m *PaginatedEnodebs) validateTotalCount(formats strfmt.Registry) error {
 
-	if err := validate.Required("total_count", "body", int64(m.TotalCount)); err != nil {
+	if err := validate.Required("total_count", "body", uint64(m.TotalCount)); err != nil {
 		return err
 	}
 

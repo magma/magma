@@ -50,7 +50,7 @@ import (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 func TestListNetworks(t *testing.T) {
@@ -2145,7 +2145,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	enodebs := &map[string]*lteModels.Enodeb{
+	enodebs := map[string]*lteModels.Enodeb{
 		"abcdefg": {
 			AttachedGatewayID: "gw1",
 			Config: &lteModels.EnodebConfiguration{
@@ -2209,9 +2209,9 @@ func TestListAndGetEnodebs(t *testing.T) {
 		},
 	}
 	expected := &lteModels.PaginatedEnodebs{
-		Enodebs:       *enodebs,
-		NextPageToken: "",
-		TotalCount:    2,
+		Enodebs:    enodebs,
+		PageToken:  "",
+		TotalCount: 2,
 	}
 
 	tc := tests.Test{
@@ -2225,10 +2225,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	expectedPageToken := "CgdhYmNkZWZn"
 	paginatedExpectation := &lteModels.PaginatedEnodebs{
-		Enodebs:       map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
-		NextPageToken: "CgdhYmNkZWZn",
-		TotalCount:    1,
+		Enodebs:    map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
+		PageToken:  lteModels.PageToken(expectedPageToken),
+		TotalCount: 2,
 	}
 	tc = tests.Test{
 		Method:         "GET",
@@ -2241,11 +2242,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 	paginatedExpectation.Enodebs = map[string]*lteModels.Enodeb{"vwxyz": expected.Enodebs["vwxyz"]}
-	paginatedExpectation.NextPageToken = ""
+	paginatedExpectation.PageToken = ""
 
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot + "?page_size=10&page_token=CgdhYmNkZWZn",
+		URL:            testURLRoot + "?page_size=10&page_token=" + expectedPageToken,
 		Handler:        listEnodebs,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
