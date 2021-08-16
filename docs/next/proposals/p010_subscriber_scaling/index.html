@@ -526,7 +526,7 @@ message ListSubscribersResponse {
 <li>Update gateway consumption: either retrofit streamer code to handle pagination, or migrate to unary RPC</li>
 <li>Updated NMS to handle paginated Orc8r REST API
 <ul>
-<li>Side note: <a href="https://github.com/magma/magma/blob/master/nms/app/packages/magmalte/app/state/lte/SubscriberState.js#L223-L240">NMS creates a gateway→subscriber map</a> based on getting all subscribers and all gateways. Move this functionality to an Orc8r <code>/lte/networks/{network_id}/gateways/{gateway_id}/subscribers</code> endpoint, fully removing the need for NMS to make get-all subscriber requests. May need to use state indexers pattern to implement this endpoint</li>
+<li>Side note: <a href="https://github.com/magma/magma/blob/master/nms/packages/magmalte/app/state/lte/SubscriberState.js#L223-L240">NMS creates a gateway→subscriber map</a> based on getting all subscribers and all gateways. Move this functionality to an Orc8r <code>/lte/networks/{network_id}/gateways/{gateway_id}/subscribers</code> endpoint, fully removing the need for NMS to make get-all subscriber requests. May need to use state indexers pattern to implement this endpoint</li>
 </ul></li>
 </ul></li>
 <li>[P1][S] Identify source of “DB statement too large” error and resolve
