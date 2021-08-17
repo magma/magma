@@ -52,7 +52,7 @@ binPyenv: "{{ dirHome }}/pyenv.run"
 pyenvVersion: 3.7.3
 magmaRootDir: "{{ dirHome }}/magma"
 magmaBuildDir: "{{ magmaRootDir }}/orc8r/cloud/docker"
-magmaNmsDir: "{{ magmaRootDir }}/nms/app/packages/magmalte"
+magmaNmsDir: "{{ magmaRootDir }}/nms/packages/magmalte"
 magmaPublishTag: latest
 dirShim: "{{ usrHome }}/.pyenv/shims/"
 usrProfile: "{{ dirHome }}/.profile"

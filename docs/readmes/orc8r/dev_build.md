@@ -74,7 +74,7 @@ for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MA
 Build and publish NMS images
 
 ```bash
-cd ${MAGMA_ROOT}/nms/app/packages/magmalte
+cd ${MAGMA_ROOT}/nms/packages/magmalte
 docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
 ```

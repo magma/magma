@@ -10,7 +10,7 @@ This guide covers tips for quickly validating NMS changes.
 
 ## Run tests on the host
 
-There are some simple tests that you should run after making changes. Before running the tests make sure to `cd ${MAGMA_ROOT}/nms/app` and run the tests from this directory.
+There are some simple tests that you should run after making changes. Before running the tests make sure to `cd ${MAGMA_ROOT}/nms` and run the tests from this directory.
 
 ### Pre-commit tests
 
