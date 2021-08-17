@@ -4,19 +4,15 @@ title: Hardware In Loop Testing
 hide_title: true
 ---
 
-<p align="center">
-    <a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL Sanity Run"></a>
-</p>
+<a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL Sanity Run"></a>
 
 # Hardware In Loop Tests
 
 Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and Performance tests. We cover
 gateway-only tests.
-
 HIL tests can be run with different gateway. However for now the automated runs are using physical [Protectli](https://protectli.com/vault-4-port) box.
 
 ### Lab Setup
-
 
 Spirent test emulation hardware is hosted in FB lab emulating eNODEB, UE and traffic host elements. gateway are also hosted in same lab. All tests are
 executed in worker node in FB lab. Reports and logs are pushed out to aws S3 for debug and analysis.
@@ -24,8 +20,8 @@ executed in worker node in FB lab. Reports and logs are pushed out to aws S3 for
 ### Run tests
 
 To setup HIL worker follow [instruction](https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation)
-
 Current Test categories supported are:
+
 1. Sanity (nightly run time - 30 minutes) update badge with latest results on magma main README
 1. Performance (nightly run time - 12hrs)
 1. Feature tests at scale - (nightly run time - 6 hrs)
@@ -45,7 +41,6 @@ Current Test categories supported are:
 ### Dashboard
 
 All test suite results and daily runs are available to compare on [dashboard](http://automation.fbmagma.ninja/) admin/test1234
-
 We can retrieve log and grafana metrics for each run by clicking on test run result table.
 
 ### Notification
