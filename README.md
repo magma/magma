@@ -7,13 +7,13 @@
 <p align="center">
     <a href="https://github.com/magma/magma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-BSD3clause-blue.svg" alt="License"></a>
     <a href="https://github.com/magma/magma/releases"><img src="https://img.shields.io/github/release/magma/magma" alt="GitHub Release"></a>
+    <a href="https://docs.magmacore.org/docs/next/contributing/contribute_workflow"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PR's Welcome"></a>
     <a href="https://github.com/magma/magma/graphs/contributors"><img src="https://img.shields.io/github/contributors/magma/magma" alt="GitHub contributors"></a>
     <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/last-commit/magma/magma" alt="GitHub last commit"></a>
     <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/commit-activity/y/magma/magma" alt="GitHub commit activity the past week"></a>
     <a href="https://circleci.com/gh/magma/magma"><img src="https://circleci.com/gh/magma/magma.svg?style=shield" alt="CircleCI"></a>
     <a href="https://codecov.io/gh/magma/magma"><img src="https://codecov.io/gh/magma/magma/branch/master/graph/badge.svg" alt="CodeCov"></a>
-    <a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL Sanity Last PASS"></a>
-    <a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL Sanity Run"></a>
+    <a href="docs/readmes/lte/hil_tests.md"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL Sanity Run"></a>
 </p>
 
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
