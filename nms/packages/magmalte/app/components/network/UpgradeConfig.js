@@ -191,13 +191,13 @@ function UpgradeConfig(props: WithAlert & {}) {
     }
 
     async function fetchAllData() {
-      const [networkUpgradeTiers, gateways] = await Promise.all([
+      const [networkUpgradeTiers, response] = await Promise.all([
         fetchAllNetworkUpgradeTiers(networkId),
         MagmaV1API.getNetworksByNetworkIdGateways({networkId}),
         fetchStableReleases(),
       ]);
 
-      setGateways(gateways);
+      setGateways(response.gateways);
       setNetworkUpgradeTiers(networkUpgradeTiers);
     }
 
@@ -239,10 +239,12 @@ function UpgradeConfig(props: WithAlert & {}) {
         gatewayId: gatewayID,
         tierId: JSON.stringify(`"${newTierID}"`),
       });
-      const gateways = await MagmaV1API.getNetworksByNetworkIdGateways({
-        networkId,
-      });
-      setGateways(gateways);
+      const paginated_gateways = await MagmaV1API.getNetworksByNetworkIdGateways(
+        {
+          networkId,
+        },
+      );
+      setGateways(paginated_gateways.gateways);
     } catch (error) {
       enqueueSnackbar(error.response?.data?.message || error, {
         variant: 'error',
