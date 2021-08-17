@@ -595,9 +595,8 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
 void SpgwStateConverter::proto_to_traffic_flow_template(
     const oai::TrafficFlowTemplate& tft_proto,
     traffic_flow_template_t* tft_state) {
-  tft_state->tftoperationcode      = tft_proto.tft_operation_code();
-  tft_state->numberofpacketfilters = tft_proto.number_of_packet_filters();
-  tft_state->ebit                  = tft_proto.ebit();
+  tft_state->tftoperationcode = tft_proto.tft_operation_code();
+  tft_state->ebit             = tft_proto.ebit();
 
   tft_state->parameterslist.num_parameters =
       tft_proto.parameters_list().num_parameters();
@@ -614,25 +613,30 @@ void SpgwStateConverter::proto_to_traffic_flow_template(
   auto* pft_state = &tft_state->packetfilterlist;
   switch (tft_proto.tft_operation_code()) {
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters =
+          pft_proto.delete_packet_filter_identifier_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         pft_state->deletepacketfilter[i].identifier =
             pft_proto.delete_packet_filter_identifier(i);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters = pft_proto.create_new_tft_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         proto_to_packet_filter(
             pft_proto.create_new_tft(i), &pft_state->createnewtft[i]);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters = pft_proto.add_packet_filter_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         proto_to_packet_filter(
             pft_proto.add_packet_filter(i), &pft_state->addpacketfilter[i]);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters = pft_proto.replace_packet_filter_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         proto_to_packet_filter(
             pft_proto.replace_packet_filter(i),
             &pft_state->replacepacketfilter[i]);
