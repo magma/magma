@@ -1,6 +1,6 @@
 ---
-name: "\U0001F680 Feature request"
-about: Suggest a new idea or functionality for the project
+name: "\U0001F680 Feedback form"
+about: Describe a problem, suggest a new idea or functionality for the project
 title: ''
 labels: 'type: feature'
 assignees: amarpad, ekowtaylor, talkhasib
@@ -14,25 +14,21 @@ assignees: amarpad, ekowtaylor, talkhasib
 - **Affected Subcomponent:** Orchestrator pod/service or AGW service
 - **Deployment Environment:** e.g. AWS (orc8r), local docker-compose (orc8r), bare-metal (AGW), Vagrant (AGW)
 
-### Describe the Feature
+### Describe the problem
 
-**Is your feature request related to a known issue? Please describe.**
-A clear and concise description of what the problem is and provide links to any relevant issues
+**Description**
+A clear and concise description of what the problem is, under which scenarios or how frequent it happen
 
-**Specify the applicable product use-cases**
-Magma product use-case support is growing, specify what use-cases apply including FWA, CWF, PLTE, MBB etc.
+**Additional context**
+Add any other context or screenshots about the problem here. You can also provide links to relevant resources.
 
-**Describe the solution you'd like**
-A clear and concise description of your preferred solution including links to design docs/proposals will be great.
+### Describe your idea(optional)
 
-**Describe alternatives you've considered**
+**Description**
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
-
-**Resources**
-Add any links or references to other useful documents or assets.
+Add any other context or screenshots about your solution.
 
 **Desired timelines**
 Share any information about timeline expectations.
