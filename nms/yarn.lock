@@ -1493,16 +1493,15 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.1.29":
-  version "0.1.29"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.29.tgz#9baf1eaa8d6f43448d98b26f34a162dd905f695c"
-  integrity sha512-1NqIvwvsozXYwGP/8dSF/AwypdwHmNqYRR9l7Npjbh8uSA7BXwAdxDzOH5jVBmNG4zMHKPlYtlm6TeeY3pD5Vg==
+"@fbcnms/platform-server@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.2.0.tgz#994b4e884af6578487255e0c14aaa607c73c2eeb"
+  integrity sha512-xHmHVWIhEAAl2/LcluAkXgDmV3NSkHNfIdTRdWH7WLaY4DPgkIc/KGb0O7ysBBPrlVEPMtrYiN5VREzfD2EI/A==
   dependencies:
     "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
     "@fbcnms/express-middleware" "^0.1.5"
     "@fbcnms/logging" "^0.1.0"
-    "@fbcnms/magma-api" "^0.1.0"
     "@fbcnms/sequelize-models" "^0.1.9"
     "@fbcnms/types" "^0.1.10"
     "@fbcnms/util" "^0.1.0"
@@ -1518,7 +1517,7 @@
     http-proxy-middleware "^0.21.0"
     https-proxy-agent "^2.2.1"
     immutability-helper "^2.9.0"
-    lodash "^4.17.11"
+    lodash "^4.17.21"
     mysql2 "^1.5.3"
     passport "^0.4.0"
     pug "^2.0.3"

@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import MagmaV1API from '../server/magma/index';
 import getCwfAlerts from './cwfAlerts';
 import getFegAlerts from './fegAlerts';
 import getLteAlerts from './lteAlerts';
