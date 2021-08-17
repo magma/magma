@@ -16,7 +16,7 @@
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
+import Alarms from '../insights/alarms/Alarms';
 import EditIcon from '@material-ui/icons/Edit';
 import PublicIcon from '@material-ui/icons/Public';
 import React from 'react';

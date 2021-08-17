@@ -14,9 +14,9 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
+import type {MetricGraphConfig} from '../insights/Metrics';
 
-import NetworkMetrics from '@fbcnms/ui/insights/NetworkMetrics';
+import NetworkMetrics from '../insights/NetworkMetrics';
 import React from 'react';
 
 export default function () {

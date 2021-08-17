@@ -27,7 +27,7 @@ import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {LTE, coalesceNetworkType} from '@fbcnms/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';

@@ -26,9 +26,9 @@ jest.mock('@fbcnms/magma-api');
 jest.mock('mapbox-gl', () => ({
   Map: () => ({}),
 }));
-jest.mock('@fbcnms/ui/insights/map/MapView', () => () => (
+jest.mock('../insights/map/MapView', () => () =>
   <div>Im the Map!</div>
-));
+);
 
 jest.mock('../main/Index', () => ({
   __esModule: true,

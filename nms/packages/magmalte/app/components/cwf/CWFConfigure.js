@@ -21,7 +21,7 @@ import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';
 
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function CWFConfigure() {

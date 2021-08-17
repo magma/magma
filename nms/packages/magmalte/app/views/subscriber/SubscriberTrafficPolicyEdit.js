@@ -28,7 +28,7 @@ import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';

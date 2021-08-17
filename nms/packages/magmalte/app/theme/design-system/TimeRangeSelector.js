@@ -20,7 +20,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import {makeStyles} from '@material-ui/styles';
-import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
+import type {TimeRange} from '../../components/insights/AsyncMetric';
 
 const useStyles = makeStyles(_ => ({
   outlined: {

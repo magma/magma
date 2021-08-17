@@ -21,7 +21,7 @@ import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {HEALTHY_STATUS, UNHEALTHY_STATUS} from '../../components/GatewayUtils';
 import {getLatency} from './EquipmentGatewayKPIs';
