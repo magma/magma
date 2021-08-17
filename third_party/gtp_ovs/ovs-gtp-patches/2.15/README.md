@@ -13,12 +13,4 @@ These patches should work on following kernel version:
 4. 5.4.50
 5. 5.6.19
 
-Steps to build package from source code.
-1. checkout magma repo, set MAGMA_ROOT to the repo root dir.
-2. cd $MAGMA_ROOT/third_party/gtp_ovs/ovs/2.14/
-3. git clone https://github.com/openvswitch/ovs
-4. cd ovs/
-5. git checkout branch-2.14 /* Checkout ovs2.14.1 */
-6. git am ../00*
-7. DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
-8. Packages are copied in parent (..) dir
+Use build.sh to build OVS debian packages.

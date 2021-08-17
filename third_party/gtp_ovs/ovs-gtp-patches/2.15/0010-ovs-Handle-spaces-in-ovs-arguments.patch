@@ -1,7 +1,7 @@
-From e06cfab4d2493ffd18362bf318f4f0cecf52fd85 Mon Sep 17 00:00:00 2001
+From 709fb8e5138c1078a32cd0c15fccad5d0ab7926d Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 13 Mar 2020 19:18:40 +0000
-Subject: [PATCH 13/20] ovs: Handle spaces in ovs arguments
+Subject: [PATCH 10/17] ovs: Handle spaces in ovs arguments
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
@@ -12,7 +12,7 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  4 files changed, 62 insertions(+), 12 deletions(-)
 
 diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
-index 4db224df1..bcd67bae9 100644
+index b3a005154..6cf556617 100644
 --- a/lib/ofp-actions.c
 +++ b/lib/ofp-actions.c
 @@ -6297,8 +6297,11 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)

@@ -1,7 +1,7 @@
-From 8b12eded5c5cb2ea72213b495d22e8dd3d669df2 Mon Sep 17 00:00:00 2001
+From 0258964c72c6a8a2c9a271c3841e5bb7782cc549 Mon Sep 17 00:00:00 2001
 From: Nick Yurchenko <koolzz@fb.com>
 Date: Mon, 1 Feb 2021 21:46:32 -0500
-Subject: [PATCH 14/20] Add pdp_start_epoch custom field to IPFIX export
+Subject: [PATCH 11/17] Add pdp_start_epoch custom field to IPFIX export
 
 Signed-off-by: Nick Yurchenko <koolzz@fb.com>
 ---
@@ -14,10 +14,10 @@ Signed-off-by: Nick Yurchenko <koolzz@fb.com>
  6 files changed, 24 insertions(+), 10 deletions(-)
 
 diff --git a/include/openvswitch/ofp-actions.h b/include/openvswitch/ofp-actions.h
-index 02f17fa7e..9d1f7c6a1 100644
+index 70e6b92a9..4b2491d63 100644
 --- a/include/openvswitch/ofp-actions.h
 +++ b/include/openvswitch/ofp-actions.h
-@@ -1021,6 +1021,7 @@ struct ofpact_sample {
+@@ -1023,6 +1023,7 @@ struct ofpact_sample {
          uint8_t msisdn[16];
          struct eth_addr apn_mac_addr;
          uint8_t apn_name[24];
@@ -47,7 +47,7 @@ index 9dbff67a4..a32ab220b 100644
  int odp_put_userspace_action(uint32_t pid,
                               const void *userdata, size_t userdata_size,
 diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
-index bcd67bae9..713d45108 100644
+index 6cf556617..8f499c386 100644
 --- a/lib/ofp-actions.c
 +++ b/lib/ofp-actions.c
 @@ -6159,10 +6159,11 @@ struct nx_action_sample2 {
@@ -193,10 +193,10 @@ index dda89f409..1639bf683 100644
      }
      ovs_mutex_unlock(&mutex);
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 395fec9bc..87e3c2d84 100644
+index 7bfcccc93..ff9225304 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -5644,6 +5644,7 @@ xlate_sample_action(struct xlate_ctx *ctx,
+@@ -5645,6 +5645,7 @@ xlate_sample_action(struct xlate_ctx *ctx,
      cookie.flow_sample.direction = os->direction;
      cookie.flow_sample.flow_metadata = ctx->xin->flow.metadata;
      cookie.flow_sample.app_name = ctx->xin->flow.regs[10];

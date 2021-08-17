@@ -1,7 +1,7 @@
-From c1b11c6bd1284be65fd08048df34c5774d618c45 Mon Sep 17 00:00:00 2001
+From ebec83fbe445bbf44879eab81de15475a43baaf5 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
-Date: Mon, 29 Jun 2020 02:45:36 +0000
-Subject: [PATCH 05/20] OVS: gtp echo handling
+Date: Fri, 13 Aug 2021 07:15:40 +0000
+Subject: [PATCH 05/17] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
@@ -319,7 +319,7 @@ index 73dce2fca..d6adcedc8 100644
  
  int netdev_register_provider(const struct netdev_class *);
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 0f3d587e0..6d0fd8888 100644
+index af4a1808e..420e36ff0 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -29,6 +29,7 @@
@@ -338,7 +338,7 @@ index 0f3d587e0..6d0fd8888 100644
  #include "openvswitch/dynamic-string.h"
  #include "ovs-router.h"
  #include "packets.h"
-@@ -573,7 +575,8 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+@@ -578,7 +580,8 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
      int err;
  
      has_csum = strstr(type, "gre") || strstr(type, "geneve") ||
@@ -348,7 +348,7 @@ index 0f3d587e0..6d0fd8888 100644
      has_seq = strstr(type, "gre");
      memset(&tnl_cfg, 0, sizeof tnl_cfg);
  
-@@ -1129,6 +1132,171 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
+@@ -1152,6 +1155,171 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
  
  
  #ifdef __linux__
@@ -520,7 +520,7 @@ index 0f3d587e0..6d0fd8888 100644
  static int
  netdev_vport_get_ifindex(const struct netdev *netdev_)
  {
-@@ -1254,6 +1422,11 @@ netdev_vport_tunnel_register(void)
+@@ -1277,6 +1445,11 @@ netdev_vport_tunnel_register(void)
                .build_header = netdev_gtpu_build_header,
                .push_header = netdev_gtpu_push_header,
                .pop_header = netdev_gtpu_pop_header,
@@ -532,7 +532,7 @@ index 0f3d587e0..6d0fd8888 100644
            },
            {{NULL, NULL, 0, 0}}
          },
-@@ -1272,6 +1445,9 @@ netdev_vport_tunnel_register(void)
+@@ -1303,6 +1476,9 @@ netdev_vport_tunnel_register(void)
          unixctl_command_register("tnl/egress_port_range", "min max", 0, 2,
                                   netdev_tnl_egress_port_range, NULL);
  
@@ -589,10 +589,10 @@ index 91e91955c..1bc5abfc8 100644
 +    return EOPNOTSUPP;
 +}
 diff --git a/lib/netdev.h b/lib/netdev.h
-index 4877df5ff..633ac88f1 100644
+index b67ae08f8..9a292bfb5 100644
 --- a/lib/netdev.h
 +++ b/lib/netdev.h
-@@ -142,6 +142,11 @@ struct netdev_tunnel_config {
+@@ -143,6 +143,11 @@ struct netdev_tunnel_config {
      bool erspan_hwid_flow;
  
      bool gtp_random_src_port;
@@ -604,7 +604,7 @@ index 4877df5ff..633ac88f1 100644
  };
  
  void netdev_run(void);
-@@ -329,6 +334,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
+@@ -330,6 +335,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
                              unsigned int *queue_id, struct smap *details);
  int netdev_queue_dump_done(struct netdev_queue_dump *);
  
@@ -656,10 +656,10 @@ index bb0e49091..42bf211e9 100644
                  MSEC_TO_PRIO(next_wake_time));
  }
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 1f78da105..1ee6845e6 100644
+index 7108c8a30..6c882b9f7 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -7954,17 +7954,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
+@@ -7955,17 +7955,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
   * May modify 'packet'.
   * Returns 0 if successful, otherwise a positive errno value. */
  int
@@ -680,7 +680,7 @@ index 1f78da105..1ee6845e6 100644
      flow_extract(packet, &flow);
      flow.in_port.ofp_port = OFPP_NONE;
  
-@@ -7973,19 +7970,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
+@@ -7974,19 +7971,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
          return EINVAL;
      }
  
@@ -733,10 +733,10 @@ index 3426a27b2..5d1bd84d5 100644
  void xlate_mac_learning_update(const struct ofproto_dpif *ofproto,
                                 ofp_port_t in_port, struct eth_addr dl_src,
 diff --git a/ofproto/ofproto-dpif.c b/ofproto/ofproto-dpif.c
-index 34cb1793c..5b59c4f5e 100644
+index 5ce56adfa..8bfe746e7 100644
 --- a/ofproto/ofproto-dpif.c
 +++ b/ofproto/ofproto-dpif.c
-@@ -5284,6 +5284,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,
+@@ -5285,6 +5285,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,
      ovs_mutex_unlock(&ofproto->stats_mutex);
      return error;
  }
@@ -761,7 +761,7 @@ index 34cb1793c..5b59c4f5e 100644
  /* Return the version string of the datapath that backs up
   * this 'ofproto'.
 diff --git a/ofproto/ofproto-dpif.h b/ofproto/ofproto-dpif.h
-index 6e5cfe38d..4a8f49cf4 100644
+index 191cfcb0d..c9f6000a8 100644
 --- a/ofproto/ofproto-dpif.h
 +++ b/ofproto/ofproto-dpif.h
 @@ -373,6 +373,8 @@ void ofproto_dpif_send_async_msg(struct ofproto_dpif *,
@@ -818,7 +818,7 @@ index 490c59e04..bc94680f0 100644
  #                [tunnel-args])
  #
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 141a7afb4..83c9c4593 100644
+index 913dcd4a8..8f9feac70 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
 @@ -49,58 +49,6 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
@@ -880,9 +880,9 @@ index 141a7afb4..83c9c4593 100644
  AT_SETUP([layer3 - ping over GRE])
  OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
  OVS_CHECK_GRE_L3()
-@@ -205,3 +153,248 @@ AT_CHECK([tail -1 stdout], [0],
- 
- OVS_VSWITCHD_STOP
+@@ -301,3 +249,248 @@ NS_CHECK_EXEC([at_ns1], [ping -q -c 3 -i 0.3 -w 2 10.1.1.1 | FORMAT_PING], [0],
+ ])
+ OVS_TRAFFIC_VSWITCHD_STOP
  AT_CLEANUP
 +
 +AT_SETUP([layer3 - ping over GTP])

@@ -1,7 +1,7 @@
-From 6a30c02a8cb201660ae6acafe63b468a7e88e78d Mon Sep 17 00:00:00 2001
+From c521d693baf23e132dea5859039a2427a5409e19 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 00:55:30 -0800
-Subject: [PATCH 03/20] datapath: add vport-gtp for GPRS Tunneling Protocol
+Subject: [PATCH 03/17] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
@@ -34,10 +34,10 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  create mode 100644 datapath/vport-gtp.c
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 49ad9e8d0..d14cde02b 100644
+index 15a54d636..6befc71bb 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -647,6 +647,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -650,6 +650,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
  
    OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [IFLA_GENEVE_TOS])
    OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [rtnl_link_stats64])
@@ -46,7 +46,7 @@ index 49ad9e8d0..d14cde02b 100644
    OVS_GREP_IFELSE([$KSRC/include/linux/if_link.h], [rtnl_link_stats64])
    OVS_GREP_IFELSE([$KSRC/include/linux/if_vlan.h], [vlan_set_encap_proto])
    OVS_GREP_IFELSE([$KSRC/include/linux/if_vlan.h], [vlan_hwaccel_push_inside])
-@@ -681,6 +683,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -684,6 +686,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
                    [OVS_DEFINE([HAVE_INET_FRAGS_LAST_IN])])
    OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frag_evicting])
    OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frag_evictor])
@@ -54,7 +54,7 @@ index 49ad9e8d0..d14cde02b 100644
    OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
                          [frags_work])
    OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
-@@ -981,6 +984,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -982,6 +985,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
                    [OVS_DEFINE([HAVE_NET_NAME_UNKNOWN])])
  
    OVS_GREP_IFELSE([$KSRC/include/net/sock.h], [sk_no_check_tx])
@@ -83,7 +83,7 @@ index 3c4ae366c..9d930f7a1 100644
  vport_stt_sources = vport-stt.c
  nsh_sources = nsh.c
 diff --git a/datapath/linux/Modules.mk b/datapath/linux/Modules.mk
-index 63a5cbae4..83df7ac5b 100644
+index 372243988..9d47dac4b 100644
 --- a/datapath/linux/Modules.mk
 +++ b/datapath/linux/Modules.mk
 @@ -4,6 +4,7 @@ openvswitch_sources += \
@@ -2192,7 +2192,7 @@ index 000000000..3a97956f6
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("vport-type-110");
 diff --git a/datapath/vport.c b/datapath/vport.c
-index f929282dc..dfb6dcca4 100644
+index bd62c5612..bc9574015 100644
 --- a/datapath/vport.c
 +++ b/datapath/vport.c
 @@ -33,6 +33,7 @@
@@ -2257,7 +2257,7 @@ index 9d5e24a29..490c59e04 100644
  m4_define([OVS_CHECK_8021AD],
      [AT_SKIP_IF([! grep -q "VLAN header stack length probed as" ovs-vswitchd.log])
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 1232964bb..141a7afb4 100644
+index d21fd777d..913dcd4a8 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
 @@ -49,11 +49,64 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
