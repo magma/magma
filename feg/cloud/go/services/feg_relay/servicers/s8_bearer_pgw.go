@@ -19,7 +19,6 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
-	"magma/orc8r/lib/go/errors"
 	orc8r_protos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -34,30 +33,57 @@ func (srv *FegToGwRelayServer) CreateBearer(
 	ctx context.Context,
 	req *fegprotos.CreateBearerRequestPgw,
 ) (*orc8r_protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
-		return nil, err
-	}
 	if req == nil {
 		err := fmt.Errorf("unable to send CreateBearerPGW, request is nil: ")
 		glog.Error(err)
 		return nil, err
 	}
 	teid := fmt.Sprint(req.CAgwTeid)
+	client, ctx, err := getS8ProxyResponderClient(ctx, teid)
+	if err != nil {
+		err = fmt.Errorf("unable to get S8ProxyResponderClient: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	return client.CreateBearer(ctx, req)
+}
+
+// DeleteBearerRequest relays the DeleteBearerRequest from S8_proxy to a corresponding
+// dispatcher service instance, who will in turn relay the request to the
+// corresponding AGW gateway
+func (srv *FegToGwRelayServer) DeleteBearerRequest(
+	ctx context.Context,
+	req *fegprotos.DeleteBearerRequestPgw,
+) (*orc8r_protos.Void, error) {
+	if req == nil {
+		err := fmt.Errorf("unable to send DeleteBearerPGW, request is nil: ")
+		glog.Error(err)
+		return nil, err
+	}
+	teid := fmt.Sprint(req.CAgwTeid)
+	client, ctx, err := getS8ProxyResponderClient(ctx, teid)
+	if err != nil {
+		err = fmt.Errorf("unable to get S8ProxyResponderClient: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	return client.DeleteBearerRequest(ctx, req)
+}
+
+func getS8ProxyResponderClient(ctx context.Context, teid string) (
+	fegprotos.S8ProxyResponderClient, context.Context, error) {
+	if err := validateFegContext(ctx); err != nil {
+		return nil, ctx, err
+	}
 	hwId, err := getHwIDFromTeid(ctx, teid)
 	if err != nil {
-		err = fmt.Errorf("unable to get HwID from TEID %s. err: %v", teid, err)
-		glog.Error(err)
-		if _, ok := err.(errors.ClientInitError); ok {
-			// CauseNoResourcesAvailable uint8 = 73
-			return nil, err
-		}
+		return nil, ctx, fmt.Errorf("unable to get HwID from TEID %s. err: %v", teid, err)
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(
 		gateway_registry.GwS8Service, hwId)
 	if err != nil {
 		err = fmt.Errorf("unable to get connection to the gateway ID: %s", hwId)
-		return nil, err
+		return nil, ctx, err
 	}
-	client := fegprotos.NewS8ProxyResponderClient(conn)
-	return client.CreateBearer(ctx, req)
+	return fegprotos.NewS8ProxyResponderClient(conn), ctx, nil
 }
