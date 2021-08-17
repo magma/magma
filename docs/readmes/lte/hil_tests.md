@@ -32,6 +32,7 @@ Current Test categories supported are:
 1. Availability - Every day for 12hrs period
 
 ### HIL SANITY TEST CASES
+
 1. Verify 12 eNodeBs can connect to a Magma Access Gateway
 1. Verify 200 UEs at 5 UE/sec can connect to a Magma Access Gateway
 1. Verify 400 UEs at 5 UE/sec can connect to a Magma Access Gateway
@@ -42,11 +43,13 @@ Current Test categories supported are:
 1. Verify 30 UEs across 12 eNodeBs with 500K data changing state from active-idle-active-idle
 
 ### Dashboard
+
 All test suite results and daily runs are available to compare on [dashboard](http://automation.fbmagma.ninja/) admin/test1234
 
 We can retrieve log and grafana metrics for each run by clicking on test run result table.
 
 ### Notification
+
 All test suite run send notification to slack channel which is used as alerting mechanism.
 please join slack [chennal](https://magmacore.slack.com/archives/C02164DSGPM) for regular update
 
