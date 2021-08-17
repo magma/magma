@@ -19,7 +19,7 @@ import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-import CloudMetrics from '@fbcnms/ui/master/CloudMetrics';
+import CloudMetrics from '../../views/metrics/CloudMetrics';
 import Features from '@fbcnms/ui/master/Features';
 import FlagIcon from '@material-ui/icons/Flag';
 import NavListItem from '@fbcnms/ui/components/NavListItem';

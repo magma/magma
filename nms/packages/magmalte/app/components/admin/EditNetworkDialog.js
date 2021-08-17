@@ -21,7 +21,7 @@ import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {CWF, FEG} from '@fbcnms/types/network';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';

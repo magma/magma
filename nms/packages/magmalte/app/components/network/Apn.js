@@ -36,7 +36,7 @@ import TableRow from '@material-ui/core/TableRow';
 import {Route, withRouter} from 'react-router-dom';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';

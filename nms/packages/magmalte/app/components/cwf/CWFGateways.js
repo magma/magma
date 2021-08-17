@@ -42,7 +42,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route} from 'react-router-dom';

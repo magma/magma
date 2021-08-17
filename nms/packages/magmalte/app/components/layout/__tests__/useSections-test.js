@@ -25,7 +25,7 @@ import {act, renderHook} from '@testing-library/react-hooks';
 const enqueueSnackbarMock = jest.fn();
 jest.mock('@fbcnms/magma-api');
 jest.mock('mapbox-gl', () => {});
-jest.mock('@fbcnms/ui/insights/map/MapView', () => {});
+jest.mock('../../insights/map/MapView', () => {});
 jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);

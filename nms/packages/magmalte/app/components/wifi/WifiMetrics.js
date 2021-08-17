@@ -13,12 +13,12 @@
  * @flow strict-local
  * @format
  */
-import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
-import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
+import type {MetricGraphConfig} from '../insights/Metrics';
+import type {TimeRange} from '../insights/AsyncMetric';
 import type {WifiGateway} from './WifiUtils';
 
 import AppBar from '@material-ui/core/AppBar';
-import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
+import AsyncMetric from '../insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import FormControl from '@material-ui/core/FormControl';
@@ -31,17 +31,17 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TimeRangeSelector from '@fbcnms/ui/insights/TimeRangeSelector';
+import TimeRangeSelector from '../insights/TimeRangeSelector';
 import WifiSelectMesh from './WifiSelectMesh';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {Route} from 'react-router-dom';
 import {buildWifiGatewayFromPayloadV1} from './WifiUtils';
 import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
-import {resolveQuery} from '@fbcnms/ui/insights/Metrics';
+import {resolveQuery} from '../insights/Metrics';
 import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
