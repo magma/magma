@@ -316,9 +316,9 @@ class MagmaService(Service303Servicer):
         log_level_from_config = self._get_log_level_from_config()
         log_level_from_mconfig = self._get_log_level_from_mconfig()
 
-        if log_level_from_config:
+        if log_level_from_config is not None:
             log_level = log_level_from_config
-        elif log_level_from_mconfig:
+        elif log_level_from_mconfig is not None:
             log_level = log_level_from_mconfig
         else:
             logging.warning(
