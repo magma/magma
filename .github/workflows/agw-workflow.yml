@@ -110,7 +110,6 @@ jobs:
         run: |
             docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
       - name: Run session_manager tests
-        timeout-minutes: 10
         run: |
             docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
       - name: Extract commit title
@@ -268,7 +267,6 @@ jobs:
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
       - name: Run mme-clang-tidy
-        timeout-minutes: 40
         # yamllint disable rule:line-length
         run: |
             docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
@@ -303,7 +301,6 @@ jobs:
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
       - name: Run mme-clang-warnings
-        timeout-minutes: 40
         # yamllint disable rule:line-length
         run: |
             docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .

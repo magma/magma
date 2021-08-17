@@ -34,6 +34,7 @@ func (credits *UsedCredits) FromCreditUsage(usage *protos.CreditUsage) *UsedCred
 	credits.OutputOctets = usage.BytesRx // receive == output
 	credits.TotalOctets = usage.BytesTx + usage.BytesRx
 	credits.Type = UsedCreditsType(usage.Type)
+	credits.ServiceIdentifier = fromServiceIdentifier(usage.ServiceIdentifier)
 	return credits
 }
 

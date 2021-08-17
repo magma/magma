@@ -72,6 +72,9 @@ const handleReact = tab =>
   };
 
 router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));
+router.use('/version', (req: FBCNMSRequest, res) =>
+  res.send(process.env.VERSION_TAG),
+);
 router.use('/admin', access(AccessRoles.SUPERUSER), adminRoutes);
 router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
 router.use('/nms/apicontroller', apiControllerRoutes);

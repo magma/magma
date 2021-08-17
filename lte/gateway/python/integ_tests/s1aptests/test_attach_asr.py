@@ -16,7 +16,7 @@ import unittest
 
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from integ_tests.s1aptests.ovs.rest_api import get_datapath
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, SpgwUtil
 
 

@@ -1033,15 +1033,19 @@ void LocalEnforcer::handle_session_activate_rule_updates(
   }
 }
 
-void LocalEnforcer::init_session(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg,
-    const CreateSessionResponse& response) {
-  const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
-  auto session                = std::make_unique<SessionState>(
-      imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
-      time_since_epoch, response);
-  session_map[imsi].push_back(std::move(session));
+std::unique_ptr<SessionState> LocalEnforcer::create_initializing_session(
+    const std::string& session_id, const SessionConfig& cfg) {
+  return std::make_unique<SessionState>(
+      session_id, cfg, *rule_store_, magma::get_time_in_sec_since_epoch());
+}
+
+void LocalEnforcer::update_session_with_policy_response(
+    std::unique_ptr<SessionState>& session,
+    const CreateSessionResponse& response,
+    SessionStateUpdateCriteria* session_uc) {
+  session->set_tgpp_context(response.tgpp_ctx(), session_uc);
+  session->set_create_session_response(response, session_uc);
+  session->set_fsm_state(SESSION_ACTIVE, session_uc);
 }
 
 void LocalEnforcer::add_ue_to_shard(

@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include <glog/logging.h>
 
 extern "C" {
 #include "log.h"
@@ -145,9 +144,3 @@ TEST(test_s1ap_handle_new_association, reassociate) {
 
 }  // namespace lte
 }  // namespace magma
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
-  return RUN_ALL_TESTS();
-}

@@ -43,7 +43,7 @@ type ctracedBlobStore struct {
 
 // StoreCallTrace
 func (c *ctracedBlobStore) StoreCallTrace(networkID string, callTraceID string, data []byte) error {
-	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: false})
+	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}

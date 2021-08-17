@@ -67,6 +67,7 @@ services:
       MYSQL_DIALECT: postgres
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_DOWNLOAD: "true"
+      VERSION_TAG: DEV
     healthcheck:
       test: curl -If localhost:8081/healthz
     restart: on-failure

@@ -10,8 +10,10 @@
  */
 
 #include "util_nas5g_pkt.h"
-#include "dynamic_memory_check.h"
 #include <gtest/gtest.h>
+#include "intertask_interface.h"
+#include "../../tasks/amf/amf_app_ue_context_and_proc.h"
+
 
 extern "C" {
 #include "dynamic_memory_check.h"
@@ -298,6 +300,27 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_accept) {
       nas_msg.security_protected.plain.amf.msg.service_accept
           .pdu_re_activation_status.pduSessionReActivationResult,
       PDU_SESSION_ID);
+}
+TEST(test_amf_data_struct, test_ue_context_creation) {
+  ue_m5gmm_context_s* ue_context = nullptr;
+
+  ue_context = amf_create_new_ue_context();
+  EXPECT_TRUE(nullptr != ue_context);
+  EXPECT_TRUE(0 == ue_context->amf_teid_n11);
+  EXPECT_TRUE(0 == ue_context->paging_context.paging_retx_count);
+  delete ue_context;
+}
+
+TEST(test_smf_context_struct, test_smf_context_creation) {
+  ue_m5gmm_context_s* ue_context = nullptr;
+  smf_context_t* smf_context     = nullptr;
+
+  ue_context             = amf_create_new_ue_context();
+  uint8_t pdu_session_id = 10;
+  smf_context            = amf_insert_smf_context(ue_context, pdu_session_id);
+  EXPECT_TRUE(0 == smf_context->n_active_pdus);
+  EXPECT_TRUE(0 == smf_context->pdu_session_version);
+  delete ue_context;
 }
 
 int main(int argc, char** argv) {

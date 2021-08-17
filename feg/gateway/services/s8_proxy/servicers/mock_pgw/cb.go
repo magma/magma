@@ -124,28 +124,28 @@ func buildNewBearerTFTCreateNewTFT(req CreateBearerRequest) *ie.IE {
 		[]*ie.TFTPacketFilter{
 			ie.NewTFTPacketFilter(
 				ie.TFTPFBidirectional, 0, 0,
-				// component 0
+				// component 0.0
 				ie.NewTFTPFComponentSecurityParameterIndex(0xdeadbeef),
-				// component 1
+				// component 0.1
 				ie.NewTFTPFComponentIPv4RemoteAddress(net.IP{127, 0, 0, 1}, net.IPMask{255, 255, 255, 0}),
-				// component 2
+				// component 0.2
 				ie.NewTFTPFComponentProtocolIdentifierNextHeader(req.BiFilterProtocolId),
-				// component 3
+				// component 0.3
 				ie.NewTFTPFComponentTypeOfServiceTrafficClass(1, 2),
-				// component 4
+				// component 0.4
 				ie.NewTFTPFComponentSingleLocalPort(req.BiLocalFilterPort),
-				// component 5
+				// component 0.5
 				ie.NewTFTPFComponentSingleRemotePort(req.BiRemoteFilterPort),
 			),
 			ie.NewTFTPacketFilter(
 				ie.TFTPFDownlinkOnly, 1, 0,
-				// component 6
+				// component 1.0
 				ie.NewTFTPFComponentProtocolIdentifierNextHeader(1),
-				// component 7
+				// component 1.1
 				ie.NewTFTPFComponentSecurityParameterIndex(0xdeadbeef),
-				// component 8
+				// component 1.2
 				ie.NewTFTPFComponentLocalPortRange(req.BiLocalFilterPort, req.BiLocalFilterPort+10),
-				// component 9
+				// component 1.3
 				ie.NewTFTPFComponentRemotePortRange(req.BiRemoteFilterPort, req.BiRemoteFilterPort+10),
 			),
 		},

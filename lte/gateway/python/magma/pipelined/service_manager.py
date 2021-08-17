@@ -80,8 +80,8 @@ from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.rule_mappers import (
-    RuleIDToNumMapper,
     RestartInfoStore,
+    RuleIDToNumMapper,
     SessionRuleToVersionMapper,
 )
 from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper

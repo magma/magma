@@ -93,7 +93,6 @@ int create_session_grpc_req_on_gnb_setup_rsp(
       LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
 
   AsyncSmfServiceClient::getInstance().set_smf_session(req);
-  OAILOG_DEBUG(LOG_AMF_APP, "sent Establish Request 2nd time to SMF");
 
   return rc;
 }
@@ -110,6 +109,9 @@ int amf_smf_create_ipv4_session_grpc_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr) {
+  OAILOG_INFO(
+      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
+      imsi);
   return AsyncSmfServiceClient::getInstance().amf_smf_create_pdu_session_ipv4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
       gnb_gtp_teid_ip_addr, ipv4_addr, VERSION_0);
@@ -125,6 +127,9 @@ int amf_smf_create_ipv4_session_grpc_req(
  * ***************************************************************************/
 int amf_smf_create_pdu_session(
     amf_smf_establish_t* message, char* imsi, uint32_t version) {
+  OAILOG_INFO(
+      LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
+      imsi);
   AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
       imsi, "internet", message->pdu_session_id, message->pti, AF_INET,
       message->gnb_gtp_teid, 4, message->gnb_gtp_teid_ip_addr, 4);

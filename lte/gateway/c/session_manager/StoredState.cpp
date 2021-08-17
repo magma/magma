@@ -84,6 +84,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
   uc.is_session_level_key_updated = false;
   uc.is_bearer_mapping_updated    = false;
   uc.policy_version_and_stats     = {};
+  uc.create_session_response      = {};
   return uc;
 }
 

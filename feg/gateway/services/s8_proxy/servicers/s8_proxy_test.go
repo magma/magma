@@ -705,67 +705,56 @@ func TestCreateBearerRequest(t *testing.T) {
 	assert.Equal(t, uint32(DEDICATEDBEARER), cbReqReceived.BearerContext.Id)
 	assert.Equal(t, uint32(pgwCreateBearerRequest.QosQCI), cbReqReceived.BearerContext.Qos.Qci)
 	packetFilterComponents := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft
-	assert.Equal(t, 10, len(packetFilterComponents))
+	assert.Equal(t, 2, len(packetFilterComponents))
 
 	// check filter components
-	// component 0
-	tft := packetFilterComponents[0]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	assert.Equal(t, uint32(0), tft.Identifier)
-	assert.Equal(t, ie.PFCompSecurityParameterIndex, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, uint32(0xdeadbeef), tft.PacketFilterContents.SecurityParameterIndex)
+	assert.Equal(t, 6, len(packetFilterComponents[0].PacketFilterContents))
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), packetFilterComponents[0].Direction)
+	assert.Equal(t, uint32(0), packetFilterComponents[0].Identifier)
+	assert.Equal(t, 4, len(packetFilterComponents[1].PacketFilterContents))
+	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), packetFilterComponents[1].Direction)
+	assert.Equal(t, uint32(1), packetFilterComponents[1].Identifier)
 
-	// component 1
-	tft = packetFilterComponents[1]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	assert.Equal(t, uint32(0), tft.Identifier)
-	assert.Equal(t, ie.PFCompIPv4RemoteAddress, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, ip2Long("127.0.0.1"), tft.PacketFilterContents.Ipv4RemoteAddresses[0].Addr)
+	// component 0.0
+	tft := packetFilterComponents[0].PacketFilterContents[0]
+	assert.Equal(t, ie.PFCompSecurityParameterIndex, uint8(tft.Flags))
+	assert.Equal(t, uint32(0xdeadbeef), tft.SecurityParameterIndex)
 
-	// component 2
-	tft = packetFilterComponents[2]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	assert.Equal(t, uint32(0), tft.Identifier)
-	assert.Equal(t, ie.PFCompProtocolIdentifierNextHeader, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, pgwCreateBearerRequest.BiFilterProtocolId, uint8(tft.PacketFilterContents.ProtocolIdentifierNextheader))
+	// component 0.1
+	tft = packetFilterComponents[0].PacketFilterContents[1]
+	assert.Equal(t, ie.PFCompIPv4RemoteAddress, uint8(tft.Flags))
+	assert.Equal(t, ip2Long("127.0.0.1"), tft.Ipv4RemoteAddresses[0].Addr)
 
-	// component 3
-	tft = packetFilterComponents[3]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	assert.Equal(t, uint32(0), tft.Identifier)
-	assert.Equal(t, ie.PFCompTypeOfServiceTrafficClass, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, uint32(1), tft.PacketFilterContents.TypeOfServiceTrafficClass.Value)
-	assert.Equal(t, uint32(2), tft.PacketFilterContents.TypeOfServiceTrafficClass.Mask)
+	// component 0.2
+	tft = packetFilterComponents[0].PacketFilterContents[2]
+	assert.Equal(t, ie.PFCompProtocolIdentifierNextHeader, uint8(tft.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiFilterProtocolId, uint8(tft.ProtocolIdentifierNextheader))
 
-	// component 4
-	tft = packetFilterComponents[4]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	assert.Equal(t, uint32(0), tft.Identifier)
-	assert.Equal(t, ie.PFCompSingleLocalPort, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.PacketFilterContents.SingleLocalPort))
+	// component 0.3
+	tft = packetFilterComponents[0].PacketFilterContents[3]
+	assert.Equal(t, ie.PFCompTypeOfServiceTrafficClass, uint8(tft.Flags))
+	assert.Equal(t, uint32(1), tft.TypeOfServiceTrafficClass.Value)
+	assert.Equal(t, uint32(2), tft.TypeOfServiceTrafficClass.Mask)
 
-	// component 5
-	tft = packetFilterComponents[5]
-	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
-	assert.Equal(t, uint32(0), tft.Identifier)
-	assert.Equal(t, ie.PFCompSingleRemotePort, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.PacketFilterContents.SingleRemotePort))
+	// component 0.4
+	tft = packetFilterComponents[0].PacketFilterContents[4]
+	assert.Equal(t, ie.PFCompSingleLocalPort, uint8(tft.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.SingleLocalPort))
 
-	// component 8
-	tft = packetFilterComponents[8]
-	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft.Direction)
-	assert.Equal(t, uint32(1), tft.Identifier)
-	assert.Equal(t, ie.PFCompLocalPortRange, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.PacketFilterContents.LocalPortRange.LowLimit))
-	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort+10, uint16(tft.PacketFilterContents.LocalPortRange.HighLimit))
+	// component 0.5
+	tft = packetFilterComponents[0].PacketFilterContents[5]
+	assert.Equal(t, ie.PFCompSingleRemotePort, uint8(tft.Flags))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.SingleRemotePort))
 
-	// component 9
-	tft = packetFilterComponents[9]
-	assert.Equal(t, uint32(ie.TFTPFDownlinkOnly), tft.Direction)
-	assert.Equal(t, uint32(1), tft.Identifier)
-	assert.Equal(t, ie.PFCompRemotePortRange, uint8(tft.PacketFilterContents.Flags))
-	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.PacketFilterContents.RemotePortRange.LowLimit))
-	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort+10, uint16(tft.PacketFilterContents.RemotePortRange.HighLimit))
+	// component 1.2
+	tft = packetFilterComponents[1].PacketFilterContents[2]
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort, uint16(tft.LocalPortRange.LowLimit))
+	assert.Equal(t, pgwCreateBearerRequest.BiLocalFilterPort+10, uint16(tft.LocalPortRange.HighLimit))
+
+	// component 1.3
+	tft = packetFilterComponents[1].PacketFilterContents[3]
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort, uint16(tft.RemotePortRange.LowLimit))
+	assert.Equal(t, pgwCreateBearerRequest.BiRemoteFilterPort+10, uint16(tft.RemotePortRange.HighLimit))
 
 	// send the response from agw to feg
 	cbResGrpc := &protos.CreateBearerResponsePgw{
@@ -828,7 +817,7 @@ func TestCreateBearerRequest(t *testing.T) {
 }
 
 func TestS8proxyEcho(t *testing.T) {
-	s8p, mockPgw := startSgwAndPgw(t, 100*time.Second)
+	s8p, mockPgw := startSgwAndPgw(t, 3*time.Second)
 	defer mockPgw.Close()
 
 	//------------------------------------

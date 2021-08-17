@@ -26,6 +26,7 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "amf_app_state_manager.h"
 #include "amf_recv.h"
+#include "amf_common.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -54,7 +55,7 @@ void notify_ngap_new_ue_amf_ngap_id_association(
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, " NULL UE context!\n");
+    OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
   message_p =
@@ -65,12 +66,7 @@ void notify_ngap_new_ue_amf_ngap_id_association(
   notification_p->amf_ue_ngap_id = ue_context_p->amf_ue_ngap_id;
   notification_p->sctp_assoc_id  = ue_context_p->sctp_assoc_id_key;
 
-  OAILOG_INFO_UE(
-      LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-      " Sent AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION to NGAP for (ue_id = %u)\n",
-      notification_p->amf_ue_ngap_id);
-
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
@@ -115,7 +111,7 @@ int amf_insert_ue_context(
     } else {
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
-      OAILOG_INFO(
+      OAILOG_DEBUG(
           LOG_AMF_APP, "Overwriting the Existing entry UE_ID=%u\n", ue_id);
     }
   }
@@ -217,13 +213,12 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
  ***************************************************************************/
 smf_context_t* amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
-  smf_context_t smf_context;
+  smf_context_t smf_context = {};
   std::vector<smf_context_t>::iterator i;
   int j = 0;
 
   for (i = ue_context->amf_context.smf_ctxt_vector.begin();
        i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
-    OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx %d", j);
     if (i->smf_proc_data.pdu_session_identity.pdu_session_id ==
         pdu_session_id) {
       ue_context->amf_context.smf_ctxt_vector.at(j) = smf_context;
@@ -233,14 +228,7 @@ smf_context_t* amf_insert_smf_context(
 
   // add new element to the vector
   ue_context->amf_context.smf_ctxt_vector.push_back(smf_context);
-  // i = ue_context->amf_context.smf_ctxt_vector.begin();
-  // ue_context->amf_context.smf_ctxt_vector.insert(i, smf_context);
-  // ue_context->amf_context.smf_ctxt_vector.at(0) = smf_context;
-  OAILOG_INFO(
-      LOG_AMF_APP, "insert smf_ctx_vector_data %lu",
-      ue_context->amf_context.smf_ctxt_vector.size());
   return ue_context->amf_context.smf_ctxt_vector.data() + j;
-  // return ue_context->amf_context.smf_ctxt_vector.data();
 }
 
 /****************************************************************************
@@ -418,4 +406,5 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
+
 }  // namespace magma5g

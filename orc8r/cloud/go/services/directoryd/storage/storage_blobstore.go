@@ -74,7 +74,7 @@ func (d *directorydBlobstore) GetHostnameForHWID(hwid string) (string, error) {
 }
 
 func (d *directorydBlobstore) MapHWIDsToHostnames(hwidToHostname map[string]string) error {
-	store, err := d.factory.StartTransaction(&storage.TxOptions{})
+	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}
@@ -111,7 +111,7 @@ func (d *directorydBlobstore) GetIMSIForSessionID(networkID, sessionID string) (
 }
 
 func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error {
-	store, err := d.factory.StartTransaction(&storage.TxOptions{})
+	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}
@@ -148,7 +148,7 @@ func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string
 }
 
 func (d *directorydBlobstore) MapSgwCTeidToHWID(networkID string, sgwCTeidToHwid map[string]string) error {
-	store, err := d.factory.StartTransaction(&storage.TxOptions{})
+	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction to Map sgwCTeidToHwid")
 	}

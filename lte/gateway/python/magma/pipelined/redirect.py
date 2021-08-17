@@ -603,7 +603,7 @@ class RedirectionManager:
             except aiodns.error.DNSError as err:
                 self.logger.error(
                     "Error: ip lookup for {}: {}".format(
-                    redirect_addr_host, err,
+                        redirect_addr_host, err,
                     ),
                 )
                 return

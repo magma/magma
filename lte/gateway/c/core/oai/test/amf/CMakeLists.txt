@@ -24,6 +24,14 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 pkg_search_module(CRYPTO libcrypto REQUIRED)
 include_directories(${CRYPTO_INCLUDE_DIRS})
 
+pkg_search_module(OPENSSL openssl REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIRS})
+
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+include_directories(${CRYPTO_INCLUDE_DIRS})
+
+include_directories("${PROJECT_SOURCE_DIR}/include/nas")
+
 add_library(AMF_TASK_TEST_LIB
     util_nas5g_pkt.h
     util_nas5g_registration_pkt.cpp
@@ -36,8 +44,8 @@ target_link_libraries(AMF_TASK_TEST_LIB
         ${CONFIG}
         COMMON
 	LIB_NAS5G TASK_AMF_APP gtest gtest_main pthread rt yaml-cpp
-	${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
-	${NETTLE_LIBRARIES}
+        ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
+        ${NETTLE_LIBRARIES}
     )
 
 add_executable(amf_test test_amf.cpp)

@@ -8,9 +8,8 @@ hide_title: true
 
 ## TL;DR
 
-1. Run `fab test package` on the host to create packages inside the
-gateway VM.
-2. Commit changes to build-magma.sh and magma.lockfile.ubuntu.
+1. Run `fab release package` on the host to create production packages inside the gateway VM
+2. Commit changes to build-magma.sh and magma.lockfile.ubuntu
 
 ## Creating a production release package
 
@@ -29,13 +28,11 @@ you can also increment the iteration number.
 
 ## Creating a development package
 
-To create an AGW package with debug compiler flags (`Debug`),
-run `fab dev package`
+To create an AGW package with debug compiler flags (`Debug`), run `fab dev package`
 
 ## Testing a release package before you push it
 
-You should always do this. In general, try your best not to release broken
-packages.
+You should always do this. In general, try your best not to release broken packages.
 
 1. Build the release like you normally would.
 2. Spin up a fresh prod VM or gateway machine and copy the `magma_<version>.deb`

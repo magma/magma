@@ -49,7 +49,7 @@ status_code_e ngap_amf_itti_send_sctp_request(
   SCTP_DATA_REQ(message_p).stream        = stream;
   SCTP_DATA_REQ(message_p).agw_ue_xap_id = ue_id;
   SCTP_DATA_REQ(message_p).ppid          = NGAP_SCTP_PPID;
-  return send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
+  return ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
 status_code_e ngap_amf_itti_nas_uplink_ind(
@@ -57,14 +57,7 @@ status_code_e ngap_amf_itti_nas_uplink_ind(
     const ecgi_t* cgi) {
   MessageDef* message_p = NULL;
   imsi64_t imsi64       = INVALID_IMSI64;
-#if 0
-TODO: laterthis maps to state
-  ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
-
-  hashtable_uint64_ts_get(
-    imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
-#endif
-  OAILOG_INFO_UE(
+  OAILOG_DEBUG(
       LOG_NGAP, imsi64,
       "Sending NAS Uplink indication to NAS_AMF_APP, amf_ue_ngap_id = (%u) \n",
       ue_id);
@@ -83,7 +76,7 @@ TODO: laterthis maps to state
   AMF_APP_UL_DATA_IND(message_p).cgi     = *cgi;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  return send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  return ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -111,12 +104,6 @@ void ngap_amf_itti_ngap_initial_ue_message(
     OAILOG_FUNC_OUT(LOG_NGAP);
   }
 
-  OAILOG_INFO(
-      LOG_NGAP,
-      "Sending Initial UE Message to AMF_APP: ID: %d, NGAP_INITIAL_UE_MESSAGE: "
-      "%d \n",
-      ITTI_MSG_ID(message_p), NGAP_INITIAL_UE_MESSAGE);
-
   NGAP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = assoc_id;
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gnb_ue_ngap_id;
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id         = gnb_id;
@@ -124,7 +111,6 @@ void ngap_amf_itti_ngap_initial_ue_message(
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
       rrc_cause + 1;
 
-  OAILOG_INFO(LOG_NGAP, "ue context request recvd at ngap : %lu", ue_ctx_req);
   NGAP_INITIAL_UE_MESSAGE(message_p).ue_context_request = ue_ctx_req;
   NGAP_INITIAL_UE_MESSAGE(message_p).tai                = *tai;
 
@@ -134,18 +120,9 @@ void ngap_amf_itti_ngap_initial_ue_message(
   } else {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = false;
   }
-#if 0  
-  if (opt_guamfi) {
-    NGAP_INITIAL_UE_MESSAGE(message_p).is_guamfi_valid = true;
-    NGAP_INITIAL_UE_MESSAGE(message_p).opt_guamfi = *opt_guamfi;
-  } else {
-    NGAP_INITIAL_UE_MESSAGE(message_p).is_guamfi_valid = false;
-  }
-#endif
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gnb_ue_ngap_id;
   NGAP_INITIAL_UE_MESSAGE(message_p).tai            = *tai;
-  send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
-  OAILOG_INFO(LOG_NGAP, "iniUEmsg sent to TASK_AMF_APP");
+  ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
@@ -206,6 +183,6 @@ void ngap_amf_itti_nas_non_delivery_ind(
   // send it directly to NAS_AMF but let's see
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
