@@ -16,7 +16,7 @@
 
 import {isEqual, sortBy} from 'lodash';
 
-import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import MagmaV1API from '../server/magma/index';
 import Sequelize from 'sequelize';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
 import {CWF} from '@fbcnms/types/network';
