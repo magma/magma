@@ -13,7 +13,7 @@ hide_title: true
 Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and Performance tests. We cover
 gateway-only tests.
 
-HIL tests can be run with different gateway. However for now the automated runs are using physical Protectli box. (https://protectli.com/vault-4-port)
+HIL tests can be run with different gateway. However for now the automated runs are using physical [Protectli](https://protectli.com/vault-4-port) box.
 
 ### Lab Setup
 
@@ -23,7 +23,7 @@ executed in worker node in FB lab. Reports and logs are pushed out to aws S3 for
 
 ### Run tests
 
-To setup HIL worker follow instruction on (https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation)
+To setup HIL worker follow [instruction](https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation)
 
 Current Test categories supported are:
 1. Sanity (nightly run time - 30 minutes) update badge with latest results on magma main README
@@ -42,12 +42,11 @@ Current Test categories supported are:
 1. Verify 30 UEs across 12 eNodeBs with 500K data changing state from active-idle-active-idle
 
 ### Dashboard
-All test suite results and daily runs are available to compare on dashboard
-(http://automation.fbmagma.ninja/) admin/test1234
+All test suite results and daily runs are available to compare on [dashboard](http://automation.fbmagma.ninja/) admin/test1234
 
 We can retrieve log and grafana metrics for each run by clicking on test run result table.
 
 ### Notification
 All test suite run send notification to slack channel which is used as alerting mechanism.
-please join slack chennal - (https://magmacore.slack.com/archives/C02164DSGPM) for regular update
+please join slack [chennal](https://magmacore.slack.com/archives/C02164DSGPM) for regular update
 
