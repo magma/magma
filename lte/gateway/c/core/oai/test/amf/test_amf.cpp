@@ -14,7 +14,6 @@
 #include "intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
 
-
 extern "C" {
 #include "dynamic_memory_check.h"
 #define CHECK_PROTOTYPE_ONLY

@@ -34,7 +34,7 @@
 #include "EnumToString.h"
 #include "SessionStateEnforcer.h"
 
-#define DEFAULT_AMBR_UNITS (1024 * 1024)
+#define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1
 #define DEFAULT_DOWN_LINK_PDR_ID 2
 #define DEFAULT_RULE_COUNT 2
