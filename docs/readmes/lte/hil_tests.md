@@ -12,7 +12,7 @@ Current testing workflow for HIL testing is using Spirent test center to emulate
 gateway-only tests.
 HIL tests can be run with different gateway. However for now the automated runs are using physical [Protectli](https://protectli.com/vault-4-port) box.
 
-### Lab Setup
+## Lab Setup
 
 Spirent test emulation hardware is hosted in FB lab emulating eNODEB, UE and traffic host elements. gateway are also hosted in same lab. All tests are
 executed in worker node in FB lab. Reports and logs are pushed out to aws S3 for debug and analysis.
@@ -47,4 +47,3 @@ We can retrieve log and grafana metrics for each run by clicking on test run res
 
 All test suite run send notification to slack channel which is used as alerting mechanism.
 please join slack [chennal](https://magmacore.slack.com/archives/C02164DSGPM) for regular update
-
