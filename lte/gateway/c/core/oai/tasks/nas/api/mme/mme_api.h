@@ -177,6 +177,9 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 void mme_ue_context_update_ue_sgs_neaf(
     mme_ue_s1ap_id_t mme_ue_s1ap_id, bool neaf);
 
+int copy_plmn_from_config(
+    const served_tai_t* served_tai, int index, plmn_t* plmn);
+
 /* Compares the given two PLMNs */
 #define IS_PLMN_EQUAL(pLMN1, pLMN2)                                            \
   (((pLMN1.mcc_digit1 == pLMN2.mcc_digit1) &&                                  \

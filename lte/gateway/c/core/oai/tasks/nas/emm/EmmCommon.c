@@ -508,7 +508,7 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
   for (uint8_t list_i = 0; list_i < mme_config.num_par_lists; list_i++) {
     if (!mme_config.partial_list) {
       OAILOG_ERROR(LOG_NAS_EMM, "partial_list in mme_config is NULL\n");
-      return par_list;
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, par_list);
     }
     for (uint8_t elem_i = 0; elem_i < mme_config.partial_list[list_i].nb_elem;
          elem_i++) {
@@ -517,9 +517,9 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
                orig_tai.plmn, mme_config.partial_list[list_i].plmn[elem_i]))) &&
           (orig_tai.tac == mme_config.partial_list[list_i].tac[elem_i])) {
         par_list = &mme_config.partial_list[list_i];
-        return par_list;
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, par_list);
       }
     }
   }
-  return par_list;
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, par_list);
 }

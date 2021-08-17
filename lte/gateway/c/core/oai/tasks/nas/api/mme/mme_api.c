@@ -74,9 +74,6 @@ static int mme_api_pdn_id = 0;
 
 static tmsi_t generate_random_TMSI(void);
 
-static int copy_plmn_from_config(
-    const served_tai_t* served_tai, int index, plmn_t* plmn);
-
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -357,8 +354,8 @@ status_code_e mme_api_new_guti(
               par_tai_list->tac[itr];
         }
       } else {
-        OAILOG_ERROR(
-            LOG_NAS,
+        OAILOG_ERROR_UE(
+            LOG_NAS, imsi64,
             "GUTI PLMN does not match with mme configuration tai list\n");
       }
       j += 1;
@@ -377,8 +374,8 @@ status_code_e mme_api_new_guti(
             par_tai_list->tac[j];
         j += 1;
       } else {
-        OAILOG_ERROR(
-            LOG_NAS,
+        OAILOG_ERROR_UE(
+            LOG_NAS, imsi64,
             "GUTI PLMN does not match with mme configuration tai list\n");
       }
       break;
@@ -403,8 +400,9 @@ status_code_e mme_api_new_guti(
       j += 1;
       break;
     default:
-      OAILOG_ERROR(
-          LOG_NAS, "BAD TAI list configuration, unknown TAI list type %u",
+      OAILOG_ERROR_UE(
+          imsi64, LOG_NAS,
+          "BAD TAI list configuration, unknown TAI list type %u",
           par_tai_list->list_type);
   }
 
@@ -507,7 +505,7 @@ static tmsi_t generate_random_TMSI() {
  **                  Others:                                               **
  **                                                                        **
  ***************************************************************************/
-static int copy_plmn_from_config(
+int copy_plmn_from_config(
     const served_tai_t* served_tai, int index, plmn_t* plmn) {
   plmn->mcc_digit1 = (served_tai->plmn_mcc[index] / 100) % 10;
   plmn->mcc_digit2 = (served_tai->plmn_mcc[index] / 10) % 10;

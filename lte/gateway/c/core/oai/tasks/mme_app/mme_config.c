@@ -327,27 +327,26 @@ void create_partial_lists(mme_config_t* config_pP) {
   /* Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
    * add the TAIs to a new partial list
    */
-  config_pP->partial_list = calloc(
-      config_pP->served_tai.nb_tai,
-      config_pP->served_tai.nb_tai * sizeof(partial_list_t));
+  uint8_t size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED ?
+                     MAX_TAI_SUPPORTED :
+                     config_pP->served_tai.nb_tai;
+  config_pP->partial_list = calloc(size, size * sizeof(partial_list_t));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
     if (elem_idx == MAX_TAI_SUPPORTED) {
       list_idx++;
       elem_idx = 0;
     }
     if (!config_pP->partial_list[list_idx].plmn) {
-      config_pP->partial_list[list_idx].plmn = calloc(
-          config_pP->served_tai.nb_tai,
-          config_pP->served_tai.nb_tai * sizeof(partial_list_t));
+      config_pP->partial_list[list_idx].plmn =
+          calloc(size, size * sizeof(plmn_t));
     }
     if (!config_pP->partial_list[list_idx].tac) {
-      config_pP->partial_list[list_idx].tac = calloc(
-          config_pP->served_tai.nb_tai,
-          config_pP->served_tai.nb_tai * sizeof(partial_list_t));
+      config_pP->partial_list[list_idx].tac =
+          calloc(size, size * sizeof(tac_t));
     }
-    _copy_plmn(
-        config_pP->served_tai,
-        &config_pP->partial_list[list_idx].plmn[elem_idx], itr);
+    copy_plmn_from_config(
+        &config_pP->served_tai, itr,
+        &config_pP->partial_list[list_idx].plmn[elem_idx]);
     memcpy(
         &config_pP->partial_list[list_idx].tac[elem_idx],
         &config_pP->served_tai.tac[itr], sizeof(uint16_t));
@@ -357,7 +356,7 @@ void create_partial_lists(mme_config_t* config_pP) {
 
   config_pP->num_par_lists = list_idx + 1;
 
-  // Assign type
+  // Assign tai type
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
     bool is_many_plmn = false;
     // Default type ONE_PLMN_CONSECUTIVE_TACS
