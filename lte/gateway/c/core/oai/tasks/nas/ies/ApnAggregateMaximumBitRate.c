@@ -112,7 +112,7 @@ int encode_apn_aggregate_maximum_bit_rate(
 void bit_rate_value_to_eps_qos(
     ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul) {
   uint64_t ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
-  uint64_t ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps 8640000
+  uint64_t ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps
   apn_ambr->apnambrforuplink_extended2   = 0;
   apn_ambr->apnambrforuplink_extended    = 0;
   apn_ambr->apnambrfordownlink_extended2 = 0;
@@ -130,7 +130,7 @@ void bit_rate_value_to_eps_qos(
   }
 
   if ((ambr_dl_kbps > 8640) &&
-      ((ambr_dl_kbps >= 8600) && (ambr_dl_kbps <= 16000))) {
+      ((ambr_dl_kbps > 8600) && (ambr_dl_kbps <= 16000))) {
     apn_ambr->extensions |=
         APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apn_ambr->apnambrfordownlink_extended = (ambr_dl_kbps - 8600) / 100;

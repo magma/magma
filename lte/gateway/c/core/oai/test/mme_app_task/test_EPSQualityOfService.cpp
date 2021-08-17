@@ -202,16 +202,6 @@ TEST(
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 246);
 }
 
-
-TEST(
-    test_eps_qos_bit_rate_ext2_value_test,
-    eps_qos_bit_rate_ext2_value_test) {
-    int eps_qos_bit_rate_ext2_value(uint8_t br);
-    ASSERT_EQ(eps_qos_bit_rate_ext2_value (0b00001010), 303104);
-   ASSERT_EQ(eps_qos_bit_rate_ext2_value (0b10011101), 1495040);
-    ASSERT_EQ(eps_qos_bit_rate_ext2_value (0b11110110), 10240000);
-    }
-
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);

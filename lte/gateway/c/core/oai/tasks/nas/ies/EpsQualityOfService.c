@@ -57,6 +57,7 @@ status_code_e decode_eps_quality_of_service(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
+
   epsqualityofservice->qci = *(buffer + decoded);
   decoded++;
 
@@ -64,6 +65,7 @@ status_code_e decode_eps_quality_of_service(
     /*
      * bitRates is present
      */
+
     epsqualityofservice->bitRatesPresent = 1;
     decoded += decode_eps_qos_bit_rates(
         &epsqualityofservice->bitRates, buffer + decoded);
@@ -101,7 +103,6 @@ status_code_e decode_eps_quality_of_service(
      */
     epsqualityofservice->bitRatesExt2Present = 0;
   }
-
   return decoded;
 }
 
