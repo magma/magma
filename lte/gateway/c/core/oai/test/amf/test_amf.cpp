@@ -13,6 +13,26 @@
 #include "dynamic_memory_check.h"
 #include <gtest/gtest.h>
 
+extern "C" {
+#include "dynamic_memory_check.h"
+#define CHECK_PROTOTYPE_ONLY
+#include "intertask_interface_init.h"
+#undef CHECK_PROTOTYPE_ONLY
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_free_defined_msg.h"
+}
+
+const task_info_t tasks_info[] = {
+    {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
+#define TASK_DEF(tHREADiD)                                                     \
+  {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
+#include <tasks_def.h>
+#undef TASK_DEF
+};
+
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
+
 using ::testing::Test;
 
 namespace magma5g {
@@ -64,9 +84,10 @@ uint8_t NAS5GPktSnapShot::deregistrarion_request[17] = {
     0x54, 0x00, 0x00, 0x00, 0x18, 0x5d, 0x2e, 0x00};
 
 uint8_t NAS5GPktSnapShot::service_request[37] = {
-    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 
-    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40, 0x02, 0x20, 
-    0x00, 0x50, 0x02, 0x20, 0x00};
+    0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4,
+    0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 0x7e, 0x00, 0x4c, 0x10,
+    0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40,
+    0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
 
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
@@ -217,8 +238,10 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
       &service_request, nas5g_pkt_snap.service_request, len);
   EXPECT_EQ(decode_res, true);
   EXPECT_EQ(
-	service_request.extended_protocol_discriminator.extended_proto_discriminator, M5G_MOBILITY_MANAGEMENT_MESSAGES);
-  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t)0x00);
+      service_request.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
   EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
   EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 1);
   EXPECT_EQ(service_request.service_type.service_type_value, SERVICE_TYPE_DATA);
@@ -228,6 +251,53 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_request_messagetype_data) {
   EXPECT_EQ(service_request.pdu_session_status.iei, PDU_SESSION_STATUS);
   EXPECT_EQ(service_request.pdu_session_status.len, 0x02);
   EXPECT_EQ(service_request.pdu_session_status.pduSessionStatus, 0x0020);
+}
+
+TEST(test_amf_nas5g_pkt_process, test_amf_service_accept_message) {
+  ServiceAcceptMsg service_accept;
+  uint8_t buffer[50] = {0};
+
+  service_accept.extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+
+  service_accept.sec_header_type.sec_hdr = 0;
+  service_accept.spare_half_octet.spare  = 0;
+
+  service_accept.message_type.msg_type               = M5G_SERVICE_ACCEPT;
+  service_accept.pdu_session_status.iei              = PDU_SESSION_STATUS;
+  service_accept.pdu_session_status.len              = 0x02;
+  service_accept.pdu_session_status.pduSessionStatus = 0x05;
+  service_accept.pdu_session_status.iei = PDU_SESSION_REACTIVATION_RESULT;
+  service_accept.pdu_session_status.len = 0x02;
+  service_accept.pdu_session_status.pduSessionStatus = 0x05;
+
+  EXPECT_NE(
+      service_accept.EncodeServiceAcceptMsg(&service_accept, buffer, 0), 0);
+}
+
+TEST(test_amf_nas5g_pkt_process, test_amf_service_accept) {
+#define PDU_SESSION_ID 0x0005
+
+  amf_as_establish_t svc_accpt_message = {0};
+  amf_nas_message_t nas_msg            = {0};
+
+  svc_accpt_message.pdu_session_status_ie |= AMF_AS_PDU_SESSION_STATUS;
+  svc_accpt_message.pdu_session_status = PDU_SESSION_ID;
+  svc_accpt_message.pdu_session_status_ie |=
+      AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+  svc_accpt_message.pdu_session_reactivation_status = PDU_SESSION_ID;
+
+  int result = amf_service_acceptmsg(&svc_accpt_message, &nas_msg);
+
+  EXPECT_GT(result, 0);
+  EXPECT_EQ(
+      nas_msg.security_protected.plain.amf.msg.service_accept.pdu_session_status
+          .pduSessionStatus,
+      PDU_SESSION_ID);
+  EXPECT_EQ(
+      nas_msg.security_protected.plain.amf.msg.service_accept
+          .pdu_re_activation_status.pduSessionReActivationResult,
+      PDU_SESSION_ID);
 }
 
 int main(int argc, char** argv) {

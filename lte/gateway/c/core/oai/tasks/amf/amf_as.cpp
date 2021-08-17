@@ -505,7 +505,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_service_acceptmsg(
+int amf_service_acceptmsg(
     const amf_as_establish_t* msg, amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = SERVICE_ACCEPT_MINIMUM_LENGTH;
@@ -523,7 +523,7 @@ static int amf_service_acceptmsg(
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
 
-  if (msg->pdu_sesion_status_ie & AMF_AS_PDU_SESSION_STATUS) {
+  if (msg->pdu_session_status_ie & AMF_AS_PDU_SESSION_STATUS) {
     nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
         .iei = PDU_SESSION_STATUS;
     nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
@@ -532,7 +532,7 @@ static int amf_service_acceptmsg(
         .pduSessionStatus = msg->pdu_session_status;
   }
 
-  if (msg->pdu_sesion_status_ie & AMF_AS_PDU_SESSION_REACTIVATION_STATUS) {
+  if (msg->pdu_session_status_ie & AMF_AS_PDU_SESSION_REACTIVATION_STATUS) {
     nas_msg->security_protected.plain.amf.msg.service_accept
         .pdu_re_activation_status.iei = PDU_SESSION_REACTIVATION_RESULT;
     nas_msg->security_protected.plain.amf.msg.service_accept

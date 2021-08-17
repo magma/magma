@@ -24,6 +24,7 @@ extern "C" {
 #include "common_types.h"
 #include "amf_config.h"
 #include "amf_securityDef.h"
+#include "amf_app_ue_context_and_proc.h"
 
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
@@ -121,7 +122,7 @@ typedef struct amf_as_establish_s {
                          // type
 #define AMF_AS_PDU_SESSION_STATUS 0x01
 #define AMF_AS_PDU_SESSION_REACTIVATION_STATUS 0x02
-  uint8_t pdu_sesion_status_ie;
+  uint8_t pdu_session_status_ie;
   uint16_t pdu_session_status;
   uint16_t pdu_session_reactivation_status;
   uint8_t ue_context_req;
@@ -176,4 +177,6 @@ typedef struct amf_as_s {
   as_primitive_t u;
 } amf_as_t;
 
+int amf_service_acceptmsg(
+    const amf_as_establish_t* msg, amf_nas_message_t* nas_msg);
 }  // namespace magma5g
