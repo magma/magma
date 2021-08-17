@@ -27,7 +27,6 @@ from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.he import PROXY_PORT_NAME
-from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.gtp_stats_collector import (
@@ -97,10 +96,8 @@ def main():
     )
     if 'virtual_mac' not in service.config:
         if service.config['dp_router_enabled']:
-            up_bridge_name = service.config.get(
-                'uplink_bridge', UPLINK_OVS_BRIDGE_NAME,
-            )
-            mac_addr = get_if_hwaddr(up_bridge_name)
+            up_iface_name = service.config.get('nat_iface', None)
+            mac_addr = get_if_hwaddr(up_iface_name)
         else:
             mac_addr = get_if_hwaddr(service.config.get('bridge_name'))
 
