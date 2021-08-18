@@ -42,8 +42,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
-    // log_init(MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG,
-    // MAX_LOG_PROTOS);
+    s1ap_handler = std::make_shared<MockS1apHandler>();
+
     itti_init(
         TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
         NULL);
@@ -59,7 +59,7 @@ class MmeAppProcedureTest : public ::testing::Test {
         TASK_MAIN, task_id_list, 10, handle_message, &task_zmq_ctx_main);
 
     std::thread task_ha(start_mock_ha_task);
-    std::thread task_s1ap(start_mock_s1ap_task);
+    std::thread task_s1ap(start_mock_s1ap_task, s1ap_handler);
     std::thread task_s6a(start_mock_s6a_task);
     std::thread task_s11(start_mock_s11_task);
     std::thread task_service303(start_mock_service303_task);
@@ -85,6 +85,9 @@ class MmeAppProcedureTest : public ::testing::Test {
     // Sleep to ensure that messages are received and contexts are released
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
+
+ protected:
+  std::shared_ptr<MockS1apHandler> s1ap_handler;
 };
 
 TEST_F(MmeAppProcedureTest, TestInitialUeMessage) {
@@ -102,6 +105,7 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessage) {
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }

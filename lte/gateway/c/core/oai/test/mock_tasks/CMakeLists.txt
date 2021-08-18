@@ -29,5 +29,5 @@ add_library(MOCK_TASKS
 )
 
 target_link_libraries(MOCK_TASKS
-    LIB_ITTI
+    LIB_ITTI gmock_main gtest gtest_main gmock
 )
