@@ -31,9 +31,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -82,6 +80,8 @@ class MmeAppProcedureTest : public ::testing::Test {
 
   virtual void TearDown() {
     send_terminate_message_fatal(&task_zmq_ctx_main);
+    destroy_task_context(&task_zmq_ctx_main);
+    itti_free_desc_threads();
     // Sleep to ensure that messages are received and contexts are released
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
@@ -90,7 +90,7 @@ class MmeAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockS1apHandler> s1ap_handler;
 };
 
-TEST_F(MmeAppProcedureTest, TestInitialUeMessage) {
+TEST_F(MmeAppProcedureTest, TestInitialUeMessageNoUEContext) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
 

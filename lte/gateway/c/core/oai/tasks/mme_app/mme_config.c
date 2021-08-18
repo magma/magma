@@ -295,6 +295,9 @@ void mme_config_exit(void) {
   free_wrapper((void**) &mme_config.served_tai.plmn_mnc_len);
   free_wrapper((void**) &mme_config.served_tai.tac);
 
+  bdestroy_wrapper(&mme_config.service303_config.name);
+  bdestroy_wrapper(&mme_config.service303_config.version);
+
   for (int i = 0; i < mme_config.e_dns_emulation.nb_sgw_entries; i++) {
     bdestroy_wrapper(&mme_config.e_dns_emulation.sgw_id[i]);
   }
