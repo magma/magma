@@ -22,7 +22,7 @@ namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD             = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
-uint64_t SessionCredit::DEFAULT_REQUESTED_UNITS            = 200000;
+uint64_t SessionCredit::DEFAULT_REQUESTED_UNITS            = 10000000;
 
 // by default, enable service & finite credit
 SessionCredit::SessionCredit() : SessionCredit(SERVICE_ENABLED, FINITE) {}
