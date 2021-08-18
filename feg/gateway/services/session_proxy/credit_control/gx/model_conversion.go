@@ -65,25 +65,17 @@ func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRe
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 	return &protos.PolicyRule{
-		Id:                rd.RuleName,
-		RatingGroup:       swag.Uint32Value(rd.RatingGroup),
-		ServiceIdentifier: ServiceIdentifierToProto(rd.ServiceIdentifier),
-		MonitoringKey:     rd.MonitoringKey,
-		Priority:          rd.Precedence,
-		Redirect:          rd.RedirectInformation.ToProto(),
-		FlowList:          rd.GetFlowList(),
-		Qos:               rd.Qos.ToProto(),
-		TrackingType:      rd.GetTrackingType(),
-		Offline:           Int32ToBoolean(rd.Offline),
-		Online:            Int32ToBoolean(rd.Online),
+		Id:            rd.RuleName,
+		RatingGroup:   swag.Uint32Value(rd.RatingGroup),
+		MonitoringKey: rd.MonitoringKey,
+		Priority:      rd.Precedence,
+		Redirect:      rd.RedirectInformation.ToProto(),
+		FlowList:      rd.GetFlowList(),
+		Qos:           rd.Qos.ToProto(),
+		TrackingType:  rd.GetTrackingType(),
+		Offline:       Int32ToBoolean(rd.Offline),
+		Online:        Int32ToBoolean(rd.Online),
 	}
-}
-
-func ServiceIdentifierToProto(si *uint32) *protos.ServiceIdentifier {
-	if si == nil {
-		return nil
-	}
-	return &protos.ServiceIdentifier{Value: *si}
 }
 
 func (q *QosInformation) ToProto() *protos.FlowQos {
