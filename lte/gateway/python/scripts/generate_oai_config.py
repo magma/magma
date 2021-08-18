@@ -206,7 +206,8 @@ def _get_service_area_maps(service_mconfig):
         return {}
     service_area_map = []
     for sac, sam in service_mconfig.service_area_maps.items():
-        service_area_map.append({'sac': sac, 'tac': sam.tac.copy()})
+        tac = list(sam.tac)
+        service_area_map.append({'sac': sac, 'tac': tac.copy()})
     return service_area_map
 
 
