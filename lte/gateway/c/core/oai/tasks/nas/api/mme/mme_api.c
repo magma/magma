@@ -488,38 +488,3 @@ static tmsi_t generate_random_TMSI() {
   // note srand with seed is initialized at main
   return (tmsi_t) rand();
 }
-
-/****************************************************************************
- **                                                                        **
- ** Name:        copy_plmn_from_config()                                   **
- **                                                                        **
- ** Description: Copies the tai list configuration to partial tai list.    **
- **                                                                        **
- ** Inputs:  served_tai:        Served tai constructed from MME config.    **
- **          index:             Index to used on served_tai                **
- **                  Others:    None                                       **
- **                                                                        **
- ** Outputs:     None                                                      **
- **          plmn:   PLMN filled from served_tai                           **
- **                  Return:    RETURNok, RETURNerror                      **
- **                  Others:                                               **
- **                                                                        **
- ***************************************************************************/
-int copy_plmn_from_config(
-    const served_tai_t* served_tai, int index, plmn_t* plmn) {
-  plmn->mcc_digit1 = (served_tai->plmn_mcc[index] / 100) % 10;
-  plmn->mcc_digit2 = (served_tai->plmn_mcc[index] / 10) % 10;
-  plmn->mcc_digit3 = served_tai->plmn_mcc[index] % 10;
-  if (served_tai->plmn_mnc_len[index] == 2) {
-    plmn->mnc_digit1 = (served_tai->plmn_mnc[index] / 10) % 10;
-    plmn->mnc_digit2 = served_tai->plmn_mnc[index] % 10;
-    plmn->mnc_digit3 = 0xf;
-  } else if (served_tai->plmn_mnc_len[index] == 3) {
-    plmn->mnc_digit1 = (served_tai->plmn_mnc[index] / 100) % 10;
-    plmn->mnc_digit2 = (served_tai->plmn_mnc[index] / 10) % 10;
-    plmn->mnc_digit3 = served_tai->plmn_mnc[index] % 10;
-  } else {
-    return RETURNerror;
-  }
-  return RETURNok;
-}
