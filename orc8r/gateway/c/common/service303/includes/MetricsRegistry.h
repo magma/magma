@@ -12,17 +12,20 @@
  */
 #pragma once
 
-#include <unordered_map>
-#include <numeric>
-
 #include <prometheus/registry.h>
 #include <prometheus/family.h>
 #include <prometheus/counter.h>
 #include <prometheus/gauge.h>
 #include <prometheus/histogram.h>
-#include <prometheus/metrics.pb.h>  // for MetricFamily
 
-#include <orc8r/protos/metricsd.pb.h>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <string>
+#include <unordered_map>
+#include <utility>
+
+#include "orc8r/protos/metricsd.pb.h"
 
 using prometheus::Family;
 using prometheus::Registry;

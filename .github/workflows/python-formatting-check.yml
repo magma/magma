@@ -8,7 +8,6 @@ on:  # yamllint disable-line rule:truthy
       - synchronize
     paths:  # order matters here, always put includes then excludes
       - '**.py'
-      - '!lte/gateway/python/magma/pipelined/**.py'  # TODO add back
 
 jobs:
   run-formatters-and-check-for-errors:

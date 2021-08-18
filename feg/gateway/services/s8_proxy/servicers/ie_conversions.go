@@ -125,9 +125,12 @@ func buildCreateBearerResMsg(res *protos.CreateBearerResponsePgw) (message.Messa
 	uAgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
 		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address).WithInstance(2)
 
+	// cause
+	bearerCause := ie.NewCause(uint8(res.Cause), 0, 0, 0, nil)
+
 	// bearer
 	bearerId := ie.NewEPSBearerID(uint8(res.BearerContext.Id))
-	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, uPgwFTeid)
+	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, uPgwFTeid, bearerCause)
 
 	//timezone
 	offset := time.Duration(res.TimeZone.DeltaSeconds) * time.Second
@@ -140,6 +143,19 @@ func buildCreateBearerResMsg(res *protos.CreateBearerResponsePgw) (message.Messa
 		getUserLocationIndication(res.ServingNetwork, res.Uli),
 		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
 		ie.NewUETimeZone(offset, daylightSavingTime),
+	), nil
+}
+
+func buildDeleteBearerResMsg(res *protos.DeleteBearerResponsePgw) (message.Message, error) {
+	bearer := ie.NewBearerContext(
+		ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0),
+		ie.NewCause(uint8(res.Cause), 0, 0, 0, nil),
+	)
+	return message.NewDeleteBearerResponse(
+		res.CPgwTeid, res.SequenceNumber,
+		ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+		bearer,
+		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
 	), nil
 }
 

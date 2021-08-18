@@ -59,23 +59,24 @@ func handleTFT(tftIE *ie.IE) (*oaiprotos.TrafficFlowTemplate, error) {
 func handlePacketFilters(tftFieldsIE *ie.TrafficFlowTemplate) ([]*oaiprotos.PacketFilter, error) {
 	packetFilters := []*oaiprotos.PacketFilter{}
 	for _, tftPacketFilterIE := range tftFieldsIE.PacketFilters {
+		contents := []*oaiprotos.PacketFilterContents{}
 		for _, packetComponentIE := range tftPacketFilterIE.Components {
 			component, err := handlePacketFilterComponent(packetComponentIE)
 			if err != nil {
 				glog.Infof("Couldn't parse Packet Filter Component: %s ", err)
 				continue
 			}
-			packetFilter := &oaiprotos.PacketFilter{
-				Spare:                0,
-				Direction:            uint32(tftPacketFilterIE.Direction),
-				Identifier:           uint32(tftPacketFilterIE.Identifier),
-				EvalPrecedence:       uint32(tftPacketFilterIE.EvaluationPrecedence),
-				Length:               uint32(tftPacketFilterIE.Length),
-				PacketFilterContents: component,
-			}
-
-			packetFilters = append(packetFilters, packetFilter)
+			contents = append(contents, component)
 		}
+		packetFilter := &oaiprotos.PacketFilter{
+			Spare:                0,
+			Direction:            uint32(tftPacketFilterIE.Direction),
+			Identifier:           uint32(tftPacketFilterIE.Identifier),
+			EvalPrecedence:       uint32(tftPacketFilterIE.EvaluationPrecedence),
+			Length:               uint32(tftPacketFilterIE.Length),
+			PacketFilterContents: contents,
+		}
+		packetFilters = append(packetFilters, packetFilter)
 	}
 	return packetFilters, nil
 }

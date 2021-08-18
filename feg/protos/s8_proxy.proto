@@ -25,10 +25,12 @@ service S8Proxy {
     rpc SendEcho(EchoRequest) returns (EchoResponse) {}
 
     rpc CreateBearerResponse(CreateBearerResponsePgw) returns (magma.orc8r.Void) {}
+    rpc DeleteBearerResponse(DeleteBearerResponsePgw) returns (magma.orc8r.Void) {}
 }
 
 service S8ProxyResponder {
     rpc CreateBearer(CreateBearerRequestPgw) returns (magma.orc8r.Void) {}
+    rpc DeleteBearerRequest(DeleteBearerRequestPgw) returns (magma.orc8r.Void) {}
 }
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
@@ -121,6 +123,7 @@ message BearerContext {
     QosInformation qos = 3;
     uint32 charging_id = 4;
     magma.lte.oai.TrafficFlowTemplate tft = 5;
+    uint32 cause = 6;
 }
 
 message QosInformation {
@@ -212,6 +215,27 @@ message CreateBearerResponsePgw {
     TimeZone time_zone = 10;
     UserLocationInformation uli = 11;
     //TODO: SGW-FQ-CSID
+}
+
+message DeleteBearerRequestPgw {
+    string pgwAddrs = 1;
+    uint32 sequence_number = 2;
+    // control plane TEID given by AGW during CreateSession
+    uint32 c_agw_teid = 3;
+    uint32 linked_bearer_id = 4;
+    ProtocolConfigurationOptions protocol_configuration_options = 6;
+}
+
+message DeleteBearerResponsePgw {
+    // same as pgwAddr as in CreateBeaererRequest.pgwAddrs
+    string pgwAddrs = 1;
+    string imsi = 2;
+    uint32 sequence_number = 3;
+    // control plane TEID given by PGW during CreateSession
+    uint32 c_pgw_teid = 4;
+    uint32 linked_bearer_id = 5;
+    ProtocolConfigurationOptions protocol_configuration_options = 7;
+    uint32 cause = 8;
 }
 
 message EchoRequest{

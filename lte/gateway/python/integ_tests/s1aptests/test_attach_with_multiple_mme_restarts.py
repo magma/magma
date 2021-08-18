@@ -11,10 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import time
 import unittest
 
-import orc8r.protos.metricsd_pb2 as metricsd
 import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil

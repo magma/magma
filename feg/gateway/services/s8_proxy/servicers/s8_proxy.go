@@ -170,6 +170,29 @@ func (s *S8Proxy) CreateBearerResponse(_ context.Context, res *protos.CreateBear
 	return &orc8r_protos.Void{}, nil
 }
 
+func (s *S8Proxy) DeleteBearerResponse(_ context.Context, res *protos.DeleteBearerResponsePgw) (*orc8r_protos.Void, error) {
+	cPgwUDPAddr := ParseAddress(res.PgwAddrs)
+	if cPgwUDPAddr == nil {
+		err := fmt.Errorf("DeleteBearerResponse to %s failed: couldnt paarse address", res.PgwAddrs)
+		glog.Error(err)
+		return nil, err
+	}
+
+	dbResMsg, err := buildDeleteBearerResMsg(res)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.sendAndReceiveDeleteBearerResponse(res, cPgwUDPAddr, dbResMsg)
+	if err != nil {
+		err = fmt.Errorf("Create Bearer Response failed for IMSI %s:, %s", res.Imsi, err)
+		glog.Error(err)
+		return nil, err
+	}
+
+	return &orc8r_protos.Void{}, nil
+}
+
 // configOrRequestedPgwAddress returns an UDPAddrs if the passed string corresponds to a valid ip,
 // otherwise it uses the server address configured on s8_proxy
 func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.UDPAddr, error) {

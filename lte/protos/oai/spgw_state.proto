@@ -164,7 +164,7 @@ message PacketFilter {
     uint32 identifier = 3;
     uint32 eval_precedence = 4;
     uint32 length = 5;
-    PacketFilterContents packet_filter_contents = 6;
+    repeated PacketFilterContents packet_filter_contents = 6;
 }
 
 // eps_bearer_qos_t

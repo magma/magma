@@ -55,7 +55,7 @@ func (s *S8Proxy) sendAndReceiveCreateSession(
 	return csRes, nil
 }
 
-// sendAndReceiveDeleteSession  sends delete session request GTP-C message to PGW and
+// sendAndReceiveDeleteSession sends delete session request GTP-C message to PGW and
 // waits for its answers.
 // Returns a GRPC message translated from the GTP-C delete session response
 func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPgw,
@@ -90,6 +90,21 @@ func (s *S8Proxy) sendAndReceiveCreateBearerResponse(res *protos.CreateBearerRes
 	err := s.gtpClient.SendMessageToWithoutIncSequence(cbResMsg, cPgwUDPAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed so send CreateBearerResponse message: %s", err)
+	}
+	return &orc8r_protos.Void{}, err
+}
+
+// sendAndReceiveDeleteBearerResponse
+func (s *S8Proxy) sendAndReceiveDeleteBearerResponse(res *protos.DeleteBearerResponsePgw,
+	cPgwUDPAddr *net.UDPAddr,
+	cbResMsg message.Message) (*orc8r_protos.Void, error) {
+	glog.V(2).Infof("Send Delete Bearer Response (grpc) to %s:\n%s", cPgwUDPAddr,
+		res)
+	glog.V(2).Infof("Send Delete Bearer Response (gtp) to %s:\n%s",
+		cPgwUDPAddr.String(), cbResMsg.(*message.DeleteBearerResponse).String())
+	err := s.gtpClient.SendMessageToWithoutIncSequence(cbResMsg, cPgwUDPAddr)
+	if err != nil {
+		return nil, fmt.Errorf("failed so send DeleteBearerResponse message: %s", err)
 	}
 	return &orc8r_protos.Void{}, err
 }

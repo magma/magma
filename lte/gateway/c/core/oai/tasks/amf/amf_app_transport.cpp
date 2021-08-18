@@ -42,9 +42,9 @@ int amf_app_handle_nas_dl_req(
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
 
   if (!amf_app_desc_p) {
-    OAILOG_CRITICAL(
+    OAILOG_ERROR(
         LOG_AMF_APP,
-        "DOWNLINK NAS TRANSPORT: Failed to get global amf_app_desc context \n");
+        "Downlink NAS transport: Failed to get global amf_app_desc context \n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -61,8 +61,7 @@ int amf_app_handle_nas_dl_req(
   bdestroy_wrapper(&nas_msg);
   message_p->ittiMsgHeader.imsi = ue_context->amf_context.imsi64;
 
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending downlink message to NGAP");
-  rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
   if (transaction_status != M5G_AS_SUCCESS) {
     ue_context_release_command(

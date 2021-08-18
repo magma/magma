@@ -83,6 +83,6 @@ bool decode_ul_nas_deregister_request_msg(
     uint32_t len);
 
 bool decode_service_request_msg(
-    ServiceRequestMsg *sv_request, const uint8_t* buffer,uint32_t len);
+    ServiceRequestMsg* sv_request, const uint8_t* buffer, uint32_t len);
 
 }  // namespace magma5g

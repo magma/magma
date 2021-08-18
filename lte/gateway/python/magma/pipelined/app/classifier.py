@@ -234,7 +234,7 @@ class Classifier(MagmaController):
         )
         future.add_done_callback(
                               lambda future: self.loop.call_soon_threadsafe(
-                              self._paging_msg_sent_callback, future,
+                                  self._paging_msg_sent_callback, future,
                               ),
         )
 

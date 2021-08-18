@@ -1,3 +1,14 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
@@ -9,11 +20,6 @@ cpp_proto_library(
     protos = [":common_proto"],
 )
 
-cpp_grpc_library(
-    name = "common_cpp_grpc",
-    protos = [":common_proto"],
-)
-
 proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
@@ -22,26 +28,17 @@ proto_library(
 cpp_grpc_library(
     name = "eventd_cpp_grpc",
     protos = [":eventd_proto"],
-    deps = [
-        ":common_cpp_grpc",
-    ],
+    deps = [":common_cpp_proto"],
 )
 
 proto_library(
     name = "eventd_proto",
     srcs = ["eventd.proto"],
-    deps = [
-        ":common_proto",
-    ],
+    deps = [":common_proto"],
 )
 
 cpp_proto_library(
     name = "redis_cpp_proto",
-    protos = [":redis_proto"],
-)
-
-cpp_grpc_library(
-    name = "redis_cpp_grpc",
     protos = [":redis_proto"],
 )
 
@@ -54,9 +51,7 @@ proto_library(
     name = "mconfigs_proto",
     srcs = ["mconfig/mconfigs.proto"],
     strip_import_prefix = "mconfig/",
-    deps = [
-        ":common_proto",
-    ],
+    deps = [":common_proto"],
 )
 
 cpp_proto_library(
@@ -112,6 +107,6 @@ proto_library(
     deps = [
         ":common_proto",
         ":metricsd_proto",
-        "@com_google_protobuf//:wrappers_proto",
+        "@protobuf//:wrappers_proto",
     ],
 )

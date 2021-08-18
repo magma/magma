@@ -71,7 +71,7 @@ static int ngap_send_init_sctp(void) {
    */
   message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
   message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
-  return send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
+  return ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
@@ -83,6 +83,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   state           = get_ngap_state(false);
   AssertFatal(state != NULL, "failed to retrieve ngap state (was null)");
+
+  OAILOG_INFO(
+      LOG_NGAP, "Received msg from :[%s] id:[%d] name:[%s]\n",
+      ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
+      ITTI_MSG_NAME(received_message_p));
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_DATA_IND: {
@@ -199,7 +204,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   if (ngap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_NGAP, "Error while sending SCTP_INIT_MSG to SCTP \n");
   } else {
-    OAILOG_INFO(LOG_NGAP, " sending SCTP_INIT_MSG to SCTP \n");
+    OAILOG_DEBUG(LOG_NGAP, " Sending SCTP_INIT_MSG to SCTP \n");
   }
   zloop_start(ngap_task_zmq_ctx.event_loop);
   AssertFatal(
@@ -356,4 +361,23 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   hashtable_uint64_ts_destroy(&gnb_ref->ue_id_coll);
   hashtable_ts_free(&state->gnbs, gnb_ref->sctp_assoc_id);
   state->num_gnbs--;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    ngap_send_msg_to_task()                                        **
+ **                                                                        **
+ ** Description:  wrapper api for itti send                                **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+status_code_e ngap_send_msg_to_task(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
+    MessageDef* message) {
+  OAILOG_INFO(
+      LOG_NGAP, "Sending msg to :[%s] id: [%d]-[%s]\n",
+      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
+      ITTI_MSG_NAME(message));
+
+  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }

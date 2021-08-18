@@ -38,7 +38,7 @@ type nprobeBlobStore struct {
 
 // StoreNProbeData stores current state for a given networkID and taskID
 func (c *nprobeBlobStore) StoreNProbeData(networkID, taskID string, data models.NetworkProbeData) error {
-	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: false})
+	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}

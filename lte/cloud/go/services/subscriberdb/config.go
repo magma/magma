@@ -14,7 +14,7 @@
 package subscriberdb
 
 type Config struct {
-	// DigestsEnabled is a feature flag for the flat digest functionality.
+	// DigestsEnabled is a feature flag for the digests functionality.
 	DigestsEnabled bool `yaml:"digestsEnabled"`
 	// ChangesetSizeThreshold specifies the max size of the cloud-AGW changeset
 	// past which a resync signal will be sent back to the AGW.
@@ -24,5 +24,5 @@ type Config struct {
 	MaxProtosLoadSize uint64 `yaml:"maxProtosLoadSize"`
 	// ResyncIntervalSecs specifies the max number of seconds before an Orc8r-
 	// directed resync is issued for an AGW.
-	ResyncIntervalSecs uint32 `yaml:"resyncIntervalSecs"`
+	ResyncIntervalSecs int64 `yaml:"resyncIntervalSecs"`
 }

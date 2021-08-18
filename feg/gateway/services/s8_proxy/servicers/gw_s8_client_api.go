@@ -28,7 +28,7 @@ import (
 	"magma/feg/gateway/registry"
 )
 
-// GWS8ProxyCreateBearerRequest forwards Create Session Request to FegRelay and
+// GWS8ProxyCreateBearerRequest forwards Create Bearer Request to FegRelay and
 // FegRelay then to AGW
 func GWS8ProxyCreateBearerRequest(in *protos.CreateBearerRequestPgw) (*orc8r_protos.Void, error) {
 	conn, err := getCloudConn()
@@ -38,6 +38,18 @@ func GWS8ProxyCreateBearerRequest(in *protos.CreateBearerRequestPgw) (*orc8r_pro
 	defer conn.Close()
 	client := protos.NewS8ProxyResponderClient(conn)
 	return client.CreateBearer(context.Background(), in)
+}
+
+// GWS8ProxyDeleteBearerRequest forwards Delete Bearer Request to FegRelay and
+// FegRelay then to AGW
+func GWS8ProxyDeleteBearerRequest(in *protos.DeleteBearerRequestPgw) (*orc8r_protos.Void, error) {
+	conn, err := getCloudConn()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	client := protos.NewS8ProxyResponderClient(conn)
+	return client.DeleteBearerRequest(context.Background(), in)
 }
 
 func getCloudConn() (*grpc.ClientConn, error) {

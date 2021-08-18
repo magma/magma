@@ -133,7 +133,7 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 }
 
 func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.CertificateInfo) error {
-	store, err := c.factory.StartTransaction(&storage.TxOptions{})
+	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}
@@ -154,7 +154,7 @@ func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.C
 }
 
 func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
-	store, err := c.factory.StartTransaction(&storage.TxOptions{})
+	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}

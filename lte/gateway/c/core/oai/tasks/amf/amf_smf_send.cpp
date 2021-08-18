@@ -69,7 +69,7 @@ int amf_smf_handle_pdu_establishment_request(
        PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED_t) ||
       esm_pt_is_reserved(msg->header.procedure_transaction_id)) {
     amf_smf_msg->u.establish.cause_value = SMF_CAUSE_INVALID_PTI_VALUE;
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP, "smf_cause : %u", amf_smf_msg->u.establish.cause_value);
     return (amf_smf_msg->u.establish.cause_value);
   } else {
@@ -95,7 +95,6 @@ int amf_smf_handle_pdu_establishment_request(
   }
   amf_smf_msg->u.establish.pdu_session_id = msg->header.pdu_session_id;
   amf_smf_msg->u.establish.cause_value    = smf_cause;
-  OAILOG_INFO(LOG_AMF_APP, "smf_cause : %u", smf_cause);
   return (smf_cause);
 }
 
@@ -177,6 +176,8 @@ void set_amf_smf_context(
 **                                                                        **
 ***************************************************************************/
 void clear_amf_smf_context(smf_context_t* smf_ctx) {
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "clearing saved context associated with the pdu session\n");
   memset(
       &(smf_ctx->smf_proc_data.pdu_session_identity), 0,
       sizeof(smf_ctx->smf_proc_data.pdu_session_identity));
@@ -245,10 +246,8 @@ int amf_smf_send(
     case PDU_SESSION_ESTABLISHMENT_REQUEST: {
       amf_cause = amf_smf_handle_pdu_establishment_request(
           &(msg->payload_container.smf_msg), &amf_smf_msg);
-      OAILOG_INFO(LOG_AMF_APP, "amf_cause : %d", amf_cause);
 
       if (amf_cause != SMF_CAUSE_SUCCESS) {
-        OAILOG_INFO(LOG_AMF_APP, "amf_send_pdusession_reject");
         rc = amf_send_pdusession_reject(
             &reject_req, msg->payload_container.smf_msg.header.pdu_session_id,
             msg->payload_container.smf_msg.header.procedure_transaction_id,
@@ -298,7 +297,7 @@ int amf_smf_send(
             "PDU session resource release request to gNB failed"
             "\n");
       }
-      OAILOG_INFO(
+      OAILOG_DEBUG(
           LOG_AMF_APP,
           "notifying SMF about PDU session release n_active_pdus=%d\n",
           smf_ctx->n_active_pdus);
@@ -317,8 +316,6 @@ int amf_smf_send(
             &(smf_ctx->pdu_address.ipv4_address));
       }
 
-      OAILOG_DEBUG(
-          LOG_AMF_APP, "clear saved context associated with the PDU session\n");
       clear_amf_smf_context(smf_ctx);
     } break;
     default:

@@ -633,7 +633,7 @@ def __get_instructions_for_actions(
     if actions:
         instructions.append(
             ofproto_parser.OFPInstructionActions(
-            ofproto.OFPIT_APPLY_ACTIONS, actions,
+                ofproto.OFPIT_APPLY_ACTIONS, actions,
             ),
         )
     return instructions
@@ -672,7 +672,7 @@ def send_stats_request(
     cookie_mask: hex = 0, retries: int = 3,
 ):
     """
-    Send a stats request msg
+    Send a stats request msg 
     Args:
         datapath (ryu.controller.controller.Datapath):
             Datapath to query from
@@ -691,6 +691,4 @@ def send_stats_request(
         cookie_mask=cookie_mask,
     )
     logger.debug('flowmod: %s (table %d)', req, tbl_num)
-    xid = datapath.set_xid(req)
     messages.send_msg(datapath, req, retries)
-    return xid
