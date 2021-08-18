@@ -68,6 +68,7 @@
 #if EMBEDDED_SGW
 #include "sgw_config.h"
 #endif
+#include "mme_config.h"
 static bool parse_bool(const char* str);
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
