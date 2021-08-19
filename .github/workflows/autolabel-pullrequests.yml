@@ -37,7 +37,8 @@ jobs:
         with:
           script: |
             
-            var lbl = `component: awf`
+            var lbl = `component: awf`;
+            const pulledFiles = {};
 
             github.pulls.listFiles({
               owner: context.repo.owner,
@@ -47,21 +48,21 @@ jobs:
                     console.log(pulledFiles['data'][0]['filename']);
                });
 
-            let fileName = pulledFiles['data'][0]['filename']
-            console.log(fileName) 
+            let fileName = pulledFiles['data'][0]['filename'];
+            console.log(fileName);
 
             switch (true) {
               case /^docs\/.*/.test(fileName):
-                console.log("file changes under DOCS")
-                lbl = `component: docs`
+                console.log("file changes under DOCS");
+                lbl = `component: docs`;
                 break;
               case /^nms\/.*/.test(fileName):
-                console.log("file changes under NMS")
-                lbl = `component: nms`
+                console.log("file changes under NMS");
+                lbl = `component: nms`;
                 break;
               case /^feg\/.*/.test(fileName):
-                console.log("file changes under FEG")
-                lbl = `component: feg`
+                console.log("file changes under FEG");
+                lbl = `component: feg`;
                 break;
             }
 
