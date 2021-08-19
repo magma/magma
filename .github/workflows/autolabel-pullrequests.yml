@@ -39,13 +39,13 @@ jobs:
             
             var lbl = `component: awf`
 
-            const pulledFiles = github.pulls.listFiles({
+            github.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
-            })
-
-            console.log(pulledFiles)
+            }).then(pulledFiles => {
+                    console.log(pulledFiles); 
+               });
 
             github.issues.addLabels({
               issue_number: context.issue.number,
