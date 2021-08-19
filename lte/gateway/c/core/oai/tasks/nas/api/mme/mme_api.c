@@ -312,18 +312,18 @@ status_code_e mme_api_new_guti(
   }
   par_tai_list = emm_verify_orig_tai(*originating_tai);
   if (par_tai_list == NULL) {
-    OAILOG_ERROR(
-        LOG_NAS,
+    OAILOG_ERROR_UE(
+        LOG_NAS, imsi64,
         "No matching partial list found for originating TAI!" TAI_FMT "\n",
         TAI_ARG(originating_tai));
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
   if (!par_tai_list->plmn) {
-    OAILOG_ERROR(LOG_NAS, "config PLMN is NULL\n");
+    OAILOG_ERROR_UE(LOG_NAS, imsi64, "config PLMN is NULL\n");
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
   if (!par_tai_list->tac) {
-    OAILOG_ERROR(LOG_NAS, "config TAC is NULL\n");
+    OAILOG_ERROR_UE(LOG_NAS, imsi64, "config TAC is NULL\n");
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
 

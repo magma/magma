@@ -515,7 +515,8 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
       if (((mme_config.partial_list[list_i].plmn) &&
            (IS_PLMN_EQUAL(
                orig_tai.plmn, mme_config.partial_list[list_i].plmn[elem_i]))) &&
-          (orig_tai.tac == mme_config.partial_list[list_i].tac[elem_i])) {
+          (mme_config.partial_list[list_i].tac &&
+           (orig_tai.tac == mme_config.partial_list[list_i].tac[elem_i]))) {
         par_list = &mme_config.partial_list[list_i];
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, par_list);
       }
