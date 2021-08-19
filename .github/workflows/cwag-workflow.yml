@@ -10,6 +10,7 @@ on:  # yamllint disable-line rule:truthy
       - 'lte/**'
       - 'feg/**'
       - 'cwf/**'
+      - 'nms/**'
   pull_request:
     branches:
       - master
@@ -18,6 +19,7 @@ on:  # yamllint disable-line rule:truthy
       - 'lte/**'
       - 'feg/**'
       - 'cwf/**'
+      - 'nms/**'
 jobs:
   cwag-precommit:
     runs-on: ubuntu-latest
