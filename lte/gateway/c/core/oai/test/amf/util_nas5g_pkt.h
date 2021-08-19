@@ -18,6 +18,8 @@
 #include "M5GDeRegistrationRequestUEInit.h"
 #include "M5GServiceRequest.h"
 #include "M5GServiceAccept.h"
+#include "amf_app_ue_context_and_proc.h"
+#include "amf_asDefs.h"
 
 namespace magma5g {
 

@@ -614,7 +614,7 @@ void amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
 
-    amf_sap.u.amf_as.u.establish.pdu_sesion_status_ie =
+    amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
         (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
     amf_sap.u.amf_as.u.establish.pdu_session_status =
         (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
