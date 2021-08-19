@@ -13,10 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {ChartStyle} from '@fbcnms/ui/insights/AsyncMetric';
-import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
+import type {ChartStyle} from '../../components/insights/AsyncMetric';
+import type {TimeRange} from '../../components/insights/AsyncMetric';
 
-import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
+import AsyncMetric from '../../components/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';

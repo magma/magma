@@ -34,7 +34,7 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';

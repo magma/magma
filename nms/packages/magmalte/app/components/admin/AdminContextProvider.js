@@ -19,7 +19,7 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 export default function AdminContextProvider(props: {children: React.Node}) {
   const {error, isLoading, response} = useMagmaAPI(MagmaV1API.getNetworks, {});

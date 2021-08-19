@@ -25,7 +25,7 @@ import type {
   MagmaConnectionFeature,
   MagmaFeatureCollection,
   MagmaGatewayFeature,
-} from '@fbcnms/ui/insights/map/GeoJSON';
+} from '../insights/map/GeoJSON';
 
 import {assign, flatMap, flatten, groupBy, partition} from 'lodash';
 

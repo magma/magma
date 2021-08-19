@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {MagmaConnectionFeature} from '@fbcnms/ui/insights/map/GeoJSON';
+import type {MagmaConnectionFeature} from '../insights/map/GeoJSON';
 
 import React from 'react';
 import Table from '@material-ui/core/Table';

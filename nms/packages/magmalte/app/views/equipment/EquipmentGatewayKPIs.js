@@ -22,7 +22,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';

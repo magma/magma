@@ -14,10 +14,10 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
+import type {MetricGraphConfig} from '../insights/Metrics';
 
 import React from 'react';
-import SelectorMetrics from '@fbcnms/ui/insights/SelectorMetrics';
+import SelectorMetrics from '../insights/SelectorMetrics';
 
 const APN_CONFIGS: Array<MetricGraphConfig> = [
   {

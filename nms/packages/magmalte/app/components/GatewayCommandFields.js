@@ -36,7 +36,7 @@ import React from 'react';
 import Text from '../theme/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';
