@@ -15,14 +15,14 @@
  */
 import type {Dataset} from './CustomMetrics';
 import type {EnqueueSnackbarOptions} from 'notistack';
-import type {network_id} from '@fbcnms/magma-api';
+import type {network_id} from '../../generated/MagmaAPIBindings';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';

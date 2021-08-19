@@ -15,8 +15,8 @@
  */
 
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {cwf_gateway} from '@fbcnms/magma-api';
-import type {cwf_ha_pair} from '@fbcnms/magma-api';
+import type {cwf_gateway} from '../../../generated/MagmaAPIBindings';
+import type {cwf_ha_pair} from '../../../generated/MagmaAPIBindings';
 
 import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -27,7 +27,7 @@ import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';

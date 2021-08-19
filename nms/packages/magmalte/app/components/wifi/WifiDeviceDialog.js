@@ -21,7 +21,7 @@ import type {
   gateway_wifi_configs,
   magmad_gateway_configs,
   wifi_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -32,7 +32,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import GatewayCommandFields from '@fbcnms/magmalte/app/components/GatewayCommandFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaDeviceFields from '@fbcnms/magmalte/app/components/MagmaDeviceFields';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';

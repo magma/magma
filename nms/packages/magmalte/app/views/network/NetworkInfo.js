@@ -14,7 +14,10 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {feg_lte_network, lte_network} from '@fbcnms/magma-api';
+import type {
+  feg_lte_network,
+  lte_network,
+} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';

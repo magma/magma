@@ -20,9 +20,9 @@ import type {
   policy_qos_profile,
   policy_rule,
   rating_group,
-} from '@fbcnms/magma-api';
+} from '../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 
 type Props = {
   networkId: network_id,

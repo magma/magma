@@ -14,7 +14,7 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';

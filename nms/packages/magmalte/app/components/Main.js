@@ -18,7 +18,7 @@ import Admin from './admin/Admin';
 import ApplicationMain from './ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage';
 import React from 'react';

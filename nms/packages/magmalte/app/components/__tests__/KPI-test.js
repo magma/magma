@@ -18,7 +18,7 @@ import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
@@ -31,7 +31,7 @@ import type {
   enodeb_state,
   feg_lte_network,
   lte_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 afterEach(cleanup);
 
@@ -122,7 +122,7 @@ const mockEnbSt: enodeb_state = {
 };
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {

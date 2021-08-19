@@ -14,13 +14,13 @@
  * @format
  */
 
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import {parseFileAndSave} from '../ImportSubscribersDialog';
 
 const match = {params: {}, isExact: true, path: '', url: ''};
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../generated/MagmaAPIBindings');
 
 describe('ImportSubscribers parseFileAndSave', () => {
   const setErrorMsg = jest.fn();

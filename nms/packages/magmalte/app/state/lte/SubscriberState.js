@@ -24,9 +24,9 @@ import type {
   network_id,
   subscriber,
   subscriber_state,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 
 import {
   DEFAULT_PAGE_SIZE,

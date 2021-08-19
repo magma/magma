@@ -18,7 +18,7 @@ import type {
   gateway_id,
   lte_gateway,
   mutable_lte_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

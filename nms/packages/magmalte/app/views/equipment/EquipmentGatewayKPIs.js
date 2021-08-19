@@ -14,11 +14,14 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {lte_gateway, promql_return_object} from '@fbcnms/magma-api';
+import type {
+  lte_gateway,
+  promql_return_object,
+} from '../../../generated/MagmaAPIBindings';
 
 import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';

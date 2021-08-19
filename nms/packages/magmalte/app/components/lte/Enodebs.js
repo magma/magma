@@ -15,7 +15,7 @@
  */
 
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {enodeb} from '@fbcnms/magma-api';
+import type {enodeb} from '../../../generated/MagmaAPIBindings';
 
 import AddEditEnodebDialog from './AddEditEnodebDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -23,7 +23,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';

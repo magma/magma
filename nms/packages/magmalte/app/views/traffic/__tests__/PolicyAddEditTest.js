@@ -14,7 +14,7 @@
  * @format
  */
 import 'jest-dom/extend-expect';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
@@ -32,7 +32,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
@@ -449,6 +449,7 @@ describe('<TrafficDashboard />', () => {
   });
 
   it('verify lte policy full add', async () => {
+    jest.setTimeout(30000);
     const networkId = 'test';
     const {queryByTestId, getByTestId, getByText} = render(
       <PolicyWrapper networkType={LTE} />,

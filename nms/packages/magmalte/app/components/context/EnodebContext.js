@@ -14,7 +14,7 @@
  * @format
  */
 import type {EnodebInfo} from '../lte/EnodebUtils';
-import type {network_ran_configs} from '@fbcnms/magma-api';
+import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

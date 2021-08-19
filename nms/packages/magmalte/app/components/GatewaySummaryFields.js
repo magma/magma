@@ -25,7 +25,7 @@ import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';

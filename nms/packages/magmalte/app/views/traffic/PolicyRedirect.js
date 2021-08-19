@@ -26,7 +26,7 @@ import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
-import type {policy_rule} from '@fbcnms/magma-api';
+import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 const useStyles = makeStyles(() => policyStyles);
 

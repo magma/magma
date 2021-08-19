@@ -19,7 +19,7 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';

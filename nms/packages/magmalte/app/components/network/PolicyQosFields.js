@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {policy_qos_profile} from '@fbcnms/magma-api';
+import type {policy_qos_profile} from '../../../generated/MagmaAPIBindings';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';

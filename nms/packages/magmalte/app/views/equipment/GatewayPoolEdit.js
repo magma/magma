@@ -18,7 +18,7 @@ import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
 } from '../../components/context/GatewayPoolsContext';
-import type {mutable_cellular_gateway_pool} from '@fbcnms/magma-api';
+import type {mutable_cellular_gateway_pool} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import ConfigEdit from './GatewayPoolConfigEdit';

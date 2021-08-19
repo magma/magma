@@ -14,7 +14,7 @@
  * @format
  */
 import type {ActionQuery} from '../../components/ActionTable';
-import type {event as MagmaEvent} from '@fbcnms/magma-api';
+import type {event as MagmaEvent} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
@@ -23,7 +23,7 @@ import EventChart from './EventChart';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import React from 'react';
 import Text from '../../theme/design-system/Text';

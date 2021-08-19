@@ -23,7 +23,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PolicyBaseNameDialog from './PolicyBaseNameDialog';
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';

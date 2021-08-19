@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {mesh_wifi_configs} from '@fbcnms/magma-api';
+import type {mesh_wifi_configs} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -26,7 +26,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 

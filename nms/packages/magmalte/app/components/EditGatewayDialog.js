@@ -15,7 +15,7 @@
  */
 
 import type {GatewayV1} from './GatewayUtils';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../generated/MagmaAPIBindings';
 
 import AppBar from '@material-ui/core/AppBar';
 import Dialog from '@material-ui/core/Dialog';
@@ -23,7 +23,7 @@ import GatewayCellularFields from './GatewayCellularFields';
 import GatewayCommandFields from './GatewayCommandFields';
 import GatewayMagmadFields from './GatewayMagmadFields';
 import GatewaySummaryFields from './GatewaySummaryFields';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import React, {useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';

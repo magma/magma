@@ -17,7 +17,7 @@
 import type {MetricGraphConfig} from '../insights/Metrics';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import Metrics from '../insights/Metrics';
 import React from 'react';
 import {Route} from 'react-router-dom';

@@ -14,7 +14,10 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {policy_rule, qos_class_id} from '@fbcnms/magma-api';
+import type {
+  policy_rule,
+  qos_class_id,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import FormControlLabel from '@material-ui/core/FormControlLabel';

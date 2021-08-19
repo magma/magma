@@ -20,10 +20,10 @@ import React from 'react';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
@@ -73,7 +73,7 @@ const OFFLINE_GATEWAY: lte_gateway = {
 };
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../generated/MagmaAPIBindings');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>

@@ -16,7 +16,7 @@
 
 import * as React from 'react';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';

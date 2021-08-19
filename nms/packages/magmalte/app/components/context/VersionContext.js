@@ -16,11 +16,11 @@
 'use strict';
 
 import * as React from 'react';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import axios from 'axios';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import type {version_info} from '@fbcnms/magma-api';
+import type {version_info} from '../../../generated/MagmaAPIBindings';
 
 export type VersionContextType = {
   nmsVersion: string,

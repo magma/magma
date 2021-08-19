@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../generated/MagmaAPIBindings';
 import axios from 'axios';
 import https from 'https';
 import nullthrows from '@fbcnms/util/nullthrows';

@@ -23,10 +23,10 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {federation_gateway} from '@fbcnms/magma-api';
+import type {federation_gateway} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 

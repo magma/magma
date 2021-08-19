@@ -42,7 +42,6 @@ services:
       dockerfile: packages/magmalte/Dockerfile
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
     volumes:
-      - ../../packages/fbcnms-magma-api:/usr/src/packages/fbcnms-magma-api
       - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
       - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
       - ../../packages/magmalte/server:/usr/src/packages/magmalte/server

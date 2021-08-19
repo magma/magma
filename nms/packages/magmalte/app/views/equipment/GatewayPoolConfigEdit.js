@@ -15,7 +15,7 @@
  */
 /*[object Object]*/
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
-import type {mutable_cellular_gateway_pool} from '@fbcnms/magma-api';
+import type {mutable_cellular_gateway_pool} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';

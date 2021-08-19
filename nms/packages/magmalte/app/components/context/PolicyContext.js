@@ -19,7 +19,7 @@ import type {
   policy_qos_profile,
   policy_rule,
   rating_group,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

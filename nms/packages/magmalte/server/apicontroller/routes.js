@@ -119,6 +119,7 @@ const proxyErrorHandler = (err, res, next) => {
   if (err.code === 'ENOTFOUND') {
     res.status(503).send('Cannot reach Orchestrator server');
   } else {
+    console.error('andreilee here: ', err, res);
     next();
   }
 };
