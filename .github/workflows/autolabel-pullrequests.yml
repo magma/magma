@@ -37,9 +37,15 @@ jobs:
         with:
           script: |
             
-            var lbl = `component: xwf`
-            var lbl1 = `component: lte,component: agw`
-            var lbl2 = `component: agw`
+            var lbl = `component: awf`
+
+            const pulledFiles = github.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            })
+
+            console.log(pulledFiles)
 
             github.issues.addLabels({
               issue_number: context.issue.number,
@@ -48,5 +54,4 @@ jobs:
               labels: [lbl],
             })
 
-            console.log(context)
 
