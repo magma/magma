@@ -44,8 +44,26 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
             }).then(pulledFiles => {
-                    console.log(pulledFiles); 
+                    console.log(pulledFiles['data'][0]['filename']);
                });
+
+            let fileName = pulledFiles['data'][0]['filename']
+            console.log(fileName) 
+
+            switch (true) {
+              case /^docs\/.*/.test(fileName):
+                console.log("file changes under DOCS")
+                lbl = `component: docs`
+                break;
+              case /^nms\/.*/.test(fileName):
+                console.log("file changes under NMS")
+                lbl = `component: nms`
+                break;
+              case /^feg\/.*/.test(fileName):
+                console.log("file changes under FEG")
+                lbl = `component: feg`
+                break;
+            }
 
             github.issues.addLabels({
               issue_number: context.issue.number,
