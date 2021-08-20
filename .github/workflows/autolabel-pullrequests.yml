@@ -38,9 +38,8 @@ jobs:
           script: |
             
             var lbl = `component: awf`;
-            const pulledFiles = {};
 
-            pulledFiles = await github.pulls.listFiles({
+            const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
