@@ -24,7 +24,6 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	managed_configs "magma/gateway/mconfig"
 	"magma/orc8r/lib/go/util"
-
 )
 
 // OCS Environment Variables
@@ -54,11 +53,11 @@ const (
 )
 
 var (
-	_ = flag.String(GyInitMethodFlag, "", "Gy init method (per_key|per_session)")
-	_ = flag.String(OCSApnOverwriteFlag, "", "OCS APN to use instead of request's APN")
-	_ = flag.String(OCSServiceIdentifierFlag, "", "OCS ServiceIdentifier to use in Gy requests")
+	_          = flag.String(GyInitMethodFlag, "", "Gy init method (per_key|per_session)")
+	_          = flag.String(OCSApnOverwriteFlag, "", "OCS APN to use instead of request's APN")
+	_          = flag.String(OCSServiceIdentifierFlag, "", "OCS ServiceIdentifier to use in Gy requests")
 	avp437Flag = flag.Bool(DisableRequestedGrantedUnitsAVPFlag, false, "Disable Requested-Service-Unit AVP (437)")
-	)
+)
 
 // InitMethod describes the type of ways sessions can be initialized through the
 // Gy interface
