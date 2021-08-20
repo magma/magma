@@ -38,7 +38,7 @@ jobs:
           script: |
             
             let lbl; 
-            let lbls = new Set();
+            let lbls = new Array();
 
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
@@ -46,26 +46,26 @@ jobs:
               pull_number: context.issue.number,
             });
 
-            let fileName = pulledFiles['data'][0]['filename'];
-            console.log(fileName);
-
             for (const f of pulledFiles['data']) {
-             console.log(f.filename)
              switch (true) {
               case /^docs\/.*/.test(f.filename):
-                console.log("file changes under DOCS");
-                lbls.add("component: docs");  
+                console.log("file changed under DOCS: " + f['fileame']);
+                lbls.push("component: docs");  
                 break;
               case /^nms\/.*/.test(f.filename):
-                console.log("file changes under NMS");
-                lbls.add("component: nms");  
+                console.log("file changed under NMS: " + f['filename']);
+                lbls.push("component: nms");  
                 break;
               case /^feg\/.*/.test(f.filename):
-                console.log("file changes under FEG");
-                lbls.add("component: feg");  
+                console.log("file changed under FEG:" + f['filename']);
+                lbls.push("component: feg");  
                 break;
              }
+             console.log(fileName);
             }
+
+            let uniqLbls = new Set(lbls);
+            lbls = Array.from(uniqLbls);
 
             github.issues.addLabels({
               issue_number: context.issue.number,
