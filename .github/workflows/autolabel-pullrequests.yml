@@ -37,7 +37,7 @@ jobs:
         with:
           script: |
             
-            var lbl = `component: awf`;
+            let lbl, lbls;
 
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
@@ -48,26 +48,29 @@ jobs:
             let fileName = pulledFiles['data'][0]['filename'];
             console.log(fileName);
 
-            switch (true) {
-              case /^docs\/.*/.test(fileName):
+            for (const f of pulledFiles['data']) {
+             console.log(f.filename)
+             switch (true) {
+              case /^docs\/.*/.test(f.filename):
                 console.log("file changes under DOCS");
-                lbl = `component: docs`;
+                lbls.push({"name": "component: docs"});  
                 break;
-              case /^nms\/.*/.test(fileName):
+              case /^nms\/.*/.test(f.filename):
                 console.log("file changes under NMS");
-                lbl = `component: nms`;
+                lbls.push({"name": "component: nms"});  
                 break;
-              case /^feg\/.*/.test(fileName):
+              case /^feg\/.*/.test(f.filename):
                 console.log("file changes under FEG");
-                lbl = `component: feg`;
+                lbls.push({"name": "component: feg"});  
                 break;
+             }
             }
 
             github.issues.addLabels({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: [lbl],
+              labels: lbls,
             })
 
 
