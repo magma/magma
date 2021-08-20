@@ -40,13 +40,11 @@ jobs:
             var lbl = `component: awf`;
             const pulledFiles = {};
 
-            github.pulls.listFiles({
+            const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
-            }).then(pulledFiles => {
-                    console.log(pulledFiles['data'][0]['filename']);
-               });
+            });
 
             let fileName = pulledFiles['data'][0]['filename'];
             console.log(fileName);
