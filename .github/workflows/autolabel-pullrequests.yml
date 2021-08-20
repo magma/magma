@@ -54,15 +54,15 @@ jobs:
              switch (true) {
               case /^docs\/.*/.test(f.filename):
                 console.log("file changes under DOCS");
-                lbls.push({"name": "component: docs"});  
+                lbls.push('{"name": "component: docs"}');  
                 break;
               case /^nms\/.*/.test(f.filename):
                 console.log("file changes under NMS");
-                lbls.push({"name": "component: nms"});  
+                lbls.push('{"name": "component: nms"}');  
                 break;
               case /^feg\/.*/.test(f.filename):
                 console.log("file changes under FEG");
-                lbls.push({"name": "component: feg"});  
+                lbls.push('{"name": "component: feg"}');  
                 break;
              }
             }
