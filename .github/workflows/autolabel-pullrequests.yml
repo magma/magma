@@ -62,7 +62,7 @@ jobs:
                 break;
               case /^feg\/.*/.test(f.filename):
                 console.log("file changes under FEG");
-                lbls.push("component: feg");  
+                lbls.add("component: feg");  
                 break;
              }
             }
