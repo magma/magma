@@ -52,7 +52,7 @@ sessions_table: sessiond:sessions
 
 # Set to true if converged access set message support is required or 5g access
 # support is required
-converged_access: true
+enable5g_features: true
 
 # Sets the amount of octets that will be requested on the CCR-I for credit if
 # credit is given. If unset, defaults to 10Mb

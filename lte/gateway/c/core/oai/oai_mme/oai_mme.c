@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
   event_client_init();
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
-  if (mme_config.enable_converged_core) {
+  if (mme_config.enable5g_features) {
     CHECK_INIT_RETURN(amf_app_init(&amf_config));
   }
   CHECK_INIT_RETURN(sctp_init(&mme_config));
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
 
-  if (mme_config.enable_converged_core) {
+  if (mme_config.enable5g_features) {
     CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
   }
   CHECK_INIT_RETURN(s6a_init(&mme_config));

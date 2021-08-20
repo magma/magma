@@ -178,7 +178,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
 			SentryConfig:             getNetworkSentryConfig(&network),
-			EnableConvergedCore:      swag.BoolValue(nwEpc.EnableConvergedCore),
+			Enable5GFeatures:         swag.BoolValue(nwEpc.Enable5gFeatures),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -191,6 +191,10 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
 			HeConfig:                 heConfig,
 			LiUes:                    liUes,
+			FeatureSet5G: &lte_mconfig.PipelineD_FeatureSet5G{
+				Enable:         swag.BoolValue(nwEpc.Enable5gFeatures),
+				NodeIdentifier: string(nwEpc.NodeIdentifier),
+			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -209,7 +213,8 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: getNetworkSentryConfig(&network),
+			SentryConfig:     getNetworkSentryConfig(&network),
+			Enable5GFeatures: swag.BoolValue(nwEpc.Enable5gFeatures),
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 		"liagentd": &lte_mconfig.LIAgentD{

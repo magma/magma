@@ -95,8 +95,8 @@ class RpcTests(unittest.TestCase):
         config_mock = {
                    'enodeb_iface': 'eth1',
                    'clean_restart': True,
-                   '5G_feature_set': {'enable': True},
-                   '5G_feature_set': {'node_identifier': '192.168.220.1'},
+                   'feature_set5g': {'enable': True},
+                   'feature_set5g': {'node_identifier': '192.168.220.1'},
                    'bridge_name': self.BRIDGE,
         }
 

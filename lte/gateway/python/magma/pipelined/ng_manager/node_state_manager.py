@@ -81,8 +81,8 @@ class NodeStateManager:
             return get_enodeb_if_ip(ng_params)
 
         return self.LocalNodeConfig(
-            downlink_ip=get_enodeb_if_ip(config_dict['5G_feature_set']),
-            node_identifier=get_node_identifier(config_dict['5G_feature_set']),
+            downlink_ip=get_enodeb_if_ip(config_dict['feature_set5g']),
+            node_identifier=get_node_identifier(config_dict['feature_set5g']),
         )
 
     def _send_messsage_wrapper(self, node_message):

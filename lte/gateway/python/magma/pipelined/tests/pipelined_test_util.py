@@ -414,7 +414,7 @@ def create_service_manager(
         static_services = []
     magma_service.config = {
         'static_services': static_services,
-        '5G_feature_set': {'enable': False},
+        'feature_set5g': {'enable': False},
     }
     # mock the get_default_client function used to return a fakeredis object
     func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())

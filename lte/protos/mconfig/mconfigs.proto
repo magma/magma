@@ -170,7 +170,11 @@ message PipelineD {
         string hmac_key = 7;
     }
     HEConfig he_config = 17;
-
+    message FeatureSet5G {
+      bool enable = 1;
+      string node_identifier = 2;
+    }
+    FeatureSet5G feature_set5g = 18;
     // DEPRECATED
     reserved 4, 11;
 }
@@ -188,6 +192,8 @@ message SessionD {
     bool gx_gy_relay_enabled = 4;
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 5;
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 6;
 }
 
 message WalletExhaustDetection {
@@ -355,7 +361,7 @@ message MME {
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 45;
     
-    bool enable_converged_core = 46;
+    bool enable5g_features = 46;
 }
 
 message FederatedModeMap {

@@ -72,7 +72,7 @@ class NGServiceControllerTest(unittest.TestCase):
             config={
                 'enodeb_iface': 'eth1',
                 'clean_restart': True,
-                '5G_feature_set': {
+                'feature_set5g': {
                     'enable': True,
                     'node_identifier': '192.168.220.1',
                 },

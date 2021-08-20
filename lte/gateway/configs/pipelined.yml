@@ -188,7 +188,7 @@ ovs_internal_conntrack_port_number: 15579
 ovs_internal_conntrack_fwd_tbl_number: 202
 
 # For 5G Functionality Support flag
-5G_feature_set:
+feature_set5g:
  enable: False
  node_identifier: 192.168.200.1
 

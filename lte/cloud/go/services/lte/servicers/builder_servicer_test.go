@@ -163,6 +163,7 @@ func TestBuilder_Build(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G:           &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -218,8 +219,9 @@ func TestBuilder_Build(t *testing.T) {
 		Services: []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_METERING,
 		},
-		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
-		LiUes:    &lte_mconfig.PipelineD_LiUes{},
+		HeConfig:     &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:        &lte_mconfig.PipelineD_LiUes{},
+		FeatureSet5G: &lte_mconfig.PipelineD_FeatureSet5G{},
 	}
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -377,6 +379,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G:           &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -488,6 +491,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceVlan: "30",
 		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+		FeatureSet5G:           &lte_mconfig.PipelineD_FeatureSet5G{},
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -519,6 +523,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceIpAddr: "1.2.3.4",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
+		FeatureSet5G:             &lte_mconfig.PipelineD_FeatureSet5G{},
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -551,6 +556,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceGw:     "1.2.3.1",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
+		FeatureSet5G:             &lte_mconfig.PipelineD_FeatureSet5G{},
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -655,7 +661,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				EncryptionKey:          "melting_the_core",
 				HmacKey:                "magmamagma",
 			},
-			LiUes: &lte_mconfig.PipelineD_LiUes{},
+			LiUes:        &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G: &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -882,7 +889,8 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 				EncryptionKey:          "melting_the_core",
 				HmacKey:                "magmamagma",
 			},
-			LiUes: &lte_mconfig.PipelineD_LiUes{},
+			LiUes:        &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G: &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1027,6 +1035,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G:           &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1156,6 +1165,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G:           &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1291,6 +1301,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G:           &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1419,8 +1430,9 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
-			HeConfig: &lte_mconfig.PipelineD_HEConfig{},
-			LiUes:    &lte_mconfig.PipelineD_LiUes{},
+			HeConfig:     &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:        &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G: &lte_mconfig.PipelineD_FeatureSet5G{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1621,4 +1633,140 @@ func setEpcNetworkServiceAreaMap(nw *configurator.Network, serviceAreaMaps map[s
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.ServiceAreaMaps = serviceAreaMaps
 	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
+}
+
+func TestBuilder_BuildEnable5GFeaturesConfig(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: swag.Bool(true),
+			},
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config: newDefaultGatewayConfig(),
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		},
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	enb := configurator.NetworkEntity{
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
+		Config:             newDefaultUnmanagedEnodebConfig(),
+		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+		},
+	}
+	nwConfigs := *lte_models.NewDefaultTDDNetworkConfig()
+	nwConfigs.Epc.Enable5gFeatures = swag.Bool(false)
+
+	expected := map[string]proto.Message{
+		"enodebd": &lte_mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
+				"enb1": {
+					CellId:    138777000,
+					Tac:       1,
+					IpAddress: "192.168.0.124",
+				},
+			},
+		},
+		"mobilityd": &lte_mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &lte_mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  1,
+			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			HssRelayEnabled:          false,
+			CloudSubscriberdbEnabled: false,
+			EnableDnsCaching:         false,
+			CongestionControlEnabled: true,
+			Enable5GFeatures:         false,
+			AttachedEnodebTacs:       []int32{1},
+			NatEnabled:               true,
+		},
+		"pipelined": &lte_mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			FeatureSet5G: &lte_mconfig.PipelineD_FeatureSet5G{
+				Enable:         false,
+				NodeIdentifier: "",
+			},
+		},
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+			SyncInterval:    randomizedInterval300,
+		},
+		"policydb": &lte_mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &lte_mconfig.SessionD{
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
+		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+	}
+
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }

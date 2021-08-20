@@ -508,10 +508,10 @@ class ServiceManager:
 
     def __init__(self, magma_service: MagmaService):
         self._magma_service = magma_service
-        if '5G_feature_set' not in magma_service.config:
+        if 'feature_set5g' not in magma_service.config:
             self._5G_flag_enable = False
         else:
-          ng_flag = magma_service.config.get('5G_feature_set')
+          ng_flag = magma_service.config.get('feature_set5g')
           self._5G_flag_enable = ng_flag['enable']
 
         # inout is a mandatory app and it occupies:
