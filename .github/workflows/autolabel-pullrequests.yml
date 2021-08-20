@@ -37,7 +37,8 @@ jobs:
         with:
           script: |
             
-            let lbl, lbls;
+            let lbl; 
+            let lbls = new Array();
 
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
