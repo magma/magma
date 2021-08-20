@@ -38,7 +38,7 @@ jobs:
           script: |
             
             let lbl; 
-            let lbls = new Array();
+            let lbls = new Set();
 
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
@@ -54,11 +54,11 @@ jobs:
              switch (true) {
               case /^docs\/.*/.test(f.filename):
                 console.log("file changes under DOCS");
-                lbls.push("component: docs");  
+                lbls.add("component: docs");  
                 break;
               case /^nms\/.*/.test(f.filename):
                 console.log("file changes under NMS");
-                lbls.push("component: nms");  
+                lbls.add("component: nms");  
                 break;
               case /^feg\/.*/.test(f.filename):
                 console.log("file changes under FEG");
