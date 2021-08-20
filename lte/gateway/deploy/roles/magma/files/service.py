@@ -186,7 +186,7 @@ class OfctlService(app_manager.RyuApp):
         try:
             xid = si.barriers.pop(msg.xid)
         except KeyError:
-            self.logger.error('unknown barrier xid %s', msg.xid)
+            self.logger.debug('unknown barrier xid %s', msg.xid)
             return
         result = si.results.pop(xid)
         req = si.xids.pop(xid)
