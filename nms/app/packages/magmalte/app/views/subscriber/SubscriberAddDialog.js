@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {mutable_subscribers, subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
@@ -41,6 +42,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {
   AltFormField,
@@ -154,7 +156,7 @@ function parseSubscriber(line: string) {
     authOpc: items[SUB_AUTH_OPC_OFFSET],
     state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     dataPlan: items[SUB_DATAPLAN_OFFSET],
-    apns: items[SUB_APN_OFFSET].split('|')
+    apns: items[SUB_APN_OFFSET]?.split('|')
       .map(item => item.trim())
       .filter(Boolean),
     policies: items?.[SUB_POLICY_OFFSET]?.split('|')
@@ -163,7 +165,7 @@ function parseSubscriber(line: string) {
   };
 }
 
-function parseSubscriberFile(fileObj: File) {
+function parseSubscriberFile(fileObj: File, deleteSubscribers: boolean) {
   const reader = new FileReader();
   const subscribers = [];
   return new Promise((resolve, reject) => {
@@ -186,12 +188,13 @@ function parseSubscriberFile(fileObj: File) {
           reject('invalid file content');
           return;
         }
-
         for (const line of text
           .split('\n')
           .map(item => item.trim())
           .filter(Boolean)) {
-          subscribers.push(parseSubscriber(line));
+          deleteSubscribers
+            ? subscribers.push({imsi: line})
+            : subscribers.push(parseSubscriber(line));
         }
       } catch (e) {
         reject('Failed parsing the file ' + fileObj.name + '. ' + e?.message);
@@ -202,8 +205,10 @@ function parseSubscriberFile(fileObj: File) {
     reader.readAsText(fileObj);
   });
 }
-
-export default function AddSubscriberButton(props: {onClose: () => void}) {
+type Props = {
+  onClose: () => void,
+};
+export default function AddSubscriberButton(props: Props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
 
@@ -242,6 +247,83 @@ export function EditSubscriberButton(props: EditProps) {
     </>
   );
 }
+
+function BulkDeleteSubscriberButton(props: Props & WithAlert) {
+  const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(SubscriberContext);
+
+  const fileInput = useRef(null);
+  const deleteSubscribers = async subscribers => {
+    props
+      .confirm(
+        `Are you sure you want to delete subscribers: ${subscribers
+          .map(subscriber => subscriber.imsi)
+          .join(', ')}?`,
+      )
+      .then(async confirmed => {
+        if (!confirmed) {
+          return;
+        }
+        for (const subscriber of subscribers) {
+          try {
+            await ctx.setState?.(subscriber.imsi);
+          } catch (e) {
+            const errMsg = e.response?.data?.message ?? e.message ?? e;
+            enqueueSnackbar(
+              'error deleting ' + subscriber.imsi + ' : ' + errMsg,
+              {
+                variant: 'error',
+              },
+            );
+          }
+        }
+        enqueueSnackbar(` Subscriber(s) deleted successfully`, {
+          variant: 'success',
+        });
+      });
+
+    props.onClose();
+  };
+  return (
+    <>
+      <input
+        type="file"
+        ref={fileInput}
+        accept={'.csv'}
+        style={{display: 'none'}}
+        onChange={async () => {
+          if (fileInput.current?.files[0]) {
+            try {
+              const newSubscribers = await parseSubscriberFile(
+                fileInput.current?.files[0],
+                true,
+              );
+              deleteSubscribers(newSubscribers);
+            } catch (e) {
+              enqueueSnackbar(e, {
+                variant: 'error',
+              });
+            }
+          }
+        }}
+      />
+      <Button
+        component="button"
+        variant="text"
+        className={classes.appBarBtn}
+        onClick={() => {
+          if (fileInput.current) {
+            fileInput.current.click();
+          }
+        }}>
+        {'Delete Subscribers'}
+      </Button>
+    </>
+  );
+}
+
+export const DeleteSubscribersButton = withAlert(BulkDeleteSubscriberButton);
 
 const EditTableType = {
   subscriber: 0,
@@ -542,7 +624,7 @@ function AddSubscriberDetails(props: DialogProps) {
     let subscriberErrors = '';
     for (const [i, subscriber] of subscribers.entries()) {
       try {
-        const err = validateSubscriberInfo(subscriber, ctx.state);
+        const err = validateSubscriberInfo(subscriber);
         if (err.length > 0) {
           throw err;
         }
@@ -633,6 +715,7 @@ function AddSubscriberDetails(props: DialogProps) {
               try {
                 const newSubscribers = await parseSubscriberFile(
                   fileInput.current.files[0],
+                  false,
                 );
                 setSubscribers([...subscribers, ...newSubscribers]);
               } catch (e) {
@@ -808,7 +891,7 @@ function AddSubscriberDetails(props: DialogProps) {
           editable={{
             onRowAdd: newData =>
               new Promise((resolve, reject) => {
-                const err = validateSubscriberInfo(newData, ctx.state);
+                const err = validateSubscriberInfo(newData);
                 setError(err);
                 if (err.length > 0) {
                   return reject();
@@ -818,7 +901,7 @@ function AddSubscriberDetails(props: DialogProps) {
               }),
             onRowUpdate: (newData, oldData) =>
               new Promise((resolve, reject) => {
-                const err = validateSubscriberInfo(newData, ctx.state);
+                const err = validateSubscriberInfo(newData);
                 setError(err);
                 if (err.length > 0) {
                   return reject();
@@ -864,15 +947,9 @@ function AddSubscriberDetails(props: DialogProps) {
   );
 }
 
-function validateSubscriberInfo(
-  info: SubscriberInfo,
-  subscribers: {[string]: subscriber},
-) {
+function validateSubscriberInfo(info: SubscriberInfo) {
   if (!info.imsi.match(/^(IMSI\d{10,15})$/)) {
     return "imsi invalid, should match '^(IMSId{10,15})$'";
-  }
-  if (info.imsi in subscribers) {
-    return 'imsi already exists';
   }
   if (info.authKey && !isValidHex(info.authKey)) {
     return 'auth key is not a valid hex';

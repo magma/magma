@@ -13,10 +13,13 @@
  * @flow strict-local
  * @format
  */
-import AddSubscriberButton from './SubscriberAddDialog';
+import AddSubscriberButton, {
+  DeleteSubscribersButton,
+} from './SubscriberAddDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -86,11 +89,22 @@ export function SubscribersOverview() {
             to: '/config',
             icon: SettingsIcon,
             filters: (
-              <AddSubscriberButton
-                onClose={() => {
-                  setRefresh(!refresh);
-                }}
-              />
+              <Grid container alignItems="center" spacing={1}>
+                <Grid item>
+                  <DeleteSubscribersButton
+                    onClose={() => {
+                      setRefresh(!refresh);
+                    }}
+                  />
+                </Grid>
+                <Grid item>
+                  <AddSubscriberButton
+                    onClose={() => {
+                      setRefresh(!refresh);
+                    }}
+                  />
+                </Grid>
+              </Grid>
             ),
           },
           {
