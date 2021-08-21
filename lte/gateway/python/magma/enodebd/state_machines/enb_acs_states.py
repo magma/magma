@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, Optional
@@ -918,19 +917,26 @@ class WaitSetParameterValuesState(EnodebAcsState):
         acs: EnodebAcsStateMachine,
         when_done: str,
         when_apply_invasive: str,
+        status_non_zero_allowed: bool = False,
     ):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
         self.apply_invasive_transition = when_apply_invasive
+        # Set Params can legally return zero and non zero status
+        # Per tr-196, if there are errors the method should return a fault.
+        # Make flag optional to compensate for existing radios returning non
+        # zero on error.
+        self.status_non_zero_allowed = status_non_zero_allowed
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         if type(message) == models.SetParameterValuesResponse:
-            if message.Status != 0:
-                raise Tr069Error(
-                    'Received SetParameterValuesResponse with '
-                    'Status=%d' % message.Status,
-                )
+            if not self.status_non_zero_allowed:
+                if message.Status != 0:
+                    raise Tr069Error(
+                        'Received SetParameterValuesResponse with '
+                        'Status=%d' % message.Status,
+                    )
             self._mark_as_configured()
             if not self.acs.are_invasive_changes_applied:
                 return AcsReadMsgResult(True, self.apply_invasive_transition)
