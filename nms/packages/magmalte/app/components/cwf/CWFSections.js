@@ -16,7 +16,7 @@
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
+import Alarms from '../insights/alarms/Alarms';
 import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';

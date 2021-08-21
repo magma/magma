@@ -21,9 +21,9 @@ import type {
   gateway_id,
   mutable_federation_gateway,
   network_id,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
 
 type InitGatewayStateProps = {

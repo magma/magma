@@ -15,20 +15,18 @@
  */
 
 import 'jest-dom/extend-expect';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import Main from '../Main';
 import React from 'react';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
 import {cleanup, render, wait} from '@testing-library/react';
 
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('mapbox-gl', () => ({
   Map: () => ({}),
 }));
-jest.mock('@fbcnms/ui/insights/map/MapView', () => () => (
-  <div>Im the Map!</div>
-));
+jest.mock('../insights/map/MapView', () => () => <div>Im the Map!</div>);
 
 jest.mock('../main/Index', () => ({
   __esModule: true,

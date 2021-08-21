@@ -70,7 +70,7 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, e
 	mPgw.LastSequenceNumber = sequence
 
 	out := make(chan CBReq)
-	// this routine is needed due to the fact AGW req/res is splitted into two grpc servers
+	// this routine is needed due to the fact AGW req/res is split into two grpc servers
 	go func() {
 		// wait for getHandleCreateBearerRequest to process the response of sgw
 		incomingMsg, err := session.WaitMessage(sequence, mPgw.GtpTimeout)
@@ -90,13 +90,12 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, e
 			out <- CBReq{Err: errors.New(errMsg)}
 			return
 		}
-		fmt.Printf("mockPGW received GreateBearerResponse: %s\n", cbRspFromSGW.String())
+		fmt.Printf("mockPGW received CreateBearerResponse: %s\n", cbRspFromSGW.String())
 		out <- CBReq{
 			Res: cbRspFromSGW,
 			Err: nil,
 		}
 	}()
-
 	return out, nil
 }
 
@@ -157,9 +156,9 @@ func buildNewBearerTFTCreateNewTFT(req CreateBearerRequest) *ie.IE {
 	)
 }
 
-// getHandleCreateBearerRequest just handle Create Bearer Response and return it back to
+// getHandleCreateBearerResponse just handle Create Bearer Response and return it back to
 // CreateBearerRequest function so it can return it s result
-func (mPgw *MockPgw) getHandleCreateBearerRequest() gtpv2.HandlerFunc {
+func (mPgw *MockPgw) getHandleCreateBearerResponse() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 		fmt.Println("mock PGW received a CreateBearerResponse")
 		session, err := c.GetSessionByTEID(msg.TEID(), sgwAddr)

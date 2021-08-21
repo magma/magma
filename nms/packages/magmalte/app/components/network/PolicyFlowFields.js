@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {flow_description} from '@fbcnms/magma-api';
+import type {flow_description} from '../../../generated/MagmaAPIBindings';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';

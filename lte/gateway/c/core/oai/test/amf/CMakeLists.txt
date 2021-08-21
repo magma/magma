@@ -15,14 +15,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/tasks/amf")
+include_directories("${PROJECT_SOURCE_DIR}/include/nas/")
+include_directories("${PROJECT_SOURCE_DIR}/lib/secu")
 
 pkg_search_module(OPENSSL openssl REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIRS})
 
 pkg_search_module(CRYPTO libcrypto REQUIRED)
 include_directories(${CRYPTO_INCLUDE_DIRS})
-
-include_directories("${PROJECT_SOURCE_DIR}/include/nas")
 
 add_library(AMF_TASK_TEST_LIB
     util_nas5g_pkt.h

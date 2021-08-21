@@ -16,7 +16,7 @@
 
 import {isEqual, sortBy} from 'lodash';
 
-import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import MagmaV1API from '../server/magma/index';
 import Sequelize from 'sequelize';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
 import {CWF} from '@fbcnms/types/network';
@@ -48,7 +48,7 @@ import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
-import type {network_type, tenant} from '@fbcnms/magma-api';
+import type {network_type, tenant} from '../generated/MagmaAPIBindings';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 

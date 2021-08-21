@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import type {EnqueueSnackbarOptions} from 'notistack';
 
 import type {
@@ -22,7 +22,7 @@ import type {
   call_trace_config,
   mutable_call_trace,
   network_id,
-} from '@fbcnms/magma-api';
+} from '../../generated/MagmaAPIBindings';
 
 type InitTraceStateProps = {
   networkId: network_id,

@@ -15,7 +15,7 @@
  */
 import 'jest-dom/extend-expect';
 import EventAlertChart from '../EventAlertChart';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
@@ -25,7 +25,7 @@ import moment from 'moment';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {promql_return_object} from '@fbcnms/magma-api';
+import type {promql_return_object} from '../../../generated/MagmaAPIBindings';
 
 afterEach(cleanup);
 
@@ -43,7 +43,7 @@ const mockMetricSt: promql_return_object = {
 };
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 // chart component was failing here so mocking this out

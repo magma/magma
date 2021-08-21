@@ -18,7 +18,7 @@ import 'jest-dom/extend-expect';
 import * as hooks from '../../../components/context/RefreshContext';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
@@ -26,10 +26,13 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {federation_gateway, promql_return_object} from '@fbcnms/magma-api';
+import type {
+  federation_gateway,
+  promql_return_object,
+} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 

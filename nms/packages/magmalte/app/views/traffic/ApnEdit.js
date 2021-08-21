@@ -18,7 +18,7 @@ import type {
   apn,
   apn_configuration,
   qos_profile,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';

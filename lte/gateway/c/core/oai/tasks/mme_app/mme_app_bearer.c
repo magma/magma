@@ -1888,7 +1888,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Mobile reachability timer");
@@ -1897,7 +1897,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_mobile_reachability_timer_started = 0;
@@ -1935,7 +1935,7 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Implicit detach timer");
@@ -1944,7 +1944,7 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   ue_context_p->implicit_detach_timer.id           = MME_APP_TIMER_INACTIVE_ID;
@@ -1962,7 +1962,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_ERROR(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Initial context setup response timer");
@@ -2337,7 +2337,7 @@ status_code_e mme_app_handle_paging_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Paging timer");
@@ -2347,7 +2347,7 @@ status_code_e mme_app_handle_paging_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -2413,7 +2413,7 @@ status_code_e mme_app_handle_ulr_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Update location timer");
@@ -2422,7 +2422,7 @@ status_code_e mme_app_handle_ulr_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
@@ -2726,7 +2726,7 @@ status_code_e mme_app_handle_ue_context_modification_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "UE context modification timer");
@@ -2735,7 +2735,7 @@ status_code_e mme_app_handle_ue_context_modification_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
 

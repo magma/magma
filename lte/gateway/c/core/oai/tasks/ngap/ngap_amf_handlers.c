@@ -637,9 +637,8 @@ amf_config_read_lock(&amf_config);
   Ngap_SliceSupportItem_t* SliceItem =
       (Ngap_SliceSupportItem_t*) calloc(1, sizeof(Ngap_SliceSupportItem_t));
 
-  char* from_buf = "0x11";
-
-  OCTET_STRING_fromBuf(&SliceItem->s_NSSAI.sST, from_buf, 1);
+  uint8_t sst = _SST_eMBB;  // enhanced mobile broadband eMBB
+  OCTET_STRING_fromBuf(&SliceItem->s_NSSAI.sST, (char*) &sst, 1);
 
   ASN_SEQUENCE_ADD(
       &plmnItem->sliceSupportList.list,

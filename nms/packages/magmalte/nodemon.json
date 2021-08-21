@@ -1,7 +1,6 @@
 {
   "verbose": true,
   "watch": [
-    "../../packages/fbcnms-magma-api",
     "config/",
     "scripts/",
     "server/",

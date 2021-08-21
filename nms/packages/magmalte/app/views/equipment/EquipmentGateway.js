@@ -14,7 +14,10 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
+import type {
+  gateway_id,
+  lte_gateway,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';

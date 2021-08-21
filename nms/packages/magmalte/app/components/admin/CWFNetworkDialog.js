@@ -19,10 +19,10 @@ import type {GenericConfig} from './GenericNetworkDialog';
 import * as React from 'react';
 import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import TextField from '@material-ui/core/TextField';
 
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';

@@ -13,14 +13,14 @@
  * @flow strict-local
  * @format
  */
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import GatewayPoolsContext from '../../../components/context/GatewayPoolsContext';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '@fbcnms/ui/theme/default';
@@ -35,7 +35,7 @@ import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 const enqueueSnackbarMock = jest.fn();
 jest

@@ -20,7 +20,7 @@ import type {
   diameter_client_configs,
   federation_gateway,
   sctp_client_configs,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';

@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import MagmaV1API from '../server/magma/index';
 import getCwfAlerts from './cwfAlerts';
 import getFegAlerts from './fegAlerts';
 import getLteAlerts from './lteAlerts';
@@ -22,7 +22,10 @@ import getLteAlerts from './lteAlerts';
 import {CWF, FEG, FEG_LTE, LTE} from '@fbcnms/types/network';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {network_type, prom_alert_config} from '@fbcnms/magma-api';
+import type {
+  network_type,
+  prom_alert_config,
+} from '../generated/MagmaAPIBindings';
 
 async function syncAlertsForNetwork(
   networkID: string,

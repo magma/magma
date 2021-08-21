@@ -37,9 +37,9 @@ import type {
   ping_request,
   tier,
   tier_id,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 
 /************************** Gateway Tier State *******************************/
 type InitTierStateProps = {

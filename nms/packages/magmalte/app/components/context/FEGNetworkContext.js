@@ -15,7 +15,7 @@
  */
 'use strict';
 import type {UpdateNetworkProps as FEGUpdateNetworkProps} from '../../state/feg/NetworkState';
-import type {feg_network} from '@fbcnms/magma-api';
+import type {feg_network} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

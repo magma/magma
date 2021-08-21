@@ -14,7 +14,7 @@
  * @format
  */
 
-import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
+import AsyncMetric from './insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';

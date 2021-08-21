@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {network_ran_configs} from '@fbcnms/magma-api';
+import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
 import Grid from '@material-ui/core/Grid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';

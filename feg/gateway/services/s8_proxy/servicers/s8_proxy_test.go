@@ -636,7 +636,7 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 	assert.Nil(t, csRes.ProtocolConfigurationOptions)
 }
 
-func TestCreateBearerRequest(t *testing.T) {
+func TestCreateAndDeleteBearerRequest(t *testing.T) {
 	// set up client ans server
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
 	defer mockPgw.Close()
@@ -662,6 +662,8 @@ func TestCreateBearerRequest(t *testing.T) {
 	_, err = mockPgw.GetSessionByIMSI(csReq.Imsi)
 	assert.NoError(t, err)
 
+	// ------------------------
+	// ---- Create Bearer ----
 	// create the PGW Bearer Request
 	pgwCreateBearerRequest :=
 		mock_pgw.CreateBearerRequest{
@@ -794,7 +796,7 @@ func TestCreateBearerRequest(t *testing.T) {
 	assert.Equal(t, PgwTEIDc, cbResGtp.TEID())
 	require.NotEmpty(t, cbResGtp.BearerContexts)
 
-	// cehck teids
+	// check teids
 	for _, childIE := range cbResGtp.BearerContexts.ChildIEs {
 		switch childIE.Type {
 		case ie.FullyQualifiedTEID:
@@ -814,6 +816,41 @@ func TestCreateBearerRequest(t *testing.T) {
 			assert.Equal(t, uint8(DEDICATEDBEARER), childIE.MustEPSBearerID())
 		}
 	}
+
+	// ------------------------
+	// ---- Delete Bearer ----
+	outDBR, err := mockPgw.DeleteBearerRequest(mock_pgw.DeleteBearerRequest{Imsi: IMSI1, LinkedBearerId: DEDICATEDBEARER})
+	assert.NoError(t, err)
+
+	// wait for mock feg_relay to process the request
+	<-fegRelayTestSrv.Ready
+
+	dbReqReceived := fegRelayTestSrv.ReceivedDeleteBearerRequest
+	assert.NotEmpty(t, dbReqReceived)
+	assert.Equal(t, DEDICATEDBEARER, int(dbReqReceived.LinkedBearerId))
+	assert.Equal(t, AGWTeidC, dbReqReceived.CAgwTeid)
+
+	// send the response from agw to feg
+	dbResGrpc := &protos.DeleteBearerResponsePgw{
+		PgwAddrs:                     dbReqReceived.PgwAddrs,
+		Imsi:                         IMSI1,
+		SequenceNumber:               dbReqReceived.SequenceNumber,
+		CPgwTeid:                     PgwTEIDc,
+		LinkedBearerId:               DEDICATEDBEARER,
+		ProtocolConfigurationOptions: nil,
+		Cause:                        uint32(gtpv2.CauseRequestAccepted),
+	}
+
+	_, err = s8p.DeleteBearerResponse(context.Background(), dbResGrpc)
+	require.NoError(t, err)
+
+	// wait for the answer to be sent from agw to feg
+	dbResFromChan := <-outDBR
+	require.NoError(t, dbResFromChan.Err)
+	dbResGtp := dbResFromChan.Res
+	require.NotEmpty(t, dbResGtp)
+	assert.Equal(t, dbReqReceived.SequenceNumber, dbResGtp.SequenceNumber)
+	assert.Equal(t, uint8(DEDICATEDBEARER), dbResGtp.BearerContexts.MustEPSBearerID())
 }
 
 func TestS8proxyEcho(t *testing.T) {

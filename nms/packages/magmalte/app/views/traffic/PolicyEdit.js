@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {policy_rule} from '@fbcnms/magma-api';
+import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

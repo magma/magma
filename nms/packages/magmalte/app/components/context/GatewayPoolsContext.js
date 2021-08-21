@@ -18,7 +18,7 @@ import type {
   cellular_gateway_pool_record,
   gateway_pool_id,
   mutable_cellular_gateway_pool,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

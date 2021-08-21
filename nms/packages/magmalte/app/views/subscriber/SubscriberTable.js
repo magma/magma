@@ -20,7 +20,7 @@ import type {
   lte_subscription,
   paginated_subscribers,
   subscriber,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';

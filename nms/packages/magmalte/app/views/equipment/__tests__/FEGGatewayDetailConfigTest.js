@@ -17,7 +17,7 @@
 import 'jest-dom/extend-expect';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '@fbcnms/ui/theme/default';
@@ -34,10 +34,10 @@ import type {
   gy,
   s6a,
   swx,
-} from '@fbcnms/magma-api';
+} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 

@@ -14,13 +14,13 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
+import type {MetricGraphConfig} from '../insights/Metrics';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Explorer from '../../views/metrics/Explorer';
-import GatewayMetrics from '@fbcnms/ui/insights/GatewayMetrics';
+import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';

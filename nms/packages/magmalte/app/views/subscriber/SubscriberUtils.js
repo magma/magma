@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {promql_return_object} from '@fbcnms/magma-api';
+import type {promql_return_object} from '../../../generated/MagmaAPIBindings';
 
 const mBIT = 1000000;
 const kBIT = 1000;

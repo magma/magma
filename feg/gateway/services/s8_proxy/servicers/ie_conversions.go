@@ -146,6 +146,19 @@ func buildCreateBearerResMsg(res *protos.CreateBearerResponsePgw) (message.Messa
 	), nil
 }
 
+func buildDeleteBearerResMsg(res *protos.DeleteBearerResponsePgw) (message.Message, error) {
+	bearer := ie.NewBearerContext(
+		ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0),
+		ie.NewCause(uint8(res.Cause), 0, 0, 0, nil),
+	)
+	return message.NewDeleteBearerResponse(
+		res.CPgwTeid, res.SequenceNumber,
+		ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+		bearer,
+		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
+	), nil
+}
+
 func buildCreateBearerResWithErrorCauseMsg(cause uint32, cPgwTeid uint32, seq uint32) message.Message {
 	return message.NewCreateBearerResponse(
 		cPgwTeid, seq, ie.NewCause(uint8(cause), 0, 0, 0, nil))

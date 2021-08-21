@@ -23,7 +23,7 @@ import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import LogChart from './GatewayLogChart';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';

@@ -15,7 +15,7 @@
  */
 
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {subscriber} from '@fbcnms/magma-api';
+import type {subscriber} from '../../generated/MagmaAPIBindings';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -24,7 +24,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import ImportSubscribersDialog from './ImportSubscribersDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
@@ -37,7 +37,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';

@@ -16,12 +16,12 @@
 
 import Configure from '../network/Configure';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';
 
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function CWFConfigure() {

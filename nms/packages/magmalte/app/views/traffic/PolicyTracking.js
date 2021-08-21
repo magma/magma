@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {policy_rule} from '@fbcnms/magma-api';
+import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';

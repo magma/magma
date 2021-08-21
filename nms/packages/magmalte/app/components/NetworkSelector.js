@@ -19,7 +19,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import NetworkContext from './context/NetworkContext';
 import Popout from '@fbcnms/ui/components/Popout';
 import React from 'react';
@@ -27,7 +27,7 @@ import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {LTE, coalesceNetworkType} from '@fbcnms/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';

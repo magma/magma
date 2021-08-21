@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {MapMarkerProps} from '@fbcnms/ui/insights/map/MapTypes';
+import type {MapMarkerProps} from '../insights/map/MapTypes';
 import type {WithStyles} from '@material-ui/core';
 
 import React from 'react';

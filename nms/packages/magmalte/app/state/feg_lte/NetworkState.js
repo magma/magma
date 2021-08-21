@@ -21,9 +21,9 @@ import type {
   network_id,
   network_ran_configs,
   network_subscriber_config,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/MagmaAPIBindings';
 
 import {UpdateNetworkState as UpdateLteNetworkState} from '../lte/NetworkState';
 export type UpdateNetworkProps = {

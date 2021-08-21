@@ -18,14 +18,14 @@ import type {
   gateway_status,
   gateway_wifi_configs,
   wifi_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import type {
   MagmaConnectionFeature,
   MagmaFeatureCollection,
   MagmaGatewayFeature,
-} from '@fbcnms/ui/insights/map/GeoJSON';
+} from '../insights/map/GeoJSON';
 
 import {assign, flatMap, flatten, groupBy, partition} from 'lodash';
 

@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import NetworkContext from '../../context/NetworkContext';
 import React from 'react';
 import useSections from '../useSections';
@@ -23,9 +23,9 @@ import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
 const enqueueSnackbarMock = jest.fn();
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('mapbox-gl', () => {});
-jest.mock('@fbcnms/ui/insights/map/MapView', () => {});
+jest.mock('../../insights/map/MapView', () => {});
 jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);

@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 
 import {FEG} from '@fbcnms/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
@@ -23,7 +23,10 @@ import {VersionContextProvider} from '../context/VersionContext';
 import {coalesceNetworkType} from '@fbcnms/types/network';
 import type {NetworkType} from '@fbcnms/types/network';
 import type {Theme} from '@material-ui/core';
-import type {network_id, network_type} from '@fbcnms/magma-api';
+import type {
+  network_id,
+  network_type,
+} from '../../../generated/MagmaAPIBindings';
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';

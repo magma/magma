@@ -15,7 +15,7 @@
  */
 
 import type {EnqueueSnackbarOptions} from 'notistack';
-import type {network_id} from '@fbcnms/magma-api';
+import type {network_id} from '../../../generated/MagmaAPIBindings';
 
 import {FetchSubscriberState} from '../lte/SubscriberState';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';

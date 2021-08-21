@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {call_trace_config} from '@fbcnms/magma-api';
+import type {call_trace_config} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

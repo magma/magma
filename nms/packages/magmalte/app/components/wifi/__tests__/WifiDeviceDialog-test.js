@@ -20,7 +20,7 @@ import WifiDeviceDialog from '../WifiDeviceDialog';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -28,7 +28,7 @@ import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {RAW_GATEWAY} from '../test/GatewayMock';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 const enqueueSnackbarMock = jest.fn();

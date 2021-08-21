@@ -20,7 +20,7 @@ import type {
   network_cellular_configs,
   network_dns_config,
   tier,
-} from '@fbcnms/magma-api';
+} from '../../generated/MagmaAPIBindings';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
 import express from 'express';

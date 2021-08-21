@@ -15,7 +15,7 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {network_ran_configs} from '@fbcnms/magma-api';
+import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';

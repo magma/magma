@@ -14,7 +14,10 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
+import type {
+  mutable_subscriber,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';

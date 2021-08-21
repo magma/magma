@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {wifi_gateway} from '@fbcnms/magma-api';
+import type {wifi_gateway} from '../../../../generated/MagmaAPIBindings';
 
 export const RAW_GATEWAY: wifi_gateway = {
   description: '',

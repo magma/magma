@@ -21,7 +21,7 @@ import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext from '../../../components/context/GatewayContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
 import PolicyContext from '../../../components/context/PolicyContext';
@@ -35,10 +35,10 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
-import type {feg_network} from '@fbcnms/magma-api';
+import type {feg_network} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();

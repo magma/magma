@@ -14,7 +14,7 @@
  * @format
  */
 'use strict';
-import type {apn} from '@fbcnms/magma-api';
+import type {apn} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 
