@@ -61,7 +61,6 @@ jobs:
                 lbls.push("component: feg");  
                 break;
              }
-             console.log(fileName);
             }
 
             let uniqLbls = new Set(lbls);
