@@ -552,7 +552,7 @@ def _get_cached_gps_coords() -> Tuple[str, str]:
 
 def _read_gps_coords_from_file():
     try:
-        with open(CACHED_GPS_COORD_FILE_PATH) as f:
+        with open(CACHED_GPS_COORD_FILE_PATH, encoding="utf-8") as f:
             lines = f.readlines()
             if len(lines) != 2:
                 logger.warning(
