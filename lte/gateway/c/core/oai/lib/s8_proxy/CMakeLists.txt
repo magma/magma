@@ -20,6 +20,8 @@ generate_grpc_protos("${S8C_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
 generate_cpp_protos("${S8C_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
+include_directories("${MAGMA_ROOT}/lte/gateway/c/core/oai/tasks/grpc_service/")
 add_library(LIB_S8_PROXY
     S8Client.cpp
     s8_client_api.cpp

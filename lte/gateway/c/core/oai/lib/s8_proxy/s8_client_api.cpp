@@ -447,6 +447,7 @@ void send_s8_create_session_request(
   dflt_bearer_qos =
       msg->bearer_contexts_to_be_created.bearer_contexts[0].bearer_level_qos;
 
+  OAILOG_INFO(LOG_SGW_S8, "Rashmi---- send create session req \n");
   magma::S8Client::s8_create_session_request(
       csr_req,
       [imsi64, sgw_s11_teid, dflt_bearer_qos](
@@ -552,6 +553,9 @@ static void fill_s8_create_bearer_response(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   proto_cb_rsp->Clear();
   proto_cb_rsp->set_imsi((char*) imsi.digit, imsi.length);
+  OAILOG_INFO(
+      LOG_SGW_S8, "Rashmi** len of pgw_cp_address:%d\n",
+      strlen(pgw_cp_address));
   proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
   proto_cb_rsp->set_sequence_number(sequence_number);
   proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);
