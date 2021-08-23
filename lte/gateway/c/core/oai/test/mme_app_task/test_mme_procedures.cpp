@@ -14,9 +14,11 @@
 #include <gtest/gtest.h>
 #include <thread>
 
+#include "feg/protos/s6a_proxy.pb.h"
 #include "../mock_tasks/mock_tasks.h"
 #include "mme_app_state_manager.h"
 #include "mme_app_ip_imsi.h"
+#include "proto_msg_to_itti_msg.h"
 
 extern "C" {
 #include "mme_config.h"
@@ -31,7 +33,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -90,22 +94,61 @@ class MmeAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockS1apHandler> s1ap_handler;
 };
 
-TEST_F(MmeAppProcedureTest, TestInitialUeMessageNoUEContext) {
+TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
 
+  /* The following buffer just includes an attach request */
   uint8_t nas_msg[]       = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
                        0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
                        0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
                        0x04, 0x00, 0x02, 0x1c, 0x00};
   uint32_t nas_msg_length = 29;
 
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
+
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+}
+
+TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
+
+  uint8_t nas_msg[]       = {0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00,
+                       0x00, 0x00, 0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00,
+                       0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04,
+                       0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
+  uint32_t nas_msg_length = 31;
+
+  std::string imsi = "001010000000001";
+
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
+
+  // Sending Initial Attach Request to mme_app mimicing S1AP 
+  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+
+  // Sending AIA to mme_app mimicing successful S6A response
+  message_p = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
+  s6a_auth_info_ans_t* itti_msg  = &message_p->ittiMsg.s6a_auth_info_ans;
+  strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
+  itti_msg->imsi_length        = imsi.size();
+  itti_msg->result.present     = S6A_RESULT_BASE;
+  itti_msg->result.choice.base = DIAMETER_SUCCESS;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  magma::feg::AuthenticationInformationAnswer aia;
+  aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
+
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
