@@ -203,7 +203,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
     su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
   else
     echo "This is experimental, if you find an issue please create an issue here: https://github.com/magma/magma/issues"
-    su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' magma_pkgrepo_dist='stretch-ci' magma_pkgrepo_host='artifactory.magmacore.org/artifactory/debian-test' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
+    su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' magma_pkgrepo_dist='focal-ci' magma_pkgrepo_host='artifactory.magmacore.org/artifactory/debian-test' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
   fi
 
   echo "Cleanup temp files"
