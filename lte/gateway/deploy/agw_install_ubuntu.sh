@@ -164,6 +164,7 @@ Environment=REPO_COMPONENT=${REPO_COMPONENT}
 Environment=REPO_KEY=${REPO_KEY}
 Environment=REPO_KEY_FINGERPRINT=${REPO_KEY_FINGERPRINT}
 Environment=SKIP_PRECHECK=${SUCCESS_MESSAGE}
+Environment=EXPERIMENT="${EXPERIMENT}"
 Type=oneshot
 ExecStart=/bin/bash ${AGW_SCRIPT_PATH}
 TimeoutStartSec=3800
@@ -196,7 +197,14 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
   # install magma and its dependencies including OVS.
-  su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
+
+  if [ "$EXPERIMENT" != "5G" ]; then
+    echo "You're about to install $MAGMA_VERSION"
+    su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
+  else
+    echo "This is experimental, if you find an issue please create an issue here: https://github.com/magma/magma/issues"
+    su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' magma_pkgrepo_dist='stretch-ci' magma_pkgrepo_host='artifactory.magmacore.org/artifactory/debian-test' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
+  fi
 
   echo "Cleanup temp files"
   cd /root || exit
