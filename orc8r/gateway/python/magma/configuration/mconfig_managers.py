@@ -153,7 +153,7 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
     def load_mconfig(self) -> GatewayConfigs:
         cfg_file_name = self._get_mconfig_file_path()
         try:
-            with open(cfg_file_name, 'r') as cfg_file:
+            with open(cfg_file_name, 'r', encoding='utf-8') as cfg_file:
                 mconfig_str = cfg_file.read()
             return self.deserialize_mconfig(mconfig_str)
         except (OSError, json.JSONDecodeError, json_format.ParseError) as e:
@@ -174,7 +174,7 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
 
     def load_service_mconfig_as_json(self, service_name) -> Any:
         cfg_file_name = self._get_mconfig_file_path()
-        with open(cfg_file_name, 'r') as f:
+        with open(cfg_file_name, 'r', encoding='utf-8') as f:
             json_mconfig = json.load(f)
             service_configs = json_mconfig.get('configsByKey', {})
             service_configs.update(json_mconfig.get('configs_by_key', {}))
