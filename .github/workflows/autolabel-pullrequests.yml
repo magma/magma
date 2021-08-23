@@ -40,7 +40,7 @@ jobs:
           script: |
             
             let lbl; 
-            let lbls = new Array(); # Array of label strings
+            let lbls = new Array(); // Array of label strings
 
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
@@ -106,8 +106,8 @@ jobs:
                 console.log("file changed under DOCS: " + f['fileame']);
                 lbls.push("component: docs");  
                 break;
-             } # end of switch case
-            } # end of for loop
+             } // end of switch case
+            } // end of for loop
 
             let uniqLbls = new Set(lbls);
             lbls = Array.from(uniqLbls);
