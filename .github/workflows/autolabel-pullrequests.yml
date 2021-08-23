@@ -9,6 +9,7 @@ on:  # yamllint disable-line rule:truthy
       - 'ci-scripts/**'
       - '.circleci/**'
       - 'circleci/**'
+      - '.github/**'
       - 'cn/**'
       - 'cwf/**'
       - 'docs/**'
