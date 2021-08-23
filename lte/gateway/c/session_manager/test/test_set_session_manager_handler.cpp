@@ -20,6 +20,7 @@
 /* session_manager.grpc.pb.h and SessionStateEnforcer.h
  * included in "SetMessageManagerHandler.h"
  */
+#include "Matchers.h"
 #include "SetMessageManagerHandler.h"
 #include "SessionStateEnforcer.h"
 #include "includes/MagmaService.h"
@@ -53,7 +54,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
         rule_store, std::make_shared<MeteringReporter>());
     std::unordered_multimap<std::string, uint32_t> pdr_map;
     pipelined_client = std::make_shared<MockPipelinedClient>();
-    amf_srv_client   = std::make_shared<magma::AsyncAmfServiceClient>();
+    amf_srv_client   = std::make_shared<magma::MockAmfServiceClient>();
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
 
@@ -171,7 +172,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr<SetMessageManagerHandler> set_session_manager;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<SessionStateEnforcer> session_enforcer;
-  std::shared_ptr<AsyncAmfServiceClient> amf_srv_client;
+  std::shared_ptr<MockAmfServiceClient> amf_srv_client;
   std::shared_ptr<StaticRuleStore> rule_store;
   SessionIDGenerator id_gen_;
   folly::EventBase* evb;
@@ -600,6 +601,60 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
 
   session_enforcer->m5g_pdr_rules_change_and_update_upf(
       session, magma::PdrState::REMOVE);
+}
+
+TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
+  magma::SetSMSessionContext request;
+  set_sm_session_context(&request);
+  request.mutable_common_context()->mutable_sid()->set_id(
+      "IMSI000000000000002");
+
+  grpc::ServerContext server_context;
+
+  set_session_manager->SetAmfSessionContext(
+      &server_context, &request,
+      [this](grpc::Status status, SmContextVoid Void) {});
+
+  // Run session creation in the EventBase loop
+  evb->loopOnce();
+
+  auto session_map = session_store->read_sessions({IMSI2});
+  auto it          = session_map.find(IMSI2);
+  EXPECT_FALSE(it == session_map.end());
+  EXPECT_EQ(session_map[IMSI2].size(), 1);
+
+  SessionConfig cfg;
+  cfg.common_context       = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
+  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
+      SSC_MODE_3);
+
+  SessionUpdate session_update =
+      SessionStore::get_default_session_update(session_map);
+  uint32_t pdu_id = 5;
+  SessionSearchCriteria id1_success_sid(IMSI2, IMSI_AND_PDUID, pdu_id);
+  auto session_it = session_store->find_session(session_map, id1_success_sid);
+  auto& session   = **session_it;
+  auto session_id = session->get_session_id();
+  SessionStateUpdateCriteria& session_uc = session_update[IMSI2][session_id];
+  SetSmNotificationContext notif;
+  std::string imsi;
+
+  magma::SetSMSessionContextAccess expected_response;
+
+  auto* rsp = expected_response.mutable_rat_specific_context()
+                  ->mutable_m5g_session_context_rsp();
+
+  rsp->mutable_session_ambr()->set_br_unit(AggregatedMaximumBitrate::KBPS);
+  rsp->mutable_session_ambr()->set_max_bandwidth_ul(1024);
+  rsp->mutable_session_ambr()->set_max_bandwidth_dl(1024);
+
+  EXPECT_CALL(
+      *amf_srv_client,
+      handle_response_to_access(CheckSrvResponse(&expected_response)))
+      .Times(1);
+
+  session_enforcer->m5g_move_to_active_state(session, notif, &session_uc);
 }
 
 int main(int argc, char** argv) {

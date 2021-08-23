@@ -338,4 +338,18 @@ class MockSetInterfaceForUserPlane final
           std::function<void(Status, SmContextVoid)>));
 };
 
+class MockAmfServiceClient : public AmfServiceClient {
+ public:
+  MockAmfServiceClient() {
+    ON_CALL(*this, handle_response_to_access(_)).WillByDefault(Return(true));
+  }
+
+  MOCK_METHOD1(
+      handle_response_to_access, bool(const magma::SetSMSessionContextAccess&));
+
+  MOCK_METHOD1(
+      handle_notification_to_access,
+      bool(const magma::SetSmNotificationContext&));
+};
+
 }  // namespace magma

@@ -26,6 +26,7 @@ extern "C" {
 #endif
 #include "common_defs.h"
 #include "conversions.h"
+#include "include/amf_pdu_session_configs.h"
 #include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
@@ -551,6 +552,20 @@ int amf_app_handle_uplink_nas_message(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+static void get_ambr_unit(
+    uint8_t apn_ambr_unit, uint32_t apn_session_ambr, uint8_t* calc_ambr_unit,
+    uint16_t* calc_session_ambr) {
+  *calc_ambr_unit = 0;
+
+  while (apn_session_ambr) {
+    *calc_ambr_unit += 1;
+
+    apn_session_ambr >>= 2;
+  }
+
+  *calc_session_ambr = PDU_SESSION_DEFAULT_AMBR;
+}
+
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
@@ -584,13 +599,17 @@ void amf_app_handle_pdu_session_response(
         LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
     return;
   }
-  smf_ctx->dl_session_ambr = pdu_session_resp->session_ambr.downlink_units;
-  smf_ctx->dl_ambr_unit    = pdu_session_resp->session_ambr.downlink_unit_type;
-  smf_ctx->ul_session_ambr = pdu_session_resp->session_ambr.uplink_units;
-  smf_ctx->ul_ambr_unit    = pdu_session_resp->session_ambr.uplink_unit_type;
-  /* Message construction for PDUSessionResourceSetupRequest
-   * to gNB with UPF TEID info
-   */
+
+  get_ambr_unit(
+      pdu_session_resp->session_ambr.downlink_unit_type,
+      pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
+      &smf_ctx->dl_session_ambr);
+
+  get_ambr_unit(
+      pdu_session_resp->session_ambr.uplink_unit_type,
+      pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
+      &smf_ctx->ul_session_ambr);
+
   memcpy(
       &(smf_ctx->pdu_resource_setup_req
             .pdu_session_resource_setup_request_transfer
