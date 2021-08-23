@@ -214,7 +214,7 @@ def _get_service_area_maps(service_mconfig):
 def _get_congestion_control_config(service_mconfig):
     """
     Retrieves congestion_control_enabled config value, it it does not exist
-    it defaults to True.
+    it defaults to True. It gives precedence to the local mme.yml file.
     Args:
         service_mconfig:
 
@@ -236,7 +236,7 @@ def _get_congestion_control_config(service_mconfig):
 def _get_converged_core_config(service_mconfig: object) -> bool:
     """
     Retrieves enable_converged_core config value,If it does not exist
-    it defaults to False. It gives precedence to the service_mconfig file.
+    it defaults to False. It gives precedence to the local mme.yml file.
     """
     enable_converged_core = get_service_config_value(
         'mme', 'enable_converged_core', None,
