@@ -1,5 +1,5 @@
 ---
-name: Auto Label lte component Pull Requests
+name: Auto Label the Pull Requests with the component names
 on:  # yamllint disable-line rule:truthy
   # Use pull_request_target to gain write permissions.
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
@@ -7,6 +7,7 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, reopened, synchronize]
     paths:
       - 'ci-scripts/**'
+      - '.circleci/**'
       - 'circleci/**'
       - 'cn/**'
       - 'cwf/**'
@@ -20,12 +21,12 @@ on:  # yamllint disable-line rule:truthy
       - 'openwrt/**'
       - 'orc8r/**'
       - 'protos/**'
+      - 'scripts/**'
       - 'secrets/**'
       - 'show-tech/**'
       - 'third_party/**'
       - 'wifi/**'
       - 'xwf/**'
-      - 'scripts/**'
 
 jobs:
   # This job is to automatically apply lte labels to pull requests
@@ -38,7 +39,7 @@ jobs:
           script: |
             
             let lbl; 
-            let lbls = new Array();
+            let lbls = new Array(); # Array of label strings
 
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
@@ -48,20 +49,64 @@ jobs:
 
             for (const f of pulledFiles['data']) {
              switch (true) {
+              case /^ci-scripts\/.*/.test(f.filename):
+              case /^\.circleci\/.*/.test(f.filename):
+              case /^circleci\/.*/.test(f.filename):
+              case /^\.github\/workflows\/.*/.test(f.filename):
+              case /^third_party\/build\/.*/.test(f.filename):
+              case /^orc8r\/tools\/packer\/.*/.test(f.filename):
+              case /^orc8r\/cloud\/deploy\/bare-metal\/.*/.test(f.filename):
+              case /^orc8r\/cloud\/deploy\/bare-metal-ansible\/.*/.test(f.filename):
+              case /^lte\/gateway\/docker\/.*/.test(f.filename):
+              case /^lte\/gateway\/release\/.*/.test(f.filename):
+              case /^lte\/gateway\/Vagrantfile/.test(f.filename):
+              case /^cwf\/gateway\/Vagrantfile/.test(f.filename):
+                console.log("file changed under CI component : " + f['fileame']);
+                lbls.push("component: ci");  
+                break;
+              case /^nms\/.*/.test(f.filename):
+                console.log("file changed under NMS component : " + f['fileame']);
+                lbls.push("component: nms");  
+                break;
+              case /^cwf\/.*/.test(f.filename):
+              case /^feg\/radius\/.*/.test(f.filename):
+                console.log("file changed under CWF component : " + f['fileame']);
+                lbls.push("component: cwf");  
+                break;
+              case /^feg\/.*/.test(f.filename):
+                console.log("file changed under FEG component : " + f['fileame']);
+                lbls.push("component: feg");  
+                break;
+              case /^openwrt\/.*/.test(f.filename):
+                console.log("file changed under OPENWRT component : " + f['fileame']);
+                lbls.push("component: openwrt");  
+                break;
+              case /^lte\/gateway\/.*/.test(f.filename):
+              case /^lte\/protos\/.*/.test(f.filename):
+              case /^orc8r\/gateway\/c\/.*/.test(f.filename):
+              case /^third_party\/gtp_ovs\/.*/.test(f.filename):
+                console.log("file changed under AGW component : " + f['fileame']);
+                lbls.push("component: agw");  
+                break;
+              case /^\.golangci\.yml/.test(f.filename):
+              case /^orc8r\/.*/.test(f.filename):
+                console.log("file changed under ORC8R component : " + f['fileame']);
+                lbls.push("component: orc8r");  
+                break;
+              case /^xwf\/.*/.test(f.filename):
+                console.log("file changed under XWF component : " + f['fileame']);
+                lbls.push("component: xwf");  
+                break;
+              case /^show-tech\/.*/.test(f.filename):
+                console.log("file changed under SHOW-TECH component : " + f['fileame']);
+                lbls.push("component: show-tech");  
+                break;
               case /^docs\/.*/.test(f.filename):
                 console.log("file changed under DOCS: " + f['fileame']);
                 lbls.push("component: docs");  
                 break;
-              case /^nms\/.*/.test(f.filename):
-                console.log("file changed under NMS: " + f['filename']);
-                lbls.push("component: nms");  
-                break;
-              case /^feg\/.*/.test(f.filename):
-                console.log("file changed under FEG:" + f['filename']);
-                lbls.push("component: feg");  
-                break;
-             }
-            }
+             } # end of switch case
+            } # end of for loop
 
             let uniqLbls = new Set(lbls);
             lbls = Array.from(uniqLbls);
