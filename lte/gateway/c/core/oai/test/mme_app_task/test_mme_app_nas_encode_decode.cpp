@@ -15,16 +15,17 @@
 
 extern "C" {
 #include "AttachRequest.h"
+#include "EpsQualityOfService.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
 }
 
-class EMMDecodeTest : public ::testing::Test {
+class NASEncodeDecodeTest : public ::testing::Test {
   virtual void SetUp() {}
   virtual void TearDown() {}
 };
 
-TEST_F(EMMDecodeTest, TestDecodeAttachRequest1) {
+TEST_F(NASEncodeDecodeTest, TestDecodeAttachRequest1) {
   //   Combined attach, NAS message generated from s1ap tester
   uint8_t buffer[] = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
                       0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
@@ -42,7 +43,7 @@ TEST_F(EMMDecodeTest, TestDecodeAttachRequest1) {
   bdestroy_wrapper(&attach_request.esmmessagecontainer);
 }
 
-TEST_F(EMMDecodeTest, TestDecodeAttachRequest2) {
+TEST_F(NASEncodeDecodeTest, TestDecodeAttachRequest2) {
   //   Combined attach, NAS message generated from Pixel 4
   uint8_t buffer[] = {
       0x72, 0x08, 0x39, 0x51, 0x10, 0x00, 0x30, 0x09, 0x01, 0x07, 0x07, 0xf0,
@@ -66,6 +67,42 @@ TEST_F(EMMDecodeTest, TestDecodeAttachRequest2) {
   ASSERT_EQ(attach_request.naskeysetidentifier.tsc, 0);
 
   bdestroy_wrapper(&attach_request.esmmessagecontainer);
+}
+
+TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
+
+EpsQualityOfService eps_qos = {0};
+
+uint8_t buffer[1024];
+
+uint8_t eps_qos_buffersize[] = {0x09, 0x09, 0x1c, 0x1c, 0x1c, 0x1c, 0x00, 0x00, 0x00, 0x00};
+
+ASSERT_EQ(decode_eps_quality_of_service(
+    &eps_qos, 0, eps_qos_buffersize,
+    sizeof(eps_qos_buffersize)), sizeof(eps_qos_buffersize));
+ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 28);
+ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 28);
+
+ASSERT_EQ(encode_eps_quality_of_service(
+    &eps_qos, 0, eps_qos_buffersize,
+    sizeof(eps_qos_buffersize)), sizeof(eps_qos_buffersize));
+
+uint8_t eps_qos_buffersize_ext[] = {0x0d, 0x09, 0x1c, 0x1c, 0x1c, 0x1c, 0x00, 0x00, 0x00, 0x00,0x00,0x00,0x00,0x00};
+ASSERT_EQ((eps_qos.bitRates.maxBitRateForUL), 28);
+ASSERT_EQ((eps_qos.bitRates.maxBitRateForDL), 28);
+ASSERT_EQ((eps_qos.bitRatesExt.maxBitRateForUL), 0);
+ASSERT_EQ((eps_qos.bitRatesExt.maxBitRateForDL), 0);
+ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
+ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
+
+ASSERT_EQ(decode_eps_quality_of_service(
+    &eps_qos, 0, eps_qos_buffersize_ext,
+    sizeof(eps_qos_buffersize_ext)), sizeof(eps_qos_buffersize_ext));
+
+ASSERT_EQ(encode_eps_quality_of_service(
+    &eps_qos, 0, eps_qos_buffersize_ext,
+    sizeof(eps_qos_buffersize_ext)), sizeof(eps_qos_buffersize_ext));
+
 }
 
 int main(int argc, char** argv) {
