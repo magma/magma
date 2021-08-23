@@ -238,6 +238,13 @@ def _get_converged_core_config(service_mconfig: object) -> bool:
     Retrieves enable_converged_core config value,If it does not exist
     it defaults to False. It gives precedence to the service_mconfig file.
     """
+    enable_converged_core = get_service_config_value(
+        'mme', 'enable_converged_core', None,
+    )
+
+    if enable_converged_core is not None:
+        return enable_converged_core
+        
     if service_mconfig.enable_converged_core is not None:
         return service_mconfig.enable_converged_core
 
