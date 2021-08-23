@@ -69,7 +69,7 @@ class DockerUpgrader(Upgrader2):
         """ Returns the current version by parsing the IMAGE_VERSION in the
         .env file
         """
-        with open('/var/opt/magma/docker/.env', 'r') as env:
+        with open('/var/opt/magma/docker/.env', 'r', encoding='utf-8') as env:
             for line in env:
                 if line.startswith("IMAGE_VERSION="):
                     current_version = line.split("=")[1].strip()

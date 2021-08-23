@@ -38,6 +38,7 @@ class MagmaPyLintTest(unittest.TestCase):
                 'fixme',  # allow todos
                 'unnecessary-pass',  # triggers when pass is ok
                 'raise-missing-from',
+                'redundant-u-string-prefix',
             ],
             show_categories=["warning", "error", "fatal"],
         )
