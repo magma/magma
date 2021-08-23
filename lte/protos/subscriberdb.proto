@@ -255,5 +255,8 @@ message ListSubscribersResponse {
   // loads.
   string next_page_token = 2;
   // digests contains all digests for the network.
-  magma.orc8r.DigestTree digests = 3;
+  magma.orc8r.DigestTree digests = 5;
+
+  // Deprecated
+  reserved 3, 4;
 }
