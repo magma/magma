@@ -82,4 +82,12 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref);
  **/
 void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
 
+/**
+ * \brief Callback function to remove target ue if matches sctp assoc id
+ * @return false if UE not found, true otherwise
+ */
+bool s1ap_dump_ue_hash_cb(
+    const hash_key_t keyP, void* const ue_void, void* parameter,
+    void** unused_res);
+
 #endif /* FILE_S1AP_MME_SEEN */

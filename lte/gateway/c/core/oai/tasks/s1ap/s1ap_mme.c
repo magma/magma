@@ -71,13 +71,17 @@
 #define UE_LIST_OUT(x, args...)
 #endif
 
-bool s1ap_dump_ue_hash_cb(
-    const hash_key_t keyP, void* const ue_void, void* parameter,
-    void** unused_res);
 static void start_stats_timer(void);
+static void start_state_hashtable_timer(void);
+
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
+static int handle_state_hashtable_timer(zloop_t* loop, int id, void* arg);
+
 static long epc_stats_timer_id;
-static size_t epc_stats_timer_sec = 60;
+static long state_hashtable_timer_id;
+
+static size_t epc_stats_timer_sec       = 60;
+static size_t state_hashtable_timer_sec = 60;
 
 bool hss_associated = false;
 static int indent   = 0;
@@ -373,6 +377,7 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
     OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
   }
   start_stats_timer();
+  start_state_hashtable_timer();
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
   AssertFatal(
@@ -637,4 +642,24 @@ static void start_stats_timer(void) {
   epc_stats_timer_id = start_timer(
       &s1ap_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
       handle_stats_timer, NULL);
+}
+
+static void start_state_hashtable_timer(void) {
+  state_hashtable_timer_id = start_timer(
+      &s1ap_task_zmq_ctx, 1000 * state_hashtable_timer_sec,
+      TIMER_REPEAT_FOREVER, handle_state_hashtable_timer, NULL);
+}
+
+static int handle_state_hashtable_timer(zloop_t* loop, int id, void* arg) {
+  hash_table_ts_t* s1ap_state_ue_ht = get_s1ap_ue_state();
+  hashtable_key_array_t* keys       = hashtable_ts_get_keys(s1ap_state_ue_ht);
+
+  if (!keys) {
+    OAILOG_INFO(LOG_S1AP, "No entries in UE state hashtable");
+  } else {
+    OAILOG_INFO(
+        LOG_S1AP, "Found %d entries on S1AP UE state hashtable",
+        keys->num_keys);
+    FREE_HASHTABLE_KEY_ARRAY(keys);
+  }
 }

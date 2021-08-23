@@ -50,9 +50,15 @@
 
 static void spgw_app_exit(void);
 
+static void start_state_hashtable_timer(void);
+static int handle_state_hashtable_timer(zloop_t* loop, int id, void* arg);
+
 spgw_config_t spgw_config;
 task_zmq_ctx_t spgw_app_task_zmq_ctx;
 extern __pid_t g_pid;
+
+static long state_hashtable_timer_id;
+static size_t state_hashtable_timer_sec = 60;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
@@ -220,6 +226,8 @@ static void* spgw_app_thread(__attribute__((unused)) void* args) {
       TASK_SPGW_APP, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
       &spgw_app_task_zmq_ctx);
 
+  start_state_hashtable_timer();
+
   zloop_start(spgw_app_task_zmq_ctx.event_loop);
   AssertFatal(
       0, "Asserting as spgw_app_thread should not be exiting on its own!");
@@ -270,4 +278,24 @@ static void spgw_app_exit(void) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");
   OAI_FPRINTF_INFO("TASK_SPGW_APP terminated\n");
   pthread_exit(NULL);
+}
+
+static void start_state_hashtable_timer(void) {
+  state_hashtable_timer_id = start_timer(
+      &spgw_app_task_zmq_ctx, 1000 * state_hashtable_timer_sec,
+      TIMER_REPEAT_FOREVER, handle_state_hashtable_timer, NULL);
+}
+
+static int handle_state_hashtable_timer(zloop_t* loop, int id, void* arg) {
+  hash_table_ts_t* spgw_state_ue_ht = get_spgw_ue_state();
+  hashtable_key_array_t* keys       = hashtable_ts_get_keys(spgw_state_ue_ht);
+
+  if (!keys) {
+    OAILOG_INFO(LOG_SPGW_APP, "No entries in UE state hashtable");
+  } else {
+    OAILOG_INFO(
+        LOG_SPGW_APP, "Found %d entries on SPGW UE state hashtable",
+        keys->num_keys);
+    FREE_HASHTABLE_KEY_ARRAY(keys);
+  }
 }

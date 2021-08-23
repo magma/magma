@@ -58,6 +58,9 @@ static bool is_mme_app_healthy(void);
 static void mme_app_exit(void);
 static void start_stats_timer(void);
 
+static void start_state_hashtable_timer(void);
+static int handle_state_hashtable_timer(zloop_t* loop, int id, void* arg);
+
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
@@ -66,6 +69,8 @@ long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
 static long epc_stats_timer_id;
 static size_t epc_stats_timer_sec = 60;
+static long state_hashtable_timer_id;
+static size_t state_hashtable_timer_sec = 60;
 
 mme_congestion_params_t mme_congestion_params;
 
@@ -522,6 +527,8 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);
   start_stats_timer();
 
+  start_state_hashtable_timer();
+
   zloop_start(mme_app_task_zmq_ctx.event_loop);
   AssertFatal(
       0, "Asserting as mme_app_thread should not be exiting on its own!");
@@ -609,4 +616,24 @@ static void mme_app_exit(void) {
   destroy_task_context(&mme_app_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_MME_APP terminated\n");
   pthread_exit(NULL);
+}
+
+static void start_state_hashtable_timer(void) {
+  state_hashtable_timer_id = start_timer(
+      &mme_app_task_zmq_ctx, 1000 * state_hashtable_timer_sec,
+      TIMER_REPEAT_FOREVER, handle_state_hashtable_timer, NULL);
+}
+
+static int handle_state_hashtable_timer(zloop_t* loop, int id, void* arg) {
+  hash_table_ts_t* mme_state_ue_ht = get_mme_ue_state();
+  hashtable_key_array_t* keys      = hashtable_ts_get_keys(mme_state_ue_ht);
+
+  if (!keys) {
+    OAILOG_INFO(LOG_MME_APP, "No entries in UE state hashtable");
+  } else {
+    OAILOG_INFO(
+        LOG_MME_APP, "Found %d entries on MME_APP UE state hashtable",
+        keys->num_keys);
+    FREE_HASHTABLE_KEY_ARRAY(keys);
+  }
 }
