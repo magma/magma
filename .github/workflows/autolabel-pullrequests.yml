@@ -30,16 +30,15 @@ on:  # yamllint disable-line rule:truthy
       - 'xwf/**'
 
 jobs:
-  # This job is to automatically apply lte labels to pull requests
   comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: hmarr/debug-action@v2
+      # - uses: hmarr/debug-action@v2
       - uses: actions/github-script@v3
         with:
           script: |
-            
-            let lbl; 
+
+            let lbl;
             let lbls = new Array(); // Array of label strings
 
             const pulledFiles = await github.pulls.listFiles({
@@ -62,49 +61,49 @@ jobs:
               case /^lte\/gateway\/release\/.*/.test(f.filename):
               case /^lte\/gateway\/Vagrantfile/.test(f.filename):
               case /^cwf\/gateway\/Vagrantfile/.test(f.filename):
-                console.log("file changed under CI component : " + f['fileame']);
-                lbls.push("component: ci");  
+                console.log("file changed under CI component : " + f['filename']);
+                lbls.push("component: ci");
                 break;
               case /^nms\/.*/.test(f.filename):
-                console.log("file changed under NMS component : " + f['fileame']);
-                lbls.push("component: nms");  
+                console.log("file changed under NMS component : " + f['filename']);
+                lbls.push("component: nms");
                 break;
               case /^cwf\/.*/.test(f.filename):
               case /^feg\/radius\/.*/.test(f.filename):
-                console.log("file changed under CWF component : " + f['fileame']);
-                lbls.push("component: cwf");  
+                console.log("file changed under CWF component : " + f['filename']);
+                lbls.push("component: cwf");
                 break;
               case /^feg\/.*/.test(f.filename):
-                console.log("file changed under FEG component : " + f['fileame']);
-                lbls.push("component: feg");  
+                console.log("file changed under FEG component : " + f['filename']);
+                lbls.push("component: feg");
                 break;
               case /^openwrt\/.*/.test(f.filename):
-                console.log("file changed under OPENWRT component : " + f['fileame']);
-                lbls.push("component: openwrt");  
+                console.log("file changed under OPENWRT component : " + f['filename']);
+                lbls.push("component: openwrt");
                 break;
               case /^lte\/gateway\/.*/.test(f.filename):
               case /^lte\/protos\/.*/.test(f.filename):
               case /^orc8r\/gateway\/c\/.*/.test(f.filename):
               case /^third_party\/gtp_ovs\/.*/.test(f.filename):
-                console.log("file changed under AGW component : " + f['fileame']);
-                lbls.push("component: agw");  
+                console.log("file changed under AGW component : " + f['filename']);
+                lbls.push("component: agw");
                 break;
               case /^\.golangci\.yml/.test(f.filename):
               case /^orc8r\/.*/.test(f.filename):
-                console.log("file changed under ORC8R component : " + f['fileame']);
-                lbls.push("component: orc8r");  
+                console.log("file changed under ORC8R component : " + f['filename']);
+                lbls.push("component: orc8r");
                 break;
               case /^xwf\/.*/.test(f.filename):
-                console.log("file changed under XWF component : " + f['fileame']);
-                lbls.push("component: xwf");  
+                console.log("file changed under XWF component : " + f['filename']);
+                lbls.push("component: xwf");
                 break;
               case /^show-tech\/.*/.test(f.filename):
-                console.log("file changed under SHOW-TECH component : " + f['fileame']);
-                lbls.push("component: show-tech");  
+                console.log("file changed under SHOW-TECH component : " + f['filename']);
+                lbls.push("component: show-tech");
                 break;
               case /^docs\/.*/.test(f.filename):
-                console.log("file changed under DOCS: " + f['fileame']);
-                lbls.push("component: docs");  
+                console.log("file changed under DOCS: " + f['filename']);
+                lbls.push("component: docs");
                 break;
              } // end of switch case
             } // end of for loop
@@ -118,5 +117,3 @@ jobs:
               repo: context.repo.repo,
               labels: lbls,
             })
-
-
