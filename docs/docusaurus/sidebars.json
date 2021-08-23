@@ -326,7 +326,8 @@
           "proposals/p008_apn_correction",
           "proposals/p013_Ubuntu_upgrade",
           "proposals/p018_control_network_metrics",
-          "proposals/p019_enodeb_cbrs_support"
+          "proposals/p019_enodeb_cbrs_support",
+          "proposals/p020_sgi_tunnel_transport"
         ]
       },
       {
