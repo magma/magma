@@ -99,7 +99,7 @@ class GenericHealthChecker:
                 'Or execute the command with sudo '
                 'permissions: `venvsudo`'.format(syslog_path),
             )
-        with open(syslog_path, 'r') as f:
+        with open(syslog_path, 'r', encoding='utf-8') as f:
             for line in f:
                 for service_name in service_names:
                     if service_name not in line:
