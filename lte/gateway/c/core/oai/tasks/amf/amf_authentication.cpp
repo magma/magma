@@ -666,9 +666,7 @@ int amf_proc_authentication_failure(
   ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_mm_context) {
     OAILOG_WARNING(
-        LOG_NAS_AMF,
-        "Sending Auth Reject as UE is not authorized due to illegal UE "
-        "ue_mm_context not found\n");
+        LOG_NAS_AMF, "Sending Auth Reject as UE MM Context is not found\n");
     rc = amf_auth_auth_rej(ue_id);
     OAILOG_WARNING(
         LOG_NAS_AMF,
@@ -706,8 +704,7 @@ int amf_proc_authentication_failure(
           get_nas_specific_procedure_registration(amf_ctx);
 
       amf_ctx->_security.eksi = auth_proc->ksi;
-
-      OAILOG_INFO(LOG_NAS_AMF, "Updated EKSI %d\n", amf_ctx->_security.eksi);
+      OAILOG_DEBUG(LOG_NAS_AMF, "Updated EKSI %d\n", amf_ctx->_security.eksi);
       rc = amf_start_registration_proc_authentication(
           amf_ctx, registration_proc);
       break;
@@ -769,7 +766,7 @@ int amf_proc_authentication_failure(
 
         start_authentication_information_procedure_synch(
             amf_ctx, auth_proc, &resync_param);
-        free_wrapper((void**) &resync_param.data);
+        free_wrapper(reinterpret_cast<void**>(&resync_param.data));
 
         amf_ctx_clear_auth_vectors(amf_ctx);
       }
