@@ -96,6 +96,8 @@ Deregistration accept (UE terminated) */
 #define AMF_UE_SECURITY_CAPABILITIES_MISMATCH                                  \
   23  // UE security capabilities mismatch
 #define AMF_SECURITY_MODE_REJECT 24
+#define AMF_CAUSE_LENGTH 1
+#define AMF_UE_ILLEGAL 3
 
 /* 5G Timer structure */
 typedef struct nas5g_timer_s {

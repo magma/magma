@@ -30,6 +30,7 @@ extern "C" {
 #include "amf_authentication.h"
 #include "amf_sap.h"
 #include "amf_app_timer_management.h"
+#include "amf_recv.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -409,6 +410,7 @@ int amf_nas_proc_authentication_info_answer(
   int rc                                = RETURNerror;
   amf_context_t* amf_ctxt_p             = NULL;
   ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
+  int amf_cause                         = -1;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
@@ -454,7 +456,11 @@ int amf_nas_proc_authentication_info_answer(
         amf_ue_ngap_id, aia->auth_info.nb_of_vectors,
         aia->auth_info.m5gauth_vector);
   } else {
-    // TODO ... Handle the failure case
+    OAILOG_ERROR(
+        LOG_NAS_AMF, "nb_of_vectors received is zero from subscriberdb");
+    amf_cause = AMF_UE_ILLEGAL;
+    rc        = amf_proc_registration_reject(amf_ue_ngap_id, amf_cause);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
