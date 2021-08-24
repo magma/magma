@@ -11,46 +11,46 @@
 # limitations under the License.
 ################################################################################
 
-# instances price $0.2564/hour
-# 55 % cheaper than production
 module "orc8r" {
+  # Change this to pull from GitHub with a specified ref, e.g.
+  # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.6"
+  source = "../../../orc8r-aws"
 
-  # 33 % cheaper than 3 t3.large
+  region = "us-west-2"
+
   # cost $0.1664/hour
+  # 33 % cheaper than 3 t3.large
   eks_worker_groups =[ {
-        name                 = "wg-1"
-        instance_type        = "t3.small"
-        asg_desired_capacity = 8
-        asg_min_size         = 1
-        asg_max_size         = 8
-        autoscaling_enabled  = false
-        kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
+    name                 = "wg-1"
+    instance_type        = "t3.small"
+    asg_desired_capacity = 8
+    asg_min_size         = 1
+    asg_max_size         = 8
+    autoscaling_enabled  = false
+    kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
   }]
-  # Specify arm based ami as t4g instance types are arm based
-  # eks_worker_ami = "amazon-eks-arm64-node-1.17-v20210722"
-  # Change this to pull from github with a specified ref
-  source = "{{ orc8rSource }}"
 
-  region = "{{ awsOrc8rRegion }}"
-
+  # If you performing a fresh Orc8r install, choose a recent Postgres version
+  # orc8r_db_engine_version     = "12.6"
   # $0.018/hour
   # 89 % cheaper than m4/m5 large
-  orc8r_db_password           = "{{ orc8rDbPassword }}" # must be at least 8 characters
+  orc8r_db_password = "mypassword" # must be at least 8 characters
   orc8r_db_instance_class     = "db.t3.micro"
 
-  secretsmanager_orc8r_secret = "{{ orc8rTfSecrets }}"
-  orc8r_domain_name           = "{{ orc8rDomainName }}"
+  secretsmanager_orc8r_secret = "orc8r-secrets"
+  orc8r_domain_name           = "orc8r.example.com"
 
+  orc8r_sns_email             = "admin@example.com"
+  enable_aws_db_notifications = true
 
-
-  vpc_name     = "{{ orc8rTfVpc }}"
-  cluster_name = "{{ orc8rTfCluster }}"
+  vpc_name        = "orc8r"
+  cluster_name    = "orc8r"
   cluster_version = "1.17"
 
-  # 51 % cheaper
   # $0.072/hour
+  # 51 % cheaper than 2 t2.medium
   deploy_elasticsearch          = true
-  elasticsearch_domain_name     = "{{ orc8rTfEs }}"
+  elasticsearch_domain_name     = "orc8r-es"
   elasticsearch_version         = "7.7"
   elasticsearch_instance_type   = "t3.small.elasticsearch"
   elasticsearch_instance_count  = 2
@@ -58,22 +58,21 @@ module "orc8r" {
   elasticsearch_ebs_enabled     = true
   elasticsearch_ebs_volume_size = 32
   elasticsearch_ebs_volume_type = "gp2"
-
-  deploy_elasticsearch_service_linked_role = "{{ varFirstInstall }}"
-
 }
 
 module "orc8r-app" {
-  source = "{{ orc8rAppSource }}"
+  # Change this to pull from GitHub with a specified ref, e.g.
+  # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.6"
+  source = "../.."
 
-  region = "{{ awsOrc8rRegion }}"
+  region = "us-west-2"
 
   orc8r_domain_name     = module.orc8r.orc8r_domain_name
   orc8r_route53_zone_id = module.orc8r.route53_zone_id
   external_dns_role_arn = module.orc8r.external_dns_role_arn
 
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
-  seed_certs_dir            = "{{ dirSecretsLocal }}"
+  seed_certs_dir            = "~/secrets/certs"
 
   orc8r_db_host    = module.orc8r.orc8r_db_host
   orc8r_db_port    = module.orc8r.orc8r_db_port
@@ -82,29 +81,25 @@ module "orc8r-app" {
   orc8r_db_user    = module.orc8r.orc8r_db_user
   orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
-  # Note that this can be any container registry provider -- the example below
-  # provides the URL format for Docker Hub, where the user and pass are your
-  # Docker Hub username and access token, respectively
-  docker_registry = "docker.artifactory.magmacore.org"
-  docker_user = ""
-  docker_pass = ""
+  # Note that this can be any container registry provider
+  docker_registry = "https://docker.artifactory.magmacore.org/artifactory/docker"
+  docker_user     = ""
+  docker_pass     = ""
 
-  # Note that this can be any Helm chart repo provider -- the example below
-  # provides the URL format for using a raw GitHub repo, where the user and
-  # pass are your GitHub username and access token, respectively
-  helm_repo = "https://artifactory.magmacore.org/artifactory/helm/"
-  helm_user = ""
-  helm_pass = ""
-
+  # Note that this can be any Helm chart repo provider
+  helm_repo       = "https://docker.artifactory.magmacore.org/artifactory/helm"
+  helm_user       = ""
+  helm_pass       = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
 
   efs_file_system_id       = module.orc8r.efs_file_system_id
   efs_provisioner_role_arn = module.orc8r.efs_provisioner_role_arn
 
-  elasticsearch_endpoint = module.orc8r.es_endpoint
+  elasticsearch_endpoint       = module.orc8r.es_endpoint
+  elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
 
   orc8r_deployment_type = "fwa"
-  orc8r_tag           = "{{ orc8rLabel }}"
+  orc8r_tag             = "1.6.0"
 }
 
 output "nameservers" {
