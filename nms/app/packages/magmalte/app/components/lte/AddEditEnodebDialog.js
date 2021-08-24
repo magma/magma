@@ -14,8 +14,6 @@
  * @format
  */
 
-import type {enodeb, enodeb_configuration} from '@fbcnms/magma-api';
-
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -28,6 +26,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React, {useState} from 'react';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
+import type {enodeb, enodeb_configuration} from '@fbcnms/magma-api';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {EnodebBandwidthOption, EnodebDeviceClass} from './EnodebUtils';
@@ -83,17 +82,6 @@ export default function AddEditEnodebDialog(props: Props) {
   );
   const [serialId, setSerialId] = useState<string>(editingEnodeb?.serial || '');
   const [tac, setTac] = useState(String(editingEnodeb?.config.tac || ''));
-  const [reference_signal_power, setReferenceSignalPower] = useState(
-    String(editingEnodeb?.config.reference_signal_power || ''),
-  );
-  const [pb, setPB] = useState(String(editingEnodeb?.config.pb || ''));
-  const [pa, setPA] = useState(String(editingEnodeb?.config.pa || ''));
-  const [mme_pool_1, setMmePool1] = useState(
-    String(editingEnodeb?.config.mme_pool_1 || ''),
-  );
-  const [mme_pool_2, setMmePool2] = useState(
-    String(editingEnodeb?.config.mme_pool_2 || ''),
-  );
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
     editingEnodeb?.config.transmit_enabled ?? false,
   );
@@ -155,9 +143,31 @@ export default function AddEditEnodebDialog(props: Props) {
         bandwidth_mhz: bandwidthMhz,
         cell_id: cellId,
         transmit_enabled: transmitEnabled,
+        //   radioConfiguration: {
+        //     powerControlParameters: {
+        //       reference_signal_power: null,
+        //       power_class: null,
+        //       pb: null,
+        //       pa: null,
+        //     },
+        //   },
+        //   sync_1588: {
+        //     sync_1588_switch: null,
+        //     sync_1588_asymmetry: null,
+        //     sync_1588_delay_rq_msg_interval: null,
+        //     sync_1588_domain: null,
+        //     sync_1588_holdover: null,
+        //     sync_1588_msg_interval: null,
+        //     sync_1588_unicast_enable: null,
+        //     sync_1588_unicast_serverIp: null,
+        //   },
+        //   managementServer: {
+        //     management_server_host: null,
+        //     management_server_port: null,
+        //     management_server_ssl_enable: null,
+        //   },
       },
     };
-
     if (earfcndl !== '') {
       enb.config.earfcndl = parseInt(earfcndl);
     }
@@ -172,21 +182,6 @@ export default function AddEditEnodebDialog(props: Props) {
     }
     if (tac !== '') {
       enb.config.tac = parseInt(tac);
-    }
-    if (reference_signal_power !== '') {
-      enb.config.reference_signal_power = parseInt(reference_signal_power);
-    }
-    if (pa !== '') {
-      enb.config.pa = parseInt(pa);
-    }
-    if (pb !== '') {
-      enb.config.pb = parseInt(pb);
-    }
-    if (mme_pool_1 !== '') {
-      enb.config.mme_pool_1 = mme_pool_1;
-    }
-    if (mme_pool_2 !== '') {
-      enb.config.mme_pool_2 = mme_pool_2;
     }
 
     try {
@@ -310,41 +305,7 @@ export default function AddEditEnodebDialog(props: Props) {
           onChange={({target}) => setCellNumber(target.value)}
           error={!isCellNumberValid}
         />
-        <TextField
-          label="Peference Signal Power"
-          className={classes.input}
-          value={reference_signal_power}
-          onChange={({target}) => setReferenceSignalPower(target.value)}
-          placeholder="13"
-        />
-        <TextField
-          label="PB"
-          className={classes.input}
-          value={pb}
-          onChange={({target}) => setPB(target.value)}
-          placeholder="1"
-        />
-        <TextField
-          label="PA"
-          className={classes.input}
-          value={pa}
-          onChange={({target}) => setPA(target.value)}
-          placeholder="-3"
-        />
-        <TextField
-          label="MME POOL 1"
-          className={classes.input}
-          value={mme_pool_1}
-          onChange={({target}) => setMmePool1(target.value)}
-          placeholder=""
-        />
-        <TextField
-          label="MME POOL 2"
-          className={classes.input}
-          value={mme_pool_2}
-          onChange={({target}) => setMmePool2(target.value)}
-          placeholder=""
-        />
+
         <FormControl className={classes.input}>
           <FormControlLabel
             control={

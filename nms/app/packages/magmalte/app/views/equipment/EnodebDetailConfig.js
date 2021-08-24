@@ -238,20 +238,32 @@ function EnodebManagedRanConfig({
       {
         category: 'Reference Signal Power',
         value:
-          enbInfo.enb.enodeb_config?.managed_config?.reference_signal_power ??
-          '-',
+          enbInfo.enb.enodeb_config?.managed_config?.radioConfiguration
+            ?.powerControlParameters?.reference_signal_power ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Power Class',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.radioConfiguration
+            ?.powerControlParameters?.power_class ?? '-',
       },
     ],
     [
       {
         category: 'PA',
-        value: enbInfo.enb.enodeb_config?.managed_config?.pa ?? '-',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.radioConfiguration
+            ?.powerControlParameters?.pa ?? '-',
       },
     ],
     [
       {
         category: 'PB',
-        value: enbInfo.enb.enodeb_config?.managed_config?.pb ?? '-',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.radioConfiguration
+            ?.powerControlParameters?.pb ?? '-',
       },
     ],
     [
@@ -264,6 +276,97 @@ function EnodebManagedRanConfig({
       {
         category: 'MME Pool 2',
         value: enbInfo.enb.enodeb_config?.managed_config?.mme_pool_2 ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Management Server SSL Enable',
+        value: enbInfo.enb.enodeb_config?.managed_config?.managementServer
+          ?.management_server_ssl_enable
+          ? 'Enabled'
+          : 'Disabled',
+      },
+    ],
+    [
+      {
+        category: 'Management Server Host',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.managementServer
+            ?.management_server_host ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Management Server Port',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.managementServer
+            ?.management_server_port ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Switch',
+        value: enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+          ?.sync_1588_switch
+          ? 'Enabled'
+          : 'Disabled',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC domain num',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_domain ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC asymmetry',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_asymmetry ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC holdover',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_holdover ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Message Interval',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_msg_interval ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Delay request message Interval',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_delay_rq_msg_interval ?? '',
+      },
+    ],
+    [
+      {
+        category: '1588 unicast switch',
+        value: enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+          ?.sync_1588_unicast_enable
+          ? 'Unicast'
+          : 'Multicast',
+      },
+    ],
+    [
+      {
+        category: '1588 SYNC Unicast ServerIp',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.sync_1588
+            ?.sync_1588_unicast_serverIp ?? '',
       },
     ],
     [

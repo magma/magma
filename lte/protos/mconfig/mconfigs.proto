@@ -73,10 +73,22 @@ message EnodebD {
         string ip_address = 10;
         string mme_ip = 11;
         int32 reference_signal_power = 12;
+        uint32 power_class = 13;
         int32 pb = 14;
         int32 pa = 15;
         string mme_pool_1 = 17;
         string mme_pool_2 = 18;
+        string management_server_host = 19;
+        uint32 management_server_port = 20;
+        bool management_server_ssl_enable = 21;
+        bool sync_1588_switch =117;
+        int32 sync_1588_domain = 118;
+        int32 sync_1588_msg_interval = 119;
+        int32 sync_1588_delay_rq_msg_interval = 120;
+        uint32 sync_1588_holdover = 121;
+        uint32 sync_1588_asymmetry = 122;
+        bool sync_1588_unicast_enable = 123;
+        string sync_1588_unicast_serverIp = 124;
     }
 
     orc8r.LogLevel log_level = 1;

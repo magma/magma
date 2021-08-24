@@ -2299,10 +2299,80 @@ definitions:
         type: string
         format: ipv4
         example: ''
+      radioConfiguration:
+        $ref: '#/definitions/radioConfiguration'
+      managementServer:
+        $ref: '#/definitions/managementServer'
+      sync_1588:
+        $ref: '#/definitions/sync_1588'
+  sync_1588:
+    description: sync_1588 Configuration for  eNodeb devices.
+    type: object
+    properties:
+      sync_1588_switch:
+        type: boolean
+        example: false
+      sync_1588_domain:
+        type: integer
+        format: int32
+        example: 0
+      sync_1588_msg_interval:
+        type: integer
+        format: int32
+        example: 60
+      sync_1588_delay_rq_msg_interval:
+        type: integer
+        format: int32
+        example: 60
+      sync_1588_holdover:
+        type: integer
+        format: uint32
+        example: 300
+      sync_1588_asymmetry:
+        type: integer
+        format: uint32
+        example: 300
+      sync_1588_unicast_enable:
+        type: boolean
+        example: true
+      sync_1588_unicast_serverIp:
+        type: string
+        format: ipv4
+        example: '0.0.0.0'
+
+  managementServer:
+    description: ManagementServer Configuration for  eNodeb devices.
+    type: object
+    properties:
+      management_server_host:
+        type: string
+        example: 'baiomc.cloudapp.net'
+      management_server_port:
+        type: integer
+        format: uint32
+        example: 48080
+      management_server_ssl_enable:
+        type: boolean
+        example: false
+
+  radioConfiguration:
+    description: Radio Configuration for  eNodeb devices.
+    type: object
+    properties:
+      powerControlParameters:
+        $ref: '#/definitions/powerControlParameters'
+  powerControlParameters:
+    description: power control param Configuration for  eNodeb devices.
+    type: object
+    properties:
       reference_signal_power:
         type: integer
         format: int32
         example: 12
+      power_class:
+        type: integer
+        format: uint32
+        example: 45
       pb:
         type: integer
         format: int32
@@ -2311,7 +2381,6 @@ definitions:
         type: integer
         format: int32
         example: -3
-
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.
     type: object

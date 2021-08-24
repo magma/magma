@@ -234,10 +234,22 @@ type OptConfig = {
   pci: string,
   tac: string,
   reference_signal_power: string,
+  power_class: string,
   pa: string,
   pb: string,
   mme_pool_1: string,
   mme_pool_2: string,
+  management_server_host: string,
+  management_server_port: string,
+  management_server_ssl_enable: string,
+  sync_1588_asymmetry: string,
+  sync_1588_delay_rq_msg_interval: string,
+  sync_1588_domain: string,
+  sync_1588_holdover: string,
+  sync_1588_msg_interval: string,
+  sync_1588_unicast_enable: string,
+  sync_1588_unicast_serverIp: string,
+  sync_1588_switch: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -284,11 +296,40 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
-    reference_signal_power: String(config.reference_signal_power ?? ''),
-    pa: String(config.pa ?? ''),
-    pb: String(config.pb ?? ''),
+    reference_signal_power: String(
+      config.radioConfiguration?.powerControlParameters
+        ?.reference_signal_power ?? '',
+    ),
+    power_class: String(
+      config.radioConfiguration?.powerControlParameters?.power_class ?? '',
+    ),
+    pa: String(config.radioConfiguration?.powerControlParameters?.pa ?? ''),
+    pb: String(config.radioConfiguration?.powerControlParameters?.pb ?? ''),
     mme_pool_1: String(config.mme_pool_1 ?? ''),
     mme_pool_2: String(config.mme_pool_2 ?? ''),
+    management_server_host: String(
+      config.managementServer?.management_server_host ?? '',
+    ),
+    management_server_port: String(
+      config.managementServer?.management_server_port ?? '',
+    ),
+    management_server_ssl_enable:
+      config.managementServer?.management_server_ssl_enable ?? false,
+    sync_1588_switch: config.sync_1588?.sync_1588_switch ?? false,
+    sync_1588_asymmetry: String(config.sync_1588?.sync_1588_asymmetry ?? ''),
+    sync_1588_delay_rq_msg_interval: String(
+      config.sync_1588?.sync_1588_delay_rq_msg_interval ?? '',
+    ),
+    sync_1588_domain: String(config.sync_1588?.sync_1588_domain ?? ''),
+    sync_1588_holdover: String(config.sync_1588?.sync_1588_holdover ?? ''),
+    sync_1588_msg_interval: String(
+      config.sync_1588?.sync_1588_msg_interval ?? '',
+    ),
+    sync_1588_unicast_enable:
+      config.sync_1588?.sync_1588_unicast_enable ?? true,
+    sync_1588_unicast_serverIp: String(
+      config.sync_1588?.sync_1588_unicast_serverIp ?? '',
+    ),
   });
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -492,6 +533,17 @@ export function RanEdit(props: Props) {
                   }
                 />
               </AltFormField>
+              <AltFormField label={'Power Class'}>
+                <OutlinedInput
+                  data-testid="power_class"
+                  placeholder="Enter Power Class"
+                  fullWidth={true}
+                  value={optConfig.power_class}
+                  onChange={({target}) =>
+                    handleOptChange('power_class', target.value)
+                  }
+                />
+              </AltFormField>
               <AltFormField label={'PA'}>
                 <OutlinedInput
                   data-testid="pa"
@@ -529,6 +581,132 @@ export function RanEdit(props: Props) {
                   value={optConfig.mme_pool_2}
                   onChange={({target}) =>
                     handleOptChange('mme_pool_2', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'Management SSL Enable'}>
+                <FormControl variant={'outlined'}>
+                  <Select
+                    value={optConfig.management_server_ssl_enable ? 1 : 0}
+                    onChange={({target}) =>
+                      handleOptChange(
+                        'management_server_ssl_enable',
+                        target.value === 1,
+                      )
+                    }
+                    input={<OutlinedInput id="management_ssl_enable" />}>
+                    <MenuItem value={0}>Disabled</MenuItem>
+                    <MenuItem value={1}>Enabled</MenuItem>
+                  </Select>
+                </FormControl>
+              </AltFormField>
+              <AltFormField label={'Management Server Host'}>
+                <OutlinedInput
+                  data-testid="management_host"
+                  placeholder="Enter server host"
+                  fullWidth={true}
+                  value={optConfig.management_server_host}
+                  onChange={({target}) =>
+                    handleOptChange('management_server_host', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'Management Server Port'}>
+                <OutlinedInput
+                  data-testid="management_port"
+                  placeholder="Enter Management Server Port"
+                  fullWidth={true}
+                  value={optConfig.management_server_port}
+                  onChange={({target}) =>
+                    handleOptChange('management_server_port', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'1588 SYNC SWITCH'}>
+                <FormControl variant={'outlined'}>
+                  <Select
+                    value={optConfig.sync_1588_switch ? 1 : 0}
+                    onChange={({target}) =>
+                      handleOptChange('sync_1588_switch', target.value === 1)
+                    }
+                    input={<OutlinedInput id="1588_sync_switch" />}>
+                    <MenuItem value={0}>Disabled</MenuItem>
+                    <MenuItem value={1}>Enabled</MenuItem>
+                  </Select>
+                </FormControl>
+              </AltFormField>
+              <AltFormField label={'1588 SYNC Domain Num'}>
+                <OutlinedInput
+                  data-testid="1588_sync_domain"
+                  placeholder="Enter 1588 SYNC Domain Num"
+                  fullWidth={true}
+                  value={optConfig.sync_1588_domain}
+                  onChange={({target}) =>
+                    handleOptChange('sync_1588_domain', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'1588 SYNC Holdover'}>
+                <OutlinedInput
+                  data-testid="1588_sync_holdover"
+                  placeholder="Enter 1588 SYNC Holdover"
+                  fullWidth={true}
+                  value={optConfig.sync_1588_holdover}
+                  onChange={({target}) =>
+                    handleOptChange('sync_1588_holdover', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'1588 SYNC Message Interval'}>
+                <OutlinedInput
+                  data-testid="1588_sync_msg_interval"
+                  placeholder="Enter 1588 SYNC Message Interval"
+                  fullWidth={true}
+                  value={optConfig.sync_1588_msg_interval}
+                  onChange={({target}) =>
+                    handleOptChange('sync_1588_msg_interval', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'1588 SYNC Delay Request Message Interval'}>
+                <OutlinedInput
+                  data-testid="1588_sync_rq_msg_inverval"
+                  placeholder="Enter 1588 SYNC Delay Request Message Interval"
+                  fullWidth={true}
+                  value={optConfig.sync_1588_delay_rq_msg_interval}
+                  onChange={({target}) =>
+                    handleOptChange(
+                      'sync_1588_delay_rq_msg_interval',
+                      target.value,
+                    )
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'1588 SYNC Unicast/Multicast'}>
+                <FormControl variant={'outlined'}>
+                  <Select
+                    value={optConfig.sync_1588_unicast_enable ? 1 : 0}
+                    onChange={({target}) =>
+                      handleOptChange(
+                        'sync_1588_unicast_enable',
+                        target.value === 1,
+                      )
+                    }
+                    input={<OutlinedInput id="sync_1588_unicast_enable" />}>
+                    <MenuItem value={0}>Multicast</MenuItem>
+                    <MenuItem value={1}>Unicast</MenuItem>
+                  </Select>
+                </FormControl>
+              </AltFormField>
+
+              <AltFormField label={'1588 SYNC Unicast ServerIp'}>
+                <OutlinedInput
+                  data-testid="1588_sync_unicast_serverip"
+                  placeholder="Enter 1588 SYNC Unicast ServerIp"
+                  fullWidth={true}
+                  value={optConfig.sync_1588_unicast_serverIp}
+                  onChange={({target}) =>
+                    handleOptChange('sync_1588_unicast_serverIp', target.value)
                   }
                 />
               </AltFormField>
@@ -684,8 +862,33 @@ function isNumberInRange(value: string | number, lower: number, upper: number) {
 }
 
 function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
-  const response = {...config, bandwidth_mhz: optConfig.bandwidthMhz};
-
+  const response = {
+    ...config,
+    bandwidth_mhz: optConfig.bandwidthMhz,
+    radioConfiguration: {
+      powerControlParameters: {
+        reference_signal_power: null,
+        power_class: null,
+        pb: null,
+        pa: null,
+      },
+    },
+    sync_1588: {
+      sync_1588_switch: false,
+      sync_1588_asymmetry: null,
+      sync_1588_delay_rq_msg_interval: null,
+      sync_1588_domain: null,
+      sync_1588_holdover: null,
+      sync_1588_msg_interval: null,
+      sync_1588_unicast_enable: true,
+      sync_1588_unicast_serverIp: null,
+    },
+    managementServer: {
+      management_server_host: null,
+      management_server_port: null,
+      management_server_ssl_enable: false,
+    },
+  };
   if (!isNumberInRange(config.cell_id, 0, Math.pow(2, 28) - 1)) {
     throw Error('Invalid Configuration Cell ID. Valid range 0 - (2^28) - 1');
   }
@@ -726,21 +929,82 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     response['tac'] = parseInt(optConfig.tac);
   }
   if (optConfig.reference_signal_power !== '') {
-    response['reference_signal_power'] = parseInt(
+    response.radioConfiguration.powerControlParameters.reference_signal_power = parseInt(
       optConfig.reference_signal_power,
     );
   }
+  if (optConfig.power_class !== '') {
+    response.radioConfiguration.powerControlParameters.power_class = parseInt(
+      optConfig.power_class,
+    );
+  }
   if (optConfig.pa !== '') {
-    response['pa'] = parseInt(optConfig.pa);
+    response.radioConfiguration.powerControlParameters.pa = parseInt(
+      optConfig.pa,
+    );
   }
   if (optConfig.pb !== '') {
-    response['pb'] = parseInt(optConfig.pb);
+    response.radioConfiguration.powerControlParameters.pb = parseInt(
+      optConfig.pb,
+    );
   }
   if (optConfig.mme_pool_1 !== '') {
     response['mme_pool_1'] = String(optConfig.mme_pool_1);
   }
   if (optConfig.mme_pool_2 !== '') {
     response['mme_pool_2'] = String(optConfig.mme_pool_2);
+  }
+  if (optConfig.management_server_ssl_enable !== '') {
+    response.managementServer.management_server_ssl_enable = Boolean(
+      optConfig.management_server_ssl_enable,
+    );
+  }
+  if (optConfig.management_server_host !== '') {
+    response.managementServer.management_server_host = String(
+      optConfig.management_server_host,
+    );
+  }
+  if (optConfig.management_server_port !== '') {
+    response.managementServer.management_server_port = parseInt(
+      optConfig.management_server_port,
+    );
+  }
+  if (optConfig.sync_1588_switch !== '') {
+    response.sync_1588.sync_1588_switch = Boolean(optConfig.sync_1588_switch);
+  }
+
+  if (optConfig.sync_1588_asymmetry !== '') {
+    response.sync_1588.sync_1588_asymmetry = parseInt(
+      optConfig.sync_1588_asymmetry,
+    );
+  }
+  if (optConfig.sync_1588_delay_rq_msg_interval !== '') {
+    response.sync_1588.sync_1588_delay_rq_msg_interval = parseInt(
+      optConfig.sync_1588_delay_rq_msg_interval,
+    );
+  }
+  if (optConfig.sync_1588_domain !== '') {
+    response.sync_1588.sync_1588_domain = parseInt(optConfig.sync_1588_domain);
+  }
+  if (optConfig.sync_1588_holdover !== '') {
+    response.sync_1588.sync_1588_holdover = parseInt(
+      optConfig.sync_1588_holdover,
+    );
+  }
+  if (optConfig.sync_1588_msg_interval !== '') {
+    response.sync_1588.sync_1588_msg_interval = parseInt(
+      optConfig.sync_1588_msg_interval,
+    );
+  }
+  if (optConfig.sync_1588_unicast_serverIp !== '') {
+    response.sync_1588.sync_1588_unicast_serverIp = String(
+      optConfig.sync_1588_unicast_serverIp,
+    );
+  }
+  if (optConfig.sync_1588_unicast_enable !== '') {
+    response.sync_1588.sync_1588_unicast_enable = Boolean(
+      optConfig.sync_1588_unicast_enable,
+    );
   }
   return response;
 }

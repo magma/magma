@@ -402,10 +402,38 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.MmePool_2 = string(cellularEnbConfig.MmePool2)
 
 			// radio config power param
-			enbMconfig.ReferenceSignalPower = cellularEnbConfig.ReferenceSignalPower
-			enbMconfig.Pa = cellularEnbConfig.Pa
-			enbMconfig.Pb = cellularEnbConfig.Pb
+			radioConfig := cellularEnbConfig.RadioConfiguration
+			if radioConfig != nil {
+				// radio config power param
+				if radioConfig.PowerControlParameters != nil {
+					enbMconfig.ReferenceSignalPower = radioConfig.PowerControlParameters.ReferenceSignalPower
+					enbMconfig.PowerClass = radioConfig.PowerControlParameters.PowerClass
+					enbMconfig.Pa = radioConfig.PowerControlParameters.Pa
+					enbMconfig.Pb = radioConfig.PowerControlParameters.Pb
+				}
+			}
 
+			// DNS
+			// Management Server
+			management_sever_config := cellularEnbConfig.ManagementServer
+			if management_sever_config != nil {
+				enbMconfig.ManagementServerHost = management_sever_config.ManagementServerHost
+				enbMconfig.ManagementServerPort = management_sever_config.ManagementServerPort
+				enbMconfig.ManagementServerSslEnable = management_sever_config.ManagementServerSslEnable
+			}
+
+			// SYNC
+			sync_config := cellularEnbConfig.Sync1588
+			if sync_config != nil {
+				enbMconfig.Sync_1588Switch = sync_config.Sync1588Switch
+				enbMconfig.Sync_1588Domain = sync_config.Sync1588Domain
+				enbMconfig.Sync_1588MsgInterval = sync_config.Sync1588MsgInterval
+				enbMconfig.Sync_1588DelayRqMsgInterval = sync_config.Sync1588DelayRqMsgInterval
+				enbMconfig.Sync_1588Holdover = sync_config.Sync1588Holdover
+				enbMconfig.Sync_1588Asymmetry = sync_config.Sync1588Asymmetry
+				enbMconfig.Sync_1588UnicastEnable = sync_config.Sync1588UnicastEnable
+				enbMconfig.Sync_1588UnicastServerIp = string(sync_config.Sync1588UnicastServerIP)
+			}
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())

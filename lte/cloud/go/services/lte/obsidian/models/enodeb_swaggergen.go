@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// Enodeb Representation of an enodeB
+// Enodeb Representation of an enodeBc
 // swagger:model enodeb
 type Enodeb struct {
 

@@ -227,10 +227,48 @@ class BaicellsRTSTrDataModel(DataModel):
         # Power control parameters
         ParameterName.REFERENCE_SIGNAL_POWER:
             TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ReferenceSignalPower', False, TrParameterType.INT, False,),
+        ParameterName.POWER_CLASS:
+            TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_BAICELLS_COM_MaxTxPowerExpanded', False, TrParameterType.UNSIGNED_INT, False,),
         ParameterName.PA:
             TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.PDSCH.Pa', False, TrParameterType.INT, False),
         ParameterName.PB:
             TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.PDSCH.Pb', True, TrParameterType.UNSIGNED_INT, False),
+        # DNS
+        ParameterName.TIME_ZONE:
+            TrParam('Device.Time.LocalTimeZoneName', True, TrParameterType.INT, False),
+        # ParameterName.DNS_ADDRESS_1:
+        #     TrParam('Device.Time.NTPServer1', True, TrParameterType.INT, False),
+        # ParameterName.DNS_ADDRESS_2:
+        #     TrParam('Device.Time.NTPServer2', True, TrParameterType.INT, False),
+        # ParameterName.DNS_ADDRESS_3:
+        #     TrParam('Device.Time.NTPServer3', True, TrParameterType.INT, False),
+
+        # Management server
+        ParameterName.MANAGEMENT_SERVER:
+            TrParam('Device.ManagementServer.URL', True, TrParameterType.STRING, False),
+        ParameterName.MANAGEMENT_SERVER_PORT:
+            TrParam('Device.ManagementServer.tr069_port', True, TrParameterType.INT, False),
+        ParameterName.MANAGEMENT_SERVER_SSL_ENABLE:
+            TrParam('Device.ManagementServer.ssl_enable', True, TrParameterType.BOOLEAN, False),
+
+        # SYNC
+        ParameterName.SYNC_1588_SWITCH:
+            TrParam('Device.DeviceInfo.X_BAICELLS_COM_1588SyncEnable', True, TrParameterType.BOOLEAN, False ),
+        ParameterName.SYNC_1588_DOMAIN:
+            TrParam('Device.DeviceInfo.X_COM_1588Domain_Num', True, TrParameterType.INT, False),
+        ParameterName.SYNC_1588_SYNC_MSG_INTREVAL:
+            TrParam('Device.DeviceInfo.X_COM_1588Sync_Message_Interval', True, TrParameterType.INT, False),
+        ParameterName.SYNC_1588_DELAY_REQUEST_MSG_INTERVAL:
+            TrParam('Device.DeviceInfo.X_COM_1588Delay_Request_Message_Interval', True, TrParameterType.INT, False),
+        ParameterName.SYNC_1588_HOLDOVER:
+            TrParam('Device.DeviceInfo.X_COM_1588Holdover', True, TrParameterType.INT, False),
+        ParameterName.SYNC_1588_ASYMMETRY:
+            TrParam('Device.DeviceInfo.X_COM_1588Asymmetry_Value', True, TrParameterType.INT, False),
+        ParameterName.SYNC_1588_UNICAST_ENABLE:
+            TrParam('Device.DeviceInfo.X_COM_1588Unicast_Switch', True, TrParameterType.INT, False),
+        ParameterName.SYNC_1588_UNICAST_SERVERIP:
+            TrParam('Device.DeviceInfo.X_COM_1588Unicast_IpAddr', True, TrParameterType.STRING, False),
+
     }
 
     NUM_PLMNS_IN_CONFIG = 6
