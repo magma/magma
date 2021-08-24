@@ -35,6 +35,7 @@ class Tr069ComplexModel(ComplexModel):
         in CWMP XSD file. """
     __namespace__ = CWMP_NS
 
+
 class anySimpleType(Tr069ComplexModel):
     """ Type used to transfer simple data of various types. Data type is
         defined in 'type' XML attribute. Data is handled as a string. """
