@@ -27,6 +27,7 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "SmfServiceClient.h"
 #include "M5GMobilityServiceClient.h"
+#include "amf_app_timer_management.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -34,6 +35,9 @@ using magma5g::AsyncSmfServiceClient;
 namespace magma5g {
 #define IMSI_LEN 15
 #define AMF_CAUSE_SUCCESS 1
+
+static int pdu_session_resource_release_t3592_handler(
+    zloop_t* loop, int timer_id, void* arg);
 
 /***************************************************************************
 **                                                                        **
@@ -196,6 +200,147 @@ void clear_amf_smf_context(smf_context_t* smf_ctx) {
       sizeof(smf_ctx->smf_proc_data.ssc_mode));
 }
 
+int pdu_session_release_request_process(
+    ue_m5gmm_context_s* ue_context, smf_context_t* smf_ctx,
+    amf_ue_ngap_id_t amf_ue_ngap_id) {
+  int rc                = 1;
+  amf_smf_t amf_smf_msg = {};
+  // amf_cause = amf_smf_handle_pdu_release_request(
+  //              msg, &amf_smf_msg);
+
+  int smf_cause             = SMF_CAUSE_SUCCESS;
+  amf_smf_msg.u.release.pti = smf_ctx->smf_proc_data.pti.pti;
+  amf_smf_msg.u.release.pdu_session_id =
+      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+  amf_smf_msg.u.release.cause_value = smf_cause;
+
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "sending PDU session resource release request to gNB \n");
+
+  rc =
+      pdu_session_resource_release_request(ue_context, amf_ue_ngap_id, smf_ctx);
+
+  if (rc != RETURNok) {
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "PDU session resource release request to gNB failed"
+        "\n");
+  } else {
+    ue_pdu_id_t id = {
+        amf_ue_ngap_id,
+        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id};
+
+    smf_ctx->T3592.id = amf_pdu_start_timer(
+        PDUE_SESSION_RELEASE_TIMER_MSECS, TIMER_REPEAT_ONCE,
+        pdu_session_resource_release_t3592_handler, id);
+  }
+
+  return rc;
+}
+
+int pdu_session_resource_release_complete(
+    ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
+    smf_context_t* smf_ctx) {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  int rc = 1;
+
+  IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+
+  if (smf_ctx->n_active_pdus) {
+    /* Execute PDU Session Release and notify to SMF */
+    rc = pdu_state_handle_message(
+        ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
+        smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+  }
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "notifying SMF about PDU session release n_active_pdus=%d\n",
+      smf_ctx->n_active_pdus);
+
+  if (smf_ctx->pdu_address.pdn_type == IPv4) {
+    // Clean up the Mobility IP Address
+    AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
+        imsi, reinterpret_cast<const char*>(smf_ctx->apn),
+        &(smf_ctx->pdu_address.ipv4_address));
+  }
+
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "clear saved context associated with the PDU session\n");
+  clear_amf_smf_context(smf_ctx);
+}
+
+static int pdu_session_resource_release_t3592_handler(
+    zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_INFO(
+      LOG_AMF_APP, "T3592: pdu_session_resource_release_t3592_handler\n");
+
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  uint8_t pdu_session_id          = 0;
+  ue_pdu_id_t uepdu_id;
+  smf_context_t* smf_ctx = NULL;
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  int rc = 0;
+
+  if (!amf_pdu_get_timer_arg(timer_id, &uepdu_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
+        timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
+  amf_ue_ngap_id = uepdu_id.ue_id;
+  pdu_session_id = uepdu_id.pdu_id;
+
+  ue_m5gmm_context_s* ue_context =
+      amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
+
+  if (ue_context) {
+    IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+    smf_ctx = amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+
+    if (smf_ctx == NULL) {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "T3592:pdu session  not found for session_id = %u\n",
+          pdu_session_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    }
+  } else {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "T3592: ue context not found for the ue_id=%u\n",
+        amf_ue_ngap_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  OAILOG_WARNING(
+      LOG_AMF_APP, "T3592: timer id: %d expired for pdu_session_id: %d\n",
+      smf_ctx->T3592.id, pdu_session_id);
+
+  smf_ctx->retransmission_count += 1;
+
+  OAILOG_ERROR(
+      LOG_AMF_APP, "T3592: Incrementing retransmission_count to %d\n",
+      smf_ctx->retransmission_count);
+
+  if (smf_ctx->retransmission_count < REGISTRATION_COUNTER_MAX) {
+    /* Send entity Registration accept message to the UE */
+
+    pdu_session_release_request_process(ue_context, smf_ctx, amf_ue_ngap_id);
+  } else {
+    /* Abort the registration procedure */
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "T3592: Maximum retires:%d, for PDU_SESSION_RELEASE_COMPELETE done "
+        "hence Abort "
+        "the pdu sesssion release "
+        "procedure\n",
+        smf_ctx->retransmission_count);
+    // To abort the registration procedure
+    // amf_proc_registration_abort(amf_ctx, ue_amf_context);
+    // pdu_session_resource_release_abort()
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_smf_send()                                                **
@@ -285,38 +430,30 @@ int amf_smf_send(
           SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
+      smf_ctx->retransmission_count = 0;
+      if (RETURNok ==
+          pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %d "
+            "Started\n",
+            smf_ctx->T3592.id);
+      }
+    } break;
+    case PDU_SESSION_RELEASE_COMPLETE: {
+      if (smf_ctx->T3592.id != NAS5G_TIMER_INACTIVE_ID) {
+        amf_pdu_stop_timer(smf_ctx->T3592.id);
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "T3592: after stop PDU_SESSION_RELEASE_REQUEST timer T3592 with id "
+            "= %d\n",
+            smf_ctx->T3592.id);
+        smf_ctx->T3592.id = NAS5G_TIMER_INACTIVE_ID;
+      }
       amf_cause = amf_smf_handle_pdu_release_request(
           &(msg->payload_container.smf_msg), &amf_smf_msg);
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "sending PDU session resource release request to gNB \n");
-      rc = pdu_session_resource_release_request(ue_context, ue_id, smf_ctx);
-      if (rc != RETURNok) {
-        OAILOG_DEBUG(
-            LOG_AMF_APP,
-            "PDU session resource release request to gNB failed"
-            "\n");
-      }
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "notifying SMF about PDU session release n_active_pdus=%d\n",
-          smf_ctx->n_active_pdus);
 
-      if (smf_ctx->n_active_pdus) {
-        /* Execute PDU Session Release and notify to SMF */
-        rc = pdu_state_handle_message(
-            ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE, ACTIVE,
-            ue_context, amf_smf_msg, imsi, NULL, 0);
-      }
-
-      if (smf_ctx->pdu_address.pdn_type == IPv4) {
-        // Clean up the Mobility IP Address
-        AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
-            imsi, reinterpret_cast<const char*>(smf_ctx->apn),
-            &(smf_ctx->pdu_address.ipv4_address));
-      }
-
-      clear_amf_smf_context(smf_ctx);
+      pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
     } break;
     default:
       break;
