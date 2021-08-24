@@ -18,11 +18,13 @@ extern "C" {
 #include "log.h"
 }
 
-uint8_t ncon_tac[] = {1,  2,  4,  6,  7,  8,  10, 11, 12, 14, 15,
-                      16, 19, 21, 23, 26, 28, 31, 33, 37, 39};
-
 class MMEConfigTest : public ::testing::Test {
-  virtual void SetUp() {}
+  protected:
+    std::array<int, 25> ncon_tac;
+  virtual void SetUp() {
+    ncon_tac = {1,  2,  4,  6,  7,  8,  10, 11, 12, 14, 15,
+                16, 19, 21, 23, 26, 28, 31, 33, 37, 39};
+  }
   virtual void TearDown() {}
 };
 
