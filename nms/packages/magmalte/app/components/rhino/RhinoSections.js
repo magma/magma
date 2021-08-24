@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
+import type {SectionsConfigs} from '../layout/Section';
 
 import BarChartIcon from '@material-ui/icons/BarChart';
 import React from 'react';

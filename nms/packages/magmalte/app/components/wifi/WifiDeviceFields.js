@@ -22,7 +22,7 @@ import type {
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
+import KeyValueFields from '../KeyValueFields';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
