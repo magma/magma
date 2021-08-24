@@ -280,6 +280,7 @@ MME :
         S11_LOG_LEVEL      = "{{ oai_log_level }}";
         S6A_LOG_LEVEL      = "{{ oai_log_level }}";
         UTIL_LOG_LEVEL     = "{{ oai_log_level }}";
+        SERVICE303_LOG_LEVEL     = "{{ oai_log_level }}";
         MSC_LOG_LEVEL      = "ERROR";
         ITTI_LOG_LEVEL     = "ERROR";
         MME_SCENARIO_PLAYER_LOG_LEVEL = "ERROR";

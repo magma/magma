@@ -125,6 +125,7 @@ extern int fd_g_debug_lvl;
 #define LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE "THREAD_SAFE"
 #define LOG_CONFIG_STRING_UDP_LOG_LEVEL "UDP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_UTIL_LOG_LEVEL "UTIL_LOG_LEVEL"
+#define LOG_CONFIG_STRING_SERVICE303_LOG_LEVEL "SERVICE303_LOG_LEVEL"
 #define LOG_CONFIG_STRING_SGS_LOG_LEVEL "SGS_LOG_LEVEL"
 #define LOG_CONFIG_STRING_NGAP_LOG_LEVEL "NGAP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_AMF_APP_LOG_LEVEL "AMF_APP_LOG_LEVEL"
@@ -269,6 +270,9 @@ typedef struct log_config_s {
   log_level_t
       itti_log_level; /*!< \brief ITTI layer log level starting from
                          OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  log_level_t
+      service303_log_level; /*!< \brief Service303 log level starting from
+                  OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
       sgs_log_level;            /*!< \brief SGS layer log level starting from
                                    OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
