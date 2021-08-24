@@ -177,6 +177,7 @@ imsi64_t mme_app_handle_initial_paging_request(
     const itti_s11_paging_request_t* paging_req);
 
 int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id, void* args);
 int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(

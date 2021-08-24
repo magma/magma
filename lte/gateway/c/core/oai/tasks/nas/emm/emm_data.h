@@ -570,10 +570,7 @@ void nas_stop_T3470(
     void* timer_callback_args);
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    time_out_t time_out_cb, void* timer_callback_args);
-void nas_stop_Ts6a_auth_info(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    void* timer_callback_args);
+    time_out_t time_out_cb);
 void emm_init_context(
     struct emm_context_s* const emm_ctx, const bool init_esm_ctxt)
     __attribute__((nonnull));

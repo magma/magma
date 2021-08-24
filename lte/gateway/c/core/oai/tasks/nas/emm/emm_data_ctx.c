@@ -50,6 +50,7 @@
 #include "nas_procedures.h"
 #include "nas_timer.h"
 #include "nas/securityDef.h"
+#include "intertask_interface.h"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt) {
@@ -1018,10 +1019,10 @@ void nas_start_T3470(
 //------------------------------------------------------------------------------
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((Ts6a_auth_info) && (Ts6a_auth_info->id == NAS_TIMER_INACTIVE_ID)) {
-    Ts6a_auth_info->id = nas_timer_start(
-        Ts6a_auth_info->sec, 0, time_out_cb, timer_callback_args);
+    Ts6a_auth_info->id = mme_app_start_timer(
+        Ts6a_auth_info->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != Ts6a_auth_info->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "Ts6a_auth_info started UE " MME_UE_S1AP_ID_FMT "\n",
@@ -1063,19 +1064,6 @@ void nas_stop_T3470(
     T3470->id = nas_timer_stop(T3470->id, &timer_callback_args);
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3470 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
-  }
-}
-
-//------------------------------------------------------------------------------
-void nas_stop_Ts6a_auth_info(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    void* timer_callback_args) {
-  if ((Ts6a_auth_info) && (Ts6a_auth_info->id != NAS_TIMER_INACTIVE_ID)) {
-    Ts6a_auth_info->id =
-        nas_timer_stop(Ts6a_auth_info->id, &timer_callback_args);
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "Ts6a_auth_info stopped UE " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
   }
 }
 
