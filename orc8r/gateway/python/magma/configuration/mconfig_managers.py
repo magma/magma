@@ -222,8 +222,9 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         magma_configuration_events.deleted_stored_mconfig()
 
     def update_stored_mconfig(self, updated_value: str) -> GatewayConfigs:
+        parsed = json.loads(updated_value)
         serialization_utils.write_to_file_atomically(
-            self.MCONFIG_PATH, updated_value,
+            self.MCONFIG_PATH, json.dumps(parsed, indent=4, sort_keys=True),
         )
         magma_configuration_events.updated_stored_mconfig()
 
