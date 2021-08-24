@@ -255,14 +255,14 @@ class AVPValueTests(unittest.TestCase):
 
         # Unicode strings won't load
         with self.assertRaises(CodecException):
-            avp.OctetStringAVP(0, u'hello')
+            avp.OctetStringAVP(0, 'hello')
 
     def test_unicode_strings(self):
         """
         Tests we can encode and decode unicode strings
         """
         self._compare_avp(
-            avp.UTF8StringAVP(1, u'\u0123\u0490'),
+            avp.UTF8StringAVP(1, '\u0123\u0490'),
             memoryview(b'\x00\x00\x00\x01\x00\x00\x00\x0c\xc4\xa3\xd2\x90'),
         )
 

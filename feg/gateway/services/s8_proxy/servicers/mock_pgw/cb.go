@@ -70,7 +70,7 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, e
 	mPgw.LastSequenceNumber = sequence
 
 	out := make(chan CBReq)
-	// this routine is needed due to the fact AGW req/res is splitted into two grpc servers
+	// this routine is needed due to the fact AGW req/res is split into two grpc servers
 	go func() {
 		// wait for getHandleCreateBearerRequest to process the response of sgw
 		incomingMsg, err := session.WaitMessage(sequence, mPgw.GtpTimeout)
@@ -90,13 +90,12 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, e
 			out <- CBReq{Err: errors.New(errMsg)}
 			return
 		}
-		fmt.Printf("mockPGW received GreateBearerResponse: %s\n", cbRspFromSGW.String())
+		fmt.Printf("mockPGW received CreateBearerResponse: %s\n", cbRspFromSGW.String())
 		out <- CBReq{
 			Res: cbRspFromSGW,
 			Err: nil,
 		}
 	}()
-
 	return out, nil
 }
 
@@ -124,28 +123,28 @@ func buildNewBearerTFTCreateNewTFT(req CreateBearerRequest) *ie.IE {
 		[]*ie.TFTPacketFilter{
 			ie.NewTFTPacketFilter(
 				ie.TFTPFBidirectional, 0, 0,
-				// component 0
+				// component 0.0
 				ie.NewTFTPFComponentSecurityParameterIndex(0xdeadbeef),
-				// component 1
+				// component 0.1
 				ie.NewTFTPFComponentIPv4RemoteAddress(net.IP{127, 0, 0, 1}, net.IPMask{255, 255, 255, 0}),
-				// component 2
+				// component 0.2
 				ie.NewTFTPFComponentProtocolIdentifierNextHeader(req.BiFilterProtocolId),
-				// component 3
+				// component 0.3
 				ie.NewTFTPFComponentTypeOfServiceTrafficClass(1, 2),
-				// component 4
+				// component 0.4
 				ie.NewTFTPFComponentSingleLocalPort(req.BiLocalFilterPort),
-				// component 5
+				// component 0.5
 				ie.NewTFTPFComponentSingleRemotePort(req.BiRemoteFilterPort),
 			),
 			ie.NewTFTPacketFilter(
 				ie.TFTPFDownlinkOnly, 1, 0,
-				// component 6
+				// component 1.0
 				ie.NewTFTPFComponentProtocolIdentifierNextHeader(1),
-				// component 7
+				// component 1.1
 				ie.NewTFTPFComponentSecurityParameterIndex(0xdeadbeef),
-				// component 8
+				// component 1.2
 				ie.NewTFTPFComponentLocalPortRange(req.BiLocalFilterPort, req.BiLocalFilterPort+10),
-				// component 9
+				// component 1.3
 				ie.NewTFTPFComponentRemotePortRange(req.BiRemoteFilterPort, req.BiRemoteFilterPort+10),
 			),
 		},
@@ -157,9 +156,9 @@ func buildNewBearerTFTCreateNewTFT(req CreateBearerRequest) *ie.IE {
 	)
 }
 
-// getHandleCreateBearerRequest just handle Create Bearer Response and return it back to
+// getHandleCreateBearerResponse just handle Create Bearer Response and return it back to
 // CreateBearerRequest function so it can return it s result
-func (mPgw *MockPgw) getHandleCreateBearerRequest() gtpv2.HandlerFunc {
+func (mPgw *MockPgw) getHandleCreateBearerResponse() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 		fmt.Println("mock PGW received a CreateBearerResponse")
 		session, err := c.GetSessionByTEID(msg.TEID(), sgwAddr)

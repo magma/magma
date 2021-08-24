@@ -41,8 +41,8 @@ int nas_proc_establish_ind(
     const tai_t originating_tai, const ecgi_t ecgi,
     const m5g_rrc_establishment_cause_t as_cause, const s_tmsi_m5_t s_tmsi,
     bstring msg) {
-  amf_sap_t amf_sap;
-  uint32_t rc = RETURNerror;
+  amf_sap_t amf_sap = {};
+  uint32_t rc       = RETURNerror;
   if (msg) {
     /*
      * Notify the AMF procedure call manager that NAS signaling
@@ -234,9 +234,9 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
 ***************************************************************************/
 static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  amf_sap_t amf_sap;  //             = {0};
-  int rc         = RETURNok;
-  proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
+  amf_sap_t amf_sap = {};
+  int rc            = RETURNok;
+  proc->T3570.id    = NAS5G_TIMER_INACTIVE_ID;
   OAILOG_DEBUG(LOG_AMF_APP, "Sending AS IDENTITY_REQUEST\n");
   /*
    * Notify AMF-AS SAP that Identity Request message has to be sent
@@ -255,14 +255,11 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
     /*
      * Start Identification T3570 timer
      */
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP, "AMF_TEST: Timer: Starting Identity timer T3570 \n");
     proc->T3570.id = amf_app_start_timer(
         IDENTITY_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
         identification_t3570_handler, proc->ue_id);
-    OAILOG_INFO(
-        LOG_AMF_APP, "Timer: Started Identity timer T3570 with id %lu\n",
-        proc->T3570.id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -285,7 +282,7 @@ static int identification_t3570_handler(
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP, "T3570: ue_amf_context is NULL for ue id: %d\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -374,7 +371,7 @@ int amf_proc_identification(
       /*
        * Notify 5G CN that common procedure has been initiated
        */
-      amf_sap_t amf_sap;
+      amf_sap_t amf_sap       = {};
       amf_sap.primitive       = AMFREG_COMMON_PROC_REQ;
       amf_sap.u.amf_reg.ue_id = ue_id;
       amf_sap.u.amf_reg.ctx   = amf_context;
@@ -432,7 +429,7 @@ int amf_nas_proc_authentication_info_answer(
 
   amf_ue_ngap_id_t amf_ue_ngap_id = ue_5gmm_context_p->amf_ue_ngap_id;
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received Authentication Information Answer from Subscriberdb for"
       " ue_id = %d\n",
@@ -444,7 +441,9 @@ int amf_nas_proc_authentication_info_answer(
      * elements
      */
     if (aia->auth_info.nb_of_vectors > MAX_EPS_AUTH_VECTORS) {
-      OAILOG_ERROR(LOG_NAS_AMF, "nb_of_vectors > MAX_EPS_AUTH_VECTORS");
+      OAILOG_WARNING(
+          LOG_NAS_AMF,
+          "nb_of_vectors should be lesser than max_eps_auth_vectors");
       return RETURNerror;
     }
 

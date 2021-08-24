@@ -100,7 +100,7 @@ class ServiceRegistry:
         authority = proxy_config['bootstrap_address']
 
         try:
-            rootca = open(proxy_config['rootca_cert'], 'rb').read()
+            rootca = open(proxy_config['rootca_cert'], 'rb', encoding="utf-8").read()
         except FileNotFoundError as exp:
             raise ValueError("SSL cert not found: %s" % exp)
 
@@ -254,14 +254,17 @@ def get_ssl_creds():
     """
     proxy_config = ServiceRegistry.get_proxy_config()
     try:
-        rootca = open(proxy_config['rootca_cert'], 'rb').read()
-        cert = open(proxy_config['gateway_cert']).read().encode()
-        key = open(proxy_config['gateway_key']).read().encode()
-        ssl_creds = grpc.ssl_channel_credentials(
-            root_certificates=rootca,
-            certificate_chain=cert,
-            private_key=key,
-        )
+        with open(proxy_config['rootca_cert'], 'rb', encoding="utf-8") as rootca_f:
+            with open(proxy_config['gateway_cert'], encoding="utf-8") as cert_f:
+                with open(proxy_config['gateway_key'], encoding="utf-8") as key_f:
+                    rootca = rootca_f.read()
+                    cert = cert_f.read().encode()
+                    key = key_f.read().encode()
+                    ssl_creds = grpc.ssl_channel_credentials(
+                        root_certificates=rootca,
+                        certificate_chain=cert,
+                        private_key=key,
+                    )
     except FileNotFoundError as exp:
         raise ValueError("SSL cert not found: %s" % exp)
     return ssl_creds

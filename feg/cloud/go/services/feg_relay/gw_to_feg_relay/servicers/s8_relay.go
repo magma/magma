@@ -81,6 +81,15 @@ func (s S8RelayRouter) CreateBearerResponse(c context.Context, req *protos.Creat
 	return client.CreateBearerResponse(ctx, req)
 }
 
+func (s S8RelayRouter) DeleteBearerResponse(c context.Context, req *protos.DeleteBearerResponsePgw) (*orc8r_protos.Void, error) {
+	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+	return client.DeleteBearerResponse(ctx, req)
+}
+
 func (s S8RelayRouter) getS8Client(c context.Context, imsi string) (protos.S8ProxyClient, context.Context, context.CancelFunc, error) {
 
 	conn, ctx, cancel, err := s.GetFegServiceConnection(c, imsi, FegS8Proxy)

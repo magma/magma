@@ -165,16 +165,20 @@ void create_state_matrix() {
 int ue_state_handle_message_initial(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context) {
-  OAILOG_INFO(LOG_AMF_APP, " mm_state %d", cur_state);
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "FSM %s: Change UE state from_state =%d to next_state=%d\n", __func__,
-        cur_state, ue_state_matrix[cur_state][event][session_state].next_state);
+        "[%s] Event triggered, UE switches from [%s] to [%s] and PDU session "
+        ":[%s]",
+        get_state_event_string((state_events) event).c_str(),
+        get_ue_state_string(cur_state).c_str(),
+        get_ue_state_string(
+            ue_state_matrix[cur_state][event][session_state].next_state)
+            .c_str(),
+        get_session_state_string(session_state).c_str());
 
     ue_m5gmm_context->mm_state =
         ue_state_matrix[cur_state][event][session_state].next_state;
-    OAILOG_INFO(LOG_AMF_APP, " mm_state %d", ue_m5gmm_context->mm_state);
 
     return reinterpret_cast<int (*)(amf_context_t*)>(
         ue_state_matrix[cur_state][event][session_state].handler.func)(
@@ -198,10 +202,6 @@ int ue_state_handle_message_reg_conn(
     bstring smf_msg_pP, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
-    OAILOG_INFO(
-        LOG_NAS_AMF,
-        "FSM %s: Change UE state from_state =%d to next_state=%d\n", __func__,
-        cur_state, ue_state_matrix[cur_state][event][session_state].next_state);
     ue_m5gmm_context->mm_state =
         ue_state_matrix[cur_state][event][session_state].next_state;
     return reinterpret_cast<int (*)(
@@ -226,11 +226,6 @@ int ue_state_handle_message_dereg(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
-    OAILOG_INFO(
-        LOG_NAS_AMF,
-        "FSM %s: Change UE state from_state =%d to next_state=%d\n", __func__,
-        cur_state, ue_state_matrix[cur_state][event][session_state].next_state);
-
     ue_m5gmm_context->mm_state =
         ue_state_matrix[cur_state][event][session_state].next_state;
 
@@ -254,39 +249,142 @@ int pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
-  OAILOG_INFO(LOG_AMF_APP, "pdu_state_handle_message");
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "FSM %s: Change PDU Session state from_state =%d to next_state=%d\n",
-        __func__, session_state,
-        ue_state_matrix[cur_state][event][session_state].next_sess_state);
+        "[%s] Event triggered, PDU session state switches from [%s] to [%s] "
+        "and "
+        "UE state :[%s]",
+        get_state_event_string((state_events) event).c_str(),
+        get_session_state_string(session_state).c_str(),
+        get_session_state_string(
+            ue_state_matrix[cur_state][event][session_state].next_sess_state)
+            .c_str(),
+        get_ue_state_string(cur_state).c_str());
+
+    switch (event) {
+      case STATE_PDU_SESSION_ESTABLISHMENT_REQUEST:
+        ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
+            ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
+            ue_state_matrix[cur_state][event][session_state].handler.func)(
+            &amf_smf_msg.u.establish, imsi);
+      case STATE_PDU_SESSION_RELEASE_COMPLETE:
+        ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
+            ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        return reinterpret_cast<int (*)(amf_smf_release_t*, char*)>(
+            ue_state_matrix[cur_state][event][session_state].handler.func)(
+            &amf_smf_msg.u.release, imsi);
+      case STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT:
+        ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
+            ue_state_matrix[cur_state][event][session_state].next_sess_state;
+
+        return reinterpret_cast<int (*)(
+            itti_n11_create_pdu_session_response_t*, uint32_t)>(
+            ue_state_matrix[cur_state][event][session_state].handler.func)(
+            pdu_session_resp, ue_id);
+
+      default:
+        OAILOG_ERROR(
+            LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+    }
   }
+}
+std::string get_state_event_string(state_events event) {
+  std::string eventStr;
   switch (event) {
+    case STATE_EVENT_REG_REQUEST:
+      eventStr = "STATE_EVENT_REG_REQUEST";
+      break;
+    case STATE_EVENT_SEC_MODE_COMPLETE:
+      eventStr = "STATE_EVENT_SEC_MODE_COMPLETE";
+      break;
+    case STATE_EVENT_REG_COMPLETE:
+      eventStr = "STATE_EVENT_REG_COMPLETE";
+      break;
+    case STATE_EVENT_DEREGISTER:
+      eventStr = "STATE_EVENT_DEREGISTER";
+      break;
     case STATE_PDU_SESSION_ESTABLISHMENT_REQUEST:
-      ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
-          ue_state_matrix[cur_state][event][session_state].next_sess_state;
-      return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
-          ue_state_matrix[cur_state][event][session_state].handler.func)(
-          &amf_smf_msg.u.establish, imsi);
-    case STATE_PDU_SESSION_RELEASE_COMPLETE:
-      ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
-          ue_state_matrix[cur_state][event][session_state].next_sess_state;
-      return reinterpret_cast<int (*)(amf_smf_release_t*, char*)>(
-          ue_state_matrix[cur_state][event][session_state].handler.func)(
-          &amf_smf_msg.u.release, imsi);
+      eventStr = "STATE_PDU_SESSION_ESTABLISHMENT_REQUEST";
+      break;
     case STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT:
-      ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
-          ue_state_matrix[cur_state][event][session_state].next_sess_state;
-
-      return reinterpret_cast<int (*)(
-          itti_n11_create_pdu_session_response_t*, uint32_t)>(
-          ue_state_matrix[cur_state][event][session_state].handler.func)(
-          pdu_session_resp, ue_id);
-
+      eventStr = "STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT";
+      break;
+    case STATE_PDU_SESSION_RELEASE_COMPLETE:
+      eventStr = "STATE_PDU_SESSION_RELEASE_COMPLETE";
+      break;
+    case STATE_EVENT_CONTEXT_RELEASE:
+      eventStr = "STATE_EVENT_CONTEXT_RELEASE";
+      break;
     default:
-      OAILOG_ERROR(LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+      eventStr = "UNKNOWN_EVENT";
+      break;
   }
+  return eventStr;
+}
+
+std::string get_session_state_string(SMSessionFSMState s) {
+  std::string sessStateStr;
+
+  switch (s) {
+    case SESSION_NULL:
+      sessStateStr = "SESSION_NULL";
+      break;
+    case CREATING:
+      sessStateStr = "CREATING";
+      break;
+    case CREATE:
+      sessStateStr = "CREATE";
+      break;
+    case ACTIVE:
+      sessStateStr = "ACTIVE";
+      break;
+    case INACTIVE:
+      sessStateStr = "INACTIVE";
+      break;
+    case PENDING_RELEASE:
+      sessStateStr = "PENDING_RELEASE";
+      break;
+    case RELEASED:
+      sessStateStr = "RELEASED";
+      break;
+    default:
+      sessStateStr = "UNKNOWN_SESSION_STATE";
+      break;
+  }
+  return sessStateStr;
+}
+
+std::string get_ue_state_string(m5gmm_state_t ueState) {
+  std::string ueStateStr;
+  switch (ueState) {
+    case DEREGISTERED:
+      ueStateStr = "DEREGISTERED";
+      break;
+    case REGISTERED_IDLE:
+      ueStateStr = "REGISTERED_IDLE";
+      break;
+    case REGISTERED_CONNECTED:
+      ueStateStr = "REGISTERED_CONNECTED";
+      break;
+    case DEREGISTERED_INITIATED:
+      ueStateStr = "DEREGISTERED_INITIATED";
+      break;
+    case PENDING_RELEASE_RESPONSE:
+      ueStateStr = "PENDING_RELEASE_RESPONSE";
+      break;
+    case COMMON_PROCEDURE_INITIATED1:
+      ueStateStr = "COMMON_PROCEDURE_INITIATED1";
+      break;
+    case COMMON_PROCEDURE_INITIATED2:
+      ueStateStr = "COMMON_PROCEDURE_INITIATED2";
+      break;
+    default:
+      ueStateStr = "UE_UNKNOWN_STATE";
+      break;
+  }
+  return ueStateStr;
 }
 }  // namespace magma5g

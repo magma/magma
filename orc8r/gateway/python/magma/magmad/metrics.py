@@ -233,7 +233,7 @@ def monitor_unattended_upgrade_status():
         status = 0
         auto_upgrade_file_name = '/etc/apt/apt.conf.d/20auto-upgrades'
         if os.path.isfile(auto_upgrade_file_name):
-            with open(auto_upgrade_file_name) as auto_upgrade_file:
+            with open(auto_upgrade_file_name, encoding='utf-8') as auto_upgrade_file:
                 for line in auto_upgrade_file:
                     package_name, flag = line.strip().strip(';').split()
                     if package_name == "APT::Periodic::Unattended-Upgrade":

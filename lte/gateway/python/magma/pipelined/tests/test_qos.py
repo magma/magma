@@ -946,7 +946,7 @@ class TestTrafficClass(unittest.TestCase):
         assert(
             not [
                 info for info in class_list if 'class htb 1:{qid}'.format(
-                qid=qid,
+                    qid=qid,
                 ) in info
             ]
         )
@@ -960,7 +960,7 @@ class TestTrafficClass(unittest.TestCase):
         assert(
             not [
                 info for info in class_list if 'class htb 1:{qid}'.format(
-                qid=parent_qid,
+                    qid=parent_qid,
                 ) in info
             ]
         )

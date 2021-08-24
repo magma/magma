@@ -163,13 +163,45 @@ func parseCreateBearerRequest(msg message.Message, senderAddr net.Addr) (*protos
 	if pgwPcoIE := cbReqGtp.PCO; pgwPcoIE != nil {
 		pco, err := handlePCO(pgwPcoIE)
 		if err != nil {
-			err = fmt.Errorf("Couldn't get Protocol Configuration Options: %s ", err)
+			err = fmt.Errorf("parseCreateBearerRequest Couldn't get Protocol Configuration Options: %s ", err)
 			return nil, nil, err
 		}
 		cbReq.ProtocolConfigurationOptions = pco
 	}
 
 	return cbReq, nil, nil
+}
+
+func parseDeleteBearerRequest(msg message.Message, senderAddr net.Addr) (*protos.DeleteBearerRequestPgw, *protos.GtpError, error) {
+	dbReqGtp := msg.(*message.DeleteBearerRequest)
+	glog.V(2).Infof("Received Delete Bearer Request (gtp):\n%s", dbReqGtp.String())
+	dbReq := &protos.DeleteBearerRequestPgw{}
+	dbReq.PgwAddrs = senderAddr.String()
+	dbReq.SequenceNumber = dbReqGtp.SequenceNumber
+
+	// cgw control plane teid
+	if !dbReqGtp.HasTEID() {
+		return nil, errorIeMissing(ie.FullyQualifiedTEID), nil
+	}
+	dbReq.CAgwTeid = dbReqGtp.TEID()
+
+	if linkedEBI := dbReqGtp.LinkedEBI; linkedEBI != nil {
+		dbReq.LinkedBearerId = uint32(linkedEBI.MustEPSBearerID())
+	} else {
+		return nil, errorIeMissing(ie.EPSBearerID), nil
+	}
+
+	// Protocol Configuration Options (PCO) optional
+	if pgwPcoIE := dbReqGtp.PCO; pgwPcoIE != nil {
+		pco, err := handlePCO(pgwPcoIE)
+		if err != nil {
+			err = fmt.Errorf("parseDeleteBearerRequest Couldn't get Protocol Configuration Options: %s ", err)
+			return nil, nil, err
+		}
+		dbReq.ProtocolConfigurationOptions = pco
+	}
+
+	return dbReq, nil, nil
 }
 
 func handleCause(causeIE *ie.IE, msg message.Message) (*protos.GtpError, error) {

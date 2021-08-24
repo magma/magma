@@ -85,6 +85,9 @@ func (e *entStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) 
 }
 
 func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
 	ctx := context.Background()
 	var blobs Blobs
 	err := e.Blob.Query().
@@ -163,6 +166,9 @@ func (e *entStorage) IncrementVersion(networkID string, id storage.TypeAndKey) e
 }
 
 func (e *entStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
+	if len(ids) == 0 {
+		return nil
+	}
 	ctx := context.Background()
 	_, err := e.Blob.Delete().
 		Where(P(networkID, ids)).

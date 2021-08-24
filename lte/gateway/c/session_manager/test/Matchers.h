@@ -301,4 +301,29 @@ MATCHER_P(CheckDeactivateFlows, imsi, "") {
   return request->sid().id() == imsi;
 }
 
+MATCHER_P(CheckSrvResponse, expected_response, "") {
+  auto actual_response = static_cast<const SetSMSessionContextAccess>(arg);
+
+  auto expected_session_ambr = &(expected_response->rat_specific_context()
+                                     .m5g_session_context_rsp()
+                                     .session_ambr());
+
+  auto actual_response_ambr = &(actual_response.rat_specific_context()
+                                    .m5g_session_context_rsp()
+                                    .session_ambr());
+
+  auto unit_res =
+      (expected_session_ambr->br_unit() == actual_response_ambr->br_unit());
+
+  auto ul_ambr_res =
+      (expected_session_ambr->max_bandwidth_ul() ==
+       actual_response_ambr->max_bandwidth_ul());
+
+  auto dl_ambr_res =
+      (expected_session_ambr->max_bandwidth_dl() ==
+       actual_response_ambr->max_bandwidth_dl());
+
+  return (unit_res && ul_ambr_res && dl_ambr_res);
+}
+
 };  // namespace magma

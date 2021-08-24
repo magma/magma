@@ -191,14 +191,26 @@ class LocalEnforcer {
       std::unordered_set<uint32_t>& charging_credits_received);
 
   /**
-   * Initialize session on session map. Adds some information comming from
-   * the core (cloud). Rules will be installed by init_session_credit
-   * @param credit_response - message from cloud containing initial credits
+   * @brief Update the session with CreateSessionResponse
+   * This function should be called after we receive a CreateSessionResponse
+   * from PolicyDB / SessionProxy
+   * @param session
+   * @param response
+   * @param session_uc
    */
-  void init_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, const SessionConfig& cfg,
-      const CreateSessionResponse& response);
+  void update_session_with_policy_response(
+      std::unique_ptr<SessionState>& session,
+      const CreateSessionResponse& response,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief Create a initializing session object
+   *
+   * @param session_id
+   * @param cfg
+   */
+  std::unique_ptr<SessionState> create_initializing_session(
+      const std::string& session_id, const SessionConfig& cfg);
 
   /**
    * Process the update response from the reporter and update the

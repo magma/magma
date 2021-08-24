@@ -88,7 +88,7 @@ int amf_handle_deregistration_ue_origin_req(
           "request from UE\n");
       break;
     default:
-      OAILOG_DEBUG(
+      OAILOG_WARNING(
           LOG_NAS_AMF, "Wrong access type received for deregistration\n");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
       break;
@@ -110,7 +110,7 @@ int amf_proc_deregistration_request(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "processing deregistration UE-id = %d "
+      "Processing deregistration UE-id = %d "
       "type = %d\n",
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
@@ -118,7 +118,6 @@ int amf_proc_deregistration_request(
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
     return -1;
   }
 
@@ -131,7 +130,7 @@ int amf_proc_deregistration_request(
         ue_id, params->de_reg_type);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-  amf_sap_t amf_sap;
+  amf_sap_t amf_sap     = {};
   amf_as_data_t* amf_as = &amf_sap.u.amf_as.u.data;
 
   /* if switched off, directly release all resources and

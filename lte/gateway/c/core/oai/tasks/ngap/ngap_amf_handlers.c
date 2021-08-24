@@ -637,9 +637,8 @@ amf_config_read_lock(&amf_config);
   Ngap_SliceSupportItem_t* SliceItem =
       (Ngap_SliceSupportItem_t*) calloc(1, sizeof(Ngap_SliceSupportItem_t));
 
-  char* from_buf = "0x11";
-
-  OCTET_STRING_fromBuf(&SliceItem->s_NSSAI.sST, from_buf, 1);
+  uint8_t sst = _SST_eMBB;  // enhanced mobile broadband eMBB
+  OCTET_STRING_fromBuf(&SliceItem->s_NSSAI.sST, (char*) &sst, 1);
 
   ASN_SEQUENCE_ADD(
       &plmnItem->sliceSupportList.list,
@@ -822,7 +821,7 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
   }
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  rc = ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 
@@ -1049,7 +1048,7 @@ int ngap_amf_handle_ue_context_release_request(
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = ng_release_cause;
 
       message_p->ittiMsgHeader.imsi = imsi64;
-      rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+      rc = ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
       OAILOG_FUNC_RETURN(LOG_NGAP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1393,7 +1392,7 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
       ue_ref_p->amf_ue_ngap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  rc = ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 
@@ -1480,7 +1479,7 @@ bool ngap_send_gnb_deregistered_ind(
       if (arg->current_ue_index == NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE) {
         arg->current_ue_index = 0;
       }
-      send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, arg->message_p);
+      ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, arg->message_p);
       arg->message_p = NULL;
     }
 
@@ -1598,7 +1597,7 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
       ue_ref_p->amf_ue_ngap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   DevAssert(ue_ref_p->ng_ue_state == NGAP_UE_WAITING_CRR);
 
   OAILOG_DEBUG_UE(
@@ -1635,7 +1634,7 @@ void ngap_amf_release_ue_context(
       ue_ref_p->amf_ue_ngap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   DevAssert(ue_ref_p->ng_ue_state == NGAP_UE_WAITING_CRR);
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
@@ -1761,7 +1760,7 @@ status_code_e ngap_amf_handle_pduSession_release_response(
     }
   }
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  rc = ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_INFO(LOG_NGAP, " PDU RELEASE msg sent to amf\n");
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
@@ -1922,7 +1921,7 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
   }
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  rc = ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 

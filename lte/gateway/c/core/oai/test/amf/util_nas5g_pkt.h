@@ -18,6 +18,8 @@
 #include "M5GDeRegistrationRequestUEInit.h"
 #include "M5GServiceRequest.h"
 #include "M5GServiceAccept.h"
+#include "amf_app_ue_context_and_proc.h"
+#include "amf_asDefs.h"
 
 namespace magma5g {
 
@@ -83,6 +85,6 @@ bool decode_ul_nas_deregister_request_msg(
     uint32_t len);
 
 bool decode_service_request_msg(
-    ServiceRequestMsg *sv_request, const uint8_t* buffer,uint32_t len);
+    ServiceRequestMsg* sv_request, const uint8_t* buffer, uint32_t len);
 
 }  // namespace magma5g

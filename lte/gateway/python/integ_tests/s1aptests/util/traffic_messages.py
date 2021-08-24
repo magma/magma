@@ -14,8 +14,6 @@ limitations under the License.
 import enum
 import pickle
 
-import iperf3  # Used by recv to reconstruct iperf3.TestResult objects
-
 '''
 TrafficServerInstance and TrafficTestInstance are payloads used to coordinate
 trfgen testing configurations, e.g. IPs and ports.

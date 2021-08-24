@@ -133,14 +133,14 @@ class EnforcementTableTest(unittest.TestCase):
         flow_list1 = [
             FlowDescription(
                 match=FlowMatch(
-                direction=FlowMatch.UPLINK,
+                    direction=FlowMatch.UPLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
             FlowDescription(
                 match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
-                direction=FlowMatch.DOWNLINK,
+                    ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
+                    direction=FlowMatch.DOWNLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
@@ -152,8 +152,8 @@ class EnforcementTableTest(unittest.TestCase):
             imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
             None, policies=[
                 VersionedPolicy(
-                rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list1),
-                version=1,
+                    rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list1),
+                    version=1,
                 ),
             ], shard_id=0, local_f_teid_ng=100,
         )
@@ -176,14 +176,14 @@ class EnforcementTableTest(unittest.TestCase):
         flow_list = [
             FlowDescription(
                 match=FlowMatch(
-                direction=FlowMatch.UPLINK,
+                    direction=FlowMatch.UPLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
             FlowDescription(
                 match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
-                direction=FlowMatch.DOWNLINK,
+                    ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
+                    direction=FlowMatch.DOWNLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
@@ -197,8 +197,8 @@ class EnforcementTableTest(unittest.TestCase):
             imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
             None, policies=[
                 VersionedPolicy(
-                rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list),
-                version=2,
+                    rule=PolicyRule(id='rule1', priority=65530, flow_list=flow_list),
+                    version=2,
                 ),
             ], shard_id=0, local_f_teid_ng=555,
         )
@@ -207,14 +207,14 @@ class EnforcementTableTest(unittest.TestCase):
         flow_list = [
             FlowDescription(
                 match=FlowMatch(
-                direction=FlowMatch.UPLINK,
+                    direction=FlowMatch.UPLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
             FlowDescription(
                 match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
-                direction=FlowMatch.DOWNLINK,
+                    ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
+                    direction=FlowMatch.DOWNLINK,
                 ),
                 action=FlowDescription.PERMIT,
             ),
@@ -228,8 +228,8 @@ class EnforcementTableTest(unittest.TestCase):
             imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
             None, policies=[
                 VersionedPolicy(
-                rule=PolicyRule(id='rule2', priority=65536, flow_list=flow_list),
-                version=3,
+                    rule=PolicyRule(id='rule2', priority=65536, flow_list=flow_list),
+                    version=3,
                 ),
             ], shard_id=0, local_f_teid_ng=5000,
         )

@@ -1,24 +1,25 @@
+# Magma-Builder Docker Image
+
 > :warning: **Bazel based builds are still experimental**
 
-# Bazel-Build Docker Image
 This Dockerfile is used to create a build space for all development with Bazel.
 
-## Build bazel-build Docker image
+All docker-compose commands below are to be run from `$MAGMA_ROOT/experimental/bazel-base`.
 
-To build bazel-build base image, run the following.
+## Build magma-builder Docker image
+
+To build magma-builder base image, run the following.
 
 ```bash
-# MAGMA_ROOT should be set to repo root
-export PATH_TO_DOCKERFILE=$MAGMA_ROOT/experimental/bazel-base/Dockerfile
-docker build -t magma/bazel-build -f $PATH_TO_DOCKERFILE $MAGMA_ROOT
+docker-compose build magma-builder
 ```
 
 ## Run bazel commands
 
-To run bazel commands, exec into a bazel-build container,
+To run bazel commands, exec into a magma-builder container,
 
 ```bash
-docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/bazel-build:latest /bin/bash
+docker-compose run magma-builder bash
 ```
 
 Once insider the container, bazel can be run like this,

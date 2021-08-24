@@ -49,7 +49,7 @@ Session middleware helps with creating the session, setting the session cookie(u
 
 #### csrfMiddleware
 
-This protects against any CSRF attacks.  For more understanding, check this (<https://github.com/pillarjs/understanding-csrf#csrf-tokens>). Magmalte server includes the csrf tokens when it responds to the client and client submits the form with the token. (nms/app/packages/magmalte/app/common/axiosConfig.js)
+This protects against any CSRF attacks.  For more understanding, check this (<https://github.com/pillarjs/understanding-csrf#csrf-tokens>). Magmalte server includes the csrf tokens when it responds to the client and client submits the form with the token. (nms/packages/magmalte/app/common/axiosConfig.js)
 
 #### appMiddleware
 
