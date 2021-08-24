@@ -13,13 +13,13 @@
  * @flow strict-local
  * @format
  */
-import type {promql_return_object} from '@fbcnms/magma-api';
+import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
 import * as hooks from '../../../components/context/RefreshContext';
 import EnodebContext from '../../../components/context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -31,9 +31,12 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 
+const enqueueSnackbarMock = jest.fn();
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
+jest
+  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(enqueueSnackbarMock);
 afterEach(cleanup);
 
 const mockThroughput: promql_return_object = {

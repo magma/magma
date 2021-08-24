@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {tier} from '@fbcnms/magma-api';
+import type {tier} from '../../../generated/MagmaAPIBindings';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';

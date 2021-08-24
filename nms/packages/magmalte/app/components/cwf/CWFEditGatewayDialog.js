@@ -14,7 +14,10 @@
  * @format
  */
 
-import type {cwf_gateway, magmad_gateway_configs} from '@fbcnms/magma-api';
+import type {
+  cwf_gateway,
+  magmad_gateway_configs,
+} from '../../../generated/MagmaAPIBindings';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -24,7 +27,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import GatewayCommandFields from '@fbcnms/magmalte/app/components/GatewayCommandFields';
 import MagmaDeviceFields from '@fbcnms/magmalte/app/components/MagmaDeviceFields';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';

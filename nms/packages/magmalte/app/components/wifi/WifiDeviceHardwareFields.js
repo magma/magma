@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {gateway_device} from '@fbcnms/magma-api';
+import type {gateway_device} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 import TextField from '@material-ui/core/TextField';

@@ -15,7 +15,7 @@
  */
 import 'jest-dom/extend-expect';
 import ApnContext from '../../../components/context/ApnContext';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
@@ -34,7 +34,7 @@ import {
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 
@@ -198,6 +198,7 @@ describe('<TrafficDashboard />', () => {
     </MemoryRouter>
   );
   it('renders', async () => {
+    jest.setTimeout(30000);
     const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
       <Wrapper />,
     );
@@ -427,15 +428,10 @@ describe('<TrafficDashboard APNs/>', () => {
     </MemoryRouter>
   );
   it('renders', async () => {
-    const {
-      debug,
-      getAllByText,
-      getByTestId,
-      getAllByRole,
-      getAllByTitle,
-    } = render(<Wrapper />);
+    const {getAllByText, getByTestId, getAllByRole, getAllByTitle} = render(
+      <Wrapper />,
+    );
     await wait();
-    debug();
 
     const apnTitles = getAllByText('APNs');
     expect(apnTitles.length).toBe(2);

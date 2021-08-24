@@ -31,7 +31,10 @@ import TopBar from '../../components/TopBar';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
+import type {
+  mutable_subscriber,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 const TITLE = 'Subscribers';
 

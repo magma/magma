@@ -15,7 +15,7 @@
  */
 
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
-import type {federation_gateway} from '@fbcnms/magma-api';
+import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import FEGGatewayDialog from '../../components/feg/FEGGatewayDialog';

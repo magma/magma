@@ -16,7 +16,10 @@
 'use strict';
 import type {UpdateNetworkProps as FegLteUpdateNetworkProps} from '../../state/feg_lte/NetworkState';
 import type {UpdateNetworkProps as LteUpdateNetworkProps} from '../../state/lte/NetworkState';
-import type {feg_lte_network, lte_network} from '@fbcnms/magma-api';
+import type {
+  feg_lte_network,
+  lte_network,
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

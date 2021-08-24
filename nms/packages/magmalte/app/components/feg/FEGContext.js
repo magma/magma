@@ -19,8 +19,8 @@ import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import MagmaV1API from '../../../generated/WebClient';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {
@@ -30,7 +30,7 @@ import type {
   network_id,
   network_type,
   subscriber_state,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {

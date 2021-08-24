@@ -16,7 +16,10 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {Dataset} from '../../components/CustomMetrics';
 import type {EnqueueSnackbarOptions} from 'notistack';
-import type {network_id, subscriber_id} from '@fbcnms/magma-api';
+import type {
+  network_id,
+  subscriber_id,
+} from '../../../generated/MagmaAPIBindings';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -27,7 +30,7 @@ import DataGrid from '../../components/DataGrid';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';

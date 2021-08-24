@@ -17,7 +17,7 @@
 import type {Node} from 'react';
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
-import type {gateway_status} from '@fbcnms/magma-api';
+import type {gateway_status} from '../../../generated/MagmaAPIBindings';
 
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import React from 'react';

@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {MagmaGatewayFeature} from '@fbcnms/ui/insights/map/GeoJSON';
+import type {MagmaGatewayFeature} from '../insights/map/GeoJSON';
 
 import React from 'react';
 

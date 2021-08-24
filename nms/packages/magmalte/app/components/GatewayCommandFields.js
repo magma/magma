@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from './DataGrid';
-import type {generic_command_response} from '@fbcnms/magma-api';
+import type {generic_command_response} from '../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
@@ -31,12 +31,12 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';

@@ -13,9 +13,9 @@
  * @flow strict-local
  * @format
  */
-import type {apn, network_id} from '@fbcnms/magma-api';
+import type {apn, network_id} from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 
 type Props = {
   networkId: network_id,

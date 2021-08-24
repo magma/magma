@@ -15,7 +15,7 @@
  */
 
 import type {DataRows} from './DataGrid';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../generated/MagmaAPIBindings';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';

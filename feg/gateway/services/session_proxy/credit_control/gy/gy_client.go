@@ -58,10 +58,11 @@ type GyClient struct {
 }
 
 type GyGlobalConfig struct {
-	OCSOverwriteApn      string
-	OCSServiceIdentifier string
-	DisableGy            bool
-	VirtualApnRules      []*credit_control.VirtualApnRule
+	OCSOverwriteApn               string
+	OCSServiceIdentifier          string
+	DisableGy                     bool
+	VirtualApnRules               []*credit_control.VirtualApnRule
+	DisableServiceGrantedUnitsAVP bool
 }
 
 var (
@@ -130,7 +131,7 @@ func (gyClient *GyClient) SendCreditControlRequest(
 	done chan interface{},
 	request *CreditControlRequest,
 ) error {
-	additionalAVPs, err := getAdditionalAvps(request)
+	additionalAVPs, err := getAdditionalAvps(request, gyClient.globalConfig)
 	if err != nil {
 		return err
 	}
@@ -214,14 +215,14 @@ func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ChargingReAuthA
 
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
 // For update and terminate, it returns the used credit AVPs
-func getAdditionalAvps(request *CreditControlRequest) ([]*diam.AVP, error) {
+func getAdditionalAvps(request *CreditControlRequest, globalConfig *GyGlobalConfig) ([]*diam.AVP, error) {
 	avpList := make([]*diam.AVP, 0, len(request.Credits)+1)
 	if len(request.TgppCtx.GetGyDestHost()) > 0 {
 		avpList = append(avpList,
 			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGyDestHost())))
 	}
 	for _, credit := range request.Credits {
-		avpList = append(avpList, getMSCCAVP(request.Type, credit))
+		avpList = append(avpList, getMSCCAVP(request.Type, credit, globalConfig))
 	}
 	return avpList, nil
 }
@@ -377,7 +378,7 @@ func getAPNFromConfig(gyGlobalConfig *GyGlobalConfig, requestAPN, chargingCharac
 // and terminations
 // Input: UsedCredits with input/output/total octets used
 // Output: *diam.Message with all AVPs filled in, error if there was an issue
-func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredits) *diam.AVP {
+func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredits, globalConfig *GyGlobalConfig) *diam.AVP {
 	avpGroup := []*diam.AVP{
 		diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(credits.RatingGroup)),
 	}
@@ -385,8 +386,8 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	// Requested-Service-Unit can only be send in CCR-I and CCR-U
 	if requestType != credit_control.CRTTerminate {
 		var usuGrp []*diam.AVP
-		if credits.RequestedUnits == nil {
-			glog.Errorf("Not adding AVP Requested-Service-Unit. Not found on credit request for session %+v", credits)
+		// controlled by DISABLE_REQUESTED_SERVICE_UNIT_AVP env var on docker-compose
+		if globalConfig.DisableServiceGrantedUnitsAVP {
 			usuGrp = []*diam.AVP{}
 		} else {
 			usuGrp = []*diam.AVP{
@@ -395,8 +396,7 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 				diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Total)),
 			}
 		}
-		avpGroup = append(
-			avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
+		avpGroup = append(avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
 	}
 
 	if serviceIdentifier >= 0 {

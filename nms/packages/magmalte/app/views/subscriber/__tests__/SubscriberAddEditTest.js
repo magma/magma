@@ -19,7 +19,7 @@ import * as hooks from '../../../components/context/RefreshContext';
 import AddSubscriberButton from '../SubscriberAddDialog';
 import ApnContext from '../../../components/context/ApnContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
@@ -34,7 +34,7 @@ import {setSubscriberState} from '../../../state/lte/SubscriberState';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();

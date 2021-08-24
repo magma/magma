@@ -13,7 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {call_trace, mutable_call_trace} from '@fbcnms/magma-api';
+import type {
+  call_trace,
+  mutable_call_trace,
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

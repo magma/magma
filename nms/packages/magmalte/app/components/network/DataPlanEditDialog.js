@@ -14,10 +14,10 @@
  * @format
  */
 
-import type {network_epc_configs} from '@fbcnms/magma-api';
+import type {network_epc_configs} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import {
   Dialog,

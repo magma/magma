@@ -179,18 +179,14 @@ typedef struct AggregatedMaximumBitrate_respose_t {
   uint32_t max_bandwidth_ul;
   uint32_t max_bandwidth_dl;
 } AggregatedMaximumBitrate_response;
-typedef enum AmbrUnit_response_e {
-  Kbps_0  = 0,
-  Kbps_1  = 1,
-  Kbps_4  = 2,
-  Kbps_16 = 3,
-  Kbps_64 = 4
-} AmbrUnit_response;
 
 typedef struct SessionAmbr_response_s {
-  AmbrUnit_response downlink_unit_type;
+  // Downlink unit type will be updated by sessiond
+  uint32_t downlink_unit_type;
   uint32_t downlink_units;  // Only to use lower 2 bytes (16 bit values)
-  AmbrUnit_response uplink_unit_type;
+
+  // Uplink unit type will be updated by sessiond
+  uint32_t uplink_unit_type;
   uint32_t uplink_units;  // Only to use lower 2 bytes (16 bit values)
 } SessionAmbr_response;
 

@@ -17,7 +17,7 @@
 import 'jest-dom/extend-expect';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
@@ -29,7 +29,7 @@ import type {
   feg_lte_network,
   feg_network,
   lte_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../../generated/MagmaAPIBindings';
 
 afterEach(cleanup);
 
@@ -106,7 +106,7 @@ const mockGw1: lte_gateway = {
 };
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 describe('<ServicingAccessGatewaysInfo />', () => {

@@ -14,10 +14,13 @@
  * @format
  */
 
-import type {aggregated_maximum_bitrate, apn} from '@fbcnms/magma-api';
+import type {
+  aggregated_maximum_bitrate,
+  apn,
+} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import {
   Dialog,

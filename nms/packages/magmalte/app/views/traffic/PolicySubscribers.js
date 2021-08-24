@@ -28,7 +28,10 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../theme/design-system/Text';
 
-import type {policy_rule, subscriber} from '@fbcnms/magma-api';
+import type {
+  policy_rule,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 type Props = {
   policyRule: policy_rule,

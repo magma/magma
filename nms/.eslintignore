@@ -6,4 +6,4 @@
 dist/**/*.js
 flow-typed/npm/**/*.js
 config/webpack.*.js
-packages/fbcnms-magma-api/__generated__/*.js
+packages/magmalte/generated/*.js

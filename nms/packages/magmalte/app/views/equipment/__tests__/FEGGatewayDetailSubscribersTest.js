@@ -18,12 +18,12 @@ import type {
   federation_gateway,
   subscriber_id,
   subscriber_state,
-} from '@fbcnms/magma-api';
+} from '../../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
 import FEGSubscriberContext from '../../../components/context/FEGSubscriberContext';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
@@ -34,7 +34,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 

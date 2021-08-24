@@ -19,7 +19,7 @@ import type {
   federation_gateway,
   gateway_id,
   mutable_federation_gateway,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

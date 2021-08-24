@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
 
@@ -26,7 +26,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 afterEach(cleanup);

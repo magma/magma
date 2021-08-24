@@ -18,7 +18,7 @@ import type {
   network_id,
   subscriber_id,
   subscriber_state,
-} from '@fbcnms/magma-api';
+} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 

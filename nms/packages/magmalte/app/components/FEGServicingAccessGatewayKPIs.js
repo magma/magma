@@ -17,12 +17,15 @@
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import type {DataRows} from './DataGrid';
 import type {EnqueueSnackbarOptions} from 'notistack';
-import type {feg_lte_network, network_id} from '@fbcnms/magma-api';
+import type {
+  feg_lte_network,
+  network_id,
+} from '../../generated/MagmaAPIBindings';
 
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {useEffect, useState} from 'react';

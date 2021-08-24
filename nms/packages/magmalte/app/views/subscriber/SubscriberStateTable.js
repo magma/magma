@@ -13,7 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber, subscriber_state} from '@fbcnms/magma-api';
+import type {
+  subscriber,
+  subscriber_state,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';

@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {policy_rule} from '@fbcnms/magma-api';
+import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import DeleteIcon from '@material-ui/icons/Delete';

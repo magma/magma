@@ -16,7 +16,7 @@
 
 import 'jest-dom/extend-expect';
 import FEGGateways from '../FEGGateways';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '@fbcnms/ui/theme/default';
@@ -28,10 +28,10 @@ import type {
   federation_gateway,
   federation_gateway_health_status,
   federation_network_cluster_status,
-} from '@fbcnms/magma-api';
+} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 

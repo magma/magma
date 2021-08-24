@@ -20,11 +20,11 @@ import {CWFGateways} from '../CWFGateways';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import type {cwf_gateway} from '@fbcnms/magma-api';
-import type {cwf_ha_pair} from '@fbcnms/magma-api';
+import type {cwf_gateway} from '../../../../generated/MagmaAPIBindings';
+import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
-import MagmaAPIBindings from '@fbcnms/magma-api';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
@@ -109,7 +109,7 @@ const CWF_HA_PAIR: cwf_ha_pair = {
 };
 
 jest.mock('axios');
-jest.mock('@fbcnms/magma-api');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>

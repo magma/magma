@@ -86,7 +86,7 @@ class TrafficClass:
         qid_hex = hex(ROOT_QID)
         fn = "/sys/class/net/{intf}/speed".format(intf=intf)
         try:
-            with open(fn) as f:
+            with open(fn, encoding="utf-8") as f:
                 speed = f.read().strip()
         except OSError:
             LOG.error('unable to read speed from %s defaulting to %s', fn, speed)

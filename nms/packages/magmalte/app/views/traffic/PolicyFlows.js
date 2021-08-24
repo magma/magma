@@ -14,7 +14,10 @@
  * @format
  */
 
-import type {flow_description, policy_rule} from '@fbcnms/magma-api';
+import type {
+  flow_description,
+  policy_rule,
+} from '../../../generated/MagmaAPIBindings';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
