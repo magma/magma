@@ -1580,7 +1580,7 @@ status_code_e mme_app_handle_air_timer_expiry(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Mobile reachability timer");
+      mme_ue_s1ap_id, "Authentication Info Request Timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
