@@ -18,7 +18,7 @@ void stop_mock_ha_task();
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
-  
+
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);

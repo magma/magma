@@ -33,9 +33,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -131,7 +129,7 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
 
-  // Sending Initial Attach Request to mme_app mimicing S1AP 
+  // Sending Initial Attach Request to mme_app mimicing S1AP
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
@@ -140,14 +138,17 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
 
   // Sending AIA to mme_app mimicing successful S6A response
   message_p = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
-  s6a_auth_info_ans_t* itti_msg  = &message_p->ittiMsg.s6a_auth_info_ans;
+  s6a_auth_info_ans_t* itti_msg = &message_p->ittiMsg.s6a_auth_info_ans;
   strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
   itti_msg->imsi_length        = imsi.size();
   itti_msg->result.present     = S6A_RESULT_BASE;
   itti_msg->result.choice.base = DIAMETER_SUCCESS;
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   magma::feg::AuthenticationInformationAnswer aia;
+  magma::feg::AuthenticationInformationAnswer::EUTRANVector eutran_vector;
+  eutran_vector.set_rand("5f8ea17325bc909c98cd28b6cde26f0bF");
   aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
+  auto eutran_vectors = aia.mutable_eutran_vectors();
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
