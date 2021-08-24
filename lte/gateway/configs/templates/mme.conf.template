@@ -141,6 +141,19 @@ MME :
         LAC = "{{ lac }}";
     };
 
+    # NGAP definitions
+    NGAP :
+    {
+      # outcome drop timer value (seconds)
+      #  S1AP_OUTCOME_TIMER = 10;
+      AMF_NAME = "{{ amf_name }}"
+    };
+    # AMF served GUAMFIs
+    # AMF code DEFAULT  size = 8 bits
+    # AMF GROUP ID size = 16 bits
+    GUAMFI_LIST = (
+     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amfRegionId }}" ; AMF_SET_ID="{{ amfSetId }}"; AMF_POINTER="{{ amfPointer }}"}
+    );
 
     NAS :
     {

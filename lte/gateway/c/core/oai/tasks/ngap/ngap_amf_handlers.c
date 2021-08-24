@@ -1116,7 +1116,7 @@ status_code_e ngap_amf_generate_ue_context_release_command(
       break;
     case NGAP_NAS_NORMAL_RELEASE:
       cause_type  = Ngap_Cause_PR_nas;
-      cause_value = Ngap_CauseNas_unspecified;
+      cause_value = Ngap_CauseNas_normal_release;
       break;
     case NGAP_NAS_AUTHENTICATION_FAILURE:
       cause_type  = Ngap_Cause_PR_nas;
