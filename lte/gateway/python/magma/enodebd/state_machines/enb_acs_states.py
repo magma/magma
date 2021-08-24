@@ -1016,7 +1016,7 @@ class EndSessionState(EnodebAcsState):
         return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
-class BaicellsSendRebootState(EnodebAcsState):
+class EnbSendRebootState(EnodebAcsState):
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
         self.acs = acs
