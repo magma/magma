@@ -16,9 +16,7 @@ limitations under the License.
 import argparse
 import json
 import os
-import random
 import subprocess
-from collections import namedtuple
 
 from google.protobuf import json_format
 from lte.protos.apn_pb2 import AggregatedMaximumBitrate
@@ -31,9 +29,8 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-from magma.pipelined.qos.common import QosManager
 from magma.subscriberdb.sid import SIDUtils
-from scripts.pipelined_cli import UEInfo, _gen_ue_set
+from scripts.pipelined_cli import _gen_ue_set
 
 PROTO_DIR = 'lte/protos'
 IMPORT_PATH = '/home/vagrant/magma'
@@ -151,7 +148,7 @@ def deactivate_flows_test(args):
 def _benchmark_grpc_request(args, req_name):
     try:
         # call grpc GHZ load test tool
-        _get_ghz_cmd_params(req_name, args.num_of_ues),
+        _get_ghz_cmd_params(req_name, args.num_of_ues)
     except subprocess.CalledProcessError as e:
         print(e.output)
         print('Check if gRPC GHZ tool is installed')

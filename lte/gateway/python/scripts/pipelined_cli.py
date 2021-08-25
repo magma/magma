@@ -105,6 +105,7 @@ def set_mme_session(client, args):
 
     print(cls_sess._set_pg_session)
     response = client.UpdateUEState(cls_sess._set_pg_session)
+    print(response)
 
 # --------------------------
 # Enforcement App

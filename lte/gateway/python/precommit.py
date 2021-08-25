@@ -102,8 +102,8 @@ def _run(cmd: List[str]) -> None:
 
 
 def _get_diff_against_master() -> List[str]:
-    input = "git diff --name-only --diff-filter=ACMRT master HEAD"
-    changed_files_in_commit = subprocess.run(input.split(), capture_output=True).stdout.decode().split('\n')
+    files = "git diff --name-only --diff-filter=ACMRT master HEAD"
+    changed_files_in_commit = subprocess.run(files.split(), capture_output=True).stdout.decode().split('\n')  # noqa: S603
     changed_py_files = []
     for item in changed_files_in_commit:
         if item.endswith('.py'):
