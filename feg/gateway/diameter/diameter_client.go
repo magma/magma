@@ -96,7 +96,7 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		ProductName:      datatype.UTF8String(clientCfg.ProductName),
 		OriginStateID:    datatype.Unsigned32(originStateID),
 		FirmwareRevision: 1,
-		HostIPAddress:    datatype.Address(net.ParseIP("127.0.0.1")),
+		HostIPAddress:    datatype.Address(net.ParseIP(clientCfg.Host)),
 	})
 
 	appIdAvp := diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(clientCfg.AppID))
