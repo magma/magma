@@ -58,25 +58,25 @@ def _build_activate_flows_data(ue_dict, disable_qos):
             ip_addr=ue.ipv4_src,
             policies=[
                 VersionedPolicy(
-                rule=PolicyRule(
-                    id=ue.rule_id,
-                    priority=10,
-                    flow_list=[
-                        FlowDescription(
-                            match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                            direction=FlowMatch.UPLINK,
+                    rule=PolicyRule(
+                        id=ue.rule_id,
+                        priority=10,
+                        flow_list=[
+                            FlowDescription(
+                                match=FlowMatch(
+                                    ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                    direction=FlowMatch.UPLINK,
+                                ),
                             ),
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                            direction=FlowMatch.DOWNLINK,
+                            FlowDescription(
+                                match=FlowMatch(
+                                    ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                    direction=FlowMatch.DOWNLINK,
+                                ),
                             ),
-                        ),
-                    ],
-                ),
-                version=1,
+                        ],
+                    ),
+                    version=1,
                 ),
             ],
             request_origin=RequestOriginType(type=RequestOriginType.GX),
