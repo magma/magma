@@ -78,6 +78,9 @@ bool decode_registration_request_msg(
 bool encode_registration_reject_msg(
     RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
 
+bool decode_registration_reject_msg(
+    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
+
 bool decode_auth_failure_decode_msg(
     AuthenticationFailureMsg* auth_failure, const uint8_t* buffer,
     uint32_t len);
