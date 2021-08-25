@@ -30,7 +30,7 @@
       "amf_name": "AMF_1",
       "amfRegionId": "1",
       "amfSetId": "1",
-      "amfPointer": "0,
+      "amfPointer": "0",
       "attachedEnodebTacs": [],
       "dnsPrimary": "8.8.8.8",
       "dnsSecondary": "8.8.4.4",
