@@ -34,10 +34,10 @@ type Config struct {
 func (config *Config) Validate(writer bool) error {
 	errs := &multierror.Error{}
 	if config.TableNamePrefix == "" {
-		multierror.Append(errs, errors.New("empty table name prefix for syncstore"))
+		errs = multierror.Append(errs, errors.New("empty table name prefix for syncstore"))
 	}
 	if writer && config.CacheWriterValidIntervalSecs <= 0 {
-		multierror.Append(errs, errors.Errorf("invalid cache writer valid interval: %+v", config.CacheWriterValidIntervalSecs))
+		errs = multierror.Append(errs, errors.Errorf("invalid cache writer valid interval: %+v", config.CacheWriterValidIntervalSecs))
 	}
 	return errs.ErrorOrNil()
 }

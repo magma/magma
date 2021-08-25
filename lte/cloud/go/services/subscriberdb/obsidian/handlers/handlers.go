@@ -611,7 +611,7 @@ func validateSubscriberProfiles(networkID string, profiles ...string) *echo.HTTP
 	errs := &multierror.Error{}
 	for _, p := range nonDefaultProfiles {
 		if _, ok := networkProfiles[p]; !ok {
-			multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))
+			errs = multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))
 		}
 	}
 	err = errs.ErrorOrNil()
