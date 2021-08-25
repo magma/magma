@@ -64,7 +64,6 @@ static const char* emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
                                               "IMEISV", "TMSI"};
 
 // callbacks for identification procedure
-static void identification_t3470_handler(void* args, imsi64_t* imsi64);
 static int identification_ll_failure(
     struct emm_context_s* emm_context, struct nas_emm_proc_s* emm_proc);
 static int identification_non_delivered_ho(
@@ -158,7 +157,7 @@ status_code_e emm_proc_identification(
       ident_proc->emm_com_proc.emm_proc.base_proc.fail_in =
           NULL;  // only response
       ident_proc->emm_com_proc.emm_proc.base_proc.time_out =
-          identification_t3470_handler;
+          mme_app_handle_identification_t3470_expiry;
     }
 
     rc = identification_request(ident_proc);
@@ -255,8 +254,7 @@ status_code_e emm_proc_identification_complete(
       /*
        * Stop timer T3470
        */
-      void* timer_callback_args = NULL;
-      nas_stop_T3470(ue_id, &ident_proc->T3470, timer_callback_args);
+      nas_stop_T3470(ue_id, &ident_proc->T3470);
 
       if (imsi) {
         imsi64_t imsi64 = imsi_to_imsi64(imsi);
@@ -365,7 +363,7 @@ status_code_e emm_proc_identification_complete(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _identification_t3470_handler()                           **
+ ** Name:    mme_app_handle_identification_t3470_expiry() **
  **                                                                        **
  ** Description: T3470 timeout handler                                     **
  **      Upon T3470 timer expiration, the identification request   **
@@ -383,13 +381,31 @@ status_code_e emm_proc_identification_complete(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void identification_t3470_handler(void* args, imsi64_t* imsi64) {
+status_code_e mme_app_handle_identification_t3470_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t* emm_ctx = (emm_context_t*) (args);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, "Identification T3470 Timer");
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  emm_context_t* emm_ctx = &ue_context_p->emm_context;
 
   if (!(emm_ctx)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3470 timer expired No EMM context\n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   nas_emm_ident_proc_t* ident_proc =
       get_nas_common_procedure_identification(emm_ctx);
@@ -400,7 +416,6 @@ static void identification_t3470_handler(void* args, imsi64_t* imsi64) {
         "T3470 timer (%lx) expired ue id " MME_UE_S1AP_ID_FMT " \n",
         ident_proc->T3470.id, ident_proc->ue_id);
     ident_proc->T3470.id = NAS_TIMER_INACTIVE_ID;
-    *imsi64              = emm_ctx->_imsi64;
     /*
      * Increment the retransmission counter
      */
@@ -450,7 +465,7 @@ static void identification_t3470_handler(void* args, imsi64_t* imsi64) {
         "T3470 timer expired, No Identification procedure found\n");
   }
 
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 /*
@@ -508,7 +523,7 @@ static int identification_request(nas_emm_ident_proc_t* const proc) {
      */
     nas_start_T3470(
         proc->ue_id, &proc->T3470,
-        proc->emm_com_proc.emm_proc.base_proc.time_out, (void*) emm_ctx);
+        proc->emm_com_proc.emm_proc.base_proc.time_out);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -559,7 +574,7 @@ static int identification_non_delivered_ho(
             "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
             "\n",
             ident_proc->T3470.id, ident_proc->ue_id);
-        nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, NULL);
+        nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470);
       }
       /*
        * Abort identification and attach procedure
@@ -613,8 +628,7 @@ static int identification_abort(
     /*
      * Stop timer T3470
      */
-    void* callback_arg = NULL;
-    nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, callback_arg);
+    nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
