@@ -56,7 +56,7 @@ class GatewayServicesUtil(object):
         # Mobilityd comes up after mme, so wait for this too
         assert(
             self._mobilityd_service.wait_for_healthy_service(
-            after_start_time,
+                after_start_time,
             )
         )
 
@@ -103,7 +103,7 @@ class Service303Util(object):
     @staticmethod
     def _is_metric_type_supported(metric_type):
         return metric_type == metrics_proto.GAUGE \
-               or metric_type == metrics_proto.COUNTER
+            or metric_type == metrics_proto.COUNTER
 
     def get_metric_value(
         self,

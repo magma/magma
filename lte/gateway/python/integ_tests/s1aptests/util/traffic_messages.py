@@ -169,7 +169,7 @@ class TrafficMessage(object):
 # Enumerated type for TrafficRequest; module-level for pickling purposes
 TrafficRequestType = enum.unique(
     enum.Enum(
-    'TrafficRequestType', 'EXIT SHUTDOWN START TEST',
+        'TrafficRequestType', 'EXIT SHUTDOWN START TEST',
     ),
 )
 
@@ -194,7 +194,7 @@ class TrafficRequest(TrafficMessage):
 # Enumerated type for TrafficResponse; module-level for pickling purposes
 TrafficResponseType = enum.unique(
     enum.Enum(
-    'TrafficResponseType', 'INFO RESULTS SERVER STARTED',
+        'TrafficResponseType', 'INFO RESULTS SERVER STARTED',
     ),
 )
 

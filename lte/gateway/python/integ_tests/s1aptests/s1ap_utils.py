@@ -380,14 +380,14 @@ class S1ApUtil(object):
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
         assert (
-                self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-                == 0
+            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            == 0
         )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
             assert (
-                    s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
-                    == response.msg_type
+                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                == response.msg_type
             )
 
         # Now wait for the context release response
@@ -439,8 +439,8 @@ class S1ApUtil(object):
                 },
             )
             assert (
-                    len(total_dl_ovs_flows_created)
-                    == total_num_dl_flows_to_be_verified
+                len(total_dl_ovs_flows_created)
+                == total_num_dl_flows_to_be_verified
             )
 
             # Now verify the rules for every flow
@@ -482,7 +482,7 @@ class S1ApUtil(object):
                                 5,
                             )  # sleep for 5 seconds before retrying
                         assert (
-                                len(downlink_flows) >= num_dl_flows
+                            len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
                         assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
@@ -551,7 +551,7 @@ class S1ApUtil(object):
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
             assert (
-                    len(paging_flows) == num_paging_flows_to_be_verified
+                len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
@@ -862,29 +862,29 @@ class MagmadUtil(object):
             print("MME configuration is updated successfully")
         elif ret_code == 1:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Invalid command"
+                "Failed to "
+                + action
+                + " MME configuration. Error: Invalid command"
             )
         elif ret_code == 2:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration file is "
-                    + "missing"
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration file is "
+                + "missing"
             )
         elif ret_code == 3:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration's backup file "
-                    + "is missing"
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration's backup file "
+                + "is missing"
             )
         else:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Unknown error"
+                "Failed to "
+                + action
+                + " MME configuration. Error: Unknown error"
             )
 
     def config_apn_correction(self, cmd):
@@ -1556,7 +1556,7 @@ class SessionManagerUtil(object):
         except grpc.RpcError as err:
             print(
                 "error: GetDirectoryFieldRequest error for id: "
-                      "%s! [%s] %s" % (imsi, err.code(), err.details()),
+                "%s! [%s] %s" % (imsi, err.code(), err.details()),
             )
 
         if res == None:
