@@ -61,4 +61,4 @@ A proposal Issue will be closed when no further discussion is needed. This occur
 
 ## Conclusion
 
-Please direct process-related questions to the `#governance-tsc-ama` Slack channel.
+Please direct process-related questions to the `#governance-tsc` Slack channel.
