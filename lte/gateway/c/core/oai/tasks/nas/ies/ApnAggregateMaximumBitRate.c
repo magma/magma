@@ -42,6 +42,8 @@ int decode_apn_aggregate_maximum_bit_rate(
   decoded++;
 
   if (ielen >= 4) {
+    apnaggregatemaximumbitrate->extensions =
+        APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apnaggregatemaximumbitrate->apnambrfordownlink_extended =
         *(buffer + decoded);
     decoded++;
@@ -49,6 +51,9 @@ int decode_apn_aggregate_maximum_bit_rate(
     decoded++;
 
     if (ielen >= 6) {
+      apnaggregatemaximumbitrate->extensions =
+          (APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT) |
+          (APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT);
       apnaggregatemaximumbitrate->apnambrfordownlink_extended2 =
           *(buffer + decoded);
       decoded++;
