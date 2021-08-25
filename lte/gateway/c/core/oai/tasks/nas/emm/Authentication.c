@@ -118,34 +118,34 @@ static void nas_itti_auth_info_req(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    emm_proc_authentication()                                 **
+ ** Name:    emm_proc_authentication()                                     **
  **                                                                        **
  ** Description: Initiates authentication procedure to establish partial   **
- **      native EPS security context in the UE and the MME.        **
+ **      native EPS security context in the UE and the MME.                **
  **                                                                        **
  **              3GPP TS 24.301, section 5.4.2.2                           **
- **      The network initiates the authentication procedure by     **
- **      sending an AUTHENTICATION REQUEST message to the UE and   **
- **      starting the timer T3460. The AUTHENTICATION REQUEST mes- **
- **      sage contains the parameters necessary to calculate the   **
- **      authentication response.                                  **
+ **      The network initiates the authentication procedure by             **
+ **      sending an AUTHENTICATION REQUEST message to the UE and           **
+ **      starting the timer T3460. The AUTHENTICATION REQUEST mes-         **
+ **      sage contains the parameters necessary to calculate the           **
+ **      authentication response.                                          **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      ksi:       NAS key set identifier                     **
- **      rand:      Random challenge number                    **
- **      autn:      Authentication token                       **
- **      success:   Callback function executed when the authen-**
- **             tication procedure successfully completes  **
- **      reject:    Callback function executed when the authen-**
- **             tication procedure fails or is rejected    **
- **      failure:   Callback function executed whener a lower  **
- **             layer failure occured before the authenti- **
- **             cation procedure comnpletes                **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      ksi:       NAS key set identifier                                 **
+ **      rand:      Random challenge number                                **
+ **      autn:      Authentication token                                   **
+ **      success:   Callback function executed when the authen-            **
+ **             tication procedure successfully completes                  **
+ **      reject:    Callback function executed when the authen-            **
+ **             tication procedure fails or is rejected                    **
+ **      failure:   Callback function executed whener a lower              **
+ **             layer failure occured before the authenti-                 **
+ **             cation procedure comnpletes                                **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_authentication_ksi(
@@ -584,8 +584,8 @@ static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx) {
         // TODO seems bad design here, tricky.
         if (auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif) {
           emm_ctx->emm_cause = emm_cause;
-          rc = (*auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif)(
-              emm_ctx);
+          rc                 = (*auth_proc->emm_com_proc.emm_proc.base_proc
+                     .failure_notif) (emm_ctx);
         } else {
           nas_delete_common_procedure(
               emm_ctx, (nas_emm_common_proc_t**) &auth_proc);
@@ -846,7 +846,7 @@ status_code_e emm_proc_authentication_failure(
  **      MME shall stop timer T3460 and check the correctness of           **
  **      the RES parameter.                                                **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                          **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
  **      emm_cause: Authentication failure EMM cause code                  **
  **      res:       Authentication response parameter. or auts             **
  **                 in case of sync failure                                **
@@ -1037,23 +1037,23 @@ void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    authentication_t3460_handler()                           **
+ ** Name:    mme_app_handle_auth_t3460_expiry()                            **
  **                                                                        **
  ** Description: T3460 timeout handler                                     **
- **      Upon T3460 timer expiration, the authentication request   **
- **      message is retransmitted and the timer restarted. When    **
- **      retransmission counter is exceed, the MME shall abort the **
- **      authentication procedure and any ongoing EMM specific     **
- **      procedure and release the NAS signalling connection.      **
+ **      Upon T3460 timer expiration, the authentication request           **
+ **      message is retransmitted and the timer restarted. When            **
+ **      retransmission counter is exceed, the MME shall abort the         **
+ **      authentication procedure and any ongoing EMM specific             **
+ **      procedure and release the NAS signalling connection.              **
  **                                                                        **
  **              3GPP TS 24.301, section 5.4.2.7, case b                   **
  **                                                                        **
- ** Inputs:  args:      handler parameters                         **
- **      Others:    None                                       **
+ ** Inputs:  args:      handler parameters                                 **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    None                                       **
- **      Others:    None                                       **
+ **      Return:    None                                                   **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_handle_auth_t3460_expiry(
@@ -1398,7 +1398,7 @@ static int authentication_non_delivered_ho(
     nas_emm_auth_proc_t* auth_proc = (nas_emm_auth_proc_t*) emm_proc;
     REQUIREMENT_3GPP_24_301(R10_5_4_2_7_j);
     mme_ue_s1ap_id_t ue_id = auth_proc->ue_id;
-    /************************README***********************************************
+    /************************README********************************************
   ** NAS Non Delivery indication during HO handling will be added when HO is
   ** supported.
   ** In non hand-over case if MME receives NAS Non Delivery indication message
@@ -1444,9 +1444,9 @@ static int authentication_non_delivered_ho(
  ** Inputs:  args:      Authentication data to be released                 **
  **      Others:    None                                                   **
  **                                                                        **
- ** Outputs:     None
- **     Return: None
- **     Others: None
+ ** Outputs:     None                                                      **
+ **     Return: None                                                       **
+ **     Others: None                                                       **
  **                                                                        **
  ***************************************************************************/
 static int authentication_abort(
@@ -1568,7 +1568,7 @@ static void nas_itti_auth_info_req(
 
 /************************************************************************
  **                                                                    **
- ** Name:    mme_app_handle_air_timer_expiry                    **
+ ** Name:    mme_app_handle_air_timer_expiry                           **
  **                                                                    **
  ** Description:                                                       **
  **      The timer is used for monitoring Auth Response from HSS       **
@@ -1577,7 +1577,7 @@ static void nas_itti_auth_info_req(
  **                                                                    **
  ** Inputs:  args:      handler parameters                             **
  **                                                                    **
- ************************************************************************/
+ ***********************************************************************/
 status_code_e mme_app_handle_air_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
