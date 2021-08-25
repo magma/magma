@@ -94,8 +94,7 @@ void S1apStateManager::create_state() {
 
 void free_s1ap_state(s1ap_state_t* state_cache_p) {
   AssertFatal(
-      state_cache_p,
-      "s1ap_state_t passed to free_s1ap_state must not be null");
+      state_cache_p, "s1ap_state_t passed to free_s1ap_state must not be null");
 
   int i;
   hashtable_rc_t ht_rc;

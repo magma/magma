@@ -48,7 +48,7 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	glog.V(1).Info("Calculate User Metrics")
 
 	var results []*protos.CalculationResult
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil || networks == nil {
 		return results, err
 	}
@@ -125,7 +125,7 @@ type SiteMetricsCalculation struct {
 func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.V(1).Info("Calculate Site Metrics")
 	var results []*protos.CalculationResult
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil || networks == nil {
 		return results, err
 	}

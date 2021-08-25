@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -27,23 +28,23 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (m *LteNetwork) ValidateModel() error {
+func (m *LteNetwork) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 
 	var res []error
-	if err := m.Cellular.ValidateModel(); err != nil {
+	if err := m.Cellular.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
-	if err := m.DNS.ValidateModel(); err != nil {
+	if err := m.DNS.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
-	if err := m.Features.ValidateModel(); err != nil {
+	if err := m.Features.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
 	if m.SubscriberConfig != nil {
-		if err := m.SubscriberConfig.ValidateModel(); err != nil {
+		if err := m.SubscriberConfig.ValidateModel(context.Background()); err != nil {
 			res = append(res, err)
 		}
 	}
@@ -54,28 +55,28 @@ func (m *LteNetwork) ValidateModel() error {
 	return nil
 }
 
-func (m *NetworkCellularConfigs) ValidateModel() error {
+func (m *NetworkCellularConfigs) ValidateModel(ctx context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
-	if err := m.FegNetworkID.ValidateModel(); err != nil {
+	if err := m.FegNetworkID.ValidateModel(ctx); err != nil {
 		return err
 	}
-	if err := m.Epc.ValidateModel(); err != nil {
+	if err := m.Epc.ValidateModel(ctx); err != nil {
 		return err
 	}
-	if err := m.Ran.ValidateModel(); err != nil {
+	if err := m.Ran.ValidateModel(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m FegNetworkID) ValidateModel() error {
+func (m FegNetworkID) ValidateModel(ctx context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 	if !swag.IsZero(m) {
-		exists, err := configurator.DoesNetworkExist(string(m))
+		exists, err := configurator.DoesNetworkExist(ctx, string(m))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Failed to search for network %s", string(m)))
 		}
@@ -86,7 +87,7 @@ func (m FegNetworkID) ValidateModel() error {
 	return nil
 }
 
-func (m *NetworkEpcConfigs) ValidateModel() error {
+func (m *NetworkEpcConfigs) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -105,7 +106,7 @@ func (m *NetworkEpcConfigs) ValidateModel() error {
 	return nil
 }
 
-func (m *NetworkRanConfigs) ValidateModel() error {
+func (m *NetworkRanConfigs) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -196,21 +197,21 @@ func validateIPBlocks(ipBlocks []string) error {
 	return nil
 }
 
-func (m *LteGateway) ValidateModel() error {
+func (m *LteGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableLteGateway) ValidateModel() error {
+func (m *MutableLteGateway) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 
 	// Custom validation only for cellular and device
 	var res []error
-	if err := m.Cellular.ValidateModel(); err != nil {
+	if err := m.Cellular.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
-	if err := m.Device.ValidateModel(); err != nil {
+	if err := m.Device.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
 
@@ -231,7 +232,7 @@ func (m *MutableLteGateway) ValidateModel() error {
 	return nil
 }
 
-func (m *GatewayCellularConfigs) ValidateModel() error {
+func (m *GatewayCellularConfigs) ValidateModel(ctx context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -241,17 +242,17 @@ func (m *GatewayCellularConfigs) ValidateModel() error {
 	if m.NonEpsService == nil {
 		return nil
 	}
-	if err := m.NonEpsService.ValidateModel(); err != nil {
+	if err := m.NonEpsService.ValidateModel(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *GatewayRanConfigs) ValidateModel() error {
+func (m *GatewayRanConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayEpcConfigs) ValidateModel() error {
+func (m *GatewayEpcConfigs) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -283,7 +284,7 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 	return nil
 }
 
-func (m *GatewayNonEpsConfigs) ValidateModel() error {
+func (m *GatewayNonEpsConfigs) ValidateModel(context.Context) error {
 	// Don't validate sub-fields if Non-EPS control is off
 	if swag.Uint32Value(m.NonEpsServiceControl) == 0 {
 		return nil
@@ -319,23 +320,23 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 	return nil
 }
 
-func (m *GatewayDNSConfigs) ValidateModel() error {
+func (m *GatewayDNSConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayDNSRecords) ValidateModel() error {
+func (m *GatewayDNSRecords) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *EnodebSerials) ValidateModel() error {
+func (m *EnodebSerials) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayHeConfig) ValidateModel() error {
+func (m *GatewayHeConfig) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *Enodeb) ValidateModel() error {
+func (m *Enodeb) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -349,11 +350,11 @@ func (m *Enodeb) ValidateModel() error {
 	return nil
 }
 
-func (m *EnodebConfiguration) ValidateModel() error {
+func (m *EnodebConfiguration) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *UnmanagedEnodebConfiguration) ValidateModel() error {
+func (m *UnmanagedEnodebConfiguration) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -380,35 +381,35 @@ func (m *EnodebConfig) validateEnodebConfig() error {
 	return nil
 }
 
-func (m *EnodebState) ValidateModel() error {
+func (m *EnodebState) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *Apn) ValidateModel() error {
+func (m *Apn) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *CellularGatewayPool) ValidateModel() error {
+func (m *CellularGatewayPool) ValidateModel(context.Context) error {
 	err := m.Validate(strfmt.Default)
 	if err != nil {
 		return err
 	}
-	return m.Config.ValidateModel()
+	return m.Config.ValidateModel(context.Background())
 }
 
-func (m *CellularGatewayPoolConfigs) ValidateModel() error {
+func (m *CellularGatewayPoolConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableCellularGatewayPool) ValidateModel() error {
+func (m *MutableCellularGatewayPool) ValidateModel(context.Context) error {
 	err := m.Validate(strfmt.Default)
 	if err != nil {
 		return err
 	}
-	return m.Config.ValidateModel()
+	return m.Config.ValidateModel(context.Background())
 }
 
-func (m *CellularGatewayPoolRecords) ValidateModel() error {
+func (m *CellularGatewayPoolRecords) ValidateModel(context.Context) error {
 	err := m.Validate(strfmt.Default)
 	if err != nil {
 		return err

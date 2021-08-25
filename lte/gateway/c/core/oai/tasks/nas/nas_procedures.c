@@ -494,11 +494,7 @@ static void nas_delete_auth_info_procedure(
     struct emm_context_s* emm_context, nas_auth_info_proc_t** auth_info_proc) {
   if (*auth_info_proc) {
     if ((*auth_info_proc)->timer_s6a.id != NAS_TIMER_INACTIVE_ID) {
-      void* timer_callback_args = NULL;
-      nas_stop_Ts6a_auth_info(
-          (*auth_info_proc)->ue_id, &(*auth_info_proc)->timer_s6a,
-          timer_callback_args);
-
+      mme_app_stop_timer((*auth_info_proc)->timer_s6a.id);
       (*auth_info_proc)->timer_s6a.id = NAS_TIMER_INACTIVE_ID;
     }
 

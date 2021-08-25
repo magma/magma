@@ -69,7 +69,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 }
 
 func initSubscriber(t *testing.T, hwID string) {
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: hwID}, serdes.Entity)

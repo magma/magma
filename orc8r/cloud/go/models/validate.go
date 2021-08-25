@@ -14,25 +14,27 @@
 package models
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 )
 
-func (m *NetworkName) ValidateModel() error {
+func (m *NetworkName) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkType) ValidateModel() error {
+func (m *NetworkType) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkDescription) ValidateModel() error {
+func (m *NetworkDescription) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayName) ValidateModel() error {
+func (m *GatewayName) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayDescription) ValidateModel() error {
+func (m *GatewayDescription) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }

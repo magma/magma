@@ -14,6 +14,7 @@ limitations under the License.
 package subscriberdb_cache_test
 
 import (
+	context2 "context"
 	"strings"
 	"testing"
 	"time"
@@ -40,6 +41,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestSubscriberdbCacheWorker(t *testing.T) {
@@ -63,7 +65,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.Empty(t, subProtos)
 	assert.Empty(t, nextToken)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
@@ -152,9 +154,9 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.Equal(t, expectedNextToken, nextToken)
 
 	// Detect newly added and removed networks
-	err = configurator.CreateNetwork(configurator.Network{ID: "n2"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n2"}, serdes.Network)
 	assert.NoError(t, err)
-	configurator.DeleteNetwork("n1")
+	configurator.DeleteNetwork(context.Background(), "n1")
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(20*time.Minute))
 	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
@@ -195,7 +197,7 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
 		"n1",

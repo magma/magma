@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"testing"
 
 	"github.com/go-openapi/swag"
@@ -61,7 +62,7 @@ func TestGatewayNonEpsConfigs_ValidateModel(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.cfg.ValidateModel()
+		err := tc.cfg.ValidateModel(context.Background())
 		if err == nil {
 			assert.Equal(t, "", tc.expectedError)
 		} else {

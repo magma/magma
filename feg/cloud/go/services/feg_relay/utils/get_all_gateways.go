@@ -50,7 +50,7 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 	if len(networkID) == 0 || len(logicalID) == 0 {
 		return res, fmt.Errorf("Unregistered Federated Gateway: %s", fegId.String())
 	}
-	cfg, err := getFegCfg(networkID, logicalID)
+	cfg, err := getFegCfg(ctx, networkID, logicalID)
 	if err != nil {
 		return res, fmt.Errorf("Error getting Federated Gateway %s:%s configs: %v", networkID, logicalID, err)
 	}
@@ -84,7 +84,7 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 	return res, nil
 }
 
-func getFegCfg(networkID, gatewayID string) (*models.GatewayFederationConfigs, error) {
+func getFegCfg(ctx context.Context, networkID, gatewayID string) (*models.GatewayFederationConfigs, error) {
 	fegGateway, err := configurator.LoadEntity(
 		networkID, feg.FegGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
@@ -97,7 +97,7 @@ func getFegCfg(networkID, gatewayID string) (*models.GatewayFederationConfigs, e
 		return fegGateway.Config.(*models.GatewayFederationConfigs), nil
 	}
 
-	iNetworkConfig, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType, serdes.Network)
+	iNetworkConfig, err := configurator.LoadNetworkConfig(ctx, networkID, feg.FegNetworkType, serdes.Network)
 	if err != nil {
 		return nil, merrors.ErrNotFound
 	}

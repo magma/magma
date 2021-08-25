@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -327,7 +328,7 @@ func createEnodeb(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if payload.AttachedGatewayID != "" {
@@ -385,7 +386,7 @@ func updateEnodeb(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if payload.AttachedGatewayID != "" {
@@ -521,7 +522,7 @@ func createApn(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -569,7 +570,7 @@ func updateApnConfiguration(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -625,7 +626,7 @@ func AddNetworkWideSubscriberRuleName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := addToNetworkSubscriberConfig(networkID, params[0], "")
+	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
@@ -641,7 +642,7 @@ func AddNetworkWideSubscriberBaseName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := addToNetworkSubscriberConfig(networkID, "", params[0])
+	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
@@ -657,7 +658,7 @@ func RemoveNetworkWideSubscriberRuleName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := removeFromNetworkSubscriberConfig(networkID, params[0], "")
+	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
@@ -673,15 +674,15 @@ func RemoveNetworkWideSubscriberBaseName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := removeFromNetworkSubscriberConfig(networkID, "", params[0])
+	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
-func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
-	network, err := configurator.LoadNetwork(networkID, false, true, serdes.Network)
+func addToNetworkSubscriberConfig(ctx context.Context, networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
 		return err
 	}
@@ -717,11 +718,11 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, policydb_models.BaseName(baseName))
 		}
 	}
-	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
+	return configurator.UpdateNetworkConfig(ctx, networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
 }
 
-func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
-	network, err := configurator.LoadNetwork(networkID, false, true, serdes.Network)
+func removeFromNetworkSubscriberConfig(ctx context.Context, networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
 		return err
 	}
@@ -741,7 +742,7 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 		subscriberConfig.NetworkWideBaseNames = funk.Filter(subscriberConfig.NetworkWideBaseNames,
 			func(b policydb_models.BaseName) bool { return string(b) != baseName }).([]policydb_models.BaseName)
 	}
-	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
+	return configurator.UpdateNetworkConfig(ctx, networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
 }
 
 func getNetworkAndApnName(c echo.Context) (string, string, *echo.HTTPError) {
@@ -782,7 +783,7 @@ func createGatewayPoolHandler(c echo.Context) error {
 	if err := c.Bind(gatewayPool); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := gatewayPool.ValidateModel(); err != nil {
+	if err := gatewayPool.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	_, err := configurator.CreateEntity(networkID, gatewayPool.ToEntity(), serdes.Entity)
@@ -825,7 +826,7 @@ func updateGatewayPoolHandler(c echo.Context) error {
 	if err := c.Bind(gatewayPool); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := gatewayPool.ValidateModel(); err != nil {
+	if err := gatewayPool.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if string(gatewayPool.GatewayPoolID) != gatewayPoolID {

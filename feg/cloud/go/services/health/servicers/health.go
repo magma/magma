@@ -71,7 +71,7 @@ func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewaySt
 	}
 	// Update health status field with new HEALTHY/UNHEALTHY determination
 	// as recency of an update is a factor in gateway health
-	healthStatus, healthMessage, err := AnalyzeHealthStats(gwHealthStats, req.GetNetworkId())
+	healthStatus, healthMessage, err := AnalyzeHealthStats(ctx, gwHealthStats, req.GetNetworkId())
 	gwHealthStats.Health = &fegprotos.HealthStatus{
 		Health:        healthStatus,
 		HealthMessage: healthMessage,
@@ -104,7 +104,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	req.HealthStats.Time = healthResponse.Time
 
 	// Override gateway's view of it's health with cloud's view
-	healthState, healthMsg, _ := AnalyzeHealthStats(req.HealthStats, networkID)
+	healthState, healthMsg, _ := AnalyzeHealthStats(ctx, req.HealthStats, networkID)
 	req.HealthStats.Health = &fegprotos.HealthStatus{
 		Health:        healthState,
 		HealthMessage: healthMsg,
@@ -139,7 +139,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	case 1:
 		requestedAction, err = srv.analyzeSingleFegState(networkID, logicalID)
 	case 2:
-		requestedAction, err = srv.analyzeDualFegState(networkID, logicalID, req.HealthStats, gateways)
+		requestedAction, err = srv.analyzeDualFegState(ctx, networkID, logicalID, req.HealthStats, gateways)
 	default:
 		err = fmt.Errorf("Unsupported number of gateways registered in %s", networkID)
 	}
@@ -172,6 +172,7 @@ func (srv *HealthServer) GetClusterState(ctx context.Context, req *fegprotos.Clu
 // Otherwise, the state is left as is. The action returned is dependent on whether
 // the request is from the active or standby
 func (srv *HealthServer) analyzeDualFegState(
+	ctx context.Context,
 	networkID string,
 	gatewayID string,
 	gatewayHealth *fegprotos.HealthStats,
@@ -212,11 +213,11 @@ func (srv *HealthServer) analyzeDualFegState(
 		// If we can't get the health data for the standby, leave the active as is
 		return fegprotos.HealthResponse_SYSTEM_UP, nil
 	}
-	currentHealth, currentHealthDescription, err := AnalyzeHealthStats(gatewayHealth, networkID)
+	currentHealth, currentHealthDescription, err := AnalyzeHealthStats(ctx, gatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
-	otherHealth, otherHealthDescription, err := AnalyzeHealthStats(otherGatewayHealth, networkID)
+	otherHealth, otherHealthDescription, err := AnalyzeHealthStats(ctx, otherGatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
@@ -309,10 +310,11 @@ func (srv *HealthServer) analyzeSingleFegState(
 // AnalyzeHealthStats takes a HealthStats proto and determines if it is
 // HEALTHY or UNHEALTHY based on the configuration for the provided networkID
 func AnalyzeHealthStats(
+	ctx context.Context,
 	healthData *fegprotos.HealthStats,
 	networkID string,
 ) (fegprotos.HealthStatus_HealthState, string, error) {
-	config := GetHealthConfigForNetwork(networkID)
+	config := GetHealthConfigForNetwork(ctx, networkID)
 	if healthData == nil {
 		return fegprotos.HealthStatus_UNHEALTHY, "", fmt.Errorf("Nil HealthStats provided")
 	}

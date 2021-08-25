@@ -43,7 +43,12 @@ systemctl stop lighttpd
 systemctl disable lighttpd
 
 # Copy over ipfix patch
-cp /usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py /usr/lib/python3/dist-packages/ryu/ofproto/
+cp /usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py.magma /usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py
+cp /usr/local/lib/python3.8/dist-packages/ryu/app/ofctl/service.py.magma /usr/local/lib/python3.8/dist-packages/ryu/app/ofctl/service.py
+if [ -f /usr/lib/python3/dist-packages/ryu/ofproto/nx_actions.py ]; then
+  cp /usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py /usr/lib/python3/dist-packages/ryu/ofproto/
+  cp /usr/local/lib/python3.8/dist-packages/ryu/app/ofctl/service.py /usr/lib/python3/dist-packages/ryu/app/ofctl/service.py
+fi
 
 # Restart rsyslog to pick up fluent-bit config, create fluent-bit DB directory
 cp /etc/logrotate.d/rsyslog /etc/logrotate.d/rsyslog.orig

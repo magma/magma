@@ -803,7 +803,7 @@ func SetupTests(t *testing.T, dbName string) {
 
 func RegisterAGW(t *testing.T) {
 	// Register an AGW
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",

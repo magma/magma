@@ -32,8 +32,8 @@ from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
     AddObjectsState,
-    BaicellsSendRebootState,
     DeleteObjectsState,
+    EnbSendRebootState,
     EndSessionState,
     EnodebAcsState,
     ErrorState,
@@ -82,7 +82,7 @@ class BaicellsQAFAHandler(BasicEnodebAcsStateMachine):
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
             # These states are only entered through manual user intervention
-            'reboot': BaicellsSendRebootState(self, when_done='wait_reboot'),
+            'reboot': EnbSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
