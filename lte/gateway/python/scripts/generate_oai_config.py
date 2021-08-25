@@ -244,7 +244,7 @@ def _get_converged_core_config(service_mconfig: object) -> bool:
 
     if enable_converged_core is not None:
         return enable_converged_core
-        
+
     if service_mconfig.enable_converged_core is not None:
         return service_mconfig.enable_converged_core
 

@@ -133,26 +133,26 @@ def activate_flows(client, args):
         ip_addr=args.ipv4,
         policies=[
             VersionedPolicy(
-            rule=PolicyRule(
-                id=args.rule_id,
-                priority=args.priority,
-                hard_timeout=args.hard_timeout,
-                flow_list=[
-                    FlowDescription(
-                        match=FlowMatch(
-                        ip_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
-                        direction=FlowMatch.UPLINK,
+                rule=PolicyRule(
+                    id=args.rule_id,
+                    priority=args.priority,
+                    hard_timeout=args.hard_timeout,
+                    flow_list=[
+                        FlowDescription(
+                            match=FlowMatch(
+                                ip_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                                direction=FlowMatch.UPLINK,
+                            ),
                         ),
-                    ),
-                    FlowDescription(
-                        match=FlowMatch(
-                        ip_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
-                        direction=FlowMatch.DOWNLINK,
+                        FlowDescription(
+                            match=FlowMatch(
+                                ip_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                                direction=FlowMatch.DOWNLINK,
+                            ),
                         ),
-                    ),
-                ],
-            ),
-            version=1,
+                    ],
+                ),
+                version=1,
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GX),
@@ -169,21 +169,21 @@ def activate_gy_redirect(client, args):
         ip_addr=args.ipv4,
         policies=[
             VersionedPolicy(
-            rule=PolicyRule(
-                id=args.rule_id,
-                priority=999,
-                flow_list=[],
-                redirect=RedirectInformation(
-                    support=1,
-                    address_type=2,
-                    server_address=args.redirect_addr,
+                rule=PolicyRule(
+                    id=args.rule_id,
+                    priority=999,
+                    flow_list=[],
+                    redirect=RedirectInformation(
+                        support=1,
+                        address_type=2,
+                        server_address=args.redirect_addr,
+                    ),
                 ),
-            ),
-            version=1,
+                version=1,
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GY),
-        shard_id = args.shard_id
+        shard_id=args.shard_id
     )
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.policy_results)
@@ -260,25 +260,25 @@ def stress_test_grpc(client, args):
                 ip_addr=ue.ipv4_src,
                 policies=[
                     VersionedPolicy(
-                    rule=PolicyRule(
-                        id=ue.rule_id,
-                        priority=10,
-                        flow_list=[
-                            FlowDescription(
-                                match=FlowMatch(
-                                ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                                direction=FlowMatch.UPLINK,
+                        rule=PolicyRule(
+                            id=ue.rule_id,
+                            priority=10,
+                            flow_list=[
+                                FlowDescription(
+                                    match=FlowMatch(
+                                        ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                        direction=FlowMatch.UPLINK,
+                                    ),
                                 ),
-                            ),
-                            FlowDescription(
-                                match=FlowMatch(
-                                ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                                direction=FlowMatch.DOWNLINK,
+                                FlowDescription(
+                                    match=FlowMatch(
+                                        ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                        direction=FlowMatch.DOWNLINK,
+                                    ),
                                 ),
-                            ),
-                        ],
-                    ),
-                    version=1,
+                            ],
+                        ),
+                        version=1,
                     ),
                 ],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
@@ -348,7 +348,7 @@ def stress_test_grpc(client, args):
         )
         print(
             "Actual detach rate = {0} UEs per sec".format(
-            round(len(ue_dict) / duration),
+                round(len(ue_dict) / duration),
             ),
         )
 
@@ -480,7 +480,7 @@ def create_enforcement_parser(apps):
         '--hard_timeout', help='hard timeout for rule',
         type=int, default=0,
     )
-    subcmd.add_argument('--shard_id', type=int, default=0, help = 'desired cookie to query for')
+    subcmd.add_argument('--shard_id', type=int, default=0, help='desired cookie to query for')
     subcmd.set_defaults(func=activate_flows)
 
     subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
@@ -503,7 +503,7 @@ def create_enforcement_parser(apps):
         '--redirect_addr', help='Webpage to redirect to',
         default='http://about.sha.ddih.org/',
     )
-    subcmd.add_argument('--shard_id', type=int, default=0, help = 'desired cookie to query for')
+    subcmd.add_argument('--shard_id', type=int, default=0, help='desired cookie to query for')
     subcmd.set_defaults(func=activate_gy_redirect)
 
     subcmd = subparsers.add_parser(
@@ -684,9 +684,9 @@ def get_table_assignment(client, args):
     for table_assignment in table_assignments:
         print(
             table_template.format(
-            table_assignment.app_name,
-            table_assignment.main_table,
-            str([table for table in table_assignment.scratch_tables]),
+                table_assignment.app_name,
+                table_assignment.main_table,
+                str([table for table in table_assignment.scratch_tables]),
             ),
         )
 

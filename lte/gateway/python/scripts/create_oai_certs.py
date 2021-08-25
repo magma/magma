@@ -55,8 +55,8 @@ def generate_mme_certs(conf_dir):
         cmd = "{ssl_bin} req -new -batch -x509 -days 3650 -nodes -newkey" \
               " rsa:1024 -out {mme_cacert} -keyout {mme_ca_key} -subj " \
               "/CN={fqdn}/C=FR/ST=PACA/L=Aix/O=Facebook/OU=CM".format(
-            ssl_bin=OPENSSL_BIN, mme_cacert=mme_cacert, mme_ca_key=mme_ca_key,
-            fqdn=fqdn,
+                  ssl_bin=OPENSSL_BIN, mme_cacert=mme_cacert, mme_ca_key=mme_ca_key,
+                  fqdn=fqdn,
               )
         envoy.run(cmd)
 
@@ -69,7 +69,7 @@ def generate_mme_certs(conf_dir):
         mme_csr = os.path.join(temp_dir, OAI_MME_CSR)
         cmd = "{ssl_bin} req -new -batch -out {mme_csr} -key {mme_key} " \
               "-subj /CN={fqdn}/C=FR/ST=PACA/L=Aix/O=Facebook/OU=CM".format(
-            ssl_bin=OPENSSL_BIN, mme_csr=mme_csr, mme_key=mme_key, fqdn=fqdn,
+                  ssl_bin=OPENSSL_BIN, mme_csr=mme_csr, mme_key=mme_key, fqdn=fqdn,
               )
         envoy.run(cmd)
 
