@@ -201,13 +201,13 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
         param_name = ParameterName.ADMIN_STATE
         # if we want the cell to be down don't force it up
         desired_admin_value = \
-            self.acs.desired_cfg.get_parameter(param_name) \
-            and self.admin_value
+                self.acs.desired_cfg.get_parameter(param_name) \
+                and self.admin_value
         admin_value = \
-            self.acs.data_model.transform_for_enb(
-                param_name,
-                desired_admin_value,
-            )
+                self.acs.data_model.transform_for_enb(
+                    param_name,
+                    desired_admin_value,
+                )
         admin_path = self.acs.data_model.get_parameter(param_name).path
         param_values = {admin_path: admin_value}
 
@@ -267,13 +267,13 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
             )
         param_name = ParameterName.ADMIN_STATE
         desired_admin_value = \
-            self.acs.desired_cfg.get_parameter(param_name) \
-            and self.admin_value
+                self.acs.desired_cfg.get_parameter(param_name) \
+                and self.admin_value
         magma_value = \
-            self.acs.data_model.transform_for_magma(
-                param_name,
-                desired_admin_value,
-            )
+                self.acs.data_model.transform_for_magma(
+                    param_name,
+                    desired_admin_value,
+                )
         self.acs.device_cfg.set_parameter(param_name, magma_value)
 
         if len(
@@ -464,7 +464,7 @@ class CaviumTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                and (str(x) not in excluded_params),
+                          and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )

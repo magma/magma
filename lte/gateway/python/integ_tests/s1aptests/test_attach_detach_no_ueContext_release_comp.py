@@ -38,9 +38,9 @@ class TestAttachDetachNoUeContextReleseComp(unittest.TestCase):
         )
         # Now actually complete the attach
         self._s1ap_wrapper._s1_util.attach(
-            ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t,
+                ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+                s1ap_types.ueAttachAccept_t,
         )
 
         # Wait on EMM Information from MME
@@ -54,7 +54,7 @@ class TestAttachDetachNoUeContextReleseComp(unittest.TestCase):
         detach_req.ue_Id = req.ue_id
         detach_req.ueDetType = s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
+             s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
         )
         response = self._s1ap_wrapper._s1_util.get_response()
         assert (
@@ -66,7 +66,7 @@ class TestAttachDetachNoUeContextReleseComp(unittest.TestCase):
         sctp_abort = s1ap_types.FwSctpAbortReq_t()
         sctp_abort.cause = 0
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort,
+             s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort,
         )
 
 

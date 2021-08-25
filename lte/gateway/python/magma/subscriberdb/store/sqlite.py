@@ -78,11 +78,11 @@ class SqliteStore(BaseStore):
 
     def _create_digest_db_locations(self, db_location: str) -> DigestDBInfo:
         root_digest_db_location = 'file:' + db_location + \
-            'subscriber-root-digest.db?cache=shared'
+                             'subscriber-root-digest.db?cache=shared'
         logging.info("root digest db location: %s", root_digest_db_location)
 
         leaf_digests_db_location = 'file:' + db_location + \
-            'subscriber-leaf-digests.db?cache=shared'
+                                     'subscriber-leaf-digests.db?cache=shared'
         logging.info(
             "leaf digests db location: %s",
             leaf_digests_db_location,

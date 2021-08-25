@@ -125,7 +125,7 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address = ipaddress.ip_address(address_int)
                 ip_block_list.append(
                     ipaddress.ip_network(
-                        "%s/%d" % (address, block.prefix_len),
+                    "%s/%d" % (address, block.prefix_len),
                     ),
                 )
             if ip_block_list is not None:
@@ -164,7 +164,7 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address = ipaddress.ip_address(address_int)
                 removed_ip_block_list += (
                     ipaddress.ip_network(
-                        "%s/%d" % (address, block.prefix_len),
+                    "%s/%d" % (address, block.prefix_len),
                     ),
                 )
             return removed_ip_block_list

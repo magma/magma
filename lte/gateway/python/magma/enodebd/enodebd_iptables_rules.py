@@ -92,9 +92,9 @@ def check_rules(
 ) -> None:
     unexpected_rules = []
     pattern = r'DNAT\s+tcp\s+--\s+anywhere\s+{pub_ip}\s+tcp\s+dpt:{dport} to:{ip}'.format(
-        pub_ip=enodebd_public_ip,
-        dport=port,
-        ip=private_ip,
+                pub_ip=enodebd_public_ip,
+                dport=port,
+                ip=private_ip,
     )
     for rule in prerouting_rules:
         match = re.search(pattern, rule)
