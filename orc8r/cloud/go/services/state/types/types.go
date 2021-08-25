@@ -24,6 +24,7 @@ limitations under the License.
 package types
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -263,7 +264,11 @@ func MakeState(p *protos.State, serdes serde.Registry) (State, *protos.IDAndErro
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}
-	if err := model.ValidateModel(); err != nil {
+
+	// TODO: it's worth re-evaluating if ValidateModel should be allowed to
+	//  have side effects. For now, using context.Background() because
+	//  MakeState should not take in a context.
+	if err := model.ValidateModel(context.Background()); err != nil {
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}

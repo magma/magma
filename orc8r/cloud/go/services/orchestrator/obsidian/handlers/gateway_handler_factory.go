@@ -216,7 +216,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			}
 
 			reqCtx := c.Request().Context()
-			ids, err := configurator.ListEntityKeys(nid, gateway.GetGatewayType())
+			ids, err := configurator.ListEntityKeys(reqCtx, nid, gateway.GetGatewayType())
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

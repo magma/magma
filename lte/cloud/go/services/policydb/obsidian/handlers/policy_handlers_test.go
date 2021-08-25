@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"fmt"
 	"testing"
 
@@ -38,7 +39,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	listPolicies := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.GET).HandlerFunc
@@ -650,7 +651,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	createPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.POST).HandlerFunc
@@ -873,7 +874,7 @@ func TestQoSProfile(t *testing.T) {
 	e := echo.New()
 
 	policydbHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	getAllProfiles := tests.GetHandlerByPathAndMethod(t, policydbHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.GET).HandlerFunc
@@ -1093,7 +1094,7 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 	e := echo.New()
 
 	policydbHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	postProfile := tests.GetHandlerByPathAndMethod(t, policydbHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.POST).HandlerFunc

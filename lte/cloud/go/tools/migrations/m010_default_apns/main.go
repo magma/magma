@@ -55,6 +55,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -409,7 +410,7 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		configurator.NewNetworkEntityConfigSerde(apnEntType, &types.ApnConfiguration{}),
 	)
 
-	nids, err := configurator.ListNetworkIDs()
+	nids, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil {
 		return err
 	}

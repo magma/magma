@@ -14,6 +14,7 @@
 package serde
 
 import (
+	"context"
 	"encoding"
 	"reflect"
 
@@ -43,7 +44,7 @@ type Serde interface {
 // ValidatableModel implements a ValidateModel() function that returns whether
 // the instance is valid.
 type ValidatableModel interface {
-	ValidateModel() error
+	ValidateModel(ctx context.Context) error
 }
 
 // ValidateableBinaryConvertible wraps both BinaryConvertible, for generic

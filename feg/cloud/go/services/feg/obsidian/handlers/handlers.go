@@ -211,7 +211,7 @@ func getClusterStatusHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	network, err := configurator.LoadNetwork(nid, true, true, serdes.Network)
+	network, err := configurator.LoadNetwork(reqCtx, nid, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 	}

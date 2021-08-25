@@ -396,9 +396,9 @@ func TestBootstrapperServer(t *testing.T) {
 	device_test_init.StartTestService(t)
 
 	testNetworkID := "bootstrapper_test_network"
-	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkID, Name: "Test Network Name"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: testNetworkID, Name: "Test Network Name"}, serdes.Network)
 	assert.NoError(t, err)
-	exists, err := configurator.DoesNetworkExist(testNetworkID)
+	exists, err := configurator.DoesNetworkExist(context.Background(), testNetworkID)
 	assert.NoError(t, err)
 	assert.True(t, exists)
 

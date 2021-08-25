@@ -45,7 +45,7 @@ func TestListGateways(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -106,7 +106,7 @@ func TestListGateways(t *testing.T) {
 func TestCreateGateway(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	// create 2 tiers
@@ -319,7 +319,7 @@ func TestGetGateway(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -439,7 +439,7 @@ func TestUpdateGateway(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -577,7 +577,7 @@ func TestUpdateGateway(t *testing.T) {
 func TestDeleteGateway(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -649,7 +649,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	gwConfig := &models.MagmadGatewayConfigs{
@@ -801,7 +801,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	getGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.GET).HandlerFunc
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -868,7 +868,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	updateGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.PUT).HandlerFunc
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -1009,7 +1009,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	gwConfig := &models.MagmadGatewayConfigs{

@@ -14,6 +14,7 @@ limitations under the License.
 package subscriberdb_cache
 
 import (
+	"context"
 	"time"
 
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -51,7 +52,7 @@ func MonitorDigests(config Config, store syncstore.SyncStore) {
 // Note: RenewDigests renews digests only a single time. Prefer MonitorDigests
 // for continuously updating the digests.
 func RenewDigests(config Config, store syncstore.SyncStore) (map[string]string, map[string][]*protos.LeafDigest, error) {
-	tracked, err := configurator.ListNetworkIDs()
+	tracked, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load current networks for subscriberdb cache")
 	}

@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"testing"
 
 	models1 "magma/orc8r/cloud/go/models"
@@ -229,7 +230,7 @@ func Test_Tiers(t *testing.T) {
 	readTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers, obsidian.GET).HandlerFunc
 	deleteTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers, obsidian.DELETE).HandlerFunc
 
-	assert.NoError(t, configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network))
+	assert.NoError(t, configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network))
 
 	// happy case list
 	tc := tests.Test{
