@@ -584,8 +584,8 @@ static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx) {
         // TODO seems bad design here, tricky.
         if (auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif) {
           emm_ctx->emm_cause = emm_cause;
-          rc                 = (*auth_proc->emm_com_proc.emm_proc.base_proc
-                     .failure_notif) (emm_ctx);
+          rc = (*auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif)(
+              emm_ctx);
         } else {
           nas_delete_common_procedure(
               emm_ctx, (nas_emm_common_proc_t**) &auth_proc);

@@ -185,6 +185,8 @@ int mme_app_handle_security_t3460_expiry(
 int mme_app_handle_identification_t3470_expiry(
     zloop_t* loop, int timer_id, void* args);
 int mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_emm_attach_t3450_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args);
