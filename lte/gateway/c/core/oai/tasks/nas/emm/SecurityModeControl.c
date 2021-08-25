@@ -722,22 +722,22 @@ void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    mme_app_handle_security_t3460_expiry() **
+ ** Name:    mme_app_handle_security_t3460_expiry()                        **
  **                                                                        **
  ** Description: T3460 timeout handler                                     **
- **      Upon T3460 timer expiration, the security mode command    **
- **      message is retransmitted and the timer restarted. When    **
- **      retransmission counter is exceed, the MME shall abort the **
- **      security mode control procedure.                          **
+ **      Upon T3460 timer expiration, the security mode command            **
+ **      message is retransmitted and the timer restarted. When            **
+ **      retransmission counter is exceed, the MME shall abort the         **
+ **      security mode control procedure.                                  **
  **                                                                        **
  **              3GPP TS 24.301, section 5.4.3.7, case b                   **
  **                                                                        **
- ** Inputs:  args:      handler parameters                         **
- **      Others:    None                                       **
+ ** Inputs:  args:      handler parameters                                 **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    None                                       **
- **      Others:    None                                       **
+ **      Return:    None                                                   **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_handle_security_t3460_expiry(
