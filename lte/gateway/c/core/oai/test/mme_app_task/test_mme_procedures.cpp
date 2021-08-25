@@ -33,7 +33,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -145,9 +147,28 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
   itti_msg->result.choice.base = DIAMETER_SUCCESS;
   magma::feg::AuthenticationInformationAnswer aia;
   magma::feg::AuthenticationInformationAnswer::EUTRANVector eutran_vector;
-  eutran_vector.set_rand("5f8ea17325bc909c98cd28b6cde26f0bF");
+  uint8_t xres_buf[17]  = {0xe1, 0xda, 0xf7, 0x88, 0x9d, 0xf7, 0x82, 0x68,
+                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  xres_buf[17]          = '\0';
+  uint8_t rand_buf[17]  = {0x99, 0xb0, 0x44, 0xec, 0xc8, 0x83, 0xfd, 0xa1,
+                          0x87, 0x2a, 0xdc, 0xe4, 0xc6, 0xe8, 0x27, 0xe7};
+  rand_buf[17]          = '\0';
+  uint8_t autn_buf[17]  = {0x98, 0xff, 0xee, 0x81, 0xce, 0x05, 0x80, 0x00,
+                          0x2d, 0x60, 0xe4, 0xc0, 0xf0, 0xf4, 0xa0, 0x7a};
+  autn_buf[17]          = '\0';
+  uint8_t kasme_buf[33] = {0xbc, 0x5b, 0x76, 0x5f, 0xf3, 0xa3, 0x1a, 0x64,
+                           0x30, 0x32, 0x27, 0x82, 0x5b, 0xfd, 0xef, 0x24,
+                           0x8b, 0x81, 0x4e, 0x97, 0x50, 0xe5, 0x89, 0x94,
+                           0xd7, 0x17, 0x38, 0x97, 0xfc, 0xbe, 0xea, 0xe4};
+  kasme_buf[33]         = '\0';
+  eutran_vector.set_rand((const char*) rand_buf);
+  eutran_vector.set_xres((const char*) xres_buf);
+  eutran_vector.set_autn((const char*) autn_buf);
+  eutran_vector.set_kasme((const char*) kasme_buf); 
   aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
   auto eutran_vectors = aia.mutable_eutran_vectors();
+  eutran_vectors->Add()->CopyFrom(eutran_vector);
+  magma::convert_proto_msg_to_itti_s6a_auth_info_ans(aia, itti_msg);
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
 
   // Sleep to ensure that messages are received and contexts are released
