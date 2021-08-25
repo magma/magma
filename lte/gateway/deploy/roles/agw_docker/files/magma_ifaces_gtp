@@ -1,0 +1,77 @@
+auto gtp_br0
+auto uplink_br0
+
+# Add L3 OVS switch gtp_br0 with gtp0, veth0_ovs, and int_nat_peer
+allow-ovs gtp_br0
+iface gtp_br0 inet static
+    address 192.168.128.1
+    netmask 255.255.255.0
+    pre-up ip link add proxy_port type veth peer name proxy_port_ns || true
+    pre-up ip link set proxy_port up || true
+    up sysctl net.ipv4.ip_forward=1
+    up iptables -t mangle -C FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400 || iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+    up iptables -t mangle -C FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400 || iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+    ovs_type OVSBridge
+    ovs_ports gtp0 mtr0 ipfix0 patch-up proxy_port li_port
+
+# Add GTP vport to gtp_br0 as port 32768
+allow-gtp_br0 gtp0
+iface gtp0 inet manual
+    ovs_bridge gtp_br0
+    ovs_type OVSTunnel
+    ovs_tunnel_type gtp
+    ovs_tunnel_options ofport_request=32768 options:remote_ip=flow options:key=flow
+
+allow-gtp_br0 mtr0
+iface mtr0 inet static
+    address 10.1.0.1
+    netmask 255.255.255.0
+    ovs_bridge gtp_br0
+    ovs_type OVSIntPort
+    ovs_extra set interface ${IFACE} ofport_request=15577
+
+allow-gtp_br0 ipfix0
+iface ipfix0 inet static
+    address 127.0.0.10
+    netmask 255.255.255.0
+    ovs_bridge gtp_br0
+    ovs_type OVSIntPort
+    ovs_extra set interface ${IFACE} ofport_request=15578
+
+allow-gtp_br0 li_port
+iface li_port inet static
+    address 127.1.0.0
+    netmask 255.255.255.0
+    ovs_bridge gtp_br0
+    ovs_type OVSIntPort
+    ovs_extra set interface ${IFACE} ofport_request=15579
+
+allow-gtp_br0 patch-up
+iface patch-up inet manual
+    ovs_bridge gtp_br0
+    ovs_type OVSPatchPort
+    ovs_patch_peer patch-agw
+    ovs_extra set interface ${IFACE} ofport_request=2
+
+allow-gtp_br0 proxy_port
+iface proxy_port inet manual
+    ovs_bridge gtp_br0
+    ovs_type OVSPort
+
+allow-ovs uplink_br0
+iface uplink_br0 inet manual
+    ovs_type OVSBridge
+    ovs_ports dhcp0 patch-agw
+
+allow-uplink_br0 patch-agw
+iface patch-agw inet manual
+    ovs_bridge uplink_br0
+    ovs_type OVSPatchPort
+    ovs_patch_peer patch-up
+    ovs_extra set interface ${IFACE} ofport_request=2
+
+allow-uplink_br0 dhcp0
+iface dhcp0 inet manual
+    ovs_bridge uplink_br0
+    ovs_type OVSIntPort
+    ovs_extra set interface ${IFACE} ofport_request=3

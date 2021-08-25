@@ -1,0 +1,55 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+
+- name: create the env file
+  template:
+    src: env.j2
+    dest: /var/opt/magma/docker/.env
+    mode: 0400
+
+- name: Clone the git repo
+  git:
+   repo: "https://github.com/magma/magma.git"
+   clone: yes
+   force: yes
+   dest: "/opt/magma"
+   version: "{{ image_version }}"
+
+- name: copy the config files for magma
+  shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
+
+- name: copy the config files for orchestrator
+  shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
+
+- name: copy docker compose config file
+  shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yml /var/opt/magma/docker/
+
+- name: copy the rootca
+  copy: content={{ rootca }} dest=/var/opt/magma/certs/rootCA.pem mode='400'
+
+- name: docker login
+  shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
+  args:
+   chdir: "/var/opt/magma/docker/"
+
+- name: copy the recreate script
+  copy:
+   src: agw_upgrade.sh
+   dest: /var/opt/magma/docker/
+   mode: '0755'
+
+- name: bring up the containers.
+  script: agw_upgrade.sh
