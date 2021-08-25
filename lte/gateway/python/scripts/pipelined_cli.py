@@ -183,7 +183,7 @@ def activate_gy_redirect(client, args):
             ),
         ],
         request_origin=RequestOriginType(type=RequestOriginType.GY),
-        shard_id=args.shard_id
+        shard_id=args.shard_id,
     )
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.policy_results)
