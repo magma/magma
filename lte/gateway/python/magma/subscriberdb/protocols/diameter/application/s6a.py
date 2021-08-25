@@ -209,14 +209,14 @@ class S6AApplication(abc.Application):
 
             auth_info = avp.AVP(
                 'Authentication-Info', [
-                avp.AVP(
-                    'E-UTRAN-Vector', [
-                    avp.AVP('RAND', rand),
-                    avp.AVP('XRES', xres),
-                    avp.AVP('AUTN', autn),
-                    avp.AVP('KASME', kasme),
-                    ],
-                ),
+                    avp.AVP(
+                        'E-UTRAN-Vector', [
+                            avp.AVP('RAND', rand),
+                            avp.AVP('XRES', xres),
+                            avp.AVP('AUTN', autn),
+                            avp.AVP('KASME', kasme),
+                        ],
+                    ),
                 ],
             )
 
