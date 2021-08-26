@@ -325,5 +325,5 @@ class BaicellsTrOldDataModel(DataModel):
 
 
 class BaicellsTrOldConfigurationInitializer(EnodebConfigurationPostProcessor):
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
         desired_cfg.set_parameter(ParameterName.CELL_BARRED, False)
