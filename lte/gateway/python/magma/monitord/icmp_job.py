@@ -23,11 +23,11 @@ from magma.magmad.check.network_check.ping import (
 
 NUM_PACKETS = 4
 DEFAULT_POLLING_INTERVAL = 60
-TIMEOUT_SECS = 10
+TIMEOUT_SECS = 5
 CHECKIN_INTERVAL = 10
 
 
-class ICMPMonitoring(Job):
+class ICMPJob(Job):
     """
     Class that handles main loop to send ICMP ping to valid subscribers.
     """
@@ -46,6 +46,7 @@ class ICMPMonitoring(Job):
         )
         self._loop = service_loop
         self._module = monitoring_module
+        self._sem = asyncio.BoundedSemaphore(5)
 
     async def _ping_targets(
         self, hosts: List[str],
@@ -66,10 +67,11 @@ class ICMPMonitoring(Job):
                     TIMEOUT_SECS,
                 ) for host in hosts
             ]
-            ping_results = await ping_interface_async(ping_params, self._loop)
-            ping_results_list = list(ping_results)
-            for host, sub, result in zip(hosts, targets, ping_results_list):
-                self._save_ping_response(sub, host, result)
+            async with self._sem:
+                ping_results = await ping_interface_async(ping_params, self._loop)
+                ping_results_list = list(ping_results)
+                for host, sub, result in zip(hosts, targets, ping_results_list):
+                    self._save_ping_response(sub, host, result)
 
     def _save_ping_response(
         self, target_id: str, ip_addr: str,
