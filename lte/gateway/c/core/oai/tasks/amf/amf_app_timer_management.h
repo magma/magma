@@ -27,8 +27,8 @@ extern "C" {
 
 namespace magma5g {
 
-typedef uint32_t timer_arg_t;
-// typedef std::pair<uint8_t, uint8_t> ue_pdu_id;
+typedef uint64_t timer_arg_t;
+
 typedef struct ue_pdu_id {
   uint32_t ue_id;
   uint8_t pdu_id;

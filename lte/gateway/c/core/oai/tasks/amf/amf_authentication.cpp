@@ -832,7 +832,9 @@ int amf_send_authentication_request(
 
     if (rc != RETURNerror) {
       OAILOG_WARNING(
-          LOG_NAS_AMF, " T3560:Start Authenthication Timer for ue id:%d\n",
+          LOG_NAS_AMF,
+          " T3560: Start Authentication Timer for "
+          "ue id: " AMF_UE_NGAP_ID_FMT "\n",
           auth_proc->ue_id);
       auth_proc->T3560.id = amf_app_start_timer(
           AUTHENTICATION_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
@@ -977,7 +979,10 @@ static int authenthication_t3560_handler(
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
-        LOG_NAS_AMF, "T3560: ue_amf_context is NULL for ue id: %d\n", ue_id);
+        LOG_NAS_AMF,
+        "T3560: ue_amf_context is NULL for "
+        "ue id: " AMF_UE_NGAP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
@@ -985,7 +990,9 @@ static int authenthication_t3560_handler(
 
   if (!(amf_ctx)) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3560: Timer expired no amf context for ue id: %d\n",
+        LOG_AMF_APP,
+        "T3560: Timer expired no amf context for "
+        "ue id: " AMF_UE_NGAP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -994,7 +1001,9 @@ static int authenthication_t3560_handler(
       get_nas5g_common_procedure_authentication(amf_ctx);
   if (auth_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3560: timer expired timer id %lu ue id %d\n",
+        LOG_AMF_APP,
+        "T3560: timer expired timer id %lu "
+        "ue id " AMF_UE_NGAP_ID_FMT "\n",
         auth_proc->T3560.id, auth_proc->ue_id);
     auth_proc->T3560.id = -1;
     /*
