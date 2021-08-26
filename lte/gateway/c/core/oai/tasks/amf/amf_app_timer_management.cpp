@@ -96,8 +96,6 @@ int AmfUeContext::StartPduTimer(
   int timer_id = -1;
   if ((timer_id = start_timer(
            &amf_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
-    // amf_pdu_timers.insert(timer_id, std::make_pair(ue_id, pdu_id));
-    // amf_pdu_timers.insert(timer_id, arg);
     amf_pdu_timers[timer_id] = arg;
   }
   return timer_id;
@@ -107,7 +105,6 @@ void AmfUeContext::StopPduTimer(int timer_id) {
   stop_timer(&amf_app_task_zmq_ctx, timer_id);
   std::map<int, ue_pdu_id_t>::iterator it = amf_pdu_timers.find(timer_id);
   amf_pdu_timers.erase(it);
-  // amf_pdu_timers.erase(timer_id);
 }
 //------------------------------------------------------------------------------
 bool AmfUeContext::GetPduTimerArg(const int timer_id, ue_pdu_id_t* arg) const {

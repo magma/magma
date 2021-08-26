@@ -334,9 +334,6 @@ static int pdu_session_resource_release_t3592_handler(
         "the pdu sesssion release "
         "procedure\n",
         smf_ctx->retransmission_count);
-    // To abort the registration procedure
-    // amf_proc_registration_abort(amf_ctx, ue_amf_context);
-    // pdu_session_resource_release_abort()
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
