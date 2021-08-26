@@ -52,6 +52,7 @@ def _get_addr_from_subscribers(sub_ip) -> str:
 
 class CpeMonitoringModule:
     def __init__(self):
+        # TODO: Save to redis
         self._subscriber_state = defaultdict(ICMPMonitoringResponse)
         self.ping_addresses = []
         self.ping_targets = {}
@@ -72,8 +73,6 @@ class CpeMonitoringModule:
         Returns: List of [Subscriber ID => IP address, APN] entries
         """
 
-        ping_addresses = self.ping_addresses.copy()
-        ping_targets = self.ping_targets.copy()
         try:
             mobilityd_chan = ServiceRegistry.get_rpc_channel(
                 'mobilityd',
@@ -88,13 +87,13 @@ class CpeMonitoringModule:
             )
             for sub in response.entries:
                 ip = _get_addr_from_subscribers(sub.ip)
-                ping_addresses.append(ip)
-                ping_targets[sub.sid.id] = ip
+                self.ping_addresses.append(ip)
+                self.ping_targets[sub.sid.id] = ip
         except grpc.RpcError as err:
             logging.error(
                 "GetSubscribers Error for %s! %s", err.code(), err.details(),
             )
-        return PingedTargets(ping_targets, ping_addresses)
+        return PingedTargets(self.ping_targets, self.ping_addresses)
 
     def save_ping_response(
         self, sid: str, ip_addr: str,
