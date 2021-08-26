@@ -266,6 +266,6 @@ class BaicellsQAFATrDataModel(DataModel):
 
 
 class BaicellsQAFATrConfigurationInitializer(EnodebConfigurationPostProcessor):
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
 
         desired_cfg.delete_parameter(ParameterName.ADMIN_STATE)
