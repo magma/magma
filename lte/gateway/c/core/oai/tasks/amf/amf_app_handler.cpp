@@ -392,8 +392,9 @@ imsi64_t amf_app_handle_initial_ue_message(
               "AMF_APP_INITAIL_UE_MESSAGE: gnb_ngap_id_key %ld has "
               "valid value \n",
               ue_context_p->gnb_ngap_id_key);
-          amf_app_ue_context_release(
-              ue_context_p, ue_context_p->ue_context_rel_cause);
+          ue_context_release_command(
+              ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
+              NGAP_NAS_NORMAL_RELEASE);
           hashtable_uint64_ts_remove(
               amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl,
               (const hash_key_t) ue_context_p->gnb_ngap_id_key);
