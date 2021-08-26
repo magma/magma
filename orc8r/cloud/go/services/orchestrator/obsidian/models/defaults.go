@@ -44,6 +44,12 @@ func NewDefaultSentryConfig() *NetworkSentryConfig {
 	}
 }
 
+func NewDefaultStateConfig() *StateConfig {
+	return &StateConfig{
+		SyncInterval: uint32(60),
+	}
+}
+
 func NewDefaultFeaturesConfig() *NetworkFeatures {
 	return &NetworkFeatures{Features: map[string]string{"foo": "bar"}}
 }
@@ -57,6 +63,7 @@ func NewDefaultNetwork(networkID string, name string, description string) *Netwo
 		DNS:          NewDefaultDNSConfig(),
 		Features:     NewDefaultFeaturesConfig(),
 		SentryConfig: NewDefaultSentryConfig(),
+		StateConfig:  NewDefaultStateConfig(),
 	}
 }
 

@@ -34,6 +34,7 @@ func Test_Conversions(t *testing.T) {
 			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
+			orc8r.StateConfig:           models.NewDefaultStateConfig(),
 		},
 	}
 	generatedSNetwork := (&models.Network{}).FromConfiguratorNetwork(cNetwork)
@@ -45,6 +46,7 @@ func Test_Conversions(t *testing.T) {
 		Features:     models.NewDefaultFeaturesConfig(),
 		DNS:          models.NewDefaultDNSConfig(),
 		SentryConfig: models.NewDefaultSentryConfig(),
+		StateConfig:  models.NewDefaultStateConfig(),
 	}
 	generatedCNetwork := sNetwork.ToConfiguratorNetwork()
 
