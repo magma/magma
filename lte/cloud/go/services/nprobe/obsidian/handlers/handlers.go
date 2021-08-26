@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"math/rand"
 	"net/http"
 	"time"
@@ -96,7 +97,7 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		if err := c.Bind(payload); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
-		if err := payload.ValidateModel(); err != nil {
+		if err := payload.ValidateModel(context.Background()); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -167,7 +168,7 @@ func updateNetworkProbeTask(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -228,7 +229,7 @@ func createNetworkProbeDestination(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -281,7 +282,7 @@ func updateNetworkProbeDestination(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 

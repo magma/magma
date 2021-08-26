@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -183,7 +184,7 @@ func (m *MutableSubscriber) GetAssocs() []storage.TypeAndKey {
 	return assocs
 }
 
-func (m *SubProfile) ValidateModel() error {
+func (m *SubProfile) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 

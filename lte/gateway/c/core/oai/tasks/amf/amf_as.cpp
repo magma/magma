@@ -1363,9 +1363,10 @@ uint16_t amf_as_establish_cnf(
           amf_security_context->kgnb);
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
       registration_proc->registration_accept_sent++;
-      registration_proc->registration_accept_sent++;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
-    } else if (state == REGISTERED_IDLE) {
+    } else if (
+        (state == REGISTERED_IDLE) || ((state == REGISTERED_CONNECTED) &&
+                                       (msg->nas_info == AMF_AS_NAS_INFO_SR))) {
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
     }
 

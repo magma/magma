@@ -14,33 +14,35 @@
 package models
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 )
 
-func (m *WifiNetwork) ValidateModel() error {
+func (m *WifiNetwork) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkWifiConfigs) ValidateModel() error {
+func (m *NetworkWifiConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *WifiGateway) ValidateModel() error {
+func (m *WifiGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableWifiGateway) ValidateModel() error {
+func (m *MutableWifiGateway) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 
 	// Custom validation only for wifi and device
 	var res []error
-	if err := m.Wifi.ValidateModel(); err != nil {
+	if err := m.Wifi.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
-	if err := m.Device.ValidateModel(); err != nil {
+	if err := m.Device.ValidateModel(context.Background()); err != nil {
 		res = append(res, err)
 	}
 
@@ -50,18 +52,18 @@ func (m *MutableWifiGateway) ValidateModel() error {
 	return nil
 }
 
-func (m *GatewayWifiConfigs) ValidateModel() error {
+func (m *GatewayWifiConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *WifiMesh) ValidateModel() error {
+func (m *WifiMesh) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MeshName) ValidateModel() error {
+func (m *MeshName) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MeshWifiConfigs) ValidateModel() error {
+func (m *MeshWifiConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }

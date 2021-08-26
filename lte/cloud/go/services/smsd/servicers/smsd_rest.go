@@ -1,6 +1,7 @@
 package servicers
 
 import (
+	"context"
 	"net/http"
 
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -79,7 +80,7 @@ func (s *SMSDRestServicer) createMessage(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 

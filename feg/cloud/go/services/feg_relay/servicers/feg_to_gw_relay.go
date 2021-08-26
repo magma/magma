@@ -48,7 +48,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 	if !strings.HasPrefix(imsi, "IMSI") {
 		imsi = fmt.Sprintf("IMSI%s", imsi)
 	}
-	servedIds, err := getFegServedIds(gw.GetNetworkId())
+	servedIds, err := getFegServedIds(ctx, gw.GetNetworkId())
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +64,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 
 func getHwIDFromTeid(ctx context.Context, teid string) (string, error) {
 	gw := protos.GetClientGateway(ctx)
-	servedIds, err := getFegServedIds(gw.GetNetworkId())
+	servedIds, err := getFegServedIds(ctx, gw.GetNetworkId())
 	if err != nil {
 		return "", err
 	}
@@ -130,11 +130,11 @@ func getAllGWSGSServiceConnCtx(ctx context.Context) ([]*grpc.ClientConn, []conte
 
 // getFegServedIds returns ServedNetworkIds of the given FeG networkId and appends to the list all ServedNetworkIds of
 // the network's Neutral Host Network if any
-func getFegServedIds(networkId string) ([]string, error) {
+func getFegServedIds(ctx context.Context, networkId string) ([]string, error) {
 	if len(networkId) == 0 {
 		return []string{}, fmt.Errorf("Empty networkID provided.")
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(networkId, feg.FegNetworkType, serdes.Network)
+	fegCfg, err := configurator.LoadNetworkConfig(ctx, networkId, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return []string{}, fmt.Errorf("unable to retrieve config for federation network: %s", networkId)
 	}
@@ -153,7 +153,7 @@ func getFegServedIds(networkId string) ([]string, error) {
 	glog.V(2).Infof("getFegServedIds: nonempty Served NH Networks list for network: %s", networkId)
 	for _, nhNetworkId := range networkFegConfigs.ServedNhIds {
 		if len(nhNetworkId) > 0 {
-			nhFegCfg, err := configurator.LoadNetworkConfig(nhNetworkId, feg.FegNetworkType, serdes.Network)
+			nhFegCfg, err := configurator.LoadNetworkConfig(ctx, nhNetworkId, feg.FegNetworkType, serdes.Network)
 			if err != nil || nhFegCfg == nil {
 				glog.Errorf("unable to retrieve config for NH federation network '%s': %v", nhNetworkId, err)
 				continue

@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"sort"
 	"strings"
@@ -44,6 +45,7 @@ func ListBaseNames(c echo.Context) error {
 		return nerr
 	}
 
+	reqCtx := c.Request().Context()
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
 		baseNames, _, err := configurator.LoadAllEntitiesOfType(
@@ -61,7 +63,7 @@ func ListBaseNames(c echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, ret)
 	} else {
-		names, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
+		names, err := configurator.ListEntityKeys(reqCtx, networkID, lte.BaseNameEntityType)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -220,6 +222,7 @@ func ListRules(c echo.Context) error {
 	}
 
 	view := c.QueryParam("view")
+	reqCtx := c.Request().Context()
 	if strings.ToLower(view) == "full" {
 		rules, _, err := configurator.LoadAllEntitiesOfType(
 			networkID, lte.PolicyRuleEntityType,
@@ -236,7 +239,7 @@ func ListRules(c echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, ret)
 	} else {
-		ruleIDs, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
+		ruleIDs, err := configurator.ListEntityKeys(reqCtx, networkID, lte.PolicyRuleEntityType)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -255,7 +258,7 @@ func CreateRule(c echo.Context) error {
 	if err := c.Bind(rule); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := rule.ValidateModel(); err != nil {
+	if err := rule.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -323,7 +326,7 @@ func UpdateRule(c echo.Context) error {
 	if err := c.Bind(rule); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := rule.ValidateModel(); err != nil {
+	if err := rule.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if ruleID != string(rule.ID) {
@@ -435,7 +438,7 @@ func createQoSProfile(c echo.Context) error {
 	if err := c.Bind(profile); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := profile.ValidateModel(); err != nil {
+	if err := profile.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 

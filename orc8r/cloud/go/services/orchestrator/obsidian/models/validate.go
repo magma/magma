@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -24,42 +25,42 @@ import (
 const echoKeyType = "ECHO"
 const ecdsaKeyType = "SOFTWARE_ECDSA_SHA256"
 
-func (m *Network) ValidateModel() error {
+func (m *Network) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkDNSConfig) ValidateModel() error {
+func (m *NetworkDNSConfig) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkFeatures) ValidateModel() error {
+func (m *NetworkFeatures) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkSentryConfig) ValidateModel() error {
+func (m *NetworkSentryConfig) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m NetworkDNSRecords) ValidateModel() error {
+func (m NetworkDNSRecords) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m DNSConfigRecord) ValidateModel() error {
+func (m DNSConfigRecord) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MagmadGateway) ValidateModel() error {
+func (m *MagmadGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayDevice) ValidateModel() error {
-	if err := m.Key.ValidateModel(); err != nil {
+func (m *GatewayDevice) ValidateModel(context.Context) error {
+	if err := m.Key.ValidateModel(context.Background()); err != nil {
 		return err
 	}
 	return m.Validate(strfmt.Default)
 }
 
-func (m *ChallengeKey) ValidateModel() error {
+func (m *ChallengeKey) ValidateModel(context.Context) error {
 	switch m.KeyType {
 	case echoKeyType:
 		if m.Key != nil {
@@ -80,49 +81,49 @@ func (m *ChallengeKey) ValidateModel() error {
 	}
 }
 
-func (m *MagmadGatewayConfigs) ValidateModel() error {
+func (m *MagmadGatewayConfigs) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m TierID) ValidateModel() error {
+func (m TierID) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *ReleaseChannel) ValidateModel() error {
+func (m *ReleaseChannel) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *Tier) ValidateModel() error {
+func (m *Tier) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *TierName) ValidateModel() error {
+func (m *TierName) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *TierVersion) ValidateModel() error {
+func (m *TierVersion) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *TierGateways) ValidateModel() error {
+func (m *TierGateways) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *TierImages) ValidateModel() error {
+func (m *TierImages) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *TierImage) ValidateModel() error {
+func (m *TierImage) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayStatus) ValidateModel() error {
+func (m *GatewayStatus) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *GatewayVpnConfigs) ValidateModel() error {
+func (m *GatewayVpnConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }

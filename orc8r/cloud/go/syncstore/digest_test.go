@@ -24,7 +24,7 @@ import (
 
 func TestGetLeafDigestsDiff(t *testing.T) {
 	t.Run("both empty", func(t *testing.T) {
-		prev, next := []*protos.LeafDigest{}, []*protos.LeafDigest{}
+		var prev, next []*protos.LeafDigest
 		toRenew, deleted := syncstore.GetLeafDigestsDiff(prev, next)
 		assert.Empty(t, toRenew)
 		assert.Empty(t, deleted)
@@ -36,14 +36,14 @@ func TestGetLeafDigestsDiff(t *testing.T) {
 			{Id: "IMSI00002", Digest: &protos.Digest{Md5Base64Digest: "cherry"}},
 		}
 
-		next := []*protos.LeafDigest{}
+		var next []*protos.LeafDigest
 		toRenew, deleted := syncstore.GetLeafDigestsDiff(prev, next)
 
 		assert.Empty(t, toRenew)
 		assert.Equal(t, []string{"IMSI00000", "IMSI00001", "IMSI00002"}, deleted)
 	})
 	t.Run("tracked empty", func(t *testing.T) {
-		prev := []*protos.LeafDigest{}
+		var prev []*protos.LeafDigest
 		next := []*protos.LeafDigest{
 			{Id: "IMSI00000", Digest: &protos.Digest{Md5Base64Digest: "apple"}},
 			{Id: "IMSI00001", Digest: &protos.Digest{Md5Base64Digest: "banana"}},

@@ -146,7 +146,7 @@ class Tr069Soap11(Soap11):
         # it still has a stale value.
         # Force repopulation of dictionary by deleting entry
         # TODO Remove this code once we have a better fix
-        if (ctx.descriptor.out_message in self._attrcache):
+        if (ctx.descriptor and ctx.descriptor.out_message in self._attrcache):
             del self._attrcache[ctx.descriptor.out_message]  # noqa: WPS529
 
         super(Tr069Soap11, self).serialize(ctx, message)

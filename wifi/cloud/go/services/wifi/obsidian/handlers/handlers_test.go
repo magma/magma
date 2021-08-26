@@ -116,7 +116,7 @@ func TestCreateNetwork(t *testing.T) {
 			wifi.WifiNetworkType:        models2.NewDefaultWifiNetworkConfig(),
 		},
 	}
-	actual, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actual, err := configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -232,7 +232,7 @@ func TestUpdateNetwork(t *testing.T) {
 	tc.ExpectedStatus = 204
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actualN1, err := configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -305,7 +305,7 @@ func TestDeleteNetwork(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.ListNetworkIDs()
+	actual, err := configurator.ListNetworkIDs(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"n2"}, actual)
 }
@@ -386,7 +386,7 @@ func TestPartialUpdateAndGetNetwork(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actual, err := configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, updatedName, actual.Name)
 	tc = tests.Test{
@@ -412,7 +412,7 @@ func TestPartialUpdateAndGetNetwork(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actual, err = configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, updatedDescription, actual.Description)
 	tc = tests.Test{
@@ -438,7 +438,7 @@ func TestPartialUpdateAndGetNetwork(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actual, err = configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, updatedFeatures, actual.Configs[orc8r.NetworkFeaturesConfig].(*models.NetworkFeatures))
 	tc = tests.Test{
@@ -464,7 +464,7 @@ func TestPartialUpdateAndGetNetwork(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actual, err = configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, updatedWifi, actual.Configs[wifi.WifiNetworkType].(*models2.NetworkWifiConfigs))
 	tc = tests.Test{
@@ -2229,19 +2229,16 @@ func seedNetworks(t *testing.T) {
 	err := device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateNetworks(
-		[]configurator.Network{
-			models2.NewDefaultWifiNetwork().ToConfiguratorNetwork(),
-			{
-				ID:          "n2",
-				Type:        "blah",
-				Name:        "network_2",
-				Description: "Network 2",
-				Configs:     map[string]interface{}{},
-			},
+	_, err = configurator.CreateNetworks(context.Background(), []configurator.Network{
+		models2.NewDefaultWifiNetwork().ToConfiguratorNetwork(),
+		{
+			ID:          "n2",
+			Type:        "blah",
+			Name:        "network_2",
+			Description: "Network 2",
+			Configs:     map[string]interface{}{},
 		},
-		serdes.Network,
-	)
+	}, serdes.Network)
 	assert.NoError(t, err)
 }
 

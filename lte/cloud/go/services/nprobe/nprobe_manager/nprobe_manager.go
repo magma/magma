@@ -195,7 +195,7 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 // For each task, it collects latest events, creates the corresponding IRI record then
 // export them to a remote destination.
 func (np *NProbeManager) ProcessNProbeTasks() error {
-	networks, err := configurator.ListNetworksOfType(LteNetwork)
+	networks, err := configurator.ListNetworksOfType(context.Background(), LteNetwork)
 	if err != nil {
 		glog.Errorf("Failed to retrieve lte network list: %s", err)
 		return err

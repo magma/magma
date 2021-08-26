@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,25 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-package models
-
-import (
-	"context"
-
-	"github.com/go-openapi/strfmt"
-)
-
-func (m *CallTrace) ValidateModel(context.Context) error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *MutableCallTrace) ValidateModel(context.Context) error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
-}
+#define PDU_SESSION_DEFAULT_AMBR 1

@@ -93,7 +93,7 @@ setup(
         'glob2>=0.7',
         # lxml required by spyne.
         'lxml==4.6.3',
-        'ryu>=4.30',
+        'ryu>=4.34',
         'spyne>=2.13.15',
         'scapy==2.4.4',
         'flask>=1.0.2',

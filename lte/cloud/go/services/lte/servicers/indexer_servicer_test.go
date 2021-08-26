@@ -106,7 +106,7 @@ func TestIndexerEnodebState(t *testing.T) {
 }
 
 func seedNetwork(t *testing.T, networkID string) {
-	err := configurator.CreateNetwork(configurator.Network{ID: networkID}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: networkID}, serdes.Network)
 	assert.NoError(t, err)
 }
 

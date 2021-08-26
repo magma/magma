@@ -14,6 +14,7 @@
 package types
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -33,7 +34,7 @@ type DirectoryRecord struct {
 }
 
 // ValidateModel is a wrapper to validate this directory record
-func (m *DirectoryRecord) ValidateModel() error {
+func (m *DirectoryRecord) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 

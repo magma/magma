@@ -35,6 +35,18 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
+
+uint64_t get_bit_rate(uint8_t ambr_unit) {
+  if (ambr_unit < 6) {
+    return (1024);
+  } else if (ambr_unit < 11) {
+    return (1024 * 1024);
+  } else if (ambr_unit < 16) {
+    return (1024 * 1024 * 1024);
+  }
+  return (0);
+}
+
 /*
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
@@ -52,14 +64,16 @@ void ambr_calculation_pdu_session(
       *dl_pdu_ambr =
           4 ^ (smf_context->dl_ambr_unit - 1) * (smf_context->dl_session_ambr);
     } else {
-      *dl_pdu_ambr = 256 * (smf_context->dl_session_ambr);
+      *dl_pdu_ambr = smf_context->dl_session_ambr *
+                     get_bit_rate(smf_context->dl_ambr_unit);
     }
 
     if ((smf_context->ul_ambr_unit) < 4) {
       *ul_pdu_ambr =
           4 ^ (smf_context->ul_ambr_unit - 1) * (smf_context->ul_session_ambr);
     } else {
-      *ul_pdu_ambr = 256 * (smf_context->ul_session_ambr);
+      *ul_pdu_ambr = smf_context->ul_session_ambr *
+                     get_bit_rate(smf_context->ul_ambr_unit);
     }
   }
 }

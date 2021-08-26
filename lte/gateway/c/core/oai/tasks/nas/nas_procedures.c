@@ -387,18 +387,18 @@ static void nas_delete_common_procedures(struct emm_context_s* emm_context) {
           break;
         case EMM_COMM_PROC_AUTH: {
           nas_emm_auth_proc_t* auth_info_proc = (nas_emm_auth_proc_t*) p1->proc;
-          nas_stop_T3460(auth_info_proc->ue_id, &auth_info_proc->T3460, NULL);
+          nas_stop_T3460(auth_info_proc->ue_id, &auth_info_proc->T3460);
           if (auth_info_proc->unchecked_imsi) {
             free_wrapper((void**) &auth_info_proc->unchecked_imsi);
           }
         } break;
         case EMM_COMM_PROC_SMC: {
           nas_emm_smc_proc_t* smc_proc = (nas_emm_smc_proc_t*) (p1->proc);
-          nas_stop_T3460(smc_proc->ue_id, &smc_proc->T3460, NULL);
+          nas_stop_T3460(smc_proc->ue_id, &smc_proc->T3460);
         } break;
         case EMM_COMM_PROC_IDENT: {
           nas_emm_ident_proc_t* ident_proc = (nas_emm_ident_proc_t*) (p1->proc);
-          nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, NULL);
+          nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470);
         } break;
         case EMM_COMM_PROC_INFO:
           break;
@@ -423,8 +423,7 @@ void nas_delete_attach_procedure(struct emm_context_s* emm_context) {
     mme_ue_s1ap_id_t ue_id =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
             ->mme_ue_s1ap_id;
-    void* unused = NULL;
-    nas_stop_T3450(ue_id, &proc->T3450, unused);
+    nas_stop_T3450(ue_id, &proc->T3450);
     if (proc->ies) {
       free_emm_attach_request_ies(&proc->ies);
     }
@@ -446,8 +445,7 @@ void nas_delete_tau_procedure(struct emm_context_s* emm_context) {
     mme_ue_s1ap_id_t ue_id =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
             ->mme_ue_s1ap_id;
-    void* unused = NULL;
-    nas_stop_T3450(ue_id, &proc->T3450, unused);
+    nas_stop_T3450(ue_id, &proc->T3450);
     if (proc->ies) {
       free_emm_tau_request_ies(&proc->ies);
     }
@@ -494,11 +492,7 @@ static void nas_delete_auth_info_procedure(
     struct emm_context_s* emm_context, nas_auth_info_proc_t** auth_info_proc) {
   if (*auth_info_proc) {
     if ((*auth_info_proc)->timer_s6a.id != NAS_TIMER_INACTIVE_ID) {
-      void* timer_callback_args = NULL;
-      nas_stop_Ts6a_auth_info(
-          (*auth_info_proc)->ue_id, &(*auth_info_proc)->timer_s6a,
-          timer_callback_args);
-
+      mme_app_stop_timer((*auth_info_proc)->timer_s6a.id);
       (*auth_info_proc)->timer_s6a.id = NAS_TIMER_INACTIVE_ID;
     }
 

@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Any
 
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 
@@ -22,7 +23,7 @@ class EnodebConfigurationPostProcessor(ABC):
     """
 
     @abstractmethod
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
         """
         Implementation of function which overrides the desired configuration
         for the eNodeB
