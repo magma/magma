@@ -51,6 +51,7 @@
 #include "nas_timer.h"
 #include "nas/securityDef.h"
 #include "intertask_interface.h"
+#include "mme_app_timer.h"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt) {
@@ -968,10 +969,10 @@ void emm_init_context(
 //------------------------------------------------------------------------------
 void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((T3450) && (T3450->id == NAS_TIMER_INACTIVE_ID)) {
-    T3450->id =
-        nas_timer_start(T3450->sec, 0, time_out_cb, timer_callback_args);
+    T3450->id = mme_app_start_timer(
+        T3450->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3450->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3450 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -985,10 +986,10 @@ void nas_start_T3450(
 //------------------------------------------------------------------------------
 void nas_start_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((T3460) && (T3460->id == NAS_TIMER_INACTIVE_ID)) {
-    T3460->id =
-        nas_timer_start(T3460->sec, 0, time_out_cb, timer_callback_args);
+    T3460->id = mme_app_start_timer(
+        T3460->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3460->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3460 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -1002,10 +1003,10 @@ void nas_start_T3460(
 //------------------------------------------------------------------------------
 void nas_start_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((T3470) && (T3470->id == NAS_TIMER_INACTIVE_ID)) {
-    T3470->id =
-        nas_timer_start(T3470->sec, 0, time_out_cb, timer_callback_args);
+    T3470->id = mme_app_start_timer(
+        T3470->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3470->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3470 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -1036,10 +1037,10 @@ void nas_start_Ts6a_auth_info(
 }
 //------------------------------------------------------------------------------
 void nas_stop_T3450(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    void* timer_callback_args) {
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450) {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
-    T3450->id = nas_timer_stop(T3450->id, &timer_callback_args);
+    mme_app_stop_timer(T3450->id);
+    T3450->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3450 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1047,10 +1048,10 @@ void nas_stop_T3450(
 
 //------------------------------------------------------------------------------
 void nas_stop_T3460(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    void* timer_callback_args) {
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460) {
   if ((T3460) && (T3460->id != NAS_TIMER_INACTIVE_ID)) {
-    T3460->id = nas_timer_stop(T3460->id, &timer_callback_args);
+    mme_app_stop_timer(T3460->id);
+    T3460->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3460 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1058,10 +1059,10 @@ void nas_stop_T3460(
 
 //------------------------------------------------------------------------------
 void nas_stop_T3470(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    void* timer_callback_args) {
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470) {
   if ((T3470) && (T3470->id != NAS_TIMER_INACTIVE_ID)) {
-    T3470->id = nas_timer_stop(T3470->id, &timer_callback_args);
+    mme_app_stop_timer(T3470->id);
+    T3470->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3470 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }

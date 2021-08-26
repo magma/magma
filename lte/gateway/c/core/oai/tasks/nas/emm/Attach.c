@@ -99,6 +99,8 @@
 #include "EpsNetworkFeatureSupport.h"
 #include "TrackingAreaIdentity.h"
 #include "TrackingAreaIdentityList.h"
+#include "mme_app_defs.h"
+#include "mme_app_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -117,10 +119,6 @@ static const char* emm_attach_type_str[] = {"EPS", "IMSI", "EMERGENCY",
         Internal data handled by the attach procedure in the MME
    --------------------------------------------------------------------------
 */
-/*
-   Timer handlers
-*/
-static void emm_attach_t3450_handler(void*, imsi64_t* imsi64);
 
 /*
    Functions that may initiate EMM common procedures
@@ -889,9 +887,10 @@ status_code_e emm_proc_attach_complete(
  */
 
 void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc) {
-  ((nas_base_proc_t*) attach_proc)->abort    = emm_attach_abort;
-  ((nas_base_proc_t*) attach_proc)->fail_in  = NULL;
-  ((nas_base_proc_t*) attach_proc)->time_out = emm_attach_t3450_handler;
+  ((nas_base_proc_t*) attach_proc)->abort   = emm_attach_abort;
+  ((nas_base_proc_t*) attach_proc)->fail_in = NULL;
+  ((nas_base_proc_t*) attach_proc)->time_out =
+      mme_app_handle_emm_attach_t3450_expiry;
   ((nas_base_proc_t*) attach_proc)->fail_out = _emm_attach_reject;
 }
 
@@ -919,11 +918,12 @@ static void emm_proc_create_procedure_attach_request(
       nas_new_attach_procedure(&ue_mm_context->emm_context);
   AssertFatal(attach_proc, "TODO Handle this");
   if ((attach_proc)) {
-    attach_proc->ies                           = ies;
-    attach_proc->ue_id                         = ue_mm_context->mme_ue_s1ap_id;
-    ((nas_base_proc_t*) attach_proc)->abort    = emm_attach_abort;
-    ((nas_base_proc_t*) attach_proc)->fail_in  = NULL;  // No parent procedure
-    ((nas_base_proc_t*) attach_proc)->time_out = emm_attach_t3450_handler;
+    attach_proc->ies                          = ies;
+    attach_proc->ue_id                        = ue_mm_context->mme_ue_s1ap_id;
+    ((nas_base_proc_t*) attach_proc)->abort   = emm_attach_abort;
+    ((nas_base_proc_t*) attach_proc)->fail_in = NULL;  // No parent procedure
+    ((nas_base_proc_t*) attach_proc)->time_out =
+        mme_app_handle_emm_attach_t3450_expiry;
     ((nas_base_proc_t*) attach_proc)->fail_out = _emm_attach_reject;
   }
 }
@@ -935,7 +935,7 @@ static void emm_proc_create_procedure_attach_request(
 
 /*
  *
- * Name:    _emm_attach_t3450_handler()
+ * Name:    mme_app_handle_emm_attach_t3450_expiry
  *
  * Description: T3450 timeout handler
  *
@@ -955,13 +955,29 @@ static void emm_proc_create_procedure_attach_request(
  *      Others:    None
  *
  */
-static void emm_attach_t3450_handler(void* args, imsi64_t* imsi64) {
+status_code_e mme_app_handle_emm_attach_t3450_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t* emm_context = (emm_context_t*) (args);
 
-  if (emm_context) {
-    *imsi64 = emm_context->_imsi64;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
+
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, "Attach Procedure T3450 Timer");
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  emm_context_t* emm_context = &ue_context_p->emm_context;
+
   if (is_nas_specific_procedure_attach_running(emm_context)) {
     nas_emm_attach_proc_t* attach_proc =
         get_nas_specific_procedure_attach(emm_context);
@@ -1001,7 +1017,7 @@ static void emm_attach_t3450_handler(void* args, imsi64_t* imsi64) {
     }
     // TODO REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_c__3) not coded
   }
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 //------------------------------------------------------------------------------
@@ -1951,11 +1967,10 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
       /*
        * Start T3450 timer
        */
-      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
+      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450);
       nas_start_T3450(
           attach_proc->ue_id, &attach_proc->T3450,
-          attach_proc->emm_spec_proc.emm_proc.base_proc.time_out,
-          (void*) emm_context);
+          attach_proc->emm_spec_proc.emm_proc.base_proc.time_out);
       attach_proc->attach_accept_sent++;
     }
   } else {
@@ -2106,11 +2121,10 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
       /*
        * Re-start T3450 timer
        */
-      nas_stop_T3450(ue_id, &attach_proc->T3450, NULL);
+      nas_stop_T3450(ue_id, &attach_proc->T3450);
       nas_start_T3450(
           ue_id, &attach_proc->T3450,
-          attach_proc->emm_spec_proc.emm_proc.base_proc.time_out,
-          (void*) emm_context);
+          attach_proc->emm_spec_proc.emm_proc.base_proc.time_out);
       OAILOG_INFO(
           LOG_NAS_EMM,
           "ue_id=" MME_UE_S1AP_ID_FMT
