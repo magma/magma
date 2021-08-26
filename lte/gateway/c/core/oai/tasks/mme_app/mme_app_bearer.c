@@ -156,9 +156,9 @@ status_code_e send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
       .bearer_contexts[item]
       .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
 
-  s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr =
-      pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
-
+  s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr.s_addr =
+      pdn_context_p->s_gw_address_s11_s4.address.ipv4_address.s_addr;
+  s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_family = AF_INET;
   s11_modify_bearer_request->teid = pdn_context_p->s_gw_teid_s11_s4;
 
   if (bearer_cntxt->enb_fteid_s1u.ipv4) {
