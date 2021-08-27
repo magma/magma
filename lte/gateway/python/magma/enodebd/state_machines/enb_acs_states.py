@@ -820,12 +820,20 @@ class SetParameterValuesState(EnodebAcsState):
             self.acs.data_model,
         )
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
-                                          % len(param_values)
+                                           % len(param_values)
         request.ParameterList.ParameterValueStruct = []
         logger.debug(
             'Sending TR069 request to set CPE parameter values: %s',
             str(param_values),
         )
+        # TODO: Match key response when we support having multiple outstanding
+        # calls.
+        if self.acs.has_version_key:
+            request.ParameterKey = models.ParameterKeyType()
+            request.ParameterKey.Data =\
+                "SetParameter-{:10.0f}".format(self.acs.parameter_version_key)
+            request.ParameterKey.type = 'xsd:string'
+
         for name, value in param_values.items():
             param_info = self.acs.data_model.get_parameter(name)
             type_ = param_info.type
