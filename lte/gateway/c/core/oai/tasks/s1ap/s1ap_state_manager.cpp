@@ -93,9 +93,8 @@ void S1apStateManager::create_state() {
 }
 
 void free_s1ap_state(s1ap_state_t* state_cache_p) {
-  if (state_cache_p == nullptr) {
-    return;
-  }
+  AssertFatal(
+      state_cache_p, "s1ap_state_t passed to free_s1ap_state must not be null");
 
   int i;
   hashtable_rc_t ht_rc;
@@ -127,14 +126,20 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
     OAILOG_ERROR(
         LOG_S1AP, "An error occurred while destroying assoc_id hash table");
   }
-  free_wrapper(reinterpret_cast<void**>(&state_cache_p));
+  free(state_cache_p);
 }
 
 void S1apStateManager::free_state() {
   AssertFatal(
       is_initialized,
       "S1apStateManager init() function should be called to initialize state.");
+
+  if (state_cache_p == nullptr) {
+    return;
+  }
   free_s1ap_state(state_cache_p);
+  state_cache_p = nullptr;
+
   if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
     OAILOG_ERROR(
         LOG_S1AP, "An error occurred while destroying assoc_id hash table");

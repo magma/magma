@@ -50,7 +50,7 @@ func TestListSubscribers(t *testing.T) {
 	storeReader, _ := initializeStore(t)
 
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
@@ -314,7 +314,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 		MaxProtosLoadSize:  10,
 		ResyncIntervalSecs: 1000,
 	}, storeReader)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
@@ -489,7 +489,7 @@ func TestListSubscribersSetLastResyncTime(t *testing.T) {
 		DigestsEnabled:    true,
 		MaxProtosLoadSize: 10,
 	}, storeReader)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
@@ -546,7 +546,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	storeReader, store := initializeStore(t)
 
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true, ResyncIntervalSecs: 1000}, storeReader)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
@@ -604,7 +604,7 @@ func TestSyncSubscribers(t *testing.T) {
 	// Create servicer with the subscriber digests feature flag turned on
 	configs := subscriberdb.Config{DigestsEnabled: true, ChangesetSizeThreshold: 100, MaxProtosLoadSize: 100}
 	servicer := servicers.NewSubscriberdbServicer(configs, storeReader)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
@@ -754,7 +754,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 	}
 	servicer := servicers.NewSubscriberdbServicer(configs, storeReader)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)

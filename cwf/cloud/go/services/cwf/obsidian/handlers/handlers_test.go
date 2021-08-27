@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"testing"
 	"time"
 
@@ -181,7 +182,7 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actualN1, err := configurator.LoadNetwork(context2.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -828,56 +829,50 @@ func TestCwfHaPairs(t *testing.T) {
 // n1, n3 are cwf networks, n2, n5 are not
 func seedCwfNetworks(t *testing.T) {
 	fegNetworkID := "n5"
-	_, err := configurator.CreateNetworks(
-		[]configurator.Network{
-			{
-				ID:          fegNetworkID,
-				Type:        feg.FederationNetworkType,
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs: map[string]interface{}{
-					feg.FegNetworkType:          models3.NewDefaultNetworkFederationConfigs(),
-					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
-				},
+	_, err := configurator.CreateNetworks(context2.Background(), []configurator.Network{
+		{
+			ID:          fegNetworkID,
+			Type:        feg.FederationNetworkType,
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs: map[string]interface{}{
+				feg.FegNetworkType:          models3.NewDefaultNetworkFederationConfigs(),
+				orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+				orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			},
 		},
-		serdes.Network,
-	)
+	}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateNetworks(
-		[]configurator.Network{
-			{
-				ID:          "n1",
-				Type:        cwf.CwfNetworkType,
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs: map[string]interface{}{
-					cwf.CwfNetworkType: models2.NewDefaultNetworkCarrierWifiConfigs(),
-					feg.FederatedNetworkType: &models3.FederatedNetworkConfigs{
-						FegNetworkID: &fegNetworkID,
-					},
-					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+	_, err = configurator.CreateNetworks(context2.Background(), []configurator.Network{
+		{
+			ID:          "n1",
+			Type:        cwf.CwfNetworkType,
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs: map[string]interface{}{
+				cwf.CwfNetworkType: models2.NewDefaultNetworkCarrierWifiConfigs(),
+				feg.FederatedNetworkType: &models3.FederatedNetworkConfigs{
+					FegNetworkID: &fegNetworkID,
 				},
-			},
-			{
-				ID:          "n2",
-				Type:        "blah",
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs:     map[string]interface{}{},
-			},
-			{
-				ID:          "n3",
-				Type:        cwf.CwfNetworkType,
-				Name:        "barfoo",
-				Description: "Bar Foo",
-				Configs:     map[string]interface{}{},
+				orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+				orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			},
 		},
-		serdes.Network,
-	)
+		{
+			ID:          "n2",
+			Type:        "blah",
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs:     map[string]interface{}{},
+		},
+		{
+			ID:          "n3",
+			Type:        cwf.CwfNetworkType,
+			Name:        "barfoo",
+			Description: "Bar Foo",
+			Configs:     map[string]interface{}{},
+		},
+	}, serdes.Network)
 	assert.NoError(t, err)
 }
 

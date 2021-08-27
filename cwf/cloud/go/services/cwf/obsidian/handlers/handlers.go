@@ -236,7 +236,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	configuratorNetwork, err := configurator.LoadNetwork(networkID, false, false, serdes.Network)
+	configuratorNetwork, err := configurator.LoadNetwork(reqCtx, networkID, false, false, serdes.Network)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
@@ -285,7 +285,7 @@ func getHAPairStatusHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	network, err := configurator.LoadNetwork(nid, true, true, serdes.Network)
+	network, err := configurator.LoadNetwork(reqCtx, nid, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -356,7 +356,7 @@ func createHAPairHandler(c echo.Context) error {
 	if err := c.Bind(haPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := haPair.ValidateModel(); err != nil {
+	if err := haPair.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	_, err := configurator.CreateEntity(networkID, haPair.ToEntity(), serdes.Entity)
@@ -402,7 +402,7 @@ func updateHAPairHandler(c echo.Context) error {
 	if err := c.Bind(mutableHaPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := mutableHaPair.ValidateModel(); err != nil {
+	if err := mutableHaPair.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if mutableHaPair.HaPairID != haPairID {

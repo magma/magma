@@ -42,7 +42,7 @@ void amf_app_ue_context_release(
       itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
 
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "message is NULL");
+    OAILOG_ERROR(LOG_AMF_APP, "message is null");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
   memset(
@@ -55,7 +55,7 @@ void amf_app_ue_context_release(
   NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause =
       (Ngcause) cause.ngapCause_u.nas;
   message_p->ittiMsgHeader.imsi = ue_context_p->amf_context.imsi64;
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 }  // namespace magma5g

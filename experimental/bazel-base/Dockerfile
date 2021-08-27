@@ -25,7 +25,7 @@ RUN apt-get update && \
         wget
 
 WORKDIR /usr/sbin
-RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64 && \
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
     chmod +x bazelisk-linux-amd64 && \
     ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 

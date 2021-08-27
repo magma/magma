@@ -68,8 +68,7 @@ func (s *subscriberdbServicer) CheckInSync(
 		return &lte_protos.CheckInSyncResponse{InSync: false}, nil
 	}
 
-	_, inSync := s.getDigestInfo(req.RootDigest, networkID)
-	res := &lte_protos.CheckInSyncResponse{InSync: inSync}
+	res := &lte_protos.CheckInSyncResponse{InSync: s.isInSync(req.RootDigest, networkID)}
 	return res, nil
 }
 
@@ -99,6 +98,19 @@ func (s *subscriberdbServicer) Sync(
 	if err != nil {
 		return nil, err
 	}
+
+	// Empty tree means either
+	// - Error populating the digests
+	// - Digests haven't been populated yet
+	// - No subscribers exist
+	//
+	// For the first two, default to a full resync for simplicity.
+	// For the latter, a full resync is inexpensive, so also indicate a full
+	// resync.
+	if digestTree.IsEmpty() {
+		return &lte_protos.SyncResponse{Resync: true}, nil
+	}
+
 	resync, renewed, deleted, err := s.getSubscribersChangeset(networkID, req.LeafDigests, digestTree.LeafDigests)
 	if err != nil {
 		return nil, err
@@ -113,7 +125,7 @@ func (s *subscriberdbServicer) Sync(
 	if err != nil {
 		return nil, err
 	}
-	renewedMarshaled := []*any.Any{}
+	var renewedMarshaled []*any.Any
 	for _, subProto := range renewed {
 		anyVal, err := ptypes.MarshalAny(subProto)
 		if err != nil {
@@ -169,13 +181,10 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		}
 	}
 
-	rootDigest := &protos.Digest{Md5Base64Digest: ""}
-	leafDigests := []*protos.LeafDigest{}
-	// The digests are sent back during the request for the first page of subscriber data
+	// Digests are sent only with the request for the first page of subscriber data
+	digest := &protos.DigestTree{}
 	if req.PageToken == "" && s.DigestsEnabled {
-		digestTree, _ := s.getDigestInfo(&protos.Digest{Md5Base64Digest: ""}, networkID)
-		rootDigest = digestTree.RootDigest
-		leafDigests = digestTree.LeafDigests
+		digest = s.getDigest(networkID)
 	}
 
 	// At the AGW request for the last page, update the lastResyncTime of the gateway to the current time.
@@ -192,8 +201,8 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
 		Digests: &protos.DigestTree{
-			RootDigest:  rootDigest,
-			LeafDigests: leafDigests,
+			RootDigest:  digest.RootDigest,
+			LeafDigests: digest.LeafDigests,
 		},
 	}
 	return listRes, nil
@@ -244,32 +253,38 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, re
 	return subProtos, nextToken, nil
 }
 
-// getDigestInfo returns the correctly formatted Digest and NoUpdates values
-// according to the client digest.
-func (s *subscriberdbServicer) getDigestInfo(clientDigest *protos.Digest, networkID string) (*protos.DigestTree, bool) {
-	digestTree, err := syncstore.GetDigestTree(s.store, networkID)
+// getDigest returns the digest tree for the network.
+func (s *subscriberdbServicer) getDigest(networkID string) *protos.DigestTree {
+	digest, err := syncstore.GetDigestTree(s.store, networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {
 		glog.Errorf("Load digest for network %s failed: %+v", networkID, err)
-		return &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: ""}}, false
+		return &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: ""}}
 	}
-	rootDigest := digestTree.RootDigest.GetMd5Base64Digest()
-	noUpdates := rootDigest != "" && rootDigest == clientDigest.GetMd5Base64Digest()
-
-	return digestTree, noUpdates
+	return digest
 }
 
-// shouldResync returns whether a gateway requires an Orc8r-directed resync by checking its
-// last resync time.
-func (l *subscriberdbServicer) shouldResync(network string, gateway string) bool {
-	lastResyncTime, err := l.store.GetLastResync(network, gateway)
-	// If check last resync time in store fails, swallow the error and stick to the original callpath
+// isInSync returns true iff the client digest is in sync with the server
+// digest.
+func (s *subscriberdbServicer) isInSync(clientDigest *protos.Digest, networkID string) bool {
+	serverDigest := s.getDigest(networkID)
+	exists := serverDigest.RootDigest.GetMd5Base64Digest() != ""
+	equal := serverDigest.RootDigest.GetMd5Base64Digest() == clientDigest.GetMd5Base64Digest()
+
+	return exists && equal
+}
+
+// shouldResync returns whether a gateway requires an Orc8r-directed resync by
+// checking its last resync time.
+func (s *subscriberdbServicer) shouldResync(network string, gateway string) bool {
+	lastResyncTime, err := s.store.GetLastResync(network, gateway)
+	// If check last resync time in store fails, default to resync
 	if err != nil {
 		glog.Errorf("check last resync time of gateway %+v of network %+v: %+v", gateway, network, err)
-		return false
+		return true
 	}
 	// Jitter the AGW sync interval by a fraction in the range of [0, 0.5] to ameliorate the thundering herd effect
-	shouldResync := time.Now().Unix()-lastResyncTime > math.JitterInt64(l.ResyncIntervalSecs, gateway, 0.5)
+	shouldResync := time.Now().Unix()-lastResyncTime > math.JitterInt64(s.ResyncIntervalSecs, gateway, 0.5)
 	return shouldResync
 }
 

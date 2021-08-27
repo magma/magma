@@ -65,7 +65,7 @@ class AGWHealth:
         return table.entries
 
     def get_registration_success_rate(self, mme_log_file):
-        with open(mme_log_file, 'r') as f:
+        with open(mme_log_file, 'r', encoding="utf-8") as f:
             log = f.read()
 
         return RegistrationSuccessRate(

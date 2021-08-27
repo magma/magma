@@ -14,13 +14,15 @@
 package models
 
 import (
+	"context"
+
 	strfmt "github.com/go-openapi/strfmt"
 )
 
-func (m *NetworkProbeTask) ValidateModel() error {
+func (m *NetworkProbeTask) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *NetworkProbeDestination) ValidateModel() error {
+func (m *NetworkProbeDestination) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }

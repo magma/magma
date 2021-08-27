@@ -528,7 +528,7 @@ That to say, rather than retrofitting the streamer pattern, we can instead fully
     - Update Orc8r codepath (configurator), through to northbound and southbound interfaces
     - Update gateway consumption: either retrofit streamer code to handle pagination, or migrate to unary RPC
     - Updated NMS to handle paginated Orc8r REST API
-        - Side note: [NMS creates a gateway→subscriber map](https://github.com/magma/magma/blob/master/nms/app/packages/magmalte/app/state/lte/SubscriberState.js#L223-L240) based on getting all subscribers and all gateways. Move this functionality to an Orc8r `/lte/networks/{network_id}/gateways/{gateway_id}/subscribers` endpoint, fully removing the need for NMS to make get-all subscriber requests. May need to use state indexers pattern to implement this endpoint
+        - Side note: [NMS creates a gateway→subscriber map](https://github.com/magma/magma/blob/master/nms/packages/magmalte/app/state/lte/SubscriberState.js#L223-L240) based on getting all subscribers and all gateways. Move this functionality to an Orc8r `/lte/networks/{network_id}/gateways/{gateway_id}/subscribers` endpoint, fully removing the need for NMS to make get-all subscriber requests. May need to use state indexers pattern to implement this endpoint
 - [P1][S] Identify source of “DB statement too large” error and resolve
     - If from ent.go (state codepath): resolve ent.go's poor get-all query construction or remove it in favor of SQL blobstore implementation. Latter option will likely require a migration
     - If from configurator (config codepath): resolve poorly-constructed query

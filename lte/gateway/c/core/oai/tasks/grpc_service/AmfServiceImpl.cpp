@@ -103,12 +103,14 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
-  itti_msg.session_ambr.uplink_unit_type = static_cast<AmbrUnit_response>(
-      req_m5g.uplink_unit_type().ambr_unit_type());
-  itti_msg.session_ambr.uplink_units       = (uint32_t) req_m5g.uplink_units();
-  itti_msg.session_ambr.downlink_unit_type = static_cast<AmbrUnit_response>(
-      req_m5g.downlink_unit_type().ambr_unit_type());
-  itti_msg.session_ambr.downlink_units = (uint32_t) req_m5g.downlink_units();
+
+  itti_msg.session_ambr.uplink_unit_type = req_m5g.session_ambr().br_unit();
+  itti_msg.session_ambr.uplink_units =
+      (uint32_t) req_m5g.session_ambr().max_bandwidth_ul();
+
+  itti_msg.session_ambr.downlink_unit_type = req_m5g.session_ambr().br_unit();
+  itti_msg.session_ambr.downlink_units =
+      (uint32_t) req_m5g.session_ambr().max_bandwidth_dl();
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = 5;
 
@@ -134,9 +136,11 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.upf_endpoint.teid[2] = (nteid >> 8) & 0xFF;
   itti_msg.upf_endpoint.teid[3] = nteid & 0xFF;
 
-  memcpy(
-      itti_msg.upf_endpoint.end_ipv4_addr,
-      req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
+  if (req_m5g.upf_endpoint().end_ipv4_addr().size() > 0) {
+    inet_pton(
+        AF_INET, req_m5g.upf_endpoint().end_ipv4_addr().c_str(),
+        itti_msg.upf_endpoint.end_ipv4_addr);
+  }
 
   strcpy(
       (char*) itti_msg.procedure_trans_identity,

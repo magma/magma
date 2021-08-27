@@ -1,0 +1,9 @@
+!.eslintrc.js
+**/*.min.js
+
+**/node_modules/**
+
+dist/**/*.js
+flow-typed/npm/**/*.js
+config/webpack.*.js
+packages/magmalte/generated/*.js

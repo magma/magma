@@ -169,7 +169,7 @@ func TestFederationNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actualN1, err := configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -598,7 +598,7 @@ func TestFederatedLteNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actualN1, err := configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -713,72 +713,66 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 
 // n1, n3 are feg networks, n2 is not
 func seedFederationNetworks(t *testing.T) {
-	_, err := configurator.CreateNetworks(
-		[]configurator.Network{
-			{
-				ID:          "n1",
-				Type:        feg.FederationNetworkType,
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs: map[string]interface{}{
-					feg.FegNetworkType:          models2.NewDefaultNetworkFederationConfigs(),
-					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
-				},
-			},
-			{
-				ID:          "n2",
-				Type:        "blah",
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs:     map[string]interface{}{},
-			},
-			{
-				ID:          "n3",
-				Type:        feg.FederationNetworkType,
-				Name:        "barfoo",
-				Description: "Bar Foo",
-				Configs:     map[string]interface{}{},
+	_, err := configurator.CreateNetworks(context.Background(), []configurator.Network{
+		{
+			ID:          "n1",
+			Type:        feg.FederationNetworkType,
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs: map[string]interface{}{
+				feg.FegNetworkType:          models2.NewDefaultNetworkFederationConfigs(),
+				orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+				orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			},
 		},
-		serdes.Network,
-	)
+		{
+			ID:          "n2",
+			Type:        "blah",
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs:     map[string]interface{}{},
+		},
+		{
+			ID:          "n3",
+			Type:        feg.FederationNetworkType,
+			Name:        "barfoo",
+			Description: "Bar Foo",
+			Configs:     map[string]interface{}{},
+		},
+	}, serdes.Network)
 	assert.NoError(t, err)
 }
 
 // n1, n3 are feg networks, n2 is not
 func seedFederatedLteNetworks(t *testing.T) {
-	_, err := configurator.CreateNetworks(
-		[]configurator.Network{
-			{
-				ID:          "n1",
-				Type:        feg.FederatedLteNetworkType,
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs: map[string]interface{}{
-					feg.FederatedNetworkType:      models2.NewDefaultFederatedNetworkConfigs(),
-					lte.CellularNetworkConfigType: models3.NewDefaultTDDNetworkConfig(),
-					orc8r.NetworkFeaturesConfig:   models.NewDefaultFeaturesConfig(),
-					orc8r.DnsdNetworkType:         models.NewDefaultDNSConfig(),
-				},
-			},
-			{
-				ID:          "n2",
-				Type:        "blah",
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs:     map[string]interface{}{},
-			},
-			{
-				ID:          "n3",
-				Type:        feg.FederatedLteNetworkType,
-				Name:        "barfoo",
-				Description: "Bar Foo",
-				Configs:     map[string]interface{}{},
+	_, err := configurator.CreateNetworks(context.Background(), []configurator.Network{
+		{
+			ID:          "n1",
+			Type:        feg.FederatedLteNetworkType,
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs: map[string]interface{}{
+				feg.FederatedNetworkType:      models2.NewDefaultFederatedNetworkConfigs(),
+				lte.CellularNetworkConfigType: models3.NewDefaultTDDNetworkConfig(),
+				orc8r.NetworkFeaturesConfig:   models.NewDefaultFeaturesConfig(),
+				orc8r.DnsdNetworkType:         models.NewDefaultDNSConfig(),
 			},
 		},
-		serdes.Network,
-	)
+		{
+			ID:          "n2",
+			Type:        "blah",
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs:     map[string]interface{}{},
+		},
+		{
+			ID:          "n3",
+			Type:        feg.FederatedLteNetworkType,
+			Name:        "barfoo",
+			Description: "Bar Foo",
+			Configs:     map[string]interface{}{},
+		},
+	}, serdes.Network)
 	assert.NoError(t, err)
 }
 

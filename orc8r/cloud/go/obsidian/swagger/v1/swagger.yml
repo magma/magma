@@ -5280,6 +5280,36 @@ paths:
       summary: Update the Sentry.io configuration for network
       tags:
       - Networks
+  /networks/{network_id}/state:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: State configuration
+          schema:
+            $ref: '#/definitions/state_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get the state configuration for network
+      tags:
+      - Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: state_config
+        required: true
+        schema:
+          $ref: '#/definitions/state_config'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update the state configuration for network
+      tags:
+      - Networks
   /networks/{network_id}/tiers:
     get:
       parameters:
@@ -9846,6 +9876,8 @@ definitions:
         $ref: '#/definitions/network_name'
       sentry_config:
         $ref: '#/definitions/network_sentry_config'
+      state_config:
+        $ref: '#/definitions/state_config'
       type:
         $ref: '#/definitions/network_type'
     required:
@@ -11430,6 +11462,16 @@ definitions:
     - message
     - time_created
     - attempt_count
+    type: object
+  state_config:
+    description: State configuration
+    properties:
+      sync_interval:
+        description: Sync interval in seconds
+        example: 60
+        format: uint32
+        minimum: 3
+        type: number
     type: object
   sub_profile:
     example: default

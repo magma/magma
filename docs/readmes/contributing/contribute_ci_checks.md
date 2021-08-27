@@ -48,7 +48,6 @@ Merge blocking CI checks are listed below.
 | cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
 | Python Format Check    | Ensure Python changes are formatted           | themarwhal             | [AGW formatting](../lte/dev_unit_testing#format-agw)|
 
-
 ## Non-blocking Checks
 
 The CI checks listed below do not block merging on failure.

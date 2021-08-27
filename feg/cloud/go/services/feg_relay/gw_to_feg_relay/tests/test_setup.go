@@ -117,7 +117,7 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 		servingFegNetworkCfg,
 		federatedLteNetCfg,
 	}
-	_, err = configurator.CreateNetworks(networkConfigs, serdes.Network)
+	_, err = configurator.CreateNetworks(context.Background(), networkConfigs, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -192,11 +192,11 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 	err = device.RegisterDevice(context.Background(), servingFegNetworkID, orc8r.AccessGatewayRecordType, fegHwId, &models.GatewayDevice{HardwareID: fegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
-	actualNHNet, err := configurator.LoadNetwork(nhNetworkID, true, true, serdes.Network)
+	actualNHNet, err := configurator.LoadNetwork(context.Background(), nhNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, nhNetworkConfig, actualNHNet)
 
-	actualFeGNet, err := configurator.LoadNetwork(servingFegNetworkID, true, true, serdes.Network)
+	actualFeGNet, err := configurator.LoadNetwork(context.Background(), servingFegNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, servingFegNetworkCfg, actualFeGNet)
 

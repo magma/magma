@@ -36,7 +36,7 @@ func GetAndValidatePayload(c echo.Context, model interface{}) (serde.Validatable
 		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	// Run validations specified by the swagger spec
-	if err := iModel.ValidateModel(); err != nil {
+	if err := iModel.ValidateModel(c.Request().Context()); err != nil {
 		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	return iModel, nil

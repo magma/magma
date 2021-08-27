@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -102,7 +103,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		if err := ctr.ValidateModel(); err != nil {
+		if err := ctr.ValidateModel(context.Background()); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -146,7 +147,7 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 		if err := c.Bind(mutableCallTrace); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
-		if err := mutableCallTrace.ValidateModel(); err != nil {
+		if err := mutableCallTrace.ValidateModel(context.Background()); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 

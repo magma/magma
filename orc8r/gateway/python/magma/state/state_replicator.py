@@ -37,8 +37,6 @@ from orc8r.protos.state_pb2 import (
     SyncStatesRequest,
 )
 
-# TODO: Make DEFAULT_SYNC_INTERVAL an mconfig parameter
-DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
 GARBAGE_COLLECTION_ITERATION_INTERVAL = 2
 
@@ -55,9 +53,18 @@ class StateReplicator(SDWatchdogTask):
         garbage_collector: GarbageCollector,
         grpc_client_manager: GRPCClientManager,
     ):
-        sync_interval = service.config.get(
-            'sync_interval', DEFAULT_SYNC_INTERVAL,
-        )
+        # Sync_interval is in seconds
+        sync_interval = service.mconfig.sync_interval
+        service_config_sync_interval = service.config.get('sync_interval')
+        # TODO(#8806): remove this once we confirm partners no longer set sync_interval service configs.
+        # We will honor service config sync_intervals under 10 seconds but this is being deprecated
+        # The interval should be set in Orc8r via the rest endpoint.
+        if (
+                service_config_sync_interval is not None
+                and service_config_sync_interval < 10
+                and service_config_sync_interval < sync_interval
+        ):
+            sync_interval = service_config_sync_interval
         super().__init__(sync_interval, service.loop)
         self._service = service
         # Garbage collector to propagate deletions back to Orchestrator

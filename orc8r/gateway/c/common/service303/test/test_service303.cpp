@@ -19,7 +19,6 @@
 
 #include <gtest/gtest.h>
 #include <prometheus/registry.h>
-#include <prometheus/metrics.pb.h>
 #include "orc8r/protos/metricsd.pb.h"
 
 #include "includes/MetricsRegistry.h"
@@ -48,7 +47,7 @@ namespace magma {
 
 class Service303Client {
  public:
-  Service303Client(const std::shared_ptr<Channel>& channel)
+  explicit Service303Client(const std::shared_ptr<Channel>& channel)
       : stub_(Service303::NewStub(channel)) {}
 
   /**

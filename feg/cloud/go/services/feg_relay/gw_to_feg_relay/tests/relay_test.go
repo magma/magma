@@ -258,7 +258,7 @@ func TestNHRouting(t *testing.T) {
 
 	// test #5: Remove Neutral Host settings (making NH FeG network a legacy FeG Network) and verify that
 	//			legacy (non NH) relay logic works as expected (GW requests with NH IMSI are routed to NH FeG)
-	nhNet, err := configurator.LoadNetwork(nhNetworkID, true, true, serdes.Network)
+	nhNet, err := configurator.LoadNetwork(context.Background(), nhNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.NotNil(t, nhNet)
 	cfg, ok := nhNet.Configs[feg.FegNetworkType]
@@ -268,7 +268,7 @@ func TestNHRouting(t *testing.T) {
 	assert.True(t, ok)
 	assert.NotNil(t, fegCfg)
 	fegCfg.NhRoutes = nil // delete NH configuration, now FeG Network is just a regular FeG Network
-	err = configurator.UpdateNetworkConfig(nhNetworkID, feg.FegNetworkType, fegCfg, serdes.Network)
+	err = configurator.UpdateNetworkConfig(context.Background(), nhNetworkID, feg.FegNetworkType, fegCfg, serdes.Network)
 	assert.NoError(t, err)
 
 	// Verify, relay now finds the NH local FeG for any IMSI

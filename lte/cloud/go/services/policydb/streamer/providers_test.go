@@ -44,7 +44,7 @@ func TestRatingGroupStreamers(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.RatingGroupStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -120,7 +120,7 @@ func TestPolicyStreamers(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.PolicyStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -332,7 +332,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.ApnRuleMappingsStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -479,7 +479,7 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.NetworkWideRulesStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -506,7 +506,7 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 		NetworkWideBaseNames: []models.BaseName{"b1", "b2"},
 		NetworkWideRuleNames: []string{"r1", "r2"},
 	}
-	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config, serdes.Network))
+	assert.NoError(t, configurator.UpdateNetworkConfig(context.Background(), "n1", lte.NetworkSubscriberConfigType, config, serdes.Network))
 
 	expectedProtos := []*lte_protos.AssignedPolicies{
 		{

@@ -136,7 +136,6 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   }
 
   if ((msg->nas_msg->data[1] != 0x0) && (msg->nas_msg->data[9] == 0x5c)) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: removing security header");
     for (int i = 0, j = 7; j < blength(msg->nas_msg); i++, j++) {
       msg->nas_msg->data[i] = msg->nas_msg->data[j];
     }
@@ -165,6 +164,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
 
   // Process initial NAS message
   AMFMsg* amf_msg = &nas_msg.plain.amf;
+
   switch (amf_msg->header.message_type) {
     case REG_REQUEST:
       memcpy(&originating_tai, &msg->tai, sizeof(originating_tai));
@@ -210,8 +210,8 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           msg->ue_id, &amf_msg->msg.uplinknas5gtransport, *amf_cause);
       break;
     default:
-      OAILOG_INFO(
-          LOG_NAS_AMF, "unknown message type: %d, in %s ",
+      OAILOG_DEBUG(
+          LOG_NAS_AMF, "Unknown message type: %d, in %s ",
           amf_msg->header.message_type, __FUNCTION__);
   }
   return rc;
@@ -345,8 +345,6 @@ static int amf_as_encode(
 
   if (*info) {
     // Encode the NAS message
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "msg_type: %x", msg->plain.amf.header.message_type);
     bytes =
         nas5g_message_encode((*info)->data, msg, length, amf_security_context);
 
@@ -505,7 +503,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_service_acceptmsg(
+int amf_service_acceptmsg(
     const amf_as_establish_t* msg, amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = SERVICE_ACCEPT_MINIMUM_LENGTH;
@@ -523,7 +521,7 @@ static int amf_service_acceptmsg(
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
 
-  if (msg->pdu_sesion_status_ie & AMF_AS_PDU_SESSION_STATUS) {
+  if (msg->pdu_session_status_ie & AMF_AS_PDU_SESSION_STATUS) {
     nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
         .iei = PDU_SESSION_STATUS;
     nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
@@ -532,7 +530,7 @@ static int amf_service_acceptmsg(
         .pduSessionStatus = msg->pdu_session_status;
   }
 
-  if (msg->pdu_sesion_status_ie & AMF_AS_PDU_SESSION_REACTIVATION_STATUS) {
+  if (msg->pdu_session_status_ie & AMF_AS_PDU_SESSION_REACTIVATION_STATUS) {
     nas_msg->security_protected.plain.amf.msg.service_accept
         .pdu_re_activation_status.iei = PDU_SESSION_REACTIVATION_RESULT;
     nas_msg->security_protected.plain.amf.msg.service_accept
@@ -698,8 +696,7 @@ uint16_t amf_as_data_req(
   if (size > 0) {
     int bytes                                    = 0;
     amf_security_context_t* amf_security_context = NULL;
-    OAILOG_DEBUG(LOG_AMF_APP, "start NAS encoding\n");
-    amf_context_t* amf_ctx = NULL;
+    amf_context_t* amf_ctx                       = NULL;
     ue_m5gmm_context_s* ue_m5gmm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
@@ -726,7 +723,6 @@ uint16_t amf_as_data_req(
     }
 
     if (bytes > 0) {
-      OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding successful\n");
       as_msg->err_code = M5G_AS_SUCCESS;
     } else {
       OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed bytes=%d\n", bytes);
@@ -859,7 +855,6 @@ static int amf_identity_request(
  **************************************************************************/
 static int amf_auth_reject(
     const amf_as_security_t* msg, AuthenticationRejectMsg* amf_msg) {
-  OAILOG_INFO(LOG_AMF_APP, "Sending AUTHENTICATION_REJECT_ to UE\n");
   int size = AUTHENTICATION_REJECT_MINIMUM_LENGTH;
   amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -928,10 +923,6 @@ static int amf_as_security_req(
 
         amf_ctx = &ue_context->amf_context;
 
-        OAILOG_INFO(LOG_AMF_APP, " \n test\n");
-        OAILOG_INFO(
-            LOG_AMF_APP, "Sending AUTHENTICATION_REQUEST to UE ksi %d\n",
-            msg->ksi);
         size                                                     = 50;
         nas_msg.header.extended_protocol_discriminator           = 0x7E;
         nas_msg.header.security_header_type                      = 0x0;
@@ -962,18 +953,12 @@ static int amf_as_security_req(
         memcpy(
             &(nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents),
             (const char*) abba_buff, 2);
-        // nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents.assign(
-        //    (const char*) abba_buff, 2);
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.iei = 0x21;
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.iei = 0x20;
 
       } break;
       case AMF_AS_MSG_TYPE_SMC: {
-        // size = amf_security_mode_command(
-        //    msg, &amf_msg->msg.securitymodecommandmsg, msg->ue_id);
         size = 8;
-        OAILOG_INFO(
-            LOG_AMF_APP, "AMF_TEST: Sending SECURITY_MODE_COMMAND to UE\n");
         nas_msg.security_protected.plain.amf.header
             .extended_protocol_discriminator                     = 0x7e;
         nas_msg.security_protected.plain.amf.header.message_type = 0x5d;
@@ -1008,7 +993,7 @@ static int amf_as_security_req(
               &(ue_context->amf_context.ue_sec_capability),
               sizeof(UESecurityCapabilityMsg));
         } else {
-          OAILOG_INFO(LOG_AMF_APP, "UE not found :%u", as_msg->ue_id);
+          OAILOG_ERROR(LOG_AMF_APP, "UE not found :%u", as_msg->ue_id);
           return -2;
         }
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
@@ -1053,16 +1038,14 @@ static int amf_as_security_req(
     /*
      * Encode the NAS security message
      */
-    OAILOG_DEBUG(LOG_AMF_APP, "Start NAS encoding");
     int bytes =
         amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
 
     if (bytes > 0) {
-      OAILOG_DEBUG(LOG_AMF_APP, "NAS Encoding Success");
       as_msg->err_code = M5G_AS_SUCCESS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
     } else {
-      OAILOG_INFO(LOG_AMF_APP, "NAS Encoding Failed");
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
   }
@@ -1124,7 +1107,7 @@ static int amf_as_security_rej(
             AUTH_REJECT;
         break;
       }
-      default: { OAILOG_INFO(LOG_AMF_APP, " Invalid AS MSG Type \n"); }
+      default: { OAILOG_DEBUG(LOG_AMF_APP, " Invalid as msg type \n"); }
     }
 
   if (size > 0) {
@@ -1151,16 +1134,14 @@ static int amf_as_security_rej(
     /*
      * Encode the NAS security message
      */
-    OAILOG_DEBUG(LOG_AMF_APP, "Start NAS encoding");
     int bytes =
         amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
 
     if (bytes > 0) {
-      OAILOG_DEBUG(LOG_AMF_APP, "NAS Encoding Success");
       as_msg->err_code = M5G_AS_TERMINATED_NAS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
     } else {
-      OAILOG_INFO(LOG_AMF_APP, "NAS Encoding Failed");
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
   }
@@ -1183,7 +1164,7 @@ int initial_context_setup_request(
   if (message_p == NULL) {
     OAILOG_ERROR(
         LOG_AMF_APP,
-        "Failed to allocate memory for NGAP_INITIAL_CONTEXT_SETUP_REQ\n");
+        "Failed to allocate memory for ngap_initial_context_setup_req\n");
     return RETURNerror;
   }
   req = &message_p->ittiMsg.ngap_initial_context_setup_req;
@@ -1265,11 +1246,11 @@ int initial_context_setup_request(
   if (nas_msg) {
     req->nas_pdu = nas_msg;
   } else {
-    OAILOG_INFO(LOG_AMF_APP, "invalid nas_msg for registration accept");
+    OAILOG_DEBUG(LOG_AMF_APP, "Invalid nas_msg for registration accept");
     return RETURNerror;
   }
 
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   return RETURNok;
 }
 
@@ -1366,12 +1347,10 @@ uint16_t amf_as_establish_cnf(
   /*
    * Encode the initial NAS information message
    */
-  OAILOG_DEBUG(LOG_AMF_APP, "start NAS encoding \n");
   int bytes =
       amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
 
   if (bytes > 0) {
-    OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding success\n");
     m5gmm_state_t state =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
 
@@ -1382,23 +1361,19 @@ uint16_t amf_as_establish_cnf(
       derive_5gkey_gnb(
           amf_security_context->kamf, as_msg->nas_ul_count,
           amf_security_context->kgnb);
-      OAILOG_DEBUG(LOG_AMF_APP, "prep and send initial_context_setup_request");
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
-      registration_proc->registration_accept_sent++;
-      OAILOG_INFO(
-          LOG_AMF_APP, "registration_accept_sent: %d",
-          registration_proc->registration_accept_sent);
       registration_proc->registration_accept_sent++;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
-    } else if (state == REGISTERED_IDLE) {
+    } else if (
+        (state == REGISTERED_IDLE) || ((state == REGISTERED_CONNECTED) &&
+                                       (msg->nas_info == AMF_AS_NAS_INFO_SR))) {
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
-      OAILOG_INFO(LOG_AMF_APP, "service_accept_sent");
     }
 
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val          = AS_NAS_ESTABLISH_CNF_;
   } else {
-    OAILOG_INFO(LOG_AMF_APP, "NAS Encoding Failed");
+    OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);

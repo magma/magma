@@ -1,6 +1,8 @@
 package models
 
 import (
+	"context"
+
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/smsd/storage"
 
@@ -36,7 +38,7 @@ func (m *SmsMessage) FromProto(from *storage.SMS) *SmsMessage {
 	return m
 }
 
-func (m *MutableSmsMessage) ValidateModel() error {
+func (m *MutableSmsMessage) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 

@@ -43,7 +43,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.SubscriberStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)

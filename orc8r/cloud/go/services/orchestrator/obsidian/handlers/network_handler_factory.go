@@ -89,7 +89,7 @@ func GetPartialReadNetworkHandler(path string, model PartialNetworkModel, serdes
 			if nerr != nil {
 				return nerr
 			}
-			network, err := configurator.LoadNetwork(networkID, true, true, serdes)
+			network, err := configurator.LoadNetwork(c.Request().Context(), networkID, true, true, serdes)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
@@ -131,7 +131,8 @@ func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModel, serd
 				return nerr
 			}
 
-			network, err := configurator.LoadNetwork(networkID, true, true, serdes)
+			reqCtx := c.Request().Context()
+			network, err := configurator.LoadNetwork(reqCtx, networkID, true, true, serdes)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
@@ -142,7 +143,7 @@ func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModel, serd
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria}, serdes)
+			err = configurator.UpdateNetworks(reqCtx, []configurator.NetworkUpdateCriteria{updateCriteria}, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -170,7 +171,7 @@ func GetPartialDeleteNetworkHandler(path string, key string, serdes serde.Regist
 				ID:              networkID,
 				ConfigsToDelete: []string{key},
 			}
-			err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update}, serdes)
+			err := configurator.UpdateNetworks(c.Request().Context(), []configurator.NetworkUpdateCriteria{update}, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -194,7 +195,7 @@ func getListTypedNetworksHandler(path string, networkType string) obsidian.Handl
 		Path:    path,
 		Methods: obsidian.GET,
 		HandlerFunc: func(c echo.Context) error {
-			ids, err := configurator.ListNetworksOfType(networkType)
+			ids, err := configurator.ListNetworksOfType(c.Request().Context(), networkType)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -213,7 +214,7 @@ func getCreateTypedNetworkHandler(path string, networkType string, network Netwo
 			if err != nil {
 				return err
 			}
-			err = configurator.CreateNetwork(payload.ToConfiguratorNetwork(), serdes)
+			err = configurator.CreateNetwork(c.Request().Context(), payload.ToConfiguratorNetwork(), serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -233,7 +234,7 @@ func getGetTypedNetworkHandler(path string, networkType string, networkModel Net
 				return nerr
 			}
 
-			network, err := configurator.LoadNetwork(nid, true, true, serdes)
+			network, err := configurator.LoadNetwork(c.Request().Context(), nid, true, true, serdes)
 			if err == merrors.ErrNotFound {
 				return c.NoContent(http.StatusNotFound)
 			}
@@ -265,7 +266,8 @@ func getUpdateTypedNetworkHandler(path string, networkType string, networkModel 
 				return err
 			}
 
-			network, err := configurator.LoadNetwork(nid, false, false, serdes)
+			reqCtx := c.Request().Context()
+			network, err := configurator.LoadNetwork(reqCtx, nid, false, false, serdes)
 			if err == merrors.ErrNotFound {
 				return c.NoContent(http.StatusNotFound)
 			}
@@ -276,7 +278,7 @@ func getUpdateTypedNetworkHandler(path string, networkType string, networkModel 
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))
 			}
 
-			err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{payload.ToUpdateCriteria()}, serdes)
+			err = configurator.UpdateNetworks(reqCtx, []configurator.NetworkUpdateCriteria{payload.ToUpdateCriteria()}, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -295,7 +297,8 @@ func getDeleteTypedNetworkHandler(path string, networkType string, serdes serde.
 				return nerr
 			}
 
-			network, err := configurator.LoadNetwork(nid, false, false, serdes)
+			reqCtx := c.Request().Context()
+			network, err := configurator.LoadNetwork(reqCtx, nid, false, false, serdes)
 			if err == merrors.ErrNotFound {
 				return c.NoContent(http.StatusNotFound)
 			}
@@ -306,7 +309,7 @@ func getDeleteTypedNetworkHandler(path string, networkType string, serdes serde.
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))
 			}
 
-			err = configurator.DeleteNetwork(nid)
+			err = configurator.DeleteNetwork(reqCtx, nid)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -322,7 +325,7 @@ func getAndValidateNetwork(c echo.Context, network interface{}) (NetworkModel, e
 		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	// Run validations specified by the swagger spec
-	if err := iModel.ValidateModel(); err != nil {
+	if err := iModel.ValidateModel(c.Request().Context()); err != nil {
 		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	return iModel, nil

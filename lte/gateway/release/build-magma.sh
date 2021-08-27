@@ -24,7 +24,7 @@ VERSION=1.7.0 # magma version number
 SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
-BUILD_TYPE=Debug
+BUILD_TYPE=RelWithDebInfo
 
 # Cmdline options that overwrite the version configs above
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
@@ -90,7 +90,7 @@ case $OS in
     ;;
     *)
     echo "Error: unknown OS option:" $OS
-    echo "Usage: [--os debian|ubuntu]"
+    echo "Usage: [--os ubuntu]"
     exit 1
     ;;
 esac
@@ -386,8 +386,8 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
-${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.5/dist-packages/ryu/ofproto/nx_actions.py \
-${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py \
+${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py.magma \
+${ANSIBLE_FILES}/service.py=/usr/local/lib/python3.8/dist-packages/ryu/app/ofctl/service.py.magma \
 ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \

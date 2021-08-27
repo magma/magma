@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 
 	"magma/cwf/cloud/go/cwf"
@@ -96,7 +97,7 @@ func (m *CwfNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 	return m
 }
 
-func (m *CwfGateway) ValidateModel() error {
+func (m *CwfGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -115,7 +116,7 @@ func (m *CwfGateway) FromBackendModels(
 	return m
 }
 
-func (m *MutableCwfGateway) ValidateModel() error {
+func (m *MutableCwfGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -227,7 +228,7 @@ func (m *LiUes) GetFromNetwork(network configurator.Network) interface{} {
 	return networkConfig.(*NetworkCarrierWifiConfigs).LiUes
 }
 
-func (m *LiUes) ValidateModel() error {
+func (m *LiUes) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
