@@ -122,7 +122,7 @@ func (s *GRPCPushExporterServicer) pushFamilies(families []*io_prometheus_client
 
 ## Phase 3: NMS and Grafana
 
-The NMS initially reads metric names, descriptions and their corresponding PromQL from [`LteMetrics.json`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/data/LteMetrics.json). Then, in [`Explorer.js`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/app/views/metrics/Explorer.js), it filters relevant metrics for the network in question using the `/networks/{network_id}/prometheus/series` Orc8r endpoint.
+The NMS initially reads metric names, descriptions and their corresponding PromQL from [`LteMetrics.json`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/packages/magmalte/data/LteMetrics.json). Then, in [`Explorer.js`](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/packages/magmalte/app/views/metrics/Explorer.js), it filters relevant metrics for the network in question using the `/networks/{network_id}/prometheus/series` Orc8r endpoint.
 
 ```javascript
 // Explorer.js
@@ -156,6 +156,6 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 }
 ```
 
-Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parameterized metric request to Prometheus and displays the retrieved metrics.
+Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parameterized metric request to Prometheus and displays the retrieved metrics.
 
 ![Grafana Explore UI](assets/nms/grafana_query.png)

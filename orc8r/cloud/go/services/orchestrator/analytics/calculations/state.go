@@ -40,7 +40,7 @@ func (x *NetworkMetricsCalculation) Calculate(prometheusClient query_api.Prometh
 	glog.V(1).Info("Calculate Network Metrics")
 
 	var results []*protos.CalculationResult
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil || networks == nil {
 		return results, err
 	}
@@ -52,7 +52,7 @@ func (x *NetworkMetricsCalculation) Calculate(prometheusClient query_api.Prometh
 	}
 
 	for _, networkID := range networks {
-		network, err := configurator.LoadNetwork(networkID, true, true, serdes.Network)
+		network, err := configurator.LoadNetwork(context.TODO(), networkID, true, true, serdes.Network)
 		if err == merrors.ErrNotFound {
 			glog.Errorf("Network %s not found", networkID)
 			continue
@@ -85,7 +85,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	var results []*protos.CalculationResult
 
 	gatewayVersionCfg, gatewayVersionCfgOk := x.AnalyticsConfig.Metrics[metrics.GatewayMagmaVersionMetric]
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil || networks == nil || !gatewayVersionCfgOk {
 		return results, err
 	}

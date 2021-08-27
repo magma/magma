@@ -318,7 +318,8 @@
           "proposals/p007_header_enrichment",
           "proposals/p008_apn_correction",
           "proposals/p013_Ubuntu_upgrade",
-          "proposals/p018_control_network_metrics"
+          "proposals/p018_control_network_metrics",
+          "proposals/p019_enodeb_cbrs_support"
         ]
       },
       {

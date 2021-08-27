@@ -27,7 +27,7 @@ import (
 )
 
 func RegisterNetwork(t *testing.T, networkID string, networkName string) {
-	err := configurator.CreateNetwork(configurator.Network{ID: networkID, Name: networkName}, nil)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: networkID, Name: networkName}, nil)
 	assert.NoError(t, err)
 }
 

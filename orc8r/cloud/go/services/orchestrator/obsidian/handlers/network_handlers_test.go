@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"fmt"
 	"testing"
 
@@ -42,6 +43,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	listNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.GET).HandlerFunc
 	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.GET).HandlerFunc
+	getNetworkState := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/state", obsidian.GET).HandlerFunc
 
 	// Test empty case
 	tc := tests.Test{
@@ -73,7 +75,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		ID:   "n1",
 		Name: networkName1,
 	}
-	err := configurator.CreateNetwork(network1, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), network1, serdes.Network)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -111,7 +113,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		ID:                   "n1",
 		ConfigsToAddOrUpdate: map[string]interface{}{orc8r.NetworkFeaturesConfig: networkFeatures1},
 	}
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update1}, serdes.Network)
+	err = configurator.UpdateNetworks(context2.Background(), []configurator.NetworkUpdateCriteria{update1}, serdes.Network)
 	assert.NoError(t, err)
 
 	expectedNetwork1 = models.Network{
@@ -133,13 +135,17 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// add Sentry config
+	// Add Sentry and state config
 	sentryConfig := models.NewDefaultSentryConfig()
+	stateConfig := models.NewDefaultStateConfig()
 	update1 = configurator.NetworkUpdateCriteria{
-		ID:                   "n1",
-		ConfigsToAddOrUpdate: map[string]interface{}{orc8r.NetworkSentryConfig: sentryConfig},
+		ID: "n1",
+		ConfigsToAddOrUpdate: map[string]interface{}{
+			orc8r.NetworkSentryConfig: sentryConfig,
+			orc8r.StateConfig:         stateConfig,
+		},
 	}
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update1}, serdes.Network)
+	err = configurator.UpdateNetworks(context2.Background(), []configurator.NetworkUpdateCriteria{update1}, serdes.Network)
 	assert.NoError(t, err)
 
 	expectedNetwork1 = models.Network{
@@ -147,6 +153,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Name:         models1.NetworkName(networkName1),
 		Features:     networkFeatures1,
 		SentryConfig: sentryConfig,
+		StateConfig:  stateConfig,
 	}
 
 	tc = tests.Test{
@@ -170,7 +177,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		NewDescription:       &description1,
 		ConfigsToAddOrUpdate: map[string]interface{}{orc8r.DnsdNetworkType: dnsdConfig},
 	}
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update1}, serdes.Network)
+	err = configurator.UpdateNetworks(context2.Background(), []configurator.NetworkUpdateCriteria{update1}, serdes.Network)
 	assert.NoError(t, err)
 
 	expectedNetwork1 = models.Network{
@@ -179,6 +186,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Description:  models1.NetworkDescription("A Network"),
 		Features:     networkFeatures1,
 		SentryConfig: sentryConfig,
+		StateConfig:  stateConfig,
 		DNS:          dnsdConfig,
 	}
 
@@ -202,7 +210,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		ID:   networkID2,
 		Name: networkName2,
 	}
-	err = configurator.CreateNetwork(network2, serdes.Network)
+	err = configurator.CreateNetwork(context2.Background(), network2, serdes.Network)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -212,6 +220,19 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Handler:        listNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{"n1", networkID2}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get network state
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getNetworkState,
+		ExpectedStatus: 200,
+		ExpectedResult: stateConfig,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -327,7 +348,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualNetwork1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
+	actualNetwork1, err := configurator.LoadNetwork(context2.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expectedNetwork1 := configurator.Network{
 		ID:          string(network1.ID),
@@ -338,6 +359,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
 			orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
+			orc8r.StateConfig:           models.NewDefaultStateConfig(),
 		},
 	}
 	assert.Equal(t, expectedNetwork1, actualNetwork1)
@@ -467,6 +489,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.POST).HandlerFunc
 	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.PUT).HandlerFunc
 	getNetworkHandler := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.GET).HandlerFunc
+	putNetworkState := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/state", obsidian.PUT).HandlerFunc
 
 	// happy path
 	// add a network
@@ -511,6 +534,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 	network1.Features.Features["new-feature"] = "foobar"
 	network1.SentryConfig.SampleRate = swag.Float32(0.75)
 	network1.SentryConfig.UploadMmeLog = true
+	network1.StateConfig.SyncInterval = uint32(90)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot,
@@ -541,6 +565,18 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Handler:        updateNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\ndns in body is required",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put state config
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
+		Payload:        models.NewDefaultStateConfig(),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        putNetworkState,
+		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -645,7 +681,7 @@ func Test_PutNetworkMetadataHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualNetwork, err := configurator.LoadNetwork("n1", true, false, serdes.Network)
+	actualNetwork, err := configurator.LoadNetwork(context2.Background(), "n1", true, false, serdes.Network)
 	assert.NoError(t, err)
 	expectedNetwork1.Version = 1
 	expectedNetwork1.Name = "new_name"
@@ -662,7 +698,7 @@ func Test_PutNetworkMetadataHandlers(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actualNetwork, err = configurator.LoadNetwork("n1", true, false, serdes.Network)
+	actualNetwork, err = configurator.LoadNetwork(context2.Background(), "n1", true, false, serdes.Network)
 	assert.NoError(t, err)
 	expectedNetwork1.Type = "new_type"
 	expectedNetwork1.Version = 2
@@ -680,7 +716,7 @@ func Test_PutNetworkMetadataHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, putNetworkDesc)
 
-	actualNetwork, err = configurator.LoadNetwork("n1", true, false, serdes.Network)
+	actualNetwork, err = configurator.LoadNetwork(context2.Background(), "n1", true, false, serdes.Network)
 	assert.NoError(t, err)
 	expectedNetwork1.Description = "new_name"
 	expectedNetwork1.Version = 3
@@ -739,7 +775,7 @@ func Test_PutNetworkFeaturesHandlers(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	config, err := configurator.LoadNetworkConfig("n1", orc8r.NetworkFeaturesConfig, serdes.Network)
+	config, err := configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.NetworkFeaturesConfig, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, newFeatures, config)
 }
@@ -869,7 +905,7 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	config, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType, serdes.Network)
+	config, err := configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.DnsdNetworkType, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, newDNS, config)
 
@@ -892,7 +928,7 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	config, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType, serdes.Network)
+	config, err = configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.DnsdNetworkType, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, models.NetworkDNSRecords(records), config.(*models.NetworkDNSConfig).Records)
 
@@ -932,7 +968,7 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	config, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType, serdes.Network)
+	config, err = configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.DnsdNetworkType, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, record, config.(*models.NetworkDNSConfig).Records[0])
 
@@ -948,7 +984,7 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	config, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType, serdes.Network)
+	config, err = configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.DnsdNetworkType, serdes.Network)
 	assert.NoError(t, err)
 	assert.Empty(t, config.(*models.NetworkDNSConfig).Records)
 }
@@ -1038,7 +1074,7 @@ func Test_DeleteNetworkDNSHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	config, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType, serdes.Network)
+	config, err := configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.DnsdNetworkType, serdes.Network)
 	assert.NoError(t, err)
 	dnsConfig := config.(*models.NetworkDNSConfig)
 	assert.Empty(t, dnsConfig.Records)
@@ -1053,34 +1089,32 @@ func Test_DeleteNetworkDNSHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType, serdes.Network)
+	_, err = configurator.LoadNetworkConfig(context2.Background(), "n1", orc8r.DnsdNetworkType, serdes.Network)
 	assert.EqualError(t, err, "Not found")
 
 }
 
 func seedNetworks(t *testing.T) {
-	_, err := configurator.CreateNetworks(
-		[]configurator.Network{
-			{
-				ID:          "n1",
-				Type:        "type1",
-				Name:        "network1",
-				Description: "network 1",
-				Configs: map[string]interface{}{
-					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-					orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
-					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
-				},
-			},
-			{
-				ID:          "n2",
-				Type:        "blah",
-				Name:        "foobar",
-				Description: "Foo Bar",
-				Configs:     map[string]interface{}{},
+	_, err := configurator.CreateNetworks(context2.Background(), []configurator.Network{
+		{
+			ID:          "n1",
+			Type:        "type1",
+			Name:        "network1",
+			Description: "network 1",
+			Configs: map[string]interface{}{
+				orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+				orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
+				orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+				orc8r.StateConfig:           models.NewDefaultStateConfig(),
 			},
 		},
-		serdes.Network,
-	)
+		{
+			ID:          "n2",
+			Type:        "blah",
+			Name:        "foobar",
+			Description: "Foo Bar",
+			Configs:     map[string]interface{}{},
+		},
+	}, serdes.Network)
 	assert.NoError(t, err)
 }

@@ -55,6 +55,7 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
+        global response
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
@@ -108,7 +109,6 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
                 ue_id,
             )
             # Wait for UE_CTX_REL_IND
-            global response
             response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,

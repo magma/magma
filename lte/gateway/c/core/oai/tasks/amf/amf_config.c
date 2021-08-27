@@ -580,7 +580,7 @@ int amf_config_parse_file(amf_config_t* config_pP) {
   config_pP->guamfi.nb = 0;
   if (setting != NULL) {
     num = config_setting_length(setting);
-    OAILOG_INFO(LOG_AMF_APP, "Number of GUAMFIs configured =%d\n", num);
+    OAILOG_DEBUG(LOG_AMF_APP, "Number of GUAMFIs configured =%d\n", num);
     AssertFatal(
         num >= MIN_GUAMI,
         "Not even one GUAMI is configured, configure minimum one GUMMEI \n");

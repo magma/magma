@@ -61,7 +61,7 @@ func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.Blo
 }
 
 func (l *syncStore) SetDigest(network string, digests *protos.DigestTree) error {
-	rootDigest := digests.RootDigest.Md5Base64Digest
+	rootDigest := digests.RootDigest.GetMd5Base64Digest()
 	leafDigestsToSerialize := &protos.LeafDigests{Digests: digests.GetLeafDigests()}
 	leafDigests, err := proto.Marshal(leafDigestsToSerialize)
 	if err != nil {
@@ -121,7 +121,7 @@ func (l *syncStore) UpdateCache(network string) (CacheWriter, error) {
 	return l.NewCacheWriter(network, writerID), nil
 }
 
-func (l *syncStore) RecordResync(network string, gateway string, t uint64) error {
+func (l *syncStore) RecordResync(network string, gateway string, t int64) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
 		return errors.Wrapf(err, "error starting transaction")
@@ -131,7 +131,7 @@ func (l *syncStore) RecordResync(network string, gateway string, t uint64) error
 	err = store.CreateOrUpdate(network, blobstore.Blobs{{
 		Type:  lastResyncBlobstoreType,
 		Key:   gateway,
-		Value: encodeUint64(t),
+		Value: encodeInt64(t),
 	}})
 	if err != nil {
 		return errors.Wrapf(err, "set last resync time of network %+v, gateway %+v in blobstore", network, gateway)
@@ -151,7 +151,7 @@ func (l *syncStore) recordCacheWriterStartTime(network string, writerID string) 
 	err = store.CreateOrUpdate(network, blobstore.Blobs{{
 		Type:  cacheWriterBlobstoreType,
 		Key:   writerID,
-		Value: encodeUint64(uint64(clock.Now().Unix())),
+		Value: encodeInt64(clock.Now().Unix()),
 	}})
 	if err != nil {
 		return errors.Wrapf(err, "set start time of network %+v, cachewriter %+v in blobstore", network, writerID)
@@ -197,7 +197,7 @@ func (l *syncStore) collectGarbageSQL(tracked []string) error {
 		}
 		_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 		if err != nil {
-			multierror.Append(errs, errors.Wrapf(err, "collect garbage for table %+v", tableName))
+			errs = multierror.Append(errs, errors.Wrapf(err, "collect garbage for table %+v", tableName))
 		}
 	}
 	return errs.ErrorOrNil()
@@ -208,7 +208,7 @@ func (l *syncStore) getStoredNetworksSQL(tx *sql.Tx, tableName string) ([]string
 	if err != nil {
 		return nil, errors.Wrapf(err, "get all networks in store %+v", tableName)
 	}
-	storedNetworks := []string{}
+	var storedNetworks []string
 	for rows.Next() {
 		network := ""
 		err = rows.Scan(&network)
@@ -251,17 +251,17 @@ func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 	for _, network := range deleted {
 		keys, err := blobstore.ListKeys(store, network, lastResyncBlobstoreType)
 		if err != nil {
-			multierror.Append(errs, err)
+			errs = multierror.Append(errs, err)
 			continue
 		}
 		err = store.Delete(network, storage.MakeTKs(lastResyncBlobstoreType, keys))
 		if err != nil {
-			multierror.Append(errs, err)
+			errs = multierror.Append(errs, err)
 		}
 	}
 	err = store.Commit()
 	if err != nil {
-		multierror.Append(errs, err)
+		errs = multierror.Append(errs, err)
 	}
 	return errs.ErrorOrNil()
 }
@@ -271,19 +271,19 @@ func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
 
 	invalidByNetwork, err := l.getInvalidCacheWriter(tracked, l.cacheWriterValidIntervalSecs)
 	if err != nil {
-		multierror.Append(errs, errors.Wrapf(err, "get invalid cache writers for tracked networks %+v", tracked))
+		errs = multierror.Append(errs, errors.Wrapf(err, "get invalid cache writers for tracked networks %+v", tracked))
 	}
 
 	// Attempt to drop the tmp tables of all invalid cacheWriters, and only delete the blobstore records of those
 	// whose tables have been successfully dropped; the rest is left to be garbage collected in future runs
 	deletedByNetwork, err := l.dropInvalidCaches(invalidByNetwork)
 	if err != nil {
-		multierror.Append(errs, errors.Wrapf(err, "drop invalid cache writer tables %+v", invalidByNetwork))
+		errs = multierror.Append(errs, errors.Wrapf(err, "drop invalid cache writer tables %+v", invalidByNetwork))
 	}
 
 	err = l.deleteCacheWriterBlobstoreRecords(deletedByNetwork)
 	if err != nil {
-		multierror.Append(errs, errors.Wrapf(err, "delete cache writer blobstore records %+v", deletedByNetwork))
+		errs = multierror.Append(errs, errors.Wrapf(err, "delete cache writer blobstore records %+v", deletedByNetwork))
 	}
 
 	return errs.ErrorOrNil()
@@ -292,7 +292,7 @@ func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
 // getInvalidCacheWriter returns a list of cache writer IDs from blobstore that
 // either belong to already deleted networks or have expired.
 func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidIntervalSecs int64) (map[string][]string, error) {
-	store, err := l.fact.StartTransaction(nil)
+	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "error starting transaction")
 	}
@@ -310,7 +310,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 	for _, network := range deleted {
 		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
-			multierror.Append(errs, errors.Wrapf(err, "list cache writers of deleted network %+v", network))
+			errs = multierror.Append(errs, errors.Wrapf(err, "list cache writers of deleted network %+v", network))
 			continue
 		}
 		invalidByNetwork[network] = keys
@@ -319,16 +319,16 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 	for _, network := range tracked {
 		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
-			multierror.Append(errs, errors.Wrapf(err, "list all cache-writer-type blobstore keys of network %+v", network))
+			errs = multierror.Append(errs, errors.Wrapf(err, "list all cache-writer-type blobstore keys of network %+v", network))
 			continue
 		}
 		blobs, err := store.GetMany(network, storage.MakeTKs(cacheWriterBlobstoreType, keys))
 		if err != nil {
-			multierror.Append(errs, errors.Wrapf(err, "get cache writer blobs of network %+v", network))
+			errs = multierror.Append(errs, errors.Wrapf(err, "get cache writer blobs of network %+v", network))
 			continue
 		}
 
-		invalid := []string{}
+		var invalid []string
 		for _, blob := range blobs {
 			creationTime := binary.LittleEndian.Uint64(blob.Value)
 			if clock.Now().Unix()-int64(creationTime) > cacheWriterValidIntervalSecs {
@@ -336,6 +336,10 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 			}
 		}
 		invalidByNetwork[network] = invalid
+	}
+	err = store.Commit()
+	if err != nil {
+		errs = multierror.Append(errs, err)
 	}
 	return invalidByNetwork, errs.ErrorOrNil()
 }
@@ -346,7 +350,7 @@ func (l *syncStore) dropInvalidCaches(invalidByNetwork map[string][]string) (map
 	errs := &multierror.Error{}
 	deletedByNetwork := map[string][]string{}
 	for network, invalid := range invalidByNetwork {
-		deleted := []string{}
+		var deleted []string
 		for _, tableName := range invalid {
 			txFn := func(tx *sql.Tx) (interface{}, error) {
 				_, err := tx.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
@@ -354,7 +358,7 @@ func (l *syncStore) dropInvalidCaches(invalidByNetwork map[string][]string) (map
 			}
 			_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 			if err != nil {
-				multierror.Append(errs, err)
+				errs = multierror.Append(errs, err)
 				continue
 			}
 			deleted = append(deleted, tableName)
@@ -378,12 +382,12 @@ func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[strin
 		tks := storage.MakeTKs(cacheWriterBlobstoreType, deleted)
 		err := store.Delete(network, tks)
 		if err != nil {
-			multierror.Append(errs, errors.Wrapf(err, "delete blobstore cache writer records %+v for network %+v", deleted, network))
+			errs = multierror.Append(errs, errors.Wrapf(err, "delete blobstore cache writer records %+v for network %+v", deleted, network))
 		}
 	}
 	err = store.Commit()
 	if err != nil {
-		multierror.Append(errs, err)
+		errs = multierror.Append(errs, err)
 	}
 
 	return errs.ErrorOrNil()
@@ -396,8 +400,8 @@ func generateCacheWriterUUID(tableNamePrefix string) string {
 	return fmt.Sprintf("%s_cache_writer_%s", tableNamePrefix, id)
 }
 
-func encodeUint64(n uint64) []byte {
+func encodeInt64(n int64) []byte {
 	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, n)
+	binary.LittleEndian.PutUint64(bytes, uint64(n))
 	return bytes
 }

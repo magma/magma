@@ -37,7 +37,7 @@ func PeriodicallyReportGatewayStatus(dur time.Duration) {
 }
 
 func reportGatewayStatus() error {
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil {
 		return err
 	}

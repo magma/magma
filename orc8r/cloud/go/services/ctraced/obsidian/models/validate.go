@@ -14,17 +14,19 @@
 package models
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 )
 
-func (m *CallTrace) ValidateModel() error {
+func (m *CallTrace) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *MutableCallTrace) ValidateModel() error {
+func (m *MutableCallTrace) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}

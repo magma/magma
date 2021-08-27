@@ -77,7 +77,7 @@ func Map(inputs []In, nWorkers int, f Func) ([]Out, error) {
 		ret := <-outputs
 		rets[ret.idx] = ret.output
 		if ret.err != nil {
-			multierror.Append(ret.err)
+			errs = multierror.Append(errs, ret.err)
 		}
 	}
 	close(jobs)

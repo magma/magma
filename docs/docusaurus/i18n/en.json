@@ -426,6 +426,9 @@
       "proposals/p018_control_network_metrics": {
         "title": "Export Control Path Network Metrics"
       },
+      "proposals/p019_enodeb_cbrs_support": {
+        "title": "Enodebd CBRS Support"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },

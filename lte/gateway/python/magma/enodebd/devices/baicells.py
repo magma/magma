@@ -29,9 +29,9 @@ from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
     AddObjectsState,
     BaicellsRemWaitState,
-    BaicellsSendRebootState,
     CheckOptionalParamsState,
     DeleteObjectsState,
+    EnbSendRebootState,
     EndSessionState,
     EnodebAcsState,
     ErrorState,
@@ -83,7 +83,7 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
-            'reboot': BaicellsSendRebootState(self, when_done='wait_reboot'),
+            'reboot': EnbSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_rem_post_reboot', when_timeout='wait_inform_post_reboot'),
             # After rebooting, we don't need to query optional params again.
@@ -309,5 +309,5 @@ class BaicellsTrDataModel(DataModel):
 
 
 class BaicellsTrConfigurationInitializer(EnodebConfigurationPostProcessor):
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
         desired_cfg.set_parameter(ParameterName.CELL_BARRED, False)

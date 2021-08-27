@@ -75,6 +75,7 @@
 #include "security_types.h"
 #include "mme_app_defs.h"
 #include "conversions.h"
+#include "mme_app_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -102,7 +103,6 @@ extern mme_congestion_params_t mme_congestion_params;
 /*
    Timer handlers
 */
-static void security_t3460_handler(void*, imsi64_t* imsi64);
 static int security_ll_failure(
     emm_context_t* emm_context, struct nas_emm_proc_s* nas_emm_proc);
 static int security_non_delivered_ho(
@@ -292,7 +292,8 @@ status_code_e emm_proc_security_mode_control(
     smc_proc->emm_com_proc.emm_proc.base_proc.abort         = security_abort;
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_in  = NULL;  // only response
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
-    smc_proc->emm_com_proc.emm_proc.base_proc.time_out = security_t3460_handler;
+    smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
+        mme_app_handle_security_t3460_expiry;
 
     /*
      * Set the UE identifier
@@ -526,8 +527,7 @@ status_code_e emm_proc_security_mode_complete(
      */
     REQUIREMENT_3GPP_24_301(R10_5_4_3_4__1);
 
-    void* timer_callback_arg = NULL;
-    nas_stop_T3460(ue_id, &smc_proc->T3460, timer_callback_arg);
+    nas_stop_T3460(ue_id, &smc_proc->T3460);
 
     /* If MME requested for imeisv in security mode cmd
      * and UE did not include the same in security mode complete,
@@ -659,8 +659,7 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
      * Stop timer T3460
      */
     REQUIREMENT_3GPP_24_301(R10_5_4_3_5__2);
-    void* timer_callback_arg = NULL;
-    nas_stop_T3460(ue_id, &smc_proc->T3460, timer_callback_arg);
+    nas_stop_T3460(ue_id, &smc_proc->T3460);
 
     // restore previous values
     REQUIREMENT_3GPP_24_301(R10_5_4_3_5__3);
@@ -707,7 +706,8 @@ void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
   smc_proc->emm_com_proc.emm_proc.base_proc.abort   = security_abort;
   smc_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;
   smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
-  smc_proc->emm_com_proc.emm_proc.base_proc.time_out = security_t3460_handler;
+  smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
+      mme_app_handle_security_t3460_expiry;
 }
 
 /****************************************************************************/
@@ -722,43 +722,61 @@ void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _security_t3460_handler()                                 **
+ ** Name:    mme_app_handle_security_t3460_expiry()                        **
  **                                                                        **
  ** Description: T3460 timeout handler                                     **
- **      Upon T3460 timer expiration, the security mode command    **
- **      message is retransmitted and the timer restarted. When    **
- **      retransmission counter is exceed, the MME shall abort the **
- **      security mode control procedure.                          **
+ **      Upon T3460 timer expiration, the security mode command            **
+ **      message is retransmitted and the timer restarted. When            **
+ **      retransmission counter is exceed, the MME shall abort the         **
+ **      security mode control procedure.                                  **
  **                                                                        **
  **              3GPP TS 24.301, section 5.4.3.7, case b                   **
  **                                                                        **
- ** Inputs:  args:      handler parameters                         **
- **      Others:    None                                       **
+ ** Inputs:  args:      handler parameters                                 **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    None                                       **
- **      Others:    None                                       **
+ **      Return:    None                                                   **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-static void security_t3460_handler(void* args, imsi64_t* imsi64) {
+status_code_e mme_app_handle_security_t3460_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t* emm_ctx = (emm_context_t*) (args);
+
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  struct ue_mm_context_s* ue_context_p =
+      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Security T3460 Timer");
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  emm_context_t* emm_ctx = &ue_context_p->emm_context;
 
   if (!(emm_ctx)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3460 timer expired No EMM context\n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
 
   if (smc_proc) {
-    *imsi64 = emm_ctx->_imsi64;
     /*
      * Increment the retransmission counter
      */
     smc_proc->retransmission_count += 1;
     smc_proc->T3460.id = NAS_TIMER_INACTIVE_ID;
     OAILOG_WARNING_UE(
-        LOG_NAS_EMM, *imsi64,
+        LOG_NAS_EMM, emm_ctx->_imsi64,
         "EMM-PROC  - T3460 timer expired, retransmission "
         "counter = %d\n",
         smc_proc->retransmission_count);
@@ -787,7 +805,7 @@ static void security_t3460_handler(void* args, imsi64_t* imsi64) {
       increment_counter("ue_attach", 1, 1, "action", "attach_abort");
     }
   }
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 /*
@@ -874,14 +892,13 @@ static int security_request(nas_emm_smc_proc_t* const smc_proc) {
 
     if (rc != RETURNerror) {
       REQUIREMENT_3GPP_24_301(R10_5_4_3_2__1);
-      void* timer_callback_args = NULL;
-      nas_stop_T3460(smc_proc->ue_id, &smc_proc->T3460, timer_callback_args);
+      nas_stop_T3460(smc_proc->ue_id, &smc_proc->T3460);
       /*
        * Start T3460 timer
        */
       nas_start_T3460(
           smc_proc->ue_id, &smc_proc->T3460,
-          smc_proc->emm_com_proc.emm_proc.base_proc.time_out, emm_ctx);
+          smc_proc->emm_com_proc.emm_proc.base_proc.time_out);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -984,7 +1001,7 @@ static int security_abort(
           "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
           "\n",
           smc_proc->T3460.id, ue_id);
-      nas_stop_T3460(ue_id, &smc_proc->T3460, NULL);
+      nas_stop_T3460(ue_id, &smc_proc->T3460);
     }
     /*
      * Release retransmission timer parameters

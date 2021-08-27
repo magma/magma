@@ -27,6 +27,10 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
+      "amf_name": "AMF_1",
+      "amfRegionId": "1",
+      "amfSetId": "1",
+      "amfPointer": "0",
       "attachedEnodebTacs": [],
       "dnsPrimary": "8.8.8.8",
       "dnsSecondary": "8.8.4.4",
@@ -83,6 +87,11 @@
       "lteAuthOp": "EREREREREREREREREREREQ==",
       "lteAuthAmf": "gAA=",
       "sync_interval": 300
+    },
+    "state":{
+      "@type": "type.googleapis.com/magma.mconfig.State",
+      "logLevel": "INFO",
+      "sync_interval": 60
     },
     "dnsd": {
       "@type": "type.googleapis.com/magma.mconfig.DnsD",

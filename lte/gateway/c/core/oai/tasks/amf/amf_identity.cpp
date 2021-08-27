@@ -117,8 +117,8 @@ int amf_proc_identification_complete(
     const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsi, guti_m5_t* amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
-  amf_sap_t amf_sap;
+  int rc                 = RETURNerror;
+  amf_sap_t amf_sap      = {};
   amf_context_t* amf_ctx = NULL;
 
   OAILOG_DEBUG(
@@ -132,7 +132,6 @@ int amf_proc_identification_complete(
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
-    OAILOG_INFO(LOG_AMF_APP, " amf_procedures:%p\n", amf_ctx->amf_procedures);
     nas_amf_ident_proc_t* ident_proc =
         get_5g_nas_common_procedure_identification(amf_ctx);
 
@@ -141,12 +140,10 @@ int amf_proc_identification_complete(
      * Stop timer T3570
      */
 
-    OAILOG_INFO(LOG_AMF_APP, "Timer: Identity Timer stop\n");
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_AMF_APP, "Timer: Stopping Identity timer with ID %lu\n",
         ident_proc->T3570.id);
     amf_app_stop_timer(ident_proc->T3570.id);
-    OAILOG_INFO(LOG_AMF_APP, "Timer: After Stopping Identity timer \n");
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
 
     if (imsi) {
@@ -203,7 +200,7 @@ void amf_app_generate_guti_on_supi(
   amf_guti->guamfi.amf_set_id  = amf_config.guamfi.guamfi[0].amf_set_id;
   amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_AMF_APP, "amf_region_id %u amf_set_id %u amf_pointer %u",
       amf_config.guamfi.guamfi[0].amf_regionid,
       amf_config.guamfi.guamfi[0].amf_set_id,

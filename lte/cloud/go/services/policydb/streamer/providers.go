@@ -323,7 +323,7 @@ func (p *NetworkWideRulesProvider) GetUpdates(ctx context.Context, gatewayId str
 	if err != nil {
 		return nil, err
 	}
-	iNetworkSubscriberConfig, err := configurator.LoadNetworkConfig(gwEnt.NetworkID, lte.NetworkSubscriberConfigType, serdes.Network)
+	iNetworkSubscriberConfig, err := configurator.LoadNetworkConfig(ctx, gwEnt.NetworkID, lte.NetworkSubscriberConfigType, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return []*protos.DataUpdate{}, nil
 	}

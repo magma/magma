@@ -7,7 +7,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(s1ap_test test_s1ap_handle_new_association.cpp)
+add_executable(s1ap_test
+        s1ap_test.cpp
+        test_s1ap_handle_new_association.cpp
+        test_s1ap_state_manager.cpp)
 
 target_link_libraries(s1ap_test
         TASK_S1AP

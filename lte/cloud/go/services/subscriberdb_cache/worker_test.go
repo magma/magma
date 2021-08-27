@@ -14,6 +14,7 @@ limitations under the License.
 package subscriberdb_cache_test
 
 import (
+	context2 "context"
 	"strings"
 	"testing"
 	"time"
@@ -25,7 +26,6 @@ import (
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
-	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
@@ -35,61 +35,50 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestSubscriberdbCacheWorker(t *testing.T) {
-	db, err := test_utils.GetSharedMemoryDB()
-	assert.NoError(t, err)
-	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
-	assert.NoError(t, fact.InitializeFactory())
-	perSubDigestStore := storage.NewPerSubDigestStore(fact)
+	store := initializeSyncstore(t)
 	serviceConfig := subscriberdb_cache.Config{
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
 	}
-	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, subStore.Initialize())
-
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	allNetworks, err := storage.GetAllNetworks(digestStore)
+	allDigests, err := store.GetDigests([]string{}, clock.Now().Unix(), false)
 	assert.NoError(t, err)
-	assert.Empty(t, allNetworks)
-	digest, err := storage.GetDigest(digestStore, "n1")
+	assert.Empty(t, allDigests)
+	digestTree, err := syncstore.GetDigestTree(store, "n1")
 	assert.NoError(t, err)
-	assert.Empty(t, digest)
-	perSubDigests, err := perSubDigestStore.GetDigest("n1")
-	assert.NoError(t, err)
-	assert.Empty(t, perSubDigests)
-	subProtos, nextToken, err := subStore.GetSubscribersPage("n1", "", 100)
+	assert.Empty(t, digestTree.RootDigest)
+	assert.Empty(t, digestTree.LeafDigests)
+	subProtos, nextToken, err := store.GetCachedByPage("n1", "", 100)
 	assert.NoError(t, err)
 	assert.Empty(t, subProtos)
 	assert.Empty(t, nextToken)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
 	assert.NoError(t, err)
-	digest, err = storage.GetDigest(digestStore, "n1")
+	digestTree, err = syncstore.GetDigestTree(store, "n1")
 	assert.NoError(t, err)
-	assert.NotEmpty(t, digest)
-	perSubDigests, err = perSubDigestStore.GetDigest("n1")
-	assert.NoError(t, err)
-	assert.Empty(t, perSubDigests)
-	subProtos, nextToken, err = subStore.GetSubscribersPage("n1", "", 100)
+	assert.NotEmpty(t, digestTree.GetRootDigest())
+	assert.Empty(t, digestTree.GetLeafDigests())
+	subProtos, nextToken, err = store.GetCachedByPage("n1", "", 100)
 	assert.NoError(t, err)
 	assert.Empty(t, subProtos)
 	assert.Empty(t, nextToken)
-	digestExpected := digest
+	rootDigestExpected := digestTree.RootDigest.GetMd5Base64Digest()
 
 	// Detect outdated digests and update
 	_, err = configurator.CreateEntities(
@@ -117,16 +106,16 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
 	assert.NoError(t, err)
-	digest, err = storage.GetDigest(digestStore, "n1")
+	digestTree, err = syncstore.GetDigestTree(store, "n1")
 	assert.NoError(t, err)
-	assert.NotEqual(t, digestExpected, digest)
-
-	perSubDigests, err = perSubDigestStore.GetDigest("n1")
-	assert.NoError(t, err)
+	assert.NotEqual(t, rootDigestExpected, digestTree.RootDigest.GetMd5Base64Digest())
 	// The individual subscriber digests are ordered by subscriber ID, and are prefixed
 	// by a hash of the subscriber data proto
+	leafDigests := digestTree.LeafDigests
+	assert.Len(t, leafDigests, 2)
+
 	sub1 := &lte_protos.SubscriberData{
 		Sid:        &lte_protos.SubscriberID{Id: "11111", Type: lte_protos.SubscriberID_IMSI},
 		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
@@ -136,9 +125,9 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	}
 	expectedDigestPrefix1, err := mproto.HashDeterministic(sub1)
 	assert.NoError(t, err)
-	assert.Equal(t, "11111", perSubDigests[0].Sid.Id)
-	assert.NotEmpty(t, perSubDigests[0].Digest.GetMd5Base64Digest())
-	assert.True(t, strings.HasPrefix(perSubDigests[0].Digest.GetMd5Base64Digest(), expectedDigestPrefix1))
+	assert.Equal(t, "IMSI11111", leafDigests[0].Id)
+	assert.NotEmpty(t, leafDigests[0].Digest.GetMd5Base64Digest())
+	assert.True(t, strings.HasPrefix(leafDigests[0].Digest.GetMd5Base64Digest(), expectedDigestPrefix1))
 
 	sub2 := &lte_protos.SubscriberData{
 		Sid:        &lte_protos.SubscriberID{Id: "99999", Type: lte_protos.SubscriberID_IMSI},
@@ -149,76 +138,66 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	}
 	expectedDigestPrefix2, err := mproto.HashDeterministic(sub2)
 	assert.NoError(t, err)
-	assert.Equal(t, "99999", perSubDigests[1].Sid.Id)
-	assert.NotEmpty(t, perSubDigests[1].Digest.GetMd5Base64Digest())
-	assert.True(t, strings.HasPrefix(perSubDigests[1].Digest.GetMd5Base64Digest(), expectedDigestPrefix2))
+	assert.Equal(t, "IMSI99999", leafDigests[1].Id)
+	assert.NotEmpty(t, leafDigests[1].Digest.GetMd5Base64Digest())
+	assert.True(t, strings.HasPrefix(leafDigests[1].Digest.GetMd5Base64Digest(), expectedDigestPrefix2))
 	clock.UnfreezeClock(t)
 
-	subProtos, nextToken, err = subStore.GetSubscribersPage("n1", "", 2)
+	subProtos, nextToken, err = store.GetCachedByPage("n1", "", 2)
 	assert.NoError(t, err)
 	assert.Len(t, subProtos, 2)
-	assert.True(t, proto.Equal(sub1, subProtos[0]))
-	assert.True(t, proto.Equal(sub2, subProtos[1]))
+	subProtosDeserialized, err := subscriberdb.DeserializeSubscribers(subProtos)
+	assert.NoError(t, err)
+	assert.True(t, proto.Equal(sub1, subProtosDeserialized[0]))
+	assert.True(t, proto.Equal(sub2, subProtosDeserialized[1]))
 	expectedNextToken := getTokenByLastIncludedEntity(t, "IMSI99999")
 	assert.Equal(t, expectedNextToken, nextToken)
 
 	// Detect newly added and removed networks
-	err = configurator.CreateNetwork(configurator.Network{ID: "n2"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n2"}, serdes.Network)
 	assert.NoError(t, err)
-	configurator.DeleteNetwork("n1")
+	configurator.DeleteNetwork(context.Background(), "n1")
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(20*time.Minute))
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
 	assert.NoError(t, err)
-	digest, err = storage.GetDigest(digestStore, "n1")
+	digestTree, err = syncstore.GetDigestTree(store, "n1")
 	assert.NoError(t, err)
-	assert.Empty(t, digest)
-	perSubDigests, err = perSubDigestStore.GetDigest("n1")
-	assert.NoError(t, err)
-	assert.Empty(t, perSubDigests)
-	subProtos, nextToken, err = subStore.GetSubscribersPage("n1", "", 100)
+	assert.Empty(t, digestTree.RootDigest)
+	assert.Empty(t, digestTree.LeafDigests)
+	subProtos, nextToken, err = store.GetCachedByPage("n1", "", 100)
 	assert.NoError(t, err)
 	assert.Empty(t, subProtos)
 	assert.Empty(t, nextToken)
 
-	digest, err = storage.GetDigest(digestStore, "n2")
+	digestTree, err = syncstore.GetDigestTree(store, "n2")
 	assert.NoError(t, err)
-	assert.NotEmpty(t, digest)
-	perSubDigests, err = perSubDigestStore.GetDigest("n2")
-	assert.NoError(t, err)
-	assert.Empty(t, perSubDigests)
-	subProtos, nextToken, err = subStore.GetSubscribersPage("n2", "", 100)
+	assert.NotEmpty(t, digestTree.RootDigest)
+	assert.Empty(t, digestTree.LeafDigests)
+	subProtos, nextToken, err = store.GetCachedByPage("n2", "", 100)
 	assert.NoError(t, err)
 	assert.Empty(t, subProtos)
 	assert.Empty(t, nextToken)
 
-	allNetworks, err = storage.GetAllNetworks(digestStore)
+	allDigests, err = store.GetDigests([]string{}, clock.Now().Unix(), false)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"n2"}, allNetworks)
+	assert.Equal(t, []string{"n2"}, allDigests.Networks())
 	clock.UnfreezeClock(t)
 }
 
 // TestUpdateSubProtosByNetworkNoChange checks that, given there's no error in
 // digest generation for the network, subscribers cache is only updated when
-// the newly generated flat digest is different from the previous digest.
+// the newly generated root digest is different from the previous root digest.
 func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
-	db, err := test_utils.GetSharedMemoryDB()
-	assert.NoError(t, err)
-	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
-	assert.NoError(t, fact.InitializeFactory())
-	perSubDigestStore := storage.NewPerSubDigestStore(fact)
+	store := initializeSyncstore(t)
 	serviceConfig := subscriberdb_cache.Config{
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
 	}
-	subStore := storage.NewSubStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, subStore.Initialize())
-
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
 		"n1",
@@ -232,32 +211,35 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
 	assert.NoError(t, err)
 	_, err = subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
-	page, _, err := subStore.GetSubscribersPage("n1", "", 3)
+	page, _, err := store.GetCachedByPage("n1", "", 3)
 	assert.NoError(t, err)
 	assert.Len(t, page, 3)
-	assert.True(t, proto.Equal(subProtoFromID("IMSI00001"), page[0]))
-	assert.True(t, proto.Equal(subProtoFromID("IMSI00002"), page[1]))
-	assert.True(t, proto.Equal(subProtoFromID("IMSI00003"), page[2]))
+	subProtos, err := subscriberdb.DeserializeSubscribers(page)
+	assert.NoError(t, err)
+	assert.True(t, proto.Equal(subProtoFromID("IMSI00001"), subProtos[0]))
+	assert.True(t, proto.Equal(subProtoFromID("IMSI00002"), subProtos[1]))
+	assert.True(t, proto.Equal(subProtoFromID("IMSI00003"), subProtos[2]))
 
-	// If the generated flat digest matches the one in store, the update for subStore wouldn't be triggered
+	// If the generated root digest matches the one in store, the update for cached subscribers wouldn't be triggered
 	err = configurator.DeleteEntities(
 		"n1",
 		storage2.MakeTKs(lte.SubscriberEntityType, []string{"IMSI00001", "IMSI00002", "IMSI00003"}),
 	)
 	assert.NoError(t, err)
-	newDigest, err := subscriberdb.GetDigest("n1")
+	newRootDigest, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
-	err = digestStore.SetDigest("n1", newDigest)
+	newDigestTree := &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: newRootDigest}}
+	err = store.SetDigest("n1", newDigestTree)
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
-	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore, subStore)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
 	assert.NoError(t, err)
-	page, _, err = subStore.GetSubscribersPage("n1", "", 3)
+	page, _, err = store.GetCachedByPage("n1", "", 3)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, page)
 }
@@ -280,4 +262,15 @@ func subProtoFromID(sid string) *lte_protos.SubscriberData {
 		SubProfile: "default",
 	}
 	return subProto
+}
+
+func initializeSyncstore(t *testing.T) syncstore.SyncStore {
+	db, err := test_utils.GetSharedMemoryDB()
+	assert.NoError(t, err)
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
+	assert.NoError(t, err)
+	assert.NoError(t, store.Initialize())
+	return store
 }

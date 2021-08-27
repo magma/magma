@@ -14,6 +14,7 @@
 package state
 
 import (
+	"context"
 	"encoding/json"
 
 	"magma/orc8r/cloud/go/serde"
@@ -36,7 +37,7 @@ func (m *StringToStringMap) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, m)
 }
 
-func (m *StringToStringMap) ValidateModel() error {
+func (m *StringToStringMap) ValidateModel(context.Context) error {
 	return nil
 }
 
@@ -55,6 +56,6 @@ func (j *ArbitraryJSON) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, j)
 }
 
-func (j *ArbitraryJSON) ValidateModel() error {
+func (j *ArbitraryJSON) ValidateModel(context.Context) error {
 	return nil
 }

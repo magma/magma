@@ -17,6 +17,7 @@
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
 #include <orc8r/protos/common.pb.h>                // for FATAL, LogLevel
 #include <orc8r/protos/service303.pb.h>            // for ServiceInfo, Reloa...
+#include <prometheus/registry.h>                   // for Registry
 #include <stdarg.h>                                // for va_list
 #include <chrono>                                  // for seconds, duration
 #include <csignal>                                 // for raise, SIGTERM
@@ -31,9 +32,7 @@
 #include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
 #include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
 #include "magma_logging_init.h"                    // for set_verbosity
-#include <prometheus/metrics.pb.h>                 // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
-#include <prometheus/registry.h>                   // for Registry
 namespace grpc {
 class ServerContext;
 }

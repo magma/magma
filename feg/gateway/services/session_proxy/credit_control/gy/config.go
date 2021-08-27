@@ -23,36 +23,40 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	managed_configs "magma/gateway/mconfig"
+	"magma/orc8r/lib/go/util"
 )
 
 // OCS Environment Variables
 const (
-	OCSAddrEnv              = "OCS_ADDR"
-	GyNetworkEnv            = "GY_NETWORK"
-	GyDiamHostEnv           = "GY_DIAM_HOST"
-	GyDiamRealmEnv          = "GY_DIAM_REALM"
-	GyDiamProductEnv        = "GY_DIAM_PRODUCT"
-	GyInitMethodEnv         = "GY_INIT_METHOD"
-	GyLocalAddr             = "GY_LOCAL_ADDR"
-	OCSHostEnv              = "OCS_HOST"
-	OCSRealmEnv             = "OCS_REALM"
-	OCSApnOverwriteEnv      = "OCS_APN_OVERWRITE"
-	OCSServiceIdentifierEnv = "OCS_SERVICE_IDENTIFIER_OVERWRITE"
-	DisableDestHostEnv      = "DISABLE_DEST_HOST"
-	OverwriteDestHostEnv    = "GY_OVERWRITE_DEST_HOST"
-	UseGyForAuthOnlyEnv     = "USE_GY_FOR_AUTH_ONLY"
-	GySupportedVendorIDsEnv = "GY_SUPPORTED_VENDOR_IDS"
-	GyServiceContextIdEnv   = "GY_SERVICE_CONTEXT_ID"
+	OCSAddrEnv                         = "OCS_ADDR"
+	GyNetworkEnv                       = "GY_NETWORK"
+	GyDiamHostEnv                      = "GY_DIAM_HOST"
+	GyDiamRealmEnv                     = "GY_DIAM_REALM"
+	GyDiamProductEnv                   = "GY_DIAM_PRODUCT"
+	GyInitMethodEnv                    = "GY_INIT_METHOD"
+	GyLocalAddr                        = "GY_LOCAL_ADDR"
+	OCSHostEnv                         = "OCS_HOST"
+	OCSRealmEnv                        = "OCS_REALM"
+	OCSApnOverwriteEnv                 = "OCS_APN_OVERWRITE"
+	OCSServiceIdentifierEnv            = "OCS_SERVICE_IDENTIFIER_OVERWRITE"
+	DisableDestHostEnv                 = "DISABLE_DEST_HOST"
+	OverwriteDestHostEnv               = "GY_OVERWRITE_DEST_HOST"
+	UseGyForAuthOnlyEnv                = "USE_GY_FOR_AUTH_ONLY"
+	GySupportedVendorIDsEnv            = "GY_SUPPORTED_VENDOR_IDS"
+	GyServiceContextIdEnv              = "GY_SERVICE_CONTEXT_ID"
+	DisableRequestedGrantedUnitsAVPEnv = "DISABLE_REQUESTED_SERVICE_UNIT_AVP"
 
-	GyInitMethodFlag         = "gy_init_method"
-	OCSApnOverwriteFlag      = "ocs_apn_overwrite"
-	OCSServiceIdentifierFlag = "ocs_service_identifier_overwrite"
+	GyInitMethodFlag                    = "gy_init_method"
+	OCSApnOverwriteFlag                 = "ocs_apn_overwrite"
+	OCSServiceIdentifierFlag            = "ocs_service_identifier_overwrite"
+	DisableRequestedGrantedUnitsAVPFlag = "disable_requested_service_unit_AVP"
 )
 
 var (
-	_ = flag.String(GyInitMethodFlag, "", "Gy init method (per_key|per_session)")
-	_ = flag.String(OCSApnOverwriteFlag, "", "OCS APN to use instead of request's APN")
-	_ = flag.String(OCSServiceIdentifierFlag, "", "OCS ServiceIdentifier to use in Gy requests")
+	_          = flag.String(GyInitMethodFlag, "", "Gy init method (per_key|per_session)")
+	_          = flag.String(OCSApnOverwriteFlag, "", "OCS APN to use instead of request's APN")
+	_          = flag.String(OCSServiceIdentifierFlag, "", "OCS ServiceIdentifier to use in Gy requests")
+	avp437Flag = flag.Bool(DisableRequestedGrantedUnitsAVPFlag, false, "Disable Requested-Service-Unit AVP (437)")
 )
 
 // InitMethod describes the type of ways sessions can be initialized through the
@@ -207,20 +211,23 @@ func GetGyGlobalConfig() *GyGlobalConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
+	avp437 := *avp437Flag || util.IsTruthyEnv(DisableRequestedGrantedUnitsAVPEnv)
 	if err != nil || !validGyConfig(configsPtr) {
 		log.Printf("%s Managed Gy Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return &GyGlobalConfig{
-			OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, ""),
-			OCSServiceIdentifier: siStr,
-			DisableGy:            false,
+			OCSOverwriteApn:               diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, ""),
+			OCSServiceIdentifier:          siStr,
+			DisableGy:                     false,
+			DisableServiceGrantedUnitsAVP: avp437,
 		}
 	}
 
 	return &GyGlobalConfig{
-		OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, configsPtr.GetGy().GetOverwriteApn()),
-		OCSServiceIdentifier: siStr,
-		DisableGy:            configsPtr.GetGy().GetDisableGy(),
-		VirtualApnRules:      credit_control.GenerateVirtualApnRules(configsPtr.GetGy().GetVirtualApnRules()),
+		OCSOverwriteApn:               diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, configsPtr.GetGy().GetOverwriteApn()),
+		OCSServiceIdentifier:          siStr,
+		DisableGy:                     configsPtr.GetGy().GetDisableGy(),
+		VirtualApnRules:               credit_control.GenerateVirtualApnRules(configsPtr.GetGy().GetVirtualApnRules()),
+		DisableServiceGrantedUnitsAVP: avp437,
 	}
 }
 

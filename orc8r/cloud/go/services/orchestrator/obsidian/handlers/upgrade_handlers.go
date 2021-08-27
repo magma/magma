@@ -31,7 +31,7 @@ import (
 )
 
 func listChannelsHandler(c echo.Context) error {
-	channelNames, err := configurator.ListInternalEntityKeys(orc8r.UpgradeReleaseChannelEntityType)
+	channelNames, err := configurator.ListInternalEntityKeys(c.Request().Context(), orc8r.UpgradeReleaseChannelEntityType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -120,7 +120,7 @@ func listTiersHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	tiers, err := configurator.ListEntityKeys(networkID, orc8r.UpgradeTierEntityType)
+	tiers, err := configurator.ListEntityKeys(c.Request().Context(), networkID, orc8r.UpgradeTierEntityType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

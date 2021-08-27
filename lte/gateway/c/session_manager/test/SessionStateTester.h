@@ -31,13 +31,19 @@ namespace magma {
 class SessionStateTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
+    Teids teids;
+    cfg.common_context =
+        build_common_context(IMSI1, IP1, IPv6_1, teids, APN1, MSISDN, TGPP_LTE);
     auto tgpp_ctx       = TgppContext();
     auto pdp_start_time = 12345;
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_ctx, pdp_start_time,
-        CreateSessionResponse{});
+        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    session_state->set_tgpp_context(tgpp_ctx, nullptr);
+    session_state->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session_state->set_create_session_response(
+        CreateSessionResponse(), nullptr);
     update_criteria = get_default_update_criteria();
   }
 
@@ -155,7 +161,7 @@ class SessionStateTest : public ::testing::Test {
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
     CreditUpdateResponse charge_resp;
     create_credit_update_response(
-        "IMSI1", "1234", rating_group, volume, &charge_resp);
+        IMSI1, SESSION_ID_1, rating_group, volume, &charge_resp);
     session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
 
@@ -164,7 +170,7 @@ class SessionStateTest : public ::testing::Test {
       uint64_t rx_volume, bool is_final) {
     CreditUpdateResponse charge_resp;
     create_credit_update_response(
-        "IMSI1", "1234", rating_group, total_volume, tx_volume, rx_volume,
+        IMSI1, SESSION_ID_1, rating_group, total_volume, tx_volume, rx_volume,
         is_final, &charge_resp);
     session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
@@ -180,7 +186,7 @@ class SessionStateTest : public ::testing::Test {
       uint64_t rx_volume, MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     create_monitor_update_response(
-        "IMSI1", "1234", mkey, level, total_volume, tx_volume, rx_volume,
+        IMSI1, SESSION_ID_1, mkey, level, total_volume, tx_volume, rx_volume,
         &monitor_resp);
     session_state->receive_monitor(monitor_resp, &update_criteria);
   }

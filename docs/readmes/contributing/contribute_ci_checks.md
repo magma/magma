@@ -46,6 +46,7 @@ Merge blocking CI checks are listed below.
 | Magma-OAI-Jenkins      | OAI's MME integration test run on OAI Jenkins | rdefosse               | N/A                                                                          |
 | cwf-operator-build     | Validate CWF deployer builds                  | approvers-cwf          | TODO                                                                         |
 | cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
+| Python Format Check    | Ensure Python changes are formatted           | themarwhal             | [AGW formatting](../lte/dev_unit_testing#format-agw)|
 
 ## Non-blocking Checks
 
@@ -61,5 +62,4 @@ The CI checks listed below do not block merging on failure.
 | ci/circleci: c-cpp-codecov                    | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                                                  |
 | ci/circleci: cwag-build                       | Validate CWAG builds                                             | approvers-cwf      | TODO                                                 |
 | ci/circleci: feg-lint                         | Check FeG changes satisfies Go linter                            | approvers-feg      | TODO                                                 |
-| Python Format Check                           | Ensure Python changes are formatted                              | themarwhal         | [AGW formatting](../lte/dev_unit_testing#format-agw) |
 | markdown-lint | Ensure documentation changes are formatted | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit) |

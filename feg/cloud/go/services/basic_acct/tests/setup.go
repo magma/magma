@@ -106,7 +106,7 @@ func SetupNetworks(t *testing.T) {
 		servingFegNetworkCfg,
 		federatedLteNetCfg,
 	}
-	_, err := configurator.CreateNetworks(networkConfigs, serdes.Network)
+	_, err := configurator.CreateNetworks(context.Background(), networkConfigs, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -181,11 +181,11 @@ func SetupNetworks(t *testing.T) {
 	err = device.RegisterDevice(context.Background(), ServingFegNetworkID, orc8r.AccessGatewayRecordType, FegHwId, &models.GatewayDevice{HardwareID: FegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
-	actualNHNet, err := configurator.LoadNetwork(NhNetworkID, true, true, serdes.Network)
+	actualNHNet, err := configurator.LoadNetwork(context.Background(), NhNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, nhNetworkConfig, actualNHNet)
 
-	actualFeGNet, err := configurator.LoadNetwork(ServingFegNetworkID, true, true, serdes.Network)
+	actualFeGNet, err := configurator.LoadNetwork(context.Background(), ServingFegNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, servingFegNetworkCfg, actualFeGNet)
 

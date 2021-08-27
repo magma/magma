@@ -552,28 +552,22 @@ status_code_e emm_context_upsert_imsi(
 
 void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    time_out_t time_out_cb, void* timer_callback_args);
+    time_out_t time_out_cb);
 void nas_start_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    time_out_t time_out_cb, void* timer_callback_args);
+    time_out_t time_out_cb);
 void nas_start_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    time_out_t time_out_cb, void* timer_callback_args);
+    time_out_t time_out_cb);
 void nas_stop_T3450(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    void* timer_callback_args);
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450);
 void nas_stop_T3460(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    void* timer_callback_args);
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460);
 void nas_stop_T3470(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    void* timer_callback_args);
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470);
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    time_out_t time_out_cb, void* timer_callback_args);
-void nas_stop_Ts6a_auth_info(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    void* timer_callback_args);
+    time_out_t time_out_cb);
 void emm_init_context(
     struct emm_context_s* const emm_ctx, const bool init_esm_ctxt)
     __attribute__((nonnull));

@@ -35,6 +35,18 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
+
+uint64_t get_bit_rate(uint8_t ambr_unit) {
+  if (ambr_unit < 6) {
+    return (1024);
+  } else if (ambr_unit < 11) {
+    return (1024 * 1024);
+  } else if (ambr_unit < 16) {
+    return (1024 * 1024 * 1024);
+  }
+  return (0);
+}
+
 /*
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
@@ -52,14 +64,16 @@ void ambr_calculation_pdu_session(
       *dl_pdu_ambr =
           4 ^ (smf_context->dl_ambr_unit - 1) * (smf_context->dl_session_ambr);
     } else {
-      *dl_pdu_ambr = 256 * (smf_context->dl_session_ambr);
+      *dl_pdu_ambr = smf_context->dl_session_ambr *
+                     get_bit_rate(smf_context->dl_ambr_unit);
     }
 
     if ((smf_context->ul_ambr_unit) < 4) {
       *ul_pdu_ambr =
           4 ^ (smf_context->ul_ambr_unit - 1) * (smf_context->ul_session_ambr);
     } else {
-      *ul_pdu_ambr = 256 * (smf_context->ul_session_ambr);
+      *ul_pdu_ambr = smf_context->ul_session_ambr *
+                     get_bit_rate(smf_context->ul_ambr_unit);
     }
   }
 }
@@ -133,7 +147,7 @@ int pdu_session_resource_setup_request(
       amf_pdu_ses_setup_transfer_req;
 
   // Send message to NGAP task
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
   return RETURNok;
 }
@@ -188,12 +202,8 @@ int pdu_session_resource_release_request(
       M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->header.pdu_session_id =
       smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
-  OAILOG_INFO(
-      LOG_AMF_APP, "pdu_id:%d \n",
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
   smf_msg->header.message_type             = PDU_SESSION_RELEASE_COMMAND;
   smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
-  OAILOG_INFO(LOG_AMF_APP, "pti:%d \n", smf_ctx->smf_proc_data.pti.pti);
   smf_msg->msg.pdu_session_release_command.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
@@ -211,10 +221,8 @@ int pdu_session_resource_release_request(
   container_len++;
 
   encode_msg->payload_container.len = container_len;
-  OAILOG_INFO(LOG_AMF_APP, "container_len:%d \n", container_len);
   len += 2;  // 2 bytes for container.len
   len += container_len;
-  OAILOG_INFO(LOG_AMF_APP, "len:%d \n", len);
 
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
   if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
@@ -223,8 +231,6 @@ int pdu_session_resource_release_request(
      * Expand size of protected NAS message
      */
     len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
-    OAILOG_INFO(
-        LOG_AMF_APP, "AMF_TEST:after adding sec header, length %d ", len);
     /*
      * Set header of plain NAS message
      */
@@ -234,15 +240,10 @@ int pdu_session_resource_release_request(
   buffer = bfromcstralloc(len, "\0");
   bytes  = nas5g_message_encode(
       buffer->data, &msg, len, &ue_context->amf_context._security);
-  OAILOG_INFO(LOG_AMF_APP, "bytes:%d \n", bytes);
 
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
   MessageDef* message_p                                            = nullptr;
   pdu_session_resource_release_command_transfer amf_pdu_ses_rel_transfer_req;
-
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "PDU session resource release request message construction to NGAP\n");
 
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_PDUSESSIONRESOURCE_REL_REQ);
@@ -276,13 +277,8 @@ int pdu_session_resource_release_request(
 
   // Send message to NGAP task
   if (bytes > 0) {
-    OAILOG_INFO(LOG_AMF_APP, "NAS encode success for PDU Release Command\n");
     //    buffer->slen = bytes;
-    buffer->slen = bytes;
-    for (int i = 0; i < blength(buffer); i++) {
-      OAILOG_INFO(LOG_AMF_APP, "buffer[%d]: %x", i, buffer->data[i]);
-    }
-
+    buffer->slen                      = bytes;
     ngap_pdu_ses_release_req->nas_msg = bstrcpy(buffer);
     bdestroy(buffer);
   } else {
@@ -290,7 +286,7 @@ int pdu_session_resource_release_request(
     OAILOG_ERROR(LOG_AMF_APP, "NAS encode failed for PDU Release Command\n");
     return RETURNerror;
   }
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   return RETURNok;
 }
 }  // namespace magma5g

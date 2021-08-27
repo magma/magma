@@ -14,6 +14,7 @@
 package calculations
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -49,7 +50,7 @@ func (x *CertLifespanCalculation) Calculate(prometheusClient query_api.Prometheu
 		return results, nil
 	}
 
-	networks, err := configurator.ListNetworkIDs()
+	networks, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil {
 		glog.Errorf("Unable to retrieve any networks: %+v", err)
 		return results, nil

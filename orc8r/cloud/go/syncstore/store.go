@@ -30,9 +30,6 @@ type SyncStore interface {
 	// UpdateCache returns a CacheWriter object that'll be used to update
 	// the cache of a network.
 	UpdateCache(network string) (CacheWriter, error)
-
-	// RecordResync tracks the last resync time of a gateway.
-	RecordResync(network string, gateway string, t uint64) error
 }
 
 type SyncStoreReader interface {
@@ -43,7 +40,7 @@ type SyncStoreReader interface {
 	// 1. If networks is empty, returns digests for all networks.
 	// 2. lastUpdatedBefore is recorded in unix seconds. Filters for all digests that
 	// were last updated earlier than this time.
-	GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (map[string]*protos.DigestTree, error)
+	GetDigests(networks []string, lastUpdatedBefore int64, loadLeaves bool) (DigestTrees, error)
 
 	// GetCachedByID and GetCachedByPage return cached objects by their IDs or
 	// the page specified by the token. The returned objects are ordered by their
@@ -52,7 +49,10 @@ type SyncStoreReader interface {
 	GetCachedByPage(network string, token string, pageSize uint64) ([][]byte, string, error)
 
 	// GetLastResync returns the last resync time of a particular gateway.
-	GetLastResync(network string, gateway string) (uint64, error)
+	GetLastResync(network string, gateway string) (int64, error)
+
+	// RecordResync tracks the last resync time of a gateway.
+	RecordResync(network string, gateway string, t int64) error
 }
 
 type CacheWriter interface {
@@ -64,4 +64,14 @@ type CacheWriter interface {
 	InsertMany(objects map[string][]byte) error
 	// Apply completes the batch cache update.
 	Apply() error
+}
+
+type DigestTrees map[string]*protos.DigestTree
+
+func (digestTrees DigestTrees) Networks() []string {
+	var networks []string
+	for network := range digestTrees {
+		networks = append(networks, network)
+	}
+	return networks
 }

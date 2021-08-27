@@ -24,6 +24,7 @@ extern "C" {
 #include "common_types.h"
 #include "amf_config.h"
 #include "amf_securityDef.h"
+#include "amf_app_ue_context_and_proc.h"
 
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
@@ -90,17 +91,12 @@ class amf_as_data_t {
       bool is_ciphered);
 };
 
-typedef struct amf_as_pdusession_identity_s {
-  const guti_m5_t* guti;  // The GUTI, if valid
-} amf_as_pdusession_identity_t;
-
 // Structure to handle UL/DL NAS message in AMF
 typedef struct amf_as_establish_s {
-  amf_ue_ngap_id_t ue_id;               // UE lower layer identifier
-  uint64_t puid;                        // linked to procedure UID
-  amf_as_pdusession_identity_t pds_id;  // UE's 5g cn mobile identity
-  amf_as_security_data_t sctx;          // 5g cn NAS security context
-  bool is_initial;                      // true if contained in initial message
+  amf_ue_ngap_id_t ue_id;       // UE lower layer identifier
+  uint64_t puid;                // linked to procedure UID
+  amf_as_security_data_t sctx;  // 5g cn NAS security context
+  bool is_initial;              // true if contained in initial message
   bool is_amf_ctx_new;
   uint8_t amf_cause;  // amf failure cause code
   tai_t tai;          // The first tracking area the UE is registered
@@ -121,7 +117,7 @@ typedef struct amf_as_establish_s {
                          // type
 #define AMF_AS_PDU_SESSION_STATUS 0x01
 #define AMF_AS_PDU_SESSION_REACTIVATION_STATUS 0x02
-  uint8_t pdu_sesion_status_ie;
+  uint8_t pdu_session_status_ie;
   uint16_t pdu_session_status;
   uint16_t pdu_session_reactivation_status;
   uint8_t ue_context_req;
@@ -176,4 +172,6 @@ typedef struct amf_as_s {
   as_primitive_t u;
 } amf_as_t;
 
+int amf_service_acceptmsg(
+    const amf_as_establish_t* msg, amf_nas_message_t* nas_msg);
 }  // namespace magma5g
