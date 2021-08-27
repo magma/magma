@@ -94,9 +94,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded1));
 
   ASSERT_EQ(sizeof(eps_qos_buffersize1), sizeof(eps_qos_buffersize_encoded1));
-  memcmp(
-      eps_qos_buffersize_encoded1, eps_qos_buffersize1,
-      sizeof(eps_qos_buffersize1));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded1, eps_qos_buffersize1,
@@ -124,9 +121,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded2)),
       sizeof(eps_qos_buffersize_encoded2));
   ASSERT_EQ(sizeof(eps_qos_buffersize2), sizeof(eps_qos_buffersize_encoded2));
-  memcmp(
-      eps_qos_buffersize_encoded2, eps_qos_buffersize2,
-      sizeof(eps_qos_buffersize2));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded2, eps_qos_buffersize2,
@@ -154,9 +148,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded3)),
       sizeof(eps_qos_buffersize_encoded3));
   ASSERT_EQ(sizeof(eps_qos_buffersize3), sizeof(eps_qos_buffersize_encoded3));
-  memcmp(
-      eps_qos_buffersize_encoded3, eps_qos_buffersize3,
-      sizeof(eps_qos_buffersize3));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded3, eps_qos_buffersize3,
@@ -184,9 +175,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded4)),
       sizeof(eps_qos_buffersize_encoded4));
   ASSERT_EQ(sizeof(eps_qos_buffersize4), sizeof(eps_qos_buffersize_encoded4));
-  memcmp(
-      eps_qos_buffersize_encoded4, eps_qos_buffersize4,
-      sizeof(eps_qos_buffersize4));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded4, eps_qos_buffersize4,
@@ -214,9 +202,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded5)),
       sizeof(eps_qos_buffersize_encoded5));
   ASSERT_EQ(sizeof(eps_qos_buffersize5), sizeof(eps_qos_buffersize_encoded5));
-  memcmp(
-      eps_qos_buffersize_encoded5, eps_qos_buffersize5,
-      sizeof(eps_qos_buffersize5));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded5, eps_qos_buffersize5,
@@ -244,9 +229,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded6)),
       sizeof(eps_qos_buffersize_encoded6));
   ASSERT_EQ(sizeof(eps_qos_buffersize6), sizeof(eps_qos_buffersize_encoded6));
-  memcmp(
-      eps_qos_buffersize_encoded6, eps_qos_buffersize6,
-      sizeof(eps_qos_buffersize6));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded6, eps_qos_buffersize6,
@@ -274,9 +256,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded7)),
       sizeof(eps_qos_buffersize_encoded7));
   ASSERT_EQ(sizeof(eps_qos_buffersize7), sizeof(eps_qos_buffersize_encoded7));
-  memcmp(
-      eps_qos_buffersize_encoded7, eps_qos_buffersize7,
-      sizeof(eps_qos_buffersize7));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded7, eps_qos_buffersize7,
@@ -304,9 +283,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
           sizeof(eps_qos_buffersize_encoded8)),
       sizeof(eps_qos_buffersize_encoded8));
   ASSERT_EQ(sizeof(eps_qos_buffersize8), sizeof(eps_qos_buffersize_encoded8));
-  memcmp(
-      eps_qos_buffersize_encoded8, eps_qos_buffersize8,
-      sizeof(eps_qos_buffersize8));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded8, eps_qos_buffersize8,
@@ -336,9 +312,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext1));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext1), sizeof(eps_qos_buffersize_encoded_Ext1));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext1, eps_qos_buffersize_Ext1,
-      sizeof(eps_qos_buffersize_Ext1));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext1, eps_qos_buffersize_Ext1,
@@ -368,9 +341,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext2));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext2), sizeof(eps_qos_buffersize_encoded_Ext2));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext2, eps_qos_buffersize_Ext2,
-      sizeof(eps_qos_buffersize_Ext2));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext2, eps_qos_buffersize_Ext2,
@@ -400,9 +370,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext3));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext3), sizeof(eps_qos_buffersize_encoded_Ext3));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext3, eps_qos_buffersize_Ext3,
-      sizeof(eps_qos_buffersize_Ext3));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext3, eps_qos_buffersize_Ext3,
@@ -432,9 +399,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext4));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext4), sizeof(eps_qos_buffersize_encoded_Ext4));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext4, eps_qos_buffersize_Ext4,
-      sizeof(eps_qos_buffersize_Ext4));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext4, eps_qos_buffersize_Ext4,
@@ -464,9 +428,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext5));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext5), sizeof(eps_qos_buffersize_encoded_Ext5));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext5, eps_qos_buffersize_Ext5,
-      sizeof(eps_qos_buffersize_Ext5));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext5, eps_qos_buffersize_Ext5,
@@ -496,9 +457,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext6));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext6), sizeof(eps_qos_buffersize_encoded_Ext6));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext6, eps_qos_buffersize_Ext6,
-      sizeof(eps_qos_buffersize_Ext6));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext6, eps_qos_buffersize_Ext6,
@@ -528,9 +486,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext7));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext7), sizeof(eps_qos_buffersize_encoded_Ext7));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext7, eps_qos_buffersize_Ext7,
-      sizeof(eps_qos_buffersize_Ext7));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext7, eps_qos_buffersize_Ext7,
@@ -560,9 +515,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
       sizeof(eps_qos_buffersize_encoded_Ext8));
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Ext8), sizeof(eps_qos_buffersize_encoded_Ext8));
-  memcmp(
-      eps_qos_buffersize_encoded_Ext8, eps_qos_buffersize_Ext8,
-      sizeof(eps_qos_buffersize_Ext8));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Ext8, eps_qos_buffersize_Ext8,
@@ -592,9 +544,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended21),
       sizeof(eps_qos_buffersize_encoded_Extended21));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended21, eps_qos_buffersize_Extended21,
-      sizeof(eps_qos_buffersize_Extended21));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended21, eps_qos_buffersize_Extended21,
@@ -624,9 +573,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended22),
       sizeof(eps_qos_buffersize_encoded_Extended22));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended22, eps_qos_buffersize_Extended22,
-      sizeof(eps_qos_buffersize_Extended22));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended22, eps_qos_buffersize_Extended22,
@@ -656,9 +602,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended23),
       sizeof(eps_qos_buffersize_encoded_Extended23));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended23, eps_qos_buffersize_Extended23,
-      sizeof(eps_qos_buffersize_Extended23));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended23, eps_qos_buffersize_Extended23,
@@ -688,9 +631,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended24),
       sizeof(eps_qos_buffersize_encoded_Extended24));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended24, eps_qos_buffersize_Extended24,
-      sizeof(eps_qos_buffersize_Extended24));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended24, eps_qos_buffersize_Extended24,
@@ -720,9 +660,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended25),
       sizeof(eps_qos_buffersize_encoded_Extended25));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended25, eps_qos_buffersize_Extended25,
-      sizeof(eps_qos_buffersize_Extended25));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended25, eps_qos_buffersize_Extended25,
@@ -752,9 +689,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended26),
       sizeof(eps_qos_buffersize_encoded_Extended26));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended26, eps_qos_buffersize_Extended26,
-      sizeof(eps_qos_buffersize_Extended26));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended26, eps_qos_buffersize_Extended26,
@@ -784,9 +718,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended27),
       sizeof(eps_qos_buffersize_encoded_Extended27));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended27, eps_qos_buffersize_Extended27,
-      sizeof(eps_qos_buffersize_Extended27));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended27, eps_qos_buffersize_Extended27,
@@ -816,9 +747,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended28),
       sizeof(eps_qos_buffersize_encoded_Extended28));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended28, eps_qos_buffersize_Extended28,
-      sizeof(eps_qos_buffersize_Extended28));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended28, eps_qos_buffersize_Extended28,
@@ -848,9 +776,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ(
       sizeof(eps_qos_buffersize_Extended29),
       sizeof(eps_qos_buffersize_encoded_Extended29));
-  memcmp(
-      eps_qos_buffersize_encoded_Extended29, eps_qos_buffersize_Extended29,
-      sizeof(eps_qos_buffersize_Extended29));
   ASSERT_EQ(
       memcmp(
           eps_qos_buffersize_encoded_Extended29, eps_qos_buffersize_Extended29,
@@ -878,9 +803,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize1)),
       sizeof(apn_ambr_encoded_buffersize1));
   ASSERT_EQ(sizeof(apn_ambr_buffersize1), sizeof(apn_ambr_encoded_buffersize1));
-  memcmp(
-      apn_ambr_encoded_buffersize1, apn_ambr_buffersize1,
-      sizeof(apn_ambr_buffersize1));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize1, apn_ambr_buffersize1,
@@ -906,9 +828,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize2)),
       sizeof(apn_ambr_encoded_buffersize2));
   ASSERT_EQ(sizeof(apn_ambr_buffersize2), sizeof(apn_ambr_encoded_buffersize2));
-  memcmp(
-      apn_ambr_encoded_buffersize2, apn_ambr_buffersize2,
-      sizeof(apn_ambr_buffersize2));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize2, apn_ambr_buffersize2,
@@ -934,9 +853,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize3)),
       sizeof(apn_ambr_encoded_buffersize3));
   ASSERT_EQ(sizeof(apn_ambr_buffersize3), sizeof(apn_ambr_encoded_buffersize3));
-  memcmp(
-      apn_ambr_encoded_buffersize3, apn_ambr_buffersize3,
-      sizeof(apn_ambr_buffersize3));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize3, apn_ambr_buffersize3,
@@ -962,9 +878,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize4)),
       sizeof(apn_ambr_encoded_buffersize4));
   ASSERT_EQ(sizeof(apn_ambr_buffersize4), sizeof(apn_ambr_encoded_buffersize4));
-  memcmp(
-      apn_ambr_encoded_buffersize4, apn_ambr_buffersize4,
-      sizeof(apn_ambr_buffersize4));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize4, apn_ambr_buffersize4,
@@ -990,9 +903,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize5)),
       sizeof(apn_ambr_encoded_buffersize5));
   ASSERT_EQ(sizeof(apn_ambr_buffersize5), sizeof(apn_ambr_encoded_buffersize5));
-  memcmp(
-      apn_ambr_encoded_buffersize5, apn_ambr_buffersize5,
-      sizeof(apn_ambr_buffersize5));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize5, apn_ambr_buffersize5,
@@ -1018,9 +928,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize6)),
       sizeof(apn_ambr_encoded_buffersize6));
   ASSERT_EQ(sizeof(apn_ambr_buffersize6), sizeof(apn_ambr_encoded_buffersize6));
-  memcmp(
-      apn_ambr_encoded_buffersize6, apn_ambr_buffersize6,
-      sizeof(apn_ambr_buffersize6));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize6, apn_ambr_buffersize6,
@@ -1046,9 +953,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize7)),
       sizeof(apn_ambr_encoded_buffersize7));
   ASSERT_EQ(sizeof(apn_ambr_buffersize7), sizeof(apn_ambr_encoded_buffersize7));
-  memcmp(
-      apn_ambr_encoded_buffersize7, apn_ambr_buffersize7,
-      sizeof(apn_ambr_buffersize7));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize7, apn_ambr_buffersize7,
@@ -1074,9 +978,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize8)),
       sizeof(apn_ambr_encoded_buffersize8));
   ASSERT_EQ(sizeof(apn_ambr_buffersize8), sizeof(apn_ambr_encoded_buffersize8));
-  memcmp(
-      apn_ambr_encoded_buffersize8, apn_ambr_buffersize8,
-      sizeof(apn_ambr_buffersize8));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize8, apn_ambr_buffersize8,
@@ -1102,9 +1003,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
           sizeof(apn_ambr_encoded_buffersize9)),
       sizeof(apn_ambr_encoded_buffersize9));
   ASSERT_EQ(sizeof(apn_ambr_buffersize9), sizeof(apn_ambr_encoded_buffersize9));
-  memcmp(
-      apn_ambr_encoded_buffersize9, apn_ambr_buffersize9,
-      sizeof(apn_ambr_buffersize9));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize9, apn_ambr_buffersize9,
@@ -1131,9 +1029,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize10));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize10), sizeof(apn_ambr_encoded_buffersize10));
-  memcmp(
-      apn_ambr_encoded_buffersize10, apn_ambr_buffersize10,
-      sizeof(apn_ambr_buffersize10));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize10, apn_ambr_buffersize10,
@@ -1160,9 +1055,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize11));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize11), sizeof(apn_ambr_encoded_buffersize11));
-  memcmp(
-      apn_ambr_encoded_buffersize11, apn_ambr_buffersize11,
-      sizeof(apn_ambr_buffersize11));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize11, apn_ambr_buffersize11,
@@ -1189,9 +1081,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize12));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize12), sizeof(apn_ambr_encoded_buffersize12));
-  memcmp(
-      apn_ambr_encoded_buffersize12, apn_ambr_buffersize12,
-      sizeof(apn_ambr_buffersize12));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize12, apn_ambr_buffersize12,
@@ -1218,9 +1107,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize13));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize13), sizeof(apn_ambr_encoded_buffersize13));
-  memcmp(
-      apn_ambr_encoded_buffersize13, apn_ambr_buffersize13,
-      sizeof(apn_ambr_buffersize13));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize13, apn_ambr_buffersize13,
@@ -1247,9 +1133,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize14));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize14), sizeof(apn_ambr_encoded_buffersize14));
-  memcmp(
-      apn_ambr_encoded_buffersize14, apn_ambr_buffersize14,
-      sizeof(apn_ambr_buffersize14));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize14, apn_ambr_buffersize14,
@@ -1276,9 +1159,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize15));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize15), sizeof(apn_ambr_encoded_buffersize15));
-  memcmp(
-      apn_ambr_encoded_buffersize15, apn_ambr_buffersize15,
-      sizeof(apn_ambr_buffersize15));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize15, apn_ambr_buffersize15,
@@ -1305,9 +1185,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize16));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize16), sizeof(apn_ambr_encoded_buffersize16));
-  memcmp(
-      apn_ambr_encoded_buffersize16, apn_ambr_buffersize16,
-      sizeof(apn_ambr_buffersize16));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize16, apn_ambr_buffersize16,
@@ -1334,9 +1211,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize17));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize17), sizeof(apn_ambr_encoded_buffersize17));
-  memcmp(
-      apn_ambr_encoded_buffersize17, apn_ambr_buffersize17,
-      sizeof(apn_ambr_buffersize17));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize17, apn_ambr_buffersize17,
@@ -1363,9 +1237,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize18));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize18), sizeof(apn_ambr_encoded_buffersize18));
-  memcmp(
-      apn_ambr_encoded_buffersize18, apn_ambr_buffersize18,
-      sizeof(apn_ambr_buffersize18));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize18, apn_ambr_buffersize18,
@@ -1392,9 +1263,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize19));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize19), sizeof(apn_ambr_encoded_buffersize19));
-  memcmp(
-      apn_ambr_encoded_buffersize19, apn_ambr_buffersize19,
-      sizeof(apn_ambr_buffersize19));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize19, apn_ambr_buffersize19,
@@ -1421,9 +1289,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize20));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize20), sizeof(apn_ambr_encoded_buffersize20));
-  memcmp(
-      apn_ambr_encoded_buffersize20, apn_ambr_buffersize20,
-      sizeof(apn_ambr_buffersize20));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize20, apn_ambr_buffersize20,
@@ -1450,9 +1315,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize21));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize21), sizeof(apn_ambr_encoded_buffersize21));
-  memcmp(
-      apn_ambr_encoded_buffersize21, apn_ambr_buffersize21,
-      sizeof(apn_ambr_buffersize21));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize21, apn_ambr_buffersize21,
@@ -1479,9 +1341,6 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
       sizeof(apn_ambr_encoded_buffersize22));
   ASSERT_EQ(
       sizeof(apn_ambr_buffersize22), sizeof(apn_ambr_encoded_buffersize22));
-  memcmp(
-      apn_ambr_encoded_buffersize22, apn_ambr_buffersize22,
-      sizeof(apn_ambr_buffersize22));
   ASSERT_EQ(
       (memcmp(
           apn_ambr_encoded_buffersize22, apn_ambr_buffersize22,
