@@ -80,8 +80,38 @@ message M5GAuthenticationInformationAnswer {
     repeated M5GAuthenticationVector m5gauth_vectors = 2;
 }
 
+message M5GSubscriptionInformationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+}
+
+message M5GSubscriptionInformationAnswer {
+    // EPC error code on failure
+    M5GErrorCode error_code = 1;
+
+    // Subscriber authorized aggregate bitrate
+    AggregatedMaximumBitrate total_ambr = 3;
+
+    message AggregatedMaximumBitrate {
+        // Maximum uplink bitrate
+        uint32 max_bandwidth_ul = 1;
+        // Maximum downlink bitrate
+        uint32 max_bandwidth_dl = 2;
+        // Unit (either bps or Kbps)
+        BitrateUnitsAMBR unit = 3;
+
+        enum BitrateUnitsAMBR {
+         BPS = 0;
+         KBPS = 1;
+        }
+    }
+}
+
+
 service M5GSubscriberAuthentication {
     // Authentication-Information (Code 318)
     rpc M5GAuthenticationInformation (M5GAuthenticationInformationRequest) returns (M5GAuthenticationInformationAnswer) {}
+
+    rpc M5GSubcriptionInformation (M5GSubscriptionInformationRequest) returns (M5GSubscriptionInformationAnswer) {}
 }
 

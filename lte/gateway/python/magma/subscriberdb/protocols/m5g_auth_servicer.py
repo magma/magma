@@ -85,6 +85,31 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
             aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
             return aia
 
+    def M5GSubcriptionInformation(self, request, context):
+        self._print_grpc(request)
+        imsi = request.user_name
+        sia = subscriberauth_pb2.M5GSubscriptionInformationAnswer()
+        try:
+            profile = self.lte_processor.get_sub_profile(imsi)
+        except SubscriberNotFoundError as e:
+            sia.error_code = subscriberauth_pb2.USER_UNKNOWN
+            logging.warning('Subscriber not found for Information: %s', e)
+            self._print_grpc(ula)
+            return sia
+
+        try:
+            sub_data = self.lte_processor.get_sub_data(imsi)
+        except SubscriberNotFoundError as e:
+            sia.error_code = subscriberauth_pb2.USER_UNKNOWN
+            logging.warning("Subscriber not found for Information: %s", e)
+            return sia
+        sia.error_code = subscriberauth_pb2.SUCCESS
+        sia.total_ambr.max_bandwidth_ul = profile.max_ul_bit_rate
+        sia.total_ambr.max_bandwidth_dl = profile.max_dl_bit_rate
+
+        self._print_grpc(sia)
+        return sia
+
     def _print_grpc(self, message):
         if self._print_grpc_payload:
             try:
