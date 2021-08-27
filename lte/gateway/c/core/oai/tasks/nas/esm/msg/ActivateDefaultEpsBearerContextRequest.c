@@ -194,7 +194,8 @@ int decode_activate_default_eps_bearer_context_request(
       case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_IEI:
         if ((decoded_result = decode_extended_apn_aggregate_maximum_bit_rate(
                  &activate_default_eps_bearer_context_request->extendedapnambr,
-                 true, buffer + decoded, len - decoded)) <= 0)
+                 ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_IEI,
+                 buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;

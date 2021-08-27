@@ -180,6 +180,22 @@ TEST(test_extended_bit_rate_value_test, extended_bit_rate_value_test) {
   ASSERT_EQ(apn_testing.extendedapnambrforuplink, 255);
   ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 255);
 
+  extended_bit_rate_value(&apn_testing, 19000000000000000, 19000000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 12);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 199);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 70);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 12);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 199);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 70);
+
+  extended_bit_rate_value(&apn_testing, 20000000000000000, 20000000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 12);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 129);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 74);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 12);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 129);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 74);
+
   extended_bit_rate_value(&apn_testing, 68718428160000000, 68718428160000000);
   ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 12);
   ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 255);
@@ -188,6 +204,14 @@ TEST(test_extended_bit_rate_value_test, extended_bit_rate_value_test) {
   ASSERT_EQ(apn_testing.extendedapnambrforuplink, 255);
   ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 255);
 
+  extended_bit_rate_value(&apn_testing, 270000000000000000, 270000000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 13);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 117);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 251);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 13);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 117);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 251);
+
   extended_bit_rate_value(&apn_testing, 274873712640000000, 274873712640000000);
   ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 13);
   ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 255);
@@ -195,6 +219,15 @@ TEST(test_extended_bit_rate_value_test, extended_bit_rate_value_test) {
   ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 13);
   ASSERT_EQ(apn_testing.extendedapnambrforuplink, 255);
   ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 255);
+
+  extended_bit_rate_value(
+      &apn_testing, 1000000000000000000, 1000000000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 14);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 212);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 232);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 14);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 212);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 232);
 
   extended_bit_rate_value(
       &apn_testing, 1099494851000000000, 1099494851000000000);
@@ -206,6 +239,15 @@ TEST(test_extended_bit_rate_value_test, extended_bit_rate_value_test) {
   ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 255);
 
   extended_bit_rate_value(
+      &apn_testing, 4000000000000000000, 4000000000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 15);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 212);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 232);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 15);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 212);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 232);
+
+  extended_bit_rate_value(
       &apn_testing, 4397979402000000000, 4397979402000000000);
   ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 15);
   ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 254);
@@ -213,6 +255,15 @@ TEST(test_extended_bit_rate_value_test, extended_bit_rate_value_test) {
   ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 15);
   ASSERT_EQ(apn_testing.extendedapnambrforuplink, 254);
   ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 255);
+
+  extended_bit_rate_value(
+      &apn_testing, 15000000000000000000, 15000000000000000000);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlinkunit, 16);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink, 71);
+  ASSERT_EQ(apn_testing.extendedapnambrfordownlink_continued, 218);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplinkunit, 16);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink, 71);
+  ASSERT_EQ(apn_testing.extendedapnambrforuplink_continued, 218);
 
   extended_bit_rate_value(
       &apn_testing, 17591917610000000000, 17591917610000000000);

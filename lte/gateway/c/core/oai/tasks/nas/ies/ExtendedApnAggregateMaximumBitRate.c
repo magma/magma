@@ -34,19 +34,19 @@ int decode_extended_apn_aggregate_maximum_bit_rate(
       *(buffer + decoded);
   decoded++;
   extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink =
-      *(buffer + decoded) >> 8;
+      *(buffer + decoded);
   decoded++;
-  extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink =
-      *(buffer + decoded) && 0xff;
+  extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink_continued =
+      *(buffer + decoded);
   decoded++;
   extendedapnaggregatemaximumbitrate->extendedapnambrforuplinkunit =
       *(buffer + decoded);
   decoded++;
   extendedapnaggregatemaximumbitrate->extendedapnambrforuplink =
-      *(buffer + decoded) >> 8;
+      *(buffer + decoded);
   decoded++;
-  extendedapnaggregatemaximumbitrate->extendedapnambrforuplink =
-      *(buffer + decoded) && 0xff;
+  extendedapnaggregatemaximumbitrate->extendedapnambrforuplink_continued =
+      *(buffer + decoded);
   decoded++;
   return decoded;
 }
@@ -75,19 +75,19 @@ int encode_extended_apn_aggregate_maximum_bit_rate(
       extendedapnaggregatemaximumbitrate->extendedapnambrfordownlinkunit;
   encoded++;
   *(buffer + encoded) =
-      extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink >> 8;
+      extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink;
   encoded++;
   *(buffer + encoded) =
-      extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink && 0xff;
+      extendedapnaggregatemaximumbitrate->extendedapnambrfordownlink_continued;
   encoded++;
   *(buffer + encoded) =
       extendedapnaggregatemaximumbitrate->extendedapnambrforuplinkunit;
   encoded++;
   *(buffer + encoded) =
-      extendedapnaggregatemaximumbitrate->extendedapnambrforuplink >> 8;
+      extendedapnaggregatemaximumbitrate->extendedapnambrforuplink;
   encoded++;
   *(buffer + encoded) =
-      extendedapnaggregatemaximumbitrate->extendedapnambrforuplink && 0xff;
+      extendedapnaggregatemaximumbitrate->extendedapnambrforuplink_continued;
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
@@ -107,7 +107,7 @@ void extended_bit_rate_value(
   }
   extended_apn_ambr->extendedapnambrfordownlinkunit = unit_dl;
 
-  extended_apn_ambr->extendedapnambrfordownlink = (enc_ambr_dl & 0xffff);
+  extended_apn_ambr->extendedapnambrfordownlink = (enc_ambr_dl & 0x00ff);
   extended_apn_ambr->extendedapnambrfordownlink_continued = (enc_ambr_dl >> 8);
 
   uint8_t unit_ul = 3;
@@ -117,6 +117,6 @@ void extended_bit_rate_value(
   }
   extended_apn_ambr->extendedapnambrforuplinkunit = unit_ul;
 
-  extended_apn_ambr->extendedapnambrforuplink = (enc_ambr_ul & 0xffff);
+  extended_apn_ambr->extendedapnambrforuplink = (enc_ambr_ul & 0x00ff);
   extended_apn_ambr->extendedapnambrforuplink_continued = (enc_ambr_ul >> 8);
 }
