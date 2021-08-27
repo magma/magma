@@ -1376,7 +1376,7 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
       responses:
         '200':
-          description: List eNodeBs registered registered in the network with pagination support
+          description: List eNodeBs registered in the network with pagination support
           schema:
             $ref: '#/definitions/paginated_enodebs'
         default:
