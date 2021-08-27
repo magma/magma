@@ -1,3 +1,4 @@
+---
 version: "3.7"
 
 # Standard logging for each service
@@ -33,7 +34,6 @@ services:
   magmad:
     <<: *pyservice
     container_name: magmad
-    image: magmad:${IMAGE_VERSION}
     environment:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
@@ -99,9 +99,8 @@ services:
     <<: *pyservice
     container_name: control_proxy
     command: >
-      sh -c "/usr/local/bin/generate_nghttpx_config.py && \
+      sh -c "/usr/local/bin/generate_nghttpx_config.py && sed -i 's/errorlog-syslog=yes/errorlog-syslog=no/' /var/opt/magma/tmp/nghttpx.conf &&\
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
-
   ctraced:
     <<: *pyservice
     container_name: ctraced
@@ -126,26 +125,22 @@ services:
       sh -c "mkdir -p /var/opt/magma/cores &&
         sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
         /usr/local/bin/sessiond"
-
   sctpd:
     <<: *ltecservice
     container_name: sctpd
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 1
     command: /usr/local/bin/sctpd
-
   connectiond:
     <<: *ltecservice
     container_name: connectiond
     privileged: true
     command: /usr/local/bin/connectiond
-
   liagentd:
     <<: *ltecservice
     container_name: liagentd
     privileged: true
     command: /usr/local/bin/liagentd
-
   mme:
     <<: *ltecservice
     container_name: oai_mme
@@ -154,8 +149,7 @@ services:
     security_opt:
       - seccomp:unconfined
     privileged: true
-    command: /usr/local/bin/mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
-
+    command: /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
   #envoy_controller:
   #  <<: *cservice
   #  container_name: envoy_controller
@@ -170,14 +164,13 @@ services:
   # ovs:
   #   image: openvswitch
   #   container_name: ovs
-
   redis:
-    image: 'bitnami/redis:${IMAGE_VERSION}'
+    <<: *pyservice
     container_name: redis
-    networks:
-      - agw
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
   # dnsmasq:
   #   image: storytel/dnsmasq
   #   container_name: dnsmasq
@@ -227,14 +220,6 @@ services:
   #   container_name: redirectd
   #   command: python3.8 -m magma.redirectd.main
   #
-
-  # redis:
-  #   <<: *pyservice
-  #   container_name: redis
-  #   command: >
-  #     /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
-  #            /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
-  #            /usr/bin/redis-cli shutdown"
   #
   #
   # td-agent-bit:
@@ -245,7 +230,3 @@ services:
   #   command: >
   #       /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
   #       /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
-
-
-networks:
-  agw:
