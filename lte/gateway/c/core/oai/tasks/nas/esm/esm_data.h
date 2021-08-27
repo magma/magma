@@ -178,6 +178,7 @@ typedef struct esm_context_s {
                         services is established       */
   struct esm_proc_data_s* esm_proc_data;
   struct nas_timer_s T3489;
+  void* t3489_arg;
   int32_t pending_standalone;
   bool is_pdn_disconnect;
 } esm_context_t;
@@ -204,6 +205,9 @@ typedef struct esm_data_s {
 
 void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context);
 void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context);
+void nas_start_T3489(
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
+    time_out_t time_out_cb);
 void nas_stop_T3489(esm_context_t* const esm_ctx);
 void free_esm_context_content(esm_context_t* esm_ctx);
 void esm_init_context(struct esm_context_s* esm_ctx);
