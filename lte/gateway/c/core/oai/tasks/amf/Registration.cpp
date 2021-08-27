@@ -307,7 +307,7 @@ static int amf_registration_reject(
     amf_data_sec.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.establish.sctx, NULL, false, false);
   }
-  OAILOG_INFO(LOG_NAS_AMF, "Processing REGITRATION_REJECT message\n");
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REJECT message\n");
   rc = amf_sap_send(&amf_sap);
   increment_counter(
       "ue_Registration", 1, 1, "action", "Registration_reject_sent");
