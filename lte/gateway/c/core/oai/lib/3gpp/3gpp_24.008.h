@@ -886,6 +886,11 @@ int decode_access_point_name_ie(
 /* Both directions:*/
 #define PCO_CI_IM_CN_SUBSYSTEM_SIGNALING_FLAG (0x0002)
 
+/* IPCP Macros */
+#define IPCP_CODE_BYTES 1
+#define IPCP_IDENTIFIER_BYTES 1
+#define IPC_LENGTH_BYTES 2
+
 typedef struct pco_protocol_or_container_id_s {
   uint16_t id;
   uint8_t length;

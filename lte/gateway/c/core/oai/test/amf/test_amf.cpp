@@ -173,6 +173,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
+  protocol_configuration_options_t* pco;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type1_len();
 
@@ -181,19 +182,70 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
 
+  pco = &(pdu_sess_est_req.payload_container.smf_msg.msg
+              .pdu_session_estab_request.protocolconfigurationoptions.pco);
+
+  for (uint8_t i = 0; i < pco->num_protocol_or_container_id; i++) {
+    if (pco->protocol_or_container_ids[i].contents) {
+      bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
+    }
+  }
+
   EXPECT_EQ(decode_res, true);
+}
+
+TEST(test_amf_nas5g_pkt_gen, test_amf_pdu_sess_accept_pco_msg) {
+  ProtocolConfigurationOptions protocolconfigruartionoption;
+  uint8_t buffer[1024];
+  uint16_t buf_len                      = 1024;
+  protocol_configuration_options_t* pco = &(protocolconfigruartionoption.pco);
+  uint8_t pattern_match[] = {0x7b, 0x0,  0x14, 0x80, 0x80, 0x21, 0x10, 0x3,
+                             0x0,  0x0,  0x10, 0x81, 0x6,  0xc0, 0xa8, 0x1,
+                             0x64, 0x83, 0x6,  0x8,  0x8,  0x8,  0x8};
+  int cmp_res             = 0;
+  int pco_len             = 0;
+  gen_ipcp_pco_options(pco);
+
+  pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
+      &protocolconfigruartionoption,
+      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
+
+  EXPECT_EQ(pco_len, 23);
+
+  cmp_res =
+      memcmp(buffer, pattern_match, sizeof(pattern_match) / sizeof(uint8_t));
+
+  EXPECT_EQ(cmp_res, 0);
+  bdestroy_wrapper(&pco->protocol_or_container_ids[0].contents);
+
+  memset(pco, 0, sizeof(protocol_configuration_options_t));
+
+  gen_dns_pco_options(pco);
+  pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
+      &protocolconfigruartionoption,
+      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
+
+  EXPECT_EQ(pco_len, 11);
+  bdestroy_wrapper(&pco->protocol_or_container_ids[0].contents);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
+  protocol_configuration_options_t* pco;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type2_len();
 
   memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
   decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type2, len);
+
+  pco = &(pdu_sess_est_req.payload_container.smf_msg.msg
+              .pdu_session_estab_request.protocolconfigurationoptions.pco);
+
+  EXPECT_EQ(pco->protocol_or_container_ids[0].id, 10);
+  EXPECT_EQ(pco->protocol_or_container_ids[1].id, 13);
 
   EXPECT_EQ(decode_res, true);
 }

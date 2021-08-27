@@ -96,7 +96,7 @@ struct amf_procedures_t;
 #define N1_SM_INFO 0x1
 #define AMBR_LEN 6
 #define PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN 30
-#define PDU_ESTAB_ACCPET_NAS_PDU_LEN 39
+#define PDU_ESTAB_ACCPET_NAS_PDU_LEN 41
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
 #define PDU_ADDR_TYPE 0X1
@@ -263,6 +263,7 @@ typedef struct smf_context_s {
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
+  protocol_configuration_options_t pco;
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;

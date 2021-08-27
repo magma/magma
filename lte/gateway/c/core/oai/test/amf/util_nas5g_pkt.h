@@ -21,6 +21,7 @@
 #include "M5GServiceAccept.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
+#include "3gpp_24.008.h"
 
 namespace magma5g {
 
@@ -94,5 +95,9 @@ bool decode_ul_nas_deregister_request_msg(
 
 bool decode_service_request_msg(
     ServiceRequestMsg* sv_request, const uint8_t* buffer, uint32_t len);
+
+void gen_ipcp_pco_options(protocol_configuration_options_t* const pco_resp);
+
+int gen_dns_pco_options(protocol_configuration_options_t* const pco_resp);
 
 }  // namespace magma5g
