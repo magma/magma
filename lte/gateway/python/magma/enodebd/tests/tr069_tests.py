@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from unittest import TestCase, mock
 from unittest.mock import Mock, patch
 
+import lxml.etree as ET
 from magma.enodebd.tests.test_utils.enb_acs_builder import (
     EnodebAcsStateMachineBuilder,
 )
@@ -595,7 +595,7 @@ class Tr069Test(TestCase):
                             <Value xsi:type="xsd:unsignedInt">60</Value>
                         </ParameterValueStruct>
                     </ParameterList>
-                    <ParameterKey>null</ParameterKey>
+                    <ParameterKey xsi:type="xsd:string">SetParameter1</ParameterKey>
                 </cwmp:SetParameterValues>
             </soapenv:Body>
         </soapenv:Envelope>
@@ -631,7 +631,9 @@ class Tr069Test(TestCase):
         param.Value.Data = '60'
         request.ParameterList.ParameterValueStruct.append(param)
 
-        request.ParameterKey = 'null'
+        request.ParameterKey = models.ParameterKeyType()
+        request.ParameterKey.type = 'xsd:string'
+        request.ParameterKey.Data = 'SetParameter1'
 
         def side_effect(*args, **_kwargs):
             ctx = args[0]
@@ -664,8 +666,16 @@ class Tr069Test(TestCase):
         server.get_out_string(ctx)
 
         xml_tree = XmlTree()
+        NS_SOAP11_ENC = 'soap11enc'
+        NS_SOAP11_ENV = 'soap11env'
+        xml_str = b''.join(ctx.out_string)
+        # Get the namespaces and validate the soap enc and env prefix are right
+        nsmap = xml_tree.get_ns(xml_str)
+        self.assertTrue(NS_SOAP11_ENC in nsmap.keys())
+        self.assertTrue(NS_SOAP11_ENV in nsmap.keys())
+
         match = xml_tree.xml_compare(
-            xml_tree.convert_string_to_tree(b''.join(ctx.out_string)),
+            xml_tree.convert_string_to_tree(xml_str),
             xml_tree.convert_string_to_tree(expected_acs_string),
         )
         self.assertTrue(match)
@@ -800,6 +810,10 @@ class XmlTree():
     def convert_string_to_tree(xmlString):
 
         return ET.fromstring(xmlString)
+
+    @staticmethod
+    def get_ns(xmlString):
+        return ET.fromstring(xmlString).nsmap
 
     def xml_compare(self, x1, x2, excludes=None):
         """
