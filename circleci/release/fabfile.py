@@ -1,3 +1,16 @@
+"""
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import os
 import sys
 from typing import Dict, Iterator, List
@@ -6,30 +19,42 @@ import github
 from fabric.api import env, lcd, local
 from github.PullRequest import PullRequest
 
-RELEASE_BRANCHES = [
+RELEASE_BRANCHES = (
     'v1.1',
     'v1.2',
     'v1.3',
     'v1.4',
     'v1.5',
+    'v1.6',
+    'v1.7',
     'magma-5G',
-]
-
-# GITHUB_ACCESS_TOKEN
+)
 
 
-def find_release_commits(
+def find_release_commits(  # noqa: S107
     repo_name: str = 'magma/magma',
     token_file: str = '~/.magma/github_access_token',
     lookback: str = '100',
 ):
+    """
+    find_release_commits goes though the last `lookback` commits on master and
+    looks for PRs with a `apply-<RELEASE_BRANCH>` label and without a
+    `backported-<RELEASE_BRANCH>` label. These commits are they cherry picked
+    to the RELEASE_BRANCH, pushed to origin and a `backported-<RELEASE_BRANCH>`
+    label is applied to the PR.
+
+    Args:
+        repo_name: Which github repository to look at.
+        token_file: Path to file containing a github personal access token.
+        lookback: How many commits to look back.
+    """
     if not os.path.isfile(os.path.expanduser(token_file)):
         print(
             f'Create a file `{token_file}` with a Github '
             'access token in the contents and nothing else.\n'
             'Create a new Personal Access Token at '
             'https://github.com/settings/tokens and grant it all "repo" '
-            'permissions if you don\'t already have one.',
+            "permissions if you don't already have one.",
         )
         sys.exit(1)
     lookback = int(lookback)
@@ -66,7 +91,8 @@ def find_release_commits(
     for rel in RELEASE_BRANCHES:
         if rel not in commits_by_release:
             continue
-        print(f'\t{rel}: {len(commits_by_release[rel])} commits')
+        num_commits = len(commits_by_release[rel])
+        print(f'\t{rel}: {num_commits} commits')
     print('')
 
     print('Checking out an ephemeral clean Magma copy in .gitclone...\n')
@@ -100,22 +126,22 @@ def _pick_commits(repo: str, rel: str, pulls: Iterator[PullRequest]):
             if not pick_status.succeeded:
                 print('')
                 print(
-                    f'Aborting the automated cherry-pick procedure '
+                    'Aborting the automated cherry-pick procedure '
                     f'for branch {rel}. Perform the following steps after '
-                    f'this script finishes execution:',
+                    'this script finishes execution:',
                 )
 
-                print(f'\t1. cd .gitclone/magma')
+                print('\t1. cd .gitclone/magma')
                 print(
                     f'\t2. Manually cherry-pick commit {sha} onto {rel} '
-                    f'and resolve conflicts:\n'
-                    f'\t\tgit status\n'
-                    f'\t\t<resolve all conflicts manually>\n'
-                    f'\t\tgit add .\n'
-                    f'\t\tgit cherry-pick --continue',
+                    'and resolve conflicts:\n'
+                    '\t\tgit status\n'
+                    '\t\t<resolve all conflicts manually>\n'
+                    '\t\tgit add .\n'
+                    '\t\tgit cherry-pick --continue',
                 )
                 print(
-                    f'\t3. Push the branch upstream:\n'
+                    '\t3. Push the branch upstream:\n'
                     f'\t\tgit push origin {rel}',
                 )
                 print(
@@ -123,7 +149,7 @@ def _pick_commits(repo: str, rel: str, pulls: Iterator[PullRequest]):
                     f'PR#{pr.number} at '
                     f'https://github.com/{repo}/pull/{pr.number}',
                 )
-                print(f'\t5. Run this fab script again')
+                print('\t5. Run this fab script again')
                 print('')
                 sys.exit(1)
 

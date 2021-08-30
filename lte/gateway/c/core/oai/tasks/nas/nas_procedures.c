@@ -45,6 +45,7 @@
 #include "nas_procedures.h"
 #include "common_defs.h"
 
+// TODO: Add unit tests for common procedure functions
 static nas_emm_common_proc_t* get_nas_common_procedure(
     const struct emm_context_s* const ctxt, emm_common_proc_type_t proc_type);
 static nas_cn_proc_t* get_nas_cn_procedure(
@@ -74,7 +75,7 @@ static nas_emm_common_proc_t* get_nas_common_procedure(
       nas_emm_common_procedure_t* p2 = NULL;
       while (p1) {
         p2 = LIST_NEXT(p1, entries);
-        if (p1->proc->type == proc_type) {
+        if (p1->proc && (p1->proc->type == proc_type)) {
           return p1->proc;
         }
         p1 = p2;
@@ -92,7 +93,7 @@ static nas_cn_proc_t* get_nas_cn_procedure(
       nas_cn_procedure_t* p2 = NULL;
       while (p1) {
         p2 = LIST_NEXT(p1, entries);
-        if (p1->proc->type == proc_type) {
+        if (p1->proc && (p1->proc->type == proc_type)) {
           return p1->proc;
         }
         p1 = p2;

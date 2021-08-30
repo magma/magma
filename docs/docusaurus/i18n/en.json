@@ -87,6 +87,9 @@
       "feg/session_proxy": {
         "title": "feg/session_proxy"
       },
+      "general/upgrade_intro": {
+        "title": "Introduction"
+      },
       "howtos/call_tracing": {
         "title": "Call Tracing"
       },

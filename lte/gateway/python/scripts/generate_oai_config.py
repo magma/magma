@@ -12,11 +12,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-"""
-Pre-run script for services to generate a nghttpx config from a jinja template
-and the config/mconfig for the service.
-"""
-
 import logging
 import os
 import socket
@@ -31,6 +26,11 @@ from magma.common.misc_utils import (
 )
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
+
+"""
+Pre-run script for services to generate a nghttpx config from a jinja template
+and the config/mconfig for the service.
+"""
 
 CONFIG_OVERRIDE_DIR = "/var/opt/magma/tmp"
 DEFAULT_DNS_IP_PRIMARY_ADDR = "8.8.8.8"
@@ -244,7 +244,7 @@ def _get_converged_core_config(service_mconfig: object) -> bool:
 
     if enable_converged_core is not None:
         return enable_converged_core
-        
+
     if service_mconfig.enable_converged_core is not None:
         return service_mconfig.enable_converged_core
 

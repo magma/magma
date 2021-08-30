@@ -12,8 +12,8 @@
 # limitations under the License.
 
 # log_level is set in mconfig. it can be overridden here
+# sync_interval is set in mconfig. it can be overridden here
 
-sync_interval: 60
 
 #state_protos:
 #  - proto_file:  - file to load proto from

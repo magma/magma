@@ -41,6 +41,8 @@ jobs:
               set -e
               isort --check-only $file;
               autopep8 --exit-code --select W191,W291,W292,W293,W391,E2,E3 -r --in-place  $file;
+              # TODO(@themarwhal): Migrate to below eventually
+              # autopep8 --exit-code --select W191,W291,W292,W293,W391,E122,E123,E126,E127,E131,E2,E3 -r --in-place  $file;
               add-trailing-comma --py35-plus $file;
             done;
       - name: Look here for instructions for when the check fails

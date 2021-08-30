@@ -21,13 +21,24 @@ from magma.magmad.check.network_check.ping import (
     ping_interface_async,
 )
 
-NUM_PACKETS = 4
+NUM_PACKETS = 2
 DEFAULT_POLLING_INTERVAL = 60
-TIMEOUT_SECS = 10
+TIMEOUT_SECS = 3
 CHECKIN_INTERVAL = 10
+CHUNK_SIZE = 100
 
 
-class ICMPMonitoring(Job):
+def _chunk_targets(hosts: List[str]):
+    """
+    Yields successive n-sized chunks from target hosts.
+    """
+    for i in range(0, len(hosts), CHUNK_SIZE):
+        logging.debug(
+            'Yielding [%s:%s] from target hosts', i, i + CHUNK_SIZE)
+        yield hosts[i:i + CHUNK_SIZE]
+
+
+class ICMPJob(Job):
     """
     Class that handles main loop to send ICMP ping to valid subscribers.
     """
@@ -46,6 +57,7 @@ class ICMPMonitoring(Job):
         )
         self._loop = service_loop
         self._module = monitoring_module
+        self._sem = asyncio.BoundedSemaphore(5)
 
     async def _ping_targets(
         self, hosts: List[str],
@@ -60,16 +72,22 @@ class ICMPMonitoring(Job):
         Returns: (stdout, stderr)
         """
         if targets:
-            ping_params = [
-                PingInterfaceCommandParams(
-                    host, NUM_PACKETS, self._MTR_PORT,
-                    TIMEOUT_SECS,
-                ) for host in hosts
-            ]
-            ping_results = await ping_interface_async(ping_params, self._loop)
-            ping_results_list = list(ping_results)
-            for host, sub, result in zip(hosts, targets, ping_results_list):
-                self._save_ping_response(sub, host, result)
+            for chunked_hosts in _chunk_targets(hosts):
+                ping_params = [
+                    PingInterfaceCommandParams(
+                        host, NUM_PACKETS, self._MTR_PORT,
+                        TIMEOUT_SECS,
+                    ) for host in chunked_hosts
+                ]
+                async with self._sem:
+                    try:
+                        ping_results = await ping_interface_async(ping_params, self._loop)
+                        ping_results_list = list(ping_results)
+                        for host, sub, result in zip(hosts, targets, ping_results_list):
+                            self._save_ping_response(sub, host, result)
+                    except OSError:
+                        logging.warning('Too many connections opened, sleeping while connections are closed...')
+                    await asyncio.sleep(TIMEOUT_SECS, self._loop)
 
     def _save_ping_response(
         self, target_id: str, ip_addr: str,
