@@ -14,7 +14,6 @@ generate_all_protos(
 )
 
 add_library(TASK_SCTP_SERVER
-    sctpd_downlink_client.cpp
     sctpd_uplink_server.cpp
     sctp_itti_messaging.c
     sctp_primitives_server.c
