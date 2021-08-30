@@ -89,8 +89,7 @@ status_code_e ngap_amf_handle_initial_ue_message(
   }
 
   // gNB UE NGAP ID is limited to 24 bits
-  gnb_ue_ngap_id =
-      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   OAILOG_DEBUG(
       LOG_NGAP,
       "New Initial UE message received with gNB UE NGAP ID: " GNB_UE_NGAP_ID_FMT
