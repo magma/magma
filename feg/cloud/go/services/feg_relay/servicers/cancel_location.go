@@ -50,7 +50,7 @@ func (srv *FegToGwRelayServer) CancelLocationUnverified(
 		return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_USER_UNKNOWN}, nil
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(
-		gateway_registry.GwS6aService, hwId)
+		gateway_registry.GwS6aAsyncService, hwId)
 	if err != nil {
 		fmt.Printf("unable to get connection to the gateway ID: %s", hwId)
 		return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_UNABLE_TO_DELIVER}, nil
