@@ -35,6 +35,7 @@ const (
 	GwPipelined           GwServiceType = "pipelined"
 	GwSubscriberDB        GwServiceType = "subscriberdb"
 	GwS6aService          GwServiceType = "s6a_service"
+	GwS6aAsyncService     GwServiceType = "s6a_async_service"
 	GwSgsService          GwServiceType = "sgs_service"
 	GwSessiondService     GwServiceType = "sessiond"
 	GwS8Service           GwServiceType = "s8_service"
