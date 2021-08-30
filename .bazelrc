@@ -1,6 +1,11 @@
-startup --output_user_root=/tmp/bazel
-
-# Can't mount the build cache as a volume on macOS without setting the spawn_strategy to local
-# See https://github.com/bazelbuild/rules_foreign_cc/issues/667
-build --spawn_strategy=local
+build --disk_cache=.bazel-cache
+build --repository_cache=.bazel-cache-repo
 build --cxxopt=-std=c++14
+build --cxxopt=-g2
+
+build:asan --strip=never
+build:asan --copt=-fsanitize=address
+build:asan --copt=-O0
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --linkopt=-fsanitize=address
+build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always

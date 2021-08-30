@@ -23,22 +23,45 @@ RUN apt-get update && \
         unzip \
         vim \
         wget \
-        # TODO(@themarwhal) Remove these Folly dependencies below - GH8577
-        # The full list of recommended dependencies are listed at https://github.com/facebook/folly/blob/master/README.md#ubuntu-1604-lts
-        # Omitting the following as they are not needed
-        # - Already built by bazel: libgoogle-glog-dev, libgflags-dev
-        # - Not used in Magma: ibjemalloc-dev, pkg-config, libunwind-dev, liblz4-dev
-        #                      liblzma-dev, libsnappy-dev, zlib1g-dev, binutils-dev
-        libboost-all-dev \
-        libevent-dev \
-        libdouble-conversion-dev \
-        libiberty-dev \
-        libssl-dev 
+        libssl-dev
 
-
+# Install bazel
 WORKDIR /usr/sbin
 RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
     chmod +x bazelisk-linux-amd64 && \
     ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
+# Install Folly as a static library in the container
+RUN apt-get install -y --no-install-recommends cmake
+
+## Install Fmt (Folly Dep)
+RUN git clone https://github.com/fmtlib/fmt.git && cd fmt && \
+    mkdir _build && cd _build && \
+    cmake .. && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf fmt
+
+RUN apt-get install -y --no-install-recommends \
+    libgoogle-glog-dev \
+    libgflags-dev \
+    libboost-all-dev \
+    libevent-dev \
+    libdouble-conversion-dev \
+    libiberty-dev
+
+##### Facebook Folly C++ lib
+# Note: "Because folly does not provide any ABI compatibility guarantees from
+#        commit to commit, we generally recommend building folly as a static library."
+# Here we checkout the hash for v2021.02.22.00 (arbitrary recent version)
+RUN git clone https://github.com/facebook/folly && cd folly && \
+    git checkout tags/v2021.02.15.00 && \
+    mkdir _build && cd _build && \
+    cmake .. && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf folly
 
 WORKDIR /magma

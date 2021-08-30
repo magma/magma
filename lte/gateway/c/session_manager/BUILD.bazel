@@ -117,11 +117,11 @@ cc_library(
     strip_include_prefix = "/lte/gateway/c/session_manager",
     deps = [
         ":grpc_magma_utils",
-        "//lte/gateway/c:folly",
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
         "@com_github_google_glog//:glog",
+        "@system_libraries//:folly",
     ],
 )
 
@@ -134,11 +134,11 @@ cc_library(
     deps = [
         ":credit_key",
         ":types",
-        "//lte/gateway/c:folly",
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/logging",
         "@com_github_google_glog//:glog",
+        "@system_libraries//:folly",
     ],
 )
 

@@ -129,30 +129,3 @@ def glog():
         strip_prefix = "glog-0.4.0",
         urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
     )
-
-def folly_deps():
-    # glog and gflags are covered elsewhere
-    # See GH8577 on how the other dependencies are handled
-    http_archive(
-        name = "libfmt",
-        build_file = "//:third_party/fmtlib.BUILD",
-        sha256 = "5d98c504d0205f912e22449ecdea776b78ce0bb096927334f80781e720084c9f",
-        strip_prefix = "fmt-7.1.3",
-        urls = ["https://github.com/fmtlib/fmt/releases/download/7.1.3/fmt-7.1.3.zip"],
-    )
-
-_ALL_CONTENT = """\
-filegroup(
-    name = "all_srcs",
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-"""
-
-def folly():
-    http_archive(
-        name = "folly",
-        build_file_content = _ALL_CONTENT,
-        sha256 = "c2022c509a63b5a370fb3e45709ada7a02183b95fc456c6510a523d4d6e92eb6",
-        urls = ["https://github.com/facebook/folly/releases/download/v2021.07.22.00/folly-v2021.07.22.00.tar.gz"],
-    )
