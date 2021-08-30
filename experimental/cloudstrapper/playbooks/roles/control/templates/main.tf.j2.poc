@@ -13,10 +13,11 @@
 
 # instances price $0.2564/hour
 # 55 % cheaper than production
+# eks instance costs: $0.1664/hour 33 % cheaper than 3 t3.large
+# db instance cost: $0.018/hour 89 % cheaper than m4/m5 large
+# elastic search cost: $0.072/hour  51 % cheaper
 module "orc8r" {
 
-  # 33 % cheaper than 3 t3.large
-  # cost $0.1664/hour
   eks_worker_groups =[ {
         name                 = "wg-1"
         instance_type        = "t3.small"
@@ -33,8 +34,6 @@ module "orc8r" {
 
   region = "{{ awsOrc8rRegion }}"
 
-  # $0.018/hour
-  # 89 % cheaper than m4/m5 large
   orc8r_db_password           = "{{ orc8rDbPassword }}" # must be at least 8 characters
   orc8r_db_instance_class     = "db.t3.micro"
 
@@ -47,8 +46,6 @@ module "orc8r" {
   cluster_name = "{{ orc8rTfCluster }}"
   cluster_version = "1.17"
 
-  # 51 % cheaper
-  # $0.072/hour
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "{{ orc8rTfEs }}"
   elasticsearch_version         = "7.7"

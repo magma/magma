@@ -11,9 +11,11 @@
 # limitations under the License.
 ################################################################################
 # instances prices sum at $0.5736/hour
+# eks instance costs: $0.2496/hour
+# db instance cost: $0.178/hour
+# elastic search cost: $0.146/hour
 module "orc8r" {
 
-  # $0.2496/hour
   eks_worker_groups = [{
         name                 = "wg-1"
         instance_type        = "t3.large"
@@ -23,14 +25,12 @@ module "orc8r" {
         autoscaling_enabled  = false
         kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
   }]
-  # Specify arm based ami as t4g instance types are arm based
-  # eks_worker_ami = "amazon-eks-arm64-node-1.17-v20210722"
+
   # Change this to pull from github with a specified ref
   source = "{{ orc8rSource }}"
 
   region = "{{ awsOrc8rRegion }}"
 
-  # $0.178/hour
   orc8r_db_password           = "{{ orc8rDbPassword }}" # must be at least 8 characters
   secretsmanager_orc8r_secret = "{{ orc8rTfSecrets }}"
   orc8r_domain_name           = "{{ orc8rDomainName }}"
@@ -40,7 +40,6 @@ module "orc8r" {
   cluster_name = "{{ orc8rTfCluster }}"
   cluster_version = "1.17"
 
-  # $0.146/hour
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "{{ orc8rTfEs }}"
   elasticsearch_version         = "7.7"

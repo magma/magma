@@ -11,6 +11,11 @@
 # limitations under the License.
 ################################################################################
 
+# instances price $0.2564/hour
+# 55 % cheaper than basic
+# eks instance costs: $0.1664/hour 33 % cheaper than 3 t3.large
+# db instance cost: $0.018/hour 89 % cheaper than m4/m5 large
+# elastic search cost: $0.072/hour  51 % cheaper
 module "orc8r" {
   # Change this to pull from GitHub with a specified ref, e.g.
   # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.6"
@@ -18,8 +23,6 @@ module "orc8r" {
 
   region = "us-west-2"
 
-  # cost $0.1664/hour
-  # 33 % cheaper than 3 t3.large
   eks_worker_groups =[ {
     name                 = "wg-1"
     instance_type        = "t3.small"
@@ -32,8 +35,6 @@ module "orc8r" {
 
   # If you performing a fresh Orc8r install, choose a recent Postgres version
   # orc8r_db_engine_version     = "12.6"
-  # $0.018/hour
-  # 89 % cheaper than m4/m5 large
   orc8r_db_password = "mypassword" # must be at least 8 characters
   orc8r_db_instance_class     = "db.t3.micro"
 
@@ -47,8 +48,6 @@ module "orc8r" {
   cluster_name    = "orc8r"
   cluster_version = "1.17"
 
-  # $0.072/hour
-  # 51 % cheaper than 2 t2.medium
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
   elasticsearch_version         = "7.7"
