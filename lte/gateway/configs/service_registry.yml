@@ -107,3 +107,6 @@ services:
   kernsnoopd:
     ip_address: 127.0.0.1
     port: 50084
+  s6a_async_service:
+    ip_address: 127.0.0.1
+    port: 50085

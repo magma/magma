@@ -80,7 +80,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(TASK_GRPC_SERVICE
     AmfServiceImpl.cpp
     SpgwServiceImpl.cpp
-    S6aGatewayImpl.cpp
     S6aServiceImpl.cpp
     CSFBGatewayServiceImpl.cpp
     SMSOrc8rGatewayServiceImpl.cpp

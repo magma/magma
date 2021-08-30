@@ -64,6 +64,7 @@
 #include "shared_ts_log.h"
 #include "grpc_service.h"
 #include "timer.h"
+#include "grpc_async_service_task.h"
 
 static void send_timer_recovery_message(void);
 
@@ -79,8 +80,9 @@ static int main_init(void) {
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
                     TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
-      11, NULL, &main_zmq_ctx);
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG,
+                    TASK_ASYNC_GRPC_SERVICE},
+      12, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
@@ -170,6 +172,7 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_ha) {
     CHECK_INIT_RETURN(ha_init(&mme_config));
   }
+  CHECK_INIT_RETURN(grpc_async_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW

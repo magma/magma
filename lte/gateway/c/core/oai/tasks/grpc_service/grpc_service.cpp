@@ -23,7 +23,6 @@
 #include "CSFBGatewayServiceImpl.h"
 #include "SMSOrc8rGatewayServiceImpl.h"
 #include "S1apServiceImpl.h"
-#include "S6aGatewayImpl.h"
 #include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
 #include "AmfServiceImpl.h"
@@ -41,7 +40,6 @@ using magma::AmfServiceImpl;
 using magma::CSFBGatewayServiceImpl;
 using magma::HaServiceImpl;
 using magma::S1apServiceImpl;
-using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
 using magma::SMSOrc8rGatewayServiceImpl;
 using magma::SpgwServiceImpl;
@@ -49,7 +47,6 @@ using magma::SpgwServiceImpl;
 static SpgwServiceImpl spgw_service;
 static AmfServiceImpl amf_service;
 static S6aServiceImpl s6a_service;
-static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
 static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static S1apServiceImpl s1ap_service;
