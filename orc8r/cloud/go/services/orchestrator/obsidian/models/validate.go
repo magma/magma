@@ -41,6 +41,10 @@ func (m *NetworkSentryConfig) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *StateConfig) ValidateModel(context.Context) error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m NetworkDNSRecords) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }

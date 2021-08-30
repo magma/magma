@@ -88,6 +88,11 @@
       "lteAuthAmf": "gAA=",
       "sync_interval": 300
     },
+    "state":{
+      "@type": "type.googleapis.com/magma.mconfig.State",
+      "logLevel": "INFO",
+      "sync_interval": 60
+    },
     "dnsd": {
       "@type": "type.googleapis.com/magma.mconfig.DnsD",
       "logLevel": "INFO",

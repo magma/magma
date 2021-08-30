@@ -14,7 +14,6 @@ set(ORC8R_CPP_PROTOS common digest)
 generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 
-
 # S6a
 set(S6ASRV_FEG_CPP_PROTOS s6a_proxy)
 set(S6ASRV_FEG_GRPC_PROTOS s6a_proxy)
@@ -28,7 +27,6 @@ generate_cpp_protos("${S6ASRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${S6ASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
-
 
 add_library(TASK_ASYNC_GRPC_SERVICE
     grpc_async_service_task.c
