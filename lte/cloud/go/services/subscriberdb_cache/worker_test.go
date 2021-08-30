@@ -218,7 +218,7 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 
 	// If the generated root digest matches the one in store, the update for cached subscribers wouldn't be triggered
 	err = configurator.DeleteEntities(
-        context2.Background(),
+		context2.Background(),
 		"n1",
 		storage2.MakeTKs(lte.SubscriberEntityType, []string{"IMSI00001", "IMSI00002", "IMSI00003"}),
 	)
