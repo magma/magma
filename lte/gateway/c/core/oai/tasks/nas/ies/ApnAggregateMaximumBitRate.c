@@ -133,7 +133,6 @@ void bit_rate_value_to_eps_qos(
         ambr_dl_kbps - (apn_ambr->apnambrfordownlink_extended2) * 256000;
     apn_ambr->apnambrfordownlink = 0xff;
   }
-
   if ((ambr_dl_kbps > 8640) &&
       ((ambr_dl_kbps > 8600) && (ambr_dl_kbps <= 16000))) {
     apn_ambr->extensions |=
@@ -142,9 +141,7 @@ void bit_rate_value_to_eps_qos(
 
     ambr_dl_kbps =
         ambr_dl_kbps - (apn_ambr->apnambrfordownlink_extended) * 100 - 8600;
-  }
-
-  else if ((ambr_dl_kbps > 16000) && (ambr_dl_kbps <= 128000)) {
+  }else if ((ambr_dl_kbps > 16000) && (ambr_dl_kbps <= 128000)) {
     apn_ambr->extensions |=
         APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apn_ambr->apnambrfordownlink_extended =
@@ -162,7 +159,6 @@ void bit_rate_value_to_eps_qos(
                    (apn_ambr->apnambrfordownlink_extended - 186) * 2000 -
                    128000;
   }
-
   if ((apn_ambr->apnambrfordownlink != 0xfe) && !(ambr_dl_kbps > 8640)) {
     if (ambr_dl_kbps == 0) {
       apn_ambr->apnambrfordownlink = 0xff;
@@ -190,7 +186,6 @@ void bit_rate_value_to_eps_qos(
 
     apn_ambr->apnambrforuplink = 0xff;
   }
-
   if ((ambr_ul_kbps > 8640) &&
       ((ambr_ul_kbps >= 8600) && (ambr_ul_kbps <= 16000))) {
     apn_ambr->extensions |=
@@ -198,8 +193,7 @@ void bit_rate_value_to_eps_qos(
     apn_ambr->apnambrforuplink_extended = (ambr_ul_kbps - 8600) / 100;
     ambr_ul_kbps =
         ambr_ul_kbps - (apn_ambr->apnambrforuplink_extended) * 100 - 8600;
-
-  } else if ((ambr_ul_kbps > 16000) && (ambr_ul_kbps <= 128000)) {
+} else if ((ambr_ul_kbps > 16000) && (ambr_ul_kbps <= 128000)) {
     apn_ambr->extensions |=
         APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apn_ambr->apnambrforuplink_extended = ((ambr_ul_kbps - 16000) / 1000) + 74;
@@ -215,7 +209,6 @@ void bit_rate_value_to_eps_qos(
     ambr_ul_kbps = ambr_ul_kbps -
                    (apn_ambr->apnambrforuplink_extended - 186) * 2000 - 128000;
   }
-
   if ((apn_ambr->apnambrforuplink != 0xfe) && !(ambr_ul_kbps > 8640)) {
     if (ambr_ul_kbps == 0) {
       apn_ambr->apnambrforuplink = 0xff;
