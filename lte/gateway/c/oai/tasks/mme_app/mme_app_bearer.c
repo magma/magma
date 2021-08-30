@@ -282,7 +282,7 @@ void mme_app_handle_conn_est_cnf(
     nas_establish_rsp_t* const nas_conn_est_cnf_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p                             = NULL;
-  emm_context_t emm_context                                        = {0};
+  emm_context_t* emm_context_p                                     = NULL;
   MessageDef* message_p                                            = NULL;
   itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
   int rc                                                           = RETURNok;
@@ -303,7 +303,7 @@ void mme_app_handle_conn_est_cnf(
     bdestroy_wrapper(&nas_conn_est_cnf_p->nas_msg);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  emm_context = ue_context_p->emm_context;
+  emm_context_p = &ue_context_p->emm_context;
   /* Check that if Service Request is recieved in response to SGS Paging for MT
    * SMS */
   if (ue_context_p->sgs_context) {
@@ -316,7 +316,7 @@ void mme_app_handle_conn_est_cnf(
      * otherwise send itti SGS Service request message to SGS
      */
     OAILOG_DEBUG_UE(
-        LOG_MME_APP, emm_context._imsi64,
+        LOG_MME_APP, emm_context_p->_imsi64,
         "CSFB Service Type = (%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
         ue_context_p->sgs_context->csfb_service_type,
         nas_conn_est_cnf_p->ue_id);
@@ -326,7 +326,7 @@ void mme_app_handle_conn_est_cnf(
           (rc = mme_app_send_sgsap_service_request(
                ue_context_p->sgs_context->service_indicator, ue_context_p))) {
         OAILOG_ERROR_UE(
-            LOG_MME_APP, emm_context._imsi64,
+            LOG_MME_APP, emm_context_p->_imsi64,
             "Failed to send CS-Service Request to SGS-Task for (ue_id = %u) \n",
             ue_context_p->mme_ue_s1ap_id);
       }
@@ -335,7 +335,7 @@ void mme_app_handle_conn_est_cnf(
         CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI) {
       // Inform NAS module to send network initiated IMSI detach request to UE
       OAILOG_DEBUG_UE(
-          LOG_MME_APP, emm_context._imsi64,
+          LOG_MME_APP, emm_context_p->_imsi64,
           "Send SGS intiated Detach request to NAS module for ue_id "
           "= " MME_UE_S1AP_ID_FMT
           "\n"
@@ -357,7 +357,7 @@ void mme_app_handle_conn_est_cnf(
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
     } else {
       OAILOG_ERROR_UE(
-          LOG_MME_APP, emm_context._imsi64,
+          LOG_MME_APP, emm_context_p->_imsi64,
           "SGS context doesn't exist for UE" MME_UE_S1AP_ID_FMT "\n",
           nas_conn_est_cnf_p->ue_id);
       mme_app_notify_service_reject_to_nas(
@@ -374,10 +374,11 @@ void mme_app_handle_conn_est_cnf(
     if (nas_conn_est_cnf_p->csfb_response == CSFB_REJECTED_BY_UE) {
       /* CSFB MT calll rejected by user, send sgsap-paging reject to VLR */
       if ((rc = mme_app_send_sgsap_paging_reject(
-               ue_context_p, emm_context._imsi64, emm_context._imsi.length,
+               ue_context_p, emm_context_p->_imsi64,
+               emm_context_p->_imsi.length,
                SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
         OAILOG_WARNING_UE(
-            LOG_MME_APP, emm_context._imsi64,
+            LOG_MME_APP, emm_context_p->_imsi64,
             "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
             "SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER\n");
       }
@@ -404,11 +405,12 @@ void mme_app_handle_conn_est_cnf(
     }
   }
   OAILOG_DEBUG_UE(
-      LOG_MME_APP, emm_context._imsi64, "CSFB Fallback indicator = (%d)\n",
+      LOG_MME_APP, emm_context_p->_imsi64, "CSFB Fallback indicator = (%d)\n",
       establishment_cnf_p->cs_fallback_indicator);
   // Copy UE radio capabilities into message if it exists
   OAILOG_DEBUG_UE(
-      LOG_MME_APP, emm_context._imsi64, "UE radio context already cached: %s\n",
+      LOG_MME_APP, emm_context_p->_imsi64,
+      "UE radio context already cached: %s\n",
       ue_context_p->ue_radio_capability ? "yes" : "no");
   if (ue_context_p->ue_radio_capability) {
     establishment_cnf_p->ue_radio_capability =
@@ -437,7 +439,7 @@ void mme_app_handle_conn_est_cnf(
 #if DEBUG_IS_ON
         if (!establishment_cnf_p->nas_pdu[j]) {
           OAILOG_ERROR_UE(
-              LOG_MME_APP, emm_context._imsi64,
+              LOG_MME_APP, emm_context_p->_imsi64,
               "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
               nas_conn_est_cnf_p->ue_id);
         }
@@ -452,50 +454,51 @@ void mme_app_handle_conn_est_cnf(
   establishment_cnf_p->ue_ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
   establishment_cnf_p->ue_ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
   establishment_cnf_p->ue_security_capabilities_encryption_algorithms =
-      ((uint16_t) emm_context._ue_network_capability.eea & ~(1 << 7)) << 1;
+      ((uint16_t) emm_context_p->_ue_network_capability.eea & ~(1 << 7)) << 1;
 
   establishment_cnf_p->ue_security_capabilities_integrity_algorithms =
-      ((uint16_t) emm_context._ue_network_capability.eia & ~(1 << 7)) << 1;
+      ((uint16_t) emm_context_p->_ue_network_capability.eia & ~(1 << 7)) << 1;
 
-  if (!((0 <= emm_context._security.vector_index) &&
-        (MAX_EPS_AUTH_VECTORS > emm_context._security.vector_index))) {
+  if (!((0 <= emm_context_p->_security.vector_index) &&
+        (MAX_EPS_AUTH_VECTORS > emm_context_p->_security.vector_index))) {
     OAILOG_ERROR_UE(
-        LOG_MME_APP, emm_context._imsi64, "Invalid security vector index %d",
-        emm_context._security.vector_index);
+        LOG_MME_APP, emm_context_p->_imsi64, "Invalid security vector index %d",
+        emm_context_p->_security.vector_index);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  if (emm_context._ue_network_capability.dcnr) {
+  if (emm_context_p->_ue_network_capability.dcnr) {
     establishment_cnf_p->nr_ue_security_capabilities_encryption_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nea & ~(1 << 7))
+        ((uint16_t) emm_context_p->_nr_ue_security_capability.nea & ~(1 << 7))
         << 1;
     establishment_cnf_p->nr_ue_security_capabilities_integrity_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nia & ~(1 << 7))
+        ((uint16_t) emm_context_p->_nr_ue_security_capability.nia & ~(1 << 7))
         << 1;
   }
 
   derive_keNB(
-      emm_context._vector[emm_context._security.vector_index].kasme,
-      emm_context._security.kenb_ul_count.seq_num |
-          (emm_context._security.kenb_ul_count.overflow << 8),
+      emm_context_p->_vector[emm_context_p->_security.vector_index].kasme,
+      emm_context_p->_security.kenb_ul_count.seq_num |
+          (emm_context_p->_security.kenb_ul_count.overflow << 8),
       establishment_cnf_p->kenb);
 
   /* Genarate Next HOP key parameter */
+  emm_context_p->_security.next_hop_chaining_count = 0;
   derive_NH(
-      emm_context._vector[emm_context._security.vector_index].kasme,
-      establishment_cnf_p->kenb, emm_context._security.next_hop,
-      &emm_context._security.next_hop_chaining_count);
+      emm_context_p->_vector[emm_context_p->_security.vector_index].kasme,
+      establishment_cnf_p->kenb, emm_context_p->_security.next_hop,
+      &emm_context_p->_security.next_hop_chaining_count);
 
   OAILOG_DEBUG_UE(
-      LOG_MME_APP, emm_context._imsi64,
+      LOG_MME_APP, emm_context_p->_imsi64,
       "security_capabilities_encryption_algorithms 0x%04X\n",
       establishment_cnf_p->ue_security_capabilities_encryption_algorithms);
   OAILOG_DEBUG_UE(
-      LOG_MME_APP, emm_context._imsi64,
+      LOG_MME_APP, emm_context_p->_imsi64,
       "security_capabilities_integrity_algorithms  0x%04X\n",
       establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
 
-  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+  message_p->ittiMsgHeader.imsi = emm_context_p->_imsi64;
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   /*
@@ -517,7 +520,7 @@ void mme_app_handle_conn_est_cnf(
           (rc = mme_app_send_sgsap_service_request(
                ue_context_p->sgs_context->service_indicator, ue_context_p))) {
         OAILOG_ERROR_UE(
-            LOG_MME_APP, emm_context._imsi64,
+            LOG_MME_APP, emm_context_p->_imsi64,
             "Failed to send CS-Service Request to SGS-Task for "
             "ue-id:" MME_UE_S1AP_ID_FMT "\n",
             ue_context_p->mme_ue_s1ap_id);
@@ -536,15 +539,16 @@ void mme_app_handle_conn_est_cnf(
            mme_app_handle_initial_context_setup_rsp_timer_expiry,
            ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR_UE(
-        LOG_MME_APP, emm_context._imsi64,
-        "Failed to start initial context setup response timer for UE id  %d \n",
+        LOG_MME_APP, emm_context_p->_imsi64,
+        "Failed to start initial context setup response timer for UE "
+        "id " MME_UE_S1AP_ID_FMT " \n",
         ue_context_p->mme_ue_s1ap_id);
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
   } else {
     ue_context_p->time_ics_rsp_timer_started = time(NULL);
     OAILOG_INFO_UE(
-        LOG_MME_APP, emm_context._imsi64,
+        LOG_MME_APP, emm_context_p->_imsi64,
         "MME APP : Sent Initial context Setup Request and Started guard timer "
         "for UE id  %d timer_id :%lx \n",
         ue_context_p->mme_ue_s1ap_id,
@@ -1823,7 +1827,7 @@ int mme_app_handle_mobile_reachability_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Mobile reachability timer");
@@ -1832,7 +1836,7 @@ int mme_app_handle_mobile_reachability_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_mobile_reachability_timer_started = 0;
@@ -1870,7 +1874,7 @@ int mme_app_handle_implicit_detach_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Implicit detach timer");
@@ -1879,7 +1883,7 @@ int mme_app_handle_implicit_detach_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   ue_context_p->implicit_detach_timer.id           = MME_APP_TIMER_INACTIVE_ID;
@@ -1897,7 +1901,7 @@ int mme_app_handle_initial_context_setup_rsp_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Initial context setup response timer");
@@ -2285,7 +2289,7 @@ int mme_app_handle_paging_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Paging timer");
@@ -2295,7 +2299,7 @@ int mme_app_handle_paging_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -2360,7 +2364,7 @@ int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args) {
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Update location timer");
@@ -2369,7 +2373,7 @@ int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args) {
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
@@ -2673,7 +2677,7 @@ int mme_app_handle_ue_context_modification_timer_expiry(
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "UE context modification timer");
@@ -2682,7 +2686,7 @@ int mme_app_handle_ue_context_modification_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
@@ -3309,11 +3313,6 @@ void mme_app_handle_handover_required(
   }
   ho_request_p->e_rab_list.no_of_items = j;
 
-  memcpy(
-      ho_request_p->nh, ue_context_p->emm_context._security.next_hop,
-      AUTH_NEXT_HOP_SIZE);
-  ho_request_p->ncc =
-      ue_context_p->emm_context._security.next_hop_chaining_count;
   /* Generate NH key parameter */
   if (ue_context_p->emm_context._security.vector_index != 0) {
     OAILOG_DEBUG_UE(
@@ -3322,6 +3321,7 @@ void mme_app_handle_handover_required(
         ue_context_p->emm_context._security.vector_index,
         ue_context_p->mme_ue_s1ap_id);
   }
+
   derive_NH(
       ue_context_p->emm_context
           ._vector[ue_context_p->emm_context._security.vector_index]
@@ -3329,6 +3329,12 @@ void mme_app_handle_handover_required(
       ue_context_p->emm_context._security.next_hop,
       ue_context_p->emm_context._security.next_hop,
       &ue_context_p->emm_context._security.next_hop_chaining_count);
+
+  memcpy(
+      ho_request_p->nh, ue_context_p->emm_context._security.next_hop,
+      AUTH_NEXT_HOP_SIZE);
+  ho_request_p->ncc =
+      ue_context_p->emm_context._security.next_hop_chaining_count;
 
   OAILOG_INFO(
       LOG_MME_APP,

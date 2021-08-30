@@ -52,7 +52,6 @@ type s6aProxy struct {
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
 	healthTracker  *metrics.S6aHealthTracker
-	originStateID  uint32
 }
 
 func NewS6aProxy(
@@ -120,7 +119,6 @@ func NewS6aProxy(
 		connMan:        connMan,
 		requestTracker: diameter.NewRequestTracker(),
 		healthTracker:  metrics.NewS6aHealthTracker(),
-		originStateID:  originStateID,
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_S6A_APP_ID, Code: diam.AuthenticationInformation, Request: false},

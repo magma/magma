@@ -645,11 +645,8 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       emm_sap.u.emm_as.u.establish.emergency_number_list = NULL;
 
       emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-          calloc(1, sizeof(eps_network_feature_support_t));
-      emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
-          _emm_data.conf.eps_network_feature_support[0];
-      emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
-          _emm_data.conf.eps_network_feature_support[1];
+          (eps_network_feature_support_t*) &_emm_data.conf
+              .eps_network_feature_support;
       emm_sap.u.emm_as.u.establish.additional_update_result = NULL;
       emm_sap.u.emm_as.u.establish.t3412_extended           = NULL;
       emm_sap.u.emm_as.u.establish.nas_msg =
@@ -743,11 +740,8 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       }
 
       emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-          calloc(1, sizeof(eps_network_feature_support_t));
-      emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
-          _emm_data.conf.eps_network_feature_support[0];
-      emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
-          _emm_data.conf.eps_network_feature_support[1];
+          (eps_network_feature_support_t*) &_emm_data.conf
+              .eps_network_feature_support;
 
       /*If CSFB is enabled,store LAI,Mobile Identity and
        * Additional Update type to be sent in TAU accept to S1AP

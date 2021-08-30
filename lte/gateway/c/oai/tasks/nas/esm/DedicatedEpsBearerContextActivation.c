@@ -408,7 +408,7 @@ void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
    */
   esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
-  if (esm_ebr_timer_data) {
+  if (esm_ebr_timer_data && esm_ebr_timer_data->ctx) {
     /*
      * Increment the retransmission counter
      */
@@ -421,6 +421,32 @@ void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
         esm_ebr_timer_data->count);
     *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
+
+    // on timer expiry set the timer_id to inactive
+    ue_mm_context_t* ue_mm_context =
+        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
+    bearer_context_t* bearer_context = NULL;
+    esm_ebr_context_t* ebr_ctx       = NULL;
+    if (!ue_mm_context) {
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, *imsi64,
+          "Failed to find ue context for ue_id " MME_UE_S1AP_ID_FMT "\n",
+          esm_ebr_timer_data->ue_id);
+      OAILOG_FUNC_OUT(LOG_NAS_ESM);
+    }
+    bearer_context =
+        ue_mm_context->bearer_contexts[EBI_TO_INDEX(esm_ebr_timer_data->ebi)];
+    if (bearer_context == NULL) {
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, *imsi64,
+          "Failed to find bearer context for bearer_id:%u and "
+          "ue_id " MME_UE_S1AP_ID_FMT "\n",
+          esm_ebr_timer_data->ebi, esm_ebr_timer_data->ue_id);
+      OAILOG_FUNC_OUT(LOG_NAS_ESM);
+    }
+    ebr_ctx           = &bearer_context->esm_ebr_context;
+    ebr_ctx->timer.id = NAS_TIMER_INACTIVE_ID;
+
     if (esm_ebr_timer_data->count < DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX) {
       /*
        * Re-send activate dedicated EPS bearer context request message
@@ -612,6 +638,9 @@ static void erab_setup_rsp_tmr_exp_ded_bearer_handler(
           bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
         }
         if (esm_ebr_timer_data) {
+          if (esm_ebr_timer_data->msg) {
+            bdestroy_wrapper(&esm_ebr_timer_data->msg);
+          }
           free_wrapper((void**) &esm_ebr_timer_data);
         }
       }
@@ -622,6 +651,9 @@ static void erab_setup_rsp_tmr_exp_ded_bearer_handler(
         bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
       }
       if (esm_ebr_timer_data) {
+        if (esm_ebr_timer_data->msg) {
+          bdestroy_wrapper(&esm_ebr_timer_data->msg);
+        }
         free_wrapper((void**) &esm_ebr_timer_data);
       }
     }

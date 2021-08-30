@@ -89,6 +89,7 @@ services:
       USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
       GY_SUPPORTED_VENDOR_IDS: ${GY_SUPPORTED_VENDOR_IDS}
       GY_SERVICE_CONTEXT_ID: ${GY_SERVICE_CONTEXT_ID}
+      DISABLE_REQUESTED_SERVICE_UNIT_AVP: ${DISABLE_REQUESTED_SERVICE_UNIT_AVP}
     container_name: session_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 

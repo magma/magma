@@ -105,20 +105,25 @@ void S1apStateManager::free_state() {
       assoc_id = (sctp_assoc_id_t) keys->keys[i];
       ht_rc    = hashtable_ts_get(
           &state_cache_p->enbs, (hash_key_t) assoc_id, (void**) &enb);
-      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
-      hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+      if (ht_rc != HASH_TABLE_OK) {
+        OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
+      } else {
+        hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+      }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-
   if (hashtable_ts_destroy(&state_cache_p->enbs) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occurred while destroying s1 eNB hash table");
+    OAILOG_ERROR(
+        LOG_S1AP, "An error occurred while destroying s1 eNB hash table");
   }
   if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
+    OAILOG_ERROR(
+        LOG_S1AP, "An error occurred while destroying assoc_id hash table");
   }
   if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
+    OAILOG_ERROR(
+        LOG_S1AP, "An error occurred while destroying assoc_id hash table");
   }
   free_wrapper((void**) &state_cache_p);
 

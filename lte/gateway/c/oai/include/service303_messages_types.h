@@ -33,4 +33,16 @@ typedef struct application_unhealthy_msg {
   uint8_t unused;
 } application_unhealthy_msg_t;
 
+// Message capturing stats as communicated by the mme_app
+typedef struct application_mme_app_stats_msg {
+  uint32_t nb_ue_attached;
+  uint32_t nb_ue_connected;
+  uint32_t nb_default_eps_bearers;
+  uint32_t nb_s1u_bearers;
+} application_mme_app_stats_msg_t;
+
+typedef struct application_s1ap_stats_msg {
+  uint32_t nb_enb_connected;
+} application_s1ap_stats_msg_t;
+
 #endif /* FILE_SERVICE303_MESSAGES_TYPES_SEEN */

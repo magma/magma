@@ -22,3 +22,9 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
     application_unhealthy_msg)
+MESSAGE_DEF(
+    APPLICATION_MME_APP_STATS_MSG, application_mme_app_stats_msg_t,
+    application_mme_app_stats_msg)
+MESSAGE_DEF(
+    APPLICATION_S1AP_STATS_MSG, application_s1ap_stats_msg_t,
+    application_s1ap_stats_msg)
