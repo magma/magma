@@ -92,9 +92,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize1)),
       sizeof(extended_apn_ambr_encoded_buffersize1));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize1),
-      sizeof(extended_apn_ambr_encoded_buffersize1));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize1, extended_apn_ambr_buffersize1,
           sizeof(extended_apn_ambr_buffersize1))),
@@ -119,9 +116,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize2,
           sizeof(extended_apn_ambr_encoded_buffersize2)),
-      sizeof(extended_apn_ambr_encoded_buffersize2));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize2),
       sizeof(extended_apn_ambr_encoded_buffersize2));
   ASSERT_EQ(
       (memcmp(
@@ -150,9 +144,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize3)),
       sizeof(extended_apn_ambr_encoded_buffersize3));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize3),
-      sizeof(extended_apn_ambr_encoded_buffersize3));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize3, extended_apn_ambr_buffersize3,
           sizeof(extended_apn_ambr_buffersize3))),
@@ -177,9 +168,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize4,
           sizeof(extended_apn_ambr_encoded_buffersize4)),
-      sizeof(extended_apn_ambr_encoded_buffersize4));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize4),
       sizeof(extended_apn_ambr_encoded_buffersize4));
   ASSERT_EQ(
       (memcmp(
@@ -208,9 +196,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize5)),
       sizeof(extended_apn_ambr_encoded_buffersize5));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize5),
-      sizeof(extended_apn_ambr_encoded_buffersize5));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize5, extended_apn_ambr_buffersize5,
           sizeof(extended_apn_ambr_buffersize5))),
@@ -235,9 +220,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize6,
           sizeof(extended_apn_ambr_encoded_buffersize6)),
-      sizeof(extended_apn_ambr_encoded_buffersize6));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize6),
       sizeof(extended_apn_ambr_encoded_buffersize6));
   ASSERT_EQ(
       (memcmp(
@@ -266,9 +248,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize7)),
       sizeof(extended_apn_ambr_encoded_buffersize7));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize7),
-      sizeof(extended_apn_ambr_encoded_buffersize7));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize7, extended_apn_ambr_buffersize7,
           sizeof(extended_apn_ambr_buffersize7))),
@@ -293,9 +272,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize8,
           sizeof(extended_apn_ambr_encoded_buffersize8)),
-      sizeof(extended_apn_ambr_encoded_buffersize8));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize8),
       sizeof(extended_apn_ambr_encoded_buffersize8));
   ASSERT_EQ(
       (memcmp(
@@ -324,9 +300,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize9)),
       sizeof(extended_apn_ambr_encoded_buffersize9));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize9),
-      sizeof(extended_apn_ambr_encoded_buffersize9));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize9, extended_apn_ambr_buffersize9,
           sizeof(extended_apn_ambr_buffersize9))),
@@ -351,9 +324,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize10,
           sizeof(extended_apn_ambr_encoded_buffersize10)),
-      sizeof(extended_apn_ambr_encoded_buffersize10));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize10),
       sizeof(extended_apn_ambr_encoded_buffersize10));
   ASSERT_EQ(
       (memcmp(
@@ -383,9 +353,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize11)),
       sizeof(extended_apn_ambr_encoded_buffersize11));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize11),
-      sizeof(extended_apn_ambr_encoded_buffersize11));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize11,
           extended_apn_ambr_buffersize11,
@@ -411,9 +378,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize12,
           sizeof(extended_apn_ambr_encoded_buffersize12)),
-      sizeof(extended_apn_ambr_encoded_buffersize12));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize12),
       sizeof(extended_apn_ambr_encoded_buffersize12));
   ASSERT_EQ(
       (memcmp(
@@ -443,9 +407,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize13)),
       sizeof(extended_apn_ambr_encoded_buffersize13));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize13),
-      sizeof(extended_apn_ambr_encoded_buffersize13));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize13,
           extended_apn_ambr_buffersize13,
@@ -471,9 +432,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize14,
           sizeof(extended_apn_ambr_encoded_buffersize14)),
-      sizeof(extended_apn_ambr_encoded_buffersize14));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize14),
       sizeof(extended_apn_ambr_encoded_buffersize14));
   ASSERT_EQ(
       (memcmp(
@@ -503,9 +461,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize15)),
       sizeof(extended_apn_ambr_encoded_buffersize15));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize15),
-      sizeof(extended_apn_ambr_encoded_buffersize15));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize15,
           extended_apn_ambr_buffersize15,
@@ -531,9 +486,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize16,
           sizeof(extended_apn_ambr_encoded_buffersize16)),
-      sizeof(extended_apn_ambr_encoded_buffersize16));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize16),
       sizeof(extended_apn_ambr_encoded_buffersize16));
   ASSERT_EQ(
       (memcmp(
@@ -563,9 +515,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize17)),
       sizeof(extended_apn_ambr_encoded_buffersize17));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize17),
-      sizeof(extended_apn_ambr_encoded_buffersize17));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize17,
           extended_apn_ambr_buffersize17,
@@ -591,9 +540,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize18,
           sizeof(extended_apn_ambr_encoded_buffersize18)),
-      sizeof(extended_apn_ambr_encoded_buffersize18));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize18),
       sizeof(extended_apn_ambr_encoded_buffersize18));
   ASSERT_EQ(
       (memcmp(
@@ -623,9 +569,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize19)),
       sizeof(extended_apn_ambr_encoded_buffersize19));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize19),
-      sizeof(extended_apn_ambr_encoded_buffersize19));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize19,
           extended_apn_ambr_buffersize19,
@@ -651,9 +594,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize20,
           sizeof(extended_apn_ambr_encoded_buffersize20)),
-      sizeof(extended_apn_ambr_encoded_buffersize20));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize20),
       sizeof(extended_apn_ambr_encoded_buffersize20));
   ASSERT_EQ(
       (memcmp(
@@ -683,9 +623,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize21)),
       sizeof(extended_apn_ambr_encoded_buffersize21));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize21),
-      sizeof(extended_apn_ambr_encoded_buffersize21));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize21,
           extended_apn_ambr_buffersize21,
@@ -711,9 +648,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize22,
           sizeof(extended_apn_ambr_encoded_buffersize22)),
-      sizeof(extended_apn_ambr_encoded_buffersize22));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize22),
       sizeof(extended_apn_ambr_encoded_buffersize22));
   ASSERT_EQ(
       (memcmp(
@@ -743,9 +677,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize23)),
       sizeof(extended_apn_ambr_encoded_buffersize23));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize23),
-      sizeof(extended_apn_ambr_encoded_buffersize23));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize23,
           extended_apn_ambr_buffersize23,
@@ -771,9 +702,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize24,
           sizeof(extended_apn_ambr_encoded_buffersize24)),
-      sizeof(extended_apn_ambr_encoded_buffersize24));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize24),
       sizeof(extended_apn_ambr_encoded_buffersize24));
   ASSERT_EQ(
       (memcmp(
@@ -803,9 +731,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize25)),
       sizeof(extended_apn_ambr_encoded_buffersize25));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize25),
-      sizeof(extended_apn_ambr_encoded_buffersize25));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize25,
           extended_apn_ambr_buffersize25,
@@ -831,9 +756,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize26,
           sizeof(extended_apn_ambr_encoded_buffersize26)),
-      sizeof(extended_apn_ambr_encoded_buffersize26));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize26),
       sizeof(extended_apn_ambr_encoded_buffersize26));
   ASSERT_EQ(
       (memcmp(
@@ -863,9 +785,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize27)),
       sizeof(extended_apn_ambr_encoded_buffersize27));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize27),
-      sizeof(extended_apn_ambr_encoded_buffersize27));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize27,
           extended_apn_ambr_buffersize27,
@@ -893,9 +812,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
           sizeof(extended_apn_ambr_encoded_buffersize28)),
       sizeof(extended_apn_ambr_encoded_buffersize28));
   ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize28),
-      sizeof(extended_apn_ambr_encoded_buffersize28));
-  ASSERT_EQ(
       (memcmp(
           extended_apn_ambr_encoded_buffersize28,
           extended_apn_ambr_buffersize28,
@@ -921,9 +837,6 @@ TEST_F(EMMDecodeTest, TestDecodeEncodeExtendedAPNAMBR) {
       encode_extended_apn_aggregate_maximum_bit_rate(
           &extended_apn_ambr, 0, extended_apn_ambr_encoded_buffersize29,
           sizeof(extended_apn_ambr_encoded_buffersize29)),
-      sizeof(extended_apn_ambr_encoded_buffersize29));
-  ASSERT_EQ(
-      sizeof(extended_apn_ambr_buffersize29),
       sizeof(extended_apn_ambr_encoded_buffersize29));
   ASSERT_EQ(
       (memcmp(
