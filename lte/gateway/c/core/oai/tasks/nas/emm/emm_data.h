@@ -581,10 +581,6 @@ void emm_context_dump(
     const struct emm_context_s* const elm_pP, const uint8_t indent_spaces,
     bstring bstr_dump) __attribute__((nonnull));
 
-/*
- *  Detach Proc: Timer handler
- */
-void detach_t3422_handler(void*, imsi64_t* imsi64);
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
 /****************************************************************************/

@@ -869,6 +869,23 @@ void nas_start_T3470(
   }
 }
 //------------------------------------------------------------------------------
+void nas_start_T3422(
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422,
+    time_out_t time_out_cb) {
+  if ((T3422) && (T3422->id == NAS_TIMER_INACTIVE_ID)) {
+    T3422->id = mme_app_start_timer(
+        T3422->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    if (NAS_TIMER_INACTIVE_ID != T3422->id) {
+      OAILOG_DEBUG(
+          LOG_NAS_EMM, "T3422 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+    } else {
+      OAILOG_ERROR(
+          LOG_NAS_EMM, "Could not start T3422 UE " MME_UE_S1AP_ID_FMT " ",
+          ue_id);
+    }
+  }
+}
+//------------------------------------------------------------------------------
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
     time_out_t time_out_cb) {
@@ -916,6 +933,17 @@ void nas_stop_T3470(
     T3470->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3470 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+  }
+}
+
+//------------------------------------------------------------------------------
+void nas_stop_T3422(
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422) {
+  if ((T3422) && (T3422->id != NAS_TIMER_INACTIVE_ID)) {
+    mme_app_stop_timer(T3422->id);
+    T3422->id = NAS_TIMER_INACTIVE_ID;
+    OAILOG_DEBUG(
+        LOG_NAS_EMM, "T3422 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
 }
 

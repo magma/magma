@@ -2223,9 +2223,8 @@ static bool mme_app_recover_timers_for_ue(
 
   // timer for network initiated detach procedure
   if (ue_mm_context_pP->emm_context.t3422_arg) {
-    detach_t3422_handler(
-        (void*) ue_mm_context_pP->emm_context.t3422_arg,
-        &ue_mm_context_pP->emm_context._imsi64);
+    mme_app_handle_detach_t3422_expiry(
+        NULL, ue_mm_context_pP->emm_context.T3422.id, NULL);
   }
 
   if (ue_mm_context_pP->emm_context._emm_fsm_state != EMM_REGISTERED) {
