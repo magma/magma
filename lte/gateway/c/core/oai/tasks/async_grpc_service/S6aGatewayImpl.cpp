@@ -92,6 +92,7 @@ S6aProxyResponderAsyncService::S6aProxyResponderAsyncService(
 
 void S6aProxyResponderAsyncService::init_call_data(void) {
   new CancelLocationCallData(cq_.get(), *this, *handler_);
+  new ResetCallData(cq_.get(), *this, *handler_);
 }
 
 void S6aProxyResponderAsyncService::set_callback(
@@ -142,12 +143,27 @@ void S6aProxyAsyncResponderHandler::CancelLocation(
   auto imsi              = request->user_name();
   auto cancellation_type = request->cancellation_type();
   OAILOG_INFO(
-      LOG_MME_APP, "Received CLR for %s of type %d\n ", imsi.c_str(),
+      LOG_S6A, "Received CLR for %s of type %d\n ", imsi.c_str(),
       cancellation_type);
   if (cancellation_type == CancelLocationRequest::SUBSCRIPTION_WITHDRAWAL) {
     auto imsi_len = imsi.length();
     delete_subscriber_request(imsi.c_str(), imsi_len);
   }
+  return;
+}
+
+void S6aProxyAsyncResponderHandler::Reset(
+    ServerContext* context, const ResetRequest* request,
+    std::function<void(grpc::Status, ResetAnswer)> response_callback) {
+  auto& request_cpy = *request;
+  ResetAnswer ans;
+  Status status;
+  status = Status::OK;
+  ans.set_error_code(ErrorCode::SUCCESS);
+  response_callback(status, ans);
+  OAILOG_INFO(LOG_S6A, "Received S6a-Reset message \n");
+  // Send message to MME_APP for furher processing
+  handle_reset_request();
   return;
 }
 

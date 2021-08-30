@@ -27,6 +27,9 @@ class ServerContext;
 namespace magma {
 namespace feg {
 class CancelLocationRequest;
+class CancelLocationAnswer;
+class ResetRequest;
+class ResetAnswer;
 }  // namespace feg
 }  // namespace magma
 
@@ -86,6 +89,10 @@ class S6aProxyAsyncResponderHandler {
       ServerContext* context, const CancelLocationRequest* request,
       std::function<void(grpc::Status, CancelLocationAnswer)>
           response_callback);
+  //  Reset Request is sent from HSS to reset some or all subscribers
+  void Reset(
+      ServerContext* context, const ResetRequest* request,
+      std::function<void(grpc::Status, ResetAnswer)> response_callback);
 };
 
 /*
@@ -197,6 +204,32 @@ class CancelLocationCallData
 
   void process() override {
     handler_.CancelLocation(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  S6aProxyAsyncResponderHandler& handler_;
+};
+
+/**
+ * Class to handle Reset requests
+ */
+class ResetCallData
+    : public AsyncGRPCRequest<
+          S6aGatewayService::AsyncService, ResetRequest, ResetAnswer> {
+ public:
+  ResetCallData(
+      ServerCompletionQueue* cq, S6aGatewayService::AsyncService& service,
+      S6aProxyAsyncResponderHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestReset(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override { new ResetCallData(cq_, service_, handler_); }
+
+  void process() override {
+    handler_.Reset(&ctx_, &request_, get_finish_callback());
   }
 
  private:
