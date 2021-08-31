@@ -649,7 +649,7 @@ class ServiceManager:
         if self._5G_flag_enable:
             contexts['rpc_stubs'].update({
                 'sessiond_setinterface': \
-                                            SetInterfaceForUserPlaneStub(sessiond_chan),
+                SetInterfaceForUserPlaneStub(sessiond_chan),
             })
 
         # Instantiate and schedule apps

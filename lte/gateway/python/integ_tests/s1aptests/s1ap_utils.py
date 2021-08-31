@@ -1604,7 +1604,7 @@ class SessionManagerUtil(object):
         except grpc.RpcError as err:
             print(
                 "error: GetDirectoryFieldRequest error for id: "
-                      "%s! [%s] %s" % (imsi, err.code(), err.details()),
+                "%s! [%s] %s" % (imsi, err.code(), err.details()),
             )
 
         if res == None:

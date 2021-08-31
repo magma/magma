@@ -20,8 +20,10 @@ from magma.kernsnoopd.handlers import ebpf_handlers
 
 EBPF_SRC_DIR = "/etc/magma/ebpf"
 if not os.path.isdir(EBPF_SRC_DIR):
-    EBPF_SRC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                'ebpf')
+    EBPF_SRC_DIR = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'ebpf',
+    )
 EBPF_COMMON_FILE = 'common.bpf.h'
 
 

@@ -106,7 +106,7 @@ class HealthCLI:
         print(
             '\n'.join([
                 '{}:\t{}'.format(name, errors) for name, errors in
-                 self._health_checker
+                self._health_checker
                 .get_error_summary(service_names)
                 .items()
             ]),

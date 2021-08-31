@@ -428,7 +428,7 @@ class Classifier(MagmaController):
 
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match,
-                                 actions=actions, priority=priority,
+            actions=actions, priority=priority,
             reset_default_register=False,
             resubmit_table=self.next_table,
         )
@@ -436,7 +436,7 @@ class Classifier(MagmaController):
         match = self._get_ip_flow_dl_match(ip_flow_dl, self.config.mtr_port)
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match,
-                                        actions=actions, priority=priority,
+            actions=actions, priority=priority,
             reset_default_register=False,
             resubmit_table=self.next_table,
         )
@@ -532,7 +532,7 @@ class Classifier(MagmaController):
         match = self._get_ip_flow_dl_match(ip_flow_dl, self._uplink_port)
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match,
-                                               priority=Utils.RESUME_RULE_PRIORITY,
+            priority=Utils.RESUME_RULE_PRIORITY,
             reset_default_register=False,
             resubmit_table=self.next_table,
         )
@@ -540,7 +540,7 @@ class Classifier(MagmaController):
         match = self._get_ip_flow_dl_match(ip_flow_dl, self.config.mtr_port)
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match,
-                                               priority=Utils.RESUME_RULE_PRIORITY,
+            priority=Utils.RESUME_RULE_PRIORITY,
             reset_default_register=False,
             resubmit_table=self.next_table,
         )
@@ -922,7 +922,7 @@ class Classifier(MagmaController):
 
         if (
             request.ue_session_state.ue_config_state == \
-                                      UESessionState.ACTIVE
+            UESessionState.ACTIVE
         ):
             result = self._validate_ue_session(request)
             if result == False:
@@ -941,7 +941,7 @@ class Classifier(MagmaController):
 
         elif (
             request.ue_session_state.ue_config_state == \
-                                      UESessionState.UNREGISTERED
+            UESessionState.UNREGISTERED
         ):
             res = self.delete_tunnel_flows(
                 request.in_teid,
@@ -952,13 +952,13 @@ class Classifier(MagmaController):
 
         elif (
             request.ue_session_state.ue_config_state == \
-                                      UESessionState.UNINSTALL_IDLE
+            UESessionState.UNINSTALL_IDLE
         ):
             res = self.remove_paging_flow(ue_ipv4_address)
 
         elif (
             request.ue_session_state.ue_config_state == \
-                                      UESessionState.INSTALL_IDLE
+            UESessionState.INSTALL_IDLE
         ):
             res = self.install_paging_flow(
                 ue_ipv4_address,
@@ -968,7 +968,7 @@ class Classifier(MagmaController):
 
         elif (
             request.ue_session_state.ue_config_state == \
-                                       UESessionState.RESUME_DATA
+            UESessionState.RESUME_DATA
         ):
             res = self.resume_tunnel_flows(
                 request.in_teid,
@@ -978,7 +978,7 @@ class Classifier(MagmaController):
 
         elif (
             request.ue_session_state.ue_config_state == \
-                                       UESessionState.SUSPENDED_DATA
+            UESessionState.SUSPENDED_DATA
         ):
             res = self.discard_tunnel_flows(
                 request.in_teid,
@@ -1002,7 +1002,7 @@ class Classifier(MagmaController):
 
         if (
             len(tunnel_msg.subscriber_id.id) == 0 or \
-              (tunnel_msg.subscriber_id.type) != SubscriberID.IMSI
+            (tunnel_msg.subscriber_id.type) != SubscriberID.IMSI
         ):
             return False
 
