@@ -19,9 +19,9 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
-	"magma/lte/gateway/log"
-	"magma/lte/gateway/protos/magma/sctpd"
-	service_sctpd "magma/lte/gateway/service/sctpd"
+	"github.com/magma/magma/log"
+	"github.com/magma/magma/protos/magma/sctpd"
+	service_sctpd "github.com/magma/magma/service/sctpd"
 )
 
 const (
@@ -30,7 +30,8 @@ const (
 )
 
 func newMmeGrpcConn() (*grpc.ClientConn, error) {
-	ctx, _ := context.WithTimeout(context.Background(), mmeGrpcDialTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), mmeGrpcDialTimeout)
+	defer cancel()
 	return grpc.DialContext(ctx, mmeUpstreamTarget, grpc.WithInsecure(), grpc.WithBlock())
 }
 

@@ -19,11 +19,11 @@ import (
 	"sync"
 	"testing"
 
-	"magma/lte/gateway/log"
-
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/magma/magma/log"
 )
 
 func TestPrinter_Print(t *testing.T) {
@@ -232,7 +232,7 @@ func newMemorySink(name string) *memorySink {
 
 func init() {
 	memorySinks = make(map[string]*memorySink)
-	zap.RegisterSink("memory", func(u *url.URL)(zap.Sink, error){
+	zap.RegisterSink("memory", func(u *url.URL) (zap.Sink, error) {
 		return newMemorySink(u.Host), nil
 	})
 }
@@ -311,7 +311,6 @@ func TestLogger_With(t *testing.T) {
 	test := l.With("env", "test")
 	nested := test.With("foo", "bar")
 	overwrite := nested.With("env", "test2")
-
 
 	l.Info().Print("hi")
 	test.Info().Print("hi")
