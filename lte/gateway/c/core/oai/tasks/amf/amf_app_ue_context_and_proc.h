@@ -96,7 +96,7 @@ struct amf_procedures_t;
 #define N1_SM_INFO 0x1
 #define AMBR_LEN 6
 #define PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN 30
-#define PDU_ESTAB_ACCPET_NAS_PDU_LEN 41
+#define PDU_ESTAB_ACCEPT_NAS_PDU_LEN 41
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
 #define PDU_ADDR_TYPE 0X1

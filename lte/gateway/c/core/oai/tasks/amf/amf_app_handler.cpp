@@ -822,7 +822,7 @@ int amf_app_handle_pdu_session_accept(
 
   encode_msg->payload_container.len =
       PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len;
-  len = PDU_ESTAB_ACCPET_NAS_PDU_LEN + pco_len;
+  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
