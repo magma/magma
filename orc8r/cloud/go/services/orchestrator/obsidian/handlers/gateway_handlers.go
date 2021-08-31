@@ -203,7 +203,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		writes = append(writes, subGateway.GetAdditionalWritesOnCreate()...)
 	}
 
-	if err = configurator.WriteEntities(nid, writes, entitySerdes); err != nil {
+	if err = configurator.WriteEntities(reqCtx, nid, writes, entitySerdes); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "error creating gateway"), http.StatusInternalServerError)
 	}
 	return nil
@@ -308,7 +308,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 		return nerr
 	}
 
-	err = configurator.WriteEntities(nid, writes, entitySerdes)
+	err = configurator.WriteEntities(reqCtx, nid, writes, entitySerdes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -376,7 +376,7 @@ func DeleteMagmadGateway(ctx context.Context, networkID, gatewayID string, addit
 	deletes = append(deletes, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: gatewayID})
 	deletes = append(deletes, additionalDeletes...)
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "error deleting gateway"), http.StatusInternalServerError)
 	}

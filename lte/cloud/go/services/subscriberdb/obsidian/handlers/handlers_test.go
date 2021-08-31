@@ -61,14 +61,10 @@ func TestCreateSubscriber(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// default sub profile should always succeed
@@ -253,14 +249,10 @@ func TestCreateSubscribers(t *testing.T) {
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	// Pre: seed 2 apns
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: "apn0"},
-			{Type: lte.APNEntityType, Key: "apn1"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn0"},
+		{Type: lte.APNEntityType, Key: "apn1"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Pass: happy path
@@ -374,14 +366,10 @@ func TestListSubscribers(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -395,38 +383,34 @@ func TestListSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo: "MILENAGE",
-						AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						State:    "ACTIVE",
-					},
-					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
 				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						State:      "ACTIVE",
-						SubProfile: "foo",
-					},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
-			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:      "ACTIVE",
+					SubProfile: "foo",
+				},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -484,11 +468,7 @@ func TestListSubscribers(t *testing.T) {
 
 	// Now create some AGW-reported state for 1234567890
 	// First we need to register a gateway which can report state
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
@@ -612,14 +592,10 @@ func TestListSubscribersV2(t *testing.T) {
 
 	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	expectedTotalCount := int64(0)
 	expectedResult := subscriberModels.PaginatedSubscribers{TotalCount: expectedTotalCount, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
@@ -636,58 +612,50 @@ func TestListSubscribersV2(t *testing.T) {
 
 	// Set the total expected count to 3, the number of subscribers created below
 	expectedResult.TotalCount = 3
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo: "MILENAGE",
-						AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						State:    "ACTIVE",
-					},
-					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
 				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						State:      "ACTIVE",
-						SubProfile: "foo",
-					},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI0987654322",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						State:      "ACTIVE",
-						SubProfile: "foo",
-					},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
-			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:      "ACTIVE",
+					SubProfile: "foo",
+				},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+		},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI0987654322",
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:      "ACTIVE",
+					SubProfile: "foo",
+				},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
@@ -874,14 +842,10 @@ func TestGetSubscriber(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -896,24 +860,20 @@ func TestGetSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// No sub profile configured, we should return "default"
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Name: "Jane Doe",
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo: "MILENAGE",
-					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:    "ACTIVE",
-				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Name: "Jane Doe",
+		Config: &subscriberModels.SubscriberConfig{
+			Lte: &subscriberModels.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+			StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 		},
-		serdes.Entity,
-	)
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -950,11 +910,7 @@ func TestGetSubscriber(t *testing.T) {
 
 	// Now create AGW
 	// First we need to register a gateway which can report state
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
@@ -1059,14 +1015,10 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	createSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, createSubscribersURL, obsidian.POST).HandlerFunc
 
 	// Pre: create two APNs
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: "apn0"},
-			{Type: lte.APNEntityType, Key: "apn1"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn0"},
+		{Type: lte.APNEntityType, Key: "apn1"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Create two subscribers, one a prefix of the other
@@ -1151,11 +1103,7 @@ func TestListSubscriberStates(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Create gateway and report states
-	_, err = configurator.CreateEntity(
-		"n0",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"}, serdes.Entity)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
@@ -1268,11 +1216,7 @@ func TestGetSubscriberState(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Create gateway and report states
-	_, err = configurator.CreateEntity(
-		"n0",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"}, serdes.Entity)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
@@ -1401,14 +1345,10 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Create default subscriber profile
-	_, err = configurator.CreateEntity(
-		"n0",
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Name: "Jane Doe",
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Name: "Jane Doe",
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Create MSISDN->IMSI mapping
@@ -1528,20 +1468,16 @@ func TestGetSubscriberByIP(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Create default subscriber profiles
-	_, err = configurator.CreateEntities(
-		"n0",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-				Name: "Jane Doe",
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI0000000001",
-				Name: "John Doe",
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Name: "Jane Doe",
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI0000000001",
+			Name: "John Doe",
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// List one => still not found
@@ -1557,11 +1493,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Report IP state: Jane has an IP
-	_, err = configurator.CreateEntity(
-		"n0",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"}, serdes.Entity)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
 	mobilitydState := &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAQ=="}} // 127.0.0.1
@@ -1655,14 +1587,10 @@ func TestUpdateSubscriber(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// 404
@@ -1701,22 +1629,18 @@ func TestUpdateSubscriber(t *testing.T) {
 		},
 	}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
-				},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Config: &subscriberModels.SubscriberConfig{
+			Lte: &subscriberModels.LteSubscription{
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
 		},
-		serdes.Entity,
-	)
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	payload = &subscriberModels.MutableSubscriber{
@@ -1789,31 +1713,23 @@ func TestDeleteSubscriber(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			// Intentionally populate with invalid config
-			Config: &subscriberModels.LteSubscription{
-				AuthAlgo: "MILENAGE",
-				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:    "ACTIVE",
-			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		// Intentionally populate with invalid config
+		Config: &subscriberModels.LteSubscription{
+			AuthAlgo: "MILENAGE",
+			AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:    "ACTIVE",
 		},
-		serdes.Entity,
-	)
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -1849,14 +1765,10 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	expected := configurator.NetworkEntity{
@@ -1871,7 +1783,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 		},
 		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
-	_, err = configurator.CreateEntity("n1", expected, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", expected, serdes.Entity)
 	assert.NoError(t, err)
 	expected.NetworkID = "n1"
 	expected.GraphID = "2"
@@ -1958,32 +1870,24 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 
 	//preseed 2 apns
 	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: apn1},
+		{Type: lte.APNEntityType, Key: apn2},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
-				},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Config: &subscriberModels.SubscriberConfig{
+			Lte: &subscriberModels.LteSubscription{
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
-		serdes.Entity,
-	)
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2095,16 +1999,12 @@ func TestSubscriberBasename(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(
-		"n0",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: "apn0"},
-			{Type: lte.APNEntityType, Key: "apn1"},
-			{Type: lte.BaseNameEntityType, Key: "basename0"},
-			{Type: lte.BaseNameEntityType, Key: "basename2"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn0"},
+		{Type: lte.APNEntityType, Key: "apn1"},
+		{Type: lte.BaseNameEntityType, Key: "basename0"},
+		{Type: lte.BaseNameEntityType, Key: "basename2"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2202,17 +2102,13 @@ func TestSubscriberPolicy(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(
-		"n0",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: "apn0"},
-			{Type: lte.APNEntityType, Key: "apn1"},
-			{Type: lte.PolicyRuleEntityType, Key: "rule0"},
-			{Type: lte.PolicyRuleEntityType, Key: "rule1"},
-			{Type: lte.PolicyRuleEntityType, Key: "rule2"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn0"},
+		{Type: lte.APNEntityType, Key: "apn1"},
+		{Type: lte.PolicyRuleEntityType, Key: "rule0"},
+		{Type: lte.PolicyRuleEntityType, Key: "rule1"},
+		{Type: lte.PolicyRuleEntityType, Key: "rule2"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2310,17 +2206,13 @@ func TestAPNPolicyProfile(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(
-		"n0",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: "apn0"},
-			{Type: lte.APNEntityType, Key: "apn1"},
-			{Type: lte.PolicyRuleEntityType, Key: "rule0"},
-			{Type: lte.PolicyRuleEntityType, Key: "rule1"},
-			{Type: lte.PolicyRuleEntityType, Key: "rule2"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn0"},
+		{Type: lte.APNEntityType, Key: "apn1"},
+		{Type: lte.PolicyRuleEntityType, Key: "rule0"},
+		{Type: lte.PolicyRuleEntityType, Key: "rule1"},
+		{Type: lte.PolicyRuleEntityType, Key: "rule2"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
