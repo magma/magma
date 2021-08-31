@@ -71,31 +71,31 @@
 <p>This pattern relies on generating, storing, and communicating digests (aka hashes, or deterministically-encoded, constant-length &quot;snapshots&quot;) of the data to be synced.</p>
 <p>The subscriber digests pattern specifically generates and utilizes two types of digests</p>
 <ol>
-<li><strong>Flat digests</strong>: a digest of the entire set of subscriber configs of a network</li>
-<li><strong>Per-subscriber digests</strong>: a digest of a single subscriber config object. For a network, the list of per-subscriber digests is tracked and distributed en masse</li>
+<li><strong>Root digests</strong>: digest of the entire set of subscriber configs in a network</li>
+<li><strong>Leaf digests</strong>: digest of a single subscriber config object. For a network, this list of per-subscriber digests is tracked and distributed en masse</li>
 </ol>
 <p>NOTE: currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to ensure the generated digests are representative and also network-general. See <a href="#apn-resource-configs-handling">additional notes</a> for more details.</p>
 <h3><a class="anchor" aria-hidden="true" id="subscriber-digests-cache"></a><a href="#subscriber-digests-cache" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subscriber digests cache</h3>
-<p><em>subscriberdb_cache</em> is a single-pod service in charge of managing network digests. The service constantly generates new flat digests and per-subscriber digests at a configurable interval for each network.</p>
+<p><em>subscriberdb_cache</em> is a single-pod service in charge of managing network digests. The service constantly generates new digests at a configurable interval for each network.</p>
 <p>The generated digests are written to a cloud SQL store to which <em>subscriberdb</em> has read-only access. In this way, <em>subscriberdb</em> can directly read the most up-to-date digests from the SQL store, preserving the limited resources of the <em>subscriberdb_cache</em> singleton.</p>
 <p>Additionally, <em>subscriberdb_cache</em> also caches the subscriber configs that the digests represent. This ensures consistency between the cached digests and the actual subscriber configs in a <em>subscriberdb</em> servicer response.</p>
 <p>That is, every time an update of the digests are detected, <em>subscriberdb_cache</em> loads all subscriber configs from <em>configurator</em> and applies the batch update to store. In this way, <em>subscriberdb_cache</em> acts as the single source of truth from which the <em>subscriberdb</em> servicer loads all data required for the subscriber digests pattern.</p>
 <p><em>subscriberdb_cache</em> supports loading subscriber configs either directly by IDs or by pages. To that end, it generates its own page tokens using the same mechanism as in <em>configurator</em>.</p>
 <h3><a class="anchor" aria-hidden="true" id="agw-digest-store"></a><a href="#agw-digest-store" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>AGW digest store</h3>
-<p>Aside from its subscriber database, a gateway also manages SQL stores for its local flat and per-subscriber digests.</p>
+<p>Aside from its subscriber database, a gateway also manages SQL stores for its local root and leaf digests.</p>
 <p>Every time a gateway synchronizes its subscriber configs with the cloud, it receives the latest cloud digests, which it writes to local SQL store. These digests represent the version of subscriber configs stored in the gateway, and they are used in the gateway's subsequent requests to the cloud.</p>
 <h3><a class="anchor" aria-hidden="true" id="cloud-agw-callpath"></a><a href="#cloud-agw-callpath" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cloud-AGW callpath</h3>
 <p>The current interactions between the <em>subscriberdb</em> cloud servicer and the AGW client involve 3 servicer endpoints</p>
 <ol>
-<li><p><code>CheckSubscribersInSync</code></p>
+<li><p><code>CheckInSync</code></p>
 <ul>
-<li>AGW sends its local flat digest</li>
+<li>AGW sends its local root digest</li>
 <li>Cloud compares the AGW digest with the cloud digest. Depending on whether they are the same, the cloud returns a signal for whether the AGW is in-sync</li>
 </ul></li>
-<li><p>If AGW is not in-sync: <code>SyncSubscribers</code></p>
+<li><p>If AGW is not in-sync: <code>Sync</code></p>
 <ul>
-<li>AGW sends its local per-subscriber digests</li>
-<li>Cloud compares the AGW digests with the cloud digests, and calculates the changeset between the two sets of per-subscriber digests. That is, it locates the subscribers to renew and delete on the AGW side
+<li>AGW sends its local leaf digests</li>
+<li>Cloud compares the AGW digests with the cloud digests, and calculates the changeset between the two sets of leaf digests. That is, it locates the subscribers to renew and delete on the AGW side
 <ul>
 <li>If the changeset is of a reasonable (configurable) size, returns the data needed to update AGW locally, as well as the latest cloud digests</li>
 <li>If not, returns a signal for AGW to conduct a full-on resync</li>
@@ -104,7 +104,7 @@
 <li><p>If AGW receives resync signal: <code>ListSubscribers</code></p>
 <ul>
 <li>AGW sends desired page size, as well as the current page token (until all pages are fetched)</li>
-<li>Cloud returns the corresponding page of data loaded from <em>subscriberdb_cache</em>, as well as the latest cloud digests</li>
+<li>Cloud returns the corresponding cached page of data as well as the latest cloud digests</li>
 </ul></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="additional-notes"></a><a href="#additional-notes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Additional Notes</h2>
