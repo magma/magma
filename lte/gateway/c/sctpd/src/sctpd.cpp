@@ -17,6 +17,7 @@
 #include <grpcpp/grpcpp.h>
 #include <signal.h>
 
+#include "gflags/gflags.h"
 #include "sctpd_downlink_impl.h"
 #include "sctpd_event_handler.h"
 #include "sctpd_uplink_client.h"
@@ -75,21 +76,30 @@ int signalHandler(
   return 0;
 }
 
-int main() {
+DEFINE_string(
+    upstream_sock, "unix:///tmp/sctpd_upstream.sock",
+    "Path to unix domain socket for SCTPD upstream traffic.");
+DEFINE_string(
+    downstream_sock, "unix:///tmp/sctpd_downstream.sock",
+    "Path to unix domain socket for SCTPD downstream traffic.");
+
+int main(int argc, char* argv[]) {
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   signalMask();
 
   magma::init_logging("sctpd");
   magma::set_verbosity(MDEBUG);
 
-  auto channel =
-      grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());
+  auto channel = grpc::CreateChannel(
+      FLAGS_upstream_sock, grpc::InsecureChannelCredentials());
 
   SctpdUplinkClient client(channel);
   SctpdEventHandler handler(client);
   SctpdDownlinkImpl service(handler);
 
   ServerBuilder builder;
-  builder.AddListeningPort(DOWNSTREAM_SOCK, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(
+      FLAGS_downstream_sock, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
 
   std::unique_ptr<Server> sctpd_dl_server = builder.BuildAndStart();

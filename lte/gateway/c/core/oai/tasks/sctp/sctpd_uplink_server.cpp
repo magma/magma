@@ -136,18 +136,6 @@ using magma::mme::SctpdUplinkImpl;
 std::shared_ptr<SctpdUplinkImpl> service = nullptr;
 std::unique_ptr<Server> server           = nullptr;
 
-int start_sctpd_uplink_server(void) {
-  service = std::make_shared<SctpdUplinkImpl>();
-
-  ServerBuilder builder;
-  builder.AddListeningPort(UPSTREAM_SOCK, grpc::InsecureServerCredentials());
-  builder.RegisterService(service.get());
-
-  server = builder.BuildAndStart();
-
-  return 0;
-}
-
 void stop_sctpd_uplink_server(void) {
   if (server != nullptr) {
     server->Shutdown();

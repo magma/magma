@@ -51,7 +51,7 @@ add_library(SCTPD_LIB
 target_compile_definitions(SCTPD_LIB PUBLIC LOG_WITH_GLOG)
 
 target_link_libraries(SCTPD_LIB
-    sctp pthread grpc++ grpc protobuf glog MAGMA_LOGGING
+    sctp pthread grpc++ grpc protobuf glog gflags MAGMA_LOGGING
     )
 
 target_include_directories(SCTPD_LIB PUBLIC
