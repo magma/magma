@@ -157,7 +157,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 void* amf_app_thread(void* args) {
   itti_mark_task_ready(TASK_AMF_APP);
   const task_id_t tasks[]      = {TASK_NGAP, TASK_SERVICE303};
-  amf_metadata_t* amf_metadata = (amf_metadata_t*) args;
+  amf_metadata_t* amf_metadata = reinterpret_cast<amf_metadata_t*>(args);
 
   init_task_context(
       TASK_AMF_APP, tasks, 2, handle_message, &amf_app_task_zmq_ctx);
@@ -186,7 +186,7 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   /*Initialize UE state matrix */
   create_state_matrix();
 
-  // Initialze the metadata and client service entries
+  // initialize the metadata and client service entries
   amf_metadata_intialize(&(amf_metadata));
 
   if (itti_create_task(TASK_AMF_APP, &amf_app_thread, &(amf_metadata)) < 0) {
