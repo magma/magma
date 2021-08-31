@@ -30,18 +30,18 @@ class MMEConfigTest : public ::testing::Test {
 
 // Test partial list with 1 TAI
 TEST_F(MMEConfigTest, TestOneTai) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 1;
-  uint8_t itr                 = 0;
-  uint16_t tac                = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 1;
+  uint8_t itr                   = 0;
+  uint16_t tac                  = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mcc[itr]     = 1;
   config_pP.served_tai.plmn_mnc[itr]     = 1;
   config_pP.served_tai.plmn_mnc_len[itr] = 2;
@@ -76,18 +76,18 @@ TEST_F(MMEConfigTest, TestOneTai) {
 
 // Test 1 partial list with Consecutive Tacs
 TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 16;
-  uint8_t itr                 = 0;
-  uint16_t tac                = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 16;
+  uint8_t itr                   = 0;
+  uint16_t tac                  = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;
     config_pP.served_tai.plmn_mnc[itr]     = 1;
@@ -130,17 +130,17 @@ TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
 
 // Test 2 partial lists with Consecutive Tacs
 TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 20;
-  uint8_t itr                 = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 20;
+  uint8_t itr                   = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;
     config_pP.served_tai.plmn_mnc[itr]     = 1;
@@ -192,18 +192,18 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
 
 // Test 1 partial list with Non-consecutive Tacs
 TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 16;
-  uint8_t itr                 = 0;
-  uint16_t tac                = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 16;
+  uint8_t itr                   = 0;
+  uint16_t tac                  = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;
     config_pP.served_tai.plmn_mnc[itr]     = 1;
@@ -246,17 +246,17 @@ TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
 
 // Test 2 partial lists with Non-consecutive Tacs
 TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 20;
-  uint8_t itr                 = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 20;
+  uint8_t itr                   = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;
     config_pP.served_tai.plmn_mnc[itr]     = 1;
@@ -309,17 +309,17 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
 
 // Test 2 partial lists with 1-Consecutive tacs and 1-Non-consecutive Tacs
 TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 24;
-  uint8_t itr                 = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 24;
+  uint8_t itr                   = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;
     config_pP.served_tai.plmn_mnc[itr]     = 1;
@@ -385,18 +385,18 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
 
 // Test 1 partial list with many plmns
 TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 6;
-  uint8_t itr                 = 0;
-  uint16_t tac                = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 6;
+  uint8_t itr                   = 0;
+  uint16_t tac                  = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;
     config_pP.served_tai.plmn_mnc[itr]     = itr + 1;
@@ -435,17 +435,17 @@ TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
 
 // Test 3 partial lists, 1-consecutive tacs, 1-non consecutive tacs,1-many plmns
 TEST_F(MMEConfigTest, TestMixedParTaiLists) {
-  mme_config_t config_pP      = {0};
-  config_pP.served_tai.nb_tai = 35;
-  uint8_t itr                 = 0;
-  config_pP.served_tai.plmn_mcc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.plmn_mnc_len =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
-  config_pP.served_tai.tac =
-      (uint16_t*) calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t));
+  mme_config_t config_pP        = {0};
+  config_pP.served_tai.nb_tai   = 35;
+  uint8_t itr                   = 0;
+  config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
+  config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
+      calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   // Fill the same PLMN for consecutive and non-consecutive tacs (16+16)
   for (itr = 0; itr < 32; itr++) {
     config_pP.served_tai.plmn_mcc[itr]     = 1;

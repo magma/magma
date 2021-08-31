@@ -888,6 +888,14 @@ class MagmadUtil(object):
             )
 
     def update_mme_config_for_non_sanity(self, cmd):
+        """Update mme config file to test non-sanity testcases
+
+        Args:
+            cmd : command to modify/restore mme config.
+
+        Raises:
+            AssertionError: Throws an error if mme config is not updated
+        """
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
             "update_mme_config_for_non_sanity.sh"
@@ -901,30 +909,30 @@ class MagmadUtil(object):
         if ret_code == 0:
             print("MME configuration is updated successfully")
         elif ret_code == 1:
-            assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Invalid command"
+            raise AssertionError(
+                "Failed to "
+                + action
+                + " MME configuration. Error: Invalid command",
             )
         elif ret_code == 2:
-            assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration file is "
-                    + "missing"
+            raise AssertionError(
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration file is "
+                + "missing",
             )
         elif ret_code == 3:
-            assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration's backup file "
-                    + "is missing"
+            raise AssertionError(
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration's backup file "
+                + "is missing",
             )
         else:
-            assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Unknown error"
+            raise AssertionError(
+                "Failed to "
+                + action
+                + " MME configuration. Error: Unknown error",
             )
 
     def config_apn_correction(self, cmd):

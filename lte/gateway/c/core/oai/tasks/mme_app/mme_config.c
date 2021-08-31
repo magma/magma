@@ -351,19 +351,17 @@ void create_partial_lists(mme_config_t* config_pP) {
   uint8_t size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED ?
                      MAX_TAI_SUPPORTED :
                      config_pP->served_tai.nb_tai;
-  config_pP->partial_list = calloc(size, size * sizeof(partial_list_t));
+  config_pP->partial_list = calloc(size, sizeof(partial_list_t));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
     if (elem_idx == MAX_TAI_SUPPORTED) {
       list_idx++;
       elem_idx = 0;
     }
     if (!config_pP->partial_list[list_idx].plmn) {
-      config_pP->partial_list[list_idx].plmn =
-          calloc(size, size * sizeof(plmn_t));
+      config_pP->partial_list[list_idx].plmn = calloc(size, sizeof(plmn_t));
     }
     if (!config_pP->partial_list[list_idx].tac) {
-      config_pP->partial_list[list_idx].tac =
-          calloc(size, size * sizeof(tac_t));
+      config_pP->partial_list[list_idx].tac = calloc(size, sizeof(tac_t));
     }
     copy_plmn_from_config(
         &config_pP->served_tai, itr,
