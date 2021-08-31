@@ -90,6 +90,8 @@ uint8_t NAS5GPktSnapShot::service_request[37] = {
     0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40,
     0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
 
+uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
+
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   RegistrationRequestMsg reg_request;
@@ -320,6 +322,46 @@ TEST(test_smf_context_struct, test_smf_context_creation) {
   EXPECT_TRUE(0 == smf_context->n_active_pdus);
   EXPECT_TRUE(0 == smf_context->pdu_session_version);
   delete ue_context;
+}
+
+/* Test for registration reject */
+TEST(test_amf_nas5g_pkt_process, test_amf_registration_reject_msg) {
+  uint8_t buffer[4] = {0};
+  // registration reject message
+  RegistrationRejectMsg reg_rej;
+  RegistrationRejectMsg decode_reg_rej;
+  reg_rej.extended_protocol_discriminator.extended_proto_discriminator = 0x7e;
+  reg_rej.sec_header_type.sec_hdr                                      = 0;
+  reg_rej.spare_half_octet.spare                                       = 0;
+  reg_rej.message_type.msg_type                                        = 0x44;
+  reg_rej.m5gmm_cause.m5gmm_cause                                      = 23;
+
+  bool encode_res = false;
+  bool decode_res = false;
+
+  uint32_t len = 4;
+
+  encode_res = encode_registration_reject_msg(&reg_rej, buffer, len);
+
+  decode_res = decode_registration_reject_msg(&decode_reg_rej, buffer, len);
+
+  EXPECT_EQ(encode_res, true);
+  EXPECT_EQ(decode_res, true);
+
+  EXPECT_TRUE(
+      reg_rej.extended_protocol_discriminator.extended_proto_discriminator ==
+      decode_reg_rej.extended_protocol_discriminator
+          .extended_proto_discriminator);
+  EXPECT_TRUE(
+      reg_rej.sec_header_type.sec_hdr ==
+      decode_reg_rej.sec_header_type.sec_hdr);
+  EXPECT_TRUE(
+      reg_rej.spare_half_octet.spare == decode_reg_rej.spare_half_octet.spare);
+  EXPECT_TRUE(
+      reg_rej.message_type.msg_type == decode_reg_rej.message_type.msg_type);
+  EXPECT_TRUE(
+      reg_rej.m5gmm_cause.m5gmm_cause ==
+      decode_reg_rej.m5gmm_cause.m5gmm_cause);
 }
 
 int main(int argc, char** argv) {

@@ -352,5 +352,5 @@ typedef struct amf_as_message_s {
     m5g_dl_info_transfer_cnf_t dl_info_transfer_cnf;
     m5g_dl_info_transfer_ind_t dl_info_transfer_ind;
     activate_pdusession_context_req_t activate_pdusession_context_req;
-  } __attribute__((__packed__)) msg;
+  } msg;
 } amf_as_message_t;
