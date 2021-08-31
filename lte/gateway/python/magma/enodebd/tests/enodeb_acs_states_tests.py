@@ -21,8 +21,10 @@ from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error
 from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
+    AcsMsgAndTransition,
     AcsReadMsgResult,
     EnodebAcsState,
+    WaitEmptyMessageState,
     WaitInformState,
     WaitSetParameterValuesState,
 )
@@ -130,7 +132,8 @@ class EnodebStatusTests(TestCase):
         '.get_param_values_to_set',
     )
     @patch(
-        'magma.enodebd.state_machines.enb_acs_states.get_obj_param_values_to_set')
+        'magma.enodebd.state_machines.enb_acs_states.get_obj_param_values_to_set',
+    )
     def test_wait_set_parameter_values_state(
             self, mock_get_obj_param,
             mock_get_param,
@@ -167,3 +170,57 @@ class EnodebStatusTests(TestCase):
         self.assertEqual(type(rc), AcsReadMsgResult)
         rc = acs_state.read_msg(test_message_0)
         self.assertEqual(type(rc), AcsReadMsgResult)
+
+    @patch(
+        'magma.enodebd.state_machines.enb_acs_states.get_optional_param_to_check',
+    )
+    def test_wait_empty_message_state(
+        self,
+        mock_param_to_check,
+    ):
+        test_message_1 = models.DummyInput()
+        test_message_2 = models.SetParameterValuesResponse()
+        mock_param_to_check.return_value = True
+
+        # test 1: No missing_param_transition
+        # ensure we go to done state even when there are
+        # optional params to check
+        acs_state = WaitEmptyMessageState(
+            self._get_acs(),
+            when_done='done',
+        )
+        rc = acs_state.read_msg(test_message_1)
+        self.assertEqual(type(rc), AcsReadMsgResult)
+        self.assertEqual(rc.next_state, 'done')
+        self.assertEqual(rc.msg_handled, True)
+
+        # test 2: No unknown_param_transition
+        # ensure we go to missing state when there are
+        # optional params to check and missing state is specified
+        acs_state = WaitEmptyMessageState(
+            self._get_acs(),
+            when_done='done',
+            when_missing='missing',
+        )
+        rc = acs_state.read_msg(test_message_1)
+        self.assertEqual(type(rc), AcsReadMsgResult)
+        self.assertEqual(rc.next_state, 'missing')
+        self.assertEqual(rc.msg_handled, True)
+
+        # test 3: Negative test case send a message that is not empty
+        # ensure we return msg_handled is False
+        acs_state = WaitEmptyMessageState(
+            self._get_acs(),
+            when_done='done',
+            when_missing='missing',
+        )
+        rc = acs_state.read_msg(test_message_2)
+        self.assertEqual(type(rc), AcsReadMsgResult)
+        self.assertEqual(rc.next_state, None)
+        self.assertEqual(rc.msg_handled, False)
+
+        # test 4: Test get_msg
+        rc = acs_state.get_msg(test_message_1)
+        self.assertEqual(type(rc), AcsMsgAndTransition)
+        self.assertEqual(type(rc.msg), models.DummyInput)
+        self.assertEqual(rc.next_state, None)

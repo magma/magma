@@ -265,10 +265,25 @@ class WaitEmptyMessageState(EnodebAcsState):
         rest of the provisioning process
         """
         if not isinstance(message, models.DummyInput):
-            return AcsReadMsgResult(False, None)
-        if get_optional_param_to_check(self.acs.data_model) is None:
-            return AcsReadMsgResult(True, self.done_transition)
-        return AcsReadMsgResult(True, self.unknown_param_transition)
+            logger.debug("Ignoring message %s", str(type(message)))
+            return AcsReadMsgResult(msg_handled=False, next_state=None)
+        if self.unknown_param_transition:
+            if get_optional_param_to_check(self.acs.data_model):
+                return AcsReadMsgResult(
+                    msg_handled=True,
+                    next_state=self.unknown_param_transition,
+                )
+        return AcsReadMsgResult(
+            msg_handled=True,
+            next_state=self.done_transition,
+        )
+
+    def get_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Return a dummy message waiting for the empty message from CPE
+        """
+        request = models.DummyInput()
+        return AcsMsgAndTransition(msg=request, next_state=None)
 
     def state_description(self) -> str:
         return 'Waiting for empty message from eNodeB'
