@@ -111,29 +111,21 @@ func seedNetwork(t *testing.T, networkID string) {
 }
 
 func seedGateway(t *testing.T, networkID string, gatewayID string, hwID string) {
-	_, err := configurator.CreateEntity(
-		networkID,
-		configurator.NetworkEntity{
-			Type:         orc8r.MagmadGatewayType,
-			Key:          gatewayID,
-			Config:       &models2.MagmadGatewayConfigs{},
-			PhysicalID:   hwID,
-			Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t0"}},
-		},
-		serdes.Entity,
-	)
+	_, err := configurator.CreateEntity(context2.Background(), networkID, configurator.NetworkEntity{
+		Type:         orc8r.MagmadGatewayType,
+		Key:          gatewayID,
+		Config:       &models2.MagmadGatewayConfigs{},
+		PhysicalID:   hwID,
+		Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t0"}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }
 
 func seedTier(t *testing.T, networkID string) {
 	// setup fixtures in backend
-	_, err := configurator.CreateEntities(
-		networkID,
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t0"},
-		},
-		serdes.Entity,
-	)
+	_, err := configurator.CreateEntities(context2.Background(), networkID, []configurator.NetworkEntity{
+		{Type: orc8r.UpgradeTierEntityType, Key: "t0"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }
 func serialize(t *testing.T, enodebState *models.EnodebState) []byte {

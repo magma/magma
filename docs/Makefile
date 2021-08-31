@@ -1,4 +1,4 @@
-.PHONY: precommit dev
+.PHONY: dev precommit precommit_fix help
 
 dev:  ## Start local docs server with live reload
 	make -C docusaurus dev

@@ -392,8 +392,9 @@ imsi64_t amf_app_handle_initial_ue_message(
               "AMF_APP_INITAIL_UE_MESSAGE: gnb_ngap_id_key %ld has "
               "valid value \n",
               ue_context_p->gnb_ngap_id_key);
-          amf_app_ue_context_release(
-              ue_context_p, ue_context_p->ue_context_rel_cause);
+          ue_context_release_command(
+              ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
+              NGAP_NAS_NORMAL_RELEASE);
           hashtable_uint64_ts_remove(
               amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl,
               (const hash_key_t) ue_context_p->gnb_ngap_id_key);
@@ -697,12 +698,17 @@ int amf_app_handle_pdu_session_accept(
 
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_context) {
-    smf_ctx = &(ue_context->amf_context.smf_context);
-  } else {
-    OAILOG_ERROR(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
+  if (!ue_context) {
+    OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
+    return M5G_AS_FAILURE;
   }
 
+  smf_ctx = amf_smf_context_exists_pdu_session_id(
+      ue_context, pdu_session_resp->pdu_session_id);
+  if (!smf_ctx) {
+    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %d", ue_id);
+    return M5G_AS_FAILURE;
+  }
   // updating session state
   smf_ctx->pdu_session_state = ACTIVE;
 
@@ -778,7 +784,10 @@ int amf_app_handle_pdu_session_accept(
   qos_rule.qos_rule_precedence = 0xff;
   qos_rule.spare               = 0x0;
   qos_rule.segregation         = 0x0;
-  qos_rule.qfi                 = 0x6;
+  qos_rule.qfi =
+      smf_ctx->pdu_resource_setup_req
+          .pdu_session_resource_setup_request_transfer
+          .qos_flow_setup_request_list.qos_flow_req_item.qos_flow_identifier;
   NewQOSRulePktFilter new_qos_rule_pkt_filter;
   new_qos_rule_pkt_filter.spare          = 0x0;
   new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;
@@ -898,6 +907,7 @@ void amf_app_handle_resource_setup_response(
       OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
     }
     smf_ctx = &ue_context->amf_context.smf_context;
+
     // Store gNB ip and TEID in respective smf_context
     memset(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',

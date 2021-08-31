@@ -61,7 +61,7 @@ func (srv *callTraceServicer) ReportEndedCallTrace(ctx context.Context, req *pro
 		NewConfig: callTrace,
 	}
 
-	_, err = configurator.UpdateEntity(networkID, update, serdes.Entity)
+	_, err = configurator.UpdateEntity(ctx, networkID, update, serdes.Entity)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, fmt.Sprintf("failed to update call trace, network-id: %s, gateway-id: %s, calltrace-id: %s", networkID, callTrace.Config.GatewayID, req.TraceId))
 	}

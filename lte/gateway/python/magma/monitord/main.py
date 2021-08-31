@@ -19,7 +19,7 @@ from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import load_service_config
 from magma.monitord.cpe_monitoring import CpeMonitoringModule
-from magma.monitord.icmp_monitoring import ICMPMonitoring
+from magma.monitord.icmp_job import ICMPJob
 from magma.monitord.icmp_state import serialize_subscriber_states
 
 
@@ -58,7 +58,7 @@ def main():
     cpe_monitor = CpeMonitoringModule()
     cpe_monitor.set_manually_configured_targets(manual_ping_targets)
 
-    icmp_monitor = ICMPMonitoring(
+    icmp_monitor = ICMPJob(
         cpe_monitor,
         service.mconfig.polling_interval,
         service.loop, mtr_interface,

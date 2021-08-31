@@ -16,7 +16,7 @@ allow-gtp_br0 gtp0
 iface gtp0 inet manual
     ovs_bridge gtp_br0
     ovs_type OVSTunnel
-    ovs_tunnel_type gtp
+    ovs_tunnel_type gtpu
     ovs_tunnel_options ofport_request=32768 options:remote_ip=flow options:key=flow
 
 allow-gtp_br0 mtr0

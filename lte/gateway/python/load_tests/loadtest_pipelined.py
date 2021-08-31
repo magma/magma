@@ -16,9 +16,7 @@ limitations under the License.
 import argparse
 import json
 import os
-import random
 import subprocess
-from collections import namedtuple
 
 from google.protobuf import json_format
 from lte.protos.apn_pb2 import AggregatedMaximumBitrate
@@ -31,9 +29,8 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-from magma.pipelined.qos.common import QosManager
 from magma.subscriberdb.sid import SIDUtils
-from scripts.pipelined_cli import UEInfo, _gen_ue_set
+from scripts.pipelined_cli import _gen_ue_set
 
 PROTO_DIR = 'lte/protos'
 IMPORT_PATH = '/home/vagrant/magma'
@@ -58,25 +55,25 @@ def _build_activate_flows_data(ue_dict, disable_qos):
             ip_addr=ue.ipv4_src,
             policies=[
                 VersionedPolicy(
-                rule=PolicyRule(
-                    id=ue.rule_id,
-                    priority=10,
-                    flow_list=[
-                        FlowDescription(
-                            match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                            direction=FlowMatch.UPLINK,
+                    rule=PolicyRule(
+                        id=ue.rule_id,
+                        priority=10,
+                        flow_list=[
+                            FlowDescription(
+                                match=FlowMatch(
+                                    ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                    direction=FlowMatch.UPLINK,
+                                ),
                             ),
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                            direction=FlowMatch.DOWNLINK,
+                            FlowDescription(
+                                match=FlowMatch(
+                                    ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                    direction=FlowMatch.DOWNLINK,
+                                ),
                             ),
-                        ),
-                    ],
-                ),
-                version=1,
+                        ],
+                    ),
+                    version=1,
                 ),
             ],
             request_origin=RequestOriginType(type=RequestOriginType.GX),
@@ -151,7 +148,7 @@ def deactivate_flows_test(args):
 def _benchmark_grpc_request(args, req_name):
     try:
         # call grpc GHZ load test tool
-        _get_ghz_cmd_params(req_name, args.num_of_ues),
+        _get_ghz_cmd_params(req_name, args.num_of_ues)
     except subprocess.CalledProcessError as e:
         print(e.output)
         print('Check if gRPC GHZ tool is installed')

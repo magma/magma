@@ -258,7 +258,7 @@ func UpdateNetworkConfig(ctx context.Context, networkID, configType string, conf
 // executed in order within a single transaction.
 // This function is all-or-nothing - any failure or error encountered during
 // any operation will rollback the entire batch.
-func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde.Registry) error {
+func WriteEntities(ctx context.Context, networkID string, writes []EntityWriteOperation, serdes serde.Registry) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
@@ -284,7 +284,7 @@ func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde
 		}
 	}
 
-	_, err = client.WriteEntities(context.Background(), req)
+	_, err = client.WriteEntities(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -292,8 +292,8 @@ func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde
 }
 
 // CreateEntity creates a network entity.
-func CreateEntity(networkID string, entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
-	ret, err := CreateEntities(networkID, NetworkEntities{entity}, serdes)
+func CreateEntity(ctx context.Context, networkID string, entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
+	ret, err := CreateEntities(ctx, networkID, NetworkEntities{entity}, serdes)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
@@ -302,7 +302,7 @@ func CreateEntity(networkID string, entity NetworkEntity, serdes serde.Registry)
 
 // CreateEntities registers the given entities and returns the created network
 // entities.
-func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Registry) (NetworkEntities, error) {
+func CreateEntities(ctx context.Context, networkID string, entities NetworkEntities, serdes serde.Registry) (NetworkEntities, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
@@ -316,7 +316,7 @@ func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Reg
 		}
 		req.Entities = append(req.Entities, protoEnt)
 	}
-	res, err := client.CreateEntities(context.Background(), req)
+	res, err := client.CreateEntities(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -327,13 +327,13 @@ func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Reg
 
 // CreateInternalEntity is a loose wrapper around CreateEntity to create an
 // entity in the internal network structure
-func CreateInternalEntity(entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
-	return CreateEntity(storage.InternalNetworkID, entity, serdes)
+func CreateInternalEntity(ctx context.Context, entity NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
+	return CreateEntity(ctx, storage.InternalNetworkID, entity, serdes)
 }
 
 // UpdateEntity updates a network entity.
-func UpdateEntity(networkID string, update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
-	updates, err := UpdateEntities(networkID, []EntityUpdateCriteria{update}, serdes)
+func UpdateEntity(ctx context.Context, networkID string, update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
+	updates, err := UpdateEntities(ctx, networkID, []EntityUpdateCriteria{update}, serdes)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
@@ -344,7 +344,7 @@ func UpdateEntity(networkID string, update EntityUpdateCriteria, serdes serde.Re
 }
 
 // UpdateEntities updates the registered entities and returns the updated entities
-func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes serde.Registry) (NetworkEntities, error) {
+func UpdateEntities(ctx context.Context, networkID string, updates []EntityUpdateCriteria, serdes serde.Registry) (NetworkEntities, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
@@ -358,7 +358,7 @@ func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes ser
 		}
 		req.Updates = append(req.Updates, upProto)
 	}
-	res, err := client.UpdateEntities(context.Background(), req)
+	res, err := client.UpdateEntities(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -371,33 +371,33 @@ func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes ser
 
 // UpdateInternalEntity is a loose wrapper around UpdateEntity to update an
 // entity in the internal network structure.
-func UpdateInternalEntity(update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
-	return UpdateEntity(storage.InternalNetworkID, update, serdes)
+func UpdateInternalEntity(ctx context.Context, update EntityUpdateCriteria, serdes serde.Registry) (NetworkEntity, error) {
+	return UpdateEntity(ctx, storage.InternalNetworkID, update, serdes)
 }
 
-func CreateOrUpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}, serdes serde.Registry) error {
+func CreateOrUpdateEntityConfig(ctx context.Context, networkID string, entityType string, entityKey string, config interface{}, serdes serde.Registry) error {
 	updateCriteria := EntityUpdateCriteria{
 		Key:       entityKey,
 		Type:      entityType,
 		NewConfig: config,
 	}
-	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria}, serdes)
+	_, err := UpdateEntities(ctx, networkID, []EntityUpdateCriteria{updateCriteria}, serdes)
 	return err
 }
 
-func DeleteEntity(networkID string, entityType string, entityKey string) error {
-	return DeleteEntities(networkID, storage2.TKs{{Type: entityType, Key: entityKey}})
+func DeleteEntity(ctx context.Context, networkID string, entityType string, entityKey string) error {
+	return DeleteEntities(ctx, networkID, storage2.TKs{{Type: entityType, Key: entityKey}})
 }
 
 // DeleteEntities deletes the entities specified by networkID and tks.
 // We also have cascading deletes to delete foreign keys for assocs.
-func DeleteEntities(networkID string, ids storage2.TKs) error {
+func DeleteEntities(ctx context.Context, networkID string, ids storage2.TKs) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
 	}
 	_, err = client.DeleteEntities(
-		context.Background(),
+		ctx,
 		&protos.DeleteEntitiesRequest{
 			NetworkID: networkID,
 			ID:        tksToEntIDs(ids),
@@ -408,8 +408,8 @@ func DeleteEntities(networkID string, ids storage2.TKs) error {
 
 // DeleteInternalEntity is a loose wrapper around DeleteEntities to delete an
 // entity in the internal network structure
-func DeleteInternalEntity(entityType, entityKey string) error {
-	return DeleteEntity(storage.InternalNetworkID, entityType, entityKey)
+func DeleteInternalEntity(ctx context.Context, entityType, entityKey string) error {
+	return DeleteEntity(ctx, storage.InternalNetworkID, entityType, entityKey)
 }
 
 // GetPhysicalIDOfEntity gets the physicalID associated with the entity identified by (networkID, entityType, entityKey)

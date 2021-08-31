@@ -77,8 +77,6 @@ static int emm_tracking_area_update_reject(
 static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc);
 static int emm_tracking_area_update_abort(
     struct emm_context_s* emm_context, struct nas_base_proc_s* base_proc);
-static void emm_tracking_area_update_t3450_handler(
-    void* args, imsi64_t* imsi64);
 
 static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
     ue_mm_context_t* const ue_mm_context, emm_tau_request_ies_t* const ies);
@@ -449,7 +447,8 @@ static int _emm_tracking_area_update (void *args)
  * --------------------------------------------------------------------------
  */
 
-/** \fn void _emm_tau_t3450_handler(void *args);
+/** \fn status_code_e mme_app_handle_tau_t3450_expiry(
+    zloop_t* loop, int timer_id, void* args){
 \brief T3450 timeout handler
 On the first expiry of the timer, the network shall retransmit the TRACKING AREA
 UPDATE ACCEPT message and shall reset and restart timer T3450. The
@@ -458,22 +457,38 @@ the tracking area updating procedure is aborted. Both, the old and the new GUTI
 shall be considered as valid until the old GUTI can be considered as invalid by
 the network (see subclause 5.4.1.4). During this period the network acts as
 described for case a above.
-@param [in]args TAU accept data
+@param [in]args unused
 */
 //------------------------------------------------------------------------------
-static void emm_tracking_area_update_t3450_handler(
-    void* args, imsi64_t* imsi64) {
+status_code_e mme_app_handle_tau_t3450_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t* emm_context = (emm_context_t*) (args);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, "Authentication T3450 Timer");
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  emm_context_t* emm_context = &ue_context_p->emm_context;
 
   if (!(emm_context)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3450 timer expired No EMM context\n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
 
   if (tau_proc) {
-    *imsi64 = emm_context->_imsi64;
     // Requirement MME24.301R10_5.5.3.2.7_c Abnormal cases on the network side -
     // T3450 time-out
     /*
@@ -482,7 +497,7 @@ static void emm_tracking_area_update_t3450_handler(
     tau_proc->retransmission_count += 1;
     tau_proc->T3450.id = NAS_TIMER_INACTIVE_ID;
     OAILOG_WARNING_UE(
-        LOG_NAS_EMM, *imsi64,
+        LOG_NAS_EMM, emm_context->_imsi64,
         "EMM-PROC  - T3450 timer expired, retransmission counter = %d for ue "
         "id " MME_UE_S1AP_ID_FMT "\n",
         tau_proc->retransmission_count, tau_proc->ue_id);
@@ -512,7 +527,7 @@ static void emm_tracking_area_update_t3450_handler(
       emm_sap_send(&emm_sap);
     }
   }
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 /* TODO - Compiled out this function to remove compiler warnings since we don't
@@ -739,10 +754,10 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
            * Re-start T3450 timer
            */
           void* timer_callback_arg = NULL;
-          nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, timer_callback_arg);
+          nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450);
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context);
+              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
           increment_counter(
               "tracking_area_update", 1, 1, "action",
               " initial_ictr_tau_accept_sent");
@@ -821,17 +836,17 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           /*
            * Re-start T3450 timer
            */
-          nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, NULL);
+          nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450);
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context);
+              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
         } else {
           /*
            * Start T3450 timer
            */
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context);
+              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out);
         }
 
         OAILOG_INFO(
@@ -870,8 +885,7 @@ static int emm_tracking_area_update_abort(
       /*
        * Stop timer T3450
        */
-      void* timer_callback_args = NULL;
-      nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, timer_callback_args);
+      nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450);
 
       /*
        * Notify EMM that EPS attach procedure failed
@@ -1019,7 +1033,7 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_in =
         NULL;  // No parent procedure
     tau_proc->emm_spec_proc.emm_proc.base_proc.time_out =
-        emm_tracking_area_update_t3450_handler;
+        mme_app_handle_tau_t3450_expiry;
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out = NULL;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
   }

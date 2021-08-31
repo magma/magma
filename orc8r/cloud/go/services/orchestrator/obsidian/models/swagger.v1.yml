@@ -336,6 +336,36 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/state:
+    get:
+      summary: Get the state configuration for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: State configuration
+          schema:
+            $ref: '#/definitions/state_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the state configuration for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: state_config
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/state_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /networks/{network_id}/dns:
     get:
@@ -1327,6 +1357,8 @@ definitions:
         $ref: '#/definitions/network_features'
       sentry_config:
         $ref: '#/definitions/network_sentry_config'
+      state_config:
+        $ref: '#/definitions/state_config'
 
   network_dns_config:
     description: DNS configuration for a network
@@ -1425,6 +1457,17 @@ definitions:
         minimum: 0
         maximum: 1
         example: 0.5
+
+  state_config:
+    type: object
+    description: State configuration
+    properties:
+      sync_interval:
+        description: Sync interval in seconds
+        type: number
+        format: uint32
+        minimum: 3
+        example: 60
 
   magmad_gateway:
     type: object

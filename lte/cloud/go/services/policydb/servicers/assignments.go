@@ -51,7 +51,7 @@ func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *p
 	for _, baseName := range req.BaseNames {
 		updates = append(updates, getBaseNameUpdateForEnable(baseName, req.Imsi))
 	}
-	_, err = configurator.UpdateEntities(networkID, updates, serdes.Entity)
+	_, err = configurator.UpdateEntities(ctx, networkID, updates, serdes.Entity)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to enable")
 	}
@@ -73,7 +73,7 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 	for _, baseName := range req.BaseNames {
 		updates = append(updates, getBaseNameUpdateForDisable(baseName, req.Imsi))
 	}
-	_, err = configurator.UpdateEntities(networkID, updates, serdes.Entity)
+	_, err = configurator.UpdateEntities(ctx, networkID, updates, serdes.Entity)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to disable")
 	}

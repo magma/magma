@@ -81,28 +81,24 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	rootDigestExpected := digestTree.RootDigest.GetMd5Base64Digest()
 
 	// Detect outdated digests and update
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.APNEntityType, Key: "apn1",
-				Config: &lte_models.ApnConfiguration{},
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI99999",
-				Config: &models.SubscriberConfig{
-					Lte: &models.LteSubscription{State: "ACTIVE"},
-				},
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI11111",
-				Config: &models.SubscriberConfig{
-					Lte: &models.LteSubscription{State: "ACTIVE"},
-				},
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.APNEntityType, Key: "apn1",
+			Config: &lte_models.ApnConfiguration{},
+		},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI99999",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "ACTIVE"},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI11111",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "ACTIVE"},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
@@ -199,16 +195,12 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: "apn1", Config: &lte_models.ApnConfiguration{}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI00003", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn1", Config: &lte_models.ApnConfiguration{}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00003", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
@@ -226,6 +218,7 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 
 	// If the generated root digest matches the one in store, the update for cached subscribers wouldn't be triggered
 	err = configurator.DeleteEntities(
+		context2.Background(),
 		"n1",
 		storage2.MakeTKs(lte.SubscriberEntityType, []string{"IMSI00001", "IMSI00002", "IMSI00003"}),
 	)
