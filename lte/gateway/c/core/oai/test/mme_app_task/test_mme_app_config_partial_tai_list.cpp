@@ -14,8 +14,6 @@
 
 extern "C" {
 #include "mme_config.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
 }
 
 class MMEConfigTest : public ::testing::Test {
@@ -529,6 +527,5 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
   return RUN_ALL_TESTS();
 }
