@@ -2,7 +2,7 @@ version: 2.1
 
 aliases:
   - &appdir
-    working_directory: "nms"
+    working_directory: "nms/app"
   - &only_master
     filters:
       branches:
@@ -10,7 +10,7 @@ aliases:
   - &only_release
     filters:
       branches:
-        only: v*
+        only: v1.7
   - &master_and_develop
     filters:
       branches:
@@ -168,7 +168,7 @@ commands:
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:
-            - yarn-packages-{{ checksum "nms/yarn.lock" }}
+            - yarn-packages-{{ checksum "nms/app/yarn.lock" }}
       - run:
           name: Install Dependencies
           <<: *appdir
@@ -180,7 +180,7 @@ commands:
             yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "nms/yarn.lock" }}
+          key: yarn-packages-{{ checksum "nms/app/yarn.lock" }}
           paths:
             - ~/.cache/yarn
 
@@ -254,11 +254,18 @@ commands:
       tag-latest:
         default: false
         type: boolean
+      tag-release:
+        type: boolean
+        default: false
+      force-push:
+        type: boolean
+        default: false
     steps:
       - run:
           name: << parameters.job_name >>
           command: |
-            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            FORCE_PUSH=<< parameters.force-push >>
+            if [[ "${CIRCLE_BRANCH}" != "master" && "$FORCE_PUSH" = false ]]; then
               echo "Push only happens for master branch"
               exit 0
             fi
@@ -274,6 +281,7 @@ commands:
             PROJECT=<< parameters.project >>
             TAG=<< parameters.tag >>
             TAG_LATEST=<< parameters.tag-latest >>
+            TAG_RELEASE=<< parameters.tag-release >>
 
             function tag_and_push {
               docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
@@ -290,6 +298,9 @@ commands:
               tag_and_push "$TAG"
               if [ "$TAG_LATEST" = true ]; then
                 tag_and_push "latest"
+              fi
+              if [ "$TAG_RELEASE" = true ]; then
+                tag_and_push "1.7.0"
               fi
             done
 
@@ -359,8 +370,6 @@ commands:
         type: string
     steps:
       - checkout
-      - build/determinator:
-          <<: *lte_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           name: Install tools
@@ -415,7 +424,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-1.7.0/$i;deb.distribution=focal-1.7.0;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -704,6 +713,8 @@ jobs:
           registry: $JFROG_DOCKER_ORC8R_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -843,13 +854,53 @@ jobs:
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
-          tag-latest: <<parameters.tag-latest>>
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
           artifact_name: FeG
           version_path: versions/feg_version
       - magma_slack_notify
+
+  cwag-precommit:
+    docker:
+      - image: circleci/golang:1.13-buster-node-browsers-legacy
+    environment:
+      GO111MODULE: 'on'
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/cwf/gateway
+            make -C ${MAGMA_ROOT}/cwf/gateway precommit
+            cd ${MAGMA_ROOT}/cwf/gateway
+            make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
+      - magma_slack_notify
+
+  cwag-build:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *cwf_build_verify
+      - run-with-retry:
+          retry-count: 2
+          workdir: $MAGMA_ROOT/cwf/gateway/docker
+          command: docker-compose build --parallel
+      # TODO bring up the containers and check for crashloops
 
   cwf-integ-test:
     machine:
@@ -905,6 +956,8 @@ jobs:
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -1152,8 +1205,6 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      - build/determinator:
-          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
@@ -1211,6 +1262,8 @@ jobs:
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1268,7 +1321,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      NMS_ROOT: ${MAGMA_ROOT}/nms/packages/magmalte
+      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     steps:
@@ -1284,7 +1337,7 @@ jobs:
           command: |
             source $NVM_DIR/nvm.sh
             nvm install stable
-            cd ${MAGMA_ROOT}/nms/packages/magmalte
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
             ./e2e_test_setup.sh
       - store_artifacts:
           path: /tmp/nms_artifacts
@@ -1294,7 +1347,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      NMS_ROOT: ${MAGMA_ROOT}/nms/packages/magmalte
+      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
       - build/determinator:
@@ -1303,7 +1356,7 @@ jobs:
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/nms/packages/magmalte
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
             docker-compose build magmalte
       - tag-push-docker:
           project: magmalte
@@ -1315,6 +1368,8 @@ jobs:
           registry: $JFROG_DOCKER_ORC8R_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: nms
       - notify-magma:
@@ -1364,6 +1419,48 @@ jobs:
           steps:
             - magma_slack_notify
 
+  xwfm-deploy:
+    parameters:
+      tag:
+        description: Containers tag
+        type: string
+        default: ${CIRCLE_SHA1:0:8}
+      tag-latest:
+        default: false
+        type: boolean
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - docker/install-dc
+      - run:
+          name: Build xwf go radius
+          command: |
+            cd ${MAGMA_ROOT}/feg
+            docker build --build-arg BUILD_NUM=${CIRCLE_SHA1:0:8} --tag goradius -f radius/src/Dockerfile ./
+      - tag-push-docker:
+          images: 'goradius'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
+      - run:
+          name: Load openvswitch kernel module for xwf integ test
+          command: sudo modprobe openvswitch
+      - run:
+          name: Build xwfm-integ-tests
+          command: |
+            cd ${MAGMA_ROOT}
+            docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
+      - tag-push-docker:
+          images: 'xwfm-integ-tests'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
+      - magma_slack_notify
+
   publish-amis-to-marketplace:
     machine:
       image: ubuntu-2004:202104-01
@@ -1395,8 +1492,8 @@ jobs:
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="1.6.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
-              echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
+              echo export VERSION="1.7.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
+              echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
               # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
@@ -1573,10 +1670,33 @@ workflows:
 
   cwag:
     jobs:
+      - cwag-precommit
+      - cwag-build
       - cwf-integ-test:
           <<: *master_and_develop
       - xwfm-test:
           <<: *master_and_develop
+      - cwag-deploy:
+          <<: *only_master
+          requires:
+            - cwag-precommit
+            - cwf-integ-test
+          tag-latest: true
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - cwag-deploy
+            - xwfm-test
+          tag-latest: true
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - cwag-deploy
+            - xwfm-deploy-latest
+          images: 'gateway_python|gateway_pipelined|gateway_go'
+          tag-latest: true
 
 
   cwf_operator:
@@ -1591,10 +1711,10 @@ workflows:
       - schedule:
           cron: "0 * * * *"
           <<: *only_master
-        
     jobs:
       - xwfm-test:
           notify_magma_ci: false
+
   weekly_ami_push:
     triggers:
       - schedule:
