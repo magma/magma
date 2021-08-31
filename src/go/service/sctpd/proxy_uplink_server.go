@@ -15,10 +15,10 @@ import (
 	"context"
 	"net"
 
-	"magma/lte/gateway/log"
-	"magma/lte/gateway/protos/magma/sctpd"
-
 	"google.golang.org/grpc"
+
+	"github.com/magma/magma/log"
+	"github.com/magma/magma/protos/magma/sctpd"
 )
 
 type ProxyUplinkServer struct {

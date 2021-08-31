@@ -164,7 +164,7 @@ func TestManagedLogger_Named_MissingIntermediate(t *testing.T) {
 	rootLogger := &ManagedLogger{Manager: m, Logger: ml}
 	foobarLogger := &ManagedLogger{Manager: m, names: []string{"foo", "bar"}}
 	m.loggers = map[string]*ManagedLogger{
-		"": rootLogger,
+		"":        rootLogger,
 		"foo.bar": foobarLogger,
 	}
 

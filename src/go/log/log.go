@@ -35,8 +35,8 @@ const (
 
 var levelNames = map[Level]string{
 	DebugLevel: "DEBUG",
-	InfoLevel: "INFO",
-	WarnLevel: "WARN",
+	InfoLevel:  "INFO",
+	WarnLevel:  "WARN",
 	ErrorLevel: "ERROR",
 }
 
@@ -97,7 +97,7 @@ func (m *Manager) LoggerFor(fullName string) Logger {
 	}
 	names := strings.Split(fullName, ".")
 	for i := 0; i < len(names); i++ {
-		fullName := FullName(names[0:i+1])
+		fullName := FullName(names[0 : i+1])
 		l, ok := m.loggers[fullName]
 		if ok {
 			prev = l
@@ -105,16 +105,16 @@ func (m *Manager) LoggerFor(fullName string) Logger {
 		}
 
 		for j := i; j < len(names); j++ {
-			newFullName := FullName(names[0:j+1])
+			newFullName := FullName(names[0 : j+1])
 			if _, ok := m.loggers[newFullName]; ok {
 				panic(fmt.Sprintf("sublogger %s exists, but %s didn't", newFullName, FullName(names[0:j])))
 			}
 
 			newNames := append(prev.names, names[j])
 			newLogger := &ManagedLogger{
-				names: newNames,
+				names:   newNames,
 				Manager: m,
-				Logger: prev.Logger.Named(names[j]),
+				Logger:  prev.Logger.Named(names[j]),
 			}
 			m.loggers[newFullName] = newLogger
 			prev = newLogger

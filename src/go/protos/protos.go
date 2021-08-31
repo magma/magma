@@ -14,5 +14,5 @@ package protos
 //go:generate go install google.golang.org/protobuf/cmd/protoc-gen-go
 //go:generate go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
-//go:generate protoc --go_out=. --go_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../protos sctpd.proto
-//go:generate protoc --go-grpc_out=. --go-grpc_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../protos sctpd.proto
+//go:generate protoc --go_out=. --go_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../lte/protos sctpd.proto
+//go:generate protoc --go-grpc_out=. --go-grpc_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../lte/protos sctpd.proto

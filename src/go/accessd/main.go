@@ -14,9 +14,9 @@ package main
 import (
 	uber_zap "go.uber.org/zap"
 
-	"magma/lte/gateway/accessd/server"
-	"magma/lte/gateway/log"
-	"magma/lte/gateway/log/zap"
+	"github.com/magma/magma/accessd/server"
+	"github.com/magma/magma/log"
+	"github.com/magma/magma/log/zap"
 )
 
 func main() {

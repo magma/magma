@@ -15,11 +15,11 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"magma/lte/gateway/log"
+	"github.com/magma/magma/log"
 )
 
 type printer struct {
-	print func(args ...interface{})
+	print  func(args ...interface{})
 	printf func(format string, args ...interface{})
 }
 
@@ -45,19 +45,19 @@ func newPrinters(l *zap.Logger) map[log.Level]*printer {
 	s := l.Sugar()
 	return map[log.Level]*printer{
 		log.DebugLevel: {
-			print: s.Debug,
+			print:  s.Debug,
 			printf: s.Debugf,
 		},
 		log.InfoLevel: {
-			print: s.Info,
+			print:  s.Info,
 			printf: s.Infof,
 		},
 		log.WarnLevel: {
-			print: s.Warn,
+			print:  s.Warn,
 			printf: s.Warnf,
 		},
 		log.ErrorLevel: {
-			print: s.Error,
+			print:  s.Error,
 			printf: s.Errorf,
 		},
 	}
@@ -69,8 +69,8 @@ func NewLogger(c zap.Config, opts ...zap.Option) log.Logger {
 		panic(errors.Wrapf(err, "zap.Config=%+v", c))
 	}
 	return &Logger{
-		Config: c,
-		Logger: l,
+		Config:   c,
+		Logger:   l,
 		printers: newPrinters(l),
 	}
 }
@@ -109,13 +109,13 @@ func (l *Logger) Level() log.Level {
 func (l *Logger) SetLevel(level log.Level) {
 	switch level {
 	case log.DebugLevel:
-		l.Config.Level.SetLevel( zap.DebugLevel)
+		l.Config.Level.SetLevel(zap.DebugLevel)
 	case log.InfoLevel:
-		l.Config.Level.SetLevel( zap.InfoLevel)
+		l.Config.Level.SetLevel(zap.InfoLevel)
 	case log.WarnLevel:
-		l.Config.Level.SetLevel( zap.WarnLevel)
+		l.Config.Level.SetLevel(zap.WarnLevel)
 	case log.ErrorLevel:
-		l.Config.Level.SetLevel( zap.ErrorLevel)
+		l.Config.Level.SetLevel(zap.ErrorLevel)
 	default:
 		panic("unsupported log level " + level.String())
 	}
@@ -138,10 +138,10 @@ func (l *Logger) Named(name string) log.Logger {
 		newLogger = newLogger.Named(name)
 	}
 
-	return  &Logger{
-		names: names,
-		Config: newConfig,
-		Logger: newLogger,
+	return &Logger{
+		names:    names,
+		Config:   newConfig,
+		Logger:   newLogger,
 		printers: newPrinters(newLogger),
 	}
 }

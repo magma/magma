@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	uber_zap "go.uber.org/zap"
 
-	"magma/lte/gateway/log"
-	"magma/lte/gateway/log/zap"
+	"github.com/magma/magma/log"
+	"github.com/magma/magma/log/zap"
 )
 
 type frozenZapClock struct {
