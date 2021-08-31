@@ -151,8 +151,9 @@ export async function FetchEnodebs(props: FetchProps) {
       return {[id]: {enb_state: {}, enb: enb}};
     }
   } else {
-    enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
-
+    let resp = {};
+    resp = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
+    enb = resp['enodebs'];
     if (!enb) {
       return;
     }

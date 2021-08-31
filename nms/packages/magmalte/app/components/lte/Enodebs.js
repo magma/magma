@@ -62,7 +62,8 @@ export default function Enodebs() {
     MagmaV1API.getLteByNetworkIdEnodebs,
     {networkId: nullthrows(match.params.networkId)},
     useCallback(
-      response => setEnodebs(Object.keys(response).map(key => response[key])),
+      response =>
+        setEnodebs(Object.keys(response).map(key => response.enodebs[key])),
       [],
     ),
     lastFetchTime,

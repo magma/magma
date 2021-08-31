@@ -50,7 +50,7 @@ import (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 func TestListNetworks(t *testing.T) {
@@ -2143,7 +2143,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	expected := map[string]*lteModels.Enodeb{
+	enodebs := map[string]*lteModels.Enodeb{
 		"abcdefg": {
 			AttachedGatewayID: "gw1",
 			Config: &lteModels.EnodebConfiguration{
@@ -2206,6 +2206,12 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Serial:      "vwxyz",
 		},
 	}
+	expected := &lteModels.PaginatedEnodebs{
+		Enodebs:    enodebs,
+		PageToken:  "",
+		TotalCount: 2,
+	}
+
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -2217,6 +2223,38 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	expectedPageToken := "CgdhYmNkZWZn"
+	paginatedExpectation := &lteModels.PaginatedEnodebs{
+		Enodebs:    map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
+		PageToken:  lteModels.PageToken(expectedPageToken),
+		TotalCount: 2,
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "?page_size=1&page_token=",
+		Handler:        listEnodebs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(paginatedExpectation),
+	}
+	tests.RunUnitTest(t, e, tc)
+	paginatedExpectation.Enodebs = map[string]*lteModels.Enodeb{"vwxyz": expected.Enodebs["vwxyz"]}
+	paginatedExpectation.PageToken = ""
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "?page_size=10&page_token=" + expectedPageToken,
+		Handler:        listEnodebs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(paginatedExpectation),
+	}
+	tests.RunUnitTest(t, e, tc)
+	// Run a second time to confirm page token is deterministic
+	tests.RunUnitTest(t, e, tc)
+
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -2224,7 +2262,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 		ParamNames:     []string{"network_id", "enodeb_serial"},
 		ParamValues:    []string{"n1", "abcdefg"},
 		ExpectedStatus: 200,
-		ExpectedResult: expected["abcdefg"],
+		ExpectedResult: expected.Enodebs["abcdefg"],
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2235,7 +2273,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 		ParamNames:     []string{"network_id", "enodeb_serial"},
 		ParamValues:    []string{"n1", "vwxyz"},
 		ExpectedStatus: 200,
-		ExpectedResult: expected["vwxyz"],
+		ExpectedResult: expected.Enodebs["vwxyz"],
 	}
 	tests.RunUnitTest(t, e, tc)
 

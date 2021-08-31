@@ -301,21 +301,46 @@ func listEnodebs(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	pageSize, pageToken, err := obsidian.GetPaginationParams(c)
+	if err != nil {
+		return err
+	}
 
-	ents, _, err := configurator.LoadAllEntitiesOfType(
-		nid, lte.CellularEnodebEntityType,
-		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
+		nid,
+		lte.CellularEnodebEntityType,
+		configurator.EntityLoadCriteria{
+			LoadMetadata:     true,
+			LoadConfig:       true,
+			LoadAssocsToThis: true,
+			PageSize:         uint32(pageSize),
+			PageToken:        pageToken,
+		},
 		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := make(map[string]*lte_models.Enodeb, len(ents))
-	for _, ent := range ents {
-		ret[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
+	count, err := configurator.CountEntitiesOfType(
+		nid,
+		lte.CellularEnodebEntityType,
+		configurator.EntityLoadCriteria{},
+		serdes.Entity,
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, ret)
+	enodebs := make(map[string]*lte_models.Enodeb, len(ents))
+	for _, ent := range ents {
+		enodebs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
+	}
+	paginatedEnodebs := &lte_models.PaginatedEnodebs{
+		Enodebs:    enodebs,
+		PageToken:  lte_models.PageToken(nextPageToken),
+		TotalCount: count,
+	}
+	return c.JSON(http.StatusOK, paginatedEnodebs)
 }
 
 func createEnodeb(c echo.Context) error {
