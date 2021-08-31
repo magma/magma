@@ -11,7 +11,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("//:third_party_repositories.bzl", "boost", "cpp_redis", "cpp_testing_deps", "gflags", "glog", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp", "zlib")
+load("//:third_party_repositories.bzl", "boost", "cpp_redis", "cpp_testing_deps", "gflags", "glog", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md

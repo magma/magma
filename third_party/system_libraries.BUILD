@@ -11,20 +11,35 @@
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "fmt",
-    srcs = ["libfmt.a"],
+# This configuration is used for building inside the Magma VM
+# The default configuration applies for building inside the bazel build Docker container
+config_setting(
+    name = "use_folly_so",
+    values = {"define": "folly_so=1"},
 )
 
 cc_library(
     name = "folly",
-    srcs = ["libfolly.a"],
-    linkopts = [
-        "-ldl",
-        "-levent",
-        "-ldouble-conversion",
-        "-liberty",
-        "-lgflags",
-    ],
-    deps = [":fmt"],
+    srcs = select({
+        ":use_folly_so": ["libfolly.so"],
+        "//conditions:default": [
+            "libfolly.a",
+            "libfmt.a",
+        ],
+    }),
+    linkopts = select({
+        ":use_folly_so": [
+            "-ldl",
+            "-levent",
+            "-ldouble-conversion",
+            "-lgflags",
+        ],
+        "//conditions:default": [
+            "-ldl",
+            "-levent",
+            "-ldouble-conversion",
+            "-lgflags",
+            "-liberty",
+        ],
+    }),
 )
