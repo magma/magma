@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "mme_config.h"
+#include "include/mme_config.h"
 }
 
 class MMEConfigTest : public ::testing::Test {

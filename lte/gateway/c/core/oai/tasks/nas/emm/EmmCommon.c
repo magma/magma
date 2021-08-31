@@ -52,7 +52,7 @@
 #include "log.h"
 #include "emm_data.h"
 #include "EmmCommon.h"
-#include "mme_config.h"
+#include "include/mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

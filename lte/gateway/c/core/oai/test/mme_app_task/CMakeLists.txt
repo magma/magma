@@ -16,7 +16,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
 
-include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
 include_directories("${PROJECT_SOURCE_DIR}/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
