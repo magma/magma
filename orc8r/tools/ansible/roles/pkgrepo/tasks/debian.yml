@@ -17,6 +17,12 @@
     url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
     state: present
 
+- name: Remove envoy source
+  shell: sed -i '/getenvoy-deb/d' /etc/apt/sources.list
+
+- name: Remove envoy source
+  shell: rm -rf /etc/apt/sources.list.d/*envoy*
+
 - name: Add apt-transport-https
   apt: pkg=apt-transport-https state=present update_cache=yes
   #  when: preburn
