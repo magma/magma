@@ -92,32 +92,42 @@ status_code_e mme_app_handle_detach_t3422_expiry(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  nw_detach_data_t* data          = NULL;
+  emm_context_t* emm_ctx          = NULL;
+  // if args is not NULL, then the function is called during start up
+  // as part of resumed timers.
+  if (args) {
+    data           = (nw_detach_data_t*) (args);
+    mme_ue_s1ap_id = data->ue_id;
+    emm_ctx        = emm_context_get(&_emm_data, mme_ue_s1ap_id);
+  } else {
+    if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+      OAILOG_WARNING(
+          LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
+    struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+        mme_ue_s1ap_id, "Detach Procedure T3422 Timer");
+    if (ue_context_p == NULL) {
+      OAILOG_ERROR(
+          LOG_MME_APP,
+          "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+          "\n",
+          mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
+    emm_ctx = &ue_context_p->emm_context;
+    data    = (nw_detach_data_t*) emm_ctx->t3422_arg;
   }
-
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Detach Procedure T3422 Timer");
-  if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-  }
-
-  emm_context_t* emm_ctx = &ue_context_p->emm_context;
-
-  nw_detach_data_t* data = (nw_detach_data_t*) emm_ctx->t3422_arg;
 
   if (!data) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "The argument for network initiated"
         "detach timer is NULL \n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
   // Increment the retransmission counter
@@ -149,7 +159,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
     }
   }
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 void _clear_emm_ctxt(emm_context_t* emm_context) {
@@ -466,9 +476,7 @@ status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
     OAILOG_DEBUG(
         LOG_NAS_EMM, "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n",
         emm_ctx->T3422.id, ue_id);
-    void* unused          = NULL;
-    void** timer_callback = &unused;
-    nas_stop_T3422(ue_id, emm_ctx->T3422);
+    nas_stop_T3422(ue_id, &(emm_ctx->T3422));
     if (emm_ctx->t3422_arg) {
       free_wrapper(&emm_ctx->t3422_arg);
       emm_ctx->t3422_arg = NULL;
@@ -558,18 +566,16 @@ status_code_e emm_proc_nw_initiated_detach_request(
       /*
        * Re-start T3422 timer
        */
-      void* unused          = NULL;
-      void** timer_callback = &unused;
-      nas_stop_T3422(ue_id, emm_ctx->T3422);
+      nas_stop_T3422(ue_id, &(emm_ctx->T3422));
       nas_start_T3422(
-          ue_id, emm_ctx->T3422, mme_app_handle_detach_t3422_expiry);
+          ue_id, &(emm_ctx->T3422), mme_app_handle_detach_t3422_expiry);
     } else {
       /*
        * Start T3422 timer
        */
       if (emm_ctx->t3422_arg) {
         nas_start_T3422(
-            ue_id, emm_ctx->T3422, mme_app_handle_detach_t3422_expiry);
+            ue_id, &(emm_ctx->T3422), mme_app_handle_detach_t3422_expiry);
       } else {
         nw_detach_data_t* data =
             (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
@@ -586,7 +592,7 @@ status_code_e emm_proc_nw_initiated_detach_request(
         data->detach_type          = detach_type;
         emm_ctx->t3422_arg         = (void*) data;
         nas_start_T3422(
-            ue_id, emm_ctx->T3422, mme_app_handle_detach_t3422_expiry);
+            ue_id, &(emm_ctx->T3422), mme_app_handle_detach_t3422_expiry);
       }
     }
   }

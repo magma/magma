@@ -246,10 +246,10 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
  **                                                                        **
  ** Name:    _esm_information()                                            **
  **                                                                        **
- ** Description: Sends DEACTIVATE EPS BEREAR CONTEXT REQUEST message and   **
+ ** Description: Sends DEACTIVATE EPS BEARER CONTEXT REQUEST message and   **
  **      starts timer T3489.                                               **
- **      Function also clearns out any existing T3489 timers referenced    **
- **      by the esm_ctx datastructure.                                     **
+ **      Function also cleans out any existing T3489 timers referenced     **
+ **      by the esm_ctx data structure.                                    **
  **                                                                        **
  ** Inputs:  ue_id:      UE local identifier                               **
  **      ebi:       EPS bearer identity                                    **
