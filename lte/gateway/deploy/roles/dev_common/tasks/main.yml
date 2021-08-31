@@ -212,6 +212,33 @@
   when: full_provision
 
 ########################################
+# Install Bazel
+########################################
+- name: Install bazelisk
+  # yamllint disable rule:truthy
+  become: yes
+  get_url:
+    url: "https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64"
+    dest: /usr/sbin/bazelisk-linux-amd64
+    mode: ugo+x
+
+- name: Create a symlink for /usr/sbin/bazel
+  # yamllint disable rule:truthy
+  become: yes
+  file:
+    src: /usr/sbin/bazelisk-linux-amd64
+    path: /usr/sbin/bazel
+    state: link
+    force: yes
+
+- name: Create a ~/.ccache directory to be used by Bazel
+  file:
+    path: /home/vagrant/.ccache
+    state: directory
+    mode: 0775
+    recurse: yes
+
+########################################
 # Install common Magma dev dependencies
 ########################################
 
