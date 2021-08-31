@@ -118,8 +118,8 @@ int encode_apn_aggregate_maximum_bit_rate(
 void bit_rate_value_to_eps_qos(
     ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul,
     const apn_ambr_bitrate_unit_t br_unit) {
-  uint64_t ambr_dl_kbps = ambr_dl;  // ambr_dl is expected in bps
-  uint64_t ambr_ul_kbps = ambr_ul;  // ambr_ul is expected in bps
+  uint64_t ambr_dl_kbps = ambr_dl;
+  uint64_t ambr_ul_kbps = ambr_ul;
   if (br_unit == BPS) {
     ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
     ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps
@@ -165,6 +165,8 @@ void bit_rate_value_to_eps_qos(
                    (apn_ambr->apnambrfordownlink_extended - 186) * 2000 -
                    128000;
   }
+  // As per 3GPP-24.301, If the network wants to indicate an APN-AMBR for
+  // downlink higher than 8640 kbps, it shall set octet 3 to "11111110".
   if ((apn_ambr->apnambrfordownlink != 0xfe) && !(ambr_dl_kbps > 8640)) {
     if (ambr_dl_kbps == 0) {
       apn_ambr->apnambrfordownlink = 0xff;
@@ -214,6 +216,8 @@ void bit_rate_value_to_eps_qos(
     ambr_ul_kbps = ambr_ul_kbps -
                    (apn_ambr->apnambrforuplink_extended - 186) * 2000 - 128000;
   }
+  // As per 3GPP-24.301, If the network wants to indicate an APN-AMBR for
+  // downlink higher than 8640 kbps, it shall set octet 3 to "11111110".
   if ((apn_ambr->apnambrforuplink != 0xfe) && !(ambr_ul_kbps > 8640)) {
     if (ambr_ul_kbps == 0) {
       apn_ambr->apnambrforuplink = 0xff;
