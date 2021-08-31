@@ -11,7 +11,7 @@ aliases:
     filters:
       branches:
         only:
-          - v1.5
+          - v1.5-ubuntu
   - &master_and_develop
     filters:
       branches:
