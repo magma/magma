@@ -1098,7 +1098,7 @@ func TestListSubscriberStates(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.SubscriberState{}),
+		ExpectedResult: tests.JSONMarshaler(subscriberModels.PaginatedSubscriberState{SubscriberState: map[string]*subscriberModels.SubscriberState{}}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1156,39 +1156,75 @@ func TestListSubscriberStates(t *testing.T) {
 		},
 	}
 	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI0987654321", &subState1, serdes.State)
+	_, err = configurator.CreateEntity(
+		context.Background(),
+		"n0",
+		configurator.NetworkEntity{Type: lte.SubscriberEntityType, Key: "IMSI0987654321", Config: &subscriberModels.SubscriberConfig{}},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity(
+		context.Background(),
+		"n0",
+		configurator.NetworkEntity{Type: lte.SubscriberEntityType, Key: "IMSI1234567890", Config: &subscriberModels.SubscriberConfig{}},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
 
+	expectedSubscriberMap1 := map[string]*subscriberModels.SubscriberState{
+		"IMSI0987654321": {
+			SubscriberState: subState1,
+		},
+	}
+	expectedPageToken := "Cg5JTVNJMDk4NzY1NDMyMQ=="
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot,
+		URL:            testURLRoot + "?page_size=1&page_token=",
 		Handler:        listSubscribers,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.SubscriberState{
-			"IMSI1234567890": {
-				SubscriberState: subState0,
-				Mme:             mmeState,
-				S1ap:            s1apState,
-				Spgw:            spgwState,
-				Mobility: []*subscriberModels.SubscriberIPAllocation{
-					{
-						Apn: "magma.apn",
-						IP:  "192.168.128.134",
-					},
-					{
-						Apn: "oai.ipv4",
-						IP:  "192.168.128.174",
-					},
-				},
-				Directory: &subscriberModels.SubscriberDirectoryRecord{
-					LocationHistory: []string{"foo", "bar"},
-				},
+		ExpectedResult: tests.JSONMarshaler(
+			subscriberModels.PaginatedSubscriberState{
+				PageToken:       subscriberModels.PageToken(expectedPageToken),
+				SubscriberState: expectedSubscriberMap1,
+				TotalCount:      2,
 			},
-			"IMSI0987654321": {
-				SubscriberState: subState1,
-			},
-		}),
+		),
 	}
+
+	tests.RunUnitTest(t, e, tc)
+
+	expectedSubscriberMap2 := map[string]*subscriberModels.SubscriberState{
+		"IMSI1234567890": {
+			SubscriberState: subState0,
+			Mme:             mmeState,
+			S1ap:            s1apState,
+			Spgw:            spgwState,
+			Mobility: []*subscriberModels.SubscriberIPAllocation{
+				{
+					Apn: "magma.apn",
+					IP:  "192.168.128.134",
+				},
+				{
+					Apn: "oai.ipv4",
+					IP:  "192.168.128.174",
+				},
+			},
+			Directory: &subscriberModels.SubscriberDirectoryRecord{
+				LocationHistory: []string{"foo", "bar"},
+			},
+		},
+	}
+	tc.URL = testURLRoot + "?page_size=2&page_token=" + expectedPageToken
+	tc.ExpectedResult = tests.JSONMarshaler(
+		subscriberModels.PaginatedSubscriberState{
+			PageToken:       "",
+			SubscriberState: expectedSubscriberMap2,
+			TotalCount:      2,
+		},
+	)
+
 	tests.RunUnitTest(t, e, tc)
 }
 

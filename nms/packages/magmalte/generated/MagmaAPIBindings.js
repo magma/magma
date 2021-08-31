@@ -915,6 +915,7 @@ export type network = {
     id: network_id,
     name: network_name,
     sentry_config ? : network_sentry_config,
+    state_config ? : state_config,
     type ? : network_type,
 };
 export type network_carrier_wifi_configs = {
@@ -1124,6 +1125,13 @@ export type paginated_gateways = {
         [string]: magmad_gateway,
     },
     page_token: page_token,
+    total_count: number,
+};
+export type paginated_subscriber_state = {
+    page_token: page_token,
+    subscriber_state: {
+        [string]: subscriber_state,
+    },
     total_count: number,
 };
 export type paginated_subscribers = {
@@ -1391,6 +1399,9 @@ export type sms_message = {
     status: "Waiting" | "Delivered" | "Failed",
     time_created: string,
     time_last_attempted ? : string,
+};
+export type state_config = {
+    sync_interval ? : number,
 };
 export type sub_profile = string;
 export type subscriber = {
@@ -6877,10 +6888,10 @@ export default class MagmaAPIBindings {
     static async getLteByNetworkIdSubscriberState(
             parameters: {
                 'networkId': string,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
             }
-        ): Promise < {
-            [string]: subscriber_state,
-        } >
+        ): Promise < paginated_subscriber_state >
         {
             let path = '/lte/{network_id}/subscriber_state';
             let body;
@@ -6890,6 +6901,14 @@ export default class MagmaAPIBindings {
             }
 
             path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
 
             return await this.request(path, 'GET', query, body);
         }
@@ -9209,6 +9228,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['networkSentryConfig'] !== undefined) {
             body = parameters['networkSentryConfig'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getNetworksByNetworkIdState(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < state_config >
+        {
+            let path = '/networks/{network_id}/state';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putNetworksByNetworkIdState(
+        parameters: {
+            'networkId': string,
+            'stateConfig': state_config,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/state';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['stateConfig'] === undefined) {
+            throw new Error('Missing required  parameter: stateConfig');
+        }
+
+        if (parameters['stateConfig'] !== undefined) {
+            body = parameters['stateConfig'];
         }
 
         return await this.request(path, 'PUT', query, body);

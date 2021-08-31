@@ -392,7 +392,36 @@ func listSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	statesBySID, err := loadAllStatesForIMSIs(c.Request().Context(), networkID, []string{})
+	pageSize, pageToken, err := obsidian.GetPaginationParams(c)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	loadCriteria := configurator.EntityLoadCriteria{
+		LoadMetadata:       false,
+		LoadConfig:         false,
+		LoadAssocsFromThis: false,
+		PageSize:           uint32(pageSize),
+		PageToken:          pageToken,
+	}
+
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
+		networkID, lte.SubscriberEntityType, loadCriteria, serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	imsis := make([]string, 0, len(ents))
+	for _, ent := range ents {
+		imsis = append(imsis, ent.Key)
+	}
+
+	count, err := configurator.CountEntitiesOfType(networkID, lte.SubscriberEntityType)
+	if err != nil {
+		return c.JSON(http.StatusOK, nil)
+	}
+
+	statesBySID, err := loadAllStatesForIMSIs(c.Request().Context(), networkID, imsis)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -402,7 +431,13 @@ func listSubscriberStateHandler(c echo.Context) error {
 		modelsBySID[sid] = makeSubscriberState(sid, states)
 	}
 
-	return c.JSON(http.StatusOK, modelsBySID)
+	paginatedSubcriberState := subscribermodels.PaginatedSubscriberState{
+		PageToken:       subscribermodels.PageToken(nextPageToken),
+		SubscriberState: modelsBySID,
+		TotalCount:      int64(count),
+	}
+
+	return c.JSON(http.StatusOK, paginatedSubcriberState)
 }
 
 func getSubscriberStateHandler(c echo.Context) error {

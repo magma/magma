@@ -3658,13 +3658,13 @@ paths:
     get:
       parameters:
       - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
       responses:
         "200":
-          description: Subscriber states, keyed by subscriber ID
+          description: Subscriber states, keyed by subscriber ID with pagination support
           schema:
-            additionalProperties:
-              $ref: '#/definitions/subscriber_state'
-            type: object
+            $ref: '#/definitions/paginated_subscriber_state'
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List subscriber state in the network
@@ -10624,6 +10624,27 @@ definitions:
     required:
     - page_token
     - gateways
+    - total_count
+    type: object
+  paginated_subscriber_state:
+    description: Page of Subscriber States
+    properties:
+      page_token:
+        $ref: '#/definitions/page_token'
+      subscriber_state:
+        additionalProperties:
+          $ref: '#/definitions/subscriber_state'
+          x-nullable: true
+        type: object
+      total_count:
+        description: Estimated total number of subscriber states
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+    - page_token
+    - subscriber_state
     - total_count
     type: object
   paginated_subscribers:

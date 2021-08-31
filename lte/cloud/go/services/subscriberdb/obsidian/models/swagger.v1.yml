@@ -181,13 +181,13 @@ paths:
           - Subscribers
         parameters:
           - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+          - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
+          - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
         responses:
           '200':
-            description: Subscriber states, keyed by subscriber ID
+            description: Subscriber states, keyed by subscriber ID with pagination support
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/definitions/subscriber_state'
+              $ref: '#/definitions/paginated_subscriber_state'
           default:
             $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -485,6 +485,29 @@ definitions:
     type: string
     minLength: 1
     example: 'default'
+
+  paginated_subscriber_state:
+    description: Page of Subscriber States
+    properties:
+      page_token:
+        $ref: './orc8r-swagger-common.yml#/definitions/page_token'
+      subscriber_state:
+        additionalProperties:
+          # The x-nullable flag is set to true to generate a map of pointers
+          x-nullable: true
+          $ref: '#/definitions/subscriber_state'
+        type: object
+      total_count:
+        description: Estimated total number of subscriber states
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+      - page_token
+      - subscriber_state
+      - total_count
+    type: object
 
   subscriber_state:
     type: object
