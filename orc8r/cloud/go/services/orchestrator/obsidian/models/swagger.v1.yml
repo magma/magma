@@ -503,13 +503,13 @@ paths:
         - Gateways
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
       responses:
         '200':
-          description: Map of all gateways inside the network by gatewayID
+          description: Map of all gateways inside the network by gatewayID with pagination support
           schema:
-            type: object
-            additionalProperties:
-              $ref: '#/definitions/magmad_gateway'
+            $ref: '#/definitions/paginated_gateways'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -2092,3 +2092,25 @@ definitions:
       helm_chart_version:
         type: string
         example: 1.5.21
+
+  paginated_gateways:
+    description: Page of gateways
+    properties:
+      page_token:
+        $ref: './orc8r-swagger-common.yml#/definitions/page_token'
+      gateways:
+        additionalProperties:
+          x-nullable: true
+          $ref: '#/definitions/magmad_gateway'
+        type: object
+      total_count:
+        description: Estimated total number of gateways
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+      - page_token
+      - gateways
+      - total_count
+    type: object

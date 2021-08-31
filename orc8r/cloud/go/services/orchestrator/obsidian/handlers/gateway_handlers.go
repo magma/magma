@@ -34,7 +34,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
-	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -97,10 +96,32 @@ func listGatewaysHandler(c echo.Context) error {
 		return nerr
 	}
 
+	pageSize, pageToken, err := obsidian.GetPaginationParams(c)
+	if err != nil {
+		return err
+	}
+
 	reqCtx := c.Request().Context()
-	ents, _, err := configurator.LoadEntities(
-		nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
-		configurator.FullEntityLoadCriteria(),
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
+		nid,
+		orc8r.MagmadGatewayType,
+		configurator.EntityLoadCriteria{
+			LoadMetadata:     true,
+			LoadConfig:       true,
+			LoadAssocsToThis: true,
+			PageSize:         uint32(pageSize),
+			PageToken:        pageToken,
+		},
+		serdes.Entity,
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	count, err := configurator.CountEntitiesOfType(
+		nid,
+		orc8r.MagmadGatewayType,
+		configurator.EntityLoadCriteria{},
 		serdes.Entity,
 	)
 	if err != nil {
@@ -125,7 +146,13 @@ func listGatewaysHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, makeGateways(entsByTK, devicesByID, statusesByID))
+	gateways := makeGateways(entsByTK, devicesByID, statusesByID)
+	paginatedGateways := models.PaginatedGateways{
+		Gateways:   gateways,
+		PageToken:  models.PageToken(nextPageToken),
+		TotalCount: int64(count),
+	}
+	return c.JSON(http.StatusOK, paginatedGateways)
 }
 
 func createGatewayHandler(c echo.Context) error {

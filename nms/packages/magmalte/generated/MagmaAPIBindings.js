@@ -1119,6 +1119,13 @@ export type paginated_enodebs = {
     page_token: page_token,
     total_count: number,
 };
+export type paginated_gateways = {
+    gateways: {
+        [string]: magmad_gateway,
+    },
+    page_token: page_token,
+    total_count: number,
+};
 export type paginated_subscribers = {
     next_page_token: page_token,
     subscribers: {
@@ -7658,10 +7665,10 @@ export default class MagmaAPIBindings {
     static async getNetworksByNetworkIdGateways(
             parameters: {
                 'networkId': string,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
             }
-        ): Promise < {
-            [string]: magmad_gateway,
-        } >
+        ): Promise < paginated_gateways >
         {
             let path = '/networks/{network_id}/gateways';
             let body;
@@ -7671,6 +7678,14 @@ export default class MagmaAPIBindings {
             }
 
             path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
 
             return await this.request(path, 'GET', query, body);
         }

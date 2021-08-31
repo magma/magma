@@ -53,16 +53,21 @@ func TestListGateways(t *testing.T) {
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	listGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways", obsidian.GET).HandlerFunc
+	expected := models.PaginatedGateways{
+		Gateways:   map[string]*models.MagmadGateway{},
+		PageToken:  "",
+		TotalCount: 0,
+	}
 
 	// empty case
 	tc := tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot,
+		URL:            testURLRoot + "?page_size=1&page_token=",
 		Handler:        listGateways,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]models.MagmadGateway{}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -72,10 +77,24 @@ func TestListGateways(t *testing.T) {
 		{Type: orc8r.MagmadGatewayType, Key: "g2", Config: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
-	expectedResult := map[string]models.MagmadGateway{
+	gateways := map[string]*models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
+	}
+	expectedPageToken := "CgJnMQ=="
+	expectedResult := &models.PaginatedGateways{
+		Gateways:   gateways,
+		PageToken:  models.PageToken(expectedPageToken),
+		TotalCount: 2,
+	}
+	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
+	tests.RunUnitTest(t, e, tc)
+
+	gateways = map[string]*models.MagmadGateway{
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
+	tc.URL = testURLRoot + "?page_size=1&page_token=" + expectedPageToken
+	expectedResult.Gateways = gateways
+	expectedResult.PageToken = "CgJnMg=="
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tests.RunUnitTest(t, e, tc)
 
@@ -91,11 +110,13 @@ func TestListGateways(t *testing.T) {
 	expectedState := models.NewDefaultGatewayStatus("hw1")
 	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 
-	expectedResult = map[string]models.MagmadGateway{
+	expectedResult.Gateways = map[string]*models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
+	expectedResult.PageToken = "CgJnMg=="
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
+	tc.URL = testURLRoot + "?page_size=2&page_token="
 	tests.RunUnitTest(t, e, tc)
 }
 

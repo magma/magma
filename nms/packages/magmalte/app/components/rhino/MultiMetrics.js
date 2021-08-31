@@ -63,7 +63,7 @@ function MultiMetrics(props: {
   const selectedGateway = match.params.selectedGatewayId;
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
-  const {error, isLoading, response: gateways} = useMagmaAPI(
+  const {error, isLoading, response: paginated_gateways} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdGateways,
     {
       networkId: match.params.networkId,
@@ -72,12 +72,12 @@ function MultiMetrics(props: {
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);
 
-  if (error || isLoading || !gateways) {
+  if (error || isLoading || !paginated_gateways) {
     return <LoadingFiller />;
   }
 
   const defaultGateway = find(
-    gateways,
+    paginated_gateways.gateways,
     gateway => gateway.status?.hardware_id !== null,
   );
   const selectedGatewayOrDefault = selectedGateway || defaultGateway?.id;
@@ -91,7 +91,7 @@ function MultiMetrics(props: {
             inputProps={{id: 'devices'}}
             value={selectedGatewayOrDefault}
             onChange={props.onGatewaySelectorChange}>
-            {map(gateways, device => (
+            {map(paginated_gateways.gateways, device => (
               <MenuItem value={device.id} key={device.id}>
                 {device.name}
               </MenuItem>
