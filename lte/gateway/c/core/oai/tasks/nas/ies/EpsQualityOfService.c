@@ -199,9 +199,7 @@ status_code_e qos_params_to_eps_qos(
         } else if ((mbr_ul_kbps > 128000) && (mbr_ul_kbps <= 256000)) {
           eps_qos->bitRatesExt.maxBitRateForUL =
               ((mbr_ul_kbps - 128000) / 2000) + 186;
-        }
-
-        else if (mbr_ul_kbps > 256000) {
+        } else if (mbr_ul_kbps > 256000) {
           eps_qos->bitRates.maxBitRateForUL    = 0xfe;
           eps_qos->bitRatesExt.maxBitRateForUL = 0xfa;
           eps_qos->bitRatesExt2Present         = 1;
@@ -217,7 +215,6 @@ status_code_e qos_params_to_eps_qos(
           }
         }
       }
-
       if (mbr_dl_kbps == 0) {
         eps_qos->bitRates.maxBitRateForDL = 0xff;
       } else if ((mbr_dl_kbps > 0) && (mbr_dl_kbps <= 63)) {
@@ -253,7 +250,6 @@ status_code_e qos_params_to_eps_qos(
           }
         }
       }
-
       if (gbr_ul_kbps == 0) {
         eps_qos->bitRates.guarBitRateForUL = 0xff;
       } else if ((gbr_ul_kbps > 0) && (gbr_ul_kbps <= 63)) {
