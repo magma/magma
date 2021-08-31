@@ -20,6 +20,7 @@
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
 #include "ApnAggregateMaximumBitRate.h"
+#include "common_types.h"
 
 //------------------------------------------------------------------------------
 int decode_apn_aggregate_maximum_bit_rate(
@@ -115,9 +116,14 @@ int encode_apn_aggregate_maximum_bit_rate(
 
 // Use 3GPP TS 24.008 figure 10.5.136A, table 10.5.154A
 void bit_rate_value_to_eps_qos(
-    ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul) {
-  uint64_t ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
-  uint64_t ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps
+    ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul,
+    const apn_ambr_bitrate_unit_t br_unit) {
+  uint64_t ambr_dl_kbps = ambr_dl;  // ambr_dl is expected in bps
+  uint64_t ambr_ul_kbps = ambr_ul;  // ambr_ul is expected in bps
+  if (br_unit == BPS) {
+    ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
+    ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps
+  }
   apn_ambr->apnambrforuplink_extended2   = 0;
   apn_ambr->apnambrforuplink_extended    = 0;
   apn_ambr->apnambrfordownlink_extended2 = 0;
@@ -141,7 +147,7 @@ void bit_rate_value_to_eps_qos(
 
     ambr_dl_kbps =
         ambr_dl_kbps - (apn_ambr->apnambrfordownlink_extended) * 100 - 8600;
-  }else if ((ambr_dl_kbps > 16000) && (ambr_dl_kbps <= 128000)) {
+  } else if ((ambr_dl_kbps > 16000) && (ambr_dl_kbps <= 128000)) {
     apn_ambr->extensions |=
         APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apn_ambr->apnambrfordownlink_extended =
@@ -183,17 +189,16 @@ void bit_rate_value_to_eps_qos(
     apn_ambr->apnambrforuplink_extended2 = (ambr_ul_kbps) / 256000;
     ambr_ul_kbps =
         ambr_ul_kbps - (apn_ambr->apnambrforuplink_extended2) * 256000;
-
     apn_ambr->apnambrforuplink = 0xff;
   }
   if ((ambr_ul_kbps > 8640) &&
-      ((ambr_ul_kbps >= 8600) && (ambr_ul_kbps <= 16000))) {
+      ((ambr_ul_kbps > 8600) && (ambr_ul_kbps <= 16000))) {
     apn_ambr->extensions |=
         APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apn_ambr->apnambrforuplink_extended = (ambr_ul_kbps - 8600) / 100;
     ambr_ul_kbps =
         ambr_ul_kbps - (apn_ambr->apnambrforuplink_extended) * 100 - 8600;
-} else if ((ambr_ul_kbps > 16000) && (ambr_ul_kbps <= 128000)) {
+  } else if ((ambr_ul_kbps > 16000) && (ambr_ul_kbps <= 128000)) {
     apn_ambr->extensions |=
         APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
     apn_ambr->apnambrforuplink_extended = ((ambr_ul_kbps - 16000) / 1000) + 74;

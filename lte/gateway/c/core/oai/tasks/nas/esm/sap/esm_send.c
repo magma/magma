@@ -341,7 +341,8 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
   bit_rate_value_to_eps_qos(
       &msg->apnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
-      pdn_context_p->subscribed_apn_ambr.br_ul);
+      pdn_context_p->subscribed_apn_ambr.br_ul,
+      pdn_context_p->subscribed_apn_ambr.br_unit);
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Send Activate Default EPS Bearer Context "
