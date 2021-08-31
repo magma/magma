@@ -1136,7 +1136,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   if (paging_ctx->paging_retx_count < MAX_PAGING_RETRY_COUNT) {
     paging_ctx->paging_retx_count += 1;
 
-    OAILOG_ERROR(
+    OAILOG_DEBUG(
         LOG_AMF_APP,
         "T3513: timer has expired for ue id: %d with timer id: %d,"
         "Sending Paging request again\n",
@@ -1144,7 +1144,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     /*
      * Increment the retransmission counter
      */
-    OAILOG_ERROR(
+    OAILOG_DEBUG(
         LOG_AMF_APP, "T3513: Incrementing retransmission_count to %d\n",
         paging_ctx->paging_retx_count);
 

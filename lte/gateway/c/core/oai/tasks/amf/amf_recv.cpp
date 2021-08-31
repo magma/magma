@@ -90,7 +90,7 @@ int amf_handle_service_request(
       paging_ctx->m5_paging_response_timer.id = NAS5G_TIMER_INACTIVE_ID;
       paging_ctx->paging_retx_count           = 0;
       // Fill the itti msg based on context info produced in amf core
-      OAILOG_INFO(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
+      OAILOG_DEBUG(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
     }
 
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
