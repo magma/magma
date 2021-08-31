@@ -16,6 +16,7 @@ def yaml_cpp():
     http_archive(
         name = "yaml-cpp",
         strip_prefix = "yaml-cpp-yaml-cpp-0.7.0",
+        sha256 = "43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3",
         urls = ["https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.tar.gz"],
     )
 
@@ -36,14 +37,14 @@ def boost():
     )
 
 def protobuf():
-    git_repository(
+    http_archive(
         # The name is protobuf here as that is what prometheus-cpp expects
         # See https://github.com/jupp0r/prometheus-cpp.git @ d8326b2bba945a435f299e7526c403d7a1f68c1f
         name = "protobuf",
+        strip_prefix = "protobuf-3.15.0",
+        sha256 = "6aff9834fd7c540875e1836967c8d14c6897e3785a2efac629f69860fb7834ff",
         # TODO(@themarwhal): Upgrade to latest release once we resolve GH8457
-        commit = "ae50d9b9902526efd6c7a1907d09739f959c6297",
-        remote = "https://github.com/protocolbuffers/protobuf",
-        shallow_since = "1624681439 -0700",
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.15.0.tar.gz"],
     )
 
 def grpc():
@@ -67,7 +68,7 @@ def prometheus_cpp_deps():
     new_git_repository(
         name = "prometheus_client_model",
         build_file = "//:third_party/prometheus_client_model.BUILD",
-        # Used what master was around when D6071833@fb was authored
+        # Used what master was around when D6071833@fb was authored (Oct 18, 2017)
         # The metrics.proto pulled here should match what we have in orc8r/protos/prometheus/metrics.proto
         commit = "fa8ad6fec33561be4280a8f0514318c79d7f6cb6",
         remote = "https://github.com/prometheus/client_model.git",
@@ -76,8 +77,9 @@ def prometheus_cpp_deps():
     new_git_repository(
         name = "civetweb",
         build_file = "//:third_party/civetweb.BUILD",
-        commit = "fbdee74",
+        commit = "fbdee7440be24f904208c15a1fc9e2582b866049",
         remote = "https://github.com/civetweb/civetweb.git",
+        shallow_since = "1474835570 +0200",
     )
 
     git_repository(
@@ -94,13 +96,13 @@ def cpp_redis():
         url = "https://github.com/cylix/tacopie/archive/master.zip",
     )
 
-    new_git_repository(
+    http_archive(
         name = "cpp_redis",
-        commit = "bbe38a7f83de943ffcc90271092d689ae02b3489",
-        remote = "https://github.com/cpp-redis/cpp_redis.git",
-        shallow_since = "1590000158 -0500",
+        sha256 = "3859289d8254685fc775bda73de03dad27df923423b8ceb375b02d036c03b02f",
+        strip_prefix = "cpp_redis-4.3.1",
         # TODO(@themarwhal): We do not need a custom BUILD file if we upgrade to a more recent version of cpp_redis - GH8321
         build_file = "//third_party:cpp_redis.BUILD",
+        url = "https://github.com/cpp-redis/cpp_redis/archive/refs/tags/4.3.1.tar.gz",
     )
 
 def gflags():
@@ -115,5 +117,6 @@ def glog():
     http_archive(
         name = "com_github_google_glog",
         strip_prefix = "glog-0.4.0",
+        sha256 = "f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c",
         urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
     )

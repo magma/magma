@@ -103,3 +103,4 @@ bazel-bin
 bazel-magma
 bazel-out
 bazel-testlogs
+help
