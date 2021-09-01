@@ -16,6 +16,23 @@ load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 package(default_visibility = ["//visibility:public"])
 
 cpp_proto_library(
+    name = "mconfigs_cpp_proto",
+    protos = [":mconfigs_proto"],
+    deps = ["//orc8r/protos:common_cpp_proto"],
+)
+
+proto_library(
+    name = "mconfigs_proto",
+    srcs = ["mconfig/mconfigs.proto"],
+    deps = ["//orc8r/protos:common_proto"],
+)
+
+cpp_grpc_library(
+    name = "abort_session_cpp_grpc",
+    protos = [":abort_session_proto"],
+)
+
+cpp_proto_library(
     name = "abort_session_cpp_proto",
     protos = [":abort_session_proto"],
 )
@@ -41,6 +58,7 @@ cpp_proto_library(
     deps = [
         ":apn_cpp_proto",
         "//orc8r/protos:common_cpp_proto",
+        "//orc8r/protos:digest_cpp_proto",
     ],
 )
 
@@ -50,6 +68,7 @@ cpp_grpc_library(
     deps = [
         ":apn_cpp_proto",
         "//orc8r/protos:common_cpp_proto",
+        "//orc8r/protos:digest_cpp_proto",
     ],
 )
 
@@ -59,6 +78,7 @@ proto_library(
     deps = [
         ":apn_proto",
         "//orc8r/protos:common_proto",
+        "//orc8r/protos:digest_proto",
         "@protobuf//:field_mask_proto",
     ],
 )
@@ -178,6 +198,15 @@ proto_library(
         ":session_manager_proto",
         ":subscriberdb_proto",
         "//orc8r/protos:common_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "spgw_service_cpp_grpc",
+    protos = [":spgw_service_proto"],
+    deps = [
+        "policydb_cpp_proto",
+        "subscriberdb_cpp_proto",
     ],
 )
 
