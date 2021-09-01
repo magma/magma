@@ -11,7 +11,6 @@
 # limitations under the License.
 
 - name: Fix resove conf
-  when: ansible_distribution == "Ubuntu"
   shell: ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
 
 - name: Include vars of all.yaml
@@ -210,7 +209,6 @@
       - uuid-dev
 
 - name: Fix vport-gtp kernel module for Ubuntu Focal
-  when: ansible_distribution == "Ubuntu"
   become: yes
   block:
     - shell: rmmod openvswitch
@@ -218,28 +216,14 @@
     - shell: modprobe vport-gtp
       ignore_errors: yes
 
-- name: Install Debian Magma gateway dev dependencies
-  retries: 5
-  when: preburn and ansible_distribution == "Debian"
-  apt:
-    state: present
-    update_cache: no
-    pkg:
-      - libconfig8-dev
-
 - name: Install Ubuntu Magma gateway dev dependencies
   retries: 5
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
   apt:
     state: present
     update_cache: no
     pkg:
       - libconfig-dev
-
-- name: Overwrite linux 4.9 GTP module with patched module
-  apt: pkg=oai-gtp=4.9-9 state=present update_cache=yes dpkg_options=force-overwrite
-  retries: 5
-  when: preburn and ansible_distribution == "Debian"
 
 - name: Install common Magma dependencies
   retries: 5
@@ -283,20 +267,9 @@
       # eBPF compile and load tools for kernsnoopd
       - bpfcc-tools
 
-- name: Install debian Magma dependencies
-  retries: 5
-  when: preburn and ansible_distribution == "Debian"
-  apt:
-    state: present
-    update_cache: yes
-    pkg:
-      - openvswitch-datapath-module-4.9.0-9-amd64
-      - python-openvswitch
-      - nlohmann-json-dev
-
 - name: Install ubuntu Magma dependencies
   retries: 5
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
   apt:
     state: present
     update_cache: yes
@@ -311,18 +284,6 @@
     src: magma_ifaces_gtp
     dest: /etc/network/interfaces.d/gtp
   when: full_provision
-
-- name: Preload the GTP module
-  modprobe:
-    name: gtp
-    state: present
-  when: full_provision and ansible_distribution == "Debian"
-
-- name: Persist preloading the GTP module on boot
-  copy:
-    src: magma_modules_load
-    dest: /etc/modules-load.d/magma.conf
-  when: full_provision and ansible_distribution == "Debian"
 
 - name: Delete the OVS bridge on system initialization
   lineinfile: dest=/etc/default/openvswitch-switch regexp='.*OVS_CTL_OPTS=.*' line='OVS_CTL_OPTS=\'--delete-bridges\'' state=present
@@ -393,7 +354,6 @@
   shell: |
     ifdown gtp_br0
     /etc/init.d/openvswitch-switch  force-reload-kmod
-  when: ansible_distribution == "Ubuntu"
 
 - name: Bring up ovs bridge
   ignore_errors: yes
@@ -423,7 +383,7 @@
   copy:
     src: nx_actions_3.5.py
     dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nx_actions.py
-  when: full_provision and ansible_distribution == "Ubuntu"
+  when: full_provision
   ignore_errors: true
 
 - name: Change build folder ownership
@@ -437,16 +397,8 @@
   patch:
     src: patches/aioeventlet.py38.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
-  when: ansible_distribution == "Ubuntu"
 
 - name: Patch python aioeventlet lib crash ubuntu
   patch:
     src: patches/aioeventlet_fd_exception.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
-  when: ansible_distribution == "Ubuntu"
-
-- name: Patch python aioeventlet lib crash debian
-  patch:
-    src: patches/aioeventlet_fd_exception.patch
-    dest: /usr/lib/python3/dist-packages/aioeventlet.py
-  when: ansible_distribution == "Debian"

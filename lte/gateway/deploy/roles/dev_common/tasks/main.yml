@@ -18,7 +18,7 @@
   when: preburn
 
 - name: Install ansible for Ubuntu systems
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
   apt:
     state: present
     pkg:
@@ -172,19 +172,10 @@
   retries: 5
   when: preburn
 
-- name: Install build requirements for Debian systems
-  when: preburn and ansible_distribution == "Debian"
-  apt:
-    state: present
-    pkg:
-      - clang-3.8
-      - python3-aioeventlet
-  retries: 5
-
 - name: Install build requirements for Ubuntu systems
   # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
   # due to upstream versioning bug
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
   apt:
     state: present
     pkg:
@@ -269,21 +260,9 @@
   retries: 5
   when: preburn
 
-- name: Install Debian Magma gateway dev dependencies
-  retries: 5
-  when: preburn and ansible_distribution == "Debian"
-  apt:
-    state: present
-    update_cache: no
-    pkg:
-      - libprotobuf10
-      - libprotobuf-lite10
-      - libprotoc10
-      - libssl1.0-dev
-
 - name: Install Ubuntu Magma gateway dev dependencies
   retries: 5
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
   apt:
     state: present
     update_cache: no
@@ -304,13 +283,13 @@
     dest: "{{ tmp_libprotobuf_mutator_dir }}"
     version: v1.0
     force: yes
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 - name: Create a build directory for libprotobuf-mutator
   file:
     path: "{{ tmp_libprotobuf_mutator_dir }}/build"
     state: directory
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 # Fails build unless we add -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON
 #  to download and build updated proto lib.
@@ -321,7 +300,7 @@
     cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON && \
     ninja && \
     ninja install
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 ###############################################
 # Download and build sentry-native
@@ -333,20 +312,20 @@
   get_url:
     url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
     dest: "{{ tmp_directory }}/sentry-native.zip"
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 - name: Create a directory for Sentry Native
   file:
     path: "{{ tmp_directory }}/sentry-native"
     state: directory
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 - name: Unpack Sentry Native SDK
   unarchive:
     src: "{{ tmp_directory }}/sentry-native.zip"
     dest: "{{ tmp_directory }}/sentry-native"
     remote_src: yes
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 - name: Build and Install Sentry Native SDK
   shell: |
@@ -355,7 +334,7 @@
     cmake --build build --parallel && \
     cmake --install build --prefix install --config RelWithDebInfo && \
     cd build && make install
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 ###############################################
 # Download and build swagger-codegen
@@ -436,7 +415,7 @@
     mode: 0777
 
 - name: Patch multipath conf
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
   patch:
     src: patches/multipath-conf.patch
     dest: /etc/multipath.conf
@@ -445,7 +424,7 @@
   copy:
     src: magma_interfaces
     dest: /etc/network/interfaces
-  when: preburn and ansible_distribution == "Ubuntu"
+  when: preburn
 
 - name: Remove netplan and enable networking.
   shell: |
@@ -459,4 +438,3 @@
   copy:
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
-  when: ansible_distribution == "Ubuntu"
