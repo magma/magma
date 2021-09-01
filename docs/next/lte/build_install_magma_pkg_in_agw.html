@@ -73,7 +73,7 @@ To create a package for production, run</p>
 <p>To create a package for development or testing, run</p>
 <pre><code class="hljs css language-bash">fab dev package:vcs=git
 </code></pre>
-<p>The <code>dev</code> flag will compile all C++ services with <code>Debug</code> compiler flags and enable ASAN. This is recommended for testing only as it will impact performance.</p></li>
+<p>The <code>dev</code> flag will compile all C++ services with <code>Debug</code> compiler flags and enable ASAN. This is recommended for testing only as it will impact performance. In contrast, the production package has C++ services built with <code>RelWithDebInfo</code> compiler flags.</p></li>
 <li><p><strong>Locate the packages</strong>. Once the above command finished. You need to enter the VM to verify the deb packages are there.</p>
 <pre><code class="hljs css language-bash">vagrant ssh magma
 <span class="hljs-built_in">cd</span> ~/magma-packages/
