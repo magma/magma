@@ -1259,7 +1259,7 @@ int amf_app_handle_notification_received(
       // Fill the itti msg based on context info produced in amf core
       OAILOG_INFO(
           LOG_AMF_APP,
-          "T3513: Starting PAGING Timer for ue id: %ld and timer id: %d\n",
+          "T3513: Starting PAGING Timer for ue id: %u and timer id: %ld\n",
           ue_context->amf_ue_ngap_id, paging_ctx->m5_paging_response_timer.id);
 
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
