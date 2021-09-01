@@ -20,6 +20,10 @@ module "orc8r" {
   orc8r_db_password           = "{{ orc8rDbPassword }}" # must be at least 8 characters
   secretsmanager_orc8r_secret = "{{ orc8rTfSecrets }}"
   orc8r_domain_name           = "{{ orc8rDomainName }}"
+  orc8r_sns_name  = "{{ orc8rSnsName }}"
+  orc8r_db_identifier = "{{ orc8rDbId }}"
+  orc8r_db_name = "{{ orc8rDbName }}"
+  orc8r_db_event_subscription = "{{ orc8rDbEventSubscription }}"
 
   vpc_name     = "{{ orc8rTfVpc }}"
   cluster_name = "{{ orc8rTfCluster }}"

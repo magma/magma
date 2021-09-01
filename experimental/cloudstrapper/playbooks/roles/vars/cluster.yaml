@@ -35,6 +35,13 @@ orc8rTfCluster: orc8r
 orc8rTfEs: orc8r-es
 orc8rTfRdsNotifs: orc8r-rds-events
 orc8rTfSnsTopic: orc8r-sns
+orc8rDbName: orc8r
+orc8rDbId: orc8rdb
+orc8rDbs:
+  - "{{orc8rDbId}}"
+orc8rDbEventSubscription: orc8r-rds-events
+orc8rSnsName: orc8r-sns
+
 
 #------------------
 #Cluster-specific Variables ends

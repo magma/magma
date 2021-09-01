@@ -1363,7 +1363,85 @@ jobs:
           condition: <<parameters.notify_xwfm_ci>>
           steps:
             - magma_slack_notify
-
+  deploy-orc8r-with-agw:
+    machine:
+      image: ubuntu-2004:202104-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      CODE_DIR: /home/circleci/project/experimental/cloudstrapper
+      VARS_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks/roles/vars
+      WORK_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks
+    steps:
+      - checkout
+      - run: sudo apt-get update && sudo apt -y upgrade
+      - run: pyenv install 3.7.0
+      - python/set_version:
+          python_version: "3.7.0"
+      - run:
+          name: Install Dependencies
+          command: |
+            pip install ansible awscli boto3 boto
+            sudo apt-get update
+            sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+            sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+            sudo apt-get update && sudo apt-get install terraform
+      - run:
+          name: Propagate AWS credentials to ansible and create version
+          command: |
+            sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
+            sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
+            echo export VERSION="v1.6" >> $BASH_ENV
+            echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
+            echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian" >> $BASH_ENV
+            echo export GIT_REF="${CIRCLE_SHA1}" >> $BASH_ENV
+      - run:
+          name: Propagate AWS orc8r information
+          command: |
+            sed -i -e '/^orc8rLabel: /s/:.*$/: '"${PACKAGE_VERSION}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rVersion: /s/:.*$/: '"${VERSION}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsAgwRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsOrc8rRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsAgwAz: /s/:.*$/: us-east-1b/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^buildAwsRegion: /s/:.*$/: us-east-1/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAwsAz: /s/:.*$/: us-east-1b/' $VARS_DIR/build.yaml
+            sed -i -e '/^orc8rTfSecrets: /s/:.*$/: orc8r-secrets-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rTfVpc: /s/:.*$/: orc8r-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rTfCluster: /s/:.*$/: orc8r-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rTfEs: /s/:.*$/: orc8r-es-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rTfRdsNotifs: /s/:.*$/: orc8r-rds-events-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rDbName: /s/:.*$/: orc8r-db'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rDbId: /s/:.*$/: orc8r-db-id-'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rDomainName: /s/:.*$/: orc8rtest.com/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rSnsName: /s/:.*$/: orc8r-sns-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^userBootstrap: /s/:.*$/: circleci/' $VARS_DIR/defaults.yaml
+      - run:
+          name: Deploy orc8r
+          no_output_timeout: 30m
+          command: |
+            ansible-playbook $WORK_DIR/orc8r.yaml -e "dirSourceLocal=$MAGMA_ROOT" -e "dirLocalInventory=$VARS_DIR"  -e 'varBuildType=custom' -e 'varFirstInstall=false'
+      - run:
+          name: Propagate Vars for agw
+          command: |
+            sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-0ee28a2012a15bd10/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rVersion: /s/:.*$/: '"$VERSION"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rLabel: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
+      - run:
+          name: Deploy and configure Agw
+          no_output_timeout: 30m
+          command: |
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "dirLocalInventory=$VARS_DIR"  -e "idSite=awstest" -e "idGw=awstest"
+            ansible-playbook $WORK_DIR/agw-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=$VARS_DIR" -e "agw=tag_Name_awstest" -u ubuntu
+      - run:
+          name: Clean AWS resources
+          when: always
+          command: |
+            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags  agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r
+      - notify-magma:
+          artifact_name: AGW AWS AMI
+          version_path: $VERSION
+      - magma_slack_notify
   publish-amis-to-marketplace:
     machine:
       image: ubuntu-2004:202104-01
@@ -1562,6 +1640,9 @@ workflows:
           requires:
             - release-hold
             - ami-hold
+  quentin-test:
+    jobs:
+      - deploy-orc8r-with-agw
   feg:
     jobs:
       - feg-lint
@@ -1591,7 +1672,7 @@ workflows:
       - schedule:
           cron: "0 * * * *"
           <<: *only_master
-        
+
     jobs:
       - xwfm-test:
           notify_magma_ci: false
