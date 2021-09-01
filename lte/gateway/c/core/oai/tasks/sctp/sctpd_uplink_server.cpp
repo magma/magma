@@ -22,7 +22,6 @@ extern "C" {
 #include "bstrlib.h"
 #include "log.h"
 
-#include "sctp_defs.h"
 #include "sctp_itti_messaging.h"
 }
 
@@ -30,7 +29,8 @@ extern "C" {
 
 #include <grpcpp/grpcpp.h>
 
-#include <lte/protos/sctpd.grpc.pb.h>
+#include "lte/protos/sctpd.grpc.pb.h"
+#include "sctp_utils.h"
 
 namespace magma {
 namespace mme {
@@ -140,7 +140,9 @@ int start_sctpd_uplink_server(void) {
   service = std::make_shared<SctpdUplinkImpl>();
 
   ServerBuilder builder;
-  builder.AddListeningPort(UPSTREAM_SOCK, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(
+      magma::mme::upstream_sock_from_mconfig(),
+      grpc::InsecureServerCredentials());
   builder.RegisterService(service.get());
 
   server = builder.BuildAndStart();

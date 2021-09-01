@@ -22,8 +22,6 @@ extern "C" {
 
 #include "assertions.h"
 #include "log.h"
-
-#include "sctp_defs.h"
 }
 
 #include <memory.h>
@@ -32,6 +30,7 @@ extern "C" {
 #include <grpcpp/grpcpp.h>
 
 #include <lte/protos/sctpd.grpc.pb.h>
+#include "sctp_utils.h"
 
 namespace magma {
 namespace lte {
@@ -110,8 +109,9 @@ constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
 std::unique_ptr<SctpdDownlinkClient> client = nullptr;
 
 int init_sctpd_downlink_client(bool force_restart) {
-  auto channel =
-      grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
+  auto channel = grpc::CreateChannel(
+      magma::mme::downstream_sock_from_mconfig(),
+      grpc::InsecureChannelCredentials());
   client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
   return 0;
 }

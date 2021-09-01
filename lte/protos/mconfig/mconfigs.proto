@@ -356,6 +356,14 @@ message MME {
     SentryConfig sentry_config = 45;
     
     bool enable_converged_core = 46;
+
+    // Path to unix domain socket for SCTPD upstream traffic.
+    // Upstream denotes traffic from UE/eNB -> MME.
+    string upstream_sctp_sock = 47;
+
+    // Path to unix domain socket for SCTPD downstream traffic.
+    // Downstream denotes traffic from MME -> UE/eNB.
+    string downstream_sctp_sock = 48;
 }
 
 message FederatedModeMap {

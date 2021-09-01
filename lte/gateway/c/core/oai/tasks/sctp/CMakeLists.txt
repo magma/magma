@@ -16,6 +16,7 @@ generate_all_protos(
 add_library(TASK_SCTP_SERVER
     sctpd_downlink_client.cpp
     sctpd_uplink_server.cpp
+    sctp_utils.cpp
     sctp_itti_messaging.c
     sctp_primitives_server.c
     ${PROTO_SRCS}
@@ -24,6 +25,7 @@ add_library(TASK_SCTP_SERVER
 target_link_libraries(TASK_SCTP_SERVER
     COMMON
     LIB_BSTR LIB_HASHTABLE
+    MAGMA_CONFIG
     grpc++ grpc protobuf
     )
 target_include_directories(TASK_SCTP_SERVER PUBLIC
