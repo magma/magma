@@ -17,6 +17,7 @@
 extern "C" {
 #include "log.h"
 #include "dynamic_memory_check.h"
+#include "nas_timer.h"
 }
 
 #include "nas_state_converter.h"
@@ -431,6 +432,7 @@ void NasStateConverter::proto_to_esm_context(
     proto_to_esm_proc_data(
         esm_context_proto.esm_proc_data(), state_esm_context->esm_proc_data);
   }
+  state_esm_context->T3489.id = NAS_TIMER_INACTIVE_ID;
 }
 
 void NasStateConverter::esm_ebr_context_to_proto(
