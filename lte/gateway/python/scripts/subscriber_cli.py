@@ -95,6 +95,7 @@ def update_subscriber(client, args):
         pre_vul = "preemption_vulnerability"
         ul = "mbr_uplink"
         dl = "mbr_downlink"
+        unit = "ambr_unit"
         pdn_type = "pdn_type"
         static_ip = "static_ip"
         vlan_id = "vlan"
@@ -109,6 +110,7 @@ def update_subscriber(client, args):
             pre_vul,
             ul,
             dl,
+            unit,
             pdn_type,
             static_ip,
             vlan_id,
@@ -137,6 +139,7 @@ def update_subscriber(client, args):
             )
             apn_config.ambr.max_bandwidth_ul = int(apn_dict[ul])
             apn_config.ambr.max_bandwidth_dl = int(apn_dict[dl])
+            apn_config.ambr.unit = int(apn_dict[unit])
             apn_config.pdn = int(apn_dict[pdn_type])
             apn_config.assigned_static_ip = apn_dict[static_ip]
 
