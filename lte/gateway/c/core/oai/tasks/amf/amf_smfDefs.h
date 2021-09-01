@@ -84,6 +84,7 @@ typedef struct smf_primitive_s {
 } smf_primitive_t;
 
 typedef struct amf_smf_s {
+  uint8_t pdu_session_id;
   smf_primitive_t u;
 } amf_smf_t;
 
