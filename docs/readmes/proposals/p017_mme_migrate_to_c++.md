@@ -106,19 +106,19 @@ in various stages from development through production.]
 * MME_APP/NAS Serialization migration
     * Write proto
     * Write redis client libraries
-    * Migrate hashtables (find functions, evaluate performance)
     * Design classes for wrapping generated POD classes (?)
     	Not all context attribute need to be serialized
     * Migrate states (update core code with C++ patterns)
     * Write Unit tests
+* Migrate MME_APP/NAS hashtables (find functions, evaluate performance)
 * S1AP Serialization migration
     * Write proto
     * Write redis client libraries
-    * Migrate hashtables (find functions, evaluate performance)
     * Design classes for wrapping generated POD classes 
     	Not all context attribute need to be serialized
     * Migrate states (update core code)
     * Write Unit tests
+* Migrate S1AP hashtables (find functions, evaluate performance)
 * Intertask Messaging migration
     * Study message copy avoidance
 * S6a migration (OAI only)
