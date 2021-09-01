@@ -20,10 +20,13 @@ import s1ap_wrapper
 
 
 class TestAttachInactiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
+    """Test combined TAU with TA/LA updating and active flag set to false"""
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_inactive_tau_with_combined_tala_update_reattach(self):

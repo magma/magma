@@ -552,8 +552,8 @@ status_code_e update_tai_list_to_emm_context(
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
 
-  OAILOG_INFO(
-      LOG_NAS,
+  OAILOG_INFO_UE(
+      LOG_NAS, imsi64,
       "Matching partial list for originating TAI found! typeOfList=%d\n",
       par_tai_list->list_type);
   int itr = 0;
@@ -659,7 +659,6 @@ status_code_e verify_tau_tai(
                             .u.tai_one_plmn_consecutive_tacs.plmn)) &&
           (tai.tac == emm_ctx_tai->partial_tai_list[0]
                           .u.tai_one_plmn_consecutive_tacs.tac)) {
-        OAILOG_INFO(LOG_NAS_EMM, "TAC found in verify_tai");
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
       break;

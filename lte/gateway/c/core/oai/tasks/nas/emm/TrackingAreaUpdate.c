@@ -258,31 +258,6 @@ status_code_e emm_proc_tracking_area_update_request(
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
   }
-#if 0
-  if (EPS_UPDATE_TYPE_PERIODIC_UPDATING !=
-      ies->eps_update_type.eps_update_type_value) {
-    /*
-     * MME24.301R10_5.5.3.2.4_6 Normal and periodic tracking area updating
-     * procedure accepted by the network UE - EPS update type If the EPS update
-     * type IE included in the TRACKING AREA UPDATE REQUEST message indicates
-     * "periodic updating", and the UE was previously successfully attached for
-     * EPS and non-EPS services, subject to operator policies the MME should
-     * allocate a TAI list that does not span more than one location area.
-     */
-    // This IE not implemented
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "EMM-PROC- Sending Tracking Area Update Reject. "
-        "ue_id=" MME_UE_S1AP_ID_FMT ", cause=%d)\n",
-        ue_id, EMM_CAUSE_IE_NOT_IMPLEMENTED);
-    rc = emm_tracking_area_update_reject(ue_id, EMM_CAUSE_IE_NOT_IMPLEMENTED);
-    increment_counter(
-        "tracking_area_update_req", 1, 2, "result", "failure", "cause",
-        "normal_tau_not_supported");
-    free_emm_tau_request_ies(&ies);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
-#endif
   /*
    * Requirements MME24.301R10_5.5.3.2.4_3
    */
