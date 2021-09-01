@@ -49,16 +49,12 @@ message AcctSession {
         bytes  hardware_addr = 3;
         string name = 4;
     }
-    // ID of the user network (MNO, Identity Provider, etc.)
-    string user_network_id = 5;
     // unique session ID
-    string session_id = 6;
-    // ID of the service provider network
-    string serving_network_id = 7;
+    string session_id = 5;
     // ID of the service provider gateway (AP, AGW, enodeb, etc.)
-    string serving_gateway_id = 8;
+    string serving_apn = 6;
     // available QoS at the caller's site
-    AcctQoS    available_qos = 9;
+    AcctQoS available_qos = 7;
 }
 
 // Start session response
@@ -70,10 +66,10 @@ message AcctSessionResp {
     message ReportLimits {
         // octets_in - trigger update when RX bytes were consumed by the user from the last update event
         // default is 0, no RX trigger
-        uint32 octets_in = 1;
+        uint64 octets_in = 1;
         // octets_out - trigger update when TX bytes were consumed by the user from the last update event
         // default is 0, no TX trigger
-        uint32 octets_out = 2;
+        uint64 octets_out = 2;
         // elapsed_time_sec - trigger update when elapsed_time_sec seconds passed from the last update event
         uint32 elapsed_time_sec = 3;
         // default is 0, no time based update trigger
@@ -92,12 +88,12 @@ message AcctUpdateReq {
     // from the service provider over the course of this session (accumulative)
     // The accumulative nature of this field should compensate for intermittent
     // losses of connectivity
-    uint32 octets_in = 2;
+    uint64 octets_in = 2;
     // octets_out indicates how many octets have been sent on behalf of the user
     // by the service provider over the course of this session (accumulative)
     // The accumulative nature of this field should compensate for intermittent
     // losses of connectivity
-    uint32 octets_out = 3;
+    uint64 octets_out = 3;
     // session_time indicates how many seconds the user/session has received service for
     uint32 session_time = 4;
 }

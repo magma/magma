@@ -14,6 +14,7 @@
  * @format
  */
 import type {ActionQuery} from '../../components/ActionTable';
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {
   lte_subscription,
@@ -92,7 +93,10 @@ function ExportSubscribersButton() {
 }
 type ExportProps = {
   networkId: string,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 /**
  * Export subscribers in csv format.

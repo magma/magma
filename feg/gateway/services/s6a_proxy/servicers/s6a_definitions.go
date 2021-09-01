@@ -151,6 +151,8 @@ type AIA struct {
 type AMBR struct {
 	MaxRequestedBandwidthUL uint32 `avp:"Max-Requested-Bandwidth-UL"`
 	MaxRequestedBandwidthDL uint32 `avp:"Max-Requested-Bandwidth-DL"`
+	ExtendMaxRequestedBwUL  uint32 `avp:"Extended-Max-Requested-BW-UL"`
+	ExtendMaxRequestedBwDL  uint32 `avp:"Extended-Max-Requested-BW-DL"`
 }
 
 type AllocationRetentionPriority struct {

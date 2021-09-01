@@ -29,6 +29,8 @@ import (
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/syncstore"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -37,35 +39,51 @@ func main() {
 	// Create service
 	srv, err := service.NewOrchestratorService(lte.ModuleName, subscriberdb.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating service: %v", err)
+		glog.Fatalf("Error creating service: %+v", err)
 	}
 
 	// Init storage
-	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
+	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
-		glog.Fatalf("Error opening db connection: %v", err)
+		glog.Fatalf("Error opening db connection: %+v", err)
 	}
 	fact := blobstore.NewEntStorage(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := fact.InitializeFactory(); err != nil {
-		glog.Fatalf("Error initializing MSISDN lookup storage: %v", err)
+		glog.Fatalf("Error initializing MSISDN lookup storage: %+v", err)
 	}
 	ipStore := subscriberdb_storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	if err := ipStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing IP lookup storage: %v", err)
+		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
+
+	syncstoreFact := blobstore.NewEntStorage(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	if err := syncstoreFact.InitializeFactory(); err != nil {
+		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
+	}
+	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
+	if err != nil {
+		glog.Fatalf("Error creating new subscriber synsctore reader: %+v", err)
+	}
+	if err := subscriberStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing subscriber syncstore: %+v", err)
+	}
+
+	var serviceConfig subscriberdb.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
+	glog.Infof("Subscriberdb service config %+v", serviceConfig)
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer())
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 
 	// Run service
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error while running service and echo server: %v", err)
+		glog.Fatalf("Error while running service and echo server: %+v", err)
 	}
 
 }

@@ -39,15 +39,17 @@ def get_if_ip_with_netmask(interface, preference=IpPreference.IPV4_PREFERRED):
     ip_addresses = netifaces.ifaddresses(interface)
 
     try:
-        ipv4_address = (ip_addresses[netifaces.AF_INET][0]['addr'],
-                        ip_addresses[netifaces.AF_INET][0]['netmask'])
+        ipv4_address = (
+            ip_addresses[netifaces.AF_INET][0]['addr'],
+            ip_addresses[netifaces.AF_INET][0]['netmask'],
+        )
     except KeyError:
         ipv4_address = None
 
     try:
         ipv6_address = (
             ip_addresses[netifaces.AF_INET6][0]["addr"].split("%")[0],
-            ip_addresses[netifaces.AF_INET6][0]["netmask"].split("/")[1],
+            ip_addresses[netifaces.AF_INET6][0]["netmask"],
         )
 
     except KeyError:
@@ -85,8 +87,10 @@ def get_if_ip_with_netmask(interface, preference=IpPreference.IPV4_PREFERRED):
         raise ValueError('Unknown IP preference %s' % preference)
 
 
-def get_all_if_ips_with_netmask(interface,
-                                preference=IpPreference.IPV4_PREFERRED):
+def get_all_if_ips_with_netmask(
+    interface,
+    preference=IpPreference.IPV4_PREFERRED,
+):
     """
     Get all IP addresses and netmasks (in form /255.255.255.0)
     from interface name and return as a list of tuple (ip, netmask).
@@ -121,7 +125,8 @@ def get_all_if_ips_with_netmask(interface,
             return ipv6_addresses
         else:
             raise ValueError(
-                'Error getting IPv4/6 addresses for %s' % interface)
+                'Error getting IPv4/6 addresses for %s' % interface,
+            )
 
     elif preference == IpPreference.IPV6_PREFERRED:
         if ipv6_addresses is not None:
@@ -130,7 +135,8 @@ def get_all_if_ips_with_netmask(interface,
             return ipv4_addresses
         else:
             raise ValueError(
-                'Error getting IPv6/4 addresses for %s' % interface)
+                'Error getting IPv6/4 addresses for %s' % interface,
+            )
 
     elif preference == IpPreference.IPV6_ONLY:
         if ipv6_addresses is not None:
@@ -155,8 +161,10 @@ def get_all_ips_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
     Get all ip addresses from interface name and return as a list of string.
     Extract only ip address from (ip, netmask)
     """
-    return [ip[0] for ip in
-            get_all_if_ips_with_netmask(iface_name, preference)]
+    return [
+        ip[0] for ip in
+        get_all_if_ips_with_netmask(iface_name, preference)
+    ]
 
 
 def get_ip_from_if_cidr(iface_name, preference=IpPreference.IPV4_PREFERRED):
@@ -171,8 +179,10 @@ def get_ip_from_if_cidr(iface_name, preference=IpPreference.IPV4_PREFERRED):
     return interface
 
 
-def get_all_ips_from_if_cidr(iface_name,
-                             preference=IpPreference.IPV4_PREFERRED):
+def get_all_ips_from_if_cidr(
+    iface_name,
+    preference=IpPreference.IPV4_PREFERRED,
+):
     """
     Get all IPAddresses with netmask from interface name and
     transform into CIDR (eth1 -> 192.168.60.142/24) notation
@@ -239,9 +249,12 @@ def is_interface_up(interface):
 
 def call_process(cmd, callback, loop):
     loop = loop or asyncio.get_event_loop()
-    loop.create_task(loop.subprocess_shell(
+    loop.create_task(
+        loop.subprocess_shell(
         lambda: SubprocessProtocol(callback), "nohup " + cmd,
-        preexec_fn=os.setsid))
+        preexec_fn=os.setsid,
+        ),
+    )
 
 
 class SubprocessProtocol(asyncio.SubprocessProtocol):

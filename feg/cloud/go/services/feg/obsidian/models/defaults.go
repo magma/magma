@@ -78,6 +78,7 @@ func NewDefaultFederatedNetworkConfigs() *FederatedNetworkConfigs {
 func newDefaultAaaServer() *AaaServer {
 	return &AaaServer{
 		AccountingEnabled:    false,
+		AcctReportingEnabled: false,
 		CreateSessionOnAuth:  false,
 		IdleSessionTimeoutMs: 21600000,
 	}

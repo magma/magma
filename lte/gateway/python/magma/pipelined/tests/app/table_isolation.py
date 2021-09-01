@@ -26,7 +26,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
     IMSI_REG,
-    INGRESS_TUN_ID_REG,
+    NG_SESSION_ID_REG,
     Direction,
 )
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
@@ -107,7 +107,7 @@ class RyuForwardFlowArgsBuilder():
             Self
         """
         self._reg_sets.append(
-            {"type": "SET_FIELD", "field": reg_name, "value": value}
+            {"type": "SET_FIELD", "field": reg_name, "value": value},
         )
         return self
 
@@ -144,24 +144,28 @@ class RyuForwardFlowArgsBuilder():
             Self
         """
         self._ip = ip
-        self._ulink_action = {"type": "SET_FIELD", "field": DIRECTION_REG,
-                              "value": Direction.OUT}
+        self._ulink_action = {
+            "type": "SET_FIELD", "field": DIRECTION_REG,
+            "value": Direction.OUT,
+        }
 
-        self._dlink_action = {"type": "SET_FIELD", "field": DIRECTION_REG,
-                              "value": Direction.IN}
+        self._dlink_action = {
+            "type": "SET_FIELD", "field": DIRECTION_REG,
+            "value": Direction.IN,
+        }
         return self
 
-    def set_tunnel(self, uplink_tunnel):
+    def set_tunnel(self, downlink_tunnel):
         """
         Set Match IPs and set register values for ovs flows:
-            uplink_tunnel match for UPLINK
+            downlink_tunnel match for DOWNLINK
         Args:
-            uplink_tunnel (int): outbound tunnel value
+            downlink_tunnel (int): outbound tunnel value
         Returns:
             Self
         """
-        self._ul_tunnel_set = {"type": "SET_FIELD", "field": INGRESS_TUN_ID_REG,
-                                   "value": uplink_tunnel}
+        self._ul_tunnel_set = {"type": "SET_FIELD", "field": NG_SESSION_ID_REG,
+                                   "value": downlink_tunnel}
         return self
 
     def set_eth_match(self, eth_src, eth_dst):
@@ -194,14 +198,18 @@ class RyuForwardFlowArgsBuilder():
         ip_addr = convert_ip_str_to_ip_proto(self._ip)
         if ip_addr.version == IPAddress.IPV4:
             uplink["match"].update(
-                {"ipv4_src": self._ip})
+                {"ipv4_src": self._ip},
+            )
             downlink["match"].update(
-                {"ipv4_dst": self._ip})
+                {"ipv4_dst": self._ip},
+            )
         else:
             uplink["match"].update(
-                {"ipv6_src": self._ip})
+                {"ipv6_src": self._ip},
+            )
             downlink["match"].update(
-                {"ipv6_dst": self._ip})
+                {"ipv6_dst": self._ip},
+            )
         return [uplink, downlink]
 
     def set_eth_type_arp(self):
@@ -216,7 +224,7 @@ class RyuForwardFlowArgsBuilder():
             self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
         return self.set_ip(sub_info.ip) \
             .set_reg_value(IMSI_REG, encode_imsi(sub_info.imsi))\
-            .set_tunnel(sub_info.uplink_tunnel)
+            .set_tunnel(sub_info.downlink_tunnel)
 
     def build_requests(self):
         """
@@ -230,7 +238,7 @@ class RyuForwardFlowArgsBuilder():
         else:
             if self._reg_sets:
                 self._request["instructions"].append(
-                    {"type": "APPLY_ACTIONS", "actions": self._reg_sets}
+                    {"type": "APPLY_ACTIONS", "actions": self._reg_sets},
                 )
             return [self._request]
 

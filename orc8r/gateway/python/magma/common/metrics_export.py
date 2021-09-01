@@ -114,8 +114,10 @@ def encode_summary(family, timestamp_ms):
         quantile = sample[1].pop('quantile', None)  # Remove from label set
         # Each time series identified by label set excluding the quantile
         metric_proto = \
-            metric_protos.setdefault(frozenset(sample[1].items()),
-                                     metrics_pb2.Metric())
+            metric_protos.setdefault(
+                frozenset(sample[1].items()),
+                metrics_pb2.Metric(),
+            )
         if sample[0].endswith('_count'):
             metric_proto.summary.sample_count = int(sample[2])
         elif sample[0].endswith('_sum'):
@@ -159,8 +161,10 @@ def encode_histogram(family, timestamp_ms):
     for sample in family.samples:
         upper_bound = sample[1].pop('le', None)  # Remove from label set
         metric_proto = \
-            metric_protos.setdefault(frozenset(sample[1].items()),
-                                     metrics_pb2.Metric())
+            metric_protos.setdefault(
+                frozenset(sample[1].items()),
+                metrics_pb2.Metric(),
+            )
         if sample[0].endswith('_count'):
             metric_proto.histogram.sample_count = int(sample[2])
         elif sample[0].endswith('_sum'):

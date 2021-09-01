@@ -2,8 +2,11 @@
   become: yes
   become_user: root
   roles:
-    - magma/mariadb
-    - magma/elasticsearch
+    - role: magma/mariadb
+      when: deploy_mariadb | default(true)
+    - role: magma/elasticsearch
+      when: deploy_elasticsearch | default(true)
     - magma/fluentd
-    - magma/kibana
+    - role: magma/kibana
+      when: deploy_kibana | default(true)
     - magma/orc8r

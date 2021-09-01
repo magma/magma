@@ -13,7 +13,7 @@ limitations under the License.
 syntax = "proto3";
 
 package feg;
-option go_package = "protos";
+option go_package = "magma/feg/cloud/go/services/controller/protos";
 
 message DiamClientConfig {
   string protocol = 1; // tcp/sctp/...
@@ -145,6 +145,7 @@ message AAAConfig {
     uint32 IdleSessionTimeoutMs = 1; // Idle session TTL
     bool AccountingEnabled = 2; // enable accounting & maintain long term user sessions
     bool CreateSessionOnAuth = 3; // Postpone Auth success until successful accounting CreateSession completion
+    bool AcctReportingEnabled = 4; // enable accounting reporting to the module's orc8r service
 }
 
 message Config {

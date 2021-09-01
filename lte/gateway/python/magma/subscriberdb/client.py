@@ -13,14 +13,17 @@ limitations under the License.
 import asyncio
 import datetime
 import logging
+from typing import List, NamedTuple, Optional
 
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 from lte.protos.subscriberdb_pb2 import (
+    CheckInSyncRequest,
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
+    SyncRequest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
@@ -32,6 +35,21 @@ from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_SUCCESS_TOTAL,
 )
 from magma.subscriberdb.store.sqlite import SqliteStore
+from orc8r.protos.digest_pb2 import Changeset, Digest, LeafDigest
+
+CloudSubscribersInfo = NamedTuple(
+    'CloudSubscribersInfo', [
+        ('subscribers', List[SubscriberData]),
+        ('root_digest', Optional[Digest]),
+        ('leaf_digests', Optional[List[LeafDigest]]),
+    ],
+)
+ProcessedChangeset = NamedTuple(
+    'ProcessedChangeset', [
+        ('to_renew', List[SubscriberData]),
+        ('deleted', List[str]),
+    ],
+)
 
 
 class SubscriberDBCloudClient(SDWatchdogTask):
@@ -77,32 +95,127 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._grpc_client_manager = grpc_client_manager
 
     async def _run(self) -> None:
-        subscribers = await self._get_subscribers()
-        if subscribers is not None:
-            self._process_subscribers(subscribers)
+        in_sync = await self._check_subscribers_in_sync()
+        if in_sync:
+            return
 
-    async def _get_subscribers(self) -> [SubscriberData]:
+        resync = await self._sync_subscribers()
+        if not resync:
+            return
+
+        subscribers_info = await self._get_all_subscribers()
+        if subscribers_info is None:
+            return
+
+        # Process subscriber data before digest data, in case there's a gateway
+        # failure between the calls
+        self._process_subscribers(subscribers_info.subscribers)
+        self._update_root_digest(subscribers_info.root_digest)
+        self._update_leaf_digests(subscribers_info.leaf_digests)
+
+    async def _check_subscribers_in_sync(self) -> bool:
+        """
+        Check if the local subscriber data is up-to-date with the cloud by
+        comparing root digests
+
+        Returns:
+            boolean value for whether the local data is in sync
+        """
+        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
+        req = CheckInSyncRequest(
+            root_digest=Digest(
+                md5_base64_digest=self._store.get_current_root_digest(),
+            ),
+        )
+        try:
+            res = await grpc_async_wrapper(
+                subscriberdb_cloud_client.CheckInSync.future(
+                    req,
+                    self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                ),
+                self._loop,
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "Check subscribers in sync request error! [%s] %s", err.code(),
+                err.details(),
+            )
+            return False
+        return res.in_sync
+
+    async def _sync_subscribers(self) -> bool:
+        """
+        Sync local subscriber data and digests with the cloud if didn't receive
+        resync signal.
+
+        Returns:
+            boolean value for whether a resync with cloud is needed
+        """
+        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
+        req = SyncRequest(
+            leaf_digests=self._store.get_current_leaf_digests(),
+        )
+        try:
+            res = await grpc_async_wrapper(
+                subscriberdb_cloud_client.Sync.future(
+                    req,
+                    self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                ),
+                self._loop,
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "Sync subscribers request error! [%s] %s", err.code(),
+                err.details(),
+            )
+            return True
+
+        if not res.resync:
+            self._update_root_digest(res.digests.root_digest)
+            self._update_leaf_digests(res.digests.leaf_digests)
+
+            # TODO(hcgatewood): switch to bulk editing subscriber data rows
+            changeset = self._process_changeset(res.changeset)
+            for subscriber_data in changeset.to_renew:
+                self._store.upsert_subscriber(subscriber_data)
+            for sid in changeset.deleted:
+                self._store.delete_subscriber(sid)
+            self._detach_subscribers_by_ids(changeset.deleted)
+
+        return res.resync
+
+    async def _get_all_subscribers(self) -> Optional[CloudSubscribersInfo]:
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
         subscribers = []
+        root_digest = None
+        leaf_digests = None
         req_page_token = ""  # noqa: S105
-        res_page_token = "start_token"  # noqa: S105
+        found_empty_token = False
         sync_start = datetime.datetime.now()
-        while res_page_token != "":  # noqa: S105
+
+        # Next page token empty means read all updates
+        while not found_empty_token:  # noqa: S105
             try:
                 req = ListSubscribersRequest(
                     page_size=self._subscriber_page_size,
                     page_token=req_page_token,
                 )
-                response = await grpc_async_wrapper(
+                res = await grpc_async_wrapper(
                     subscriberdb_cloud_client.ListSubscribers.future(
                         req,
                         self.SUBSCRIBERDB_REQUEST_TIMEOUT,
                     ),
                     self._loop,
                 )
-                subscribers.extend(response.subscribers)
-                res_page_token = response.next_page_token
-                req_page_token = response.next_page_token
+                subscribers.extend(res.subscribers)
+                # Cloud sends back digests during request for the first page
+                if req_page_token == "":
+                    root_digest = res.digests.root_digest
+                    leaf_digests = res.digests.leaf_digests
+
+                req_page_token = res.next_page_token
+                found_empty_token = req_page_token == ""
+
             except grpc.RpcError as err:
                 logging.error(
                     "Fetch subscribers error! [%s] %s", err.code(),
@@ -123,9 +236,47 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         SUBSCRIBER_SYNC_LATENCY.observe(
             time_elapsed.total_seconds() * 1000,
         )
-        return subscribers
 
-    def _process_subscribers(self, subscribers: SubscriberData) -> None:
+        subscribers_info = CloudSubscribersInfo(
+            subscribers=subscribers,
+            root_digest=root_digest,
+            leaf_digests=leaf_digests,
+        )
+        return subscribers_info
+
+    def _process_changeset(self, changeset: Optional[Changeset]) -> ProcessedChangeset:
+        if changeset is None:
+            return ProcessedChangeset(to_renew=[], deleted=[])
+
+        to_renew, deleted = [], []
+        if changeset.deleted is not None:
+            deleted = changeset.deleted
+        if changeset.to_renew is not None:
+            for any_val in changeset.to_renew:
+                data = SubscriberData()
+                ok = any_val.Unpack(data)
+                if not ok:
+                    raise ValueError(
+                        'Cannot unpack Any type into message: %s' % data,
+                    )
+                to_renew.append(data)
+
+        return ProcessedChangeset(to_renew=to_renew, deleted=deleted)
+
+    def _update_root_digest(self, root_digest: Optional[Digest]) -> None:
+        if root_digest is None:
+            return
+        self._store.update_root_digest(root_digest.md5_base64_digest)
+
+    def _update_leaf_digests(
+            self,
+            leaf_digests: Optional[List[LeafDigest]],
+    ) -> None:
+        if leaf_digests is None:
+            return
+        self._store.update_leaf_digests(leaf_digests)
+
+    def _process_subscribers(self, subscribers: List[SubscriberData]) -> None:
         active_subscriber_ids = []
         sids = []
         for subscriber in subscribers:
@@ -174,6 +325,21 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         ]
         if not deleted_sub_ids:
             return
+        self._detach_subscribers_by_ids(deleted_sub_ids)
+
+    def _detach_subscribers_by_ids(self, deleted_sub_ids: List[str]):
+        """
+        Sends grpc DeleteSubscriber request to mme to detach all subscribers
+        given as args.
+
+        Args:
+            deleted_sub_ids: a list of old subscriber ids in the store,
+                             prefixed by subscriber type
+
+        Returns:
+            None
+
+        """
         # send detach request to mme for all deleted subscribers.
         chan = ServiceRegistry.get_rpc_channel(
             's6a_service',

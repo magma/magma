@@ -30,6 +30,7 @@ class StatsManagerTest(TestCase):
     """
     Tests for eNodeB statistics manager
     """
+
     def setUp(self) -> None:
         service = EnodebConfigBuilder.get_service_config()
         self.enb_acs_manager = StateMachineManager(service)
@@ -45,16 +46,23 @@ class StatsManagerTest(TestCase):
             .build_acs_state_machine(EnodebDeviceName.BAICELLS)
         with mock.patch(
                 'magma.enodebd.devices.baicells.BaicellsHandler.is_enodeb_connected',
-                return_value=True):
+                return_value=True,
+        ):
             handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS, True)
-            handler.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER,
-                                             '123454')
-            with mock.patch('magma.enodebd.stats_manager.StatsManager'
-                            '._clear_stats') as func:
+            handler.device_cfg.set_parameter(
+                ParameterName.SERIAL_NUMBER,
+                '123454',
+            )
+            with mock.patch(
+                'magma.enodebd.stats_manager.StatsManager'
+                '._clear_stats',
+            ) as func:
                 self.mgr._check_rf_tx_for_handler(handler)
                 func.assert_not_called()
-                handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS,
-                                                 False)
+                handler.device_cfg.set_parameter(
+                    ParameterName.RF_TX_STATUS,
+                    False,
+                )
                 self.mgr._check_rf_tx_for_handler(handler)
                 func.assert_any_call()
 
@@ -62,8 +70,10 @@ class StatsManagerTest(TestCase):
         """ Test that example statistics from eNodeB can be parsed, and metrics
             updated """
         # Example performance metrics structure, sent by eNodeB
-        pm_file_example = pkg_resources.resource_string(__name__,
-                                                        'pm_file_example.xml')
+        pm_file_example = pkg_resources.resource_string(
+            __name__,
+            'pm_file_example.xml',
+        )
 
         root = ElementTree.fromstring(pm_file_example)
         self.mgr._parse_pm_xml('1234', root)
@@ -92,3 +102,25 @@ class StatsManagerTest(TestCase):
         self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][1], {'enodeb': '1234'})
         self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][2], 1000)
         self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][2], 500)
+
+    def test_clear_stats(self):
+        """
+        Check that stats of PMPM_FILE_TO_METRIC_MAP is cleared successfully
+        """
+        # Example performance metrics structure, sent by eNodeB
+        pm_file_example = pkg_resources.resource_string(
+            __name__,
+            'pm_file_example.xml',
+        )
+
+        root = ElementTree.fromstring(pm_file_example)
+        self.mgr._parse_pm_xml('1234', root)
+
+        # Check that metrics were correctly populated
+        rrc_estab_attempts = metrics.STAT_RRC_ESTAB_ATT.collect()
+        self.assertEqual(rrc_estab_attempts[0].samples[0][2], 123)
+
+        self.mgr._clear_stats()
+        rrc_estab_attempts = metrics.STAT_RRC_ESTAB_ATT.collect()
+        # After clearing stats collection of metric should report 0
+        self.assertEqual(rrc_estab_attempts[0].samples[0][2], 0)

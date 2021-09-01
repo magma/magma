@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos context.proto
-//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos eap.proto
-//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos authorization.proto
-//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos accounting.proto
+//go:generate protoc -I../../../gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos ../../../gateway/services/aaa/protos/context.proto
+//go:generate protoc -I../../../gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos ../../../gateway/services/aaa/protos/eap.proto
+//go:generate protoc -I../../../gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos ../../../gateway/services/aaa/protos/authorization.proto
+//go:generate protoc -I../../../gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos ../../../gateway/services/aaa/protos/accounting.proto
 
 package modules
 

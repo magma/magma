@@ -1,0 +1,200 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cpp_proto_library(
+    name = "abort_session_cpp_proto",
+    protos = [":abort_session_proto"],
+)
+
+proto_library(
+    name = "abort_session_proto",
+    srcs = ["abort_session.proto"],
+)
+
+cpp_proto_library(
+    name = "apn_cpp_proto",
+    protos = [":apn_proto"],
+)
+
+proto_library(
+    name = "apn_proto",
+    srcs = ["apn.proto"],
+)
+
+cpp_proto_library(
+    name = "subscriberdb_cpp_proto",
+    protos = [":subscriberdb_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "subscriberdb_cpp_grpc",
+    protos = [":subscriberdb_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "subscriberdb_proto",
+    srcs = ["subscriberdb.proto"],
+    deps = [
+        ":apn_proto",
+        "//orc8r/protos:common_proto",
+        "@protobuf//:field_mask_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "mobilityd_cpp_proto",
+    protos = [":mobilityd_proto"],
+    deps = [":subscriberdb_cpp_proto"],
+)
+
+cpp_grpc_library(
+    name = "mobilityd_cpp_grpc",
+    protos = [":mobilityd_proto"],
+    deps = [
+        ":subscriberdb_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "mobilityd_proto",
+    srcs = ["mobilityd.proto"],
+    deps = [
+        ":subscriberdb_proto",
+        "//orc8r/protos:common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "policydb_cpp_proto",
+    protos = [":policydb_proto"],
+    deps = [
+        ":mobilityd_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "policydb_cpp_grpc",
+    protos = [":policydb_proto"],
+    deps = [
+        ":mobilityd_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "policydb_proto",
+    srcs = ["policydb.proto"],
+    deps = [
+        ":mobilityd_proto",
+        "//orc8r/protos:common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "session_manager_cpp_proto",
+    protos = [":session_manager_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        ":policydb_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "session_manager_cpp_grpc",
+    protos = [":session_manager_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        ":policydb_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "session_manager_proto",
+    srcs = ["session_manager.proto"],
+    deps = [
+        ":apn_proto",
+        ":policydb_proto",
+        ":subscriberdb_proto",
+        "//orc8r/protos:common_proto",
+        "@protobuf//:timestamp_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "pipelined_cpp_proto",
+    protos = [":pipelined_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        ":policydb_cpp_proto",
+        ":session_manager_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "pipelined_cpp_grpc",
+    protos = [":pipelined_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        ":policydb_cpp_proto",
+        ":session_manager_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "pipelined_proto",
+    srcs = ["pipelined.proto"],
+    deps = [
+        ":apn_proto",
+        ":mobilityd_proto",
+        ":policydb_proto",
+        ":session_manager_proto",
+        ":subscriberdb_proto",
+        "//orc8r/protos:common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "spgw_service_cpp_proto",
+    protos = [":spgw_service_proto"],
+    deps = [
+        ":policydb_cpp_proto",
+        ":subscriberdb_cpp_proto",
+    ],
+)
+
+proto_library(
+    name = "spgw_service_proto",
+    srcs = ["spgw_service.proto"],
+    deps = [
+        ":policydb_proto",
+        ":subscriberdb_proto",
+    ],
+)

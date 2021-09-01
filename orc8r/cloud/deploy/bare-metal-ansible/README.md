@@ -159,3 +159,17 @@ Once you've begun a deployment, if you find that you need to go back and start a
 cd $MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible/
 ansible-playbook -i inventory/cluster.local/hosts.yaml -b kubespray/reset.yml
 ```
+
+## DNS setup concerns
+The above steps assume you are using something like external-dns + AWS Route53 to publish your DNS records or are doing so manually.
+An alternative is to manually set /etc/hosts on every layer (yes, it's inconvenient). A quick way to fetch the IPs and hostnames
+can be achieved with this command:
+```bash
+kubectl -n magma get svc -ojsonpath='{range .items[?(@.spec.type=="LoadBalancer")]}{.status.loadBalancer.ingress[0].ip}{" "}{.metadata.annotations.external-dns\.alpha\.kubernetes\.io/hostname}{"\n"}{end}'
+```
+
+Note that the wildcard entry *.nms.DOMAIN should be renamed to the organization domains planned to be used (such as master and org1)
+
+In the default deployment, nodelocaldns is used. To add hosts entry there, edit the configmap for it in kube-system namespace and restart the Kubernetes pods for nodelocaldns.
+You will want to add records for your domain suffix so that nms can reach orc8r API.
+Here is an example of a CoreDNS config with hosts entries: https://www.programmersought.com/article/81022887882/

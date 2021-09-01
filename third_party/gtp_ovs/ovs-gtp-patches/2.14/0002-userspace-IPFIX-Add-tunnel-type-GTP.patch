@@ -1,7 +1,7 @@
-From 5cc9f1c716c2d580b0e7ee4a91b81315e3c883cc Mon Sep 17 00:00:00 2001
+From 619ba66cdd60bdf651c8234d6722caa0214d4628 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:29:56 +0000
-Subject: [PATCH 02/14] userspace: IPFIX: Add tunnel type GTP
+Subject: [PATCH 02/20] userspace: IPFIX: Add tunnel type GTP
 
 Add support for ingress/egress tunnel type GTP
 in IPFIX.
@@ -150,7 +150,7 @@ index 796eb6f88..ed0a4ace0 100644
              return 4;
          case DPIF_IPFIX_TUNNEL_VXLAN:
 diff --git a/ofproto/ofproto-dpif-sflow.c b/ofproto/ofproto-dpif-sflow.c
-index f616fb2bb..e0e6e07c9 100644
+index b39482dbf..9de054456 100644
 --- a/ofproto/ofproto-dpif-sflow.c
 +++ b/ofproto/ofproto-dpif-sflow.c
 @@ -61,7 +61,8 @@ enum dpif_sflow_tunnel_type {
@@ -194,5 +194,5 @@ index a87b6777c..530752444 100644
  AT_CHECK([ovs-ofctl del-flows int-br])
  
 -- 
-2.13.5
+2.17.1
 

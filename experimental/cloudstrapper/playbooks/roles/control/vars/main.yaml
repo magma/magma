@@ -1,6 +1,6 @@
 ---
 
-dirTerraform: "{{ dirExpHome }}/{{ orc8rClusterName }}/terraform"
+dirTerraform: "{{ dirLocalInventory }}/{{ orc8rClusterName }}/terraform"
 localTerraformDir: "{{ dirTerraform }}/.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/"
 localTerraformAppDir: "{{ dirTerraform }}/.terraform/modules/orc8r-app/orc8r/cloud/deploy/terraform/"
 
@@ -14,4 +14,3 @@ nmsDbPassword: testpassword
 orc8rDbPassword: testpassword
 helmRepo: "{{ gitHelmRepo }}"
 orc8rTag: "{{ orc8rLabel }}"
-orc8rChartVersion: 1.4.36

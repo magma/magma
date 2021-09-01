@@ -79,8 +79,10 @@ class RestartResilienceTest(unittest.TestCase):
     def _wait_func(self, stat_names):
         def func():
             wait_after_send(self.testing_controller)
-            wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                       stat_names)
+            wait_for_enforcement_stats(
+                self.enforcement_stats_controller,
+                stat_names,
+            )
         return func
 
     @classmethod
@@ -97,9 +99,11 @@ class RestartResilienceTest(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         cls._enforcement_tbl_num = cls.service_manager.get_table_num(
-            EnforcementController.APP_NAME)
+            EnforcementController.APP_NAME,
+        )
         cls._tbl_num = cls.service_manager.get_table_num(
-            EnforcementController.APP_NAME)
+            EnforcementController.APP_NAME,
+        )
 
         enforcement_controller_reference = Future()
         testing_controller_reference = Future()
@@ -112,10 +116,12 @@ class RestartResilienceTest(unittest.TestCase):
         loop_mock.call_soon_threadsafe = mock_thread_safe
 
         test_setup = TestSetup(
-            apps=[PipelinedController.Enforcement,
-                  PipelinedController.Testing,
-                  PipelinedController.Enforcement_stats,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.Enforcement,
+                PipelinedController.Testing,
+                PipelinedController.Enforcement_stats,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
@@ -131,7 +137,7 @@ class RestartResilienceTest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
                 'enforcement': {
                     'poll_interval': 2,
-                    'default_drop_flow_name': cls.DEFAULT_DROP_FLOW_NAME
+                    'default_drop_flow_name': cls.DEFAULT_DROP_FLOW_NAME,
                 },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
@@ -143,7 +149,7 @@ class RestartResilienceTest(unittest.TestCase):
             loop=loop_mock,
             service_manager=cls.service_manager,
             integ_test=False,
-            rpc_stubs={'sessiond': MagicMock()}
+            rpc_stubs={'sessiond': MagicMock()},
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
@@ -176,10 +182,13 @@ class RestartResilienceTest(unittest.TestCase):
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'default_flows')
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows',
+        )
         with snapshot_verifier:
             pass
 
@@ -187,11 +196,14 @@ class RestartResilienceTest(unittest.TestCase):
         sub_ip = b'fe80:24c3:d0ff:fef3:9d21:4407:d337:1928'
         uplink_tunnel = 0x1234
 
-        flow_list = [FlowDescription(
-            match=FlowMatch(
-                ip_dst=convert_ipv6_bytes_to_ip_proto(b'fe80::'),
-                direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
+        flow_list = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_dst=convert_ipv6_bytes_to_ip_proto(b'fe80::'),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
         policies = [
             VersionedPolicy(
@@ -201,37 +213,44 @@ class RestartResilienceTest(unittest.TestCase):
         ]
         enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(uplink_tunnel)]
         setup_flows_request = SetupFlowsRequest(
-            requests=[ActivateFlowsRequest(
-                sid=SIDUtils.to_pb(imsi),
-                ipv6_addr=sub_ip,
-                policies=policies,
+            requests=[
+                ActivateFlowsRequest(
+                    sid=SIDUtils.to_pb(imsi),
+                    ipv6_addr=sub_ip,
+                    policies=policies,
                 uplink_tunnel=uplink_tunnel,
-            )],
-            epoch=global_epoch
+                ),
+            ],
+            epoch=global_epoch,
         )
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
-            setup_flows_request=setup_flows_request)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'after_restart')
+            setup_flows_request=setup_flows_request,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'after_restart',
+        )
         with snapshot_verifier:
             pass
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'default_flows')
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows',
+        )
 
         with snapshot_verifier:
             pass
-
 
     def test_enforcement_restart(self):
         """
@@ -251,10 +270,13 @@ class RestartResilienceTest(unittest.TestCase):
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'default_flows')
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows',
+        )
         with snapshot_verifier:
             pass
 
@@ -267,31 +289,42 @@ class RestartResilienceTest(unittest.TestCase):
             FlowDescription(
                 match=FlowMatch(
                     ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
-                    direction=FlowMatch.UPLINK),
-                action=FlowDescription.PERMIT),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
             FlowDescription(
                 match=FlowMatch(
                     ip_dst=convert_ipv4_str_to_ip_proto('45.11.0.0/24'),
-                    direction=FlowMatch.UPLINK),
-                action=FlowDescription.PERMIT)
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
-        flow_list2 = [FlowDescription(
-            match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto('10.10.1.0/24'),
-                direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
+        flow_list2 = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_dst=convert_ipv4_str_to_ip_proto('10.10.1.0/24'),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
         policies1 = [
             VersionedPolicy(
                 rule=PolicyRule(id='sub1_rule_temp', priority=2, flow_list=flow_list1),
                 version=1,
-            )
+            ),
         ]
         policies2 = [
             VersionedPolicy(
                 rule=PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2),
                 version=1,
-            )
+            ),
+        ]
+        enf_stat_name = [
+            imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
+            imsi2 + '|sub2_rule_keep' + '|' + sub2_ip,
         ]
         enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + str(uplink_tunnel1),
                          imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2)]
@@ -315,7 +348,7 @@ class RestartResilienceTest(unittest.TestCase):
                     uplink_tunnel=uplink_tunnel2,
                 ),
             ],
-            epoch=global_epoch
+            epoch=global_epoch,
         )
 
         # Simulate clearing the dict
@@ -326,7 +359,8 @@ class RestartResilienceTest(unittest.TestCase):
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
-            setup_flows_request=setup_flows_request)
+            setup_flows_request=setup_flows_request,
+        )
         sub_context = RyuDirectSubscriberContext(
             imsi2, sub2_ip, uplink_tunnel2,
             self.enforcement_controller, self._enforcement_tbl_num
@@ -334,24 +368,29 @@ class RestartResilienceTest(unittest.TestCase):
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packets = IPPacketBuilder()\
             .set_ip_layer('10.10.1.8/20', sub2_ip)\
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'before_restart')
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'before_restart',
+        )
         with isolator, snapshot_verifier:
             pkt_sender.send(packets)
 
-        flow_list1 = [FlowDescription(
-            match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto('24.10.0.0/24'),
-                direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
+        flow_list1 = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_dst=convert_ipv4_str_to_ip_proto('24.10.0.0/24'),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
         policies = [
             VersionedPolicy(
@@ -363,39 +402,47 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-#
-#         self.service_manager.session_rule_version_mapper.save_version(
-#             imsi2, uplink_tunnel2, 'sub2_new_rule', 1)
-        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + str(uplink_tunnel2),
-                         imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2)]
+
+        enf_stat_name = [
+            imsi2 + '|sub2_new_rule' + '|' + str(uplink_tunnel2),
+            imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2),
+        ]
         setup_flows_request = SetupFlowsRequest(
-            requests=[ActivateFlowsRequest(
-                sid=SIDUtils.to_pb(imsi2),
-                ip_addr=sub2_ip,
-                policies=policies,
+            requests=[
+                ActivateFlowsRequest(
+                    sid=SIDUtils.to_pb(imsi2),
+                    ip_addr=sub2_ip,
+                    policies=policies,
                 uplink_tunnel=uplink_tunnel2,
-            )],
-            epoch=global_epoch
+                ),
+            ],
+            epoch=global_epoch,
         )
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
-            setup_flows_request=setup_flows_request)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'after_restart')
+            setup_flows_request=setup_flows_request,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'after_restart',
+        )
         with snapshot_verifier:
             pass
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'default_flows_w_packets')
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows_w_packets',
+        )
 
         with snapshot_verifier:
             pass
@@ -418,10 +465,13 @@ class RestartResilienceTest(unittest.TestCase):
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'default_flows')
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows',
+        )
         with snapshot_verifier:
             pass
 
@@ -431,17 +481,23 @@ class RestartResilienceTest(unittest.TestCase):
         num_pkts_rx_match = 256
 
         """ Create 2 policy rules for the subscriber """
-        flow_list1 = [FlowDescription(
-            match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
-        direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
+        flow_list1 = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
-        flow_list2 = [FlowDescription(
-            match=FlowMatch(
-                ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
-        direction=FlowMatch.DOWNLINK),
-            action=FlowDescription.PERMIT)
+        flow_list2 = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                    direction=FlowMatch.DOWNLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
         policies = [
             VersionedPolicy(
@@ -453,24 +509,28 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel),
-                         imsi + '|rx_match' + '|' + str(uplink_tunnel)]
+        enf_stat_name = [
+           imsi + '|tx_match' + '|' + str(uplink_tunnel) + "|" + "1",
+           imsi + '|rx_match' + '|' + str(uplink_tunnel) + "|" + "1",
+        ]
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, uplink_tunnel, 'tx_match', 1)
+            imsi, uplink_tunnel, 'tx_match', 1,
+        )
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, uplink_tunnel, 'rx_match', 1)
+            imsi, uplink_tunnel, 'rx_match', 1,
+        )
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, uplink_tunnel,
             self.enforcement_controller,
             self._enforcement_tbl_num, self.enforcement_stats_controller,
-            nuke_flows_on_exit=False
+            nuke_flows_on_exit=False,
         ).add_policy(policies[0]).add_policy(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
 
         """ Create 2 sets of packets, for policry rule1&2 """
@@ -485,27 +545,35 @@ class RestartResilienceTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'initial_flows')
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'initial_flows',
+        )
         """ Send packets, wait until pkts are received by ovs and enf stats """
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet1)
             pkt_sender.send(packet2)
 
+        wait_for_enforcement_stats(
+            self.enforcement_stats_controller,
+            enf_stat_name,
+        )
         stats = get_enforcement_stats(
-            self.enforcement_stats_controller._report_usage.call_args_list)
+            self.enforcement_stats_controller._report_usage.call_args_list,
+        )
 
         self.assertEqual(stats[enf_stat_name[0]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[0]].rule_id, "tx_match")
         self.assertEqual(stats[enf_stat_name[0]].bytes_rx, 0)
-        self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
-                         num_pkts_tx_match * len(packet1))
+        self.assertEqual(
+            stats[enf_stat_name[0]].bytes_tx,
+            num_pkts_tx_match * len(packet1),
+        )
         self.assertEqual(stats[enf_stat_name[1]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
         self.assertEqual(stats[enf_stat_name[1]].bytes_rx, 5120)
-
 
         # downlink packets will discount ethernet header by default
         # so, only count the IP portion
@@ -525,18 +593,21 @@ class RestartResilienceTest(unittest.TestCase):
                     uplink_tunnel=uplink_tunnel,
                 ),
             ],
-            epoch=global_epoch
+            epoch=global_epoch,
         )
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
-            setup_flows_request=setup_flows_request)
+            setup_flows_request=setup_flows_request,
+        )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'after_restart')
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'after_restart',
+        )
 
         with snapshot_verifier:
             pass
@@ -554,10 +625,11 @@ class RestartResilienceTest(unittest.TestCase):
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
+            startup_flow_controller=self.startup_flows_contoller,
+        )
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.enforcement_controller._redirect_manager._dns_cache.get(
-            "about.sha.ddih.org", lambda: redirect_ips, max_age=42
+            "about.sha.ddih.org", lambda: redirect_ips, max_age=42,
         )
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
@@ -568,8 +640,8 @@ class RestartResilienceTest(unittest.TestCase):
             redirect=RedirectInformation(
                 support=1,
                 address_type=2,
-                server_address="http://about.sha.ddih.org/"
-            )
+                server_address="http://about.sha.ddih.org/",
+            ),
         )
 
         # ============================ Subscriber ============================
@@ -587,19 +659,20 @@ class RestartResilienceTest(unittest.TestCase):
                     uplink_tunnel=uplink_tunnel,
                 ),
             ],
-            epoch=global_epoch
+            epoch=global_epoch,
         )
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
-            setup_flows_request=setup_flows_request)
+            setup_flows_request=setup_flows_request,
+        )
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = TCPPacketBuilder()\
@@ -609,8 +682,10 @@ class RestartResilienceTest(unittest.TestCase):
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
@@ -626,10 +701,13 @@ class RestartResilienceTest(unittest.TestCase):
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
-            startup_flow_controller=self.startup_flows_contoller)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             'default_flows')
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows',
+        )
         with snapshot_verifier:
             pass
 

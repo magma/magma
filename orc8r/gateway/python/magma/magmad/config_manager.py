@@ -36,9 +36,11 @@ class ConfigManager(StreamerClient.Callback):
     JSON format.
     """
 
-    def __init__(self, services: List[str], service_manager: ServiceManager,
-                 magmad_service: MagmaService, mconfig_manager: MconfigManager,
-                 allow_unknown_fields: bool = True, loop=None) -> None:
+    def __init__(
+        self, services: List[str], service_manager: ServiceManager,
+        magmad_service: MagmaService, mconfig_manager: MconfigManager,
+        allow_unknown_fields: bool = True, loop=None,
+    ) -> None:
         """
         Args:
             services: List of services to manage
@@ -65,7 +67,8 @@ class ConfigManager(StreamerClient.Callback):
         if digest is None:
             return None
         mconfig_digest_proto = GatewayConfigsDigest(
-            md5_hex_digest=digest.md5_hex_digest)
+            md5_hex_digest=digest.md5_hex_digest,
+        )
         return mconfig_digest_proto
 
     def process_update(self, stream_name, updates, resync):
@@ -112,7 +115,7 @@ class ConfigManager(StreamerClient.Callback):
                 self._service_manager.update_dynamic_services(
                     load_service_mconfig('magmad', mconfigs_pb2.MagmaD())
                     .dynamic_services,
-                )
+                ),
             )
 
         services_to_restart = [

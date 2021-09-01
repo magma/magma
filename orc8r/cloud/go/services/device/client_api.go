@@ -27,7 +27,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}, serdes serde.Registry) error {
+func RegisterDevice(ctx context.Context, networkID, deviceType, deviceKey string, info interface{}, serdes serde.Registry) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
@@ -46,11 +46,11 @@ func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}, s
 		NetworkID: networkID,
 		Entities:  []*protos.PhysicalEntity{entity},
 	}
-	_, err = client.RegisterDevices(context.Background(), req)
+	_, err = client.RegisterDevices(ctx, req)
 	return err
 }
 
-func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}, serdes serde.Registry) error {
+func UpdateDevice(ctx context.Context, networkID, deviceType, deviceKey string, info interface{}, serdes serde.Registry) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
@@ -69,11 +69,11 @@ func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}, ser
 		NetworkID: networkID,
 		Entities:  []*protos.PhysicalEntity{entity},
 	}
-	_, err = client.UpdateDevices(context.Background(), req)
+	_, err = client.UpdateDevices(ctx, req)
 	return err
 }
 
-func DeleteDevices(networkID string, ids []storage.TypeAndKey) error {
+func DeleteDevices(ctx context.Context, networkID string, ids []storage.TypeAndKey) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
@@ -87,16 +87,16 @@ func DeleteDevices(networkID string, ids []storage.TypeAndKey) error {
 	).([]*protos.DeviceID)
 
 	req := &protos.DeleteDevicesRequest{NetworkID: networkID, DeviceIDs: requestIDs}
-	_, err = client.DeleteDevices(context.Background(), req)
+	_, err = client.DeleteDevices(ctx, req)
 	return err
 }
 
-func DeleteDevice(networkID, deviceType, deviceKey string) error {
-	return DeleteDevices(networkID, []storage.TypeAndKey{{Type: deviceType, Key: deviceKey}})
+func DeleteDevice(ctx context.Context, networkID, deviceType, deviceKey string) error {
+	return DeleteDevices(ctx, networkID, []storage.TypeAndKey{{Type: deviceType, Key: deviceKey}})
 }
 
-func GetDevice(networkID, deviceType, deviceKey string, serdes serde.Registry) (interface{}, error) {
-	device, err := getDevice(networkID, deviceType, deviceKey)
+func GetDevice(ctx context.Context, networkID, deviceType, deviceKey string, serdes serde.Registry) (interface{}, error) {
+	device, err := getDevice(ctx, networkID, deviceType, deviceKey)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func GetDevices(networkID string, deviceType string, deviceIDs []string, serdes 
 	return ret, nil
 }
 
-func DoesDeviceExist(networkID, deviceType, deviceID string) (bool, error) {
-	_, err := getDevice(networkID, deviceType, deviceID)
+func DoesDeviceExist(ctx context.Context, networkID, deviceType, deviceID string) (bool, error) {
+	_, err := getDevice(ctx, networkID, deviceType, deviceID)
 	if err == merrors.ErrNotFound {
 		return false, nil
 	}
@@ -144,14 +144,14 @@ func DoesDeviceExist(networkID, deviceType, deviceID string) (bool, error) {
 	return true, nil
 }
 
-func getDevice(networkID, deviceType, deviceKey string) (*protos.PhysicalEntity, error) {
+func getDevice(ctx context.Context, networkID, deviceType, deviceKey string) (*protos.PhysicalEntity, error) {
 	client, err := getDeviceClient()
 	if err != nil {
 		return nil, err
 	}
 	deviceID := &protos.DeviceID{Type: deviceType, DeviceID: deviceKey}
 	req := &protos.GetDeviceInfoRequest{NetworkID: networkID, DeviceIDs: []*protos.DeviceID{deviceID}}
-	res, err := client.GetDeviceInfo(context.Background(), req)
+	res, err := client.GetDeviceInfo(ctx, req)
 	if err != nil {
 		return nil, err
 	}

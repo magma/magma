@@ -14,6 +14,8 @@
 package calculations
 
 import (
+	"context"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
@@ -88,6 +90,8 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 		return results, err
 	}
 
+	// TODO: you'll want to set some tracing params on this context
+	outgoingCtx := context.TODO()
 	for _, networkID := range networks {
 		gatewayEnts, _, err := configurator.LoadEntities(
 			networkID,
@@ -102,7 +106,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 			continue
 		}
 		for _, ent := range gatewayEnts {
-			status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
+			status, err := wrappers.GetGatewayStatus(outgoingCtx, networkID, ent.PhysicalID)
 			if err != nil ||
 				status == nil ||
 				status.PlatformInfo == nil ||

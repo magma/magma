@@ -84,6 +84,10 @@ enum MetricName {
   enodeb_reboots                 = 229;
   enodeb_rf_tx_desired           = 230;
 
+  // Kernsnoopd metrics
+  magma_bytes_sent_total         = 260;
+  linux_bytes_sent_total         = 261;
+
   // Magmad metrics
   magmad_ping_rtt_ms             = 300;
   cpu_percent                    = 301;
@@ -205,6 +209,8 @@ enum MetricLabelName {
   service_name                   = 16; // magmad unexpected_service_restarts
   rule_id                        = 17; // pipelined rule install failures
   imsi                           = 18; // pipelined rule install failures
+  dest_service                   = 19; // kernsnoopd name of destination service
+  binary_name                    = 20; // kernsnoopd name of linux binary
 }
 
 message MetricsContainer {

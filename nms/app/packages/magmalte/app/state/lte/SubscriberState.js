@@ -14,11 +14,13 @@
  * @format
  */
 import type {ActionQuery} from '../../components/ActionTable';
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {Metrics} from '../../components/context/SubscriberContext';
 import type {SubscriberContextType} from '../../components/context/SubscriberContext';
 import type {SubscriberRowType} from '../../views/subscriber/SubscriberOverview';
 import type {
   mutable_subscriber,
+  mutable_subscribers,
   network_id,
   subscriber,
   subscriber_state,
@@ -32,7 +34,10 @@ import {
 } from '../../views/subscriber/SubscriberUtils';
 
 type FetchProps = {
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
   networkId: string,
   id?: string,
   subscriberMap?: {[string]: subscriber},
@@ -46,7 +51,10 @@ type InitSubscriberStateProps = {
   setSubscriberMap: ({[string]: subscriber}) => void,
   setSessionState: ({[string]: subscriber_state}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function FetchSubscribers(props: FetchProps) {
@@ -180,7 +188,7 @@ type SubscriberStateProps = {
   setSubscriberMap: ({[string]: subscriber}) => void,
   setSessionState: ({[string]: subscriber_state}) => void,
   key: string,
-  value?: mutable_subscriber,
+  value?: mutable_subscriber | mutable_subscribers,
   newState?: {[string]: subscriber},
   newSessionState?: {[string]: subscriber_state},
 };
@@ -203,6 +211,18 @@ export async function setSubscriberState(props: SubscriberStateProps) {
   if (newSessionState) {
     // $FlowIgnore
     setSessionState(newSessionState.sessionState);
+    return;
+  }
+  if (Array.isArray(value)) {
+    await MagmaV1API.postLteByNetworkIdSubscribersV2({
+      networkId,
+      subscribers: value,
+    });
+    const newSubscriberMap = {};
+    value.map(newSubscriber => {
+      newSubscriberMap[newSubscriber.id] = newSubscriber;
+    });
+    setSubscriberMap({...subscriberMap, newSubscriberMap});
     return;
   }
   if (value != null) {

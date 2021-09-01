@@ -63,26 +63,26 @@ Part of setting up the development environment involves updating your [shell rc 
 
 Note: this guide assumes you have access to an IntelliJ Ultimate Edition license. The majority of the functionality should still work without the license. Also, plenty of Magma developers use VS Code, and a minority also use other IDEs.
 
-**Howto**
+#### Howto
 
 1. [Import](https://support.google.com/chrome/answer/96816?hl=en) @hcgatewood's Google Chrome bookmarks: [bookmarks-hcgatewood.html](https://www.dropbox.com/s/rvhcofsrkpvkbfm/bookmarks-hcgatewood.html?dl=0). These bookmarks provide a starting point for accessing resources across the Magma ecosystem.
 2. Add the following to your shell rc file, then restart your terminal
 
-```
-# MAGMA_ROOT denotes the root of the Magma repo
-export MAGMA_ROOT=~/magma
+    ```bash
+    # MAGMA_ROOT denotes the root of the Magma repo
+    export MAGMA_ROOT=~/magma
 
-# noti sends notification based on previous command success/fail
-# Default sound is "default"
-function noti() {
-    if [[ $? = 0 ]] ; then
-        title="✅" ; sound="ping"
-    else
-        title="❌" ; sound="basso"
-    fi
-    terminal-notifier -title "$title" -message "Finished at $(date +%X)" -sound "$sound"
-}
-```
+    # noti sends notification based on previous command success/fail
+    # Default sound is "default"
+    function noti() {
+        if [[ $? = 0 ]] ; then
+            title="✅" ; sound="ping"
+        else
+            title="❌" ; sound="basso"
+        fi
+        terminal-notifier -title "$title" -message "Finished at $(date +%X)" -sound "$sound"
+    }
+    ```
 
 3. Install the [Homebrew package manager](https://brew.sh/)
 4. Install [terminal-notifier](https://github.com/julienXX/terminal-notifier) via `brew install terminal-notifier`
@@ -94,17 +94,44 @@ function noti() {
 
 Install Magma locally and get everything running.
 
-**Howto**
+#### Howto
 
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
-2. Run all Orc8r tests
+2. (Optional) If you opt to use IntelliJ IDEA as your local IDE, follow the instructions in the [Set up IntelliJ](#set-up-intellij) section below before you proceed
+3. Run all Orc8r tests
     1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
-    2. [Via IntelliJ](https://magma.github.io/magma/docs/next/orc8r/development/testing_tips)
-3. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
-4. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
+    2. [Via IntelliJ](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
+4. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
+5. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
     - You will need to toggle a Google Chrome preference to [allow insecure localhost](https://superuser.com/questions/772762/how-can-i-disable-security-checks-for-localhost)
 
 Note: remember to periodically call `docker system prune` to clear outdated Docker artifacts from your dev machine.
+
+### Set Up IntelliJ
+
+We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for general Magma development, or [Visual Studio Code](https://code.visualstudio.com/) for a free alternative.
+
+For IntelliJ IDEA, we provide a set of run configurations that support rapidly testing Magma code. See [Testing Tips](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips) for more details.
+
+To set up your local IntelliJ environment, perform the following
+
+1. After cloning the Magma repo, open the directory in IntelliJ
+2. Ensure the [Go plugin](https://plugins.jetbrains.com/plugin/9568-go) has been installed by going to `Preferences > Plugins > search for the plugin "Go"`
+3. [Specify the location of the Go SDK](https://www.jetbrains.com/help/idea/quick-start-guide-goland.html#step-1-open-or-create-a-project) by going to `Preferences > Languages & Frameworks > Go > GOROOT` and selecting the relevant location
+4. Create a Go module for the project by going to `Files > Project Structure > Project Settings > Modules > Click on "+" sign in the toolbar > New Module > Next`. When you reach the new module creation page, enter the following information:
+    - Module name: `magma`
+    - Content root, module file location: full path to your local Magma clone, e.g. `/Users/your_username/magma`
+
+After completing the above steps, restart your IDE and ensure the environment is properly set up
+
+1. Open "Project" on the left toolbar, and display "Project Files". All the files in the root `magma` directory should be displayed *without* a yellow background. This indicates IntelliJ recognizes the files as part of the module.
+2. At the top-right corner of your IDE, you should see a drop-down menu showing a list of run configurations for the Magma test suites, with a green triangular button that allows you to run the selected test. Alternatively, when you open your run configurations (`Run > Edit Configurations`), you should see something like the below
+
+![intellij_initial_run_configs](assets/intellij_initial_run_configs.png)
+
+You can now run all (Orchestrator) tests in one click.
+
+NOTE: a minority of tests require a running Postgres instance, and will otherwise fail with connection errors. You can use `orc8r/cloud/docker/run.py` to spin up the required test DB.
 
 ### Complete a starter task
 
@@ -121,4 +148,3 @@ As you get acquainted with the codebase, consider the following sources of docum
 - Magma Docusaurus. This site! First stop for documentation.
 - `doc.go` files. Many Go packages have a `doc.go` file with a summary of the package's functionality.
 - Tests. Tests provide both testing and documentation of expected functionality.
-

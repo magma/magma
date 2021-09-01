@@ -1,4 +1,4 @@
-#/*
+# /*
 # * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
 # * contributor license agreements.  See the NOTICE file distributed with
 # * this work for additional information regarding copyright ownership.
@@ -15,12 +15,13 @@
 # * For more information about the OpenAirInterface (OAI) Software Alliance:
 # *   contact@openairinterface.org
 # */
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 import os
 import re
-import sys
 import subprocess
+import sys
+
 
 class HtmlReport():
   def __init__(self):
@@ -265,7 +266,7 @@ class HtmlReport():
         self.file.write('   </div>\n')
       else:
         self.file.write('   <div class="alert alert-danger">\n')
-        self.file.write('   <strong>CPPCHECK found ' +  str(nb_errors) + ' errors and ' + str(nb_warnings) + ' warnings <span class="glyphicon glyphicon-ban-circle"></span></strong>\n')
+        self.file.write('   <strong>CPPCHECK found ' + str(nb_errors) + ' errors and ' + str(nb_warnings) + ' warnings <span class="glyphicon glyphicon-ban-circle"></span></strong>\n')
         self.file.write('   </div>\n')
       if (nb_errors > 0) or (nb_warnings > 0):
         self.file.write('   <button data-toggle="collapse" data-target="#oai-cppcheck-details">More details on CPPCHECK results</button>\n')
@@ -406,7 +407,7 @@ class HtmlReport():
     self.file.write('  <br>\n')
 
   def analyze_vagrant_up_log(self, vmType):
-    logFileName = vmType.lower().replace('magma','magma_vagrant') + '_up.log'
+    logFileName = vmType.lower().replace('magma', 'magma_vagrant') + '_up.log'
     if vmType == 'magma':
       vmName = 'magma_dev'
     elif vmType == 'magma_trfserver':
@@ -465,9 +466,9 @@ class HtmlReport():
       return
 
     if kind == 'agw1-no-s11':
-      logFileName = vmType.lower().replace('magma','magma_vagrant') + '_make_run.log'
+      logFileName = vmType.lower().replace('magma', 'magma_vagrant') + '_make_run.log'
     if kind == 'agw1-with-s11':
-      logFileName = vmType.lower().replace('magma','magma_vagrant') + '_make_run2.log'
+      logFileName = vmType.lower().replace('magma', 'magma_vagrant') + '_make_run2.log'
     module_pattern = 'ninja -C  '
     end_pattern = 'sudo service magma@magmad start'
 
@@ -492,7 +493,7 @@ class HtmlReport():
             if firstModulePassed:
               moduleList += '  -- ' + module_name + ': OK\n'
             firstModulePassed = True
-            module_name = line.replace('\n','').replace('ninja -C  /home/vagrant/build/c//','')
+            module_name = line.replace('\n', '').replace('ninja -C  /home/vagrant/build/c//', '')
         logfile.close()
       if status:
         moduleList += '  -- ' + module_name + ': OK\n'
@@ -550,8 +551,8 @@ class HtmlReport():
             if firstService and not service_status:
               listServices += ' -- ' + service_name + '  NOT ACTIVE\n'
               status = False
-            service_name = line.replace('\n','').replace(pattern_module,'')
-            service_name = service_name.replace('.service','')
+            service_name = line.replace('\n', '').replace(pattern_module, '')
+            service_name = service_name.replace('.service', '')
             firstService = True
             service_status = False
           result = re.search(active_pattern, line)
@@ -624,12 +625,12 @@ class HtmlReport():
         for line in logfile:
           result = re.search(pattern + '(.+)$', line)
           if result is not None:
-            test_name = result.group(1).replace('"','')
+            test_name = result.group(1).replace('"', '')
             test_duration = 'unknown'
           result = re.search('Ran 1 test in (.+)$', line)
           if result is not None:
             test_duration = result.group(1)
-            global_test_duration += float(test_duration.replace('s',''))
+            global_test_duration += float(test_duration.replace('s', ''))
           result = re.search('^OK$|^FAILED|^Killed by signal 15', line)
           if result is not None:
             listTests = '    <tr>\n'
@@ -701,11 +702,11 @@ class HtmlReport():
     self.file.write('  <br>\n')
 
 
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 #
 # Start of main
 #
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 
 argvs = sys.argv
 argc = len(argvs)

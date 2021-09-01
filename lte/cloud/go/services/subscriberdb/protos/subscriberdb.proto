@@ -12,9 +12,13 @@ limitations under the License.
 */
 
 syntax = "proto3";
+
+import "lte/protos/apn.proto";
+import "lte/protos/subscriberdb.proto";
+
 package magma.lte.subscriberdb;
 
-option go_package = "protos";
+option go_package = "magma/lte/cloud/go/services/subscriberdb/protos";
 
 // SubscriberLookup servicer provides methods for looking up a subscriber by
 // alternative identifiers.
@@ -109,4 +113,17 @@ message IPMapping {
   string imsi = 2;
   // apn under which this IMSI is assigned the IP
   string apn = 3;
+}
+
+// ApnResourceInternal is the cloud-internal version of the ApnResource proto.
+// HACK: This proto message is used exclusively during the generation of
+// deterministic digests of apn resources, in order to capture its APN and
+// gateway associations.
+message ApnResourceInternal {
+  // assoc_apns is a list of apn names associated to the resource (child association).
+  repeated string assoc_apns = 1;
+  // assoc_gateways is a list of gateway ids associated to the resource (parent association).
+  repeated string assoc_gateways = 2;
+  // apn_resource is the original apn resource proto message.
+  APNConfiguration.APNResource apn_resource = 3;
 }

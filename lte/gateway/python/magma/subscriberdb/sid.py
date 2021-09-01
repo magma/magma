@@ -33,8 +33,10 @@ class SIDUtils:
         """
         if sid_pb.type == SubscriberID.IMSI:
             return 'IMSI' + sid_pb.id
-        raise ValueError('Invalid sid! type:%s id:%s' %
-                         (sid_pb.type, sid_pb.id))
+        raise ValueError(
+            'Invalid sid! type:%s id:%s' %
+            (sid_pb.type, sid_pb.id),
+        )
 
     @staticmethod
     def to_pb(sid_str):

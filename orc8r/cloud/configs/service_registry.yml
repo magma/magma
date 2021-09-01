@@ -49,6 +49,7 @@ services:
         /magma/v1/channels,
         /magma/v1/networks,
         /magma/v1/networks/:network_id,
+        /magma/v1/about,
 
   streamer:
     host: "localhost"
@@ -75,6 +76,8 @@ services:
     host: "localhost"
     port: 9086
     proxy_type: "internal"
+    labels:
+      orc8r.io/analytics_collector: "true"
 
   bootstrapper:
     host: "localhost"

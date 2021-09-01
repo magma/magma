@@ -33,6 +33,10 @@ import (
 )
 
 func StartTestService(t *testing.T) {
+	StartTestServiceWithConfig(t, lte_service.Config{DefaultSubscriberdbSyncInterval: 300})
+}
+
+func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) {
 	streams := []string{
 		lte.SubscriberStreamName,
 		lte.PolicyStreamName,
@@ -50,7 +54,7 @@ func StartTestService(t *testing.T) {
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	// Init storage

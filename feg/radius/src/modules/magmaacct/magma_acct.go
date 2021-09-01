@@ -26,6 +26,7 @@ import (
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2865"
 	"fbc/lib/go/radius/rfc2866"
+	"fbc/lib/go/radius/rfc2869"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
@@ -122,8 +123,12 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 	case rfc2866.AcctStatusType_Value_AccountingOff:
 	case rfc2866.AcctStatusType_Value_Stop:
 		stopRequest := &protos.StopRequest{
-			Cause: protos.StopRequest_NAS_REQUEST,
-			Ctx:   c,
+			Cause:        protos.StopRequest_NAS_REQUEST,
+			Ctx:          c,
+			OctetsIn:     getValue(r, rfc2866.AcctInputOctets_Type),
+			OctetsOut:    getValue(r, rfc2866.AcctOutputOctets_Type),
+			GigawordsIn:  getValue(r, rfc2869.AcctInputGigawords_Type),
+			GigawordsOut: getValue(r, rfc2869.AcctOutputGigawords_Type),
 		}
 		_, err = mCtx.client.Stop(context.Background(), stopRequest)
 		if err != nil {
@@ -133,11 +138,13 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 		break
 	case rfc2866.AcctStatusType_Value_InterimUpdate:
 		updateRequest := &protos.UpdateRequest{
-			OctetsIn:   getValue(r, rfc2866.AcctInputOctets_Type),
-			OctetsOut:  getValue(r, rfc2866.AcctOutputOctets_Type),
-			PacketsIn:  getValue(r, rfc2866.AcctInputPackets_Type),
-			PacketsOut: getValue(r, rfc2866.AcctOutputPackets_Type),
-			Ctx:        c,
+			OctetsIn:     getValue(r, rfc2866.AcctInputOctets_Type),
+			OctetsOut:    getValue(r, rfc2866.AcctOutputOctets_Type),
+			PacketsIn:    getValue(r, rfc2866.AcctInputPackets_Type),
+			PacketsOut:   getValue(r, rfc2866.AcctOutputPackets_Type),
+			Ctx:          c,
+			GigawordsIn:  getValue(r, rfc2869.AcctInputGigawords_Type),
+			GigawordsOut: getValue(r, rfc2869.AcctOutputGigawords_Type),
 		}
 		_, err = mCtx.client.InterimUpdate(context.Background(), updateRequest)
 		if err != nil {

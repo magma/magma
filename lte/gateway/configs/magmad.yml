@@ -35,6 +35,8 @@ magma_services:
   - smsd
   - ctraced
   - health
+#  - kernsnoopd
+# - liagentd
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -124,6 +126,7 @@ metricsd:
     - pipelined
     - state
     - sessiond
+#    - kernsnoopd
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

@@ -11,14 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, GTPBridgeUtils
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from integ_tests.s1aptests.s1ap_utils import (
+    GTPBridgeUtils,
+    SessionManagerUtil,
+    SpgwUtil,
+)
 from lte.protos.policydb_pb2 import FlowMatch
 
 
@@ -174,17 +177,17 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
             # Send Activate dedicated bearer accept
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
             print("Sleeping again for flow to be installed")
             time.sleep(2)
@@ -250,7 +253,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 and action["type"] == "SET_FIELD"
             )
             self.assertTrue(
-                has_tunnel_action, "Downlink flow missing set tunnel action"
+                has_tunnel_action, "Downlink flow missing set tunnel action",
             )
 
             print("Sleeping for 5 seconds")
@@ -263,7 +266,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5, 6
+                "IMSI" + "".join([str(i) for i in req.imsi]), 5, 6,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -276,7 +279,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
 
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId
+                req.ue_id, deactv_bearer_req.bearerId,
             )
 
             print("Sleeping for 5 seconds")
@@ -288,16 +291,11 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i]
+                req.ue_id, detach_type[i], wait_for_s1[i],
             )
 
-            print("Checking that uplink/downlink flows were deleted")
-            flows = get_flows(
-                datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
-            )
-            self.assertEqual(
-                len(flows), 2, "There should only be 2 default table 0 flows"
-            )
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":

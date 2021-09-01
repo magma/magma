@@ -1,0 +1,9 @@
+---
+
+- name: publish helm charts
+  command: "/usr/bin/bash package.sh -d {{ buildDeploymentType }} "
+  args:
+    chdir: "{{ buildPackageDir }}"
+
+- name: verify helm charts
+  script: "roles/build-platform/files/helm-verify.bash {{ gitUser }} {{ gitPat }} {{ buildHelmRepo }}"

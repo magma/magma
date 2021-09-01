@@ -51,7 +51,7 @@ import "orc8r/protos/common.proto";
 import "orc8r/protos/identity.proto";
 
 package magma.orc8r.accessd;
-option go_package = "protos";
+option go_package = "magma/orc8r/cloud/go/services/accessd/protos";
 
 // Access Control Data Structures & Definitions
 message AccessControl {

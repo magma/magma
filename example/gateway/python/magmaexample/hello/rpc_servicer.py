@@ -11,9 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from protos import hello_pb2, hello_pb2_grpc
-
 from magmaexample.hello import metrics
+from protos import hello_pb2, hello_pb2_grpc
 
 
 class HelloRpcServicer(hello_pb2_grpc.HelloServicer):

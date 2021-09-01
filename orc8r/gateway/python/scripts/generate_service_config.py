@@ -46,11 +46,11 @@ def _get_template_filename(template):
     override_dirname = '/var/opt/magma/templates'
     default_filename = os.path.join(
         dirname,
-        '%s.conf.template' % template
+        '%s.conf.template' % template,
     )
     override_filename = os.path.join(
         override_dirname,
-        '%s.conf.template' % template
+        '%s.conf.template' % template,
     )
     if os.path.exists(override_filename) and os.path.isfile(override_filename):
         return override_filename
@@ -85,8 +85,11 @@ def generate_template_config(service, template, out_dirname, context):
     # Get the template and the output filenames
     template_filename = _get_template_filename(template)
     out_filename = _get_template_out_filename(template, out_dirname)
-    logging.info("Generating config file: [%s] using template: [%s]" % (
-        out_filename, template_filename))
+    logging.info(
+        "Generating config file: [%s] using template: [%s]" % (
+        out_filename, template_filename,
+        ),
+    )
     template_context = {}
     # Generate the content to use from the service yml config and mconfig.
     try:
@@ -125,7 +128,8 @@ def parse_args():
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+        format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+    )
     opts = parse_args()
     generate_template_config(opts.service, opts.template, opts.output_path, {})
 

@@ -40,7 +40,7 @@ class MeteringReporter {
    */
   void initialize_usage(
       const std::string& imsi, const std::string& session_id,
-      SessionCredit::TotalCreditUsage usage);
+      TotalCreditUsage usage);
 
  private:
   /**

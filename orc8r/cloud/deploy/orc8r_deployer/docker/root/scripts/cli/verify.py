@@ -16,9 +16,9 @@ import os
 import sys
 
 import click
-from kubernetes import client, config
-
-from .common import print_error_msg, print_success_msg, run_playbook
+from cli.style import print_error_msg, print_success_msg
+from utils.ansiblelib import AnsiblePlay, run_playbook
+from utils.kubelib import get_all_namespaces, set_kubeconfig_environ
 
 
 @click.group()
@@ -28,6 +28,24 @@ def verify(ctx):
     Run post deployment checks on orc8r
     """
     pass
+
+
+def verify_cmd(constants: dict, namespace: str) -> list:
+    """Get the arg list to run prechecks
+
+    Args:
+        constants ([dict]): config dict
+        namespace ([str]): orc8r namespace
+    """
+    playbook_dir = constants["playbooks"]
+    extra_vars = {
+        "orc8r_namespace": namespace,
+    }
+    return AnsiblePlay(
+        playbook=f"{playbook_dir}/main.yml",
+        tags=['verify_sanity'],
+        extra_vars=extra_vars,
+    )
 
 
 @verify.command('sanity')
@@ -48,35 +66,21 @@ def verify_sanity(ctx, namespace):
             else:
                 print_error_msg(
                     "multiple kubeconfigs found %s!!!" %
-                    repr(kubeconfigs))
+                    repr(kubeconfigs),
+                )
             return
         kubeconfig = kubeconfigs[0]
-
-    os.environ["KUBECONFIG"] = kubeconfig
-    os.environ["K8S_AUTH_KUBECONFIG"] = kubeconfig
+        set_kubeconfig_environ(kubeconfig)
 
     # check if we have a valid namespace
-    config.load_kube_config(kubeconfig)
-    v1 = client.CoreV1Api()
-    response = v1.list_namespace()
-    all_namespaces = [item.metadata.name for item in response.items]
-    if namespace not in all_namespaces:
-        namespace = click.prompt('Provide orc8r namespace', abort=True)
-        if namespace not in all_namespaces:
-            print_error_msg(f"Orc8r namespace {namespace} not found")
-            sys.exit(1)
+    all_namespaces = get_all_namespaces(kubeconfig)
+    while namespace not in all_namespaces:
+        namespace = click.prompt(
+            'Provide orc8r namespace',
+            type=click.Choice(all_namespaces),
+        )
 
-    # add constants to the list of variables sent to ansible
-    constants['orc8r_namespace'] = namespace
-
-    rc = run_playbook([
-        "ansible-playbook",
-        "-v",
-        "-e",
-        json.dumps(constants),
-        "-t",
-        "verify_sanity",
-        "%s/main.yml" % constants["playbooks"]])
+    rc = run_playbook(verify_cmd(ctx.obj, namespace))
     if rc != 0:
         print_error_msg("Post deployment verification checks failed!!!")
         sys.exit(1)

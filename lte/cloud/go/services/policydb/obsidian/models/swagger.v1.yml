@@ -573,6 +573,9 @@ definitions:
         type: integer
         format: uint32
         default: 10
+      service_identifier:
+        type: integer
+        format: uint32
       rating_group:
         type: integer
         format: uint32
@@ -662,6 +665,9 @@ definitions:
         format: uint32
         default: 10
       rating_group:
+        type: integer
+        format: uint32
+      service_identifier:
         type: integer
         format: uint32
       monitoring_key:

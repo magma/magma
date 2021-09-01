@@ -1,0 +1,19 @@
+---
+
+- name: cleaning up all aws region gateway stacks
+  async: 600
+  poll: 0
+  cloudformation:
+    stack_name: "stack{{ siteName }}{{ item }}"
+    state: absent
+  with_items:
+    - "{{ testClusterStacks }}"
+  register: asyncResult
+
+- name: 'check on cloudformation task'
+  async_status: jid="{{item.ansible_job_id}}"
+  with_items: "{{asyncResult.results}}"
+  register: pollResult
+  until: pollResult.finished
+  retries: 60
+  delay: 10

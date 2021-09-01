@@ -5,7 +5,7 @@ hide_title: true
 original_id: deploy_install
 ---
 
-For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](https://magma.github.io/magma/docs/feg/deploy_install_ubuntu)
+For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](deploy_install_ubuntu)
 # Install Access Gateway (Bare Metal)
 
 ## Prerequisites
@@ -53,7 +53,7 @@ installation process to get an IP using DHCP.
 
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.4/lte/gateway/deploy/agw_install.sh
+wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install.sh
 bash agw_install.sh
 ```
 

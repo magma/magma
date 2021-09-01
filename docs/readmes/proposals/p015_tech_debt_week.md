@@ -27,11 +27,11 @@ There are several options for getting help - reach out early and often! Preferre
 - [Video conference](TBD LINK) monitored by [TDW On-Call](#magma-tdw-on-call)
 - Slack channel [#project-tech-debt-week-apr-2021](https://magmacore.slack.com/archives/C0202TW1VRN) monitored by [TDW On-Call](#magma-tdw-on-call)
 - Page: email the TDW On-call at tdw@magma.pagerduty.com
-  - Provide a preferred contact (e.g. slack id, github id, ...)
+    - Provide a preferred contact (e.g. slack id, github id, ...)
 
 ## Process for Contributors
 
-1. Review the list of [TDW Available Work]()
+1. Review the list of TDW Available Work
    1. What `Unassigned` tasks interest you?
 2. Reach out to [TDW On-Call](#tdw-on-call-contact)
    1. Settle on a task
@@ -76,7 +76,7 @@ There are several options for getting help - reach out early and often! Preferre
 - [Video conference](TBD LINK) monitored by [TDW On-Call](#magma-tdw-on-call)
 - Slack channel [#project-tech-debt-week-apr-2021](https://magmacore.slack.com/archives/C0202TW1VRN) monitored by [TDW On-Call](#magma-tdw-on-call)
 - Page: email the TDW On-call at tdw@magma.pagerduty.com
-  - Provide a preferred contact (e.g. slack id, github id, ...)
+    - Provide a preferred contact (e.g. slack id, github id, ...)
 
 ### TDW On-Call Response time
 
@@ -176,7 +176,7 @@ The following is an attempt to generate a repeatable recipe for `Tech Debt Weeks
       6. Kubernetes Config
       7. Installation Process
    2. They should be very scoped (Say 4-8 hour efforts max)
-   2. They should be very clear in their ask
+   3. They should be very clear in their ask
       1. Ideally even with sample code and precise insertion links to GH files
       2. Or even a prototype example...
 3. Set up TDW on-call rotation during business hours

@@ -41,9 +41,11 @@ type MockPgw struct {
 }
 
 type LastValues struct {
-	LastTEIDu uint32
-	LastTEIDc uint32
-	LastQos   *protos.QosInformation
+	LastTEIDu          uint32
+	LastTEIDc          uint32
+	LastQos            *protos.QosInformation
+	LastULI            *ie.UserLocationInformationFields
+	LastSequenceNumber uint32
 }
 
 // CreateSessionOptions to control Create Session Response values to produce errors
@@ -78,6 +80,7 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
 		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
 		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
+		message.MsgTypeCreateBearerResponse:       mPgw.getHandleCreateBearerRequest(),
 	})
 	return nil
 }

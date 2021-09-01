@@ -2,11 +2,11 @@
 
 - hosts: "{{ devops }}"
   roles:
-    - { role: ansible-server, become: yes }
+    - {role: ansible-server, become: yes}
     - golang-host
-    - mantle-base
     - build-platform
-    - { role: key-manager, tags: keyManager }     
+    - {role: key-manager, tags: keyManager, become: true}
+    - clean-ami
   vars_files:
     - roles/vars/defaults.yaml
     - roles/vars/cluster.yaml

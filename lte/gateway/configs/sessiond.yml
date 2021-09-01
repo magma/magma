@@ -12,6 +12,8 @@
 # limitations under the License.
 
 log_level: INFO
+print_grpc_payload: false
+
 rule_update_inteval_sec: 1
 
 # Session manager will report the usage when the usage is greater than
@@ -38,11 +40,6 @@ support_carrier_wifi: false
 # quota.
 cwf_quota_exhaustion_termination_on_init_ms: 30000
 
-# On session creation, we want to delay the bearer creation requests to after
-# the attach has completed. This value indicates how many ms to wait before
-# sending the bearer create request.
-bearer_creation_delay_on_session_init: 2000
-
 # If this flag is set, we will send the GW's timezone information to the policy
 # component as part of CreateSessionRequest.
 send_access_timezone: true
@@ -67,3 +64,18 @@ default_requested_units: 200000
 # SessionD will remove it if the rule's IMSI+TEIDs pair do no exist as
 # a session
 cleanup_all_dangling_flows: true
+
+# set to true if subscriber information export over IPFIX needs to be enabled
+# in order to enable ipfix, make sure to add ipfix as a static service in pipelined.yml
+enable_ipfix: false
+
+# Session manager max resending throttle count when the UPF session info version is
+# not matching with UPF received version no.
+session_rtx_count: 3
+
+# set to a certain interval measured in seconds for which sessiond should poll pipelined
+# for relevant stats
+poll_stats_interval: 5
+
+# set to true to enable pull model for stats(polling pipelined from sessiond)
+enable_pull_stats: false

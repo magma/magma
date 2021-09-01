@@ -34,6 +34,8 @@ nginx:
   service:
     enabled: true
     legacyEnabled: true
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "magma-uuid=${magma_uuid}"
     extraAnnotations:
       proxy:
         external-dns.alpha.kubernetes.io/hostname: ${api_hostname}
@@ -52,6 +54,9 @@ controller:
   image:
     repository: ${docker_registry}/controller
     tag: "${docker_tag}"
+    env:
+      version_tag: "${docker_tag}"
+      helm_version_tag: "${orc8r_chart_version}"
   replicas: ${controller_replicas}
   spec:
     database:
@@ -190,6 +195,7 @@ nms:
       mysql_user: ${orc8r_db_user}
       mysql_pass: ${orc8r_db_pass}
       grafana_address: ${user_grafana_hostname}
+      version_tag: "${docker_tag}"
 
   nginx:
     create: true
@@ -198,6 +204,7 @@ nms:
       type: LoadBalancer
       annotations:
         external-dns.alpha.kubernetes.io/hostname: "${nms_hostname}"
+        service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "magma-uuid=${magma_uuid}"
 
     deployment:
       spec:

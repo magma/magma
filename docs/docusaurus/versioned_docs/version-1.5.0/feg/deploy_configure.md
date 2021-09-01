@@ -9,7 +9,7 @@ original_id: deploy_configure
 
 ## Basic Configuration Steps
 
-Basic installation steps: [_https://magma.github.io/magma/docs/feg/deploy_install_](https://magma.github.io/magma/docs/feg/deploy_install)
+For Basic installation instructions follow "[Installing Federation Gateway](../feg/deploy_install)"
 
 There are a few configuration steps that are not yet exposed in NMS that must be done manually via the REST API.
 
@@ -194,4 +194,3 @@ APN will only be applied for the Gx interactions, as the config for Gy is empty.
 environment:
     MAGMA_PRINT_GRPC_PAYLOAD: 1
 ```
-

@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "Consts.h"
 #include "ProtobufCreators.h"
@@ -30,13 +31,19 @@ namespace magma {
 class SessionStateTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
+    Teids teids;
+    cfg.common_context =
+        build_common_context(IMSI1, IP1, IPv6_1, teids, APN1, MSISDN, TGPP_LTE);
     auto tgpp_ctx       = TgppContext();
     auto pdp_start_time = 12345;
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_ctx, pdp_start_time,
-        CreateSessionResponse{});
+        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    session_state->set_tgpp_context(tgpp_ctx, nullptr);
+    session_state->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session_state->set_create_session_response(
+        CreateSessionResponse(), nullptr);
     update_criteria = get_default_update_criteria();
   }
 
@@ -66,11 +73,11 @@ class SessionStateTest : public ::testing::Test {
         rule_store->insert_rule(rule);
         // mark the rule as active in session
         return session_state
-            ->activate_static_rule(rule_id, lifetime, update_criteria)
+            ->activate_static_rule(rule_id, lifetime, &update_criteria)
             .version;
       case DYNAMIC:
         return session_state
-            ->insert_dynamic_rule(rule, lifetime, update_criteria)
+            ->insert_dynamic_rule(rule, lifetime, &update_criteria)
             .version;
         break;
     }
@@ -88,10 +95,11 @@ class SessionStateTest : public ::testing::Test {
         // insert into list of existing rules
         rule_store->insert_rule(rule);
         // mark the rule as scheduled in the session
-        session_state->schedule_static_rule(rule_id, lifetime, update_criteria);
+        session_state->schedule_static_rule(
+            rule_id, lifetime, &update_criteria);
         break;
       case DYNAMIC:
-        session_state->schedule_dynamic_rule(rule, lifetime, update_criteria);
+        session_state->schedule_dynamic_rule(rule, lifetime, &update_criteria);
         break;
     }
   }
@@ -107,7 +115,7 @@ class SessionStateTest : public ::testing::Test {
     const auto& lte_context =
         build_lte_context(IP2, "", "", "", "", BEARER_ID_1, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
-    session_state->set_config(cfg);
+    session_state->set_config(cfg, nullptr);
   }
 
   // TODO: make session_manager.proto and policydb.proto to use common field
@@ -146,15 +154,15 @@ class SessionStateTest : public ::testing::Test {
 
     RuleLifetime lifetime{};
     return session_state
-        ->insert_gy_rule(redirect_rule, lifetime, update_criteria)
+        ->insert_gy_rule(redirect_rule, lifetime, &update_criteria)
         .version;
   }
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
     CreditUpdateResponse charge_resp;
     create_credit_update_response(
-        "IMSI1", "1234", rating_group, volume, &charge_resp);
-    session_state->receive_charging_credit(charge_resp, update_criteria);
+        IMSI1, SESSION_ID_1, rating_group, volume, &charge_resp);
+    session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
 
   void receive_credit_from_ocs(
@@ -162,9 +170,9 @@ class SessionStateTest : public ::testing::Test {
       uint64_t rx_volume, bool is_final) {
     CreditUpdateResponse charge_resp;
     create_credit_update_response(
-        "IMSI1", "1234", rating_group, total_volume, tx_volume, rx_volume,
+        IMSI1, SESSION_ID_1, rating_group, total_volume, tx_volume, rx_volume,
         is_final, &charge_resp);
-    session_state->receive_charging_credit(charge_resp, update_criteria);
+    session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
 
   void receive_credit_from_pcrf(
@@ -178,9 +186,9 @@ class SessionStateTest : public ::testing::Test {
       uint64_t rx_volume, MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     create_monitor_update_response(
-        "IMSI1", "1234", mkey, level, total_volume, tx_volume, rx_volume,
+        IMSI1, SESSION_ID_1, mkey, level, total_volume, tx_volume, rx_volume,
         &monitor_resp);
-    session_state->receive_monitor(monitor_resp, update_criteria);
+    session_state->receive_monitor(monitor_resp, &update_criteria);
   }
 
   uint32_t activate_rule(
@@ -193,18 +201,30 @@ class SessionStateTest : public ::testing::Test {
       case STATIC:
         rule_store->insert_rule(rule);
         return session_state
-            ->activate_static_rule(rule_id, lifetime, update_criteria)
+            ->activate_static_rule(rule_id, lifetime, &update_criteria)
             .version;
         break;
       case DYNAMIC:
         return session_state
-            ->insert_dynamic_rule(rule, lifetime, update_criteria)
+            ->insert_dynamic_rule(rule, lifetime, &update_criteria)
             .version;
         break;
       default:
         break;
     }
     return 0;
+  }
+
+  uint32_t get_monitored_rule_count(const std::string& mkey) {
+    std::vector<PolicyRule> rules;
+    EXPECT_TRUE(session_state->get_dynamic_rules().get_rules(rules));
+    uint32_t count = 0;
+    for (PolicyRule& rule : rules) {
+      if (rule.monitoring_key() == mkey) {
+        count++;
+      }
+    }
+    return count;
   }
 
  protected:

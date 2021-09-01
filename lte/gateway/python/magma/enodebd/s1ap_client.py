@@ -27,8 +27,10 @@ def get_all_enb_state() -> Optional[Dict[int, int]]:
     Make RPC call to 'GetENBState' method of s1ap service
     """
     try:
-        chan = ServiceRegistry.get_rpc_channel(S1AP_SERVICE_NAME,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            S1AP_SERVICE_NAME,
+            ServiceRegistry.LOCAL,
+        )
     except ValueError:
         logger.error('Cant get RPC channel to %s', S1AP_SERVICE_NAME)
         return {}
@@ -40,5 +42,6 @@ def get_all_enb_state() -> Optional[Dict[int, int]]:
         logger.warning(
             "GetEnbState error: [%s] %s",
             err.code(),
-            err.details())
+            err.details(),
+        )
     return {}

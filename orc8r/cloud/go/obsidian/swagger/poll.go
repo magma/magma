@@ -14,16 +14,10 @@
 package swagger
 
 import (
-	"io/ioutil"
-
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-)
-
-var (
-	commonSpecPath = "/etc/magma/swagger/specs/common/swagger-common.yml"
 )
 
 // GetCombinedSpec polls every servicer registered with
@@ -35,6 +29,7 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	}
 
 	var yamlSpecs []string
+	// TODO(hcgatewood): parallelize this via goroutines to avoid broken services breaking GetCombinedSpec
 	for _, s := range servicers {
 		yamlSpec, err := s.GetPartialSpec()
 		if err != nil {
@@ -67,14 +62,4 @@ func GetServiceSpec(service string) (string, error) {
 	}
 
 	return yamlSpec, nil
-}
-
-// GetCommonSpec returns the Swagger common spec as a YAML string.
-func GetCommonSpec() (string, error) {
-	data, err := ioutil.ReadFile(commonSpecPath)
-	if err != nil {
-		err = errors.Wrapf(err, "get common Swagger spec")
-		return "", err
-	}
-	return string(data), nil
 }

@@ -13,10 +13,8 @@ limitations under the License.
 import asyncio
 import calendar
 import logging
-import math
-import sys
 import time
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
 import metrics_pb2
 import prometheus_client.core
@@ -32,8 +30,12 @@ from prometheus_client.parser import text_string_to_metric_families
 
 # ScrapeTarget Holds information required to scrape and process metrics from a
 # prometheus target
-ScrapeTarget = NamedTuple('ScrapeTarget', [('url', str), ('name', str),
-                                           ('interval', int)])
+ScrapeTarget = NamedTuple(
+    'ScrapeTarget', [
+        ('url', str), ('name', str),
+        ('interval', int),
+    ],
+)
 
 
 class MetricsCollector(object):
@@ -42,14 +44,16 @@ class MetricsCollector(object):
     """
     _services = []
 
-    def __init__(self, services: List[str],
-                 collect_interval: int,
-                 sync_interval: int,
-                 grpc_timeout: int,
-                 grpc_max_msg_size_mb: int,
-                 loop: Optional[asyncio.AbstractEventLoop] = None,
-                 post_processing_fn: Optional[Callable] = None,
-                 scrape_targets: [ScrapeTarget] = None):
+    def __init__(
+        self, services: List[str],
+        collect_interval: int,
+        sync_interval: int,
+        grpc_timeout: int,
+        grpc_max_msg_size_mb: Union[int, float],
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+        post_processing_fn: Optional[Callable] = None,
+        scrape_targets: [ScrapeTarget] = None,
+    ):
         self.sync_interval = sync_interval
         self.collect_interval = collect_interval
         self.grpc_timeout = grpc_timeout
@@ -60,7 +64,8 @@ class MetricsCollector(object):
         for s in self._services:
             self._samples_for_service[s] = []
         self._grpc_options = _get_metrics_chan_grpc_options(
-            grpc_max_msg_size_mb)
+            grpc_max_msg_size_mb,
+        )
         self.scrape_targets = scrape_targets if scrape_targets else []
         # @see example_metrics_postprocessor_fn
         self.post_processing_fn = post_processing_fn
@@ -76,9 +81,11 @@ class MetricsCollector(object):
             self._loop.call_soon(self.collect, s)
 
         for target in self.scrape_targets:
-            self._loop.call_later(target.interval,
-                                  self.scrape_prometheus_target,
-                                  target)
+            self._loop.call_later(
+                target.interval,
+                self.scrape_prometheus_target,
+                target,
+            )
 
     def sync(self, service_name):
         """
@@ -87,9 +94,11 @@ class MetricsCollector(object):
         """
         if service_name in self._samples_for_service and \
            self._samples_for_service[service_name]:
-            chan = ServiceRegistry.get_rpc_channel('metricsd',
-                                                   ServiceRegistry.CLOUD,
-                                                   grpc_options=self._grpc_options)
+            chan = ServiceRegistry.get_rpc_channel(
+                'metricsd',
+                ServiceRegistry.CLOUD,
+                grpc_options=self._grpc_options,
+            )
             client = MetricsControllerStub(chan)
             if self.post_processing_fn:
                 # If services wants to, let it run a postprocessing function
@@ -97,19 +106,24 @@ class MetricsCollector(object):
                 # something was postprocessed or not, so I guess try and make it
                 # idempotent?  #m sevchicken
                 self.post_processing_fn(
-                    self._samples_for_service[service_name])
+                    self._samples_for_service[service_name],
+                )
 
             samples = self._samples_for_service[service_name]
             sample_chunks = self._chunk_samples(samples)
             for idx, chunk in enumerate(sample_chunks):
                 metrics_container = MetricsContainer(
                     gatewayId=snowflake.snowflake(),
-                    family=chunk
+                    family=chunk,
                 )
-                future = client.Collect.future(metrics_container,
-                                               self.grpc_timeout)
-                future.add_done_callback(self._make_sync_done_func(
-                    service_name, idx)
+                future = client.Collect.future(
+                    metrics_container,
+                    self.grpc_timeout,
+                )
+                future.add_done_callback(
+                    self._make_sync_done_func(
+                        service_name, idx,
+                    ),
                 )
             self._samples_for_service[service_name].clear()
         self._loop.call_later(self.sync_interval, self.sync, service_name)
@@ -120,27 +134,38 @@ class MetricsCollector(object):
         """
         err = collect_future.exception()
         if err:
-            logging.error("Metrics upload error for service %s (chunk %d)! "
-                          "[%s] %s", service_name, chunk, err.code(),
-                          err.details())
+            logging.error(
+                "Metrics upload error for service %s (chunk %d)! "
+                "[%s] %s", service_name, chunk, err.code(),
+                err.details(),
+            )
         else:
-            logging.debug("Metrics upload success for service %s (chunk %d)",
-                          service_name, chunk)
+            logging.debug(
+                "Metrics upload success for service %s (chunk %d)",
+                service_name, chunk,
+            )
 
     def collect(self, service_name):
         """
         Calls into Service303 to get service metrics samples and
         reschedule collection.
         """
-        chan = ServiceRegistry.get_rpc_channel(service_name,
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            service_name,
+            ServiceRegistry.LOCAL,
+        )
         client = Service303Stub(chan)
         future = client.GetMetrics.future(Void(), self.grpc_timeout)
-        future.add_done_callback(lambda future:
-                                 self._loop.call_soon_threadsafe(
-                                     self.collect_done, service_name, future))
-        self._loop.call_later(self.collect_interval, self.collect,
-                              service_name)
+        future.add_done_callback(
+            lambda future:
+            self._loop.call_soon_threadsafe(
+                self.collect_done, service_name, future,
+            ),
+        )
+        self._loop.call_later(
+            self.collect_interval, self.collect,
+            service_name,
+        )
 
     def collect_done(self, service_name, get_metrics_future):
         """
@@ -148,14 +173,19 @@ class MetricsCollector(object):
         """
         err = get_metrics_future.exception()
         if err:
-            logging.warning("Collect %s Error! [%s] %s",
-                            service_name, err.code(), err.details())
+            logging.warning(
+                "Collect %s Error! [%s] %s",
+                service_name, err.code(), err.details(),
+            )
             self._samples_for_service[service_name].append(
-                _get_collect_success_metric(service_name, False))
+                _get_collect_success_metric(service_name, False),
+            )
         else:
             container = get_metrics_future.result()
-            logging.debug("Collected %d from %s...",
-                          len(container.family), service_name)
+            logging.debug(
+                "Collected %d from %s...",
+                len(container.family), service_name,
+            )
             for family in container.family:
                 for sample in family.metric:
                     sample.label.add(name="service", value=service_name)
@@ -163,12 +193,15 @@ class MetricsCollector(object):
                 if _is_start_time_metric(family):
                     self._add_uptime_metric(service_name, family)
             self._samples_for_service[service_name].append(
-                _get_collect_success_metric(service_name, True))
+                _get_collect_success_metric(service_name, True),
+            )
 
     def _add_uptime_metric(self, service_name, family):
-        if (not family.metric
-                or len(family.metric) == 0
-                or not family.metric[0].gauge.value):
+        if (
+            not family.metric
+            or len(family.metric) == 0
+            or not family.metric[0].gauge.value
+        ):
             logging.error("Could not parse start time metric: %s", family)
             return
         start_time = family.metric[0].gauge.value
@@ -179,18 +212,26 @@ class MetricsCollector(object):
     def _make_sync_done_func(self, service_name, chunk):
         return lambda future: self._loop.call_soon_threadsafe(
             self.sync_done, service_name, chunk,
-            future)
+            future,
+        )
 
     def _chunk_samples(self, samples):
-        # Add 1kiB fpr gRPC overhead
-        sample_size_bytes = sys.getsizeof(samples) + 1000
-        buckets = math.ceil(
-            sample_size_bytes / self.grpc_max_msg_size_bytes)
-        sample_length = len(samples)
-        chunk_size = sample_length // buckets
+        # Add 1kiB for gRPC overhead
+        max_msg_bytes = self.grpc_max_msg_size_bytes - 1000
 
-        for i in range(0, sample_length, chunk_size):
-            yield samples[i:i + chunk_size]
+        chunked_samples = []
+        chunked_samples_size = 0
+        for s in samples:
+            if chunked_samples_size + s.ByteSize() <= max_msg_bytes:
+                chunked_samples.append(s)
+                chunked_samples_size += s.ByteSize()
+            else:
+                yield chunked_samples
+                chunked_samples = [s]
+                chunked_samples_size = s.ByteSize()
+        # Send leftover samples
+        if chunked_samples_size > 0:
+            yield chunked_samples
 
     def scrape_prometheus_target(self, target: ScrapeTarget) -> None:
         """
@@ -205,33 +246,47 @@ class MetricsCollector(object):
 
         except Exception as e:  # pylint: disable=broad-except
             logging.error(
-                "Error scraping prometheus target: %s", str(e))
-            self._loop.call_later(target.interval,
-                                  self.scrape_prometheus_target, target)
+                "Error scraping prometheus target: %s", str(e),
+            )
+            self._loop.call_later(
+                target.interval,
+                self.scrape_prometheus_target, target,
+            )
 
     def _package_and_send_metrics(
             self, metrics: [metrics_pb2.MetricFamily],
-            target: ScrapeTarget
+            target: ScrapeTarget,
     ) -> None:
         """
         Send parsed and protobuf-converted metrics to cloud.
         """
-        metrics_container = MetricsContainer(
-            gatewayId=snowflake.snowflake(),
-            family=metrics,
+        chan = ServiceRegistry.get_rpc_channel(
+            'metricsd',
+            ServiceRegistry.CLOUD,
+            grpc_options=self._grpc_options,
         )
 
-        chan = ServiceRegistry.get_rpc_channel('metricsd',
-                                               ServiceRegistry.CLOUD,
-                                               grpc_options=self._grpc_options)
-
         client = MetricsControllerStub(chan)
-        future = client.Collect.future(metrics_container,
-                                       self.grpc_timeout)
-        future.add_done_callback(lambda future:
-                                 self._loop.call_soon_threadsafe(
-                                     self.scrape_done, future, target
-                                 ))
+        for chunk in self._chunk_samples(metrics):
+            metrics_container = MetricsContainer(
+                gatewayId=snowflake.snowflake(),
+                family=chunk,
+            )
+            future = client.Collect.future(
+                metrics_container,
+                self.grpc_timeout,
+            )
+            future.add_done_callback(
+                lambda future:
+                self._loop.call_soon_threadsafe(
+                    self.scrape_done, future, target,
+                ),
+            )
+        
+        self._loop.call_later(
+            target.interval,
+            self.scrape_prometheus_target, target,
+        )
 
     def scrape_done(self, collect_future, target):
         """
@@ -239,14 +294,15 @@ class MetricsCollector(object):
         """
         err = collect_future.exception()
         if err:
-            logging.error("Prometheus Target Metrics upload error! [%s] %s",
-                          err.code(), err.details())
+            logging.error(
+                "Prometheus Target Metrics upload error! [%s] %s",
+                err.code(), err.details(),
+            )
         else:
-            logging.debug("Prometheus Target Metrics upload success: %s",
-                          target.name)
-
-        self._loop.call_later(target.interval,
-                              self.scrape_prometheus_target, target)
+            logging.debug(
+                "Prometheus Target Metrics upload success: %s",
+                target.name,
+            )
 
 
 def _parse_metrics_response(response_text: str) -> [metrics_pb2.MetricFamily]:
@@ -258,7 +314,7 @@ def _parse_metrics_response(response_text: str) -> [metrics_pb2.MetricFamily]:
 
 def _add_scrape_label_to_metrics(
         metrics: [metrics_pb2.MetricFamily],
-        scrape_label: str
+        scrape_label: str,
 ) -> None:
     for family in metrics:
         for sample in family.metric:
@@ -311,13 +367,16 @@ def _get_metrics_chan_grpc_options(msg_size_mb: int):
     :return: list of tuples containing grpc options for channel
     """
     grpc_max_msg_size_bytes = msg_size_mb * 1024 * 1024
-    logging.debug('Setting metricsd gRPC chan Max Message Size to: %s bytes',
-                  grpc_max_msg_size_bytes)
+    logging.debug(
+        'Setting metricsd gRPC chan Max Message Size to: %s bytes',
+        grpc_max_msg_size_bytes,
+    )
     return [('grpc.max_send_message_length', grpc_max_msg_size_bytes)]
 
 
 def example_metrics_postprocessor_fn(
-        samples: List[metrics_pb2.MetricFamily]) -> None:
+        samples: List[metrics_pb2.MetricFamily],
+) -> None:
     """
     An example metrics postprocessor function for MetricsCollector
 
@@ -350,7 +409,8 @@ def example_metrics_postprocessor_fn(
 
 
 def do_nothing_metrics_postprocessor(
-        _samples: List[metrics_pb2.MetricFamily]) -> None:
+        _samples: List[metrics_pb2.MetricFamily],
+) -> None:
     """This metrics post processor does nothing for config examples"""
 
 
@@ -358,14 +418,13 @@ _METRIC_TYPES = ('counter', 'gauge', 'summary', 'histogram', 'untyped')
 
 
 def core_metric_to_proto(
-        metric: prometheus_client.core.Metric) -> [metrics_pb2.MetricFamily]:
+        metric: prometheus_client.core.Metric,
+) -> [metrics_pb2.MetricFamily]:
     """
     Converts metrics from the prometheus client parser format to protobuf for
     sending to cloud
     """
     typ = metric.type
-    if typ not in _METRIC_TYPES:
-        raise ValueError('Invalid metric type: ' + typ)
     if typ == 'counter':
         return [_counter_to_proto(metric)]
     elif typ == 'gauge':
@@ -379,7 +438,8 @@ def core_metric_to_proto(
 
 
 def _counter_to_proto(
-        metric: prometheus_client.core.Metric) -> metrics_pb2.MetricFamily:
+        metric: prometheus_client.core.Metric,
+) -> metrics_pb2.MetricFamily:
     ret = metrics_pb2.MetricFamily(name=metric.name, type=metrics_pb2.COUNTER)
     for sample in metric.samples:
         counter = metrics_pb2.Counter(value=sample[2])
@@ -391,10 +451,11 @@ def _counter_to_proto(
 
 
 def _gauge_to_proto(
-        metric: prometheus_client.core.Metric) -> metrics_pb2.MetricFamily:
+        metric: prometheus_client.core.Metric,
+) -> metrics_pb2.MetricFamily:
     ret = metrics_pb2.MetricFamily(name=metric.name, type=metrics_pb2.GAUGE)
     for sample in metric.samples:
-        (_, labels, value) = sample
+        (_, labels, value, *_) = sample
         met = metrics_pb2.Metric(gauge=metrics_pb2.Gauge(value=value))
         for key in labels:
             met.label.add(name=key, value=labels[key])
@@ -403,7 +464,8 @@ def _gauge_to_proto(
 
 
 def _summary_to_proto(
-        metric: prometheus_client.core.Metric) -> [metrics_pb2.MetricFamily]:
+        metric: prometheus_client.core.Metric,
+) -> [metrics_pb2.MetricFamily]:
     """
     1. Get metrics by unique labelset ignoring quantile
     2. convert to proto separately for each one
@@ -412,12 +474,14 @@ def _summary_to_proto(
     family_by_labelset = {}
 
     for sample in metric.samples:
-        (name, labels, value) = sample
+        (name, labels, value, *_) = sample
         # get real family by checking labels (ignoring quantile)
         distinct_labels = frozenset(_remove_label(labels, 'quantile').items())
         if distinct_labels not in family_by_labelset:
-            fam = metrics_pb2.MetricFamily(name=metric.name,
-                                           type=metrics_pb2.SUMMARY)
+            fam = metrics_pb2.MetricFamily(
+                name=metric.name,
+                type=metrics_pb2.SUMMARY,
+            )
             summ = metrics_pb2.Summary(sample_count=0, sample_sum=0)
             fam.metric.extend([metrics_pb2.Metric(summary=summ)])
             family_by_labelset[distinct_labels] = fam
@@ -430,20 +494,26 @@ def _summary_to_proto(
             unique_family.metric[0].summary.sample_count = int(value)
         elif 'quantile' in labels:
             unique_family.metric[0].summary.quantile.extend([
-                metrics_pb2.Quantile(quantile=float(labels['quantile']),
-                                     value=value)])
+                metrics_pb2.Quantile(
+                    quantile=float(labels['quantile']),
+                    value=value,
+                ),
+            ])
 
     # Add non-quantile labels to all metrics
     for labelset in family_by_labelset.keys():
         for label in labelset:
-            family_by_labelset[labelset].metric[0].label.add(name=label[0],
-                                                             value=label[1])
+            family_by_labelset[labelset].metric[0].label.add(
+                name=label[0],
+                value=label[1],
+            )
 
     return list(family_by_labelset.values())
 
 
 def _histogram_to_proto(
-        metric: prometheus_client.core.Metric) -> [metrics_pb2.MetricFamily]:
+        metric: prometheus_client.core.Metric,
+) -> [metrics_pb2.MetricFamily]:
     """
     1. Get metrics by unique labelset ignoring quantile
     2. convert to proto separately for each one
@@ -452,12 +522,14 @@ def _histogram_to_proto(
     family_by_labelset = {}
 
     for sample in metric.samples:
-        (name, labels, value) = sample
+        (name, labels, value, *_) = sample
         # get real family by checking labels (ignoring le)
         distinct_labels = frozenset(_remove_label(labels, 'le').items())
         if distinct_labels not in family_by_labelset:
-            fam = metrics_pb2.MetricFamily(name=metric.name,
-                                           type=metrics_pb2.HISTOGRAM)
+            fam = metrics_pb2.MetricFamily(
+                name=metric.name,
+                type=metrics_pb2.HISTOGRAM,
+            )
             hist = metrics_pb2.Histogram(sample_count=0, sample_sum=0)
             fam.metric.extend([metrics_pb2.Metric(histogram=hist)])
             family_by_labelset[distinct_labels] = fam
@@ -470,23 +542,28 @@ def _histogram_to_proto(
             unique_family.metric[0].histogram.sample_count = int(value)
         elif 'le' in labels:
             unique_family.metric[0].histogram.bucket.extend([
-                metrics_pb2.Bucket(upper_bound=float(labels['le']),
-                                   cumulative_count=value)])
+                metrics_pb2.Bucket(
+                    upper_bound=float(labels['le']),
+                    cumulative_count=value,
+                ),
+            ])
 
     # Add non-quantile labels to all metrics
     for labelset in family_by_labelset.keys():
         for label in labelset:
             family_by_labelset[labelset].metric[0].label.add(
-                name=str(label[0]), value=str(label[1]))
+                name=str(label[0]), value=str(label[1]),
+            )
 
     return list(family_by_labelset.values())
 
 
 def _untyped_to_proto(
-        metric: prometheus_client.core.Metric) -> metrics_pb2.MetricFamily:
+        metric: prometheus_client.core.Metric,
+) -> metrics_pb2.MetricFamily:
     ret = metrics_pb2.MetricFamily(name=metric.name, type=metrics_pb2.UNTYPED)
     for sample in metric.samples:
-        (_, labels, value) = sample
+        (_, labels, value, *_) = sample
         new_untyped = metrics_pb2.Untyped(value=value)
         met = metrics_pb2.Metric(untyped=new_untyped)
         for key in labels:

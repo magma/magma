@@ -4,12 +4,14 @@ title: Events Monitoring
 hide_title: true
 ---
 # Events Monitoring
-### Overview
+
+## Overview
 
 On top of our logging and metrics, Magma has a metrics monitoring system.
 Events capture rich, searchable data pertaining to the gateways,
 and entities tracked by the gateways.
 Events are a work in progress, but has been designed to track the following:
+
 - S1AP message tracing
 - Subscriber session tracing
 - Subscriber data usage, bearer creation
@@ -20,12 +22,12 @@ Events are a work in progress, but has been designed to track the following:
 If Fluentd, Fluent Bit, and Elasticsearch have been correctly configured on
 your setup, events should automatically be available.
 
-### Viewing Events
+## Viewing Events
 
 We recommend two primary ways to view or query for events: either through our
 NMS UI, or through our REST API.
 
-#### NMS
+### NMS
 
 ![Magma events table](assets/lte/events_table.png?raw=true "Magma Events Table")
 
@@ -33,23 +35,24 @@ The easiest way to view Magma's events is through the NMS UI.
 Events can be seen on the main network dashboard.
 Gateway and subscriber specific events tables are also provided.
 
-#### REST API
+### REST API
 
 We provide a REST API for querying events.
 The Magma NMS itself uses this API to provide its interface.
 We use OpenAPI, so more details can be found in our various Swagger files.
-`swagger.yml`
-`swagger.v1.yml`
+
+- `swagger.yml`
+- `swagger.v1.yml`
 
 Currently we provide three GET endpoints for our REST API:
 
-```
+```text
 /events/{network_id}:
 /events/{network_id}/{stream_name}:
 /events/{network_id}/about/count:
 ```
 
-### Event Streams
+## Event Streams
 
 Events are divided into the following streams, that can be filtered on either
 the NMS or the REST API
@@ -61,12 +64,12 @@ the NMS or the REST API
 - `sessions`: Events related to subscriber sessions
 - `mme` Events related to MME function, S1 issues, and subscriber attach/detach
 
-### Available Events
+## Available Events
 
 Events are defined in swagger yaml files.
 This list may not be exhaustive.
 
-#### Access Gateway Events
+### Access Gateway Events
 
 `magmad_events.v1.yml`
 
@@ -75,13 +78,15 @@ This list may not be exhaustive.
 *updated_stored_mconfig*: The stored mconfig was updated
 
 *processed_updates*: Stream updates were successfully processed
-```
+
+```text
 Properties
 - updates (new mconfig received)
 ```
 
 *restarted_services*: Services were restarted
-```
+
+```text
 Properties
 - services
 ```
@@ -89,15 +94,16 @@ Properties
 *established_sync_rpc_stream*: SyncRPC connection was established
 
 *disconnected_sync_rpc_stream*: SyncRPC stream was disconnected
-    
-#### Federation Gateway Events
+
+### Federation Gateway Events
 
 `health_events.v1.yml`
 
 *gateway_promotion_succeeded*: Gateway successfully promoted to active
 
 *gateway_promotion_failed*: Gateway promotion to active failed
-```
+
+```text
 Properties
 - failure reason
 ```
@@ -105,17 +111,19 @@ Properties
 *gateway_demotion_succeded*: Gateway successfully demoted to standby
 
 *gateway_demotion_failed*: Gateway demotion to standby failed
-```
+
+```text
 Properties
 - failure reason
 ```
-        
-#### AAA Events
+
+### AAA Events
 
 `aaa_server_events.v1.yml`
 
 *authentication_succeeded*: Used to track successful subscriber authentications
-```
+
+```text
 Properties
 - IMSI
 - session ID
@@ -124,7 +132,8 @@ Properties
 ```
 
 *authentication_failed*: Used to track failed subscriber authentications
-```
+
+```text
 Properties
 - IMSI
 - MAC address
@@ -133,7 +142,8 @@ Properties
 ```
 
 *session_termination_succeeded*: Used to track AAA server produced session terminations
-```
+
+```text
 Properties
 - IMSI
 - session ID
@@ -143,7 +153,8 @@ Properties
 ```
 
 *session_termination_failed*: Used to track AAA server produced session termination failures
-```
+
+```text
 Properties
 - IMSI
 - session ID
@@ -153,14 +164,15 @@ Properties
 - failure reason
 ```
 
-#### Subscriber Events
+### Subscriber Events
 
 `session_manager_events.v1.yml`
 
 `mme_events.v1.yml`
 
 *session_created*: Used to track when a session was created
-```
+
+```text
 Properties
 - imsi:
 - ip_addr:
@@ -174,7 +186,8 @@ Properties
 ```
 
 *session_create_failure*: Used to track when a session creation failed
-```
+
+```text
 Properties
 - imsi:
 - apn:
@@ -183,7 +196,8 @@ Properties
 ```
 
 *session_updated*: Used to track when a session update is reported
-```
+
+```text
 Properties
 - imsi:
 - apn:
@@ -192,7 +206,8 @@ Properties
 ```
 
 *session_update_failure*: Used to track when a session update has failed
-```
+
+```text
 Properties
 - imsi:
 - apn:
@@ -202,7 +217,8 @@ Properties
 ```
 
 *session_terminated*: Used to track total session metrics
-```
+
+```text
 Properties
 - imsi:
 - apn:
@@ -223,25 +239,28 @@ Properties
 ```
 
 *attach_success*: Used to track when UE attaches successfully
-```
+
+```text
 Properties
 - imsi:
 ```
 
 *detach_success*: Used to track when UE detaches successfully
-```
+
+```text
 Properties
 - imsi:
 - action:
 ```
 
 *s1_setup_success*: Used to track establishment of S1 connection
-```
+
+```text
 Properties
 - enb_name:
 - enb_id:
 ```
 
-### How-to: Create an event
+## How-to: Create an event
 
 View under our 'Eventd' doc.

@@ -46,7 +46,7 @@ RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linu
     cp -r go/bin/* /usr/local/bin/
 
 # Install protobuf compiler.
-RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
+RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
     unzip protoc3.zip -d protoc3 && \
     mv protoc3/bin/protoc /bin/protoc && \
     chmod a+rx /bin/protoc && \
@@ -119,6 +119,10 @@ COPY --from=builder /root/.cache /root/.cache
 # Production image
 # -----------------------------------------------------------------------------
 FROM ubuntu:bionic AS gateway_go
+ARG MAGMA_BUILD_BRANCH=unknown
+ARG MAGMA_BUILD_TAG=unknown
+ARG MAGMA_BUILD_COMMIT_HASH=unknonw
+ARG MAGMA_BUILD_COMMIT_DATE=unknown
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools netcat gettext musl
@@ -137,3 +141,9 @@ COPY feg/gateway/configs /etc/magma
 RUN mkdir -p /var/opt/magma/envdir
 RUN mkdir -p /var/opt/magma/configs
 RUN mkdir -p /var/opt/magma/tmp
+
+# Add commit information
+ENV MAGMA_BUILD_BRANCH $MAGMA_BUILD_BRANCH
+ENV MAGMA_BUILD_TAG $MAGMA_BUILD_TAG
+ENV MAGMA_BUILD_COMMIT_HASH $MAGMA_BUILD_COMMIT_HASH
+ENV MAGMA_BUILD_COMMIT_DATE $MAGMA_BUILD_COMMIT_DATE

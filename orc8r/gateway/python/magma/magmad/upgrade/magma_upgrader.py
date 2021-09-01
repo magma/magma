@@ -41,20 +41,24 @@ class MagmaUpgrader(Upgrader):
             logging.info(
                 'Upgrading magma to version %s', target_version,
             )
-            call_process('apt-get update',
-                         _get_apt_update_complete_callback(target_version,
-                                                           self.loop),
-                         self.loop)
+            call_process(
+                'apt-get update',
+                _get_apt_update_complete_callback(
+                    target_version,
+                    self.loop,
+                ),
+                self.loop,
+            )
         else:
             logging.info(
                 'Service is currently on package version %s, '
                 'ignoring upgrade to %s because it is either '
-                'equal or behind.', self.cur_version, target_version
+                'equal or behind.', self.cur_version, target_version,
             )
 
 
 VERSION_RE = re.compile(
-    r'(?P<maj>\d+)\.(?P<min>\d+)\.(?P<hotfix>\d+)(-(?P<iter>\d+))?'
+    r'(?P<maj>\d+)\.(?P<min>\d+)\.(?P<hotfix>\d+)(-(?P<iter>\d+))?',
 )
 
 
@@ -72,11 +76,15 @@ def compare_package_versions(current_version, target_version):
     target_parsed = VERSION_RE.match(target_version)
 
     if not cur_parsed:
-        raise ValueError('Could not parse current package version '
-                         '{}'.format(current_version))
+        raise ValueError(
+            'Could not parse current package version '
+            '{}'.format(current_version),
+        )
     if not target_parsed:
-        raise ValueError('Could not parse target package version '
-                         '{}'.format(target_version))
+        raise ValueError(
+            'Could not parse target package version '
+            '{}'.format(target_version),
+        )
 
     for group in ['maj', 'min', 'hotfix', 'iter']:
         target_val = int(target_parsed.group(group) or 0)
@@ -92,14 +100,14 @@ def _get_apt_update_complete_callback(target_version, loop):
     def callback(returncode):
         if returncode != 0:
             logging.error(
-                "Apt-get update failed with code: %d", returncode
+                "Apt-get update failed with code: %d", returncode,
             )
             return
         logging.info("apt-get update completed")
         call_process(
             get_autoupgrade_command(target_version, dry_run=True),
             _get_upgrade_dry_run_complete_callback(target_version, loop),
-            loop
+            loop,
         )
     return callback
 
@@ -108,7 +116,7 @@ def _get_upgrade_dry_run_complete_callback(target_version, loop):
     def callback(returncode):
         if returncode != 0:
             logging.error(
-                "Magma Upgrade dry-run failed with code: %d", returncode
+                "Magma Upgrade dry-run failed with code: %d", returncode,
             )
             return
 
@@ -116,7 +124,7 @@ def _get_upgrade_dry_run_complete_callback(target_version, loop):
         call_process(
             get_autoupgrade_command(target_version, dry_run=False),
             _upgrade_completed,
-            loop
+            loop,
         )
     return callback
 
@@ -130,8 +138,10 @@ def _upgrade_completed(returncode):
 
 def get_autoupgrade_command(version, *, dry_run=False):
     command = 'apt-get install'
-    options = ['-o', 'Dpkg::Options::="--force-confnew"',
-               '--assume-yes', '--force-yes', '--only-upgrade']
+    options = [
+        '-o', 'Dpkg::Options::="--force-confnew"',
+        '--assume-yes', '--force-yes', '--only-upgrade',
+    ]
     if dry_run:
         options.append('--dry-run')
     return '{command} {options_joined} magma={version}'.format(

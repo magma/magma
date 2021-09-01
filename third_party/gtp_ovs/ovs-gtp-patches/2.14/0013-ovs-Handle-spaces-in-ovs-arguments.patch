@@ -1,7 +1,7 @@
-From 6807607471f52e522a50357aa7f550ad3573c301 Mon Sep 17 00:00:00 2001
+From e06cfab4d2493ffd18362bf318f4f0cecf52fd85 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 13 Mar 2020 19:18:40 +0000
-Subject: [PATCH 13/14] ovs: Handle spaces in ovs arguments
+Subject: [PATCH 13/20] ovs: Handle spaces in ovs arguments
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
@@ -12,10 +12,10 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  4 files changed, 62 insertions(+), 12 deletions(-)
 
 diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
-index ddbb4fc46..0da43d1a9 100644
+index 4db224df1..bcd67bae9 100644
 --- a/lib/ofp-actions.c
 +++ b/lib/ofp-actions.c
-@@ -6268,8 +6268,11 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
+@@ -6297,8 +6297,11 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
                  error = xasprintf("invalid probability value \"%s\"", value);
              }
          } else if (!strcmp(key, "apn_name")) {
@@ -28,7 +28,7 @@ index ddbb4fc46..0da43d1a9 100644
                  if ((char)value[i] == '\0')
                      break;
              }
-@@ -6318,18 +6321,25 @@ format_SAMPLE(const struct ofpact_sample *a,
+@@ -6347,18 +6350,25 @@ format_SAMPLE(const struct ofpact_sample *a,
      ds_put_format(fp->s, "%ssample(%s%sprobability=%s%"PRIu16
                    ",%scollector_set_id=%s%"PRIu32
                    ",%sobs_domain_id=%s%"PRIu32
@@ -154,5 +154,5 @@ index 7a8e18f41..69565c9a9 100644
 +char *str_quotify(const char *s, int len, char *d);
  #endif /* string.h wrapper */
 -- 
-2.13.5
+2.17.1
 

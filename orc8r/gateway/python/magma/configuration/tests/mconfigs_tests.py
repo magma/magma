@@ -98,5 +98,6 @@ class MconfigsTest(unittest.TestCase):
         )
 
         actual = mconfigs.unpack_mconfig_any(
-            magmad_any, mconfigs_pb2.DirectoryD())
+            magmad_any, mconfigs_pb2.DirectoryD(),
+        )
         self.assertEqual(directoryd_mconfig, actual)

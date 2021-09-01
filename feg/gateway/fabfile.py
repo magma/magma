@@ -31,12 +31,14 @@ def register_feg():
 
 
 class RadiusConfig:
-    def __init__(self,
-                 DAE_addr: str = '127.0.0.1:3799',
-                 acct_addr: str = '127.0.0.1:1813',
-                 auth_addr: str = '127.0.0.1:1812',
-                 network: str = 'udp',
-                 secret: str = 'MTIzNDU2'):
+    def __init__(
+        self,
+        DAE_addr: str = '127.0.0.1:3799',
+        acct_addr: str = '127.0.0.1:1813',
+        auth_addr: str = '127.0.0.1:1812',
+        network: str = 'udp',
+        secret: str = 'MTIzNDU2',
+    ):
         self.DAE_addr = DAE_addr
         self.acct_addr = acct_addr
         self.auth_addr = auth_addr
@@ -45,12 +47,14 @@ class RadiusConfig:
 
 
 class AAAServerConfig:
-    def __init__(self,
-                 accounting_enabled: bool = True,
-                 create_session_on_auth: bool = True,
-                 event_logging_enabled: bool = False,
-                 idle_session_timeout_ms: int = 21600000,
-                 radius_config: RadiusConfig = RadiusConfig()):
+    def __init__(
+        self,
+        accounting_enabled: bool = True,
+        create_session_on_auth: bool = True,
+        event_logging_enabled: bool = False,
+        idle_session_timeout_ms: int = 21600000,
+        radius_config: RadiusConfig = RadiusConfig(),
+    ):
         self.accounting_enabled = accounting_enabled
         self.create_session_on_auth = create_session_on_auth
         self.event_logging_enabled = event_logging_enabled
@@ -59,10 +63,12 @@ class AAAServerConfig:
 
 
 class EapAkaTimeout:
-    def __init__(self,
-                 challenge_ms: int = 20000, error_notification_ms: int = 10000,
-                 session_authenticated_ms: int = 5000,
-                 session_ms: int = 43200000):
+    def __init__(
+        self,
+        challenge_ms: int = 20000, error_notification_ms: int = 10000,
+        session_authenticated_ms: int = 5000,
+        session_ms: int = 43200000,
+    ):
         self.challenge_ms = challenge_ms
         self.error_notification_ms = error_notification_ms
         self.session_authenticated_ms = session_authenticated_ms
@@ -70,8 +76,10 @@ class EapAkaTimeout:
 
 
 class EapAkaConfig:
-    def __init__(self, plmn_ids: List[str] = None,
-                 timeout: EapAkaTimeout = EapAkaTimeout()):
+    def __init__(
+        self, plmn_ids: List[str] = None,
+        timeout: EapAkaTimeout = EapAkaTimeout(),
+    ):
         if plmn_ids is None:
             plmn_ids = ['123456']
         self.plmn_ids = plmn_ids
@@ -79,20 +87,22 @@ class EapAkaConfig:
 
 
 class DiamServerConfig:
-    def __init__(self,
-                 address: str = 'localhost:1234',
-                 dest_host: str = 'magma-fedgw.magma.com',
-                 dest_realm: str = 'magma.com',
-                 disable_dest_host: bool = False,
-                 host: str = 'string',
-                 local_address: str = ':56789',
-                 overwrite_dest_host: bool = False,
-                 product_name: str = 'string',
-                 protocol: str = 'tcp',
-                 realm: str = 'string',
-                 retransmits: int = 0,
-                 retry_count: int = 0,
-                 watchdog_interval: int = 0):
+    def __init__(
+        self,
+        address: str = 'localhost:1234',
+        dest_host: str = 'magma-fedgw.magma.com',
+        dest_realm: str = 'magma.com',
+        disable_dest_host: bool = False,
+        host: str = 'string',
+        local_address: str = ':56789',
+        overwrite_dest_host: bool = False,
+        product_name: str = 'string',
+        protocol: str = 'tcp',
+        realm: str = 'string',
+        retransmits: int = 0,
+        retry_count: int = 0,
+        watchdog_interval: int = 0,
+    ):
         self.address = address
         self.dest_host = dest_host
         self.dest_realm = dest_realm
@@ -109,9 +119,11 @@ class DiamServerConfig:
 
 
 class GxConfig:
-    def __init__(self,
-                 disableGx: bool = False,
-                 servers: List[DiamServerConfig] = None):
+    def __init__(
+        self,
+        disableGx: bool = False,
+        servers: List[DiamServerConfig] = None,
+    ):
         self.disableGx = disableGx
         if servers is None:
             servers = [DiamServerConfig()]
@@ -119,10 +131,12 @@ class GxConfig:
 
 
 class GyConfig:
-    def __init__(self,
-                 disableGy: bool = False,
-                 init_method: int = 2,
-                 servers: List[DiamServerConfig] = None):
+    def __init__(
+        self,
+        disableGy: bool = False,
+        init_method: int = 2,
+        servers: List[DiamServerConfig] = None,
+    ):
         self.disableGy = disableGy
         self.init_method = init_method
         if servers is None:
@@ -131,16 +145,18 @@ class GyConfig:
 
 
 class HealthConfigs:
-    def __init__(self,
-                 cloud_disable_period_secs: int = 10,
-                 cpu_utilization_threshold: float = 0.9,
-                 health_services: List[str] = None,
-                 local_disable_period_secs: int = 1,
-                 memory_available_threshold: float = 0.75,
-                 minimum_request_threshold: int = 1,
-                 request_failure_threshold: float = 0.5,
-                 update_failure_threshold: int = 3,
-                 update_interval_secs: int = 10):
+    def __init__(
+        self,
+        cloud_disable_period_secs: int = 10,
+        cpu_utilization_threshold: float = 0.9,
+        health_services: List[str] = None,
+        local_disable_period_secs: int = 1,
+        memory_available_threshold: float = 0.75,
+        minimum_request_threshold: int = 1,
+        request_failure_threshold: float = 0.5,
+        update_failure_threshold: int = 3,
+        update_interval_secs: int = 10,
+    ):
         self.cloud_disable_period_secs = cloud_disable_period_secs
         self.cpu_utilization_threshold = cpu_utilization_threshold
         if health_services is None:
@@ -155,20 +171,24 @@ class HealthConfigs:
 
 
 class SubProfile:
-    def __init__(self,
-                 max_dl_bit_rate: int = 20000000,
-                 max_ul_bit_rate: int = 10000000):
+    def __init__(
+        self,
+        max_dl_bit_rate: int = 20000000,
+        max_ul_bit_rate: int = 10000000,
+    ):
         self.max_dl_bit_rate = max_dl_bit_rate
         self.max_ul_bit_rate = max_ul_bit_rate
 
 
 class HssServer:
-    def __init__(self,
-                 address: str = 'localhost:1234',
-                 dest_host: str = 'magma-fedgw.magma.com',
-                 dest_realm: str = 'magma.com',
-                 local_address: str = ':56789',
-                 protocol: str = 'tcp'):
+    def __init__(
+        self,
+        address: str = 'localhost:1234',
+        dest_host: str = 'magma-fedgw.magma.com',
+        dest_realm: str = 'magma.com',
+        local_address: str = ':56789',
+        protocol: str = 'tcp',
+    ):
         self.address = address
         self.dest_host = dest_host
         self.dest_realm = dest_realm
@@ -177,13 +197,15 @@ class HssServer:
 
 
 class HssConfigs:
-    def __init__(self,
-                 default_sub_profile: SubProfile = SubProfile(),
-                 lte_auth_amf: str = 'gAA=',
-                 lte_auth_op: str = 'EREREREREREREREREREREQ==',
-                 server: HssServer = HssServer(),
-                 stream_subscribers: bool = False,
-                 sub_profiles: Dict[str, SubProfile] = None):
+    def __init__(
+        self,
+        default_sub_profile: SubProfile = SubProfile(),
+        lte_auth_amf: str = 'gAA=',
+        lte_auth_op: str = 'EREREREREREREREREREREQ==',
+        server: HssServer = HssServer(),
+        stream_subscribers: bool = False,
+        sub_profiles: Dict[str, SubProfile] = None,
+    ):
         self.default_sub_profile = default_sub_profile
         self.lte_auth_amf = lte_auth_amf
         self.lte_auth_op = lte_auth_op
@@ -195,9 +217,11 @@ class HssConfigs:
 
 
 class S6aConfigs:
-    def __init__(self,
-                 plmn_ids: List[str] = None,
-                 server: DiamServerConfig = DiamServerConfig()):
+    def __init__(
+        self,
+        plmn_ids: List[str] = None,
+        server: DiamServerConfig = DiamServerConfig(),
+    ):
         if plmn_ids is None:
             plmn_ids = ["123456"]
         self.plmn_ids = plmn_ids
@@ -205,13 +229,15 @@ class S6aConfigs:
 
 
 class SwxConfigs:
-    def __init__(self,
-                 cache_TTL_seconds: int = 10800,
-                 derive_unregister_realm: bool = False,
-                 hlr_plmn_ids: List[str] = None,
-                 register_on_auth: bool = False,
-                 servers: List[DiamServerConfig] = None,
-                 verify_authorization: bool = False):
+    def __init__(
+        self,
+        cache_TTL_seconds: int = 10800,
+        derive_unregister_realm: bool = False,
+        hlr_plmn_ids: List[str] = None,
+        register_on_auth: bool = False,
+        servers: List[DiamServerConfig] = None,
+        verify_authorization: bool = False,
+    ):
         self.cache_TTL_seconds = cache_TTL_seconds
         self.derive_unregister_realm = derive_unregister_realm
         if hlr_plmn_ids is None:
@@ -225,9 +251,11 @@ class SwxConfigs:
 
 
 class SubConfig:
-    def __init__(self,
-                 network_wide_base_names: List[str] = None,
-                 network_wide_rule_names: List[str] = None):
+    def __init__(
+        self,
+        network_wide_base_names: List[str] = None,
+        network_wide_rule_names: List[str] = None,
+    ):
         if network_wide_base_names is None:
             network_wide_base_names = ['base_1']
         self.network_wide_base_names = network_wide_base_names
@@ -237,16 +265,18 @@ class SubConfig:
 
 
 class FederationNetworkConfigs:
-    def __init__(self,
-                 served_network_ids: List[str] = None,
-                 aaa_server: AAAServerConfig = AAAServerConfig(),
-                 eap_aka: EapAkaConfig = EapAkaConfig(),
-                 gx: GxConfig = GxConfig(),
-                 gy: GyConfig = GyConfig(),
-                 health: HealthConfigs = HealthConfigs(),
-                 hss: HssConfigs = HssConfigs(),
-                 s6a: S6aConfigs = S6aConfigs(),
-                 swx: SwxConfigs = SwxConfigs()):
+    def __init__(
+        self,
+        served_network_ids: List[str] = None,
+        aaa_server: AAAServerConfig = AAAServerConfig(),
+        eap_aka: EapAkaConfig = EapAkaConfig(),
+        gx: GxConfig = GxConfig(),
+        gy: GyConfig = GyConfig(),
+        health: HealthConfigs = HealthConfigs(),
+        hss: HssConfigs = HssConfigs(),
+        s6a: S6aConfigs = S6aConfigs(),
+        swx: SwxConfigs = SwxConfigs(),
+    ):
         if served_network_ids is None:
             served_network_ids = ['feg_lte_test']
         self.served_network_ids = served_network_ids
@@ -261,13 +291,15 @@ class FederationNetworkConfigs:
 
 
 class FederationNetwork:
-    def __init__(self,
-                 id: str = NETWORK_ID,
-                 name: str = 'Testing',
-                 description: str = 'Test federation network',
-                 federation: FederationNetworkConfigs = FederationNetworkConfigs(),
-                 dns: types.NetworkDNSConfig = types.NetworkDNSConfig(),
-                 subscriber_config: SubConfig = SubConfig()):
+    def __init__(
+        self,
+        id: str = NETWORK_ID,
+        name: str = 'Testing',
+        description: str = 'Test federation network',
+        federation: FederationNetworkConfigs = FederationNetworkConfigs(),
+        dns: types.NetworkDNSConfig = types.NetworkDNSConfig(),
+        subscriber_config: SubConfig = SubConfig(),
+    ):
         self.id = id
         self.name = name
         self.description = description
@@ -277,12 +309,14 @@ class FederationNetwork:
 
 
 class FederationGateway:
-    def __init__(self,
-                 id: str, name: str, description: str,
-                 device: types.GatewayDevice,
-                 magmad: types.MagmadGatewayConfigs,
-                 tier: str = 'default',
-                 federation: FederationNetworkConfigs = FederationNetworkConfigs()):
+    def __init__(
+        self,
+        id: str, name: str, description: str,
+        device: types.GatewayDevice,
+        magmad: types.MagmadGatewayConfigs,
+        tier: str = 'default',
+        federation: FederationNetworkConfigs = FederationNetworkConfigs(),
+    ):
         self.id = id
         self.name = name
         self.description = description

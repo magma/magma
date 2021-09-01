@@ -15,6 +15,7 @@ hide_title: true
 This document cover AGW ubuntu upgrade path
 
 ## Goal
+
 Add support for Ubuntu based AGW.
 
 ## Introduction
@@ -45,22 +46,22 @@ This deployment involves two steps first, upgrading underlying OS. OS upgrade ca
 inplace upgrade or re-install of Ubuntu OS. Second step installing AGW packages.
 There is separate section below to discuss it in details.
 
-## Debian depreciation:
+## Debian depreciation
 
 Debian support will be deprecated on AGW 1.5. Default OS distribution for magma is going to be ubuntu. There would be
 support for Debian based deployment.
 This is subject to change depending on stability of ubuntu support for AGW 1.5.
 
-## Drop Debian support:
+## Drop Debian support
 
 Debian OS support would be dropped in AGW 1.6
 
-## Extended AGW 1.5 release cycle:
+## Extended AGW 1.5 release cycle
 
 To ease urgency of ubuntu upgrade, magma community could provide extra minor releases for 1.5. This way existing
 Debian based production deployment can continue to use debian based AGW and receive bug fixes for 1.5 release.
 
-## Debian to ubuntu upgrade solutions:
+## Debian to ubuntu upgrade solutions
 
 ### *Zero downtime:*
 
@@ -80,7 +81,8 @@ This type of deployment results in downtime.
 4. Configure AGW
 5. Start AGW services
 
-## Major changes for Ubuntu upgrade.
+## Major changes for Ubuntu upgrade
+
 1. Update Python based services to Python 3.8
 2. Update OVS binaries from 2.8 to 2.14
 3. Use OVS DKMS kernel module package for GTP tunneling to support range of kernels, as of now it supports 4.9.214,

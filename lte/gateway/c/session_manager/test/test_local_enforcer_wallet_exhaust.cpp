@@ -23,10 +23,10 @@
 #include "Consts.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
 
@@ -47,13 +47,14 @@ class LocalEnforcerTest : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    pipelined_client = std::make_shared<MockPipelinedClient>();
-    spgw_client      = std::make_shared<MockSpgwServiceClient>();
-    aaa_client       = std::make_shared<MockAAAClient>();
-    events_reporter  = std::make_shared<MockEventsReporter>();
-    local_enforcer   = std::make_unique<LocalEnforcer>(
+    pipelined_client   = std::make_shared<MockPipelinedClient>();
+    spgw_client        = std::make_shared<MockSpgwServiceClient>();
+    aaa_client         = std::make_shared<MockAAAClient>();
+    events_reporter    = std::make_shared<MockEventsReporter>();
+    auto shard_tracker = std::make_shared<ShardTracker>();
+    local_enforcer     = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, mconfig);
+        spgw_client, aaa_client, shard_tracker, 0, 0, mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
@@ -75,7 +76,6 @@ class LocalEnforcerTest : public ::testing::Test {
   magma::mconfig::SessionD get_mconfig_gx_rule_wallet_exhaust() {
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-    mconfig.set_relay_enabled(false);
     mconfig.set_gx_gy_relay_enabled(false);
     auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
     wallet_config->set_terminate_on_exhaust(true);
@@ -88,6 +88,16 @@ class LocalEnforcerTest : public ::testing::Test {
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
+  }
+
+  void initialize_session(
+      SessionMap& session_map, const std::string& session_id,
+      const SessionConfig& cfg, const CreateSessionResponse& response) {
+    const std::string imsi = cfg.get_imsi();
+    auto session = local_enforcer->create_initializing_session(session_id, cfg);
+    local_enforcer->update_session_with_policy_response(
+        session, response, nullptr);
+    session_map[imsi].push_back(std::move(session));
   }
 
  protected:
@@ -122,8 +132,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)));
-  local_enforcer->init_session(
-      session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
@@ -189,8 +198,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)))
       .Times(1);
-  local_enforcer->init_session(
-      session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 }
@@ -211,8 +219,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_NO_QUOTA)))
       .Times(1);
-  local_enforcer->init_session(
-      session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 }
@@ -226,8 +233,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
   CreateSessionResponse response;
   create_session_create_response(
       IMSI1, SESSION_ID_1, "m1", static_rules, &response);
-  local_enforcer->init_session(
-      session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
@@ -261,8 +267,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   CreateSessionResponse response;
   create_session_create_response(
       IMSI1, SESSION_ID_1, "m1", static_rules, &response);
-  local_enforcer->init_session(
-      session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 

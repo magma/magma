@@ -1,39 +1,34 @@
-#Variables used in Magma build
-
+---
 #Tune for custom builds and verify before build
-buildMagmaVersion: v1.4
-buildOrc8rLabel: helmtest
-buildHelmRepo: helmtest
+buildMagmaVersion: v1.5
+buildOrc8rLabel: magmaalpha
+buildHelmRepo: helmalpha
+buildTagName: buildOrc8r
 
 #Build defaults
 buildAwsRegion: ap-northeast-1
+
 #AZ in same region as above
 buildAwsAz: ap-northeast-1a
 buildInstanceType: t2.xlarge
 buildGwInstanceType: t2.medium
 
 #AMI IDs are different across regions
-# Ubuntu 20.04 in us-east-2: ami-0a91cd140a1fc148a
-# Ubuntu 20.04 in us-east-1: ami-0885b1f6bd170450c
-# Ubuntu 20.04 in ap-northeast-1: ami-0f2dd5fc989207c82
-# Ubuntu 20.04 in ca-central-1: ami-02e44367276fe7adc
-buildUbuntuAmi: ami-0f2dd5fc989207c82
+buildUbuntuAmi: ami-0df99b3a8349462c6
+buildGwTagName: buildAgw
+buildAgwAmi: ami-0aac5cd08e351ff0f
+buildAgwAmiName: imgMagmaAgw15Delta
+buildAgwVersion: v1.6
+buildAgwPackage: 1.6.0
+packageRepoHost: artifactory.magmacore.org/artifactory/debian
+taggedVersion: 1.6.0
 
-#Debian 4.9.0.9 AMI n us-east-2:  ami-0c305b7817e9fd559
-#Debian 4.9.0.9 AMI n ap-northeast-1: ami-0aac5cd08e351ff0f
-buildDebianAmi: ami-0aac5cd08e351ff0f
-buildAgwAmiName: testImgAgw14
-
+#Repo variables
 buildControlRegistry: controller
 buildNginxRegistry: nginx
 buildNmsRegistry: magmalte
 buildDockerTag: latest
-
-buildTagName: buildOrc8r
-buildGwTagName: buildAgw
-
-buildHelmRepoUrl: "https://{{ gitUser }}:{{ gitPat }}@github.com/{{ gitUser }}/{{ buildHelmRepo }}" 
-
-buildPackageDir: "{{ dirSourceLocal }}/orc8r/tools/helm/"
+buildHelmRepoUrl: "https://{{ gitUser }}:{{ gitPat }}@github.com/{{ gitUser }}/{{ buildHelmRepo }}"
+buildPackageDir: "{{ dirSourceRemote }}/orc8r/tools/helm/"
 buildDeploymentType: all
 buildMagmaRepo: https://github.com/magma/magma.git

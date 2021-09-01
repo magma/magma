@@ -266,6 +266,10 @@ declare module '@material-ui/icons/AccountCircleTwoTone' {
   import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
   declare export default SvgIcon;
 }
+declare module '@material-ui/icons/AccountTree' {
+  import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
+  declare export default SvgIcon;
+}
 declare module '@material-ui/icons/AcUnit' {
   import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
   declare export default SvgIcon;
@@ -21087,6 +21091,9 @@ declare module '@material-ui/icons' {
   declare export {
     default as AccountCircleTwoTone,
   } from '@material-ui/icons/AccountCircleTwoTone';
+  declare export {
+    default as AccountTree,
+  } from '@material-ui/icons/AccountTree';
   declare export { default as AcUnit } from '@material-ui/icons/AcUnit';
   declare export {
     default as AcUnitOutlined,

@@ -27,7 +27,7 @@ import (
 )
 
 // buildCreateSessionRequestIE creates a Message with all the IE needed for a Create Session Request
-func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw) (message.Message, error) {
+func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, apnSuffix string, req *protos.CreateSessionRequestPgw) (message.Message, error) {
 	// Create session needs two FTEIDs:
 	// - S8 control plane FTEID will be built using local address and control TEID
 	//	 passed by MME
@@ -58,6 +58,9 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 	bearerId := ie.NewEPSBearerID(uint8(req.BearerContext.Id))
 	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, ieQos)
 
+	// APN
+	apnWithSuffix := fmt.Sprintf("%s%s", req.Apn, apnSuffix)
+
 	//timezone
 	offset := time.Duration(req.TimeZone.DeltaSeconds) * time.Second
 	daylightSavingTime := uint8(req.TimeZone.DaylightSavingTime)
@@ -66,7 +69,7 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		ie.NewIMSI(req.GetImsi()),
 		bearer,
 		cFegFTeid,
-		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getUserLocationIndication(req.ServingNetwork, req.Uli),
 		getPdnType(req.PdnType),
 		getPDNAddressAllocation(req),
 		getRatType(req.RatType),
@@ -75,7 +78,7 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		ie.NewMSISDN(req.Msisdn[:]),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
-		ie.NewAccessPointName(req.Apn),
+		ie.NewAccessPointName(apnWithSuffix),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
 		ie.NewUETimeZone(offset, daylightSavingTime),
 		// TODO: Hardcoded values
@@ -100,9 +103,52 @@ func buildDeleteSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.DeleteSe
 	ies := []*ie.IE{
 		ie.NewEPSBearerID(uint8(req.BearerId)),
 		cFegFTeid,
-		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getUserLocationIndication(req.ServingNetwork, req.Uli),
 	}
 	return message.NewDeleteSessionRequest(req.CPgwTeid, 0, ies...), nil
+}
+
+func buildCreateBearerResMsg(res *protos.CreateBearerResponsePgw) (message.Message, error) {
+	if res.Cause != uint32(gtpv2.CauseRequestAccepted) {
+		return buildCreateBearerResWithErrorCauseMsg(res.Cause, res.CPgwTeid, res.SequenceNumber), nil
+	}
+	if res.BearerContext == nil {
+		return nil, fmt.Errorf("CreateBearerResponse could not be sent. Missing Bearer Contex")
+	}
+
+	// PGW - User plane TEID (same teid as create bearer request)
+	uPgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPU,
+		res.UPgwFteid.Teid, res.UPgwFteid.Ipv4Address, "").WithInstance(3)
+
+	// SGW - User plane TEID (ip belongs to pipelined GTP-U interface)
+	uAgwFTeidReq := res.BearerContext.GetUserPlaneFteid()
+	uAgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
+		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address).WithInstance(2)
+
+	// cause
+	bearerCause := ie.NewCause(uint8(res.Cause), 0, 0, 0, nil)
+
+	// bearer
+	bearerId := ie.NewEPSBearerID(uint8(res.BearerContext.Id))
+	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, uPgwFTeid, bearerCause)
+
+	//timezone
+	offset := time.Duration(res.TimeZone.DeltaSeconds) * time.Second
+	daylightSavingTime := uint8(res.TimeZone.DaylightSavingTime)
+
+	return message.NewCreateBearerResponse(
+		res.CPgwTeid, res.SequenceNumber,
+		ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+		bearer,
+		getUserLocationIndication(res.ServingNetwork, res.Uli),
+		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
+		ie.NewUETimeZone(offset, daylightSavingTime),
+	), nil
+}
+
+func buildCreateBearerResWithErrorCauseMsg(cause uint32, cPgwTeid uint32, seq uint32) message.Message {
+	return message.NewCreateBearerResponse(
+		cPgwTeid, seq, ie.NewCause(uint8(cause), 0, 0, 0, nil))
 }
 
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
@@ -158,7 +204,7 @@ func getPdnType(pdnType protos.PDNType) *ie.IE {
 	return ie.NewPDNType(res)
 }
 
-func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformation) *ie.IE {
+func getUserLocationIndication(servingNetwork *protos.ServingNetwork, uli *protos.UserLocationInformation) *ie.IE {
 	var (
 		cgi    *ie.CGI    = nil
 		sai    *ie.SAI    = nil
@@ -169,6 +215,9 @@ func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformat
 		menbi  *ie.MENBI  = nil
 		emenbi *ie.EMENBI = nil
 	)
+
+	mcc := servingNetwork.Mcc
+	mnc := servingNetwork.Mnc
 
 	if uli.Lac != 0 && uli.Ci != 0 {
 		cgi = ie.NewCGI(mcc, mnc, uint16(uli.Lac), uint16(uli.Ci))

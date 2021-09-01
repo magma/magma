@@ -26,16 +26,24 @@ class InterfaceMappersTest(unittest.TestCase):
         downlink_tunnels = [0x111ef3, 0x21312]
 
         self._tunnel_mapper.save_tunnels(uplink_tunnels[0], downlink_tunnels[0])
-        self.assertEqual(self._tunnel_mapper.get_tunnel(uplink_tunnels[0]),
-                         downlink_tunnels[0])
-        self.assertEqual(self._tunnel_mapper.get_tunnel(downlink_tunnels[0]),
-                         uplink_tunnels[0])
+        self.assertEqual(
+            self._tunnel_mapper.get_tunnel(uplink_tunnels[0]),
+            downlink_tunnels[0],
+        )
+        self.assertEqual(
+            self._tunnel_mapper.get_tunnel(downlink_tunnels[0]),
+            uplink_tunnels[0],
+        )
 
         self._tunnel_mapper.save_tunnels(uplink_tunnels[0], downlink_tunnels[1])
-        self.assertEqual(self._tunnel_mapper.get_tunnel(uplink_tunnels[0]),
-                         downlink_tunnels[1])
-        self.assertEqual(self._tunnel_mapper.get_tunnel(downlink_tunnels[1]),
-                         uplink_tunnels[0])
+        self.assertEqual(
+            self._tunnel_mapper.get_tunnel(uplink_tunnels[0]),
+            downlink_tunnels[1],
+        )
+        self.assertEqual(
+            self._tunnel_mapper.get_tunnel(downlink_tunnels[1]),
+            uplink_tunnels[0],
+        )
 
 
 if __name__ == "__main__":

@@ -73,9 +73,13 @@ message PdnContext {
   ProtocolConfigurationOptions pco = 18;
 }
 
+message Regional_subscription {
+  string zone_code = 1;
+}
+
 // ue_mm_context_t
 message UeContext {
-  string msisdn = 1;
+  bytes msisdn = 1;
   uint32 rel_cause = 2; //enum s1cause
   uint32 mm_state = 3; // mm_state_t
   uint32 ecm_state = 4; // ecm_state_t
@@ -111,6 +115,10 @@ message UeContext {
   repeated PdnContext pdn_contexts = 41; //pdn_context_t
   repeated BearerContext bearer_contexts = 42; // bearer_context_t
   bytes ue_radio_capability = 43;
+
+  // Regional subscription
+  uint32 num_reg_sub = 44;
+  repeated Regional_subscription reg_sub = 45;
 
   // flags
   bool send_ue_purge_request = 60;
@@ -150,7 +158,7 @@ message MmeUeContext {
 // mme_app_desc_t
 message MmeNasState {
   MmeUeContext mme_ue_contexts = 1; // mme_ue_context_t
-  uint32 nb_enb_connected = 2;
+  uint32 nb_enb_connected = 2 [deprecated=true];
   uint32 nb_ue_attached = 3;
   uint32 nb_ue_connected = 4;
   uint32 nb_default_eps_bearers = 5;
@@ -162,4 +170,13 @@ message MmeNasState {
   uint32 nb_ue_since_last_stat = 11; //TODO: remove
   uint32 nb_bearers_since_last_stat = 12; //TODO: remove
   uint32 mme_app_ue_s1ap_id_generator = 20;
+}
+
+message imsi_list {
+  repeated uint64 imsi = 1;
+}
+message MmeUeIpImsiMap {
+ // ue_ip is allocated at multiple PGWs, so there are chances to have same
+ // ueip for different UEs
+  map<string, imsi_list> mme_ueip_imsi_map = 1; // ue_ip => list of imsi64
 }

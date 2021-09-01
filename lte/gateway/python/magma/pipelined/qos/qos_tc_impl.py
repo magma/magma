@@ -47,8 +47,10 @@ class TrafficClass:
         return TrafficClass.tc_ops.del_htb(intf, qid_hex)
 
     @staticmethod
-    def create_class(intf: str, qid: int, max_bw: int, rate=None,
-                     parent_qid=None, skip_filter=False) -> int:
+    def create_class(
+        intf: str, qid: int, max_bw: int, rate=None,
+        parent_qid=None, skip_filter=False,
+    ) -> int:
         if not rate:
             rate = DEFAULT_RATE
 
@@ -102,8 +104,10 @@ class TrafficClass:
         cmd_list.append(parent_q_cmd)
         tc_cmd = "tc class replace dev {intf} parent 1:{root_qid} classid 1:1 htb "
         tc_cmd += "rate {rate} ceil {speed}Mbit"
-        tc_cmd = tc_cmd.format(intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
-                               speed=speed)
+        tc_cmd = tc_cmd.format(
+            intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
+            speed=speed,
+        )
         cmd_list.append(tc_cmd)
         return run_cmd(cmd_list, show_error)
 
@@ -148,8 +152,20 @@ class TrafficClass:
     @staticmethod
     def dump_class_state(intf: str, qid: int):
         qid_hex = hex(qid)
-        tc_cmd = "tc -s -d class show dev {} classid 1:{}".format(intf,
-                                                                  qid_hex)
+        tc_cmd = "tc -s -d class show dev {} classid 1:{}".format(
+            intf,
+            qid_hex,
+        )
+        args = argSplit(tc_cmd)
+        try:
+            output = subprocess.check_output(args)
+            print(output.decode())
+        except subprocess.CalledProcessError:
+            print("Exception dumping Qos State for %s", intf)
+
+    @staticmethod
+    def dump_root_class_stats(intf: str):
+        tc_cmd = "tc -s -s -d q ls dev {}".format(intf)
         args = argSplit(tc_cmd)
         try:
             output = subprocess.check_output(args)
@@ -204,24 +220,30 @@ class TCManager(object):
     default queue and are not rate limited.
     """
 
-    def __init__(self,
-                 datapath,
-                 loop,
-                 config) -> None:
+    def __init__(
+        self,
+        datapath,
+        loop,
+        config,
+    ) -> None:
         self._datapath = datapath
         self._loop = loop
         self._uplink = config['nat_iface']
         self._downlink = config['enodeb_iface']
         self._max_rate = config["qos"]["max_rate"]
         self._enable_pyroute2 = config["qos"].get('enable_pyroute2', False)
-        self._start_idx, self._max_idx = (config['qos']['linux_tc']['min_idx'],
-                                          config['qos']['linux_tc']['max_idx'])
+        self._start_idx, self._max_idx = (
+            config['qos']['linux_tc']['min_idx'],
+            config['qos']['linux_tc']['max_idx'],
+        )
         self._id_manager = IdManager(self._start_idx, self._max_idx)
         self._initialized = True
-        LOG.info("Init LinuxTC module uplink:%s downlink:%s",
-                 config['nat_iface'], config['enodeb_iface'])
+        LOG.info(
+            "Init LinuxTC module uplink:%s downlink:%s",
+            config['nat_iface'], config['enodeb_iface'],
+        )
 
-    def destroy(self, ):
+    def destroy(self):
         LOG.info("destroying existing qos classes")
         # ensure ordering during deletion of classes, children should be deleted
         # prior to the parent class ids
@@ -236,7 +258,7 @@ class TCManager(object):
                     LOG.info("Attemting to delete parent class idx %d", pqid)
                     TrafficClass.delete_class(intf, pqid)
 
-    def setup(self, ):
+    def setup(self):
         # initialize new qdisc
         TrafficClass.init_qdisc(self._uplink, enable_pyroute2=self._enable_pyroute2)
         TrafficClass.init_qdisc(self._downlink, enable_pyroute2=self._enable_pyroute2)
@@ -250,23 +272,46 @@ class TCManager(object):
         parser = self._datapath.ofproto_parser
         return parser.OFPActionSetField(pkt_mark=qid), None
 
-    def add_qos(self, d: FlowMatch.Direction, qos_info: QosInfo,
-                parent=None, skip_filter=False) -> int:
+    def create_class_async(
+        self, d: FlowMatch.Direction, qos_info: QosInfo,
+        qid,
+        parent, skip_filter, cleanup_rule,
+    ):
+        intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
+
+        err = TrafficClass.create_class(
+            intf, qid, qos_info.mbr,
+            rate=qos_info.gbr,
+            parent_qid=parent,
+            skip_filter=skip_filter,
+        )
+        # typecast to int to avoid MagicMock related error in unit test
+        err_no = int(err)
+        if err_no < 0:
+            if cleanup_rule:
+                cleanup_rule()
+            LOG.error("qos create error: qid %d err %d", qid, err_no)
+            return
+
+        LOG.debug("create done: qid %d err %s", qid, err_no)
+
+    def add_qos(
+        self, d: FlowMatch.Direction, qos_info: QosInfo,
+        cleanup_rule=None, parent=None, skip_filter=False,
+    ) -> int:
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
-        intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
-        err = TrafficClass.create_class(intf, qid, qos_info.mbr,
-                                        rate=qos_info.gbr,
-                                        parent_qid=parent,
-                                        skip_filter=skip_filter)
-        # typecast to int to avoid MagicMock related error in unit test
-        if int(err) < 0:
-            return 0
+        self._loop.call_soon_threadsafe(
+            self.create_class_async, d, qos_info,
+            qid, parent, skip_filter, cleanup_rule,
+        )
         LOG.debug("assigned qid: %d", qid)
         return qid
 
-    def remove_qos(self, qid: int, d: FlowMatch.Direction,
-                   recovery_mode=False, skip_filter=False):
+    def remove_qos(
+        self, qid: int, d: FlowMatch.Direction,
+        recovery_mode=False, skip_filter=False,
+    ):
         if not self._initialized and not recovery_mode:
             return
 
@@ -284,14 +329,16 @@ class TCManager(object):
             LOG.error('error deleting class %d, not releasing idx', qid)
         return
 
-    def read_all_state(self, ):
+    def read_all_state(self):
         LOG.debug("read_all_state")
         st = {}
         apn_qid_list = set()
         ul_qid_list = TrafficClass.read_all_classes(self._uplink)
         dl_qid_list = TrafficClass.read_all_classes(self._downlink)
-        for (d, qid_list) in ((FlowMatch.UPLINK, ul_qid_list),
-                              (FlowMatch.DOWNLINK, dl_qid_list)):
+        for (d, qid_list) in (
+            (FlowMatch.UPLINK, ul_qid_list),
+            (FlowMatch.DOWNLINK, dl_qid_list),
+        ):
             for qid_tuple in qid_list:
                 qid, pqid = qid_tuple
                 if qid < self._start_idx or qid > (self._max_idx - 1):
@@ -308,11 +355,12 @@ class TCManager(object):
         self._id_manager.restore_state(st)
         return st, apn_qid_list
 
-    def same_qos_config(self, d: FlowMatch.Direction,
-                        qid1: int, qid2: int) -> bool:
+    def same_qos_config(
+        self, d: FlowMatch.Direction,
+        qid1: int, qid2: int,
+    ) -> bool:
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
 
         config1 = TrafficClass.get_class_rate(intf, qid1)
         config2 = TrafficClass.get_class_rate(intf, qid2)
         return config1 == config2
-

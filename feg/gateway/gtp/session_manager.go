@@ -30,6 +30,17 @@ import (
 
 type GtpParserFunc = func(msg message.Message) (csRes proto.Message, err error)
 
+func (c *Client) SendMessageToWithoutIncSequence(msg message.Message, peerAddr net.Addr) error {
+	payload, err := message.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("gtpClient failed to send %T: %w", msg, err)
+	}
+	if _, err := c.WriteTo(payload, peerAddr); err != nil {
+		return fmt.Errorf("gtpClient failed to send %T: %w", msg, err)
+	}
+	return nil
+}
+
 // SendMessageAndExtractGrpc Send the message and blocks for GTP response with that specific sequence number
 // It times out after GtpTimeout seconds
 func (c *Client) SendMessageAndExtractGrpc(imsi string, srcTEID uint32, peerAddr net.Addr, msg message.Message) (

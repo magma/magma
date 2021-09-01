@@ -18,6 +18,26 @@ import "orc8r/protos/common.proto";
 package magma.mconfig;
 option go_package = "magma/lte/cloud/go/protos/mconfig";
 
+// --------------------------------------------------------------------------
+// SentryConfig stores the network-wide Sentry.io configuration
+// --------------------------------------------------------------------------
+message SentryConfig {
+    // url_python initializes the Sentry Python SDK and sets the remote URL.
+    // If set to empty string, Sentry Python SDK will not be initialized.
+    string url_python = 1;
+    // url_native initializes the Sentry Native SDK for C/C++ and sets the
+    // remote URL. If set to empty string, Sentry Native SDK will not be
+    // initialized.
+    string url_native = 2;
+    // upload_mme_log decides whether MME service log file (/var/log/mme.log)
+    // is uploaded along with MME crashreports
+    bool upload_mme_log = 3;
+    // sample_rate sets the rate at which Python error events are sampled.
+    // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
+    // of errors sent)
+    float sample_rate = 4;
+}
+
 //------------------------------------------------------------------------------
 // EnodebD configs
 //------------------------------------------------------------------------------
@@ -113,6 +133,7 @@ message PipelineD {
         repeated string msisdns = 2;
         repeated string macs = 3;
         repeated string ips = 4;
+        repeated string imeis = 5;
     }
     LiUes li_ues = 12;
 
@@ -161,10 +182,12 @@ message SessionD {
     orc8r.LogLevel log_level = 1;
     // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
-    bool relay_enabled = 2;
+    bool relay_enabled = 2 [deprecated = true];
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
+    // sentry_config stores the Sentry.io configuration for this service
+    SentryConfig sentry_config = 5;
 }
 
 message WalletExhaustDetection {
@@ -305,6 +328,7 @@ message MME {
     // SGW S1U endpoint on AGW
     string ipv4_sgw_s1u_addr = 31;
 
+    // PLMN restriction configs
     message PlmnConfig {
         string mcc = 1;
         string mnc = 2;
@@ -317,11 +341,21 @@ message MME {
     map<string, TacList> service_area_maps = 33;
 
     FederatedModeMap federated_mode_map = 34;
+
+    // IMEI restriction configs
     message ImeiConfig {
         string tac = 1;
         string snr = 2;
     }
     repeated ImeiConfig restricted_imeis = 35;
+
+    // MME congestion control configs
+    bool congestion_control_enabled = 40;
+
+    // sentry_config stores the Sentry.io configuration for this service
+    SentryConfig sentry_config = 45;
+    
+    bool enable_converged_core = 46;
 }
 
 message FederatedModeMap {
@@ -365,6 +399,9 @@ message SubscriberDB {
 
     // Enable relaying S6a messages via FeG RPC
     bool hss_relay_enabled = 6;
+
+    // Interval in seconds between gateway and cloud sync
+    uint32 sync_interval = 7;
 }
 
 //------------------------------------------------------------------------------
@@ -402,6 +439,16 @@ message ConnectionD {
 //------------------------------------------------------------------------------
 message LIAgentD {
     orc8r.LogLevel log_level = 1;
+    repeated NProbeTask nprobe_tasks = 2;
+}
+
+message NProbeTask {
+    string task_id = 1;
+    string target_id = 2;
+    string target_type = 3;
+    string delivery_type = 4;
+    uint64 correlation_id = 5;
+    string domain_id = 6;
 }
 
 //------------------------------------------------------------------------------

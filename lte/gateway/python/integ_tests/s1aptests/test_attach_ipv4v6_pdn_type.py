@@ -12,9 +12,10 @@ limitations under the License.
 """
 
 
+import unittest
+
 import s1ap_types
 import s1ap_wrapper
-import unittest
 
 
 class TestAttachIpv4v6PdnType(unittest.TestCase):
@@ -29,15 +30,15 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             capable """
         # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
         resp_ipv4_ipv6 = self._create_attach_ipv4v6_pdn_type_req(
-            pdn_type_value=3
+            pdn_type_value=3,
         )
         self.assertEqual(
-            resp_ipv4_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            resp_ipv4_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         # IPv6 is equal to 2
         resp_ipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
         self.assertEqual(
-            resp_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            resp_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
     def _create_attach_ipv4v6_pdn_type_req(self, pdn_type_value):
@@ -66,11 +67,11 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             pdn_type_value,
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
 
         # Trigger Authentication Response
@@ -80,41 +81,41 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = ue_req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
         # Attach Reject will be sent since IPv6 PDN Type is not configured
         if pdn_type_value == 2:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
             )
             return self._s1ap_wrapper.s1_util.get_response()
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = ue_req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
         )
 
         # Wait on EMM Information from MME
@@ -127,7 +128,7 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
         )
 
         # Wait for UE context release command

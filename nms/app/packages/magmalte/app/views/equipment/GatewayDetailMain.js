@@ -29,6 +29,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
+import GatewayConfigYml from './GatewayYMLConfig';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
@@ -51,7 +52,6 @@ import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-
 import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {
   GenericCommandControls,
@@ -305,6 +305,12 @@ export function GatewayDetail() {
             icon: SettingsIcon,
             filters: <GatewayMenu />,
           },
+          {
+            label: 'Services Config',
+            to: '/services',
+            icon: SettingsIcon,
+            filters: <GatewayMenu />,
+          },
         ]}
       />
 
@@ -333,6 +339,7 @@ export function GatewayDetail() {
         />
         <Route path={relativePath('/overview')} component={GatewayOverview} />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
+        <Route path={relativePath('/services')} component={GatewayConfigYml} />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>

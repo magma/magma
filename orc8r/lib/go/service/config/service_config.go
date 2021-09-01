@@ -86,6 +86,15 @@ func GetStructuredServiceConfig(moduleName string, serviceName string, out inter
 	return GetStructuredServiceConfigExt(moduleName, serviceName, main, legacy, overwrite, out)
 }
 
+// MustGetStructuredServiceConfig is the same as GetStructuredServiceConfig,
+// but it fails on errors.
+func MustGetStructuredServiceConfig(moduleName string, serviceName string, out interface{}) {
+	_, _, err := GetStructuredServiceConfig(moduleName, serviceName, out)
+	if err != nil {
+		glog.Fatalf("Failed to read %s::%s configs: %v", moduleName, serviceName, err)
+	}
+}
+
 // GetStructuredServiceConfigExt is an extended version of GetStructuredServiceConfig, it allows to pass config
 // directory names
 func GetStructuredServiceConfigExt(

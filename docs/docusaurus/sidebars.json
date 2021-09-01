@@ -17,20 +17,14 @@
           "howtos/call_tracing",
           "howtos/events_monitoring",
           "howtos/he_api",
-          "howtos/inbound_roaming"
+          "howtos/inbound_roaming",
+          "howtos/pcap"
         ]
       },
       {
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
-        ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Orchestrator",
-        "ids": [
-          "howtos/thanos"
         ]
       },
       {
@@ -45,18 +39,9 @@
           "nms/traffic",
           "nms/metrics",
           "nms/alerts",
+          "nms/federation",
+          "nms/admin",
           "nms/tips_and_tricks"
-        ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Troubleshooting",
-        "ids": [
-          "howtos/troubleshooting/agw_unable_to_checkin",
-          "howtos/troubleshooting/user_unable_to_attach",
-          "howtos/troubleshooting/update_certificates",
-          "howtos/troubleshooting/generate_admin_operator_certificates",
-          "howtos/troubleshooting/analyze_service_crashes_in_agw"
         ]
       }
     ],
@@ -84,6 +69,13 @@
         "ids": [
           "nms/nms_arch_overview"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "FeG",
+        "ids": [
+          "feg/architecture_overview"
+        ]
       }
     ],
     "Deploy": [
@@ -92,13 +84,10 @@
         "label": "Access Gateway",
         "ids": [
           "lte/deploy_install",
-          "lte/deploy_install_ubuntu",
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
-          "lte/deploy_config_agw_ha",
-          "lte/build_install_magma_pkg_in_agw",
-          "lte/integrate_sentry"
+          "lte/build_install_magma_pkg_in_agw"
         ]
       },
       {
@@ -106,11 +95,9 @@
         "label": "Orchestrator",
         "ids": [
           "orc8r/deploy_intro",
-          "orc8r/deploy_build",
           "orc8r/deploy_install",
-          "orc8r/hold_terraform_state_on_s3",
-          "orc8r/override_values_of_terraform_files",
           "orc8r/deploy_orcl",
+          "orc8r/deploy_terraform_options",
           "orc8r/deploy_faq"
         ]
       },
@@ -118,7 +105,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "nms/deploy_config"
+          "nms/deploy_setup"
         ]
       },
       {
@@ -127,8 +114,31 @@
         "ids": [
           "feg/deploy_intro",
           "feg/deploy_build",
-          "feg/deploy_install",
-          "feg/deploy_configure"
+          "feg/deploy_install"
+        ]
+      }
+    ],
+    "Configure": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "lte/configure_agw_ha",
+          "lte/integrate_sentry"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/configure_thanos"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
+        "ids": [
+          "feg/configure_federation"
         ]
       }
     ],
@@ -137,6 +147,8 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "lte/upgrade_debian_to_ubuntu",
+          "lte/upgrade_1_6",
           "lte/upgrade_1_5",
           "lte/upgrade_1_4",
           "lte/upgrade_1_3",
@@ -149,6 +161,7 @@
         "label": "Orchestrator",
         "ids": [
           "orc8r/upgrade_intro",
+          "orc8r/upgrade_1_6",
           "orc8r/upgrade_1_5",
           "orc8r/upgrade_1_4",
           "orc8r/upgrade_1_3",
@@ -160,6 +173,18 @@
     "Debug": [
       {
         "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "howtos/troubleshooting/agw_unable_to_checkin",
+          "howtos/troubleshooting/user_unable_to_attach",
+          "howtos/troubleshooting/update_certificates",
+          "howtos/troubleshooting/generate_admin_operator_certificates",
+          "howtos/troubleshooting/analyze_service_crashes_in_agw",
+          "howtos/troubleshooting/datapath_connectivity"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
           "lte/debug_show_tech",
@@ -168,20 +193,58 @@
       },
       {
         "type": "subcategory",
+        "label": "Federated Gateway",
+        "ids": [
+          "feg/debug_cli"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
           "orc8r/debug_logs"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/alerts_troubleshooting"
+        ]
       }
     ],
     "Contribute": [
-      "contributing/contribute_onboarding",
-      "contributing/contribute_workflow",
-      "contributing/contribute_conventions",
-      "contributing/contribute_ci_checks",
-      "contributing/contribute_codeowners"
+      {
+        "type": "subcategory",
+        "label": "Contribute",
+        "ids": [
+          "contributing/contribute_onboarding",
+          "contributing/contribute_workflow",
+          "contributing/contribute_conventions",
+          "contributing/contribute_id_mappings",
+          "contributing/contribute_ci_checks"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Maintain",
+        "ids": [
+          "contributing/contribute_proposals",
+          "contributing/contribute_codeowners"
+        ]
+      }
     ],
     "Technical Reference": [
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "resources/ref_pcap",
+          "resources/ref_useful_links",
+          "resources/ref_magma_metrics",
+          "docs/docs_overview"
+        ]
+      },
       {
         "type": "subcategory",
         "label": "Access Gateway",
@@ -198,10 +261,13 @@
         "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
+          "orc8r/dev_rest_api",
+          "orc8r/dev_build",
           "orc8r/dev_testing",
           "orc8r/dev_minikube",
           "orc8r/dev_security",
           "orc8r/dev_indexers",
+          "orc8r/dev_sub_digests",
           "orc8r/dev_dependencies",
           "orc8r/dev_aws_stack"
         ]
@@ -211,25 +277,68 @@
         "label": "NMS",
         "ids": [
           "nms/dev_spacing",
+          "nms/dev_testing",
           "nms/dev_themes",
           "nms/dev_components"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
+        "ids": [
+          "feg/dev_testing"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "cwf/dev_testing"
         ]
       }
     ],
     "Proposals": [
-      "proposals/p001_vpn_config_from_api",
-      "proposals/p002_scaled_prometheus_pipeline",
-      "proposals/p003_qos_enforcement",
-      "proposals/p004_fua-restrict-feature",
-      "proposals/p005_call_tracing",
-      "proposals/p007_header_enrichment",
-      "proposals/p008_apn_correction",
-      "proposals/p009_nms_mariadb_migration",
-      "proposals/p010_subscriber_scaling",
-      "proposals/p011_victoriametrics",
-      "proposals/p013_Ubuntu_upgrade",
-      "proposals/p014_proposal_process",
-      "proposals/p015_tech_debt_week"
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "proposals/p001_vpn_config_from_api",
+          "proposals/p005_call_tracing",
+          "proposals/p014_proposal_process",
+          "proposals/p015_tech_debt_week",
+          "proposals/p017_apn_refactoring"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "proposals/p003_qos_enforcement",
+          "proposals/p004_fua-restrict-feature",
+          "proposals/p007_header_enrichment",
+          "proposals/p008_apn_correction",
+          "proposals/p013_Ubuntu_upgrade",
+          "proposals/p018_control_network_metrics",
+          "proposals/p019_enodeb_cbrs_support"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "proposals/p002_scaled_prometheus_pipeline",
+          "proposals/p010_subscriber_scaling",
+          "proposals/p011_victoriametrics"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "proposals/p009_nms_mariadb_migration",
+          "proposals/p016_nms_regression_testing"
+        ]
+      }
     ],
     "FAQ": [
       "faq/faq_magma"

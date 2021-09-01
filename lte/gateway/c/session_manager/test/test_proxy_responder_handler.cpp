@@ -20,11 +20,11 @@
 #include "Consts.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionID.h"
 #include "SessionProxyResponderHandler.h"
@@ -59,9 +59,10 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     auto aaa_client      = std::make_shared<MockAAAClient>();
     auto events_reporter = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
+    auto shard_tracker   = std::make_shared<ShardTracker>();
     local_enforcer       = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
-        spgw_client, aaa_client, 0, 0, default_mconfig);
+        spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
@@ -84,9 +85,12 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
-    return std::make_unique<SessionState>(
-        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_context, pdp_start_time,
-        CreateSessionResponse{});
+    auto session        = std::make_unique<SessionState>(
+        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    session->set_tgpp_context(tgpp_context, nullptr);
+    session->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session->set_create_session_response(CreateSessionResponse(), nullptr);
+    return session;
   }
 
   UsageMonitoringUpdateResponse get_monitoring_update() {
@@ -164,16 +168,17 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_1, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, nullptr);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);
 
   auto monitor_update = get_monitoring_update();
-  session->receive_monitor(monitor_update, uc);
+  session->receive_monitor(monitor_update, &uc);
 
   // Add some used credit
-  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
+  session->add_to_monitor(
+      monitoring_key, uint64_t(111), uint64_t(333), nullptr);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
@@ -235,7 +240,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_1, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, &uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);

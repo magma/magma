@@ -33,7 +33,7 @@ class StoreTests(unittest.TestCase):
     def setUp(self):
         cache_size = 3
         self._tmpfile = tempfile.TemporaryDirectory()
-        sqlite = SqliteStore(self._tmpfile.name +'/')
+        sqlite = SqliteStore(self._tmpfile.name + '/')
         self._store = CachedStore(sqlite, cache_size)
 
     def tearDown(self):
@@ -42,6 +42,11 @@ class StoreTests(unittest.TestCase):
     def _add_subscriber(self, sid):
         sub = SubscriberData(sid=SIDUtils.to_pb(sid))
         self._store.add_subscriber(sub)
+        return (sid, sub)
+
+    def _upsert_subscriber(self, sid):
+        sub = SubscriberData(sid=SIDUtils.to_pb(sid))
+        self._store.upsert_subscriber(sub)
         return (sid, sub)
 
     def test_subscriber_addition(self):
@@ -115,8 +120,10 @@ class StoreTests(unittest.TestCase):
         # Update from cache
         with self._store.edit_subscriber(sid1) as subs:
             subs.lte.auth_key = b'5678'
-        self.assertEqual(self._store.get_subscriber_data(sid1).lte.auth_key,
-                         b'5678')
+        self.assertEqual(
+            self._store.get_subscriber_data(sid1).lte.auth_key,
+            b'5678',
+        )
         self.assertEqual(self._store._cache_list(), [sid1])
 
         # Update from persistent store after eviction
@@ -126,13 +133,38 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(self._store._cache_list(), [sid2, sid3, sid4])
         with self._store.edit_subscriber(sid1) as subs:
             subs.lte.auth_key = b'2468'
-        self.assertEqual(self._store.get_subscriber_data(sid1).lte.auth_key,
-                         b'2468')
+        self.assertEqual(
+            self._store.get_subscriber_data(sid1).lte.auth_key,
+            b'2468',
+        )
         self.assertEqual(self._store._cache_list(), [sid3, sid4, sid1])
 
         with self.assertRaises(SubscriberNotFoundError):
             with self._store.edit_subscriber('IMSI3000') as subs:
                 pass
+
+    def test_subscriber_upsert(self):
+        """
+        Test if subscriber upsertion works as expected
+        """
+        self.assertEqual(self._store.list_subscribers(), [])
+        (sid1, _) = self._upsert_subscriber('IMSI11111')
+        self.assertEqual(self._store.list_subscribers(), [sid1])
+        self.assertEqual(self._store._cache_list(), [sid1])
+        (sid2, _) = self._upsert_subscriber('IMSI22222')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+        self.assertEqual(self._store._cache_list(), [sid1, sid2])
+
+        self._upsert_subscriber('IMSI11111')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+        self.assertEqual(self._store._cache_list(), [sid2, sid1])
+        self._upsert_subscriber('IMSI22222')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+        self.assertEqual(self._store._cache_list(), [sid1, sid2])
+
+        self._store.delete_all_subscribers()
+        self.assertEqual(self._store.list_subscribers(), [])
+        self.assertEqual(self._store._cache_list(), [])
 
     def test_resync(self):
         """
@@ -150,10 +182,14 @@ class StoreTests(unittest.TestCase):
 
         subs = self._store.get_subscriber_data(sid1)
         self.assertEqual(subs.lte.auth_key, b'5678')  # config updated
-        self.assertEqual(subs.state.lte_auth_next_seq, 1000)  # state left intact
+        self.assertEqual(
+            subs.state.lte_auth_next_seq,
+            1000,
+        )  # state left intact
 
         with self.assertRaises(SubscriberNotFoundError):
-            self._store.get_subscriber_data(sid2)  # sub2 was removed during resync
+            # sub2 was removed during resync
+            self._store.get_subscriber_data(sid2)
 
     def test_lru_cache_invl(self):
         """

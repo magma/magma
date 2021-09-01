@@ -46,25 +46,25 @@ class TestDuplicateAttach(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
         while True:
@@ -77,7 +77,7 @@ class TestDuplicateAttach(unittest.TestCase):
                 continue
 
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
             )
             break
 
@@ -94,7 +94,7 @@ class TestDuplicateAttach(unittest.TestCase):
         print("************************* Running UE detach")
         # Now detach the UE
         self._s1ap_wrapper._s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
+            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
 
 

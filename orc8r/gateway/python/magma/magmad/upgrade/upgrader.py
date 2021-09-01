@@ -77,7 +77,7 @@ def start_upgrade_loop(magmad_service, upgrader):
     # even the first checkin. Delay a little bit so the device can
     # record stats/checkin/give someone an opportunity to disable
     logging.info("Waiting before checking for updates for the first time...")
-    yield from asyncio.sleep(120, loop=magmad_service.loop)
+    yield from asyncio.sleep(120)
 
     while True:
         logging.info('Checking for upgrade...')
@@ -86,19 +86,21 @@ def start_upgrade_loop(magmad_service, upgrader):
             upgrader.perform_upgrade_if_necessary(target_ver)
         except Exception:  # pylint: disable=broad-except
             logging.exception(
-                'Error encountered while upgrading, will try again after delay'
+                'Error encountered while upgrading, will try again after delay',
             )
         poll_interval = max(  # No faster than 1/minute
             60,
             magmad_service.mconfig.autoupgrade_poll_interval,
         )
-        yield from asyncio.sleep(poll_interval, loop=magmad_service.loop)
+        yield from asyncio.sleep(poll_interval)
 
 
 def _get_target_version(magmad_mconfig):
     if magmad_mconfig.package_version is None:
-        logging.warning('magmad package_version config not found, '
-                        'returning 0.0.0-0 as target package version.')
+        logging.warning(
+            'magmad package_version config not found, '
+            'returning 0.0.0-0 as target package version.',
+        )
         return '0.0.0-0'
 
     return magmad_mconfig.package_version

@@ -17,19 +17,21 @@ from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import (
     DPI_REG,
-    INGRESS_TUN_ID_REG,
+    NG_SESSION_ID_REG,
     Direction,
     load_direction,
 )
 from ryu.lib.packet import ether_types
 
-MATCH_ATTRIBUTES = ['metadata', 'reg0', 'reg1', 'reg2', 'reg3', 'reg4', 'reg5',
-                    'reg6', 'reg8', 'reg9', 'reg10',
-                    'in_port', 'dl_vlan', 'vlan_tci',
-                    'eth_type', 'dl_dst', 'dl_src',
-                    'arp_tpa', 'arp_spa', 'arp_op',
-                    'ipv4_dst', 'ipv4_src', 'ipv6_src', 'ipv6_dst',
-                    'ip_proto', 'tcp_src', 'tcp_dst', 'udp_src', 'udp_dst']
+MATCH_ATTRIBUTES = [
+    'metadata', 'reg0', 'reg1', 'reg2', 'reg3', 'reg4', 'reg5',
+    'reg6', 'reg8', 'reg9', 'reg10',
+    'in_port', 'dl_vlan', 'vlan_tci',
+    'eth_type', 'dl_dst', 'dl_src',
+    'arp_tpa', 'arp_spa', 'arp_op',
+    'ipv4_dst', 'ipv4_src', 'ipv6_src', 'ipv6_dst',
+    'ip_proto', 'tcp_src', 'tcp_dst', 'udp_src', 'udp_dst',
+]
 
 
 class FlowMatchError(Exception):
@@ -43,16 +45,20 @@ def _check_pkt_protocol(match):
     Args:
         match: FlowMatch
     '''
-    if (match.tcp_dst or match.tcp_src) and (match.ip_proto !=
-                                             match.IPPROTO_TCP):
+    if (match.tcp_dst or match.tcp_src) and (
+        match.ip_proto !=
+        match.IPPROTO_TCP
+    ):
         raise FlowMatchError("To use tcp rules set ip_proto to IPPROTO_TCP")
-    if (match.udp_dst or match.udp_src) and (match.ip_proto !=
-                                             match.IPPROTO_UDP):
+    if (match.udp_dst or match.udp_src) and (
+        match.ip_proto !=
+        match.IPPROTO_UDP
+    ):
         raise FlowMatchError("To use udp rules set ip_proto to IPPROTO_UDP")
     return True
 
 
-def flow_match_to_magma_match(match, ip_addr=None, uplink_teid: int = None):
+def flow_match_to_magma_match(match, teid: int = None):
     '''
     Convert a FlowMatch to a MagmaMatch object
 
@@ -61,9 +67,11 @@ def flow_match_to_magma_match(match, ip_addr=None, uplink_teid: int = None):
     '''
     _check_pkt_protocol(match)
     match_kwargs = {'eth_type': ether_types.ETH_TYPE_IP}
-    attributes = ['ip_dst', 'ip_src',
-                  'ip_proto', 'tcp_src', 'tcp_dst',
-                  'udp_src', 'udp_dst', 'app_name']
+    attributes = [
+        'ip_dst', 'ip_src',
+        'ip_proto', 'tcp_src', 'tcp_dst',
+        'udp_src', 'udp_dst', 'app_name',
+    ]
     for attrib in attributes:
         value = getattr(match, attrib, None)
         if not value:
@@ -92,27 +100,13 @@ def flow_match_to_magma_match(match, ip_addr=None, uplink_teid: int = None):
 
         match_kwargs[attrib] = value
 
-    # Specific UE IP match
-    if ip_addr:
-        if ip_addr.version == IPAddress.IPV4:
-            ip_src_reg = 'ipv4_src'
-            ip_dst_reg = 'ipv4_dst'
-        else:
-            match_kwargs['eth_type'] = ether_types.ETH_TYPE_IPV6
-            ip_src_reg = 'ipv6_src'
-            ip_dst_reg = 'ipv6_dst'
+    if teid is not None and teid != 0:
+        match_kwargs[NG_SESSION_ID_REG] = teid
 
-        if ip_addr.address.decode('utf-8'):
-            if get_direction_for_match(match) == Direction.OUT:
-                match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
-            else:
-                match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
-
-    if uplink_teid is not None and uplink_teid != 0:
-        match_kwargs[INGRESS_TUN_ID_REG] = uplink_teid
-
-    return MagmaMatch(direction=get_direction_for_match(match),
-                      **match_kwargs)
+    return MagmaMatch(
+        direction=get_direction_for_match(match),
+        **match_kwargs,
+    )
 
 
 def flow_match_to_actions(datapath, match):
@@ -134,12 +128,12 @@ def flow_match_to_actions(datapath, match):
     if match.ip_proto == FlowMatch.IPPROTO_TCP:
         actions.extend([
             parser.OFPActionSetField(tcp_src=getattr(match, 'tcp_src', 0)),
-            parser.OFPActionSetField(tcp_dst=getattr(match, 'tcp_dst', 0))
+            parser.OFPActionSetField(tcp_dst=getattr(match, 'tcp_dst', 0)),
         ])
     elif match.ip_proto == FlowMatch.IPPROTO_UDP:
         actions.extend([
             parser.OFPActionSetField(udp_src=getattr(match, 'udp_src', 0)),
-            parser.OFPActionSetField(udp_dst=getattr(match, 'udp_dst', 0))
+            parser.OFPActionSetField(udp_dst=getattr(match, 'udp_dst', 0)),
         ])
     return actions
 
@@ -165,7 +159,7 @@ def flip_flow_match(match):
         udp_dst=getattr(match, 'udp_src', None),
         ip_proto=getattr(match, 'ip_proto', None),
         direction=direction,
-        app_name=getattr(match, 'app_name', None)
+        app_name=getattr(match, 'app_name', None),
     )
 
 
@@ -244,13 +238,24 @@ def get_direction_for_match(flow_match):
 
 
 def convert_ipv4_str_to_ip_proto(ipv4_str):
-    return IPAddress(version=IPAddress.IPV4,
-                     address=ipv4_str.encode('utf-8'))
+    return IPAddress(
+        version=IPAddress.IPV4,
+        address=ipv4_str.encode('utf-8'),
+    )
+
+
+def convert_ipv6_str_to_ip_proto(ipv6_str):
+    return IPAddress(
+        version=IPAddress.IPV6,
+        address=ipv6_str.encode('utf-8'),
+    )
 
 
 def convert_ipv6_bytes_to_ip_proto(ipv6_bytes):
-    return IPAddress(version=IPAddress.IPV6,
-                     address=ipv6_bytes)
+    return IPAddress(
+        version=IPAddress.IPV6,
+        address=ipv6_bytes,
+    )
 
 
 def convert_ip_str_to_ip_proto(ip_str: str):

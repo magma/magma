@@ -13,13 +13,9 @@
 #pragma once
 
 #include <experimental/optional>
-#include <folly/dynamic.h>
-#include <folly/Format.h>
-#include <folly/json.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -39,6 +35,8 @@ struct SessionConfig {
   explicit SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
+  AggregatedMaximumBitrate_BitrateUnitsAMBR get_apn_ambr_units(
+      QosInformationRequest_BitrateUnitsAMBR units) const;
   std::string get_imsi() const { return common_context.sid().id(); }
 };
 
@@ -56,6 +54,18 @@ enum EventTriggerState {
 };
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
     EventTriggerStatus;
+
+struct Usage {
+  uint64_t bytes_tx;
+  uint64_t bytes_rx;
+};
+
+struct TotalCreditUsage {
+  uint64_t monitoring_tx;
+  uint64_t monitoring_rx;
+  uint64_t charging_tx;
+  uint64_t charging_rx;
+};
 
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.
@@ -85,7 +95,7 @@ enum Bucket {
   ALLOWED_FLOOR_RX    = 11,
 
   // delimiter to iterate enum
-  MAX_VALUES = 12,
+  BUCKET_ENUM_MAX_VALUE = 12,
 };
 
 enum ReAuthState {
@@ -202,6 +212,16 @@ struct RuleToProcess {
   Teids teids;
 };
 
+struct RuleStats {
+  uint64_t tx;
+  uint64_t rx;
+  uint64_t dropped_tx;
+  uint64_t dropped_rx;
+  RuleStats() : tx(0), rx(0), dropped_tx(0), dropped_rx(0) {}
+  RuleStats(uint64_t tx, uint64_t rx, uint64_t dropped_tx, uint64_t dropped_rx)
+      : tx(tx), rx(rx), dropped_tx(dropped_tx), dropped_rx(dropped_rx) {}
+};
+
 typedef std::vector<RuleToProcess> RulesToProcess;
 
 enum PolicyAction {
@@ -231,6 +251,14 @@ struct StatsPerPolicy {
   uint32_t current_version;
   // The last reported version from PipelineD
   uint32_t last_reported_version;
+
+  std::unordered_map<int, RuleStats> stats_map;
+  StatsPerPolicy() {
+    current_version       = 0;
+    last_reported_version = 0;
+    RuleStats s           = {0, 0, 0, 0};
+    stats_map             = {{0, s}};
+  }
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
 

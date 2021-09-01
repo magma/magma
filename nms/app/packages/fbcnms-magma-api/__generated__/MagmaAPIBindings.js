@@ -17,6 +17,7 @@
 
 export type aaa_server = {
     accounting_enabled ? : boolean,
+    acct_reporting_enabled ? : boolean,
     create_session_on_auth ? : boolean,
     event_logging_enabled ? : boolean,
     idle_session_timeout_ms ? : number,
@@ -427,6 +428,9 @@ export type federation_gateway = {
 };
 export type federation_gateway_health_status = {
     description: string,
+    service_status ? : {
+        [string]: service_status_health,
+    },
     status: "HEALTHY" | "UNHEALTHY",
 };
 export type federation_network_cluster_status = {
@@ -498,6 +502,7 @@ export type gateway_dns_configs = {
 export type gateway_dns_records = Array < dns_config_record >
 ;
 export type gateway_epc_configs = {
+    congestion_control_enabled ? : boolean,
     dns_primary ? : string,
     dns_secondary ? : string,
     ip_block: string,
@@ -511,6 +516,7 @@ export type gateway_epc_configs = {
     sgi_management_iface_gw ? : string,
     sgi_management_iface_static_ip ? : string,
     sgi_management_iface_vlan ? : string,
+    subscriberdb_sync_interval ? : subscriberdb_sync_interval,
 };
 export type gateway_federation_configs = {
     aaa_server: aaa_server,
@@ -856,7 +862,7 @@ export type mutable_enodebd_e2e_test = {
 export type mutable_federation_gateway = {
     description: gateway_description,
     device: gateway_device,
-    federation: gateway_federation_configs,
+    federation ? : gateway_federation_configs,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -891,6 +897,8 @@ export type mutable_subscriber = {
     name ? : string,
     static_ips ? : subscriber_static_ips,
 };
+export type mutable_subscribers = Array < mutable_subscriber >
+;
 export type mutable_wifi_gateway = {
     description: gateway_description,
     device: gateway_device,
@@ -906,6 +914,7 @@ export type network = {
     features ? : network_features,
     id: network_id,
     name: network_name,
+    sentry_config ? : network_sentry_config,
     type ? : network_type,
 };
 export type network_carrier_wifi_configs = {
@@ -934,7 +943,9 @@ export type network_dns_records = Array < dns_config_record >
 ;
 export type network_epc_configs = {
     cloud_subscriberdb_enabled ? : boolean,
+    congestion_control_enabled ? : boolean,
     default_rule_id ? : string,
+    enable_converged_core ? : boolean,
     gx_gy_relay_enabled: boolean,
     hss_relay_enabled: boolean,
     lte_auth_amf: string,
@@ -973,6 +984,7 @@ export type network_epc_configs = {
             max_ul_bit_rate: number,
         },
     },
+    subscriberdb_sync_interval ? : subscriberdb_sync_interval,
     tac: number,
 };
 export type network_features = {
@@ -1007,13 +1019,21 @@ export type network_interface = {
     status ? : "UP" | "DOWN" | "UNKNOWN",
 };
 export type network_name = string;
+export type network_probe_data = {
+    last_exported: string,
+    sequence_number: number,
+    target_id: string,
+};
 export type network_probe_destination = {
     destination_details: network_probe_destination_details,
     destination_id: network_probe_destination_id,
 };
 export type network_probe_destination_details = {
+    certificate: string,
     delivery_address: string,
     delivery_type: "all" | "events_only",
+    private_key: string,
+    skip_verify_server: boolean,
 };
 export type network_probe_destination_id = string;
 export type network_probe_task = {
@@ -1023,7 +1043,9 @@ export type network_probe_task = {
 export type network_probe_task_details = {
     correlation_id ? : number,
     delivery_type: "all" | "events_only",
+    domain_id ? : string,
     duration ? : number,
+    operator_id ? : number,
     target_id: string,
     target_type: "imsi" | "imei" | "msisdn",
     timestamp ? : string,
@@ -1040,6 +1062,12 @@ export type network_ran_configs = {
         special_subframe_pattern: number,
         subframe_assignment: number,
     },
+};
+export type network_sentry_config = {
+    sample_rate ? : number,
+    upload_mme_log ? : boolean,
+    url_native ? : string,
+    url_python ? : string,
 };
 export type network_subscriber_config = {
     network_wide_base_names ? : base_names,
@@ -1150,6 +1178,7 @@ export type policy_rule = {
     qos_profile ? : string,
     rating_group ? : number,
     redirect ? : redirect_information,
+    service_identifier ? : number,
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
 };
 export type policy_rule_config = {
@@ -1163,6 +1192,7 @@ export type policy_rule_config = {
     priority: number,
     rating_group ? : number,
     redirect ? : redirect_information,
+    service_identifier ? : number,
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
 };
 export type prom_alert_config = {
@@ -1279,6 +1309,7 @@ export type s6a = {
     server ? : diameter_client_configs,
 };
 export type s8 = {
+    apn_operator_suffix ? : string,
     local_address ? : string,
     pgw_address ? : string,
 };
@@ -1290,6 +1321,10 @@ export type served_network_ids = Array < string >
 ;
 export type served_nh_ids = Array < string >
 ;
+export type service_status_health = {
+    health_status ? : "HEALTHY" | "UNHEALTHY",
+    service_state ? : "AVAILABLE" | "UNAVAILABLE",
+};
 export type slack_action = {
     confirm ? : slack_confirm_field,
     name ? : string,
@@ -1385,6 +1420,7 @@ export type subscriber_static_ips = {
 export type subscriber_status = {
     icmp ? : icmp_status,
 };
+export type subscriberdb_sync_interval = number;
 export type subscription_profile = {
     max_dl_bit_rate ? : number,
     max_ul_bit_rate ? : number,
@@ -1453,6 +1489,10 @@ export type unmanaged_enodeb_configuration = {
 };
 export type untyped_mme_state = {};
 export type untyped_subscriber_state = {};
+export type version_info = {
+    container_image_version ? : string,
+    helm_chart_version ? : string,
+};
 export type virtual_apn_rule = {
     apn_filter ? : string,
     apn_overwrite ? : string,
@@ -1501,6 +1541,14 @@ export default class MagmaAPIBindings {
     ) {
         throw new Error("Must be implemented");
     }
+    static async getAboutVersion(): Promise < version_info >
+        {
+            let path = '/about/version';
+            let body;
+            let query = {};
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getChannels(): Promise < Array < channel_id >
         >
         {
@@ -7095,6 +7143,31 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
+    static async postLteByNetworkIdSubscribersV2(
+        parameters: {
+            'networkId': string,
+            'subscribers': mutable_subscribers,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/subscribers_v2';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['subscribers'] === undefined) {
+            throw new Error('Missing required  parameter: subscribers');
+        }
+
+        if (parameters['subscribers'] !== undefined) {
+            body = parameters['subscribers'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
     static async getNetworks(): Promise < Array < string >
         >
         {
@@ -9064,6 +9137,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['ratingGroup'] !== undefined) {
             body = parameters['ratingGroup'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getNetworksByNetworkIdSentry(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_sentry_config >
+        {
+            let path = '/networks/{network_id}/sentry';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putNetworksByNetworkIdSentry(
+        parameters: {
+            'networkId': string,
+            'networkSentryConfig': network_sentry_config,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/sentry';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['networkSentryConfig'] === undefined) {
+            throw new Error('Missing required  parameter: networkSentryConfig');
+        }
+
+        if (parameters['networkSentryConfig'] !== undefined) {
+            body = parameters['networkSentryConfig'];
         }
 
         return await this.request(path, 'PUT', query, body);

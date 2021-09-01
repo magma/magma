@@ -1,0 +1,114 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramImageBase": {
+        "Type": "AWS::EC2::Image::Id",
+	"Description": "Base Image Id of Ubuntu in Tokyo",
+	"Default": "ami-0df99b3a8349462c6"
+      },
+      "paramSubnetPublic": {
+        "Type": "String",
+	"Description": "Public Subnet",
+	"Default": "subnet-04862fbf7cbfaded3"
+      },
+      "paramSubnetPrivate": {
+        "Type": "String",
+	"Description": "Private Subnet",
+	"Default": "subnet-0f4bb260617e474a8"
+      },
+      "paramAzHome": {
+        "Type": "AWS::EC2::AvailabilityZone::Name",
+	"Description": "Base Availability Zone",
+	"Default": "ap-northeast-1a"
+      },
+      "paramSecGroup": {
+        "Type": "String",
+	"Description": "Security Group Name",
+	"Default":"sg-0dafb8281c22ed2a8"
+      },
+      "paramAgwInstanceType": {
+        "Type": "String",
+	"Description": "Instance Type",
+	"Default": "t2.medium"
+      },
+      "paramSshKey": {
+        "Type": "AWS::EC2::KeyPair::KeyName",
+	"Description": "Keypair",
+	"Default": "keyMagmaHostCharlie"
+      },
+      "paramAgwTagUuid": {
+        "Type": "String",
+	"Description": "Uuid",
+	"Default":"02042004"
+    },
+      "paramAgwTagSite": {
+        "Type": "String",
+	"Description": "Tag Site",
+	"Default":"MenloPark"
+    },
+      "paramAgwTagName": {
+        "Type": "String",
+	"Description": "Tag Name",
+	"Default":"ec2DualNicAgw"
+      }
+    },
+    "Resources": {
+      "NicSgi": {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties": {
+            "Description": "SGi interface",
+            "GroupSet": [ { "Ref": "paramSecGroup" } ],
+            "SourceDestCheck" : "true",
+            "SubnetId":{ "Ref": "paramSubnetPublic" }
+        }
+      },
+      "NicS1": {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties": {
+            "Description": "S1 interface",
+            "GroupSet": [ { "Ref": "paramSecGroup" } ],
+            "SourceDestCheck" : "true",
+            "SubnetId":{ "Ref": "paramSubnetPrivate" }
+        }
+      },
+      "Gateway": {
+          "Type": "AWS::EC2::Instance",
+          "Properties": {
+              "ImageId": { "Ref": "paramImageBase" },
+              "InstanceType": { "Ref": "paramAgwInstanceType" },
+              "KeyName": { "Ref": "paramSshKey" },
+              "AvailabilityZone":{ "Ref": "paramAzHome" },
+              "NetworkInterfaces": [
+                {
+                  "NetworkInterfaceId": {"Ref": "NicSgi"},
+                  "DeviceIndex": "0"
+                },
+                {
+                  "NetworkInterfaceId": {"Ref": "NicS1"},
+                  "DeviceIndex": "1"
+                }
+              ],
+          "Tags": [
+			      { "Key": "Name", "Value": { "Ref": "paramAgwTagName"} },
+			      { "Key": "Site", "Value": { "Ref": "paramAgwTagSite"} },
+            { "Key": "Uuid", "Value": { "Ref": "paramAgwTagUuid"} },
+            { "Key": "Purpose","Value":"EC2 instance of AGW" }
+			    ]
+        }
+      },
+      "ElasticSgi": {
+        "Type": "AWS::EC2::EIP",
+        "Properties": {
+          "Domain":"vpc"
+        }
+      },
+      "ElasticSgiAssoc": {
+        "Type": "AWS::EC2::EIPAssociation",
+        "Properties": {
+          "AllocationId": { "Fn::GetAtt": [ "ElasticSgi", "AllocationId" ] },
+          "NetworkInterfaceId": { "Ref": "NicSgi"}
+        },
+        "DependsOn": "Gateway"
+      }
+    }
+}

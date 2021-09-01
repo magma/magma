@@ -18,6 +18,8 @@ magma-gen-meta:
       filename: dns_config_record_swaggergen.go
     - go-struct-name: NetworkFeatures
       filename: network_features_swaggergen.go
+    - go-struct-name: NetworkSentryConfig
+      filename: network_sentry_config_swaggergen.go
     - go-struct-name: ChallengeKey
       filename: challenge_key_swaggergen.go
     - go-struct-name: ConfigInfo
@@ -91,6 +93,8 @@ tags:
     description: Provision and manage gateways
   - name: Upgrades
     description: Configuration to manage upgrades
+  - name: About
+    description: Version info
 
 basePath: /magma/v1
 
@@ -300,6 +304,38 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/sentry:
+    get:
+      summary: Get the Sentry.io configuration for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Network-wide Sentry.io configuration
+          schema:
+            $ref: '#/definitions/network_sentry_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the Sentry.io configuration for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: network_sentry_config
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/network_sentry_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 
   /networks/{network_id}/dns:
     get:
@@ -1224,6 +1260,20 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /about/version:
+    get:
+      summary: Get version
+      tags:
+        - About
+      responses:
+        '200':
+          description: Version
+          schema:
+            $ref: '#/definitions/version_info'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
 parameters:
   channel_id:
     in: path
@@ -1275,6 +1325,8 @@ definitions:
         $ref: '#/definitions/network_dns_config'
       features:
         $ref: '#/definitions/network_features'
+      sentry_config:
+        $ref: '#/definitions/network_sentry_config'
 
   network_dns_config:
     description: DNS configuration for a network
@@ -1347,6 +1399,32 @@ definitions:
         example:
           featureName1: featureProp1
           featureName2: featureProp2
+
+  network_sentry_config:
+    type: object
+    description: Sentry.io configuration
+    properties:
+      url_python:
+        type: string
+        format: uri
+        minLength: 0
+        x-nullable: false
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+      url_native:
+        type: string
+        format: uri
+        minLength: 0
+        x-nullable: false
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+      upload_mme_log:
+        type: boolean
+        example: false
+      sample_rate:
+        type: number
+        format: float
+        minimum: 0
+        maximum: 1
+        example: 0.5
 
   magmad_gateway:
     type: object
@@ -1961,3 +2039,13 @@ definitions:
 
   elastic_hit_count:
     type: number
+
+  version_info:
+    type: object
+    properties:
+      container_image_version:
+        type: string
+        example: 1.6.0
+      helm_chart_version:
+        type: string
+        example: 1.5.21

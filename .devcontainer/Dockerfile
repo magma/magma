@@ -109,9 +109,7 @@ RUN echo "Install 3rd party dependencies" && \
     libyaml-cpp-dev nlohmann-json3-dev && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python && \
-    # TODO(fixup this include in source code @ MConfigLoader.cpp)
-    ln -s /usr/include/nlohmann/json.hpp /usr/include/json.hpp
+    ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
@@ -130,7 +128,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     make install && \
     ldconfig -v && \
     cd / && \
-    wget --progress=dot:giga http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget --progress=dot:giga https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
@@ -152,6 +150,16 @@ RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
     make install && \
     cd / && \
     rm -rf grpc
+
+##### libprotobuf-mutator is used for randomized proto unit tests / property tests
+RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
+    mkdir -p libprotobuf-mutator/build && \
+    cd libprotobuf-mutator/build && \
+    cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && \
+    ninja && \
+    ninja install && \
+    cd / && \
+    rm -rf libprotobuf-mutator
 
 ##### Prometheus CPP
 RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
@@ -274,7 +282,7 @@ RUN /tmp/third_party/build/bin/libfluid_build.sh && \
      rm -rf /tmp/*
 
 ##### FreeDiameter
-COPY lte/gateway/c/oai/patches/ /tmp/
+COPY lte/gateway/c/core/oai/patches/ /tmp/
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < /tmp/0001-opencoord.org.freeDiameter.patch && \

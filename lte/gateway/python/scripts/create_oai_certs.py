@@ -56,7 +56,8 @@ def generate_mme_certs(conf_dir):
               " rsa:1024 -out {mme_cacert} -keyout {mme_ca_key} -subj " \
               "/CN={fqdn}/C=FR/ST=PACA/L=Aix/O=Facebook/OU=CM".format(
             ssl_bin=OPENSSL_BIN, mme_cacert=mme_cacert, mme_ca_key=mme_ca_key,
-            fqdn=fqdn)
+            fqdn=fqdn,
+              )
         envoy.run(cmd)
 
         # Generate the private key
@@ -68,7 +69,8 @@ def generate_mme_certs(conf_dir):
         mme_csr = os.path.join(temp_dir, OAI_MME_CSR)
         cmd = "{ssl_bin} req -new -batch -out {mme_csr} -key {mme_key} " \
               "-subj /CN={fqdn}/C=FR/ST=PACA/L=Aix/O=Facebook/OU=CM".format(
-            ssl_bin=OPENSSL_BIN, mme_csr=mme_csr, mme_key=mme_key, fqdn=fqdn)
+            ssl_bin=OPENSSL_BIN, mme_csr=mme_csr, mme_key=mme_key, fqdn=fqdn,
+              )
         envoy.run(cmd)
 
         # No way to change the location of demoCA dir
@@ -77,9 +79,11 @@ def generate_mme_certs(conf_dir):
         mme_cert = os.path.join(temp_dir, OAI_MME_CERT)
         cmd = "{ssl_bin} ca -cert {mme_cacert} -keyfile {mme_ca_key} " \
               "-in {mme_csr} -out {mme_cert} -outdir {out_dir} " \
-              "-batch".format(ssl_bin=OPENSSL_BIN, mme_cacert=mme_cacert,
-                              mme_ca_key=mme_ca_key, mme_csr=mme_csr,
-                              mme_cert=mme_cert, out_dir=temp_dir)
+              "-batch".format(
+                  ssl_bin=OPENSSL_BIN, mme_cacert=mme_cacert,
+                  mme_ca_key=mme_ca_key, mme_csr=mme_csr,
+                  mme_cert=mme_cert, out_dir=temp_dir,
+              )
         envoy.run(cmd)
 
         # Copy the files to the free diameter directory.
@@ -91,10 +95,13 @@ def generate_mme_certs(conf_dir):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Generate mme certs for free diameter')
+        description='Generate mme certs for free diameter',
+    )
 
-    parser.add_argument("--conf-dir", "-c",
-                        default="/usr/local/etc/oai/freeDiameter")
+    parser.add_argument(
+        "--conf-dir", "-c",
+        default="/usr/local/etc/oai/freeDiameter",
+    )
     opts = parser.parse_args()
     generate_mme_certs(opts.conf_dir)
 

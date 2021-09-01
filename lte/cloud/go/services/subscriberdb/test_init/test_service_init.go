@@ -26,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
@@ -49,11 +50,24 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, fact.InitializeFactory())
 	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, ipStore.Initialize())
+	syncstoreFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, syncstoreFact.InitializeFactory())
+	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
+	assert.NoError(t, err)
+	assert.NoError(t, subscriberStore.Initialize())
+
+	// Sane default service configs
+	serviceConfig := subscriberdb.Config{
+		DigestsEnabled:         true,
+		ChangesetSizeThreshold: 500,
+		MaxProtosLoadSize:      10,
+		ResyncIntervalSecs:     86400,
+	}
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer())
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	// Run service
 	go srv.RunTest(lis)

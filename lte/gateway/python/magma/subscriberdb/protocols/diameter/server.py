@@ -49,8 +49,10 @@ class S6aServer(asyncio.Protocol):
         logging.info("Connection received, state id: %d", self.state_id)
         # bytesarray is more efficient to append fragments of reads
         self._readbuf = bytearray()
-        self.writer = Writer(self.realm, self.host,
-                             self.state_id, transport)
+        self.writer = Writer(
+            self.realm, self.host,
+            self.state_id, transport,
+        )
         self._base_manager.set_writer(self.writer)
         self._s6a_manager.set_writer(self.writer)
 
@@ -125,8 +127,10 @@ class S6aServer(asyncio.Protocol):
         elif application_id == s6a.S6AApplication.APP_ID:
             self._s6a_manager.handle_msg(self.state_id, msg)
         else:
-            logging.error("Unknown application: %d",
-                          msg.header.application_id)
+            logging.error(
+                "Unknown application: %d",
+                msg.header.application_id,
+            )
 
 
 class Writer:

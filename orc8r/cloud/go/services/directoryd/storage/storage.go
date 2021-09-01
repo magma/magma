@@ -27,4 +27,10 @@ type DirectorydStorage interface {
 
 	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 	MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error
+
+	// GetHWIDForSgwCTeid returns the HwId mapped by teid
+	GetHWIDForSgwCTeid(networkID, teid string) (string, error)
+
+	// MapSgwCTeidToHWID maps {teid -> hwid}
+	MapSgwCTeidToHWID(networkID string, s8TeidToHwid map[string]string) error
 }

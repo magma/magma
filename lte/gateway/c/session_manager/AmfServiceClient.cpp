@@ -1,5 +1,5 @@
 #include "AmfServiceClient.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
 using grpc::Status;
@@ -27,7 +27,7 @@ AsyncAmfServiceClient::AsyncAmfServiceClient()
 
 bool AsyncAmfServiceClient::handle_response_to_access(
     const magma::SetSMSessionContextAccess& response) {
-  MLOG(MINFO) << "Sending Set SM Session Response from SMF ";
+  MLOG(MDEBUG) << "Sending Set SM Session Response from SMF ";
   auto local_resp = new AsyncLocalResponse<SmContextVoid>(
       std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(stub_->AsyncSetSmfSessionContext(
@@ -37,7 +37,7 @@ bool AsyncAmfServiceClient::handle_response_to_access(
 
 bool AsyncAmfServiceClient::handle_notification_to_access(
     const magma::SetSmNotificationContext& notif) {
-  MLOG(MINFO) << "Sending Set SM Session Notification from SMF ";
+  MLOG(MDEBUG) << "Sending Set SM Session Notification from SMF ";
   auto local_resp = new AsyncLocalResponse<SmContextVoid>(
       std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(stub_->AsyncSetAmfNotification(

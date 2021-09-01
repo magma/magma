@@ -3,7 +3,10 @@ id: p014_proposal_process
 title: Magma Proposals
 hide_title: true
 ---
+
 # Magma Proposals
+
+> **NOTE**: you actually want [How to Open a Proposal](../contributing/contribute_proposals.md) for the current process. This document describes the process as it was originally proposed.
 
 As an open source project, it is important that all contributors are able to
 observe substantitive Proposals, comment on them, and be able to discover
@@ -113,7 +116,7 @@ document.
   [Each sentence should start on a new line](http://rhodesmill.org/brandon/2012/one-sentence-per-line/)
   so that comments can be made accurately and the diff kept shorter.
   **For example, see this document source**.
-  - In Emacs, loading `fill.el` from this directory will make
+    - In Emacs, loading `fill.el` from this directory will make
     `fill-paragraph` format text this way.
 
 - Comments on Github Design Doc PRs should be restricted to grammar, spelling,
@@ -143,17 +146,18 @@ interested in which proposals are under active consideration
 can follow that issue.
 
 The state of Proposal issues are tracked by Github label:
+
 - `proposal:needs:design doc`
-  - Proposal has been deemed to merit a more detailed design doc.
-  - Please ensure it Addresses the design questions raised in this Github
+    - Proposal has been deemed to merit a more detailed design doc.
+    - Please ensure it Addresses the design questions raised in this Github
     Issue.
 - `proposal:status:In Review`
-  - This proposal is in active review, all discussion will be within this
+    - This proposal is in active review, all discussion will be within this
     Github Issue.
 - `proposal:status:Accepted`
-  - This proposal has been accepted by general consensus
+    - This proposal has been accepted by general consensus
 - `proposal:status:Rejected`
-  - This proposal has been rejected by general consensus
+    - This proposal has been rejected by general consensus
 
 ## Alternatives Considered
 

@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"time"
 
@@ -312,9 +313,19 @@ func testHandleULR(settings *sm.Settings, expectedULRFlags uint32) diam.HandlerF
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
 		a.NewAVP(avp.OriginStateID, avp.Mbit, 0, settings.OriginStateID)
 
-		// Add Feature-List-ID 2 if exists
+		// Add Feature-List-ID if exists
 		if len(req.SupportedFeatures) > 0 {
 			for _, suportedFeature := range req.SupportedFeatures {
+				if suportedFeature.FeatureListID == 1 {
+					a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+						AVP: []*diam.AVP{
+							diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+							diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1)),
+							diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
+								datatype.Unsigned32(suportedFeature.FeatureList)),
+						},
+					})
+				}
 				if suportedFeature.FeatureListID == 2 {
 					a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 						AVP: []*diam.AVP{
@@ -348,9 +359,13 @@ func testSendULA(settings *sm.Settings, w io.Writer, m *diam.Message) (n int64, 
 			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(
-						avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(500)),
+						avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(math.MaxUint32)),
 					diam.NewAVP(
-						avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(500)),
+						avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(math.MaxUint32)),
+					diam.NewAVP(
+						avp.ExtendedMaxRequestedBWDL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(500)),
+					diam.NewAVP(
+						avp.ExtendedMaxRequestedBWUL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(600)),
 				},
 			}),
 			diam.NewAVP(avp.APNConfigurationProfile, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
@@ -363,6 +378,12 @@ func testSendULA(settings *sm.Settings, w io.Writer, m *diam.Message) (n int64, 
 							diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(0)),
 							diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(0)),
 							diam.NewAVP(avp.ServiceSelection, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.UTF8String("oai.ipv4")),
+							diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
+								AVP: []*diam.AVP{
+									diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(50)),
+									diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(60)),
+								},
+							}),
 							diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
 								AVP: []*diam.AVP{
 									diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(9)),
@@ -375,12 +396,6 @@ func testSendULA(settings *sm.Settings, w io.Writer, m *diam.Message) (n int64, 
 									}),
 								},
 							}),
-						},
-					}),
-					diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
-						AVP: []*diam.AVP{
-							diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(500)),
-							diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(500)),
 						},
 					}),
 				},

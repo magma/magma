@@ -104,7 +104,7 @@ func GetStreamGatewayId(stream grpc.ServerStream) (*protos.Identity_Gateway, err
 		return nil, err
 	}
 	serialNum := snlist[0]
-	id, err := certifier.GetVerifiedCertificateIdentity(serialNum)
+	id, err := certifier.GetVerifiedCertificateIdentity(ctx, serialNum)
 	if err != nil {
 		glog.Errorf(err.Error())
 		return nil, status.Error(codes.PermissionDenied, err.Error())

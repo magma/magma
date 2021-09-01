@@ -16,7 +16,7 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "$SCRIPT_DIR"/../lib/util.sh
 PKGVERSION=0.5.1
-ITERATION=1
+ITERATION=2
 VERSION="$PKGVERSION-$ITERATION"
 PKGNAME=python3-aioeventlet
 REPO="https://github.com/openstack-archive/deb-python-aioeventlet.git"
@@ -42,7 +42,6 @@ cd ${WORK_DIR}
 git clone ${REPO}
 cd deb-python-aioeventlet
 git apply ${PATCH_DIR}/*.patch
-
 
 # packaging
 PKGFILE="$(pkgfilename)"

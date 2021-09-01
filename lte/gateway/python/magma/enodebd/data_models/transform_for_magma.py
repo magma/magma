@@ -18,7 +18,7 @@ from magma.enodebd.logger import EnodebdLogger as logger
 
 DUPLEX_MAP = {
     '01': 'TDDMode',
-    '02': 'FDDMode'
+    '02': 'FDDMode',
 }
 
 BANDWIDTH_RBS_TO_MHZ_MAP = {
@@ -54,7 +54,7 @@ def gps_tr181(value: str) -> str:
     """
     try:
         return str(float(value) / 1e6)
-    except ValueError:
+    except Exception:  # pylint: disable=broad-except
         return value
 
 
@@ -83,5 +83,7 @@ def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
             mhz = float(bandwidth_rbs)
         if mhz in BANDWIDTH_MHZ_LIST:
             return mhz
-    raise ConfigurationError('Unknown bandwidth specification (%s)' %
-                             str(bandwidth_rbs))
+    raise ConfigurationError(
+        'Unknown bandwidth specification (%s)' %
+        str(bandwidth_rbs),
+    )

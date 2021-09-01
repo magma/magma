@@ -11,15 +11,13 @@
  * limitations under the License.
  */
 
-#include "MetricsSingleton.h"
-#include <vector>               // for vector
-#include "counter.h"            // for Counter
-#include "counter_builder.h"    // for BuildCounter, CounterBuilder
-#include "gauge.h"              // for Gauge
-#include "gauge_builder.h"      // for GaugeBuilder, BuildGauge
-#include "histogram.h"          // for Histogram, Histogram::BucketBoundaries
-#include "histogram_builder.h"  // for BuildHistogram, HistogramBuilder
-#include "registry.h"           // for Registry
+#include "includes/MetricsSingleton.h"
+#include <prometheus/registry.h>  // for Registry
+#include <prometheus/family.h>
+#include <prometheus/counter.h>
+#include <prometheus/gauge.h>
+#include <prometheus/histogram.h>
+#include <vector>  // for vector
 
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;
@@ -69,6 +67,13 @@ void MetricsSingleton::IncrementCounter(
   counters_.Get(name, labels).Increment(increment);
 }
 
+void MetricsSingleton::RemoveGauge(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  gauges_.Remove(name, labels);
+}
+
 void MetricsSingleton::IncrementGauge(
     const char* name, double increment, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
@@ -88,6 +93,13 @@ void MetricsSingleton::SetGauge(
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
   gauges_.Get(name, labels).Set(value);
+}
+
+double MetricsSingleton::GetGauge(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  return gauges_.Get(name, labels).Value();
 }
 
 void MetricsSingleton::ObserveHistogram(

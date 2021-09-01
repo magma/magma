@@ -84,6 +84,7 @@ void create_rule_record(
   rule_record->set_rule_id(rule_id);
   rule_record->set_bytes_rx(bytes_rx);
   rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_rule_version(1);
 }
 
 void create_rule_record(
@@ -113,9 +114,24 @@ void create_rule_record(
   rule_record->set_ue_ipv4(ip);
 }
 
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t rule_version, uint64_t bytes_rx, uint64_t bytes_tx,
+    uint64_t dropped_rx, uint64_t dropped_tx, RuleRecord* rule_record) {
+  rule_record->set_sid(imsi);
+  rule_record->set_rule_id(rule_id);
+  rule_record->set_bytes_rx(bytes_rx);
+  rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_dropped_rx(dropped_rx);
+  rule_record->set_dropped_tx(dropped_tx);
+  rule_record->set_ue_ipv4(ip);
+  rule_record->set_rule_version(rule_version);
+}
+
 void create_charging_credit(
     uint64_t volume, bool is_final, ChargingCredit* credit) {
-  create_granted_units(&volume, NULL, NULL, credit->mutable_granted_units());
+  create_granted_units(
+      &volume, nullptr, nullptr, credit->mutable_granted_units());
   credit->set_type(ChargingCredit::BYTES);
   credit->set_is_final(is_final);
 }
@@ -124,7 +140,8 @@ void create_charging_credit(
     uint64_t volume, ChargingCredit_FinalAction action,
     std::string redirect_server, std::string restrict_rule,
     ChargingCredit* credit) {
-  create_granted_units(&volume, NULL, NULL, credit->mutable_granted_units());
+  create_granted_units(
+      &volume, nullptr, nullptr, credit->mutable_granted_units());
   credit->set_type(ChargingCredit::BYTES);
   credit->set_is_final(true);
   credit->set_final_action(action);
@@ -420,15 +437,15 @@ PolicyRule create_policy_rule_with_qos(
 
 void create_granted_units(
     uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu) {
-  if (total != NULL) {
+  if (total != nullptr) {
     gsu->mutable_total()->set_is_valid(true);
     gsu->mutable_total()->set_volume(*total);
   }
-  if (tx != NULL) {
+  if (tx != nullptr) {
     gsu->mutable_tx()->set_is_valid(true);
     gsu->mutable_tx()->set_volume(*tx);
   }
-  if (rx != NULL) {
+  if (rx != nullptr) {
     gsu->mutable_rx()->set_is_valid(true);
     gsu->mutable_rx()->set_volume(*rx);
   }
@@ -437,7 +454,6 @@ void create_granted_units(
 magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-  mconfig.set_relay_enabled(false);
   mconfig.set_gx_gy_relay_enabled(false);
   auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
   wallet_config->set_terminate_on_exhaust(false);

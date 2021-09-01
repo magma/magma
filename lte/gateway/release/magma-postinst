@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -21,7 +21,7 @@ if sudo grep -q "COMMIT_HASH" /etc/environment
 then
     sudo sed -i -e "s/^COMMIT_HASH.*/$value/" /etc/environment
 else
-    sudo cat "$value" >> /etc/environment
+    sudo echo "$value" >> /etc/environment
 fi
 
 # Set magmad service to start on boot
@@ -41,6 +41,9 @@ systemctl disable dnsmasq
 # Lighttpd also starts up post-install.
 systemctl stop lighttpd
 systemctl disable lighttpd
+
+# Copy over ipfix patch
+cp /usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py /usr/lib/python3/dist-packages/ryu/ofproto/
 
 # Restart rsyslog to pick up fluent-bit config, create fluent-bit DB directory
 cp /etc/logrotate.d/rsyslog /etc/logrotate.d/rsyslog.orig

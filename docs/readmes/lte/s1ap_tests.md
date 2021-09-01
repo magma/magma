@@ -4,8 +4,16 @@ title: S1AP Integration Tests
 hide_title: true
 ---
 # S1AP Integration Tests
+
 Current testing workflow for VM-only S1AP integration tests. We cover
 gateway-only tests and some general notes.
+
+CRITICAL NOTE: S1AP integration tests are supposed to be run in a headless mode,
+i.e., AGW should not be connected to Orc8r. This is quite critical as S1AP tester
+makes local configurations to Magma AGW in accordance with the testing scenario (e.g.,
+subscriber, APN, policy rules, etc.). If an Orc8r is connected, these configurations
+would be overwritten periodically and also lead to restart of services, both of which will
+interfere with the test scenario.
 
 TODO: Update this document once integration tests with cloud are also supported
 
@@ -43,8 +51,10 @@ From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run
 either individual tests or the full suite of tests. A safe, non-flaky test to
 run is `s1aptests/test_attach_detach.py`.
 
-* Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
-* All tests: `make integ_test`
+- Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
+- All Sanity tests: `make integ_test`
+- All Non-Sanity tests: `make nonsanity`
+- Minimal set of tests to be executed before committing changes to magma repository: `make precommit`
 
 **Note**: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.
@@ -78,6 +88,7 @@ Setup described above.
 ### Testing one stateless service
 
 #### Stateless MME
+
 This section describes how to test whether MME service is persisting state to Redis.
 
 On gateway VM:
@@ -102,6 +113,7 @@ the redis service with `sudo service magma@redis start` and then try again.
 1. `cd $MAGMA_ROOT/lte/gateway; make restart`
 
 On test VM:
+
 1. Basic attach/detach test where MME is restarted mid-way:
 
   `make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py`
@@ -115,6 +127,7 @@ flowing:
 TCP checksum is disabled on all VMs.
 
 #### Stateless Mobilityd
+
 This section describes how to test whether Mobilityd service is persisting state to Redis.
 
 On gateway VM:
@@ -135,6 +148,7 @@ the redis service with `sudo service magma@redis start` and then try again.
 1. `cd $MAGMA_ROOT/lte/gateway; make restart`
 
 On test VM:
+
 1. `cd $MAGMA_ROOT/lte/gateway/python && make`
 1. `cd integ_tests && make`
 1. Basic attach/detach test where Mobilityd is restarted mid-way:
@@ -146,6 +160,7 @@ On test VM:
  `make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py`
 
 #### Stateless Pipelined
+
 This section describes how to test whether Pipelined service is persisting state to Redis.
 
 On gateway VM:
@@ -166,12 +181,12 @@ the redis service with `sudo service magma@redis start` and then try again.
 1. `cd $MAGMA_ROOT/lte/gateway; make restart`
 
 On test VM:
+
 1. `cd $MAGMA_ROOT/lte/gateway/python && make`
 1. `cd integ_tests && make`
 1. UDP traffic test where Pipelined is restarted mid-way:
 
  `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py`
-
 
 ### Testing stateless gateway with all services
 

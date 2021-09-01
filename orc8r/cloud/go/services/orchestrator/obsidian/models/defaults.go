@@ -35,18 +35,28 @@ func NewDefaultDNSConfig() *NetworkDNSConfig {
 	}
 }
 
+func NewDefaultSentryConfig() *NetworkSentryConfig {
+	return &NetworkSentryConfig{
+		SampleRate:   swag.Float32(0.5),
+		UploadMmeLog: false,
+		URLNative:    "",
+		URLPython:    "",
+	}
+}
+
 func NewDefaultFeaturesConfig() *NetworkFeatures {
 	return &NetworkFeatures{Features: map[string]string{"foo": "bar"}}
 }
 
 func NewDefaultNetwork(networkID string, name string, description string) *Network {
 	return &Network{
-		ID:          models.NetworkID(networkID),
-		Type:        "",
-		Name:        models.NetworkName(name),
-		Description: models.NetworkDescription(description),
-		DNS:         NewDefaultDNSConfig(),
-		Features:    NewDefaultFeaturesConfig(),
+		ID:           models.NetworkID(networkID),
+		Type:         "",
+		Name:         models.NetworkName(name),
+		Description:  models.NetworkDescription(description),
+		DNS:          NewDefaultDNSConfig(),
+		Features:     NewDefaultFeaturesConfig(),
+		SentryConfig: NewDefaultSentryConfig(),
 	}
 }
 

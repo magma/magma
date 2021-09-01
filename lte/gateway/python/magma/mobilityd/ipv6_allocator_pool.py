@@ -47,8 +47,8 @@ class IPv6AllocatorPool(IPAllocator):
         Returns:
         """
         if self._assigned_ip_block and ipblock.overlaps(
-                self._assigned_ip_block):
-            logging.warning("Overlapped IP block: %s", ipblock)
+                self._assigned_ip_block,
+        ):
             raise OverlappedIPBlocksError(ipblock)
 
         if ipblock.prefixlen > MAX_IPV6_CONF_PREFIX_LEN:
@@ -59,8 +59,10 @@ class IPv6AllocatorPool(IPAllocator):
         # For now only one IPv6 network is supported
         self._assigned_ip_block = ipblock
 
-    def remove_ip_blocks(self, ipblocks: List[ip_network],
-                         force: bool = False) -> List[ip_network]:
+    def remove_ip_blocks(
+        self, ipblocks: List[ip_network],
+        force: bool = False,
+    ) -> List[ip_network]:
         """
         Removes assigned IP block (as it only supports one for now)
 
@@ -91,16 +93,21 @@ class IPv6AllocatorPool(IPAllocator):
         for sid in list(self._store.sid_ips_map):
             ip_desc = self._store.sid_ips_map[sid]
             if ip_desc.ip.version == 6:
-                self._store.ipv6_state_map.remove_ip_from_state(ip_desc.ip,
-                                                                IPState.FREE)
+                self._store.ipv6_state_map.remove_ip_from_state(
+                    ip_desc.ip,
+                    IPState.FREE,
+                )
                 if force:
                     self._store.ipv6_state_map.remove_ip_from_state(
-                        ip_desc.ip, IPState.ALLOCATED)
+                        ip_desc.ip, IPState.ALLOCATED,
+                    )
                 self._store.sid_ips_map.pop(sid)
 
         removed_blocks.append(self._assigned_ip_block)
-        logging.info('Removed IP block %s from IPv6 address pool',
-                     self._assigned_ip_block)
+        logging.info(
+            'Removed IP block %s from IPv6 address pool',
+            self._assigned_ip_block,
+        )
         self._assigned_ip_block = None
         return removed_blocks
 
@@ -126,19 +133,23 @@ class IPv6AllocatorPool(IPAllocator):
         if not session_prefix_part:
             logging.error('Could not get IPv6 session prefix for sid: %s', sid)
             raise MaxCalculationError(
-                'Could not get IPv6 session prefix for sid: %s', sid)
+                'Could not get IPv6 session prefix for sid: %s', sid,
+            )
 
         # Get interface identifier from 64 bits fixed length
         iid_part = self._get_ipv6_iid_part(sid, IID_PART_LEN)
         if not iid_part:
             logging.error('Could not get IPv6 IID for sid: %s', sid)
             raise MaxCalculationError(
-                'Could not get IPv6 IID for sid: %s', sid)
+                'Could not get IPv6 IID for sid: %s', sid,
+            )
 
         ipv6_addr = ipv6_addr_part + (session_prefix_part * iid_part)
-        ip_desc = IPDesc(ip=ipv6_addr, state=IPState.ALLOCATED, sid=sid,
-                         ip_block=self._assigned_ip_block,
-                         ip_type=IPType.IP_POOL)
+        ip_desc = IPDesc(
+            ip=ipv6_addr, state=IPState.ALLOCATED, sid=sid,
+            ip_block=self._assigned_ip_block,
+            ip_type=IPType.IP_POOL,
+        )
         return ip_desc
 
     def release_ip(self, ip_desc: IPDesc):
@@ -161,7 +172,8 @@ class IPv6AllocatorPool(IPAllocator):
         if ip_addr in self._assigned_ip_block and session_prefix:
             # Extract IID part of the given IPv6 prefix and session prefix
             iid_part = float(
-                (int(ip_addr) - ipv6_addr_part) / int(session_prefix))
+                (int(ip_addr) - ipv6_addr_part) / int(session_prefix),
+            )
 
             if iid_part in self._store.allocated_iid.values():
                 del self._store.sid_session_prefix_allocated[sid]
@@ -199,14 +211,16 @@ class IPv6AllocatorPool(IPAllocator):
         """
         session_prefix_len = IPV6_PREFIX_PART_LEN - self._assigned_ip_block.prefixlen
         session_prefix_allocated = self._store.sid_session_prefix_allocated.get(
-            sid)
+            sid,
+        )
         # TODO: Support multiple alloc modes
         if self._ipv6_session_prefix_alloc_mode == IPv6SessionAllocType.RANDOM:
             for i in range(MAX_CALC_TRIES):
                 session_prefix_part = random.getrandbits(session_prefix_len)
                 if session_prefix_part != session_prefix_allocated:
                     self._store.sid_session_prefix_allocated[
-                        sid] = session_prefix_part
+                        sid
+                    ] = session_prefix_part
                     return session_prefix_part
         return None
 

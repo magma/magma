@@ -41,6 +41,7 @@ const (
 	FlagBit1     FlagBit = 1 << 1
 	FlagBit5     FlagBit = 1 << 5
 	FlagBit8     FlagBit = 1 << 8
+	FlagBit9     FlagBit = 1 << 9
 	FlagBit27    FlagBit = 1 << 27
 )
 
@@ -63,7 +64,6 @@ type s6aProxy struct {
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
 	healthTracker  *metrics.S6aHealthTracker
-	originStateID  uint32
 }
 
 func NewS6aProxy(
@@ -131,7 +131,6 @@ func NewS6aProxy(
 		connMan:        connMan,
 		requestTracker: diameter.NewRequestTracker(),
 		healthTracker:  metrics.NewS6aHealthTracker(),
-		originStateID:  originStateID,
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_S6A_APP_ID, Code: diam.AuthenticationInformation, Request: false},

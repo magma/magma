@@ -92,12 +92,14 @@ class SessionRuleToVersionMapper:
         key = self._get_json_key(encode_imsi(imsi), teid_str, rule_id)
         self._version_by_imsi_and_rule[key] = version
 
-    def update_all_ue_versions(self, imsi: str, teid: int):
+
+    def remove_all_ue_versions(self, imsi: str, teid: int):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
         incremented.
         """
+        print("removed")
         encoded_imsi = encode_imsi(imsi)
         if teid is None or teid == 0:
             teid_str = ""
@@ -107,7 +109,9 @@ class SessionRuleToVersionMapper:
             for k, v in self._version_by_imsi_and_rule.items():
                 _, imsi, teid_val, _ = SubscriberRuleKey(*json.loads(k))
                 if imsi == encoded_imsi and teid_val == teid_str:
-                    self._version_by_imsi_and_rule[k] = v + 1
+                    print("removed")
+                    print(teid_str)
+                    self._version_by_imsi_and_rule[k] = -1
 
     def save_version(self, imsi: str, teid: int, rule_id: [str], version: int):
         """
@@ -120,6 +124,7 @@ class SessionRuleToVersionMapper:
         else:
             teid_str = str(teid)
         with self._lock:
+            print(teid_str)
             self._save_version_unsafe(imsi, teid_str, rule_id, version)
 
     def get_version(self, imsi: str, teid: int, rule_id: str) -> int:
@@ -130,11 +135,12 @@ class SessionRuleToVersionMapper:
             teid_str = ""
         else:
             teid_str = str(teid)
+            print(teid_str)
         key = self._get_json_key(encode_imsi(imsi), teid_str, rule_id)
         with self._lock:
             version = self._version_by_imsi_and_rule.get(key)
             if version is None:
-                version = 0
+                version = -1
         return version
 
     def remove(self, imsi: str, teid: int, rule_id: str, version: int):
@@ -169,8 +175,10 @@ class RuleIDDict(RedisFlatDict):
 
     def __init__(self):
         client = get_default_client()
-        serde = RedisSerde(self._DICT_HASH, get_json_serializer(),
-                           get_json_deserializer())
+        serde = RedisSerde(
+            self._DICT_HASH, get_json_serializer(),
+            get_json_deserializer(),
+        )
         super().__init__(client, serde, writethrough=True)
 
     def __missing__(self, key):
@@ -191,7 +199,8 @@ class RuleNameDict(RedisHashDict):
         super().__init__(
             client,
             self._DICT_HASH,
-            get_json_serializer(), get_json_deserializer())
+            get_json_serializer(), get_json_deserializer(),
+        )
 
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
@@ -208,10 +217,32 @@ class RuleVersionDict(RedisFlatDict):
 
     def __init__(self):
         client = get_default_client()
-        serde = RedisSerde(self._DICT_HASH, get_json_serializer(),
-                           get_json_deserializer())
+        serde = RedisSerde(
+            self._DICT_HASH, get_json_serializer(),
+            get_json_deserializer(),
+        )
         super().__init__(client, serde, writethrough=True)
 
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
         return None
+
+
+class RestartInfoStore(RedisHashDict):
+    """
+    RuleVersionDict uses the RedisHashDict collection to store
+    latest ovs pid
+    Setting and deleting items in the dictionary syncs with Redis automatically
+    """
+    _DICT_HASH = "pipelined:enforcement_stats_info"
+
+    def __init__(self):
+        client = get_default_client()
+        super().__init__(
+            client, self._DICT_HASH,
+            get_json_serializer(), get_json_deserializer(),
+        )
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return 0 when key not found"""
+        return 0

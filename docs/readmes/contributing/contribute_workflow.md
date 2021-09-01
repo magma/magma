@@ -21,7 +21,14 @@ Once your PR has been approved and passed all CI checks, use the [`ready2merge`]
 
 ## Guidelines
 
-**Required: commits must be signed off.** You must sign-off all commits on the originating branch for a PR, using [the `--signoff` flag in Git](https://stackoverflow.com/questions/1962094). There is a CI check that will fail if any commit in your branch has an unsigned commit. If you've forgotten to sign-off a commit, you can `git commit --amend --signoff`, or `git rebase --signoff` to sign-off an entire branch at once.
+**Required: commits must be signed off.** You must sign-off all commits on the originating branch for a PR, using [the `--signoff` flag in Git](https://stackoverflow.com/questions/1962094). There is a CI check that will fail if any commit in your branch has an unsigned commit.
+
+**Required: PR title must follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) format.** For example, `fix(agw): Fix pyroute2 dependency`, which follows the format `type(scope): Title`
+
+- [Supported commit types](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json):
+`build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`
+- [Supported scopes](https://github.com/magma/magma/blob/master/.github/semantic.yml): `agw`, `orc8r`, `nms`, `feg`, and more
+- Note: single-commit PRs also require that commit's title to follow the semantic format
 
 **Required: label backward-breaking pull requests.** Use the [`breaking change` label](https://github.com/magma/magma/issues?q=label%3A%22breaking+change%22+). All breaking changes and their mitigation steps will be aggregated in the subsequent release notes. A breaking change fits one or more of the following criteria
 
@@ -60,7 +67,7 @@ This opinionated workflow simplifies the complexities of dealing with Git direct
 It does this by keeping both `your_dev_branch` and `your_dev_branch_base` branches, allowing a straightforward mechanism for rebasing commit stacks.
 
 ```bash
-# Note: see below for the aliases used in this code block
+# Note: see below for the Git and shell aliases used in this code block
 
 ###############
 # Get started #
@@ -80,45 +87,45 @@ git remote add upstream git@github.com:magma/magma.git
 ###########
 
 # Checkout master and fast-forward to match upstream
-git_update
+git-update
 
 # Create new dev branch on top of latest master
-git_update YOUR_NEW_DEV_BRANCH
+git-update YOUR_NEW_DEV_BRANCH
 
 # Make changes, and package as a *single* commit on your dev branch
 # ...
 
 # Open pull request
-git open_pr
+git open-pr
 
 # Make requested changes, without committing anything
 # ...
 
 # Amend the single commit and force-push to update the PR
-git amend_pr
+git amend-pr
 
 # [optional] Rebase PR onto master
-git_rebase
+git-rebase
 
 # [optional] Rebase PR onto another PR
-git_rebase TARGET_BRANCH
+git-rebase TARGET_BRANCH
 
-# [note] If there's a merge commit during git_rebase, after completing the
+# [note] If there's a merge commit during git-rebase, after completing the
 # merge, you need to finish updating the reference branches
-git_rebase_finish
+git-rebase-finish
 
 ###############
 # Look around #
 ###############
 
 # Full commit graph -- super helpful for figuring out what's going on
-git graph_all
+git graph-all
 
 # Diff between PR and trunk
-git diff_base
+git diff-base
 
 # Diff between local dev branch and origin dev branch
-git diff_origin
+git diff-origin
 
 ############
 # Clean up #
@@ -126,7 +133,7 @@ git diff_origin
 
 # When you have no open PRs, you can clear all local branches to clean up
 # your git commit graph
-git delete_local_branches
+git delete-local-branches
 ```
 
 ### Necessary aliases
@@ -135,22 +142,22 @@ git delete_local_branches
 # ~/.gitconfig
 
 [alias]
-	delete_local_branches = !git branch | grep --invert-match master | xargs git branch --delete
-	commit_amend = commit --signoff --amend --no-edit
-	diff_base = !git diff $(git branch --show-current)_base
-	diff_origin = !git diff origin/$(git branch --show-current)
-	graph = graph_all --max-count=30
-	graph_all = log --graph --all --format=format:'%C(auto)%h%C(reset) %C(cyan)(%cr)%C(reset)%C(auto)%d%C(reset) %s %C(dim white)- %an%C(reset)'
-	amend_pr = !git add --all && git commit --signoff --amend --no-edit && git push --force
-	open_pr = !git push_branch && git pull-request --browse
-	push_branch = push --set-upstream origin HEAD
+	delete-local-branches = !git branch | grep --invert-match master | xargs git branch --delete
+	commit-amend = commit --signoff --amend --no-edit
+	diff-base = !git diff $(git branch --show-current)_base
+	diff-origin = !git diff origin/$(git branch --show-current)
+	graph = graph-all --max-count=30
+	graph-all = log --graph --all --format=format:'%C(auto)%h%C(reset) %C(cyan)(%cr)%C(reset)%C(auto)%d%C(reset) %s %C(dim white)- %an%C(reset)'
+	amend-pr = !git add --all && git commit --signoff --amend --no-edit && git push --force
+	open-pr = !git push-branch && git pull-request --browse
+	push-branch = push --set-upstream origin HEAD
 ```
 
 ```bashrc
 # shell rc file
 
-# git_update updates master with upstream changes, and optionally creates a feature branch.
-function git_update() {
+# git-update updates master with upstream changes, and optionally creates a feature branch.
+function git-update() {
     git checkout master && git pull upstream master && git push origin master
 
     local br=${1}
@@ -161,13 +168,13 @@ function git_update() {
     fi
 }
 
-# git_rebase rebases current branch on master, or the specified target.
+# git-rebase rebases current branch on master, or the specified target.
 # $1    target
 # $2+   args passed to rebase command
 #
 # Note: if there's a merge conflict, after handling the merge conflict,
-# you need to finish by running git_rebase_finish.
-function git_rebase() {
+# you need to finish by running git-rebase-finish.
+function git-rebase() {
     local to=${1:-master}
     local args=${@:2}
     local br=$(git branch --show-current)
@@ -179,8 +186,8 @@ function git_rebase() {
     git rebase --onto ${to} ${br_base} ${br} ${args} && git checkout ${br_base} && git reset --hard ${to} && git checkout ${br}
 }
 
-# git_rebase_finish completes the rebase started by git_rebase.
-function git_rebase_finish() {
+# git-rebase-finish completes the rebase started by git-rebase.
+function git-rebase-finish() {
     local vals
     read -r -a vals < ~/.gitrebase
     local to=${vals[0]}

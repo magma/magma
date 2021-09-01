@@ -33,8 +33,8 @@
     # HTTP Server
     # ===========
     # Enable/Disable the built-in HTTP Server for metrics
-    HTTP_Server  Off
-    HTTP_Listen  0.0.0.0
+    HTTP_Server  On
+    HTTP_Listen  127.0.0.1
     HTTP_Port    2020
 
 [INPUT]

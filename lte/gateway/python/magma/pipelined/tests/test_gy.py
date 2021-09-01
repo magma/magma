@@ -65,8 +65,10 @@ class GYTableTest(unittest.TestCase):
     MAC_DEST = "5e:cc:cc:b1:49:4b"
 
     @classmethod
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+    @unittest.mock.patch(
+        'netifaces.ifaddresses',
+        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+    )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -80,17 +82,21 @@ class GYTableTest(unittest.TestCase):
         super(GYTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager(
-            [PipelineD.ENFORCEMENT], ['arpd'])
+            [PipelineD.ENFORCEMENT], ['arpd'],
+        )
         cls._tbl_num = cls.service_manager.get_table_num(
-            GYController.APP_NAME)
+            GYController.APP_NAME,
+        )
 
         gy_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.GY,
-                  PipelinedController.Arp,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.GY,
+                PipelinedController.Arp,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.GY:
                     gy_controller_reference,
@@ -116,11 +122,11 @@ class GYTableTest(unittest.TestCase):
                 'clean_restart': True,
             },
             mconfig=PipelineD(
-                ue_ip_block='192.168.128.0/24'
+                ue_ip_block='192.168.128.0/24',
             ),
             loop=None,
             service_manager=cls.service_manager,
-            integ_test=False
+            integ_test=False,
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
@@ -151,17 +157,17 @@ class GYTableTest(unittest.TestCase):
         uplink_tunnel = 0x1234
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.gy_controller._redirect_manager._dns_cache.get(
-            "about.sha.ddih.org", lambda: redirect_ips, max_age=42
+            "about.sha.ddih.org", lambda: redirect_ips, max_age=42,
         )
         flow_list = [FlowDescription(match=FlowMatch())]
         policy = VersionedPolicy(
-            rule= PolicyRule(
+            rule=PolicyRule(
                 id='redir_test', priority=3, flow_list=flow_list,
                 redirect=RedirectInformation(
                     support=1,
                     address_type=2,
-                    server_address="http://about.sha.ddih.org/"
-                )
+                    server_address="http://about.sha.ddih.org/",
+                ),
             ),
             version=1,
         )
@@ -173,7 +179,7 @@ class GYTableTest(unittest.TestCase):
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = TCPPacketBuilder()\
@@ -183,9 +189,11 @@ class GYTableTest(unittest.TestCase):
             .set_ether_layer(self.MAC_DEST, "01:20:10:20:aa:bb")\
             .build()
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             include_stats=False)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            include_stats=False,
+        )
 
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
@@ -202,17 +210,20 @@ class GYTableTest(unittest.TestCase):
         imsi = 'IMSI010000000088888'
         uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
-        flow_list1 = [FlowDescription(
-            match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto('8.8.8.0/24'),
-                direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
+        flow_list1 = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_dst=convert_ipv4_str_to_ip_proto('8.8.8.0/24'),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
         ]
         policies = [
             VersionedPolicy(
                 rule=PolicyRule(id='restrict_match', priority=2, flow_list=flow_list1),
                 version=1,
-            )
+            ),
         ]
         pkts_matched = 256
         pkts_sent = 4096
@@ -224,7 +235,7 @@ class GYTableTest(unittest.TestCase):
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
-            self.testing_controller
+            self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = IPPacketBuilder()\
@@ -233,22 +244,29 @@ class GYTableTest(unittest.TestCase):
             .build()
         flow_query = FlowQuery(
             self._tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(flow_list1[0].match)
+            match=flow_match_to_magma_match(flow_list1[0].match),
         )
 
         # =========================== Verification ===========================
         # Verify aggregate table stats, subscriber 1 'simple_match' pkt count
-        flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._tbl_num, self.testing_controller),
-                     pkts_sent),
-            FlowTest(flow_query, pkts_matched)
-        ], lambda: wait_after_send(self.testing_controller))
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             include_stats=False)
+        flow_verifier = FlowVerifier(
+            [
+                FlowTest(
+                    FlowQuery(self._tbl_num, self.testing_controller),
+                    pkts_sent,
+                ),
+                FlowTest(flow_query, pkts_matched),
+            ], lambda: wait_after_send(self.testing_controller),
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            include_stats=False,
+        )
 
         with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet)
+
 
 if __name__ == "__main__":
     unittest.main()

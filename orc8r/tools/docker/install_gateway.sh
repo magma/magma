@@ -25,9 +25,7 @@ INSTALL_DIR="/tmp/magmagw_install"
 
 # TODO: Update docker-compose to stable version
 
-# Using RC as opposed to stable (1.24.0) due to
-# SCTP port mapping support
-DOCKER_COMPOSE_VERSION=1.25.0-rc1
+DOCKER_COMPOSE_VERSION=1.29.1
 
 DIR="."
 echo "Setting working directory as: $DIR"
@@ -193,3 +191,7 @@ if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
 fi
 
 echo "Installed successfully!!"
+# Prepare rsyslog config and restart rsyslog
+echo "If you want syslog to be forwarded to the cloud execute following commands as well"
+echo "sudo cp $INSTALL_DIR/magma/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf /etc/rsyslog.d/"
+echo "sudo service rsyslog restart"

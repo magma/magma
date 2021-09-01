@@ -24,10 +24,15 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
+	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/orc8r/math"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
@@ -40,10 +45,14 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-type builderServicer struct{}
+type builderServicer struct {
+	defaultSubscriberdbSyncInterval uint32
+}
 
-func NewBuilderServicer() builder_protos.MconfigBuilderServer {
-	return &builderServicer{}
+func NewBuilderServicer(config lte_service.Config) builder_protos.MconfigBuilderServer {
+	return &builderServicer{
+		defaultSubscriberdbSyncInterval: config.DefaultSubscriberdbSyncInterval,
+	}
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
@@ -106,10 +115,15 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 	heConfig := getHEConfig(cellularGwConfig.HeConfig)
+	npTasks, liUes := getNetworkProbeConfig(network.ID)
 
 	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
 	if err != nil {
 		return nil, err
+	}
+	congestionControlEnabled := nwEpc.CongestionControlEnabled
+	if gwEpc.CongestionControlEnabled != nil {
+		congestionControlEnabled = gwEpc.CongestionControlEnabled
 	}
 
 	vals := map[string]proto.Message{
@@ -162,6 +176,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
+			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
+			SentryConfig:             getNetworkSentryConfig(&network),
+			EnableConvergedCore:      swag.BoolValue(nwEpc.EnableConvergedCore),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -173,6 +190,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
 			HeConfig:                 heConfig,
+			LiUes:                    liUes,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -180,6 +198,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
+			SyncInterval:    s.getRandomizedSyncInterval(cellGW.Key, nwEpc, gwEpc),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -190,8 +209,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			SentryConfig: getNetworkSentryConfig(&network),
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
+		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel:    protos.LogLevel_INFO,
+			NprobeTasks: npTasks,
+		},
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
@@ -563,4 +587,85 @@ func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig 
 		ret[idx] = &lte_mconfig.MME_ImeiConfig{Tac: imei.Tac, Snr: imei.Snr}
 	}
 	return ret
+}
+
+func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mconfig.PipelineD_LiUes) {
+	liUes := &lte_mconfig.PipelineD_LiUes{}
+	npTasks := []*lte_mconfig.NProbeTask{}
+	ents, _, err := configurator.LoadAllEntitiesOfType(
+		networkID,
+		lte.NetworkProbeTaskEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		glog.Errorf("Failed to load nprobe task entities %v", err)
+		return npTasks, liUes
+	}
+
+	for _, ent := range ents {
+		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
+		if task.TaskDetails.DeliveryType == nprobe_models.NetworkProbeTaskDetailsDeliveryTypeEventsOnly {
+			// data plane is not requested.
+			continue
+		}
+
+		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
+		switch task.TaskDetails.TargetType {
+		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImsi:
+			liUes.Imsis = append(liUes.Imsis, task.TaskDetails.TargetID)
+		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImei:
+			liUes.Imeis = append(liUes.Imeis, task.TaskDetails.TargetID)
+		case nprobe_models.NetworkProbeTaskDetailsTargetTypeMsisdn:
+			liUes.Msisdns = append(liUes.Msisdns, task.TaskDetails.TargetID)
+		}
+	}
+	return npTasks, liUes
+}
+
+func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryConfig {
+	iSentryConfig, found := network.Configs[orc8r.NetworkSentryConfig]
+	if !found || iSentryConfig == nil {
+		return nil
+	}
+	sentryConfig, ok := iSentryConfig.(*models.NetworkSentryConfig)
+	if !ok {
+		return nil
+	}
+	return &lte_mconfig.SentryConfig{
+		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog: sentryConfig.UploadMmeLog,
+		UrlNative:    string(sentryConfig.URLNative),
+		UrlPython:    string(sentryConfig.URLPython),
+	}
+}
+
+// getSyncInterval takes network-wide subscriberdb sync interval in seconds and overrides it if also set for gateway.
+// If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/lte.yml
+func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	// minSyncInterval enforces a minimum sync interval to prevent too many
+	// sync requests if operator sets the default in lte.yml to lower than 60
+	const minSyncInterval = 60
+	gwSyncInterval := uint32(gwEpc.SubscriberdbSyncInterval)
+	nwSyncInterval := uint32(nwEpc.SubscriberdbSyncInterval)
+
+	if gwSyncInterval >= minSyncInterval {
+		return gwSyncInterval
+	}
+	if nwSyncInterval >= minSyncInterval {
+		return nwSyncInterval
+	}
+	if s.defaultSubscriberdbSyncInterval >= minSyncInterval {
+		return s.defaultSubscriberdbSyncInterval
+	}
+	return minSyncInterval
+}
+
+// getRandomizedSyncInterval returns the interval received from getSyncInterval
+// as seconds and increases it by a random jitter in the range of
+// [0, 0.2 * getSyncInterval()]. Increased sync interval ameliorates the thundering
+// herd effect at the Orc8r.
+func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
+	return math.JitterUint32(syncInterval, gwKey, 0.2)
 }

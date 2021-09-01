@@ -12,9 +12,9 @@ limitations under the License.
 """
 
 import enum
-import iperf3  # Used by recv to reconstruct iperf3.TestResult objects
 import pickle
 
+import iperf3  # Used by recv to reconstruct iperf3.TestResult objects
 
 '''
 TrafficServerInstance and TrafficTestInstance are payloads used to coordinate
@@ -53,6 +53,7 @@ TrafficTestDriver sends TrafficResponse (RESULTS) after tests have completed.
 class TrafficServerInstance(object):
     ''' Information about the server instance for a single uplink/downlink
     traffic channel '''
+
     def __init__(self, ip, port, mac):
         ''' Create a traffic server instance with the given values
 
@@ -71,12 +72,14 @@ class TrafficServerInstance(object):
             '%s:' % type(self).__name__,
             '%s:%d' % (self.ip.exploded, self.port),
             'on device',
-            self.mac))
+            self.mac,
+        ))
 
 
 class TrafficTestInstance(object):
     ''' Information about the test instance for a single uplink/downlink
     traffic channel '''
+
     def __init__(self, is_uplink, is_udp, duration, ip, port):
         ''' Create a traffic test instance with the given values
 
@@ -102,11 +105,13 @@ class TrafficTestInstance(object):
             'test,',
             '%d seconds' % self.duration,
             'for test device at',
-            '%s:%d' % (self.ip.exploded, self.port)))
+            '%s:%d' % (self.ip.exploded, self.port),
+        ))
 
 
 class TrafficMessage(object):
     ''' Message superclass between client and server '''
+
     def __init__(self, message, identifier, payload):
         ''' Create a TrafficMessage of the given type with the specified
         payload
@@ -127,7 +132,8 @@ class TrafficMessage(object):
         return ' '.join((
             '%s' % type(self).__name__,
             '(%s, id %s):' % (self.message.name, str(self.id)),
-            payload_str))
+            payload_str,
+        ))
 
     @staticmethod
     def recv(stream):
@@ -163,12 +169,16 @@ class TrafficMessage(object):
 
 
 # Enumerated type for TrafficRequest; module-level for pickling purposes
-TrafficRequestType = enum.unique(enum.Enum(
-    'TrafficRequestType', 'EXIT SHUTDOWN START TEST'))
+TrafficRequestType = enum.unique(
+    enum.Enum(
+    'TrafficRequestType', 'EXIT SHUTDOWN START TEST',
+    ),
+)
 
 
 class TrafficRequest(TrafficMessage):
     ''' Request object sent from client to server '''
+
     def __init__(self, message, identifier=None, payload=None):
         ''' Create a TrafficRequest of the given type with the specified
         payload
@@ -184,12 +194,16 @@ class TrafficRequest(TrafficMessage):
 
 
 # Enumerated type for TrafficResponse; module-level for pickling purposes
-TrafficResponseType = enum.unique(enum.Enum(
-    'TrafficResponseType', 'INFO RESULTS SERVER STARTED'))
+TrafficResponseType = enum.unique(
+    enum.Enum(
+    'TrafficResponseType', 'INFO RESULTS SERVER STARTED',
+    ),
+)
 
 
 class TrafficResponse(TrafficMessage):
     ''' Response object sent from server to client '''
+
     def __init__(self, message, identifier=None, payload=None):
         ''' Create a TrafficResponse of the given type with the specified
         payload

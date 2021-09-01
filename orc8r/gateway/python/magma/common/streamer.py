@@ -58,8 +58,10 @@ class StreamerClient(threading.Thread):
             pass
 
         @abc.abstractmethod
-        def process_update(self, stream_name: str, updates: List[DataUpdate],
-                           resync: bool):
+        def process_update(
+            self, stream_name: str, updates: List[DataUpdate],
+            resync: bool,
+        ):
             """
             Called when we get an update from the cloud. This method will
             be called in the event loop provided to the StreamerClient.
@@ -89,18 +91,21 @@ class StreamerClient(threading.Thread):
 
         # Don't allow stream update rate faster than every 5 seconds
         self._reconnect_pause = get_service_config_value(
-            'streamer', 'reconnect_sec', 60)
+            'streamer', 'reconnect_sec', 60,
+        )
         self._reconnect_pause = max(5, self._reconnect_pause)
         logging.info("Streamer reconnect pause: %d", self._reconnect_pause)
         self._stream_timeout = get_service_config_value(
-            'streamer', 'stream_timeout', 150)
+            'streamer', 'stream_timeout', 150,
+        )
         logging.info("Streamer timeout: %d", self._stream_timeout)
 
     def run(self):
         while True:
             try:
                 channel = ServiceRegistry.get_rpc_channel(
-                    'streamer', ServiceRegistry.CLOUD)
+                    'streamer', ServiceRegistry.CLOUD,
+                )
                 client = StreamerStub(channel)
                 self.process_all_streams(client)
             except Exception as exp:  # pylint: disable=broad-except
@@ -120,7 +125,8 @@ class StreamerClient(threading.Thread):
             except grpc.RpcError as err:
                 logging.error(
                     "Error! Streaming from the cloud failed! [%s] %s",
-                    err.code(), err.details())
+                    err.code(), err.details(),
+                )
                 STREAMER_RESPONSES.labels(result='RpcError').inc()
             except ValueError as err:
                 logging.error("Error! Streaming from cloud failed! %s", err)
@@ -128,11 +134,14 @@ class StreamerClient(threading.Thread):
 
     def process_stream_updates(self, client, stream_name, callback):
         extra_args = self._get_extra_args_any(callback, stream_name)
-        request = StreamRequest(gatewayId=snowflake.snowflake(),
-                                stream_name=stream_name,
-                                extra_args=extra_args)
+        request = StreamRequest(
+            gatewayId=snowflake.snowflake(),
+            stream_name=stream_name,
+            extra_args=extra_args,
+        )
         for update_batch in client.GetUpdates(
-                request, timeout=self._stream_timeout):
+                request, timeout=self._stream_timeout,
+        ):
             self._loop.call_soon_threadsafe(
                 callback.process_update,
                 stream_name,

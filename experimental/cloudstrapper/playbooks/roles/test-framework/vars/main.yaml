@@ -1,0 +1,47 @@
+---
+clusterUuid: testclusteruuid
+testClusterStacks:
+  - agw0
+  - agw1
+testClusterStacksMax:
+  - agw0
+  - agw1
+  - agw2
+  - agw3
+  - agw4
+  - agw5
+  - agw6
+  - agw7
+  - agw8
+  - agw9
+  - agw10
+  - agw11
+  - agw12
+  - agw13
+  - agw14
+  - agw15
+  - agw16
+  - agw17
+  - agw18
+  - agw19
+  - agw20
+  - agw21
+  - agw22
+  - agw23
+  - agw24
+
+servicesMagma:
+  - magma@magmad.service
+
+servicesMagmaWildCard:
+  - magma@*
+
+agwCertsPath: /var/opt/magma/tmp/certs
+agwConfigPath: /var/opt/magma/configs
+
+
+cloudController: "controller.{{ orc8rDomainName }}"
+bootstrapperController: "bootstrapper-controller.{{ orc8rDomainName }}"
+fluentdController: "fluentd.{{ orc8rDomainName }}"
+
+ansible_user: ubuntu

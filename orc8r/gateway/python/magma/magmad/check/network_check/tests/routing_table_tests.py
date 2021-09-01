@@ -18,8 +18,10 @@ from magma.magmad.check.network_check import routing_table
 
 class RoutingTableParseTests(unittest.TestCase):
     def test_parse_bad_output(self):
-        expected = routing_table.RouteCommandResult(error='err',
-                                                    routing_table=[])
+        expected = routing_table.RouteCommandResult(
+            error='err',
+            routing_table=[],
+        )
         actual = routing_table.parse_route_output('output', 'err', None)
         self.assertEqual(expected, actual)
 
@@ -29,7 +31,8 @@ class RoutingTableParseTests(unittest.TestCase):
         ''').strip().encode('ascii')
         expected = routing_table.RouteCommandResult(
             error='Unexpected heading: bad',
-            routing_table=[])
+            routing_table=[],
+        )
         actual = routing_table.parse_route_output(output, '', None)
         self.assertEqual(expected, actual)
 
@@ -84,7 +87,8 @@ class RoutingTableParseTests(unittest.TestCase):
                     genmask='255.255.255.0',
                     network_interface_id='eth2',
                 )._asdict(),
-            ])
+            ],
+        )
         actual = routing_table.parse_route_output(output, '', None)
         self.assertEqual(expected, actual)
 

@@ -24,9 +24,9 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
+	multierrors "magma/orc8r/lib/go/errors"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -38,6 +38,13 @@ const (
 var (
 	indexerTypes = []string{orc8r.DirectoryRecordType}
 )
+
+type directorydRecordParameters struct {
+	imsi      string
+	sessionId string
+	teids     []string
+	hwid      string
+}
 
 type indexerServicer struct{}
 
@@ -57,20 +64,12 @@ func NewIndexerServicer() protos.IndexerServer {
 	return &indexerServicer{}
 }
 
-func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetIndexerInfoRequest) (*protos.GetIndexerInfoResponse, error) {
-	res := &protos.GetIndexerInfoResponse{
-		Version:    uint32(indexerVersion),
-		StateTypes: indexerTypes,
-	}
-	return res, nil
-}
-
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
 	states, err := state_types.MakeStatesByID(req.States, serdes.State)
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := indexImpl(req.NetworkId, states)
+	stErrs, err := indexImpl(ctx, req.NetworkId, states)
 	if err != nil {
 		return nil, err
 	}
@@ -89,56 +88,94 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 	return nil, status.Errorf(codes.InvalidArgument, "unsupported from/to for CompleteReindex: %v to %v", req.FromVersion, req.ToVersion)
 }
 
-func indexImpl(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setSessionID(networkID, states)
+func indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	return setSecondaryStates(ctx, networkID, states)
 }
 
-// setSessionID maps {sessionID -> IMSI}.
-func setSessionID(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+// setSecondaryState maps {sessionID -> IMSI} and {teid -> HwId}
+// Will attempt to update all secondary states, but will return error if any fails
+func setSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
 	sessionIDToIMSI := map[string]string{}
+	teidoHwId := map[string]string{}
 	stateErrors := state_types.StateErrors{}
 	for id, st := range states {
-		sessionID, imsi, err := getSessionIDAndIMSI(id, st)
+		params, err := extractRecordParameters(id, st)
 		if err != nil {
 			stateErrors[id] = err
 			continue
 		}
-		if sessionID == "" {
-			glog.V(2).Infof("Session ID not found for record from %s", imsi)
-			continue
+		if params.sessionId != "" {
+			sessionIDToIMSI[params.sessionId] = params.imsi
 		}
 
-		sessionIDToIMSI[sessionID] = imsi
+		for _, teid := range params.teids {
+			teidoHwId[teid] = params.hwid
+		}
 	}
 
-	if len(sessionIDToIMSI) == 0 {
+	if len(sessionIDToIMSI) == 0 && len(teidoHwId) == 0 {
 		return stateErrors, nil
 	}
 
-	err := directoryd.MapSessionIDsToIMSIs(networkID, sessionIDToIMSI)
-	if err != nil {
-		return stateErrors, errors.Wrapf(err, "update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
+	multiError := multierrors.NewMulti()
+	if len(sessionIDToIMSI) != 0 {
+		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
+		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
 	}
-
-	return stateErrors, nil
+	if len(teidoHwId) != 0 {
+		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, teidoHwId)
+		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of teid To HwID %+v", sessionIDToIMSI)
+	}
+	// multiError will only be nil if both updates succeeded
+	return stateErrors, multiError.AsError()
 }
 
-// getSessionIDAndIMSI extracts session ID and IMSI from the state.
-// Returns (session ID, IMSI, error).
-func getSessionIDAndIMSI(id state_types.ID, st state_types.State) (string, string, error) {
+// extractRecordParameters extracts IMSI, SessionID, TEID and HwID from directory record
+// Returns error any error is found. No partial updates are allowed.
+func extractRecordParameters(id state_types.ID, st state_types.State) (*directorydRecordParameters, error) {
 	imsi := id.DeviceID
-
 	record, ok := st.ReportedState.(*directoryd_types.DirectoryRecord)
 	if !ok {
-		return "", "", fmt.Errorf(
+		return nil, fmt.Errorf(
 			"convert reported state (id: <%+v>, state: <%+v>) to type %s",
 			id, st, orc8r.DirectoryRecordType,
 		)
 	}
 	sessionID, err := record.GetSessionID()
 	if err != nil {
-		return "", "", errors.Wrap(err, "extract session ID from record")
+		return nil, err
+	}
+	teids, hwid, err := getTeidToHwIdPair(record)
+	if err != nil {
+		return nil, err
+	}
+	// log an error in case blank sessionId and no teid
+	if sessionID == "" && len(teids) == 0 {
+		glog.V(2).Infof("Session ID not found for record from %s", imsi)
 	}
 
-	return sessionID, imsi, nil
+	return &directorydRecordParameters{
+		imsi:      imsi,
+		sessionId: sessionID,
+		teids:     teids,
+		hwid:      hwid,
+	}, nil
+}
+
+// getTeidToHwIdPair will return all the TEIDs for that IMSI and its current location (HwID)
+func getTeidToHwIdPair(record *directoryd_types.DirectoryRecord) ([]string, string, error) {
+	teids, err := record.GetSgwCTeids()
+	if err != nil {
+		return nil, "", err
+	}
+	if len(teids) == 0 {
+		return nil, "", nil
+	}
+
+	// GetLocationHistory will always return
+	hwid, err := record.GetCurrentLocation()
+	if err != nil {
+		return nil, "", err
+	}
+	return teids, hwid, nil
 }

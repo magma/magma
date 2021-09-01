@@ -17,6 +17,8 @@ import (
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/state"
@@ -27,7 +29,11 @@ var (
 	// used in the CWF module
 	Network = serdes.Network.
 		MustMerge(models.NetworkSerdes).
-		MustMerge(feg_models.NetworkSerdes)
+		// FeG serdes
+		MustMerge(feg_models.NetworkSerdes).
+		// LTE serdes
+		MustMerge(lte_models.NetworkSerdes).
+		MustMerge(policydb_models.NetworkSerdes)
 	// Entity contains the full set of configurator network entity serdes used
 	// in the CWF module
 	Entity = serdes.Entity.

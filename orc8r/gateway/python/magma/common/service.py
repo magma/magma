@@ -19,7 +19,7 @@ import os
 import signal
 import time
 from concurrent import futures
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import grpc
 import pkg_resources
@@ -130,7 +130,9 @@ class MagmaService(Service303Servicer):
 
         if self._config and 'grpc_workers' in self._config:
             self._server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']),
+                futures.ThreadPoolExecutor(
+                    max_workers=self._config['grpc_workers'],
+                ),
             )
         else:
             self._server = grpc.server(
@@ -140,9 +142,7 @@ class MagmaService(Service303Servicer):
 
     @property
     def version(self):
-        """
-        Returns the current running version of the Magma service
-        """
+        """Return the current running version of the Magma service"""
         return self._version
 
     @property
@@ -156,64 +156,46 @@ class MagmaService(Service303Servicer):
 
     @property
     def rpc_server(self):
-        """
-        Returns the RPC server used by the service
-        """
+        """Return the RPC server used by the service"""
         return self._server
 
     @property
     def port(self):
-        """
-        Returns the listening port of the service
-        """
+        """Return the listening port of the service"""
         return self._port
 
     @property
     def loop(self):
-        """
-        Returns the asyncio event loop used by the service
-        """
+        """Return the asyncio event loop used by the service"""
         return self._loop
 
     @property
     def state(self):
-        """
-        Returns the state of the service
-        """
+        """Return the state of the service"""
         return self._state
 
     @property
-    def config(self):
-        """
-        Returns the service config
-        """
+    def config(self) -> Dict[str, Any]:
+        """Return the service config"""
         return self._config
 
     @property
     def mconfig(self):
-        """
-        Returns the managed config
-        """
+        """Return the managed config"""
         return self._mconfig
 
     @property
     def mconfig_metadata(self):
-        """
-        Returns the metadata of the managed config
-        """
+        """Return the metadata of the managed config"""
         return self._mconfig_metadata
 
     @property
     def mconfig_manager(self):
-        """
-        Returns the mconfig manager for this service
-        """
+        """Return the mconfig manager for this service"""
         return self._mconfig_manager
 
     def reload_config(self):
-        """
-        Reloads the local config for the service
-        """
+        """Reload the local config for the service"""
         try:
             self._config = load_service_config(self._name)
             self._setup_logging()
@@ -221,9 +203,7 @@ class MagmaService(Service303Servicer):
             logging.warning(e)
 
     def reload_mconfig(self):
-        """
-        Reloads the managed config for the service
-        """
+        """Reload the managed config for the service"""
         try:
             # reload mconfig manager in case feature flag for streaming changed
             self._mconfig_manager = get_mconfig_manager()
@@ -237,11 +217,16 @@ class MagmaService(Service303Servicer):
             logging.warning(e)
 
     def add_operational_states(self, states: List[State]):
+        """Add a list of states into the service
+
+        Args:
+            states (List[State]): [description]
+        """
         self._operational_states.extend(states)
 
     def run(self):
         """
-        Starts the service and runs the event loop until a term signal
+        Start the service and runs the event loop until a term signal
         is received or a StopService rpc call is made on the Service303
         interface.
         """
@@ -258,24 +243,29 @@ class MagmaService(Service303Servicer):
 
     def close(self):
         """
-        Cleans up the service before termination. This needs to be
+        Clean up the service before termination. This needs to be
         called atleast once after the service has been inited.
         """
         self._loop.close()
         self._server.stop(0).wait()
 
     def register_get_status_callback(self, get_status_callback):
-        """ Register function for getting status.
-            Must return a map(string, string)"""
+        """Register function for getting status
+
+        Must return a map(string, string)
+        """
         self._get_status_callback = get_status_callback
 
     def register_operational_states_callback(self, get_operational_states_cb):
+        """Register the callback function that gets called on GetOperationalStates rpc
+
+        Args:
+            get_operational_states_cb ([type]): callback function
+        """
         self._get_operational_states_cb = get_operational_states_cb
 
     def _stop(self, reason):
-        """
-        Stops the service gracefully
-        """
+        """Stop the service gracefully"""
         logging.info("Stopping %s with reason %s...", self._name, reason)
         self._state = ServiceInfo.STOPPING
         self._server.stop(0)
@@ -295,30 +285,55 @@ class MagmaService(Service303Servicer):
         """
         os.environ['GRPC_POLL_STRATEGY'] = 'epoll1,poll'
 
-    def _setup_logging(self):
-        """
-        Setup the logging for the service
-        """
+    def _get_log_level_from_config(self) -> Optional[int]:
         if self._config is None:
-            config_level = None
-        else:
-            config_level = self._config.get('log_level', None)
-            if config_level is None and self._mconfig is not None:
-                config_level = LogLevel.Name(self._mconfig.log_level)
+            return None
+        log_level = self._config.get('log_level', None)
+        if log_level is None:
+            return None
+        # convert from log level string to LogLevel enum value
         try:
-            proto_level = LogLevel.Value(config_level)
+            proto_level = LogLevel.Value(log_level)
         except ValueError:
             logging.error(
-                'Unknown logging level in config: %s, defaulting to INFO',
-                config_level,
+                'Unknown logging level in config: %s, ignoring',
+                log_level,
             )
-            proto_level = LogLevel.Value('INFO')
-        self._set_log_level(proto_level)
+            return None
+        return proto_level
+
+    def _get_log_level_from_mconfig(self) -> Optional[int]:
+        if self._mconfig is None:
+            return None
+        return self._mconfig.log_level
+
+    def _setup_logging(self):
+        """Set up log level from config values
+
+        The config file on the AGW takes precedence over the mconfig
+        If neither config file nor mconfig has the log level config, default to INFO
+        """
+        log_level_from_config = self._get_log_level_from_config()
+        log_level_from_mconfig = self._get_log_level_from_mconfig()
+
+        if log_level_from_config:
+            log_level = log_level_from_config
+        elif log_level_from_mconfig:
+            log_level = log_level_from_mconfig
+        else:
+            logging.warning(
+                'logging level is not specified in either yml config '
+                'or mconfig, defaulting to INFO',
+            )
+            log_level = LogLevel.Value('INFO')
+        self._set_log_level(log_level)
 
     @staticmethod
-    def _set_log_level(proto_level):
-        """
-        Set log level based on proto-enum level
+    def _set_log_level(proto_level: int):
+        """Set log level based on proto-enum level
+
+        Args:
+            proto_level (int): proto enum defined in common.proto
         """
         if proto_level == LogLevel.Value('DEBUG'):
             level = logging.DEBUG
@@ -345,9 +360,9 @@ class MagmaService(Service303Servicer):
         logger.setLevel(level)
 
     def _register_signal_handlers(self):
-        """
-        Register signal handlers. Right now we just exit on
-        SIGINT/SIGTERM/SIGQUIT.
+        """Register signal handlers
+
+        Right now we just exit on SIGINT/SIGTERM/SIGQUIT
         """
         for signame in ['SIGINT', 'SIGTERM', 'SIGQUIT']:
             self._loop.add_signal_handler(
@@ -363,9 +378,7 @@ class MagmaService(Service303Servicer):
         )
 
     def GetServiceInfo(self, request, context):
-        """
-        Returns the service info (name, version, state, meta, etc.)
-        """
+        """Return the service info (name, version, state, meta, etc.)"""
         service_info = ServiceInfo(
             name=self._name,
             version=self._version,
@@ -382,9 +395,7 @@ class MagmaService(Service303Servicer):
         return service_info
 
     def StopService(self, request, context):
-        """
-        Handles request to stop the service
-        """
+        """Handle request to stop the service"""
         logging.info("Request to stop service.")
         self._loop.call_soon_threadsafe(self._stop, 'RPC')
         return Void()
@@ -399,9 +410,7 @@ class MagmaService(Service303Servicer):
         return metrics
 
     def SetLogLevel(self, request, context):
-        """
-        Handles request to set the log level
-        """
+        """Handle request to set the log level"""
         self._set_log_level(request.level)
         return Void()
 
@@ -409,16 +418,12 @@ class MagmaService(Service303Servicer):
         pass  # Not Implemented
 
     def ReloadServiceConfig(self, request, context):
-        """
-        Handles request to reload the service config file
-        """
+        """Handle request to reload the service config file"""
         self.reload_config()
         return ReloadConfigResponse(result=ReloadConfigResponse.RELOAD_SUCCESS)
 
     def GetOperationalStates(self, request, context):
-        """
-        Returns the  operational states of devices managed by this service.
-        """
+        """Return the  operational states of devices managed by this service."""
         res = GetOperationalStatesResponse()
         if self._get_operational_states_cb is not None:
             states = self._get_operational_states_cb()
@@ -429,7 +434,7 @@ class MagmaService(Service303Servicer):
 def get_service303_client(service_name: str, location: str) \
         -> Optional[Service303Stub]:
     """
-    get_service303_client returns a grpc client attached to the given service
+    Return a grpc client attached to the given service
     name and location.
     Example Use: client = get_service303_client("state", ServiceRegistry.LOCAL)
     """

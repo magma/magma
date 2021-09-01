@@ -2,16 +2,16 @@
 - name: query all security groups
   ec2_group_info:
     filters:
-      group-name: "{{ secgroupDefault }}" 
+      group-name: "{{ secgroupDefault }}"
   register: reg_secgroup
 
 - name: assign security group id to variable
   set_fact:
-    factSecgroup: "{{ reg_secgroup.security_groups[0].group_id }}" 
+    factSecgroup: "{{ reg_secgroup.security_groups[0].group_id }}"
 
 - name: instantiate ec2 instance using cloudformation
   cloudformation:
-    stack_name: "stackMantleDevOpsCloudstrapper"
+    stack_name: "{{ stackDevOpsCloudstrapper }}"
     state: present
     region: "{{ awsAgwRegion }}"
     disable_rollback: true
@@ -22,5 +22,3 @@
       paramTagId: "Mantle"
       paramTagName: "{{ devOpsCloudstrapper }}"
       paramImageId: "{{ buildUbuntuAmi }}"
-        
-

@@ -17,7 +17,9 @@
 
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 
+import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
+
 import {AccessRoles} from '@fbcnms/auth/roles';
 import {Organization, User} from '@fbcnms/sequelize-models';
 
@@ -75,7 +77,10 @@ async function createOrFetchOrganization(
 ): Promise<OrganizationType> {
   let org = await Organization.findOne({
     where: {
-      name: organization,
+      name: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', organization),
+      ),
     },
   });
   if (!org) {

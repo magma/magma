@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
 import ctypes
+import time
+import unittest
 from builtins import range
 
 import s1ap_types
@@ -46,11 +46,13 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
 
         # column is an enb parameter, row is number of enbs
         """         Cell Id, Tac, EnbType, PLMN Id, PLMN length """
-        enb_list = [[1, 1, 1, "00101", 5],
-                    [2, 1, 1, "00101", 5],
-                    [3, 1, 1, "00101", 5],
-                    [4, 1, 1, "00101", 5],
-                    [5, 1, 1, "00101", 5]]
+        enb_list = [
+            [1, 1, 1, "00101", 5],
+            [2, 1, 1, "00101", 5],
+            [3, 1, 1, "00101", 5],
+            [4, 1, 1, "00101", 5],
+            [5, 1, 1, "00101", 5],
+        ]
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
@@ -61,8 +63,10 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Calling attach for UE id ",
-                  req.ue_id)
+            print(
+                "************************* Calling attach for UE id ",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
@@ -99,7 +103,8 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
             )
         print("ue_ids", ue_ids)
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req)
+            s1ap_types.tfwCmd.RESET_REQ, reset_req,
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
         # Trigger detach request
@@ -108,7 +113,7 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
             # self._s1ap_wrapper.s1_util.detach(
             #    ue, detach_type, wait_for_s1)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
             )
 
 

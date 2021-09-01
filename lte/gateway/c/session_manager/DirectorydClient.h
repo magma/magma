@@ -20,7 +20,7 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
 
 namespace magma {

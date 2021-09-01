@@ -9,3 +9,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# All orchestratorCerts are assumed to live in this directory
+certsDirectory: "/var/opt/magma/certs/"
+
+# These certs will be alerted on when near expiry, so only include
+# certs that are necessary for Orc8r function
+orchestratorCerts:
+  - "rootCA.pem"
+  - "admin_operator.pem"
+  - "controller.crt"
+  - "certifier.pem"
+  - "fluentd.pem"
+
+analytics:
+  # Metrics in this certifier configuration should strictly be generic in
+  # nature independent of the type of deployment. It is to be also free of any
+  # user level metrics
+  metrics:
+    # cert metrics
+    cert_expires_in_hours:
+      register: true
+      export: false

@@ -1,5 +1,5 @@
 ---
-id: deploy_configure
+id: configure_federation
 title: Configure FeG
 hide_title: true
 ---
@@ -8,14 +8,14 @@ hide_title: true
 
 ## Basic Configuration Steps
 
-Basic installation steps: [_https://magma.github.io/magma/docs/feg/deploy_install_](https://magma.github.io/magma/docs/feg/deploy_install)
+For Basic installation instructions follow "[Installing Federation Gateway](../feg/deploy_install.md)"
 
 There are a few configuration steps that are not yet exposed in NMS that must be done manually via the REST API.
 
 Magma has two important concepts on federation:
 
-* **Federation Network:** An entity holding the higher level configuration of a given federation method. For example, in a system without a PCRF federation this may hold the network-wide policy rules.
-* **Federated LTE Network:** An entity holding the specific configurations for a given LTE federation. For example, this may hold Gx/Gy/S6a specific configurations such as the availability of each interface on the gateway and the target servers.
+- **Federation Network:** An entity holding the higher level configuration of a given federation method. For example, in a system without a PCRF federation this may hold the network-wide policy rules.
+- **Federated LTE Network:** An entity holding the specific configurations for a given LTE federation. For example, this may hold Gx/Gy/S6a specific configurations such as the availability of each interface on the gateway and the target servers.
 
 When configuring an integration with LTE nodes, it is necessary to link these two entities as described in the following sections.
 
@@ -33,7 +33,7 @@ In order to complete the association, we also need to modify the **Federation Ne
 
 Ensure that the following field “served_network_ids” has the **Federated LTE** **Network** networkID.
 
-```
+```text
   "served_network_ids": [
     "fwa_agw_1"
   ]
@@ -44,7 +44,8 @@ Ensure that the following field “served_network_ids” has the **Federated LTE
 In **Federated LTE** **Network**’s EPC configuration, ensure both of the relay flags are set to `true`.
 
 ![API-LTE-Network-EPC-Config.png](assets/feg/API-LTE-Network-EPC-Config.png)
-```
+
+```text
   "gx_gy_relay_enabled": true,
   "hss_relay_enabled": true,
 ```
@@ -62,7 +63,6 @@ In the policy configuration’s edit dialogue, use the **Network Wide** check bo
 
 ![NMS-Network-Wide-Rules-Config.png](assets/feg/NMS-Network-Wide-Rules-Config.png)
 
-
 ## Advanced Configuration Steps
 
 ### Enabling Redirection Support
@@ -70,7 +70,8 @@ In the policy configuration’s edit dialogue, use the **Network Wide** check bo
 In order to enable FUA-redirection support, enable the `redirectd` service in the magmad configuration.
 
 ![API-LTE-Magmad-Config.png](assets/feg/API-LTE-Magmad-Config.png)
-```
+
+```text
 "dynamic_services": ["eventd","td-agent-bit","redirectd"]
 ```
 
@@ -84,7 +85,7 @@ In order to enable FUA-redirection support, enable the `redirectd` service in th
 
 The relevant configurations for disabling Gx/Gy are:
 
-```
+```text
 "gx": {
     "disableGx": false,
 },
@@ -92,8 +93,6 @@ The relevant configurations for disabling Gx/Gy are:
     "disableGy": false,
 }
 ```
-
-
 
 ### PLMN filter
 
@@ -107,7 +106,7 @@ null, s6a will send any IMSI request to HSS.
 
 ![API-Federation-Network-Config.png](assets/feg/API-Federation-Network-Config.png)
 
-```
+```text
 "s6a": {
     "plmn_ids": [
       "123456"
@@ -118,6 +117,7 @@ null, s6a will send any IMSI request to HSS.
 This feature is disabled by default (so any session request from any IMSI will be sent to HSS)
 
 ### Virtual APN
+
 To replace UE specified APNs with a config specified APN for Gx and Gy, use the
 Federation API endpoint.
 Under either Gx or Gy configuration, you can specify a list of filters and
@@ -126,7 +126,8 @@ virtual APN value.
 For example, the configuration below will replace any APNs of sessions with
 APN of form `internet.*` and charging characteristic 12. However, the virtual
 APN will only be applied for the Gx interactions, as the config for Gy is empty.
-```
+
+```text
 "gx": {
     ...
     "virtual_apn_rules": [
@@ -147,50 +148,48 @@ APN will only be applied for the Gx interactions, as the config for Gy is empty.
 
 ### FeG
 
-* Here are the steps to test the FeG <-> Gx/Gy/S6a connections
-    * Exec into `session_proxy` container: `docker exec -it session_proxy bash`
-    * Run `/var/opt/magma/bin/gx_client_cli `with the following parameters
-        * --commands=IT
-        * --dest_host
-        * --dest_realm
-        * --addr
-        * --realm
-        * --host
-        * --imsi
-    * Run `/var/opt/magma/bin/gy_client_cli` with the following parameters
-        * --commands=IT
-        * --addr
-    * Run `/var/opt/magma/bin/s6a_client_cli air <IMSI>`
-        * Example: `/var/opt/magma/bin/s6a_cli air 001010000091111`
+- Here are the steps to test the FeG <-> Gx/Gy/S6a connections
+    - Exec into `session_proxy` container: `docker exec -it session_proxy bash`
+    - Run `/var/opt/magma/bin/gx_client_cli`with the following parameters
+        - --commands=IT
+        - --dest_host
+        - --dest_realm
+        - --addr
+        - --realm
+        - --host
+        - --imsi
+    - Run `/var/opt/magma/bin/gy_client_cli` with the following parameters
+        - --commands=IT
+        - --addr
+    - Run `/var/opt/magma/bin/s6a_client_cli air <IMSI>`
+        - Example: `/var/opt/magma/bin/s6a_cli air 001010000091111`
 
 ### AGW
 
-* Ensure the basic AGW features are healthy. (Checkin, Bootstrapping, etc.)
-* Ensure that **enable_config_streamer** is set in `/etc/magma/magmad.yml`
-* Ensure that the streamed SessionD config shows **gxGyRelayEnabled** as set
-    * Run `magma_get_config.py -s sessiond`
-* Ensure that the streamed SubscriberDB config shows **hssRelayEnabled** as set
-    * Run `magma_get_config.py -s subscriberdb`
+- Ensure the basic AGW features are healthy. (Checkin, Bootstrapping, etc.)
+- Ensure that **enable_config_streamer** is set in `/etc/magma/magmad.yml`
+- Ensure that the streamed SessionD config shows **gxGyRelayEnabled** as set
+    - Run `magma_get_config.py -s sessiond`
+- Ensure that the streamed SubscriberDB config shows **hssRelayEnabled** as set
+    - Run `magma_get_config.py -s subscriberdb`
 
 ## Various Debugging / Issue Reporting Tips
 
 ### PCAPs
 
-* For any Gx/Gy/S6a issues, a PCAP on FeG is extremely helpful.
-* For any AGW issue, a PCAP on AGW is probably useful.
-* For Gx/Gy issues, SessionD + SessionProxy logs are useful
-* For datapath issues, SessionD + PipelineD logs are useful
-
-
+- For any Gx/Gy/S6a issues, a PCAP on FeG is extremely helpful.
+- For any AGW issue, a PCAP on AGW is probably useful.
+- For Gx/Gy issues, SessionD + SessionProxy logs are useful
+- For datapath issues, SessionD + PipelineD logs are useful
 
 ### Log Levels
 
-* SessionD’s log level at ‘DEBUG’ level to get granular insight on data usage tracking
-* Enabling logging for GRPC messages between services
-    * For AGW, modify `/etc/environment` to include `MAGMA_PRINT_GRPC_PAYLOAD="1"` and restart all services. This flag will only work for the SessionD service on the AGW.
-    * For FeG, add the environment variable in the docker-compose file as the following.
-```
+- SessionD’s log level at ‘DEBUG’ level to get granular insight on data usage tracking
+- Enabling logging for GRPC messages between services
+    - For AGW, modify `/etc/environment` to include `MAGMA_PRINT_GRPC_PAYLOAD="1"` and restart all services. This flag will only work for the SessionD service on the AGW.
+    - For FeG, add the environment variable in the docker-compose file as the following.
+
+```yaml
 environment:
     MAGMA_PRINT_GRPC_PAYLOAD: 1
 ```
-

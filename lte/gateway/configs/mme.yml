@@ -20,10 +20,16 @@ cert_dir: "/usr/local/etc/oai"
 hss_ip: "192.168.60.153"
 hss_hostname: "hss"
 use_stateless: true
-enable_converged_core: false
 use_ha: false
 enable_gtpu_private_ip_correction: false
 enable_apn_correction: false
 apn_correction_map_list:
         - imsi_prefix: "00101"
           apn_override: "magma.ipv4"
+
+congestion_control_enabled: true
+s1ap_zmq_th_us: 2000000  # delay threshold used for dropping initial UE message
+mme_app_zmq_congest_th_us: 100000  # delay threshold used for rejecting attach requests
+mme_app_zmq_auth_th_us: 200000  # delay threshold used for dropping Authentication Complete
+mme_app_zmq_ident_th_us: 400000  # delay threshold used for dropping Identification Complete
+mme_app_zmq_smc_th_us: 1000000  # delay threshold used for dropping SMC Complete

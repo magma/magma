@@ -14,6 +14,8 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "orc8r/protos/digest.proto";
+import "lte/protos/apn.proto";
 import "google/protobuf/field_mask.proto";
 
 package magma.lte;
@@ -102,50 +104,9 @@ enum AccessNetworkIdentifier {
   ETHERNET = 3;
 }
 
-message APNConfiguration {
-  // APN identifier
-  uint32 context_id = 1;
-  // Contains either the APN Name or wildcard "*"
-  string service_selection = 2;
-  // APN QoS profile
-  QoSProfile qos_profile = 3;
-  // APN authorized bitrate
-  AggregatedMaximumBitrate ambr = 4;
-
-  enum PDNType {
-    IPV4 = 0;
-    IPV6 = 1;
-    IPV4V6 = 2;
-    IPV4_OR_IPV6 = 3;
-  }
-  PDNType pdn = 5;
-
-  // Optional static IP to allocate for this subscriber on this APN
-  string assigned_static_ip = 6;
-
-  // For details about values see 29.212
-  message QoSProfile {
-    int32 class_id = 1;
-    uint32 priority_level = 2;
-    bool preemption_capability = 3;
-    bool preemption_vulnerability = 4;
-  }
-
-  message APNResource {
-    string apn_name = 1;
-    string gateway_ip = 2;
-    string gateway_mac = 3;
-    uint32 vlan_id = 4;
-  }
-  // resource is gateway-specific guidance for serving the APN
-  APNResource resource = 7;
-}
-
-message AggregatedMaximumBitrate {
-  // Maximum uplink bitrate
-  uint32 max_bandwidth_ul = 1;
-  // Maximum downlink bitrate
-  uint32 max_bandwidth_dl = 2;
+message SubscriberAPNConfig {
+  uint32 apn_id = 1;
+  string assigned_static_ip = 2;
 }
 
 message Non3GPPUserProfile {
@@ -174,6 +135,9 @@ message Non3GPPUserProfile {
   repeated APNConfiguration apn_config = 5;
 
   AccessNetworkIdentifier access_net_id = 6;
+
+  // subscriber specific APN config
+  repeated SubscriberAPNConfig subscriber_apn_config = 7;
 }
 
 // --------------------------------------------------------------------------
@@ -241,8 +205,41 @@ service SubscriberDB {
 // SubscriberDB cloud service definition.
 // --------------------------------------------------------------------------
 service SubscriberDBCloud {
+  // CheckSubscribersInSync checks whether the client subscribers flat digest
+  // is up-to-date.
+  rpc CheckInSync (CheckInSyncRequest) returns (CheckInSyncResponse) {}
+  // SyncSubscribers returns the changeset of subscribers between client and
+  // cloud if the set is small; if the set is large, returns signal to resync.
+  rpc Sync (SyncRequest) returns (SyncResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+}
+
+message CheckInSyncRequest {
+  // root_digest is the deterministic digest of the full set of config
+  // objects stored on the client side.
+  magma.orc8r.Digest root_digest = 1;
+}
+
+message CheckInSyncResponse {
+  // in_sync is true if client's existing configs match those on the cloud.
+  bool in_sync = 1;
+}
+
+message SyncRequest {
+  // leaf_digests contains a list of digests for each client-side config object,
+  // ordered by their IDs.
+  repeated magma.orc8r.LeafDigest leaf_digests = 1;
+}
+
+message SyncResponse {
+  // resync is true if the client-server data difference is too big and an
+  // overall resync is needed. If true, all subscriber changesets will be empty.
+  bool resync = 1;
+  // digests contains all digests for the network.
+  magma.orc8r.DigestTree digests = 2;
+  // changeset contains the client-server data difference.
+  magma.orc8r.Changeset changeset = 3;
 }
 
 message ListSubscribersRequest {
@@ -257,4 +254,6 @@ message ListSubscribersResponse {
   // next_page_token is a serialized entity page token for subsequent paginated
   // loads.
   string next_page_token = 2;
+  // digests contains all digests for the network.
+  magma.orc8r.DigestTree digests = 3;
 }

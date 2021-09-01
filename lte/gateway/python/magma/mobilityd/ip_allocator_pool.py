@@ -62,7 +62,6 @@ class IpAllocatorPool(IPAllocator):
         """
         for blk in self._store.assigned_ip_blocks:
             if ipblock.overlaps(blk):
-                logging.warning("Overlapped IP block: %s", ipblock)
                 raise OverlappedIPBlocksError(ipblock)
 
         self._store.assigned_ip_blocks.add(ipblock)
@@ -72,15 +71,19 @@ class IpAllocatorPool(IPAllocator):
         for ip in ipblock.hosts():
             state = IPState.RESERVED if num_reserved_addresses > 0 \
                 else IPState.FREE
-            ip_desc = IPDesc(ip=ip, state=state,
-                             ip_block=ipblock, sid=None,
-                             ip_type=IPType.IP_POOL)
+            ip_desc = IPDesc(
+                ip=ip, state=state,
+                ip_block=ipblock, sid=None,
+                ip_type=IPType.IP_POOL,
+            )
             self._store.ip_state_map.add_ip_to_state(ip, ip_desc, state)
             if num_reserved_addresses > 0:
                 num_reserved_addresses -= 1
 
-    def remove_ip_blocks(self, ipblocks: List[ip_network],
-                         force: bool = False) -> List[ip_network]:
+    def remove_ip_blocks(
+        self, ipblocks: List[ip_network],
+        force: bool = False,
+    ) -> List[ip_network]:
         """ Makes the indicated block(s) unavailable for allocation
 
         If force is False, blocks that have any addresses currently allocated
@@ -107,18 +110,22 @@ class IpAllocatorPool(IPAllocator):
         """
 
         remove_blocks = set(ipblocks) & self._store.assigned_ip_blocks
-        logging.warning("_assigned_ip_blocks %s",
-                        self._store.assigned_ip_blocks)
-        logging.warning("arg ipblocks %s", ipblocks)
+        logging.debug(
+            "Current assigned IP blocks: %s",
+            self._store.assigned_ip_blocks,
+        )
+        logging.debug("IP blocks to remove: %s", ipblocks)
 
         extraneous_blocks = set(ipblocks) ^ remove_blocks
         # check unknown ip blocks
         if extraneous_blocks:
-            logging.warning("Cannot remove unknown IP block(s): %s",
-                            extraneous_blocks)
+            logging.warning(
+                "Cannot remove unknown IP block(s): %s",
+                extraneous_blocks,
+            )
         del extraneous_blocks
 
-        # "soft" removal does not remove blocks have IPs allocated
+        # "soft" removal does not remove blocks which have IPs allocated
         if not force:
             allocated_ip_block_set = self._store.ip_state_map.get_allocated_ip_block_set()
             remove_blocks -= allocated_ip_block_set
@@ -131,11 +138,15 @@ class IpAllocatorPool(IPAllocator):
             for state in (IPState.FREE, IPState.RELEASED, IPState.REAPED):
                 self._store.ip_state_map.remove_ip_from_state(ip, state)
             if force:
-                self._store.ip_state_map.remove_ip_from_state(ip,
-                                                              IPState.ALLOCATED)
+                self._store.ip_state_map.remove_ip_from_state(
+                    ip,
+                    IPState.ALLOCATED,
+                )
             else:
-                assert not self._store.ip_state_map.test_ip_state(ip,
-                                                                  IPState.ALLOCATED), \
+                assert not self._store.ip_state_map.test_ip_state(
+                    ip,
+                    IPState.ALLOCATED,
+                ), \
                     "Unexpected ALLOCATED IP %s from a soft IP block " \
                     "removal "
 
@@ -147,8 +158,10 @@ class IpAllocatorPool(IPAllocator):
         self._store.assigned_ip_blocks -= remove_blocks
 
         # Can't use generators here
-        remove_sids = tuple(sid for sid in self._store.sid_ips_map
-                            if not self._store.sid_ips_map[sid])
+        remove_sids = tuple(
+            sid for sid in self._store.sid_ips_map
+            if not self._store.sid_ips_map[sid]
+        )
         for sid in remove_sids:
             self._store.sid_ips_map.pop(sid)
 
@@ -182,8 +195,10 @@ class IpAllocatorPool(IPAllocator):
             logging.error("Listing an unknown IP block: %s", ipblock)
             raise IPBlockNotFoundError(ipblock)
 
-        res = [ip for ip in ipblock \
-               if self._store.ip_state_map.test_ip_state(ip, IPState.ALLOCATED)]
+        res = [
+            ip for ip in ipblock
+            if self._store.ip_state_map.test_ip_state(ip, IPState.ALLOCATED)
+        ]
         return res
 
     def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:

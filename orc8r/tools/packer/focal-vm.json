@@ -1,0 +1,29 @@
+{
+  "builders":
+    [
+      {
+        "type": "virtualbox-vm",
+        "communicator": "ssh",
+        "headless": "true",
+        "ssh_username": "vagrant",
+        "ssh_password": "vagrant",
+        "ssh_timeout": "10m",
+        "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+        "guest_additions_mode": "disable",
+        "output_directory": "./builds-vm",
+        "vm_name": "magma-dev",
+        "target_snapshot": "magma-dev",
+        "force_delete_snapshot": "true",
+        "keep_registered": "false",
+        "skip_export": "false",
+        "format": "ovf"
+        }
+      ],
+      "post-processors":
+        [[{
+              "output": "builds/magma_dev_{{.Provider}}.box",
+              "type": "vagrant"
+            }
+          ]
+      ]
+}

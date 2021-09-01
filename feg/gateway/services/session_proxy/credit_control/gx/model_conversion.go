@@ -46,9 +46,17 @@ func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMoni
 }
 
 func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRequestInfo {
-	qos.ApnAggMaxBitRateDL = pQos.GetApnAmbrDl()
-	qos.ApnAggMaxBitRateUL = pQos.GetApnAmbrUl()
-	qos.QosClassIdentifier = pQos.GetQosClassId()
+	switch pQos.BrUnit {
+
+	// 3gpp 29.212, 4.5.30 Extended bandwidth support for EPC supporting Dual Connectivity
+	case protos.QosInformationRequest_KBPS:
+		qos.ApnExtendedAggMaxBitRateDL = pQos.GetApnAmbrDl()
+		qos.ApnExtendedAggMaxBitRateUL = pQos.GetApnAmbrUl()
+	default:
+		qos.ApnAggMaxBitRateDL = pQos.GetApnAmbrDl()
+		qos.ApnAggMaxBitRateUL = pQos.GetApnAmbrUl()
+	}
+
 	qos.PriLevel = pQos.GetPriorityLevel()
 	qos.PreCapability = pQos.GetPreemptionCapability()
 	qos.PreVulnerability = pQos.GetPreemptionVulnerability()
@@ -65,6 +73,8 @@ func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 		FlowList:      rd.GetFlowList(),
 		Qos:           rd.Qos.ToProto(),
 		TrackingType:  rd.GetTrackingType(),
+		Offline:       Int32ToBoolean(rd.Offline),
+		Online:        Int32ToBoolean(rd.Online),
 	}
 }
 
@@ -341,4 +351,9 @@ func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
 	default:
 		return credit_control.IPCAN_Non3GPP
 	}
+}
+
+//Int32ToBoolean converts int32 to true if diffent than 0
+func Int32ToBoolean(val int32) bool {
+	return val != 0
 }

@@ -1,0 +1,34 @@
+---
+
+- name: Gather information about Test Gateway Instance
+  community.aws.ec2_instance_info:
+    filters:
+      "tag:Name": "{{ siteName }}Bridge"
+      "instance-state-name": ["running"]
+  register: testGwInst
+
+- name: Debug information about Test Gateway Instance
+  debug:
+    msg: "{{testGwInst}}"
+
+- name: Gather information about all AGW instances
+  community.aws.ec2_instance_info:
+    filters:
+      "tag:Uuid": "{{ clusterUuid }}"
+      "instance-state-name": ["running"]
+  register: agwNodes
+
+- name: Debug information about all AGW instances
+  debug:
+    msg: "{{agwNodes}}"
+
+- name: create ssh directory
+  file:
+    path: "/root/.ssh"
+    state: directory
+    mode: '0755'
+
+- name: copy ssh config
+  template:
+    src: 'config.j2'
+    dest: "/root/.ssh/config"

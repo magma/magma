@@ -16,41 +16,36 @@ to an AGW service crash.
 
 **1.  Identify and quantify the impact.** Verify if there is any temporary or permanent drop in metrics related to
 service:
-  - Number of Connected eNBs (Grafana -> Dashboards -> Networks)
 
-  - Network of Connected UE (Grafana -> Dashboards -> Networks)
+- Number of Connected eNBs (Grafana -> Dashboards -> Networks)
 
-  - Network of Registered UE (Grafana -> Dashboards -> Networks)
+- Network of Connected UE (Grafana -> Dashboards -> Networks)
 
-  - Attach/ Reg attempts (Grafana -> Dashboards -> Networks)
+- Network of Registered UE (Grafana -> Dashboards -> Networks)
 
-  - Attach Success Rate (Grafana -> Dashboards -> Networks)
+- Attach/ Reg attempts (Grafana -> Dashboards -> Networks)
 
-  - S6a Authentication Success Rate (Grafana -> Dashboards -> Networks)
+- Attach Success Rate (Grafana -> Dashboards -> Networks)
 
-  - Service Request Success Rate (Grafana -> Dashboards -> Networks)
+- S6a Authentication Success Rate (Grafana -> Dashboards -> Networks)
 
-  - Session Create Success Rate (Grafana -> Dashboards -> Networks)
+- Service Request Success Rate (Grafana -> Dashboards -> Networks)
 
-  - Upload/Download Throughput (Grafana -> Dashboards -> Gateway)
+- Session Create Success Rate (Grafana -> Dashboards -> Networks)
+
+- Upload/Download Throughput (Grafana -> Dashboards -> Gateway)
 
     Note: Number of sites(enodeb) down, users affected, and outage duration are key indicators of service impact.
 
 **2. Use metrics to verify if there was a recent service restart** and if this correlates with the metrics degradation. Get an estimated timestamp from the metrics. You can use the following metrics:
 
-  - unexpected_service_restarts
+- unexpected_service_restarts
 
-  - service_restart_status
+- service_restart_status
 
 **3. Verify if the restart was intentionally triggered** by a user (AGW reboot)
 
-  - Use `last reboot` to list the last logged in users and system last reboot time and date.
-
-  - You can confirm the same information in `/var/log/syslog`, logs like kernel loading should indicate the AGW has been rebooted. Example of what the log could look like:
-
-    ```
-    magma kernel: [0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1
-    ```
+- Use `last reboot` to list the last logged in users and system last reboot time and date.
 
     Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related(Consider the time zone difference between Orc8r and AGW.)
 
@@ -58,31 +53,30 @@ service:
 
 **4. Capture the service crash syslogs and coredumps**. Use the approximate time in metrics and look for the events in both syslogs and coredumps
 
-  - In syslogs located in `/var/log`, look for service terminating events and its previous logs. For example, in below mme service crash there is a segfault reported in mme service before its being terminated.
+- In syslogs located in `/var/log`, look for service terminating events and its previous logs. For example, in below mme service crash there is a segfault reported in mme service before its being terminated.
 
-  ```
+  ```text
   Dec 5 22:25:55 magma kernel: [266759.489500] ITTI 3[13887]: segfault at 1d6d80 ip 000055b0080da0c2 sp 00007f529e6c0310 error 4 in mme[55b0077bd000+e79000]
   Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV
   ```
 
-  - Service crashes with a segmentation fault will create coredumps in `/tmp/` folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps
+- Service crashes with a segmentation fault will create coredumps in `/var/core/` folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in <https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps>
 
 **5. Get the backtrace using the coredumps**. To analyze the coredumps, you need 3 requirements.
 
+- Coredump file
 
-  - Coredump file
+- service binary, (ie. for mme `/usr/local/bin/mme`)
 
-  - service binary, (ie. for mme `/usr/local/bin/mme`)
-
-  - gdb package installed
+- gdb package installed
 
 You can read the coredumps in any AGW or machine with these requirements. Example:  `gdb mme core-1607217955-ITTI`
 
 Within the gdb shell, `bt` command will display the backtrace for the segmentation fault. You should expect
 an output like this:
 
-```
-203	/home/vagrant/magma/lte/gateway/c/oai/tasks/nas/nas_procedures.c: No such file or directory.
+```text
+203 /home/vagrant/magma/lte/gateway/c/oai/tasks/nas/nas_procedures.c: No such file or directory.
 [Current thread is 1 (process 13887)]
 (gdb) bt
 #0  get_nas_specific_procedure_attach (ctxt=ctxt@entry=0x6210000d64b0) at /home/vagrant/magma/lte/gateway/c/oai/tasks/nas/nas_procedures.c:203
@@ -108,10 +102,10 @@ Note: If you can't find the timestamp of the crash in syslogs, you can use the l
 
 **7. Put together all information and isolate different root causes**. If you have multiple crashes, make sure you perform these steps for each of these events. This will help to confirm the crashes are happening due a single or multiple issue. For each event, you should collect the following information
 
-  - Detail of Impact
-  - mme binary and the magma version deployed
-  - Log in the syslog of the crash
-  - Backtrace, reading the coredump
-  - Get the event that triggered the crash in mme log
+- Detail of Impact
+- mme binary and the magma version deployed
+- Log in the syslog of the crash
+- Backtrace, reading the coredump
+- Get the event that triggered the crash in mme log
 
 **8. Investigate or seek for help**. Use the collected information to look into previous Github issues/bugs and confirm if this is a known issue or bug that has been fixed in a later version. Otherwise, open a new report with the information collected.

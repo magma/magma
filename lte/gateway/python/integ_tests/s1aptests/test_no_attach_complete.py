@@ -21,7 +21,6 @@ from python.integ_tests.common.service303_utils import (
     verify_gateway_metrics,
 )
 
-
 # This test case is to test EPC behaviour by not sending "attach complete"
 # in the response to multiple retries of  "attach accept" from EPC.
 # EPC is exepcetd to try sending attach accept 5 times when there is no
@@ -88,7 +87,7 @@ class NoAttachComplete(unittest.TestCase):
 
         req = self._s1ap_wrapper.ue_req
         print(
-            "************************* Running attach setup timer expiry test"
+            "************************* Running attach setup timer expiry test",
         )
 
         attach_req = s1ap_types.ueAttachRequest_t()
@@ -101,11 +100,11 @@ class NoAttachComplete(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
@@ -114,26 +113,26 @@ class NoAttachComplete(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
         # EPC would resend Attach accept 4 times and then would abort attach
@@ -141,14 +140,14 @@ class NoAttachComplete(unittest.TestCase):
         for i in range(4):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
             )
             print("************************* Timeout", i + 1)
 
         print("***************** Attach Aborted and UE Context released")
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
 

@@ -18,7 +18,6 @@
     #There may be no snapshots
 - include: orc8r-rds-snapshots.yaml
   tags: [ never, ndssnap ]
-  ignore_errors: true
 
 - include: orc8r-efs.yaml
   tags: efs
@@ -40,7 +39,9 @@
 
 - include: orc8r-secgroup.yaml
   tags: secgroup
-   
+
 - include: orc8r-vpc.yaml
   tags: vpc
 
+- include: orc8r-sns.yaml
+  tags: sns

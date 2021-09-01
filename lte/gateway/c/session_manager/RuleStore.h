@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "CreditKey.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 
 using grpc::Status;
 
@@ -104,17 +104,11 @@ class PolicyRuleBiMap {
   virtual bool get_rule_ids_for_charging_key(
       const CreditKey& charging_key, std::vector<std::string>& rules_out);
 
-  virtual bool get_rule_ids_for_monitoring_key(
-      const std::string& monitoring_key, std::vector<std::string>& rules_out);
-
   /**
    * Get all the rules for a given key. Rule ids are copied into rules_out
    */
   virtual bool get_rule_definitions_for_charging_key(
       const CreditKey& charging_key, std::vector<PolicyRule>& rules_out);
-
-  virtual bool get_rule_definitions_for_monitoring_key(
-      const std::string& monitoring_key, std::vector<PolicyRule>& rules_out);
 
   /**
    * Get the number of rules tracked by a monitoring key

@@ -246,6 +246,8 @@ definitions:
         type: integer
         format: uint64
         example: 605394647632969700
+      domain_id:
+        type: string
       duration:
         type: integer
         default: 0
@@ -257,6 +259,12 @@ definitions:
         format: date-time
         example: 2020-03-11T00:36:59.65Z
         description: The timestamp in ISO 8601 format
+      operator_id:
+        type: integer
+        format: uint32
+        default: 1
+        x-nullable: false
+        description: represents the mobile operator identifier
 
   network_probe_destination:
     description: Network Probe Destination
@@ -280,6 +288,9 @@ definitions:
     required:
       - delivery_type
       - delivery_address
+      - certificate
+      - private_key
+      - skip_verify_server
     properties:
       delivery_type:
         type: string
@@ -292,6 +303,18 @@ definitions:
         type: string
         x-nullable: false
         example: '127.0.0.1:4040'
+      certificate:
+        type: string
+        format: byte
+        description: destination tls client certificate.
+      private_key:
+        type: string
+        format: byte
+        description: destination tls client private key.
+      skip_verify_server:
+        type: boolean
+        default: false
+        description: enables exporter to skip server certs verification.
 
   network_probe_data:
     description: Network Probe State

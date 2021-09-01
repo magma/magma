@@ -1,0 +1,10 @@
+---
+- name: delete vars file after agw build
+  file:
+    path: "{{ usrHome }}/ansible-env.yaml"
+    state: absent
+
+- name: delete inventory file after agw build
+  file:
+    path: "{{ usrHome }}/inventory"
+    state: absent

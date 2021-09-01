@@ -92,32 +92,34 @@ class TunnelLearnController(MagmaController):
                     parser.NXFlowSpecMatch(
                         src=('eth_src_nxm', 0),
                         dst=('eth_dst_nxm', 0),
-                        n_bits=48
+                        n_bits=48,
                     ),
                     parser.NXFlowSpecMatch(
                         src=Direction.IN,
                         dst=(DIRECTION_REG, 0),
-                        n_bits=32
+                        n_bits=32,
                     ),
                     parser.NXFlowSpecLoad(
                         src=('tun_ipv4_src', 0),
                         dst=('tun_ipv4_dst', 0),
-                        n_bits=32
+                        n_bits=32,
                     ),
                     # TODO This might be getting overwritten by the IP stack,
                     # check if its required
                     parser.NXFlowSpecLoad(
                         src=('tun_ipv4_dst', 0),
                         dst=('tun_ipv4_src', 0),
-                        n_bits=32
+                        n_bits=32,
                     ),
-                ]
-            )
+                ],
+            ),
         ]
-        flows.add_resubmit_next_service_flow(dp, self.tbl_num,
-                                             outbound_match, actions,
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(
+            dp, self.tbl_num,
+            outbound_match, actions,
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+        )
 
         # The inbound match will first send packets to the scratch table,
         # where global registers will be set and the packet will be dropped
@@ -125,8 +127,11 @@ class TunnelLearnController(MagmaController):
         # necessary tunnel information loaded from the scratch table)
         inbound_match = MagmaMatch(direction=Direction.IN)
         actions = [
-            parser.NXActionResubmitTable(table_id=self.tunnel_learn_scratch)]
-        flows.add_resubmit_next_service_flow(dp, self.tbl_num,
-                                             inbound_match, actions,
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
+            parser.NXActionResubmitTable(table_id=self.tunnel_learn_scratch),
+        ]
+        flows.add_resubmit_next_service_flow(
+            dp, self.tbl_num,
+            inbound_match, actions,
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+        )

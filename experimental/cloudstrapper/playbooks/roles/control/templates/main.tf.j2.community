@@ -1,0 +1,88 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+module "orc8r" {
+  # Change this to pull from github with a specified ref
+  source = "{{ orc8rSource }}"
+
+  region = "{{ awsOrc8rRegion }}"
+
+  orc8r_db_password           = "{{ orc8rDbPassword }}" # must be at least 8 characters
+  secretsmanager_orc8r_secret = "{{ orc8rTfSecrets }}"
+  orc8r_domain_name           = "{{ orc8rDomainName }}"
+
+  vpc_name     = "{{ orc8rTfVpc }}"
+  cluster_name = "{{ orc8rTfCluster }}"
+  cluster_version = "1.17"
+
+  deploy_elasticsearch          = true
+  elasticsearch_domain_name     = "{{ orc8rTfEs }}"
+  elasticsearch_version         = "7.7"
+  elasticsearch_instance_type   = "t2.medium.elasticsearch"
+  elasticsearch_instance_count  = 2
+  elasticsearch_az_count        = 2
+  elasticsearch_ebs_enabled     = true
+  elasticsearch_ebs_volume_size = 32
+  elasticsearch_ebs_volume_type = "gp2"
+
+  deploy_elasticsearch_service_linked_role = "{{ varFirstInstall }}"
+
+}
+
+module "orc8r-app" {
+  source = "{{ orc8rAppSource }}"
+
+  region = "{{ awsOrc8rRegion }}"
+
+  orc8r_domain_name     = module.orc8r.orc8r_domain_name
+  orc8r_route53_zone_id = module.orc8r.route53_zone_id
+  external_dns_role_arn = module.orc8r.external_dns_role_arn
+
+  secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
+  seed_certs_dir            = "{{ dirSecretsLocal }}"
+
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
+
+  # Note that this can be any container registry provider -- the example below
+  # provides the URL format for Docker Hub, where the user and pass are your
+  # Docker Hub username and access token, respectively
+  docker_registry = "docker.artifactory.magmacore.org"
+  docker_user = ""
+  docker_pass = ""
+
+  # Note that this can be any Helm chart repo provider -- the example below
+  # provides the URL format for using a raw GitHub repo, where the user and
+  # pass are your GitHub username and access token, respectively
+  helm_repo = "https://artifactory.magmacore.org/artifactory/helm/"
+  helm_user = ""
+  helm_pass = ""
+
+  eks_cluster_id = module.orc8r.eks_cluster_id
+
+  efs_file_system_id       = module.orc8r.efs_file_system_id
+  efs_provisioner_role_arn = module.orc8r.efs_provisioner_role_arn
+
+  elasticsearch_endpoint = module.orc8r.es_endpoint
+
+  orc8r_deployment_type = "fwa"
+  orc8r_tag           = "{{ orc8rLabel }}"
+}
+
+output "nameservers" {
+  value = module.orc8r.route53_nameservers
+}

@@ -22,6 +22,7 @@ from magma.subscriberdb.client import SubscriberDBCloudClient
 from magma.subscriberdb.processor import Processor
 from magma.subscriberdb.protocols.diameter.application import base, s6a
 from magma.subscriberdb.protocols.diameter.server import S6aServer
+from magma.subscriberdb.protocols.m5g_auth_servicer import M5GAuthRpcServicer
 from magma.subscriberdb.protocols.s6a_proxy_servicer import S6aProxyRpcServicer
 from magma.subscriberdb.rpc_servicer import SubscriberDBRpcServicer
 from magma.subscriberdb.store.sqlite import SqliteStore
@@ -37,8 +38,8 @@ def main():
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(
-        service.config['db_path'], loop=service.loop,
-        sid_digits=service.config['sid_last_n'],
+        service.config.get('db_path'), loop=service.loop,
+        sid_digits=service.config.get('sid_last_n'),
     )
 
     # Initialize the processor
@@ -58,13 +59,13 @@ def main():
     subscriberdb_servicer.add_to_server(service.rpc_server)
 
     # Start a background thread to stream updates from the cloud
-    if service.config['enable_streaming']:
+    if service.config.get('enable_streaming'):
         grpc_client_manager = GRPCClientManager(
             service_name="subscriberdb",
             service_stub=SubscriberDBCloudStub,
             max_client_reuse=60,
         )
-        sync_interval = service.config.get('subscriberdb_sync_interval')
+        sync_interval = service.mconfig.sync_interval
         subscriber_page_size = service.config.get('subscriber_page_size')
         subscriberdb_cloud_client = SubscriberDBCloudClient(
             service.loop,
@@ -88,7 +89,15 @@ def main():
             # Waiting for subscribers to be added to store
             await store.on_ready()
 
-        if service.config['s6a_over_grpc']:
+        if service.config.get('m5g_auth_proc'):
+            logging.info('Cater to 5G Authentication')
+            m5g_subs_auth_servicer = M5GAuthRpcServicer(
+                processor,
+                service.config.get('print_grpc_payload', False),
+            )
+            m5g_subs_auth_servicer.add_to_server(service.rpc_server)
+
+        if service.config.get('s6a_over_grpc'):
             logging.info('Running s6a over grpc')
             s6a_proxy_servicer = S6aProxyRpcServicer(
                 processor,
@@ -98,9 +107,9 @@ def main():
         else:
             logging.info('Running s6a over DIAMETER')
             base_manager = base.BaseApplication(
-                service.config['mme_realm'],
-                service.config['mme_host_name'],
-                service.config['mme_host_address'],
+                service.config.get('mme_realm'),
+                service.config.get('mme_host_name'),
+                service.config.get('mme_host_address'),
             )
             s6a_manager = _get_s6a_manager(service, processor)
             base_manager.register(s6a_manager)
@@ -110,13 +119,15 @@ def main():
                 lambda: S6aServer(
                     base_manager,
                     s6a_manager,
-                    service.config['mme_realm'],
-                    service.config['mme_host_name'],
+                    service.config.get('mme_realm'),
+                    service.config.get('mme_host_name'),
                     loop=service.loop,
                 ),
-                service.config['host_address'], service.config['mme_port'],
+                service.config.get('host_address'),
+                service.config.get('mme_port'),
             )
             asyncio.ensure_future(s6a_server, loop=service.loop)
+
     asyncio.ensure_future(serve(), loop=service.loop)
 
     # Run the service loop
@@ -129,9 +140,9 @@ def main():
 def _get_s6a_manager(service, processor):
     return s6a.S6AApplication(
         processor,
-        service.config['mme_realm'],
-        service.config['mme_host_name'],
-        service.config['mme_host_address'],
+        service.config.get('mme_realm'),
+        service.config.get('mme_host_name'),
+        service.config.get('mme_host_address'),
         service.loop,
     )
 

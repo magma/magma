@@ -11,11 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
 
 import s1ap_types
-import time
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -47,12 +46,12 @@ class TestSecurityModeReject(unittest.TestCase):
 
         print("Sending Attach Request ue-id", attach_req.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("Received auth req ind ")
 
@@ -63,12 +62,12 @@ class TestSecurityModeReject(unittest.TestCase):
         auth_res.sqnRcvd = sqn_recvd
         print("Sending Auth Response ue-id", auth_res.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print("Received Security Mode Command ue-id", auth_res.ue_Id)
 
@@ -77,7 +76,7 @@ class TestSecurityModeReject(unittest.TestCase):
         sec_mode_reject.cause = s1ap_types.TFW_EMM_CAUSE_SEC_MOD_REJ_UNSP
         print("Sending Security Mode Reject ue-id", sec_mode_reject.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_REJECT, sec_mode_reject
+            s1ap_types.tfwCmd.UE_SEC_MOD_REJECT, sec_mode_reject,
         )
         time.sleep(2)
 

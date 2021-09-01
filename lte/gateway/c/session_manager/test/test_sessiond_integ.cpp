@@ -23,14 +23,15 @@
 
 #include "Consts.h"
 #include "LocalEnforcer.h"
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionManagerServer.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "ShardTracker.h"
 
 #define SESSION_TERMINATION_TIMEOUT_MS 100
 #define DEFAULT_PIPELINED_EPOCH 1
@@ -104,10 +105,11 @@ class SessiondTest : public ::testing::Test {
 
     session_reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
+    auto shard_tracker   = std::make_shared<ShardTracker>();
     enforcer             = std::make_shared<LocalEnforcer>(
         session_reporter, rule_store, *session_store, pipelined_client,
-        events_reporter, spgw_client, nullptr, SESSION_TERMINATION_TIMEOUT_MS,
-        0, default_mconfig);
+        events_reporter, spgw_client, nullptr, shard_tracker,
+        SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
     session_map = SessionMap{};
 
     local_service =
@@ -575,8 +577,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   }
 
   RuleRecordTable table2;
-  create_rule_record(IMSI1, "rule1", 512, 0, table2.mutable_records()->Add());
-  create_rule_record(IMSI1, "rule2", 0, 512, table2.mutable_records()->Add());
+  create_rule_record(IMSI1, "rule1", 512, 512, table2.mutable_records()->Add());
+  create_rule_record(IMSI1, "rule2", 512, 512, table2.mutable_records()->Add());
   send_update_pipelined_table(stub, table2);
 
   set_timeout(5000, end_promise);

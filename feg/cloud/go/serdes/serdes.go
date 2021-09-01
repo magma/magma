@@ -16,6 +16,7 @@ package serdes
 import (
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/serdes"
 )
 
@@ -24,7 +25,9 @@ var (
 	// used in the FeG module
 	Network = serdes.Network.
 		MustMerge(models.NetworkSerdes).
-		MustMerge(lte_models.NetworkSerdes)
+		// LTE serdes
+		MustMerge(lte_models.NetworkSerdes).
+		MustMerge(policydb_models.NetworkSerdes)
 	// Entity contains the full set of configurator network entity serdes used
 	// in the FeG module
 	Entity = serdes.Entity.

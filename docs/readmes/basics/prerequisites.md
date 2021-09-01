@@ -27,12 +27,16 @@ brew install go@1.13 pyenv
 echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
 echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
 exec $SHELL
-pyenv install 3.7.3
-pyenv global 3.7.3
+pyenv install 3.8.10
+pyenv global 3.8.10
 
 pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
 ```
+
+**Note**: In the case where installation of `fabric3` through pip was unsuccessful,
+try switching to other package installers. For example, for MacOS users, try
+running `brew install fabric`.
 
 If you are on MacOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Resources ->
@@ -51,8 +55,8 @@ To download Magma current version, or a specific release do the following:
 git clone https://github.com/magma/magma.git
 cd magma
 
-# in case you want to use a specific version of Magma (for example v1.4)
-git checkout v1.4
+# in case you want to use a specific version of Magma (for example v1.6)
+git checkout v1.6
 
 # to list all available releases
 git tag -l
@@ -80,12 +84,7 @@ aws configure
 Orchestrator deployment depends on the following components
 
 1. AWS account
-2. Docker image repository (e.g. Docker Hub, JFrog)
-3. Helm chart repository (e.g. JFrog, Github)*
-4. Registered domain for Orchestrator endpoints
-
-\* We describe setting up a private GitHub repository as a Helm repository in
-the [building Orchestrator](../orc8r/deploy_build.md) section.
+2. Registered domain for Orchestrator endpoints
 
 We recommend deploying the Orchestrator cloud component of Magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if

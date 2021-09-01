@@ -26,6 +26,10 @@ S6A_LUR_TOTAL = Counter(
     's6a_location_update',
     'Total S6a location update requests',
 )
+M5G_AUTH_SUCCESS_TOTAL = Counter('m5g_auth_success',
+                                 'Total successful M5G auth requests')
+M5G_AUTH_FAILURE_TOTAL = Counter('m5g_auth_failure',
+                                 'Total failed M5G auth requests with reason', ['code'])
 
 DIAMETER_AUTHENTICATION_REJECTED = 4001
 DIAMETER_ERROR_USER_UNKNOWN = 5001
@@ -48,7 +52,7 @@ SUBSCRIBER_SYNC_LATENCY = Histogram(
     'subscriber_sync_latency_ms',
     'Latency syncing subscribers from cloud'
     'in milliseconds',
-    buckets=[50, 100, 200, 500, 1000, 2000, 10000],
+    buckets=[50, 100, 200, 500, 1000, 5000, 10000, 30000, 60000],
 )
 
 SUBSCRIBER_SYNC_SUCCESS_TOTAL = Counter(

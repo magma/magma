@@ -13,9 +13,11 @@ limitations under the License.
 
 import ctypes
 import ipaddress
+import json
 import logging
 import os
 import shlex
+import subprocess
 import threading
 import time
 from enum import Enum
@@ -23,11 +25,14 @@ from queue import Queue
 from typing import Optional
 
 import grpc
-import subprocess
-import json
-
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
+from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from lte.protos.abort_session_pb2 import AbortSessionRequest, AbortSessionResult
+from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
+from lte.protos.ha_service_pb2 import EnbOffloadType, StartAgwOffloadRequest
+from lte.protos.ha_service_pb2_grpc import HaServiceStub
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import (
     FlowDescription,
     FlowMatch,
@@ -35,7 +40,6 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     QosArp,
 )
-from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
@@ -44,30 +48,16 @@ from lte.protos.session_manager_pb2 import (
     RulesPerSubscriber,
     SessionRules,
 )
-from lte.protos.abort_session_pb2 import (
-    AbortSessionRequest,
-    AbortSessionResult,
-)
-from lte.protos.spgw_service_pb2 import (
-    CreateBearerRequest,
-    DeleteBearerRequest,
-)
-from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
-from magma.subscriberdb.sid import SIDUtils
-from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from lte.protos.session_manager_pb2_grpc import (
     LocalSessionManagerStub,
     SessionProxyResponderStub,
 )
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
+from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
-from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-from lte.protos.ha_service_pb2_grpc import HaServiceStub
-from lte.protos.ha_service_pb2 import (
-    StartAgwOffloadRequest,
-    EnbOffloadType,
-)
-from orc8r.protos.common_pb2 import Void
 
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -128,7 +118,7 @@ class S1ApUtil(object):
         os.chdir(lib_path)
         self._test_lib = ctypes.cdll.LoadLibrary(lib)
         self._callback_type = ctypes.CFUNCTYPE(
-            None, ctypes.c_short, ctypes.c_void_p, ctypes.c_short
+            None, ctypes.c_short, ctypes.c_void_p, ctypes.c_short,
         )
         # Maintain a reference to the function object so GC doesn't release it.
         self._callback_fn = self._callback_type(S1ApUtil.s1ap_callback)
@@ -195,7 +185,7 @@ class S1ApUtil(object):
 
     def populate_pco(
             self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False,
-            ipcp=False
+            ipcp=False,
     ):
         """
         Populates the PCO values.
@@ -329,7 +319,7 @@ class S1ApUtil(object):
         # Populate PCO if pcscf_addr_type/dns_ipv6_addr/ipcp is set
         if pcscf_addr_type or dns_ipv6_addr or ipcp:
             self.populate_pco(
-                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr, ipcp
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr, ipcp,
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
@@ -408,10 +398,6 @@ class S1ApUtil(object):
         with self._lock:
             del self._ue_ip_map[ue_id]
 
-        # Verify that all UL/DL flows are deleted
-        self.verify_flow_rules_deletion()
-
-
     def _verify_dl_flow(self, dl_flow_rules=None):
         # try at least 5 times before failing as gateway
         # might take some time to install the flows in ovs
@@ -425,7 +411,7 @@ class S1ApUtil(object):
             ue_ip_str = str(key)
             if key.version == 6:
                 ue_ip6_str = ipaddress.ip_network(
-                    (ue_ip_str + "/64"), strict=False
+                    (ue_ip_str + "/64"), strict=False,
                 ).with_netmask
             ue_ip_addr = ue_ip6_str if key.version == 6 else ue_ip_str
             dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
@@ -493,7 +479,7 @@ class S1ApUtil(object):
                             if len(downlink_flows) >= num_dl_flows:
                                 break
                             time.sleep(
-                                5
+                                5,
                             )  # sleep for 5 seconds before retrying
                         assert (
                                 len(downlink_flows) >= num_dl_flows
@@ -526,7 +512,7 @@ class S1ApUtil(object):
                     "table_id": self.SPGW_TABLE,
                     "match": {
                         "in_port": GTP_PORT,
-                    }
+                    },
                 },
             )
             if len(uplink_flows) == num_ul_flows:
@@ -583,10 +569,11 @@ class S1ApUtil(object):
         print("Checking if all uplink/downlink flows were deleted")
         dpath = get_datapath()
         flows = get_flows(
-            dpath, {"table_id": self.SPGW_TABLE, "priority": 0}
+            dpath, {"table_id": self.SPGW_TABLE},
         )
         assert(
-            len(flows) == 2), "There should only be 2 default table 0 flows"
+            len(flows) == 2
+        ), "There should only be 2 default table 0 flows"
 
     def generate_imsi(self, prefix=None):
         """
@@ -779,7 +766,7 @@ class MagmadUtil(object):
 
         ret_code = self.exec_command(
             magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
-            config_stateless_script + " " + cmd.name.lower()
+            config_stateless_script + " " + cmd.name.lower(),
         )
 
         if ret_code == 0:
@@ -807,7 +794,7 @@ class MagmadUtil(object):
     def restart_all_services(self):
         """Restart all magma services on magma_dev VM"""
         self.exec_command(
-            "sudo service magma@* stop ; sudo service magma@magmad start"
+            "sudo service magma@* stop ; sudo service magma@magmad start",
         )
         print("Waiting for all services to restart. Sleeping for 60 seconds..")
         timeSlept = 0
@@ -868,7 +855,7 @@ class MagmadUtil(object):
 
         action = cmd.name.lower()
         ret_code = self.exec_command(
-            "sudo -E " + mme_config_update_script + " " + action
+            "sudo -E " + mme_config_update_script + " " + action,
         )
 
         if ret_code == 0:
@@ -918,7 +905,8 @@ class MagmadUtil(object):
             apn_correction_cmd = "sed -i \'s/enable_apn_correction: true/enable_apn_correction: false/g\' /etc/magma/mme.yml"
 
         ret_code = self.exec_command(
-            "sudo " + apn_correction_cmd)
+            "sudo " + apn_correction_cmd,
+        )
 
         if ret_code == 0:
             print("APN Correction configured")
@@ -934,15 +922,19 @@ class MagmadUtil(object):
         magma_health_service_name = "health"
         # Update health config to increment frequency of service failures
         if cmd.name == MagmadUtil.health_service_cmds.DISABLE.name:
-            health_config_cmd = ("sed -i 's/interval_check_mins: 1/interval_"
-                                 "check_mins: 3/g' /etc/magma/health.yml")
+            health_config_cmd = (
+                "sed -i 's/interval_check_mins: 1/interval_"
+                "check_mins: 3/g' /etc/magma/health.yml"
+            )
             self.exec_command("sudo %s" % health_config_cmd)
             if self.is_service_active(magma_health_service_name):
                 self.disable_service(magma_health_service_name)
             print("Health service is disabled")
         elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
-            health_config_cmd = ("sed -i 's/interval_check_mins: 3/interval_"
-                                 "check_mins: 1/g' /etc/magma/health.yml")
+            health_config_cmd = (
+                "sed -i 's/interval_check_mins: 3/interval_"
+                "check_mins: 1/g' /etc/magma/health.yml"
+            )
             self.exec_command("sudo %s" % health_config_cmd)
             if not self.is_service_active(magma_health_service_name):
                 self.enable_service("health")
@@ -1071,7 +1063,7 @@ class MagmadUtil(object):
         magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
         imsi_state_cmd = "state_cli.py keys IMSI*"
         redis_imsi_keys = self.exec_command_output(
-            magtivate_cmd + " && " + imsi_state_cmd
+            magtivate_cmd + " && " + imsi_state_cmd,
         )
         keys_to_be_cleaned = []
         for key in redis_imsi_keys.split("\n"):
@@ -1082,7 +1074,7 @@ class MagmadUtil(object):
 
         mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
         mme_nas_state = self.exec_command_output(
-            magtivate_cmd + " && " + mme_nas_state_cmd
+            magtivate_cmd + " && " + mme_nas_state_cmd,
         )
         num_htbl_entries = 0
         for state in mme_nas_state.split("\n"):
@@ -1094,14 +1086,30 @@ class MagmadUtil(object):
         s1ap_imsi_map_cmd = "state_cli.py parse s1ap_imsi_map"
         s1ap_imsi_map_state = self.exec_command_output(magtivate_cmd + " && " + s1ap_imsi_map_cmd)
         # Remove state version output to get only hashmap entries
-        s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[0])
+        s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[:-4]) // 4
+
+        mme_ueip_imsi_map_cmd = "state_cli.py parse mme_ueip_imsi_map"
+        mme_ueip_imsi_map_state = self.exec_command_output(
+            magtivate_cmd + " && " + mme_ueip_imsi_map_cmd,
+        )
+        mme_ueip_imsi_map_entries = 0
+        for state in mme_ueip_imsi_map_state.split("\n"):
+            if 'key' in state:
+                mme_ueip_imsi_map_entries += 1
         print(
             "Keys left in Redis (list should be empty)[\n",
             "\n".join(keys_to_be_cleaned),
             "\n]",
         )
-        print("Entries in s1ap_imsi_map (should be zero):", s1ap_imsi_map_entries)
+        print(
+            "Entries in s1ap_imsi_map (should be zero):",
+            s1ap_imsi_map_entries,
+        )
         print("Entries left in hashtables (should be zero):", num_htbl_entries)
+        print(
+            "Entries in mme_ueip_imsi_map (should be zero):",
+            mme_ueip_imsi_map_entries,
+        )
 
 
 class MobilityUtil(object):
@@ -1213,7 +1221,7 @@ class SpgwUtil(object):
         # DL Flow description #1
         dlFlow1 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
-            "tcp_src_port": 5001+port_idx,  # TCP source port
+            "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1221,7 +1229,7 @@ class SpgwUtil(object):
         # DL Flow description #2
         dlFlow2 = {
             "ipv4_src": "",  # IPv4 source address
-            "tcp_src_port": 5002+port_idx,  # TCP source port
+            "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1229,7 +1237,7 @@ class SpgwUtil(object):
         # DL Flow description #3
         dlFlow3 = {
             "ipv4_src": "192.168.129.64/26",  # IPv4 source address
-            "tcp_src_port": 5003+port_idx,  # TCP source port
+            "tcp_src_port": 5003 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1237,7 +1245,7 @@ class SpgwUtil(object):
         # DL Flow description #4
         dlFlow4 = {
             "ipv4_src": "192.168.129.42/16",  # IPv4 source address
-            "tcp_src_port": 5004+port_idx,  # TCP source port
+            "tcp_src_port": 5004 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1279,7 +1287,7 @@ class SpgwUtil(object):
         # DL Flow description #1
         dlFlow1 = {
             "ipv6_src": "baee:1205:486c:988c::99",  # IPv6 source address
-            "tcp_src_port": 5001+port_idx,  # TCP source port
+            "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1287,7 +1295,7 @@ class SpgwUtil(object):
         # DL Flow description #2
         dlFlow2 = {
             "ipv6_src": "fdee:0005:006c:018c::8c99",  # IPv6 source address
-            "tcp_src_port": 5002+port_idx,  # TCP source port
+            "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1325,7 +1333,7 @@ class SpgwUtil(object):
         # DL Flow description #1
         dlFlow1 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
-            "tcp_src_port": 5001+port_idx,  # TCP source port
+            "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1333,7 +1341,7 @@ class SpgwUtil(object):
         # DL Flow description #2
         dlFlow2 = {
             "ipv6_src": "fdee:0005:006c:018c::8c99",  # IPv6 source address
-            "tcp_src_port": 5002+port_idx,  # TCP source port
+            "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1360,7 +1368,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
-                    id="rar_rule_"+rule_id,
+                    id="rar_rule_" + rule_id,
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
@@ -1374,7 +1382,7 @@ class SpgwUtil(object):
                         ),
                     ),
                     flow_list=flow_match_list,
-                )
+                ),
             ],
         )
         self._stub.CreateBearer(req)
@@ -1385,7 +1393,7 @@ class SpgwUtil(object):
         """
         print("Sending DeleteBearer request to spgw service")
         req = DeleteBearerRequest(
-            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi],
         )
         self._stub.DeleteBearer(req)
 
@@ -1395,7 +1403,7 @@ class SpgwUtil(object):
         """
         print("Sending DeleteBearer request to spgw service")
         req = DeleteBearerRequest(
-            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=ebi
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=ebi,
         )
         self._stub.DeleteBearer(req)
 
@@ -1410,16 +1418,16 @@ class SessionManagerUtil(object):
         Initialize sessionManager util.
         """
         self._session_proxy_stub = SessionProxyResponderStub(
-            get_rpc_channel("sessiond")
+            get_rpc_channel("sessiond"),
         )
         self._abort_session_stub = AbortSessionResponderStub(
-            get_rpc_channel("abort_session_service")
+            get_rpc_channel("abort_session_service"),
         )
         self._directorydstub = GatewayDirectoryServiceStub(
-            get_rpc_channel("directoryd")
+            get_rpc_channel("directoryd"),
         )
         self._local_session_manager_stub = LocalSessionManagerStub(
-            get_rpc_channel("sessiond")
+            get_rpc_channel("sessiond"),
         )
 
     def get_flow_match(self, flow_list, flow_match_list):
@@ -1457,21 +1465,25 @@ class SessionManagerUtil(object):
             if flow.get("ipv4_src", None):
                 src_addr = IPAddress(
                     version=IPAddress.IPV4,
-                    address=flow.get("ipv4_src").encode('utf-8'))
+                    address=flow.get("ipv4_src").encode('utf-8'),
+                )
             elif flow.get("ipv6_src", None):
                 src_addr = IPAddress(
                     version=IPAddress.IPV6,
-                    address=flow.get("ipv6_src").encode('utf-8'))
+                    address=flow.get("ipv6_src").encode('utf-8'),
+                )
 
             dst_addr = None
             if flow.get("ipv4_dst", None):
                 dst_addr = IPAddress(
                     version=IPAddress.IPV4,
-                    address=flow.get("ipv4_dst").encode('utf-8'))
+                    address=flow.get("ipv4_dst").encode('utf-8'),
+                )
             elif flow.get("ipv6_dst", None):
                 dst_addr = IPAddress(
                     version=IPAddress.IPV6,
-                    address=flow.get("ipv6_dst").encode('utf-8'))
+                    address=flow.get("ipv6_dst").encode('utf-8'),
+                )
 
             flow_match_list.append(
                 FlowDescription(
@@ -1486,7 +1498,7 @@ class SessionManagerUtil(object):
                         direction=flow_direction,
                     ),
                     action=FlowDescription.PERMIT,
-                )
+                ),
             )
 
     def get_policy_rule(self, policy_id, qos=None, flow_match_list=None, he_urls=None):
@@ -1539,11 +1551,12 @@ class SessionManagerUtil(object):
         req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
         try:
             res = self._directorydstub.GetDirectoryField(
-                req, DEFAULT_GRPC_TIMEOUT
+                req, DEFAULT_GRPC_TIMEOUT,
             )
         except grpc.RpcError as err:
-            print("error: GetDirectoryFieldRequest error for id: "
-                  "%s! [%s] %s" % (imsi, err.code(),err.details())
+            print(
+                "error: GetDirectoryFieldRequest error for id: "
+                      "%s! [%s] %s" % (imsi, err.code(), err.details()),
             )
 
         if res == None:
@@ -1557,13 +1570,13 @@ class SessionManagerUtil(object):
                 rules_to_remove=[],
                 rules_to_install=[],
                 dynamic_rules_to_install=[
-                    DynamicRuleInstall(policy_rule=policy_rule)
+                    DynamicRuleInstall(policy_rule=policy_rule),
                 ],
                 event_triggers=[],
                 revalidation_time=None,
                 usage_monitoring_credits=[],
                 qos_info=qos,
-            )
+            ),
         )
 
     def create_AbortSessionRequest(self, imsi: str) -> AbortSessionResult:
@@ -1571,18 +1584,20 @@ class SessionManagerUtil(object):
         req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
         try:
             res = self._directorydstub.GetDirectoryField(
-                req, DEFAULT_GRPC_TIMEOUT
+                req, DEFAULT_GRPC_TIMEOUT,
             )
         except grpc.RpcError as err:
-            print("Error: GetDirectoryFieldRequest error for id: %s! [%s] %s" %
-                  (imsi, err.code(), err.details()))
+            print(
+                "Error: GetDirectoryFieldRequest error for id: %s! [%s] %s" %
+                (imsi, err.code(), err.details()),
+            )
             self._print_directoryd_content()
 
         return self._abort_session_stub.AbortSession(
             AbortSessionRequest(
                 session_id=res.value,
                 user_name=imsi,
-            )
+            ),
         )
 
     def _print_directoryd_content(self):
@@ -1619,27 +1634,28 @@ class SessionManagerUtil(object):
         default_flow_match_list = []
         self.get_flow_match(default_flow_rules, default_flow_match_list)
         default_policy_rule = self.get_policy_rule(
-            "allow_list_" + imsi, None, default_flow_match_list)
+            "allow_list_" + imsi, None, default_flow_match_list,
+        )
 
         rule_set = RuleSet(
-            apply_subscriber_wide = True,
-            apn = "",
-            static_rules = [],
-            dynamic_rules = [
+            apply_subscriber_wide=True,
+            apn="",
+            static_rules=[],
+            dynamic_rules=[
                 DynamicRuleInstall(policy_rule=policy_rule),
-                DynamicRuleInstall(policy_rule=default_policy_rule)
+                DynamicRuleInstall(policy_rule=default_policy_rule),
             ],
         )
 
         self._local_session_manager_stub.SetSessionRules(
             SessionRules(
-                rules_per_subscriber = [
+                rules_per_subscriber=[
                     RulesPerSubscriber(
-                        imsi = imsi,
-                        rule_set = [rule_set],
-                    )
-                ]
-            )
+                        imsi=imsi,
+                        rule_set=[rule_set],
+                    ),
+                ],
+            ),
         )
 
 
@@ -1647,7 +1663,7 @@ class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
         ret = self.magma_utils.exec_command_output(
-            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml"
+            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml",
         )
         if "false" in ret:
             self.gtp_port_name = "gtp0"
@@ -1657,7 +1673,7 @@ class GTPBridgeUtils:
 
     def get_gtp_port_no(self) -> Optional[int]:
         output = self.magma_utils.exec_command_output(
-            "sudo ovsdb-client dump Interface name ofport"
+            "sudo ovsdb-client dump Interface name ofport",
         )
         for line in output.split("\n"):
             if self.gtp_port_name in line:
@@ -1666,7 +1682,7 @@ class GTPBridgeUtils:
 
     def get_proxy_port_no(self) -> Optional[int]:
         output = self.magma_utils.exec_command_output(
-            "sudo ovsdb-client dump Interface name ofport"
+            "sudo ovsdb-client dump Interface name ofport",
         )
         for line in output.split("\n"):
             if self.proxy_port in line:
@@ -1677,7 +1693,7 @@ class GTPBridgeUtils:
     # this adds similar API using `ovs-ofctl` cmd
     def get_flows(self, table_id) -> []:
         output = self.magma_utils.exec_command_output(
-            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id)
+            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id),
         )
         return output.split("\n")
 
@@ -1720,7 +1736,8 @@ class HeaderEnrichmentUtils:
         while retry < max:
             try:
                 output = self.magma_utils.exec_command_output(
-                    "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
+                    "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump",
+                )
                 self.dump = json.loads(output)
                 return self.dump
             except subprocess.CalledProcessError as e:

@@ -61,10 +61,14 @@ def get_context():
         mconfig = DnsD()
     ip = get_ip_from_if_cidr(cfg['enodeb_interface'])
     if int(ip.split('/')[1]) < 16:
-        logging.fatal("Large interface netmasks hang dnsmasq, consider using a "
-                      "netmask in range /16 - /24")
-        raise Exception("Interface %s netmask is to large."
-                        % cfg['enodeb_interface'])
+        logging.fatal(
+            "Large interface netmasks hang dnsmasq, consider using a "
+            "netmask in range /16 - /24",
+        )
+        raise Exception(
+            "Interface %s netmask is to large."
+            % cfg['enodeb_interface'],
+        )
 
     dhcp_block_size = cfg['dhcp_block_size']
     available_hosts = list(ipaddress.IPv4Interface(ip).network.hosts())
@@ -76,8 +80,10 @@ def get_context():
             "upper": str(available_hosts[-1]),
         }
     else:
-        logging.fatal("Not enough available hosts to allocate a DHCP block of \
-            %d addresses." % (dhcp_block_size))
+        logging.fatal(
+            "Not enough available hosts to allocate a DHCP block of \
+            %d addresses." % (dhcp_block_size),
+        )
 
     context['addresses'] = _get_addresses(cfg, mconfig)
     return context
@@ -86,10 +92,13 @@ def get_context():
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+        format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+    )
 
-    generate_template_config('dnsd', 'dnsd',
-                             CONFIG_OVERRIDE_DIR, get_context())
+    generate_template_config(
+        'dnsd', 'dnsd',
+        CONFIG_OVERRIDE_DIR, get_context(),
+    )
 
 
 if __name__ == '__main__':

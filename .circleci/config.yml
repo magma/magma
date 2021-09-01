@@ -20,13 +20,15 @@ aliases:
   - &lte_build_verify
     paths: "orc8r lte"
   - &c_cpp_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos feg/protos orc8r/protos lte/gateway/Makefile"
   - &session_manager_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos feg/protos orc8r/protos"
   - &mme_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/core lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
+  - &connection_tracker_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/connection_tracker lte/protos orc8r/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -207,10 +209,25 @@ commands:
             sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
             sudo rm -rf /var/lib/apt/lists/*
 
+  apt-focal-install-aioeventlet:
+    steps:
+      - run:
+          <<: *appdir
+          command: |
+            # Install python3-aioeventlet from the magma apt repo
+            cat ${MAGMA_ROOT}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo apt-key add -
+            echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo tee /etc/apt/sources.list.d/fbc.list
+            sudo apt-get update -y
+            sudo apt-get install -y python3-aioeventlet
+            sudo rm -rf /var/lib/apt/lists/*
 
   tag-push-docker:
     description: Tag docker image and push it
     parameters:
+      job_name:
+        description: Name of the tag-push-docker task
+        type: string
+        default: publish docker images to docker registry
       tag:
         description: Containers to tag and push
         type: string
@@ -238,41 +255,93 @@ commands:
         default: false
         type: boolean
     steps:
-      - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "Push only happens for master branch"
-            exit 0
-          fi
-
-          DOCKER_REGISTRY="<< parameters.registry >>"
-          DOCKER_USERNAME="<< parameters.username >>"
-          DOCKER_PASSWORD="<< parameters.password >>"
-
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-
-          IMAGES="<< parameters.images >>"
-          IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
-          PROJECT=<< parameters.project >>
-          TAG=<< parameters.tag >>
-          TAG_LATEST=<< parameters.tag-latest >>
-
-          function tag_and_push {
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
-          }
-
-          for IMAGE in "${IMAGES_ARRAY[@]}"; do
-            IMAGE_TOSEARCH=$IMAGE
-            if [ ! -z $PROJECT ]; then
-              IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+      - run:
+          name: << parameters.job_name >>
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+              echo "Push only happens for master branch"
+              exit 0
             fi
-            IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            tag_and_push "$TAG"
-            if [ "$TAG_LATEST" = true ]; then
-              tag_and_push "latest"
-            fi
-          done
+
+            DOCKER_REGISTRY="<< parameters.registry >>"
+            DOCKER_USERNAME="<< parameters.username >>"
+            DOCKER_PASSWORD="<< parameters.password >>"
+
+            docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+
+            IMAGES="<< parameters.images >>"
+            IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
+            PROJECT=<< parameters.project >>
+            TAG=<< parameters.tag >>
+            TAG_LATEST=<< parameters.tag-latest >>
+
+            function tag_and_push {
+              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+              echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+              docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+            }
+
+            for IMAGE in "${IMAGES_ARRAY[@]}"; do
+              IMAGE_TOSEARCH=$IMAGE
+              if [ ! -z $PROJECT ]; then
+                IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+              fi
+              IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
+              tag_and_push "$TAG"
+              if [ "$TAG_LATEST" = true ]; then
+                tag_and_push "latest"
+              fi
+            done
+
+  sentry-upload:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+    steps:
+      - run:
+          name: Upload debug artifacts for an executable to Sentry.io
+          command: |
+            # The assumption here is that packages.tar.gz was tarred in
+            # $MAGMA_ROOT/circleci in the magma_integ_test step
+            cd circleci/executables
+
+            SENTRY_ORG="lf-9c"
+            NATIVE_PROJECT="lab-agws-native"
+            EXEC="<< parameters.executable_name >>"
+            objcopy --only-keep-debug "$EXEC" "$EXEC".debug
+            objcopy --strip-debug --strip-unneeded "$EXEC"
+            objcopy --add-gnu-debuglink="$EXEC".debug "$EXEC"
+
+            # [Optional] Log included debug information
+            sentry-cli difutil check "$EXEC"
+            sentry-cli difutil check "$EXEC".debug
+
+            # Upload the debug artifact with `symtab`, `debug`, and `sources`
+            sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" --include-sources  "$EXEC".debug
+            # Upload the stripped executable with `unwind`
+            sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" "$EXEC"
+
+  sentry-release:
+    steps:
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
+          name: Export Sentry Env Vars
+          command: |
+            echo export SENTRY_ENVIRONMENT="staging" >> $BASH_ENV
+            echo export SENTRY_ORG="lf-9c" >> $BASH_ENV
+      - sentry-upload:
+          executable_name: sessiond
+      - sentry-upload:
+          executable_name: mme
+      - run:
+          name: Create a release in Sentry.io with the commit hash
+          command: |
+            COMMIT_HASH_WITH_VERSION="1.7.0-${CIRCLE_SHA1:0:8}"
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
+
 
   magma_integ_test:
     parameters:
@@ -346,7 +415,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -576,7 +645,6 @@ jobs:
       - build/determinator:
           <<: *all_gateways_build_verify
       - docker/install-dc
-      - run: sudo apt-get update
       - python/set_version
       - run:
           command: |
@@ -586,6 +654,25 @@ jobs:
       - run: git add .
       - run: git status
       - run: git diff-index --quiet HEAD
+      - magma_slack_notify
+
+  # Fail if terraform variables, helm charts and orcl is out of sync
+  deploy-sync-checkin:
+    machine:
+      image: ubuntu-1604:201903-01
+      # docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
+      - docker/install-dc
+      - python/set_version
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
+            ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - magma_slack_notify
 
   orc8r-build:
@@ -705,6 +792,10 @@ jobs:
       - magma_slack_notify
 
   feg-build:
+    parameters:
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -713,6 +804,8 @@ jobs:
       MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
+      - docker/install-dc
+      - python/set_version
       - build/determinator:
           <<: *federated_build_verify
       - run:
@@ -731,22 +824,26 @@ jobs:
           name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
-            DOCKER_REGISTRY=feg_ docker-compose build --parallel
+            DOCKER_REGISTRY=feg_ python3 build.py
       - run:
           name: run docker containers and check health
           command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
+            cd ${MAGMA_ROOT}/feg/gateway/docker
+            DOCKER_REGISTRY=feg_ python3 build.py -e
       - tag-push-docker:
+          job_name: publish docker images to facebookincubator docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - tag-push-docker:
+          job_name: publish docker images to magmacore docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -871,6 +968,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+          no_output_timeout: 20m
       - magma_slack_notify
 
   c-cpp-codecov:
@@ -889,6 +987,7 @@ jobs:
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   session_manager_test:
@@ -939,13 +1038,21 @@ jobs:
           command: |
             docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
       - run:
-          name: Run sctpd tests
+          name: Run sctpd tests with Debug build type
           command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd;"
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=Debug;"
       - run:
-          name: Run mme tests
+          name: Run sctpd tests with RelWithDebInfo build type
           command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai;"
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=RelWithDebInfo;"
+      - run:
+          name: Run mme tests with Debug build type
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=Debug;"
+      - run:
+          name: Run mme tests with RelWithDebInfo build type
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=RelWithDebInfo;"
       - magma_slack_notify
 
   mme-clang-warnings:
@@ -963,6 +1070,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   li_agent_test:
@@ -992,9 +1100,39 @@ jobs:
           no_output_timeout: 5m
       - magma_slack_notify
 
+  connection-tracker-test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *connection_tracker_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Build connection tracker with BUILD_TYPE=Debug
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+          no_output_timeout: 5m
+      - run:
+          name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
   lte-test:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     environment:
       MAGMA_ROOT: /home/circleci/project
       PYTHON_BUILD: ${MAGMA_ROOT}/build
@@ -1005,23 +1143,24 @@ jobs:
       SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
-      - python/set_version
+      - run: pyenv install 3.8.5
+      - python/set_version:
+          python_version: "3.8.5"
       - build/determinator:
           <<: *lte_build_verify
+      - apt-focal-install-aioeventlet
       - run: mkdir -p /var/tmp/test_results
       - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
-      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip net-tools
+      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-requests python3-pip python-protobuf
       - run: pip3 install setuptools==49.6.0
       - run:
           command: |
-            sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+            sudo curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
             sudo unzip protoc3.zip -d protoc3
             sudo mv protoc3/bin/protoc /bin/protoc
             sudo chmod a+rx /bin/protoc
-            sudo mv protoc3/include/google /usr/include/
-            sudo chmod -R a+Xr /usr/include/google
             sudo rm -rf protoc3.zip protoc3
             mkdir ${CODEGEN_ROOT}
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
@@ -1059,6 +1198,7 @@ jobs:
           test: 'False'
           build: 'True'
           deploy: 'True'
+      - sentry-release
       - notify-magma:
           artifact_name: LTE AGW
           version_path: versions/magma_version
@@ -1221,53 +1361,6 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
-  ### FOSSA
-
-  fossa-analyze:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-    working_directory: /tmp/magma
-    environment:
-      MAGMA_ROOT: /tmp/magma
-    steps:
-      - checkout
-      - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
-      - run: rm -f /tmp/magma/fossa
-      - run: tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: sudo cp /tmp/magma/fossa /usr/local/bin/
-      - run: sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
-      - magma_slack_notify
-
-  ### DOCUSAURUS
-
-  docusaurus_build_and_deploy:
-    docker:
-      - image: circleci/node:8.11.1
-    environment:
-      DOCUSAURUS_URL: https://magma.github.io
-      DOCUSAURUS_BASE_URL: /magma/
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *docs_only
-      - run:
-          name: Setup docusaurus expected directory structure
-          command: |
-            mv docs/docusaurus website/
-            mv docs/readmes readmes/
-            rm -rf docs/
-            mv readmes/ docs/
-      - run:
-          name: Deploying to GitHub Pages
-          command: |
-            git config --global user.email "bots@magmacore.org"
-            git config --global user.name "magma-docusaurus-bot"
-            echo "machine github.com login magma-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
-            cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
-      - magma_slack_notify
-
   ### XWF
 
   xwfm-test:
@@ -1352,17 +1445,137 @@ jobs:
           tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
+  publish-amis-to-marketplace:
+    machine:
+      image: ubuntu-2004:202104-01
+      docker_layer_caching: true
+    parameters:
+      aws_account:
+        description: AWS account to push to
+        type: string
+        default: "FB"
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      CODE_DIR: /home/circleci/project/experimental/cloudstrapper
+      VARS_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks/roles/vars
+      WORK_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks
+    steps:
+      - checkout
+      - run: sudo apt-get update && sudo apt -y upgrade
+      - run: pyenv install 3.7.0
+      - python/set_version:
+          python_version: "3.7.0"
+      - run:
+          name: Install Dependencies
+          command: |
+              pip install ansible awscli boto3
+              sudo apt-get update
+      - run:
+          name: Propagate AWS credentials to ansible and create version
+          command: |
+            if [ "<<parameters.aws_account>>" = "FB" ]; then
+              sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
+              sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
+              echo export VERSION="1.6.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
+              echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
+              # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
+            elif  [ "<<parameters.aws_account>>" = "LF" ]; then
+              sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
+              sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
+              echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
+              echo export VERSION="1.7.0" >> $BASH_ENV
+            fi
+            echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian" >> $BASH_ENV
+            echo export GIT_REF="${CIRCLE_SHA1}" >> $BASH_ENV
+      - run:
+          name: Propagate AWS region information
+          command: |
+            sed -i -e '/^awsAgwRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsOrc8rRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsAgwAz: /s/:.*$/: us-east-1b/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^buildAwsRegion: /s/:.*$/: us-east-1/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAwsAz: /s/:.*$/: us-east-1b/' $VARS_DIR/build.yaml
+      - run:
+          name: Propagate names for AWS essential components
+          command: |
+            sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket2/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
+      - run:
+          name: Setup AWS essentials components
+          command: |
+            ansible-playbook $WORK_DIR/aws-prerequisites.yaml -e "dirLocalInventory=$VARS_DIR" --tags keyCreate,essentialsCreate
+      - run:
+          name: Propagate Tags for Cloudstrapper instances
+          command: |
+            sed -i -e '/^devOpsCloudstrapper: /s/:.*$/: publishAmisToMarketplaceDevopsCloudstrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^primaryCloudstrapper: /s/:.*$/: publishAmisToMarketplacePrimaryCloudstrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^stackDevOpsCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-devopscloustrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"$GIT_REF"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwPackage: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^taggedVersion: /s/:.*$/: '"$VERSION"'/' $VARS_DIR/build.yaml
+      - run:
+          name: Generate Cloudstrapper AMI
+          no_output_timeout: 30m
+          command: |
+            ansible-playbook $WORK_DIR/devops-provision.yaml -e "dirLocalInventory=$VARS_DIR"
+            echo "Waiting one minute for the instance to boot up."
+            sleep 60
+            ansible-playbook $WORK_DIR/devops-configure.yaml -e "devops=tag_Name_publishAmisToMarketplaceDevopsCloudstrapper" -e "dirLocalInventory=$VARS_DIR" -i $VARS_DIR/common_instance_aws_ec2.yaml -u ubuntu --skip-tags usingGitSshKey,buildMagma,pubMagma,helm,pubHelm
+            ansible-playbook $WORK_DIR/devops-init.yaml -e "dirLocalInventory=$VARS_DIR"
+      - notify-magma:
+          artifact_name: Cloudstrapper AWS AMI
+          version_path: $VERSION
+      - run:
+          name: Propagate variables for AGW AMI build
+          command: |
+            sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
+            sed -i -e '/^packageRepoHost: /s/:.*$/: '"$PACKAGE_REPO_HOST"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
+      - run:
+          name: Generate AGW AMI
+          no_output_timeout: 30m
+          command: |
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
+            echo "Waiting one minute for the instance to boot up."
+            sleep 60
+            ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+            ansible-playbook $WORK_DIR/ami-init.yaml -e "dirLocalInventory=$VARS_DIR"
+      - run:
+          name: Export qcow2 image for fb aws account in s3
+          no_output_timeout: 30m
+          command: |
+            if [ "<<parameters.aws_account>>" = "FB" ]; then
+              ansible-playbook $WORK_DIR/devops-convert-to-qcow2.yaml -e "dirLocalInventory=$VARS_DIR" -e "agwAmiName=agw-ami-$VERSION"
+            fi
+      - run:
+          name: Clean AWS resources
+          when: always
+          command: |
+            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack, stackDevOpsNetwork]}"
+      - notify-magma:
+          artifact_name: AGW AWS AMI
+          version_path: $VERSION
+      - magma_slack_notify
 workflows:
   version: 2
 
   cloud:
     jobs:
       - insync-checkin
+      - deploy-sync-checkin
       - cloud_lint
       - cloud-test
       - orc8r-build:
           requires:
             - insync-checkin
+            - deploy-sync-checkin
             - cloud_lint
             - cloud-test
 
@@ -1375,6 +1588,7 @@ workflows:
       - lte-test
       - session_manager_test
       - li_agent_test
+      - connection-tracker-test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master
@@ -1393,6 +1607,9 @@ workflows:
   release:
     jobs:
       - release-hold:
+          <<: *only_release
+          type: approval
+      - ami-hold:
           <<: *only_release
           type: approval
       - lte-agw-deploy:
@@ -1419,8 +1636,13 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
-
-
+      # Debian Packages need to be promoted to production repo before releasing to Linux Foundation AWS
+      - publish-amis-to-marketplace:
+          aws_account: "LF"
+          <<: *only_release
+          requires:
+            - release-hold
+            - ami-hold
   feg:
     jobs:
       - feg-lint
@@ -1428,6 +1650,7 @@ workflows:
       - feg-build:
           requires:
             - feg-precommit
+          tag-latest: true
 
   cwag:
     jobs:
@@ -1442,6 +1665,7 @@ workflows:
           requires:
             - cwag-precommit
             - cwf-integ-test
+          tag-latest: true
       - xwfm-deploy:
           <<: *only_master
           name: xwfm-deploy-latest
@@ -1475,6 +1699,14 @@ workflows:
       - xwfm-test:
           notify_magma_ci: false
 
+  weekly_ami_push:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0"
+          <<: *only_master
+    jobs:
+      - publish-amis-to-marketplace
+
   nms:
     jobs:
       - nms-flow-test
@@ -1494,15 +1726,6 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-  docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
-
-  fossa:
-    jobs:
-      - fossa-analyze:
-          <<: *only_master
   github:
     jobs:
       - backport:

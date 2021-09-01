@@ -76,6 +76,14 @@
   copy: src=99-magma.conf dest=/etc/sysctl.d/99-magma.conf
   when: full_provision
 
+- name: Copy set_irq_affinity
+  copy: src=set_irq_affinity dest=/usr/local/bin/set_irq_affinity mode=751
+  when: full_provision
+
+- name: Copy magma-bridge-reset.sh
+  copy: src=magma-bridge-reset.sh dest=/usr/local/bin/magma-bridge-reset.sh mode=751
+  when: full_provision
+
 - name: Add the sysctl config from the step before
   become: yes
   command: 'sysctl -p /etc/sysctl.d/99-magma.conf'
@@ -114,7 +122,7 @@
   when: full_provision
 
 - name: Create symlink for sctpd binary
-  file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
+  file: src='{{ c_build }}/sctpd/src/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for OAI mme binary
@@ -134,11 +142,11 @@
   when: full_provision
 
 - name: Create symlink for connectiond binary
-  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
+  file: src='{{ c_build }}/connection_tracker/src/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for li agent binary
-  file: src='{{ c_build }}/li_agent/liagentd' path=/usr/local/bin/liagentd state=link force=yes follow=no
+  file: src='{{ c_build }}/li_agent/src/liagentd' path=/usr/local/bin/liagentd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for corefile collection script
@@ -191,6 +199,15 @@
       - oai-freediameter
       - prometheus-cpp-dev
       - libczmq-dev
+      - libczmq-dev
+
+- name: Install LI Agent dependencies
+  retries: 5
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - uuid-dev
 
 - name: Fix vport-gtp kernel module for Ubuntu Focal
   when: ansible_distribution == "Ubuntu"
@@ -263,6 +280,8 @@
       # For call tracing
       - tshark
       - getenvoy-envoy
+      # eBPF compile and load tools for kernsnoopd
+      - bpfcc-tools
 
 - name: Install debian Magma dependencies
   retries: 5
@@ -377,6 +396,7 @@
   when: ansible_distribution == "Ubuntu"
 
 - name: Bring up ovs bridge
+  ignore_errors: yes
   shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
     - gtp_br0
@@ -393,11 +413,18 @@
     - li_port
   when: full_provision
 
-- name: Copy ryu ipfix patch
+- name: Copy ryu ipfix patch for 3.5
   copy:
     src: nx_actions.py
     dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
   when: full_provision
+
+- name: Copy ryu ipfix patch for 3.8
+  copy:
+    src: nx_actions_3.5.py
+    dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nx_actions.py
+  when: full_provision and ansible_distribution == "Ubuntu"
+  ignore_errors: true
 
 - name: Change build folder ownership
   ansible.builtin.file:

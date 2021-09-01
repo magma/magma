@@ -49,6 +49,8 @@ struct ChargingGrant {
   // indicates the rules have been removed from pipelined
   bool suspended;
 
+  const uint32_t REDIRECT_FLOW_PRIORITY = 2000;
+
   // Default states
   ChargingGrant()
       : credit(),
@@ -57,14 +59,14 @@ struct ChargingGrant {
         reauth_state(REAUTH_NOT_NEEDED),
         suspended(false) {}
 
-  ChargingGrant(const StoredChargingGrant& marshaled);
+  explicit ChargingGrant(const StoredChargingGrant& marshaled);
 
   // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
 
   void receive_charging_grant(
       const CreditUpdateResponse& update,
-      SessionCreditUpdateCriteria* uc = NULL);
+      SessionCreditUpdateCriteria* credit_uc = NULL);
 
   // Returns true if the credit returned from the Policy component is valid and
   // good to be installed.
@@ -82,7 +84,12 @@ struct ChargingGrant {
 
   // get_action returns the action to take on the credit based on the last
   // update. If no action needs to take place, CONTINUE_SERVICE is returned.
-  ServiceActionType get_action(SessionCreditUpdateCriteria& update_criteria);
+  ServiceActionType get_action(SessionCreditUpdateCriteria* update_criteria);
+
+  // Return if the service needs activation
+  bool should_be_unsuspended() const;
+
+  bool get_suspended() const { return suspended; }
 
   // Get unreported usage from credit and return as part of CreditUsage
   // The update_type is also included in CreditUsage
@@ -90,14 +97,16 @@ struct ChargingGrant {
   // usage, otherwise we only include unreported usage up to the allocated
   // amount.
   CreditUsage get_credit_usage(
-      CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria& uc,
-      bool is_terminate);
+      CreditUsage::UpdateType update_type,
+      SessionCreditUpdateCriteria* credit_uc, bool is_terminate);
 
-  // get_requested_units returns total, tx and rx needed to cover one worth of
-  // grant
-  RequestedUnits get_requested_units();
-
-  // Return true if the service needs to be deactivated
+  // Return true if the service needs to be deactivated.
+  // In order to deactivate, a few things are considered in order.
+  // 1. Credit must be exhausted
+  // 2. TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED is not set
+  // 3. FUA must be set
+  //    3a. For FUA-terminate, always deactivate
+  //    3b. For FUA-redirect/restrict, deactivate if not already deactivated
   bool should_deactivate_service() const;
 
   // Convert FinalAction enum to ServiceActionType
@@ -107,22 +116,16 @@ struct ChargingGrant {
   ServiceActionType final_action_to_action_on_suspension(
       const ChargingCredit_FinalAction action) const;
 
-  // Set is_final_grant and final_action_info values
-  void set_final_action_info(
-      const magma::lte::ChargingCredit& credit,
-      SessionCreditUpdateCriteria* uc = NULL);
-
-  bool get_suspended();
-
-  void set_suspended(bool suspended, SessionCreditUpdateCriteria* uc);
+  void set_suspended(bool suspended, SessionCreditUpdateCriteria* credit_uc);
 
   // Set the object and update criteria's reauth state to new_state.
   void set_reauth_state(
-      const ReAuthState new_state, SessionCreditUpdateCriteria& uc);
+      const ReAuthState new_state, SessionCreditUpdateCriteria* credit_uc);
 
   // Set the object and update criteria's service state to new_state.
   void set_service_state(
-      const ServiceState new_service_state, SessionCreditUpdateCriteria& uc);
+      const ServiceState new_service_state,
+      SessionCreditUpdateCriteria* credit_uc);
 
   // Set the flag reporting. Used to signal this credit is waiting to receive
   // a response from the core
@@ -131,12 +134,10 @@ struct ChargingGrant {
   // Rollback reporting changes for failed updates
   void reset_reporting_grant(SessionCreditUpdateCriteria* credit_uc);
 
-  // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
-  // and assign it to expiry_time
-  void set_expiry_time_as_timestamp(uint32_t rel_time_sec);
-
   // Log information about the grant received
   void log_received_grant(const CreditUpdateResponse& update);
+
+  PolicyRule make_redirect_rule();
 };
 
 }  // namespace magma

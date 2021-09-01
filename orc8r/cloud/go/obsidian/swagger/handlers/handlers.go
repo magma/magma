@@ -22,6 +22,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
 
@@ -135,7 +136,7 @@ func GetUIHandler(tmpl *template.Template) echo.HandlerFunc {
 
 // registerSpecHandlers registers routes for Swagger specs.
 func registerSpecHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc) error {
-	yamlCommon, err := swagger.GetCommonSpec()
+	yamlCommon, err := spec.GetDefaultLoader().GetCommonSpec()
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,27 @@
+---
+
+- name: Verify key exists and is a rsa key
+  command: aws kms get-public-key --key-id "{{KMSKeyID}}" --query 'CustomerMasterKeySpec' --output text
+  register: keytype
+  delegate_to: localhost
+  failed_when:
+    - not 'RSA' in keytype.stdout
+
+- name: Get specified public key
+  shell: aws kms get-public-key --key-id "{{KMSKeyID}}" --query 'PublicKey' --output text | base64 --decode > public_key.der
+  delegate_to: localhost
+
+- name: Convert to pem format
+  command: openssl rsa -pubin -in ./public_key.der -inform DER -outform PEM -out public.pem
+  delegate_to: localhost
+
+- name: Convert to ssh format
+  command: ssh-keygen -f public.pem -i -mPKCS8
+  delegate_to: localhost
+  register: public_key
+
+- name: Add key to authorized key
+  ansible.posix.authorized_key:
+    user: "{{ userAgw }}"
+    state: present
+    key: "{{public_key.stdout}}"

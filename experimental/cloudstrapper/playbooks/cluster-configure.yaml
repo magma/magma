@@ -1,0 +1,17 @@
+---
+- hosts: "{{ agws }}"
+  roles:
+    - {role: exporter, tags: exporter, become: yes}
+    - {role: test-framework}
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: false
+  vars_files:
+    - roles/vars/defaults.yaml
+    - roles/vars/build.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+    - roles/vars/cluster.yaml
+    - "roles/agw-infra/vars/varSite{{ idSite }}.yaml"
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
+    AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"
+    AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"

@@ -164,7 +164,7 @@ message PacketFilter {
     uint32 identifier = 3;
     uint32 eval_precedence = 4;
     uint32 length = 5;
-    PacketFilterContents packet_filter_contents = 6;
+    repeated PacketFilterContents packet_filter_contents = 6;
 }
 
 // eps_bearer_qos_t
@@ -199,7 +199,6 @@ message GTPV1uData {
 }
 
 message SpgwState {
-    uint32 last_tunnel_id = 1;
     uint32 gtpv1u_teid = 2;
 
     repeated uint64 ipv4_list_free = 5;

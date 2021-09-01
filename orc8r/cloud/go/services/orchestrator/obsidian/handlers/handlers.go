@@ -34,6 +34,7 @@ const (
 	ManageNetworkTypePath              = ManageNetworkPath + obsidian.UrlSep + "type"
 	ManageNetworkDescriptionPath       = ManageNetworkPath + obsidian.UrlSep + "description"
 	ManageNetworkFeaturesPath          = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkSentryPath            = ManageNetworkPath + obsidian.UrlSep + "sentry"
 	ManageNetworkDNSPath               = ManageNetworkPath + obsidian.UrlSep + "dns"
 	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
 	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
@@ -60,6 +61,10 @@ const (
 	ManageTierImagePath    = ManageTierImagesPath + obsidian.UrlSep + ":image_name"
 	ManageTierGatewaysPath = ManageTiersPath + obsidian.UrlSep + "gateways"
 	ManageTierGatewayPath  = ManageTierGatewaysPath + obsidian.UrlSep + ":gateway_id"
+
+	About          = "about"
+	Version        = "version"
+	GetVersionPath = obsidian.V1Root + About + obsidian.UrlSep + Version
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -107,11 +112,15 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: GatewayPingV1, Methods: obsidian.POST, HandlerFunc: gatewayPing},
 		{Path: GatewayGenericCommandV1, Methods: obsidian.POST, HandlerFunc: gatewayGenericCommand},
 		{Path: TailGatewayLogsV1, Methods: obsidian.POST, HandlerFunc: tailGatewayLogs},
+
+		// Version Info
+		{Path: GetVersionPath, Methods: obsidian.GET, HandlerFunc: getVersionHandler},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig, serdes.Network)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkSentryPath, &models2.NetworkSentryConfig{}, "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType, serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(models2.NetworkDNSRecords), "", serdes.Network)...)
 

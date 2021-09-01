@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.6.0 # magma version number
-SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.7.0 # magma version number
+SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -30,7 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
-OS="debian"
+OS="ubuntu"
 
 while [[ $# -gt 0 ]]
 do
@@ -85,8 +85,6 @@ case $BUILD_TYPE in
 esac
 
 case $OS in
-    debian)
-    ;;
     ubuntu)
     echo "Ubuntu package build"
     ;;
@@ -128,23 +126,19 @@ MAGMA_DEPS=(
     "libfolly-dev" # required for C++ services
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
-    "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
     "libmnl-dev" # required for Connection tracker
     "getenvoy-envoy" # for envoy dep
+    "uuid-dev" # for liagentd
+    "libprotobuf17 >= 3.0.0"
+    "nlohmann-json3-dev"
+    "sentry-native"   # sessiond
+    "td-agent-bit >= 1.7.8"
+    "bpfcc-tools" # required for kernsnoopd
     )
-
-if grep -q stretch /etc/os-release; then
-    MAGMA_DEPS+=("libprotobuf10 >= 3.0.0")
-    MAGMA_DEPS+=("nlohmann-json-dev")
-else
-    MAGMA_DEPS+=("libprotobuf17 >= 3.0.0")
-    MAGMA_DEPS+=("nlohmann-json3-dev")
-    MAGMA_DEPS+=("sentry-native")   # sessiond
-fi
 
 # OAI runtime dependencies
 OAI_DEPS=(
@@ -157,36 +151,18 @@ OAI_DEPS=(
     "libsctp-dev"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
+    "libasan5"
+    "oai-freediameter >= 0.0.2"
     )
 
-if grep -q stretch /etc/os-release; then
-    OAI_DEPS+=("libasan3")
-    OAI_DEPS+=("oai-freediameter >= 1.2.0-1")
-    OAI_DEPS+=("oai-gtp >= 4.9-9")
-else
-    OAI_DEPS+=("libasan5")
-    OAI_DEPS+=("oai-freediameter >= 0.0.2")
-fi
-
 # OVS runtime dependencies
-if [[ "$OS" == "debian" ]]; then
-    OVS_DEPS=(
-        "magma-libfluid >= 0.1.0.6"
-        "libopenvswitch >= 2.8.10"
-        "openvswitch-switch >= 2.8.10"
-        "openvswitch-common >= 2.8.10"
-        "python-openvswitch >= 2.8.10"
-        "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
-        )
-else
-    OVS_DEPS=(
-        "magma-libfluid >= 0.1.0.6"
-        "libopenvswitch >= 2.14"
-        "openvswitch-switch >= 2.14"
-        "openvswitch-common >= 2.14"
-        "openvswitch-datapath-dkms >= 2.14"
-        )
-fi
+OVS_DEPS=(
+      "magma-libfluid >= 0.1.0.6"
+      "libopenvswitch >= 2.14.3-13"
+      "openvswitch-switch >= 2.14.3-13"
+      "openvswitch-common >= 2.14.3-13"
+      "openvswitch-datapath-dkms >= 2.14.3-13"
+      )
 
 # generate string for FPM
 SYSTEM_DEPS=""
@@ -207,12 +183,7 @@ RELEASE_DIR=${MAGMA_ROOT}/lte/gateway/release
 POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
-# python3.5 on stretch, python3.8 on focal
-if grep -q stretch /etc/os-release; then
-    PY_VERSION=python3.5
-else
-    PY_VERSION=python3.8
-fi
+PY_VERSION=python3.8
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
@@ -262,10 +233,10 @@ fi
 
 # Build OAI and sessiond C/C++ services
 cd "${MAGMA_ROOT}/lte/gateway"
-OAI_BUILD="${C_BUILD}/oai"
+OAI_BUILD="${C_BUILD}/core/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
 CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
-SCTPD_BUILD="${C_BUILD}/sctpd"
+SCTPD_BUILD="${C_BUILD}/sctpd/src"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
@@ -288,6 +259,7 @@ if [ -d ${PY_TMP_BUILD} ]; then
 fi
 
 FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
+COMMIT_HASH_WITH_VERSION=${VERSION}-${COMMIT_HASH}
 
 # first do python protos and then build the python packages.
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages
@@ -340,7 +312,7 @@ trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}' '${COMMIT_HASH_F
 
 echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
-echo "COMMIT_HASH=\"${COMMIT_HASH}\"" > "${COMMIT_HASH_FILE}"
+echo "COMMIT_HASH=\"${COMMIT_HASH_WITH_VERSION}\"" > "${COMMIT_HASH_FILE}"
 
 BUILDCMD="fpm \
 -s dir \
@@ -377,7 +349,7 @@ ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
-${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
+${CONNECTIOND_BUILD}/src/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 ${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \
@@ -402,6 +374,7 @@ $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/p
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/templates/) \
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
+$(glob_files "${MAGMA_ROOT}/lte/gateway/python/magma/kernsnoopd/ebpf/*" /etc/magma/ebpf/) \
 ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
 $(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
@@ -414,8 +387,14 @@ ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
 ${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.5/dist-packages/ryu/ofproto/nx_actions.py \
+${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py \
+${ANSIBLE_FILES}/service.py=/usr/local/lib/python3.5/dist-packages/ryu/app/ofctl/service.py \
+${ANSIBLE_FILES}/service.py=/usr/local/lib/python3.8/dist-packages/ryu/app/ofctl/service.py \
 ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
+${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
+${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \
+${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
@@ -423,15 +402,3 @@ $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 " # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
-
-if grep -q stretch /etc/os-release; then
-  cd "${MAGMA_ROOT}"
-  OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
-
-  # if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
-  if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
-      cd "${PWD}"
-      "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
-  fi
-fi
-

@@ -67,9 +67,11 @@ class InOutController(RestartMixin, MagmaController):
 
     InOutConfig = namedtuple(
         'InOutConfig',
-        ['gtp_port', 'uplink_port', 'mtr_ip', 'mtr_port', 'li_port_name',
-         'enable_nat', 'non_nat_gw_probe_frequency', 'non_nat_arp_egress_port',
-         'setup_type', 'uplink_gw_mac', 'he_proxy_port', 'he_proxy_eth_mac'],
+        [
+            'gtp_port', 'uplink_port', 'mtr_ip', 'mtr_port', 'li_port_name',
+            'enable_nat', 'non_nat_gw_probe_frequency', 'non_nat_arp_egress_port',
+            'setup_type', 'uplink_gw_mac', 'he_proxy_port', 'he_proxy_eth_mac',
+        ],
     )
     ARP_PROBE_FREQUENCY = 300
     NON_NAT_ARP_EGRESS_PORT = 'dhcp0'
@@ -85,18 +87,23 @@ class InOutController(RestartMixin, MagmaController):
         else:
             self._mtr_service_enabled = False
 
-        if (self._service_manager.is_app_enabled(LIMirrorController.APP_NAME)
-                and self.config.li_port_name):
+        if (
+            self._service_manager.is_app_enabled(LIMirrorController.APP_NAME)
+            and self.config.li_port_name
+        ):
             self._li_port = BridgeTools.get_ofport(self.config.li_port_name)
             self._li_table = self._service_manager.get_table_num(
-                LIMirrorController.APP_NAME)
+                LIMirrorController.APP_NAME,
+            )
         self._ingress_tbl_num = self._service_manager.get_table_num(INGRESS)
         self._midle_tbl_num = \
             self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
         self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
         # following fields are only used in Non Nat config
-        self._tbls = [self._ingress_tbl_num, self._midle_tbl_num,
-                      self._egress_tbl_num]
+        self._tbls = [
+            self._ingress_tbl_num, self._midle_tbl_num,
+            self._egress_tbl_num,
+        ]
         self._gw_mac_monitor = None
         self._current_upstream_mac_map = {}  # maps vlan to upstream gw mac
         self._clean_restart = kwargs['config']['clean_restart']
@@ -128,18 +135,26 @@ class InOutController(RestartMixin, MagmaController):
             li_port_name = config_dict['li_local_iface']
 
         enable_nat = config_dict.get('enable_nat', True)
-        non_nat_gw_probe_freq = config_dict.get('non_nat_gw_probe_frequency',
-                                                self.ARP_PROBE_FREQUENCY)
+        non_nat_gw_probe_freq = config_dict.get(
+            'non_nat_gw_probe_frequency',
+            self.ARP_PROBE_FREQUENCY,
+        )
         # In case of vlan tag on uplink_bridge, use separate port.
         sgi_vlan = config_dict.get('sgi_management_iface_vlan', "")
         if not sgi_vlan:
-            non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
-                                                      self.UPLINK_OVS_BRIDGE_NAME)
+            non_nat_arp_egress_port = config_dict.get(
+                'non_nat_arp_egress_port',
+                self.UPLINK_OVS_BRIDGE_NAME,
+            )
         else:
-            non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
-                                                      self.NON_NAT_ARP_EGRESS_PORT)
-        uplink_gw_mac = config_dict.get('uplink_gw_mac',
-                                        "ff:ff:ff:ff:ff:ff")
+            non_nat_arp_egress_port = config_dict.get(
+                'non_nat_arp_egress_port',
+                self.NON_NAT_ARP_EGRESS_PORT,
+            )
+        uplink_gw_mac = config_dict.get(
+            'uplink_gw_mac',
+            "ff:ff:ff:ff:ff:ff",
+        )
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             uplink_port=port_no,
@@ -152,7 +167,8 @@ class InOutController(RestartMixin, MagmaController):
             setup_type=setup_type,
             uplink_gw_mac=uplink_gw_mac,
             he_proxy_port=he_proxy_port,
-            he_proxy_eth_mac=he_proxy_eth_mac)
+            he_proxy_eth_mac=he_proxy_eth_mac,
+        )
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
@@ -208,23 +224,35 @@ class InOutController(RestartMixin, MagmaController):
 
         # Allow passthrough pkts(skip enforcement and send to egress table)
         ps_match = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
-        msgs.append(flows.get_add_resubmit_next_service_flow_msg(dp,
-            self._midle_tbl_num, ps_match, actions=[],
-            priority=flows.PASSTHROUGH_PRIORITY,
-            resubmit_table=self._egress_tbl_num))
+        msgs.append(
+            flows.get_add_resubmit_next_service_flow_msg(
+                dp,
+                self._midle_tbl_num, ps_match, actions=[],
+                priority=flows.PASSTHROUGH_PRIORITY,
+                resubmit_table=self._egress_tbl_num,
+            ),
+        )
 
         match = MagmaMatch()
-        msgs.append(flows.get_add_resubmit_next_service_flow_msg(dp,
-            self._midle_tbl_num, match, actions=[],
-            priority=flows.DEFAULT_PRIORITY, resubmit_table=next_tbl))
+        msgs.append(
+            flows.get_add_resubmit_next_service_flow_msg(
+                dp,
+                self._midle_tbl_num, match, actions=[],
+                priority=flows.DEFAULT_PRIORITY, resubmit_table=next_tbl,
+            ),
+        )
 
         if self._mtr_service_enabled:
-            msgs.extend(_get_vlan_egress_flow_msgs(dp,
-                                       self._midle_tbl_num,
-                                       self.config.mtr_ip,
-                                       self.config.mtr_port,
-                                       priority=flows.UE_FLOW_PRIORITY,
-                                       direction=Direction.OUT))
+            msgs.extend(
+                _get_vlan_egress_flow_msgs(
+                    dp,
+                    self._midle_tbl_num,
+                    self.config.mtr_ip,
+                    self.config.mtr_port,
+                    priority=flows.UE_FLOW_PRIORITY,
+                    direction=Direction.OUT,
+                ),
+            )
         return msgs
 
     def _get_default_egress_flow_msgs(self, dp, mac_addr: str = "", vlan: str = ""):
@@ -241,22 +269,30 @@ class InOutController(RestartMixin, MagmaController):
         msgs = []
 
         if self.config.setup_type == 'LTE':
-            msgs.extend(_get_vlan_egress_flow_msgs(dp,
-                                       self._egress_tbl_num,
-                                       "0.0.0.0/0"))
+            msgs.extend(
+                _get_vlan_egress_flow_msgs(
+                    dp,
+                    self._egress_tbl_num,
+                    "0.0.0.0/0",
+                ),
+            )
             msgs.extend(self._get_proxy_flow_msgs(dp))
         else:
             # Use regular match for Non LTE setup.
             downlink_match = MagmaMatch(direction=Direction.IN)
             msgs.append(
-                flows.get_add_output_flow_msg(dp, self._egress_tbl_num, downlink_match, [],
-                                  output_port=self.config.gtp_port)
+                flows.get_add_output_flow_msg(
+                    dp, self._egress_tbl_num, downlink_match, [],
+                    output_port=self.config.gtp_port,
+                ),
             )
 
         if vlan.isdigit():
             vid = 0x1000 | int(vlan)
-            uplink_match = MagmaMatch(direction=Direction.OUT,
-                                      vlan_vid=(vid, vid))
+            uplink_match = MagmaMatch(
+                direction=Direction.OUT,
+                vlan_vid=(vid),
+            )
         else:
             uplink_match = MagmaMatch(direction=Direction.OUT)
 
@@ -270,13 +306,19 @@ class InOutController(RestartMixin, MagmaController):
 
         if mac_addr != "":
             parser = dp.ofproto_parser
-            actions.append(parser.NXActionRegLoad2(dst='eth_dst',
-                                                   value=mac_addr))
+            actions.append(
+                parser.NXActionRegLoad2(
+                    dst='eth_dst',
+                    value=mac_addr,
+                ),
+            )
             if self._current_upstream_mac_map.get(vlan, "") != mac_addr:
-                self.logger.info("Using GW: mac: %s match %s actions: %s",
-                                 mac_addr,
-                                 str(uplink_match.ryu_match),
-                                 str(actions))
+                self.logger.info(
+                    "Using GW: mac: %s match %s actions: %s",
+                    mac_addr,
+                    str(uplink_match.ryu_match),
+                    str(actions),
+                )
 
                 self._current_upstream_mac_map[vlan] = mac_addr
 
@@ -287,9 +329,11 @@ class InOutController(RestartMixin, MagmaController):
         else:
             priority = flows.MINIMUM_PRIORITY
 
-        msgs.append(flows.get_add_output_flow_msg(
-            dp, self._egress_tbl_num, uplink_match, priority=priority,
-            actions=actions, output_port=self.config.uplink_port)
+        msgs.append(
+            flows.get_add_output_flow_msg(
+                dp, self._egress_tbl_num, uplink_match, priority=priority,
+                actions=actions, output_port=self.config.uplink_port,
+            ),
         )
         return msgs
 
@@ -321,19 +365,23 @@ class InOutController(RestartMixin, MagmaController):
         match = MagmaMatch(in_port=OFPP_LOCAL)
         actions = [load_direction(parser, Direction.IN)]
         msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp,
+            flows.get_add_resubmit_next_service_flow_msg(
+                dp,
                 self._ingress_tbl_num, match, actions=actions,
-                priority=flows.DEFAULT_PRIORITY, resubmit_table=next_table)
+                priority=flows.DEFAULT_PRIORITY, resubmit_table=next_table,
+            ),
         )
 
         # set a direction bit for incoming (internet -> UE) traffic.
         match = MagmaMatch(in_port=self.config.uplink_port)
         actions = [load_direction(parser, Direction.IN)]
         msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, match,
-                                                 actions=actions,
-                                                 priority=flows.DEFAULT_PRIORITY,
-                                                 resubmit_table=next_table)
+            flows.get_add_resubmit_next_service_flow_msg(
+                dp, self._ingress_tbl_num, match,
+                actions=actions,
+                priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=next_table,
+            ),
         )
 
         # Send RADIUS requests directly to li table
@@ -341,9 +389,11 @@ class InOutController(RestartMixin, MagmaController):
             match = MagmaMatch(in_port=self._li_port)
             actions = [load_direction(parser, Direction.IN)]
             msgs.append(
-                flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num,
-                                                     match, actions=actions, priority=flows.DEFAULT_PRIORITY,
-                                                     resubmit_table=self._li_table)
+                flows.get_add_resubmit_next_service_flow_msg(
+                    dp, self._ingress_tbl_num,
+                    match, actions=actions, priority=flows.DEFAULT_PRIORITY,
+                    resubmit_table=self._li_table,
+                ),
             )
 
         # set a direction bit for incoming (mtr -> UE) traffic.
@@ -351,48 +401,72 @@ class InOutController(RestartMixin, MagmaController):
             match = MagmaMatch(in_port=self.config.mtr_port)
             actions = [load_direction(parser, Direction.IN)]
             msgs.append(
-                flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num,
-                                                     match, actions=actions, priority=flows.DEFAULT_PRIORITY,
-                                                     resubmit_table=next_table)
+                flows.get_add_resubmit_next_service_flow_msg(
+                    dp, self._ingress_tbl_num,
+                    match, actions=actions, priority=flows.DEFAULT_PRIORITY,
+                    resubmit_table=next_table,
+                ),
             )
 
         if self.config.he_proxy_port != 0:
             match = MagmaMatch(in_port=self.config.he_proxy_port)
             actions = [load_direction(parser, Direction.IN)]
             msgs.append(
-                flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num,
-                                                     match, actions=actions, priority=flows.DEFAULT_PRIORITY,
-                                                     resubmit_table=next_table)
+                flows.get_add_resubmit_next_service_flow_msg(
+                    dp, self._ingress_tbl_num,
+                    match, actions=actions, priority=flows.DEFAULT_PRIORITY,
+                    resubmit_table=next_table,
+                ),
             )
 
-        # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
-        # Passthrough is zero for packets from eNodeB GTP tunnels
-        ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
-        actions = [load_direction(parser, Direction.OUT)]
-        msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
-                                                 actions=actions,
-                                                 priority=flows.MINIMUM_PRIORITY,
-                                                 resubmit_table=next_table)
-        )
-        # Passthrough is one for packets from remote PGW GTP tunnels, set direction
-        # flag to IN for such packets.
-        ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
-        actions = [load_direction(parser, Direction.IN)]
-        msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_in,
-                                                 actions=actions,
-                                                 priority=flows.MINIMUM_PRIORITY,
-                                                 resubmit_table=next_table)
-        )
+        if self.config.setup_type == 'CWF':
+            # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
+            ps_match_out = MagmaMatch()
+            actions = [load_direction(parser, Direction.OUT)]
+            msgs.append(
+                flows.get_add_resubmit_next_service_flow_msg(
+                    dp, self._ingress_tbl_num, ps_match_out,
+                    actions=actions,
+                    priority=flows.MINIMUM_PRIORITY,
+                    resubmit_table=next_table,
+                ),
+            )
+        else:
+            # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
+            # Passthrough is zero for packets from eNodeB GTP tunnels
+            ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
+            actions = [load_direction(parser, Direction.OUT)]
+            msgs.append(
+                flows.get_add_resubmit_next_service_flow_msg(
+                    dp, self._ingress_tbl_num, ps_match_out,
+                    actions=actions,
+                    priority=flows.MINIMUM_PRIORITY,
+                    resubmit_table=next_table,
+                ),
+            )
+
+            # Passthrough is one for packets from remote PGW GTP tunnels, set direction
+            # flag to IN for such packets.
+            ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
+            actions = [load_direction(parser, Direction.IN)]
+            msgs.append(
+                flows.get_add_resubmit_next_service_flow_msg(
+                    dp, self._ingress_tbl_num, ps_match_in,
+                    actions=actions,
+                    priority=flows.MINIMUM_PRIORITY,
+                    resubmit_table=next_table,
+                ),
+            )
 
         return msgs
 
     def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:
         try:
             gw_ip = ipaddress.ip_address(ip.address)
-            self.logger.debug("sending arp via egress: %s",
-                              self.config.non_nat_arp_egress_port)
+            self.logger.debug(
+                "sending arp via egress: %s",
+                self.config.non_nat_arp_egress_port,
+            )
             eth_mac_src = get_if_hwaddr(self.config.non_nat_arp_egress_port)
             psrc = "0.0.0.0"
             egress_port_ip = get_if_addr(self.config.non_nat_arp_egress_port)
@@ -405,28 +479,34 @@ class InOutController(RestartMixin, MagmaController):
             pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc=psrc)
             self.logger.debug("ARP Req pkt %s", pkt.show(dump=True))
 
-            res = srp1(pkt,
-                       type=ETH_P_ALL,
-                       iface=self.config.non_nat_arp_egress_port,
-                       timeout=1,
-                       verbose=0,
-                       nofilter=1,
-                       promisc=0)
+            res = srp1(
+                pkt,
+                type=ETH_P_ALL,
+                iface=self.config.non_nat_arp_egress_port,
+                timeout=1,
+                verbose=0,
+                nofilter=1,
+                promisc=0,
+            )
 
             if res is not None:
                 self.logger.debug("ARP Res pkt %s", res.show(dump=True))
                 if str(res[ARP].psrc) != str(gw_ip):
-                    self.logger.warning("Unexpected IP in ARP response. expected: %s pkt: %s",
-                                        str(gw_ip),
-                                        res.show(dump=True))
+                    self.logger.warning(
+                        "Unexpected IP in ARP response. expected: %s pkt: %s",
+                        str(gw_ip),
+                        res.show(dump=True),
+                    )
                     return ""
                 if vlan.isdigit():
                     if Dot1Q in res and str(res[Dot1Q].vlan) == vlan:
                         mac = res[ARP].hwsrc
                     else:
-                        self.logger.warning("Unexpected vlan in ARP response. expected: %s pkt: %s",
-                                            vlan,
-                                            res.show(dump=True))
+                        self.logger.warning(
+                            "Unexpected vlan in ARP response. expected: %s pkt: %s",
+                            vlan,
+                            res.show(dump=True),
+                        )
                         return ""
                 else:
                     mac = res[ARP].hwsrc
@@ -439,8 +519,10 @@ class InOutController(RestartMixin, MagmaController):
             self.logger.warning("Error in probing Mac address: err %s", ex)
             return ""
         except ValueError:
-            self.logger.warning("Invalid GW Ip address: [%s] or vlan %s",
-                                str(ip), vlan)
+            self.logger.warning(
+                "Invalid GW Ip address: [%s] or vlan %s",
+                str(ip), vlan,
+            )
             return ""
 
     def _monitor_and_update(self):
@@ -453,16 +535,20 @@ class InOutController(RestartMixin, MagmaController):
                     if latest_mac_addr == "":
                         latest_mac_addr = gw_info.mac
 
-                    msgs = self._get_default_egress_flow_msgs(self._datapath,
-                                                              latest_mac_addr,
-                                                              gw_info.vlan)
+                    msgs = self._get_default_egress_flow_msgs(
+                        self._datapath,
+                        latest_mac_addr,
+                        gw_info.vlan,
+                    )
                     chan = self._msg_hub.send(msgs, self._datapath)
                     self._wait_for_responses(chan, len(msgs))
 
                     if latest_mac_addr != "":
-                        set_mobilityd_gw_info(gw_info.ip,
-                                              latest_mac_addr,
-                                              gw_info.vlan)
+                        set_mobilityd_gw_info(
+                            gw_info.ip,
+                            latest_mac_addr,
+                            gw_info.vlan,
+                        )
                 else:
                     self.logger.warning("No default GW found.")
 
@@ -484,9 +570,11 @@ class InOutController(RestartMixin, MagmaController):
             self.logger.info("No GW MAC probe for %s", self.config.setup_type)
             return
         else:
-            self.logger.info("Non nat conf: egress port: %s, uplink: %s",
-                             self.config.non_nat_arp_egress_port,
-                             self.config.uplink_port)
+            self.logger.info(
+                "Non nat conf: egress port: %s, uplink: %s",
+                self.config.non_nat_arp_egress_port,
+                self.config.uplink_port,
+            )
 
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
@@ -507,11 +595,19 @@ class InOutController(RestartMixin, MagmaController):
 
         parser = dp.ofproto_parser
         match = MagmaMatch(proxy_tag=PROXY_TAG_TO_PROXY)
-        actions = [parser.NXActionRegLoad2(dst='eth_dst',
-                                           value=self.config.he_proxy_eth_mac)]
-        return [flows.get_add_output_flow_msg(dp, self._egress_tbl_num, match,
-            priority=flows.UE_FLOW_PRIORITY, actions=actions,
-            output_port=self.config.he_proxy_port)]
+        actions = [
+            parser.NXActionRegLoad2(
+                dst='eth_dst',
+                value=self.config.he_proxy_eth_mac,
+            ),
+        ]
+        return [
+            flows.get_add_output_flow_msg(
+                dp, self._egress_tbl_num, match,
+                priority=flows.UE_FLOW_PRIORITY, actions=actions,
+                output_port=self.config.he_proxy_port,
+            ),
+        ]
 
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
@@ -528,9 +624,6 @@ class InOutController(RestartMixin, MagmaController):
     def _get_ue_specific_flow_msgs(self, _):
         return {}
 
-    def recover_state(self, _):
-        pass
-
     def finish_init(self, _):
         pass
 
@@ -546,8 +639,10 @@ class InOutController(RestartMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
 
-def _get_vlan_egress_flow_msgs(dp, table_no, ip, out_port=None,
-                               priority=0, direction=Direction.IN):
+def _get_vlan_egress_flow_msgs(
+    dp, table_no, ip, out_port=None,
+    priority=0, direction=Direction.IN,
+):
     """
     Install egress flows
     Args:
@@ -564,24 +659,31 @@ def _get_vlan_egress_flow_msgs(dp, table_no, ip, out_port=None,
         output_reg = TUN_PORT_REG
 
     # Pass non vlan packet as it is.
-    match = MagmaMatch(direction=direction,
-                       eth_type=ether_types.ETH_TYPE_IP,
-                       vlan_vid=(0x0000, 0x1000),
-                       ipv4_dst=ip)
+    match = MagmaMatch(
+        direction=direction,
+        eth_type=ether_types.ETH_TYPE_IP,
+        vlan_vid=(0x0000, 0x1000),
+        ipv4_dst=ip,
+    )
     msgs.append(
-        flows.get_add_output_flow_msg(dp, table_no, match, [],
-            priority=priority, output_reg=output_reg, output_port=out_port)
+        flows.get_add_output_flow_msg(
+            dp, table_no, match, [],
+            priority=priority, output_reg=output_reg, output_port=out_port,
+        ),
     )
 
     # remove vlan header for out_port.
-    match = MagmaMatch(direction=direction,
-                       eth_type=ether_types.ETH_TYPE_IP,
-                       vlan_vid=(0x1000, 0x1000),
-                       ipv4_dst=ip)
+    match = MagmaMatch(
+        direction=direction,
+        eth_type=ether_types.ETH_TYPE_IP,
+        vlan_vid=(0x1000, 0x1000),
+        ipv4_dst=ip,
+    )
     actions_vlan_pop = [dp.ofproto_parser.OFPActionPopVlan()]
     msgs.append(
-        flows.get_add_output_flow_msg(dp, table_no, match, actions_vlan_pop,
-            priority=priority, output_reg=output_reg, output_port=out_port)
+        flows.get_add_output_flow_msg(
+            dp, table_no, match, actions_vlan_pop,
+            priority=priority, output_reg=output_reg, output_port=out_port,
+        ),
     )
     return msgs
-

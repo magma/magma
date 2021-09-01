@@ -16,10 +16,14 @@
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
+import {FEG} from '@fbcnms/types/network';
+import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
+import {VersionContextProvider} from '../context/VersionContext';
 import {coalesceNetworkType} from '@fbcnms/types/network';
 import type {NetworkType} from '@fbcnms/types/network';
 import type {Theme} from '@material-ui/core';
+import type {network_id, network_type} from '@fbcnms/magma-api';
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
@@ -54,6 +58,12 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
+type Props = {
+  networkId: network_id,
+  networkType: network_type,
+  children: React.Node,
+};
+
 export default function Index() {
   const classes = useStyles();
   const {match} = useRouter();
@@ -81,24 +91,49 @@ export default function Index() {
   }
 
   return (
-    <NetworkContext.Provider value={{networkId, networkType}}>
-      <LteContextProvider networkId={networkId} networkType={networkType}>
-        <div className={classes.root}>
-          <AppSideBar
-            mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
-            secondaryItems={[<NetworkSelector key={1} />]}
-            projects={getProjectLinks(tabs, user)}
-            showSettings={shouldShowSettings({
-              isSuperUser: user.isSuperUser,
-              ssoEnabled,
-            })}
-            user={user}
-          />
-          <AppContent>
-            <SectionRoutes />
-          </AppContent>
-        </div>
-      </LteContextProvider>
-    </NetworkContext.Provider>
+    <NetworkContextProvider {...{networkId, networkType}}>
+      <div className={classes.root}>
+        <AppSideBar
+          mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
+          secondaryItems={[<NetworkSelector key={1} />]}
+          projects={getProjectLinks(tabs, user)}
+          showSettings={shouldShowSettings({
+            isSuperUser: user.isSuperUser,
+            ssoEnabled,
+          })}
+          user={user}
+        />
+        <AppContent>
+          <SectionRoutes />
+        </AppContent>
+      </div>
+    </NetworkContextProvider>
+  );
+}
+
+/**
+ * Returns a Federation context provider if it is a federation network. It
+ * otherwise returns a LTE context provider for a LTE or Federated LTE network.
+ *
+ * @param {network_id} network_id Id of the network
+ * @param {network_type} network_type Type of the network
+ */
+function NetworkContextProvider(props: Props) {
+  const {networkId, networkType} = props;
+
+  return (
+    <VersionContextProvider>
+      <NetworkContext.Provider value={{networkId, networkType}}>
+        {networkType === FEG ? (
+          <FEGContextProvider networkId={networkId} networkType={networkType}>
+            {props.children}
+          </FEGContextProvider>
+        ) : (
+          <LteContextProvider networkId={networkId} networkType={networkType}>
+            {props.children}
+          </LteContextProvider>
+        )}
+      </NetworkContext.Provider>
+    </VersionContextProvider>
   );
 }

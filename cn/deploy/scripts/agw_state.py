@@ -1,6 +1,11 @@
-from flask import Flask
-from flask import Response
-from prometheus_client import start_http_server, CollectorRegistry, multiprocess, generate_latest, Gauge
+from flask import Flask, Response
+from prometheus_client import (
+    CollectorRegistry,
+    Gauge,
+    generate_latest,
+    multiprocess,
+    start_http_server,
+)
 
 app = Flask(__name__)
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')

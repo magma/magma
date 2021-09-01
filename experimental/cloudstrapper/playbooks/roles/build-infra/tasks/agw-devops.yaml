@@ -3,27 +3,26 @@
 - name: query all security groups
   ec2_group_info:
     filters:
-      group-name: "{{ secgroupDefault }}" 
+      group-name: "{{ secgroupDefault }}"
   register: regSecGroup
-  tags: infra
+  tags: infra-agw
 
 - name: assign security group id to variable
   set_fact:
-    factSecGroup: "{{ regSecGroup.security_groups[0].group_id }}" 
-  tags: infra
+    factSecGroup: "{{ regSecGroup.security_groups[0].group_id }}"
+  tags: infra-agw
 
 - name: launch AGW AMI devops node
   cloudformation:
-    stack_name: "stackBuildAgw"
+    stack_name: "stackBuildUbuntuAgw"
     state: "present"
-    template: "roles/cfn/cfnMagmaAgwAmiBuild.json"
+    template: "roles/cfn/cfnMagmaAgwAmiPublicDual.json"
     template_parameters:
-      paramImageId: "{{ buildDebianAmi }}"
+      paramImageBase: "{{ buildUbuntuAmi }}"
       paramSecGroup: "{{ factSecGroup }}"
       paramAvlZone: "{{ buildAwsAz }}"
       paramKeyHost: "{{ keyHost }}"
-      paramInstanceType: "{{ buildGwInstanceType }}" 
+      paramInstanceType: "{{ buildGwInstanceType }}"
       paramTagName: "{{ buildGwTagName }}"
-  tags: 
+  tags:
      - infra-agw
-    

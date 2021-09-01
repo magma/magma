@@ -14,13 +14,13 @@
     - role: apt_cache
       vars:
         distribution: "stretch"
+        oai_build: "{{ c_build }}/core/oai"
         repo: "dev"
     - role: pkgrepo
     - role: python_dev
     - role: dev_common
       vars:
-        c_build: /home/{{ ansible_user }}/build/c/
-        oai_build: "{{ c_build }}/oai"
+        c_build: /home/{{ ansible_user }}/build/c
         go_build: /home/{{ ansible_user }}/go/bin/
     - role: magma_test
       become: no

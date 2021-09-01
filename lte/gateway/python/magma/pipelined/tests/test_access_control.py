@@ -67,17 +67,22 @@ class AccessControlTestLTE(unittest.TestCase):
         """
         super(AccessControlTestLTE, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([],
-            ['access_control'])
+        cls.service_manager = create_service_manager(
+            [],
+            ['access_control'],
+        )
         cls._tbl_num = cls.service_manager.get_table_num(
-            AccessControlController.APP_NAME)
+            AccessControlController.APP_NAME,
+        )
 
         access_control_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.AccessControl,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.AccessControl,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.AccessControl:
                     access_control_controller_reference,
@@ -107,7 +112,7 @@ class AccessControlTestLTE(unittest.TestCase):
                         {
                             'ip': cls.BOTH_DIR_TEST_IP,
                         },
-                    ]
+                    ],
                 },
                 'clean_restart': True,
             },
@@ -141,8 +146,10 @@ class AccessControlTestLTE(unittest.TestCase):
             Ip match flows are added
         """
         # Set up subscribers
-        sub = SubContextConfig('IMSI001010000000013', '192.168.128.74', 0x1234,
-                               default_ambr_config, self._tbl_num)
+        sub = SubContextConfig(
+            'IMSI001010000000013', '192.168.128.74', 0x1234, 0x4321,
+            default_ambr_config, self._tbl_num,
+        )
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -158,14 +165,22 @@ class AccessControlTestLTE(unittest.TestCase):
 
         # Check if these flows were added (queries should return flows)
         inbound_flow_queries = [
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                       direction=Direction.OUT,
-                                       ipv4_dst=self.INBOUND_TEST_IP)),
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                       direction=Direction.OUT,
-                                       ipv4_dst=self.BOTH_DIR_TEST_IP)),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    direction=Direction.OUT,
+                    ipv4_dst=self.INBOUND_TEST_IP,
+                ),
+            ),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    direction=Direction.OUT,
+                    ipv4_dst=self.BOTH_DIR_TEST_IP,
+                ),
+            ),
         ]
 
         # =========================== Verification ===========================
@@ -173,11 +188,15 @@ class AccessControlTestLTE(unittest.TestCase):
         flow_verifier = FlowVerifier(
             [
                 FlowTest(
-                    FlowQuery(self._tbl_num, self.testing_controller), 2),
-            ] + [FlowTest(query, 1, flow_count=1) for query in
-                 inbound_flow_queries],
+                    FlowQuery(self._tbl_num, self.testing_controller), 2,
+                ),
+            ] + [
+                FlowTest(query, 1, flow_count=1) for query in
+                inbound_flow_queries
+            ],
             lambda: wait_after_send(
-                self.testing_controller)
+                self.testing_controller,
+            ),
         )
 
         with isolator, flow_verifier:
@@ -185,9 +204,11 @@ class AccessControlTestLTE(unittest.TestCase):
                 pkt_sender.send(packet)
 
         flow_verifier.verify()
-        assert_bridge_snapshot_match(self,
-                                     self.BRIDGE,
-                                     self.service_manager)
+        assert_bridge_snapshot_match(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+        )
 
     def test_outbound_ip_match(self):
         """
@@ -199,8 +220,10 @@ class AccessControlTestLTE(unittest.TestCase):
             Ip match flows are added
         """
         # Set up subscribers
-        sub = SubContextConfig('IMSI001010000000013', '192.168.128.74', 0x1234,
-                               default_ambr_config, self._tbl_num)
+        sub = SubContextConfig(
+            'IMSI001010000000013', '192.168.128.74', 0x1234, 0x4321,
+            default_ambr_config, self._tbl_num,
+        )
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -216,14 +239,22 @@ class AccessControlTestLTE(unittest.TestCase):
 
         # Check if these flows were added (queries should return flows)
         outbound_flow_queries = [
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                       direction=Direction.IN,
-                                       ipv4_src=self.OUTBOUND_TEST_IP)),
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                       direction=Direction.IN,
-                                       ipv4_src=self.BOTH_DIR_TEST_IP)),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    direction=Direction.IN,
+                    ipv4_src=self.OUTBOUND_TEST_IP,
+                ),
+            ),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    direction=Direction.IN,
+                    ipv4_src=self.BOTH_DIR_TEST_IP,
+                ),
+            ),
         ]
 
         # =========================== Verification ===========================
@@ -231,11 +262,15 @@ class AccessControlTestLTE(unittest.TestCase):
         flow_verifier = FlowVerifier(
             [
                 FlowTest(
-                    FlowQuery(self._tbl_num, self.testing_controller), 2),
-            ] + [FlowTest(query, 1, flow_count=1) for query in
-                 outbound_flow_queries],
+                    FlowQuery(self._tbl_num, self.testing_controller), 2,
+                ),
+            ] + [
+                FlowTest(query, 1, flow_count=1) for query in
+                outbound_flow_queries
+            ],
             lambda: wait_after_send(
-                self.testing_controller)
+                self.testing_controller,
+            ),
         )
 
         with isolator, flow_verifier:
@@ -243,9 +278,11 @@ class AccessControlTestLTE(unittest.TestCase):
                 pkt_sender.send(packet)
 
         flow_verifier.verify()
-        assert_bridge_snapshot_match(self,
-                                     self.BRIDGE,
-                                     self.service_manager)
+        assert_bridge_snapshot_match(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+        )
 
     def test_no_match(self):
         """
@@ -257,8 +294,10 @@ class AccessControlTestLTE(unittest.TestCase):
             Ip match flows are added
         """
         # Set up subscribers
-        sub = SubContextConfig('IMSI001010000000013', '192.168.128.74', 0x1234,
-                               default_ambr_config, self._tbl_num)
+        sub = SubContextConfig(
+            'IMSI001010000000013', '192.168.128.74', 0x1234, 0x4321,
+            default_ambr_config, self._tbl_num,
+        )
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -275,14 +314,22 @@ class AccessControlTestLTE(unittest.TestCase):
 
         # Check if these flows were added (queries should return flows)
         outbound_flow_queries = [
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                       direction=Direction.OUT,
-                                       ipv4_dst=self.INBOUND_TEST_IP)),
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                       direction=Direction.IN,
-                                       ipv4_src=self.OUTBOUND_TEST_IP)),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    direction=Direction.OUT,
+                    ipv4_dst=self.INBOUND_TEST_IP,
+                ),
+            ),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    direction=Direction.IN,
+                    ipv4_src=self.OUTBOUND_TEST_IP,
+                ),
+            ),
         ]
 
         # =========================== Verification ===========================
@@ -290,11 +337,15 @@ class AccessControlTestLTE(unittest.TestCase):
         flow_verifier = FlowVerifier(
             [
                 FlowTest(
-                    FlowQuery(self._tbl_num, self.testing_controller), 2),
-            ] + [FlowTest(query, 0, flow_count=1) for query in
-                 outbound_flow_queries],
+                    FlowQuery(self._tbl_num, self.testing_controller), 2,
+                ),
+            ] + [
+                FlowTest(query, 0, flow_count=1) for query in
+                outbound_flow_queries
+            ],
             lambda: wait_after_send(
-                self.testing_controller)
+                self.testing_controller,
+            ),
         )
 
         with isolator, flow_verifier:
@@ -302,9 +353,11 @@ class AccessControlTestLTE(unittest.TestCase):
                 pkt_sender.send(packet)
 
         flow_verifier.verify()
-        assert_bridge_snapshot_match(self,
-                                     self.BRIDGE,
-                                     self.service_manager)
+        assert_bridge_snapshot_match(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+        )
 
     def _build_default_ip_packet(self, dst, src):
         return IPPacketBuilder() \
@@ -335,14 +388,17 @@ class AccessControlTestCWF(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['access_control'])
         cls._tbl_num = cls.service_manager.get_table_num(
-            AccessControlController.APP_NAME)
+            AccessControlController.APP_NAME,
+        )
 
         access_control_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.AccessControl,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.AccessControl,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.AccessControl:
                     access_control_controller_reference,
@@ -374,12 +430,14 @@ class AccessControlTestCWF(unittest.TestCase):
                         {
                             'ip': cls.BOTH_DIR_TEST_IP,
                         },
-                    ]
-                }
+                    ],
+                },
             },
             mconfig=PipelineD(
-                allowed_gre_peers=[{'ip': '2.2.2.2/24'},
-                                   {'ip': '1.2.3.4/24', 'key': 123}],
+                allowed_gre_peers=[
+                    {'ip': '2.2.2.2/24'},
+                    {'ip': '1.2.3.4/24', 'key': 123},
+                ],
             ),
             loop=None,
             service_manager=cls.service_manager,
@@ -407,9 +465,11 @@ class AccessControlTestCWF(unittest.TestCase):
             Both packets are matched
             Ip match flows are added
         """
-        assert_bridge_snapshot_match(self,
-                                     self.BRIDGE,
-                                     self.service_manager)
+        assert_bridge_snapshot_match(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+        )
 
 
 if __name__ == "__main__":

@@ -15,12 +15,12 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 import type {Dataset} from '../../components/CustomMetrics';
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {network_id, subscriber_id} from '@fbcnms/magma-api';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CustomHistogram from '../../components/CustomMetrics';
 import Divider from '@material-ui/core/Divider';
 
 import DataGrid from '../../components/DataGrid';
@@ -33,9 +33,10 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {CustomLineChart} from '../../components/CustomMetrics';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
-import {getLabelUnit, getPromValue} from './SubscriberUtils';
+import {convertBitToMbit, getPromValue} from './SubscriberUtils';
 import {getStep, getStepString} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
@@ -60,7 +61,10 @@ type DatasetFetchProps = {
   subscriberId: subscriber_id,
   start: moment,
   end: moment,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 async function getDatasets(props: DatasetFetchProps) {
@@ -72,12 +76,12 @@ async function getDatasets(props: DatasetFetchProps) {
 
   const queries = [
     {
-      q: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
+      q: `avg(rate(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
       color: colors.secondary.dodgerBlue,
       label: 'download',
     },
     {
-      q: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="up"}[${step}]))`,
+      q: `avg(rate(ue_reported_usage{IMSI="${subscriberId}",direction="up"}[${step}]))`,
       color: colors.data.flamePea,
       label: 'upload',
     },
@@ -98,7 +102,7 @@ async function getDatasets(props: DatasetFetchProps) {
         it['values']?.map(i => {
           data.push({
             t: parseInt(i[0]) * 1000,
-            y: parseFloat(i[1]),
+            y: parseFloat(convertBitToMbit(parseFloat(i[1]))),
           });
         }),
       );
@@ -106,16 +110,15 @@ async function getDatasets(props: DatasetFetchProps) {
       allDatasets.push({
         datasetKeyProvider: index.toString(),
         label: query.label,
-        fill: false,
-        barPercentage: 0.7,
+        fill: true,
 
-        borderWidth: 2,
+        borderWidth: 1,
         backgroundColor: query.color,
         borderColor: query.color,
         hoverBackgroundColor: query.color,
         hoverBorderColor: 'black',
         data: data,
-        unit: 'bytes',
+        unit: 'MB/s',
       });
     } catch (error) {
       requestError = error;
@@ -144,26 +147,39 @@ function SubscriberDataKPI() {
     // fetch queries
     const fetchAllData = async () => {
       const stepCategoryMap = {
-        '1h': 'Last 1 Hour',
-        '24h': 'Last 1 Day',
-        '7d': 'Last 1 Week',
-        '30d': 'Last 1 Month',
+        '1h': {
+          category: 'Hourly Usage MB/s',
+          tooltip: 'Average Data Usage in MB/s over the past 1 hour',
+        },
+        '24h': {
+          category: 'Daily Avg MB/s',
+          tooltip: 'Average Data Usage in MB/s over the past 1 day',
+        },
+        '30d': {
+          category: 'Monthly Avg Mb/s',
+          tooltip: 'Average Data Usage in MB/s over the past 1 month',
+        },
+        '1y': {
+          category: 'Yearly Avg Mb/s',
+          tooltip: 'Average Data Usage in MB/s over the past 1 year',
+        },
       };
 
       const queries = Object.keys(stepCategoryMap).map(async step => {
-        const category = stepCategoryMap[step];
+        const category = stepCategoryMap[step].category;
+        const tooltip = stepCategoryMap[step].tooltip;
         try {
           const result = await MagmaV1API.getNetworksByNetworkIdPrometheusQuery(
             {
               networkId,
-              query: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
+              query: `avg(rate(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
             },
           );
-          const [value, unit] = getLabelUnit(getPromValue(result));
-          return {value, unit, category};
+          const value = convertBitToMbit(getPromValue(result));
+          return {value, category, tooltip};
         } catch (e) {
           enqueueSnackbar('Error getting subscriber KPIs', {variant: 'error'});
-          return {value: '-', unit: '', category};
+          return {value: '-', category, tooltip};
         }
       });
 
@@ -193,6 +209,7 @@ export default function SubscriberChart() {
   const [start, setStart] = useState(moment().subtract(3, 'hours'));
   const [end, setEnd] = useState(moment());
   const [isLoading, setIsLoading] = useState(true);
+  const yLabelUnit = 'MB/s';
 
   function Filter() {
     return (
@@ -243,8 +260,8 @@ export default function SubscriberChart() {
       });
       setDatasets(allDatasets);
       setToolTipHint(toolTipHint);
-      setIsLoading(false);
       setUnit(unit);
+      setIsLoading(false);
     };
 
     fetchAllData();
@@ -259,17 +276,17 @@ export default function SubscriberChart() {
       <CardTitleRow icon={DataUsageIcon} label={'Data Usage'} filter={Filter} />
       <Card elevation={0}>
         <CardHeader
-          title={<Text variant="body2">Data Usage Pattern</Text>}
+          title={<Text variant="body2">Data Usage {yLabelUnit}</Text>}
           subheader={
-            <CustomHistogram
+            <CustomLineChart
               dataset={datasets}
               unit={unit}
-              yLabel={'Bytes'}
+              yLabel={yLabelUnit}
               tooltipHandler={(tooltipItem, data) => {
-                const [val, units] = getLabelUnit(tooltipItem.yLabel);
+                const val = tooltipItem.yLabel;
                 return (
                   data.datasets[tooltipItem.datasetIndex].label +
-                  ` ${val}${units} in last ${toolTipHint}s`
+                  ` ${val} ${yLabelUnit} in last ${toolTipHint}s`
                 );
               }}
             />

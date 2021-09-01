@@ -32,7 +32,6 @@ from fabric.contrib import files
 sys.path.append('../../orc8r')
 from tools.fab.hosts import ansible_setup, vagrant_setup
 
-
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
 LTE_AGW_ROOT = "../../lte/gateway"
@@ -72,17 +71,36 @@ def integ_test(
 
     gateway_host: The ssh address string of the machine to run the gateway
         services on. Formatted as "host:port". If not specified, defaults to
-        the `cwag` vagrant box.
+        the `cwag` vagrant box
 
     test_host: The ssh address string of the machine to run the tests on
         on. Formatted as "host:port". If not specified, defaults to the
-        `cwag_test` vagrant box.
+        `cwag_test` vagrant box
 
     trf_host: The ssh address string of the machine to run the tests on
         on. Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box.
+        `magma_trfserver` vagrant box
 
-    no_build: When set to true, this script will NOT rebuild all docker images.
+    destroy_vm: When set to true, all VMs will be destroyed before running the tests
+
+    provision_vm: When set to true, all VMs will be provisioned before running the tests
+
+    no_build: When set to true, this script will not rebuild all docker images
+        in the CWAG VM
+
+    transfer_images: When set to true, the script will transfer all cwf_* docker 
+        images from the host machine to the CWAG VM to use in the test
+
+    skip_unit_tests: When set to true, only integration tests will be run
+
+    run_tests: When set to to false, no tests will be run
+
+    test_re: When set to a value, integrations tests that match the expression will be run. 
+        (Ex: test_re=TestAuth will run all tests that start with TestAuth)
+
+    count: When set to a number, the integrations tests will be run that many times
+
+    test_result_xml: When set to a path, a JUnit style test summary in XML will be produced at the path
     """
     try:
         tests_to_run = SubTests(tests_to_run)

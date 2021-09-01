@@ -12,6 +12,16 @@ limitations under the License.
 """
 
 import abc
+from typing import NamedTuple
+
+FiveGRanAuthVector = NamedTuple(
+    'FiveGRanAuthVector', [
+        ('rand', bytes),
+        ('xres_star', bytes),
+        ('autn', bytes),
+        ('kseaf', bytes),
+    ],
+)
 
 
 class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):
@@ -35,7 +45,7 @@ class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):
         Generate the E-EUTRAN key vector.
         Args:
             key (bytes): 128 bit subscriber key
-            opc (bytes): 128 bit operator variant algorithm configuration field            
+            opc (bytes): 128 bit operator variant algorithm configuration field
             sqn (int): 48 bit sequence number
             rand (bytes): 128 bit random challenge
             plmn (bytes): 24 bit network identifer
@@ -50,3 +60,25 @@ class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):
             kasme (bytes): 256 bit base network authentication code
         """
         pass
+
+    @abc.abstractmethod
+    def generate_m5gran_vector(
+        self, key: bytes, opc: bytes, sqn: int,
+        snni: bytes,
+    ) -> FiveGRanAuthVector:
+        """
+        Generate the NGRAN key vector.
+        Args:
+            key : bytes
+                128 bit subscriber key
+            opc : bytes
+                128 bit operator variant algorithm configuration field
+            sqn : int
+                48 bit sequence number
+            snni : bytes
+                32 bytes serving network name consisting of MCC and MNC
+        Returns:
+            FiveGRanAuthVector : NamedTuple
+                 Consists of (rand, xres_star, autn, kseaf)
+        """
+        return FiveGRanAuthVector(rand=b'', xres_star=b'', autn=b'', kseaf=b'')

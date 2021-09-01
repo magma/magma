@@ -20,7 +20,6 @@ sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils
 import tools.fab.types as types
 
-
 LTE_NETWORK_TYPE = 'lte'
 FEG_LTE_NETWORK_TYPE = 'feg_lte'
 NIDS_BY_TYPE = {
@@ -78,7 +77,7 @@ def register_federated_vm():
             ),
         ),
         dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
-        federation=FederationNetworkConfig(feg_network_id='feg_test')
+        federation=FederationNetworkConfig(feg_network_id='feg_test'),
     )
     _register_network(FEG_LTE_NETWORK_TYPE, network_payload)
     _register_agw(FEG_LTE_NETWORK_TYPE)
@@ -112,8 +111,10 @@ def _register_agw(network_type: str):
         id=gw_id, name=md_gw.name, description=md_gw.description,
         magmad=md_gw.magmad, tier=md_gw.tier,
         cellular=GatewayCellularConfig(
-            epc=GatewayEPCConfig(ip_block='192.168.128.0/24',
-                                 nat_enabled=True),
+            epc=GatewayEPCConfig(
+                ip_block='192.168.128.0/24',
+                nat_enabled=True,
+            ),
             ran=GatewayRANConfig(pci=260, transmit_enabled=True),
         ),
         connected_enodeb_serials=[],
@@ -126,8 +127,10 @@ def _register_agw(network_type: str):
 
 
 class NetworkTDDConfig:
-    def __init__(self, earfcndl: int,
-                 subframe_assignment: int, special_subframe_pattern: int):
+    def __init__(
+        self, earfcndl: int,
+        subframe_assignment: int, special_subframe_pattern: int,
+    ):
         self.earfcndl = earfcndl
         self.subframe_assignment = subframe_assignment
         self.special_subframe_pattern = special_subframe_pattern
@@ -140,9 +143,11 @@ class NetworkRANConfig:
 
 
 class NetworkEPCConfig:
-    def __init__(self, lte_auth_amf: str, lte_auth_op: str,
-                 mcc: str, mnc: str, tac: int,
-                 relay_enabled: bool):
+    def __init__(
+        self, lte_auth_amf: str, lte_auth_op: str,
+        mcc: str, mnc: str, tac: int,
+        relay_enabled: bool,
+    ):
         self.lte_auth_amf = lte_auth_amf
         self.lte_auth_op = lte_auth_op
         self.mcc = mcc
@@ -159,9 +164,11 @@ class NetworkCellularConfig:
 
 
 class LTENetwork:
-    def __init__(self, id: str, name: str, description: str,
-                 cellular: NetworkCellularConfig,
-                 dns: types.NetworkDNSConfig):
+    def __init__(
+        self, id: str, name: str, description: str,
+        cellular: NetworkCellularConfig,
+        dns: types.NetworkDNSConfig,
+    ):
         self.id = id
         self.name = name
         self.description = description
@@ -175,10 +182,12 @@ class FederationNetworkConfig:
 
 
 class FederatedLTENetwork:
-    def __init__(self, id: str, name: str, description: str,
-                 cellular: NetworkCellularConfig,
-                 dns: types.NetworkDNSConfig,
-                 federation: FederationNetworkConfig):
+    def __init__(
+        self, id: str, name: str, description: str,
+        cellular: NetworkCellularConfig,
+        dns: types.NetworkDNSConfig,
+        federation: FederationNetworkConfig,
+    ):
         self.id = id
         self.name = name
         self.description = description
@@ -206,12 +215,14 @@ class GatewayCellularConfig:
 
 
 class LTEGateway:
-    def __init__(self, device: types.GatewayDevice,
-                 id: str, name: str, description: str,
-                 magmad: types.MagmadGatewayConfigs,
-                 tier: str,
-                 cellular: GatewayCellularConfig,
-                 connected_enodeb_serials: List[str]):
+    def __init__(
+        self, device: types.GatewayDevice,
+        id: str, name: str, description: str,
+        magmad: types.MagmadGatewayConfigs,
+        tier: str,
+        cellular: GatewayCellularConfig,
+        connected_enodeb_serials: List[str],
+    ):
         self.device = device
         self.id = id
         self.name = name

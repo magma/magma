@@ -18,13 +18,12 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {federation_gateway} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
+import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -34,18 +33,17 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Tooltip from '@material-ui/core/Tooltip';
-
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import Text from '../../theme/design-system/Text';
+import Tooltip from '@material-ui/core/Tooltip';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+
+import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useState} from 'react';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -86,44 +84,22 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function CWFGateways(props: WithAlert & {}) {
-  const [gateways, setGateways] = useState<?(federation_gateway[])>(null);
-  const {match, history, relativePath, relativeUrl} = useRouter();
-  const networkId = nullthrows(match.params.networkId);
-  const classes = useStyles();
-
-  const {isLoading} = useMagmaAPI(
-    MagmaV1API.getFegByNetworkIdGateways,
-    {networkId},
-    useCallback(
-      response =>
-        setGateways(
-          Object.keys(response)
-            .map(k => response[k])
-            .filter(g => g.id),
-        ),
-      [],
-    ),
+  const ctx = useContext(FEGGatewayContext);
+  const [gateways, setGateways] = useState<federation_gateway[]>(
+    Object.keys(ctx.state).map(gatewayId => ctx.state[gatewayId]),
   );
-  const {
-    response: clusterStatus,
-    isLoading: clusterStatusLoading,
-  } = useMagmaAPI(MagmaV1API.getFegByNetworkIdClusterStatus, {networkId});
-
-  if (!gateways || isLoading || clusterStatusLoading) {
-    return <LoadingFiller />;
-  }
-
+  const {history, relativePath, relativeUrl} = useRouter();
+  const classes = useStyles();
   const deleteGateway = (gateway: federation_gateway) => {
     props
       .confirm(`Are you sure you want to delete ${gateway.name}?`)
       .then(confirmed => {
         if (confirmed) {
-          MagmaV1API.deleteFegByNetworkIdGatewaysByGatewayId({
-            networkId,
-            gatewayId: gateway.id,
-          }).then(() =>
-            setGateways(gateways.filter(gw => gw.id != gateway.id)),
-          );
+          ctx
+            .setState(gateway.id)
+            .then(() =>
+              setGateways(gateways.filter(gw => gw.id != gateway.id)),
+            );
         }
       });
   };
@@ -133,7 +109,7 @@ function CWFGateways(props: WithAlert & {}) {
       key={gateway.id}
       gateway={gateway}
       onDelete={deleteGateway}
-      isPrimary={clusterStatus?.active_gateway === gateway.id}
+      isPrimary={ctx.activeFegGatewayId === gateway.id}
     />
   ));
 
@@ -200,27 +176,19 @@ function GatewayRow(props: {
 }) {
   const classes = useStyles();
   const {gateway, onDelete, isPrimary} = props;
-  const {match, history, relativeUrl} = useRouter();
-  const {isLoading, response} = useMagmaAPI(
-    MagmaV1API.getFegByNetworkIdGatewaysByGatewayIdHealthStatus,
-    {
-      networkId: nullthrows(match.params.networkId),
-      gatewayId: gateway.id,
-    },
-  );
+  const {history, relativeUrl} = useRouter();
+  const ctx = useContext(FEGGatewayContext);
 
   return (
     <TableRow key={gateway.id}>
       <TableCell>
         <span className={classes.gatewayName}>{gateway.name}</span>
-        {isLoading ? (
-          <CircularProgress size={20} />
-        ) : (
+        {
           <DeviceStatusCircle
-            isGrey={!response?.status}
-            isActive={response?.status === 'HEALTHY'}
+            isGrey={!ctx.health[gateway.id]?.status}
+            isActive={ctx.health[gateway.id]?.status === HEALTHY_STATUS}
           />
-        )}
+        }
         {isPrimary && (
           <Tooltip title="Primary FEG" placement="right">
             <StarIcon className={classes.star} />
@@ -235,7 +203,7 @@ function GatewayRow(props: {
           <EditIcon />
         </IconButton>
         <IconButton color="primary" onClick={() => onDelete(gateway)}>
-          <DeleteIcon />
+          <DeleteIcon data-testid={`delete ${gateway.id}`} />
         </IconButton>
       </TableCell>
     </TableRow>

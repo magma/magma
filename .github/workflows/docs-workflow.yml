@@ -1,0 +1,29 @@
+---
+name: docs-workflow
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'docs/**'
+jobs:
+  # Fail if Markdown doesn't pass linter
+  markdown-lint:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run docs precommit
+        run: |
+            cd ${MAGMA_ROOT}/docs
+            make precommit

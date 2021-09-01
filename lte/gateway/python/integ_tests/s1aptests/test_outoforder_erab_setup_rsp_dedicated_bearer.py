@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
-from lte.protos.policydb_pb2 import FlowMatch
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
+from lte.protos.policydb_pb2 import FlowMatch
 
 
 class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
@@ -159,7 +159,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
         )
         print(
             "Sent UE_SET_DELAY_ERAB_SETUP_RSP with delay value of %d secs"
-            % (delay_erab_setup_resp.tmrVal)
+            % (delay_erab_setup_resp.tmrVal),
         )
 
         print("Sleeping for 5 seconds")
@@ -178,7 +178,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
         # Receive Activate dedicated bearer request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_ctxt_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
 
@@ -186,7 +186,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
         time.sleep(5)
         # Send Activate dedicated bearer accept
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            ue_id, act_ded_ber_ctxt_req.bearerId
+            ue_id, act_ded_ber_ctxt_req.bearerId,
         )
         # Delay to ensure erab setup rsp is sent out of order
         print("Sleeping for 10 seconds")
@@ -199,7 +199,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
         num_ul_flows = 2
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print(
@@ -210,7 +210,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
 
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

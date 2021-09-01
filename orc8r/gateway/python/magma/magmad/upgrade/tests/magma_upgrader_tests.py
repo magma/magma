@@ -44,19 +44,26 @@ class VersionComparisonTests(unittest.TestCase):
         for test_case in greater_test_cases:
             self.assertEqual(
                 1,
-                magma_upgrader.compare_package_versions(test_case.v1,
-                                                        test_case.v2)
+                magma_upgrader.compare_package_versions(
+                    test_case.v1,
+                    test_case.v2,
+                ),
             )
         for test_case in less_test_cases:
             self.assertEqual(
                 -1,
-                magma_upgrader.compare_package_versions(test_case.v1,
-                                                        test_case.v2)
+                magma_upgrader.compare_package_versions(
+                    test_case.v1,
+                    test_case.v2,
+                ),
             )
         self.assertEqual(
             0,
-            magma_upgrader.compare_package_versions(equal_test_case.v1,
-                                                    equal_test_case.v2))
+            magma_upgrader.compare_package_versions(
+                equal_test_case.v1,
+                equal_test_case.v2,
+            ),
+        )
 
     def test_bad_version_strings(self):
         test_cases = [
@@ -72,7 +79,8 @@ class VersionComparisonTests(unittest.TestCase):
             except ValueError as e:
                 self.assertEqual(
                     'Could not parse target package version {}'.format(ver),
-                    str(e))
+                    str(e),
+                )
 
             try:
                 magma_upgrader.compare_package_versions(ver, '1.0.0-0')
@@ -80,7 +88,8 @@ class VersionComparisonTests(unittest.TestCase):
             except ValueError as e:
                 self.assertEqual(
                     'Could not parse current package version {}'.format(ver),
-                    str(e))
+                    str(e),
+                )
 
 
 class MagmaUpgraderTests(unittest.TestCase):
@@ -107,7 +116,8 @@ class MagmaUpgraderTests(unittest.TestCase):
     def test_full_upgrade_workflow(self):
         with patch(
                 'magma.magmad.upgrade.magma_upgrader.call_process',
-                mock.Mock(wraps=self._mock_call_process_success)) as m:
+                mock.Mock(wraps=self._mock_call_process_success),
+        ) as m:
             upgrader = self._get_upgrader('1.0.0-0')
             upgrader.perform_upgrade_if_necessary('1.1.0-0')
 
@@ -119,7 +129,8 @@ class MagmaUpgraderTests(unittest.TestCase):
                     '-o Dpkg::Options::="--force-confnew" '
                     '--assume-yes --force-yes --only-upgrade --dry-run '
                     'magma=1.1.0-0',
-                    mock.ANY, mock.ANY),
+                    mock.ANY, mock.ANY,
+                ),
                 mock.call(
                     'apt-get install '
                     '-o Dpkg::Options::="--force-confnew" '
@@ -132,7 +143,8 @@ class MagmaUpgraderTests(unittest.TestCase):
     def test_apt_update_failure(self):
         with patch(
                 'magma.magmad.upgrade.magma_upgrader.call_process',
-                mock.Mock(wraps=self._mock_call_process_fail)) as m:
+                mock.Mock(wraps=self._mock_call_process_fail),
+        ) as m:
             upgrader = self._get_upgrader('1.0.0-0')
             upgrader.perform_upgrade_if_necessary('1.1.0-0')
 
@@ -144,7 +156,8 @@ class MagmaUpgraderTests(unittest.TestCase):
     def test_upgrade_dry_run_failure(self):
         with patch(
                 'magma.magmad.upgrade.magma_upgrader.call_process',
-                mock.Mock(wraps=self._mock_call_process_fail_on_install)) as m:
+                mock.Mock(wraps=self._mock_call_process_fail_on_install),
+        ) as m:
             upgrader = self._get_upgrader('1.0.0-0')
             upgrader.perform_upgrade_if_necessary('1.1.0-0')
 
@@ -156,13 +169,15 @@ class MagmaUpgraderTests(unittest.TestCase):
                     '-o Dpkg::Options::="--force-confnew" '
                     '--assume-yes --force-yes --only-upgrade --dry-run '
                     'magma=1.1.0-0',
-                    mock.ANY, mock.ANY),
+                    mock.ANY, mock.ANY,
+                ),
             ])
 
     def test_already_in_newest_version(self):
         with patch(
                 'magma.magmad.upgrade.magma_upgrader.call_process',
-                mock.Mock(wraps=self._mock_call_process_success)) as m:
+                mock.Mock(wraps=self._mock_call_process_success),
+        ) as m:
             upgrader = self._get_upgrader('1.1.0-0')
             upgrader.perform_upgrade_if_necessary('1.1.0-0')
             self.assertEqual(0, m.call_count)
@@ -170,7 +185,8 @@ class MagmaUpgraderTests(unittest.TestCase):
     def test_downgrade_is_ignored(self):
         with patch(
                 'magma.magmad.upgrade.magma_upgrader.call_process',
-                mock.Mock(wraps=self._mock_call_process_success)) as m:
+                mock.Mock(wraps=self._mock_call_process_success),
+        ) as m:
             upgrader = self._get_upgrader('1.2.0-0')
             upgrader.perform_upgrade_if_necessary('1.1.0-0')
 

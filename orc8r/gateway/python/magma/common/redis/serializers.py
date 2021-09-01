@@ -28,10 +28,12 @@ class RedisSerde(Generic[T]):
                 function called to deserialize a value
     """
 
-    def __init__(self,
-                 redis_type: str,
-                 serializer: Callable[[T, int], str],
-                 deserializer: Callable[[str], T]):
+    def __init__(
+        self,
+        redis_type: str,
+        serializer: Callable[[T, int], str],
+        deserializer: Callable[[str], T],
+    ):
         self.redis_type = redis_type
         self.serializer = serializer
         self.deserializer = deserializer

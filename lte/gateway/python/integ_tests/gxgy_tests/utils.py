@@ -18,15 +18,21 @@ from lte.protos import session_manager_pb2_grpc
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 from magma.policydb.rule_store import PolicyRuleDict
 
 from .session_manager import MockSessionManager
@@ -54,7 +60,8 @@ class GxGyTestUtil(object):
         self.controller = MockSessionManager()
         self.server = grpc.server(ThreadPoolExecutor(max_workers=10))
         session_manager_pb2_grpc.add_CentralSessionControllerServicer_to_server(
-            self.controller, self.server)
+            self.controller, self.server,
+        )
         self.server.add_insecure_port('127.0.0.1:{}'.format(cloud_port))
         self.server.start()
 
@@ -66,7 +73,7 @@ class GxGyTestUtil(object):
         test_setup = TestSetup(
             apps=[PipelinedController.Testing],
             references={
-                PipelinedController.Testing: testing_controller_reference
+                PipelinedController.Testing: testing_controller_reference,
             },
             config={
                 'bridge_name': self.BRIDGE,
@@ -84,8 +91,10 @@ class GxGyTestUtil(object):
         # Stop ryu controller
         stop_ryu_app_thread(self.thread)
         # Remove bridge
-        BridgeTools.remove_controller_from_bridge(self.BRIDGE,
-                                                  self.CONTROLLER_PORT)
+        BridgeTools.remove_controller_from_bridge(
+            self.BRIDGE,
+            self.CONTROLLER_PORT,
+        )
         # Stop gRPC server
         self.server.stop(0)
 
@@ -103,11 +112,13 @@ class GxGyTestUtil(object):
         pkt_sender = ScapyPacketInjector(self.IFACE)
 
         def packet_sender():
-            isolators = [RyuDirectTableIsolator(
-                RyuForwardFlowArgsBuilder.from_subscriber(sub)
-                                         .build_requests(),
-                self.testing_controller,
-            ) for sub in subs]
+            isolators = [
+                RyuDirectTableIsolator(
+                    RyuForwardFlowArgsBuilder.from_subscriber(sub)
+                                             .build_requests(),
+                    self.testing_controller,
+                ) for sub in subs
+            ]
             flow_query = FlowQuery(20, self.testing_controller)
             pkt_start = sum(flow.packets for flow in flow_query.lookup())
             with ExitStack() as es:
