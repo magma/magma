@@ -360,21 +360,17 @@ nw_rc_t gtpv2c_ambr_ie_set(nw_gtpv2c_msg_handle_t* msg, ambr_t* ambr) {
   uint8_t* p_ambr;
   p_ambr = ambr_br;
 
-  memset(ambr_br, 0, 8);
+  memset(ambr_br, 0, sizeof(ambr_br));
   // if for bps or kbps
 
-  if (ambr->br_unit == BPS) {
+  if (ambr->br_unit == KBPS) {
     INT32_TO_BUFFER((ambr->br_ul / 1000), p_ambr);
     p_ambr += 4;
-
     INT32_TO_BUFFER(((ambr->br_dl / 1000)), p_ambr);
     // todo: byte order?
-  }
-
-  else {
+  } else {
     INT32_TO_BUFFER((ambr->br_ul), p_ambr);
     p_ambr += 4;
-
     INT32_TO_BUFFER(((ambr->br_dl)), p_ambr);
   }
   rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_AMBR, 8, 0, ambr_br);
