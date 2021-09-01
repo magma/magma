@@ -268,6 +268,7 @@ int pdu_session_resource_release_complete(
   OAILOG_DEBUG(
       LOG_AMF_APP, "clear saved context associated with the PDU session\n");
   clear_amf_smf_context(smf_ctx);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 static int pdu_session_resource_release_t3592_handler(
@@ -313,7 +314,7 @@ static int pdu_session_resource_release_t3592_handler(
   }
 
   OAILOG_WARNING(
-      LOG_AMF_APP, "T3592: timer id: %d expired for pdu_session_id: %d\n",
+      LOG_AMF_APP, "T3592: timer id: %ld expired for pdu_session_id: %d\n",
       smf_ctx->T3592.id, pdu_session_id);
 
   smf_ctx->retransmission_count += 1;
@@ -386,6 +387,8 @@ int amf_smf_send(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
+  amf_smf_msg.pdu_session_id =
+      msg->payload_container.smf_msg.header.pdu_session_id;
   // Process the decoded NAS message
   switch (msg->payload_container.smf_msg.header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST: {
@@ -428,6 +431,8 @@ int amf_smf_send(
       // Initialize default APN
       memcpy(smf_ctx->apn, "internet", strlen("internet") + 1);
 
+      smf_ctx->smf_proc_data.pti.pti =
+          msg->payload_container.smf_msg.msg.pdu_session_estab_request.pti.pti;
       // send request to SMF over grpc
       /*
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
@@ -440,12 +445,14 @@ int amf_smf_send(
           SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
+      smf_ctx->smf_proc_data.pti.pti = msg->payload_container.smf_msg.msg
+                                           .pdu_session_release_request.pti.pti;
       smf_ctx->retransmission_count = 0;
       if (RETURNok ==
           pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {
         OAILOG_INFO(
             LOG_AMF_APP,
-            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %d "
+            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
             "Started\n",
             smf_ctx->T3592.id);
       }
@@ -456,7 +463,7 @@ int amf_smf_send(
         OAILOG_INFO(
             LOG_AMF_APP,
             "T3592: after stop PDU_SESSION_RELEASE_REQUEST timer T3592 with id "
-            "= %d\n",
+            "= %ld\n",
             smf_ctx->T3592.id);
         smf_ctx->T3592.id = NAS5G_TIMER_INACTIVE_ID;
       }

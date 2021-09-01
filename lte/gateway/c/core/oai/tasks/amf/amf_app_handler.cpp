@@ -402,8 +402,25 @@ imsi64_t amf_app_handle_initial_ue_message(
               (const hash_key_t) ue_context_p->gnb_ngap_id_key);
           ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
         }
+
+        /* remove amf_ngap_ud_id entry from ue context */
+        amf_remove_ue_context(ue_context_p);
+        ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
+
         // Update AMF UE context with new gnb_ue_ngap_id
         ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
+
+        AMF_APP_GNB_NGAP_ID_KEY(
+            ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
+            initial_pP->gnb_ue_ngap_id);
+
+        // generate new amf_ngap_ue_id
+        ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+            &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
+        amf_insert_ue_context(
+            ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
+            ue_context_p);
         amf_ue_context_update_coll_keys(
             &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
             ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
@@ -663,6 +680,8 @@ void amf_app_handle_pdu_session_response(
        * command to UE and release message to SMF
        */
     }
+
+    amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
     /*Execute PDU establishement accept from AMF to gnodeb */
     pdu_state_handle_message(
         // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
@@ -746,23 +765,19 @@ int amf_app_handle_pdu_session_accept(
 
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
-  smf_msg->header.message_type   = PDU_SESSION_ESTABLISHMENT_ACCEPT;
-  // smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
-  smf_msg->header.procedure_transaction_id = 0x01;
+  smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-  smf_msg->msg.pdu_session_estab_accept.pti.pti = 0x01;
-  // smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti =
+      smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
-  // smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
-  // pdu_session_resp->pdu_session_type;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = 1;
-  // smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = SSC_MODE_ONE;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
 
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
@@ -1250,7 +1265,7 @@ int amf_app_handle_notification_received(
       // Fill the itti msg based on context info produced in amf core
       OAILOG_INFO(
           LOG_AMF_APP,
-          "T3513: Starting PAGING Timer for ue id: %d and timer id: %d\n",
+          "T3513: Starting PAGING Timer for ue id: %u and timer id: %ld\n",
           ue_context->amf_ue_ngap_id, paging_ctx->m5_paging_response_timer.id);
 
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -1316,7 +1331,7 @@ void amf_app_handle_initial_context_setup_rsp(
           ue_context, pdu_list->item[index].Pdu_Session_ID);
       if (smf_context == NULL) {
         OAILOG_ERROR(
-            LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+            LOG_AMF_APP, "pdu session  not found for session_id = %ld\n",
             pdu_list->item[index].Pdu_Session_ID);
       } else {
         amf_smf_establish_t amf_smf_grpc_ies;
