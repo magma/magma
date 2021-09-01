@@ -95,14 +95,6 @@
       - python-protobuf
       - libsystemd-dev
 
-- name: Install python build requirements for Debian systems
-  retries: 5
-  when: preburn and ansible_distribution == "Debian"
-  apt:
-    state: present
-    pkg:
-      - python3-aioeventlet
-
 - name: install the package, force reinstall to the latest version
   pip:
     name: setuptools==49.6.0
