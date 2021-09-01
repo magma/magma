@@ -29,6 +29,7 @@
 <li><a href="#queuing-mechanisms">Queuing mechanisms</a></li>
 <li><a href="#message-queue-proscons">Message Queue Pros/Cons</a></li>
 </ul></li>
+<li><a href="#integration-with-magma">Integration with Magma</a></li>
 <li><a href="#resource-requirements-and-estimates">Resource requirements and estimates</a></li>
 <li><a href="#system-architecture">System Architecture</a></li>
 <li><a href="#schedule-and-milestones">Schedule and Milestones</a></li>
@@ -65,8 +66,12 @@ and a Spectrum Access System (SAS).</p>
 <p>The interface between a DP and the CBSD is not standardized and can be based on
 multiple protocols including the WInnForum defined SAS to
 CBSD/DP REST API, TR-069, SNMP, or NETCONF.</p>
-<p>This solution will include support for DP to CBSD interface based on the standard
-WInnForum SAS to CBSD/DP signaling protocol.</p>
+<p>This solution will include support for:</p>
+<ul>
+<li>DP to CBSD interface based on the standard WInnForum SAS to CBSD/DP signaling protocol</li>
+<li>TR-069 CBSD interface by utilising Magma's AGW ACS (enodebd)
+Note: The enodebd extension and Magma support for CBRS is covered in P019 proposal, <a href="/magma/docs/next/proposals/p019_enodeb_cbrs_support">HERE</a>.</li>
+</ul>
 <p>Support for additional DP to CBSD interface protocols is not in scope
 but the design should take into consideration the ability to easily extend DP
 functionality with in a plugin-based manner.</p>
@@ -475,16 +480,13 @@ It will be responsible for receiving incoming CBSD requests
 and routing them to the appropriate Protocol Controllers
 based on the protocol.</p></li>
 <li><p><strong>Protocol Controller (PC)</strong></p>
-<p>Protocol Controller is responsible for receiving the initial traffic
-from individual CBSDs (radios), translating the requests
+<p>Protocol Controller is responsible for receiving the ingest traffic
+from CBSDs (radios) or other systems (like proprietary DPs, ACS servers), translating the requests
 into a common API protocol and forwarding them to the Radio Controller.</p>
-<p>One PC will implement support for one interface from CBSD side.</p>
-<p>Initially this means only Domain Proxy protocol, but the idea behind
-Protocol Controllers is for them to be written in such a manner that
-having one of them in place, it should be straightforward to add
-another one (it can be achieved by having a ProtocolController abstract class
-to provide structure for particular PC implementations).</p>
-<p>To scale the system better we are decoupling PC (responsible for protocol)
+<p>One PC will implement support for one ingest interface.
+The initial plan is to provide a PC that supports CBRS-SAS protocol (for eNBs or custom Domain Proxies support) and a PC that allows interaction with Magma's AGW ACS (enodebd)</p>
+<p>Protocol Controllers are ingestion abstractions which receive a specific incoming data format related to CBRS eBNs.
+To scale the system better we are decoupling PC (responsible for ingest protocol)
 from Radio controller (responsible for the business domain).
 Additional benefit is maintaining all of the protocol customizations
 and tricks at the PC level and making the PC layer scalable
@@ -495,9 +497,13 @@ and sending responses to  PCs.
 It manages all request data and state within the Database.</p></li>
 <li><p><strong>Configuration controller (CC)</strong></p>
 <p>CC is used process requests and communicate with the SAS server
-using SAS protocol.
+using CBSD-SAS protocol.
 This component issues a request to SAS and updates the request state
 after receiving a reply within the Database.</p></li>
+<li><p><strong>Active Mode Controller</strong></p>
+<p>Active mode controller is responsible for adding &quot;Active Mode&quot; functionality on top of other DP services.</p>
+<p>It will function as a CBSD-SAS request simulator. When enabled, it will generate SAS-related requests on behalf of a eNB towards SAS for registering and obtaining a grant.</p>
+<p>Enabling active mode functionality can be done globally (per DP deployment) and per individual eNBs.</p></li>
 <li><p><strong>Database</strong></p>
 <p>Relational DB storing the state CBSD requests and responses.</p>
 <p>DB allows to keep track of grants and CBSDs configuration limiting redundant CBSD - SAS connections.</p></li>
@@ -505,28 +511,33 @@ after receiving a reply within the Database.</p></li>
 <h2><a class="anchor" aria-hidden="true" id="component-interactions"></a><a href="#component-interactions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Component Interactions</h2>
 <ul>
 <li><p><strong>API Gateway</strong>
-API gateway will receive incoming requests from CBSDs.
+API gateway will receive incoming requests from data sources (like CBSDs, other DPs, AGWs endoebd, etc).
 Depending on the incoming protocol it will route the traffic to appropriate
-k8s protocol controller handling that protocol via a k8s service (which will act as a load balancer).</p></li>
+Protocol Controller handling that protocol via a k8s service (which will act as a load balancer).</p></li>
 <li><p><strong>Protocol Controller</strong></p>
-<p>PC will pass the requests it receives from CBSDs to the RC over gRPC.</p>
+<p>PC will interpret the requests and interact with Radio Controller over gRPC.</p>
 <p>PC will check for the request response with RC via gRPC
-and send the response back to CBSD.</p></li>
+and send the response back to the source system using respective protocol.</p></li>
 <li><p><strong>Radio Controller</strong></p>
-<p>RC receives requests from the PC over HTTPs and puts them in
+<p>RC receives requests from the PC via gRPC and puts them in
 the DB.</p>
 <p>RC accepts incoming request response check requests from PC.</p></li>
 <li><p><strong>Configuration Controller</strong></p>
 <p>CC fetches pending requests from the DB, batches them and sends them to SAS.</p>
 <p>After receiving the response from SAS, it updates the DB state
 for the requests processed.</p></li>
+<li><p><strong>Active Mode Controller</strong></p>
+<p>Active mode controller will calculate the state of CBSDs in the database and based on a desired configuration it will issue new requests on behalf of a CBSD via gRPC calls towards RC (therefore simulating the behavior of a CBSD-SAS protocol controller)</p></li>
 <li><p><strong>Database</strong></p>
 <p>Handles DB queries coming from RC and CC.</p></li>
+<li><p><strong>enodebd</strong></p>
+<p>Part of Access Gateway, the Auto Configuration Server that handles TR069 devices.
+enodebd shall be extended to support calls to DP service within the Orchestrator via service catalogue and known DP API. The details regarding the implementation are not covered in this document.</p></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="solution-scaling"></a><a href="#solution-scaling" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Solution scaling</h2>
 <p>The Domain Proxy will be split into separate services in separate containers.</p>
-<p>Every service will work in HA mode to provide service even in failover scenarios.</p>
-<p>All DP components will be stateless Python based services
+<p>Every service will work in HA mode to provide service availability even in failover scenarios.</p>
+<p>All DP components will be stateless services
 which do not need synchronization between them
 so it is not vital to create sync mechanisms.
 Applications will take over processing of data
@@ -548,19 +559,6 @@ instead of numerous requests sent one by one.
 In large infrastructures it may reduce the cost of SAS usage
 and limit the chance of running out of requests per given time
 (for Google SAS server it is 50,000 requests per day and 10 queries per second).</p>
-<p>Keeping the state is not necessary on the early stage of the project
-when Domain Proxy supports only Passive Mode
-where requests only pass through the DP.
-However, on Active Mode it is necessary to keep the CBSDs objects in the database
-as components such as UI monitor registered CBSDs in the Domain Proxy
-and allow to edit attributes of the CBSDs.
-Using stateless solutions would require to send requests to the SAS server
-or CBSDs itself which is not a good design
-considering that it may generate additional costs and add additional traffic
-between Domain Proxy and other components.
-Active Mode with state in the database allows to add additional attributes
-not recognized by SAS or CBSD, but useful for the Domain Proxy usage
-(labels or additional descriptions for UI purposes such as sorting by groups of CBSDs).</p>
 <h2><a class="anchor" aria-hidden="true" id="architectural-discussion"></a><a href="#architectural-discussion" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architectural Discussion</h2>
 <h3><a class="anchor" aria-hidden="true" id="relational-database"></a><a href="#relational-database" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Relational database</h3>
 <p>Since there is a planned UI and additionally we need to store basic,
@@ -568,9 +566,12 @@ well defined information about CBSD we suggest to reuse an already existing MySQ
 from the Magma Orchestrator component (with a new schema).
 At the very beginning the database usage would be limited to:</p>
 <ul>
-<li>storing records for CBSDs (registration parameters, SAS <code>cbsd_id</code>, name, configuration, name, location, etc.)</li>
+<li>storing records for CBSDs (registration parameters, SAS <code>cbsd_id</code>, name, configuration, location, etc.)</li>
+<li>storing CBSD data</li>
 <li>storing grants</li>
-<li>storing all incoming CBSD requests and SAS responses</li>
+<li>storing Spectrum Inquiry data (as spectrum channels)</li>
+<li>storing all requests and SAS responses</li>
+<li>storing active mode configuration per CBSD</li>
 <li>user administration &amp; access rights within DP system</li>
 </ul>
 <p>We do not intend to use the Database to store the state changes.
@@ -630,6 +631,19 @@ and an increased transactional traffic to the DB.</p>
 of development and DB transaction load is negligible. As a result, DP will
 fully realize the DB for state persistence and data exchange, &quot;queueing&quot;
 and batching.</p>
+<h2><a class="anchor" aria-hidden="true" id="integration-with-magma"></a><a href="#integration-with-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Integration with Magma</h2>
+<p>Domain proxy was was initially developed as a separate repository to Magma's codebase. <a href="https://github.com/magma/domain-proxy">Existing DP code</a> will be moved to Magma repository as a new  <code>dp/</code> module in magma's top directory:</p>
+<ul>
+<li><code>dp/cloud</code> will contain the existing services.</li>
+<li><code>dp/gateway</code> will be empty, as TR069 support will be done as part of enodebd (lte module gateway service)</li>
+<li><code>dp/protos</code> will contain protobuf definition for the module and all its services.</li>
+</ul>
+<p>As part of Magma integration, the plan is to utilize Magma's AGW ACS server (enodebd) to handle CBRS eNBs via TR-069 protocol (<a href="/magma/docs/next/proposals/p019_enodeb_cbrs_support">see p019 proposal</a> for details))
+Enodebd will be extened to make gRPC calls towards the Orchestrator (via new DP service definition in the service catalogue) on specific situations for CBRS enabled eNBs.
+DP will contain a Protocol Controller responsible for handling those enodebd calls and handle/respond accordingly.</p>
+<p>An example data flow between CBRS eNB, enodebd and DP may look as follows:</p>
+<p><img src="media/p010_vendor_neutral_dp_image5.png"/></p>
+<p>As part of initial CBRS eNB support, a new data model and state will be created for Baicells Nova 436Q.</p>
 <h2><a class="anchor" aria-hidden="true" id="resource-requirements-and-estimates"></a><a href="#resource-requirements-and-estimates" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Resource requirements and estimates</h2>
 <p>All requirements and estimates here are a subject to change as development
 progresses.</p>
@@ -657,9 +671,9 @@ we estimate the following Database traffic:</p>
 <h2><a class="anchor" aria-hidden="true" id="system-architecture"></a><a href="#system-architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>System Architecture</h2>
 <p>Based on the analysis and Community discussions, the resulting architecture
 of the DP is as follows:</p>
-<p><img src="media/p010_vendor_neutral_dp_image3.png" style="width:5.21875in;height:2.09375in" /></p>
-<p>Assuming the architecture, and example data flow for a Registration Request is as follows:</p>
-<p><img src="media/p010_vendor_neutral_dp_image4.png" style="width:5.21875in;height:2.09375in" /></p>
+<p><img src="media/p010_vendor_neutral_dp_image3.png"/></p>
+<p>Assuming the architecture, and example data flow for a Registration Request from a CBSD-SAS protocol source is as follows:</p>
+<p><img src="media/p010_vendor_neutral_dp_image4.png"/></p>
 <h2><a class="anchor" aria-hidden="true" id="schedule-and-milestones"></a><a href="#schedule-and-milestones" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Schedule and Milestones</h2>
 <table>
 <thead>
@@ -707,7 +721,7 @@ future that sit between the CBSD and SAS interface to allow for more
 than a simply proxy. The motivation here is it allows for a DP to mask
 undesirable behavior in CBSDs and/or optimize a multi-vendor deployment
 by separately controlling SAS and CBSD messaging per CBSD.</p>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#references">References</a></li><li><a href="#vendor-neutral-domain-proxy-hld">Vendor Neutral Domain Proxy HLD</a></li><li><a href="#sas-client-interface-requirements">SAS Client Interface Requirements</a></li><li><a href="#cbsd-proxy-interface-requirements">CBSD Proxy Interface Requirements</a></li><li><a href="#aggregation-and-proxy-management-requirements">Aggregation and Proxy Management Requirements</a></li><li><a href="#user-interface-requirements">User Interface Requirements</a></li><li><a href="#deployment-architecture-requirements">Deployment Architecture Requirements</a></li><li><a href="#dp-microservices">DP Microservices</a></li><li><a href="#component-interactions">Component Interactions</a></li><li><a href="#solution-scaling">Solution scaling</a></li><li><a href="#batching-of-messages">Batching of messages</a></li><li><a href="#architectural-discussion">Architectural Discussion</a><ul class="toc-headings"><li><a href="#relational-database">Relational database</a></li><li><a href="#queuing-mechanisms">Queuing mechanisms</a></li><li><a href="#message-queue-proscons">Message Queue Pros/Cons</a></li></ul></li><li><a href="#resource-requirements-and-estimates">Resource requirements and estimates</a></li><li><a href="#system-architecture">System Architecture</a></li><li><a href="#schedule-and-milestones">Schedule and Milestones</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#references">References</a></li><li><a href="#vendor-neutral-domain-proxy-hld">Vendor Neutral Domain Proxy HLD</a></li><li><a href="#sas-client-interface-requirements">SAS Client Interface Requirements</a></li><li><a href="#cbsd-proxy-interface-requirements">CBSD Proxy Interface Requirements</a></li><li><a href="#aggregation-and-proxy-management-requirements">Aggregation and Proxy Management Requirements</a></li><li><a href="#user-interface-requirements">User Interface Requirements</a></li><li><a href="#deployment-architecture-requirements">Deployment Architecture Requirements</a></li><li><a href="#dp-microservices">DP Microservices</a></li><li><a href="#component-interactions">Component Interactions</a></li><li><a href="#solution-scaling">Solution scaling</a></li><li><a href="#batching-of-messages">Batching of messages</a></li><li><a href="#architectural-discussion">Architectural Discussion</a><ul class="toc-headings"><li><a href="#relational-database">Relational database</a></li><li><a href="#queuing-mechanisms">Queuing mechanisms</a></li><li><a href="#message-queue-proscons">Message Queue Pros/Cons</a></li></ul></li><li><a href="#integration-with-magma">Integration with Magma</a></li><li><a href="#resource-requirements-and-estimates">Resource requirements and estimates</a></li><li><a href="#system-architecture">System Architecture</a></li><li><a href="#schedule-and-milestones">Schedule and Milestones</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
