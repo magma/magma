@@ -763,8 +763,8 @@ int amf_app_handle_pdu_session_accept(
 
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
-  smf_msg->header.message_type   = PDU_SESSION_ESTABLISHMENT_ACCEPT;
+  smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
@@ -775,7 +775,7 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = 1;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
 
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
@@ -1259,7 +1259,7 @@ int amf_app_handle_notification_received(
       // Fill the itti msg based on context info produced in amf core
       OAILOG_INFO(
           LOG_AMF_APP,
-          "T3513: Starting PAGING Timer for ue id: %d and timer id: %d\n",
+          "T3513: Starting PAGING Timer for ue id: %ld and timer id: %d\n",
           ue_context->amf_ue_ngap_id, paging_ctx->m5_paging_response_timer.id);
 
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -1325,7 +1325,7 @@ void amf_app_handle_initial_context_setup_rsp(
           ue_context, pdu_list->item[index].Pdu_Session_ID);
       if (smf_context == NULL) {
         OAILOG_ERROR(
-            LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+            LOG_AMF_APP, "pdu session  not found for session_id = %ld\n",
             pdu_list->item[index].Pdu_Session_ID);
       } else {
         amf_smf_establish_t amf_smf_grpc_ies;

@@ -267,6 +267,7 @@ int pdu_session_resource_release_complete(
   OAILOG_DEBUG(
       LOG_AMF_APP, "clear saved context associated with the PDU session\n");
   clear_amf_smf_context(smf_ctx);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 static int pdu_session_resource_release_t3592_handler(
@@ -312,7 +313,7 @@ static int pdu_session_resource_release_t3592_handler(
   }
 
   OAILOG_WARNING(
-      LOG_AMF_APP, "T3592: timer id: %d expired for pdu_session_id: %d\n",
+      LOG_AMF_APP, "T3592: timer id: %ld expired for pdu_session_id: %d\n",
       smf_ctx->T3592.id, pdu_session_id);
 
   smf_ctx->retransmission_count += 1;
@@ -438,7 +439,7 @@ int amf_smf_send(
           pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {
         OAILOG_INFO(
             LOG_AMF_APP,
-            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %d "
+            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
             "Started\n",
             smf_ctx->T3592.id);
       }
@@ -449,7 +450,7 @@ int amf_smf_send(
         OAILOG_INFO(
             LOG_AMF_APP,
             "T3592: after stop PDU_SESSION_RELEASE_REQUEST timer T3592 with id "
-            "= %d\n",
+            "= %ld\n",
             smf_ctx->T3592.id);
         smf_ctx->T3592.id = NAS5G_TIMER_INACTIVE_ID;
       }

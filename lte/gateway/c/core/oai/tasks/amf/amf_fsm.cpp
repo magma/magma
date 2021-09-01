@@ -293,6 +293,8 @@ int pdu_state_handle_message(
         OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
   }
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 std::string get_state_event_string(state_events event) {
   std::string eventStr;
