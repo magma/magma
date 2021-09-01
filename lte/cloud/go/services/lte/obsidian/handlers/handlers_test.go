@@ -50,7 +50,7 @@ import (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 func TestListNetworks(t *testing.T) {
@@ -996,14 +996,10 @@ func TestCreateGateway(t *testing.T) {
 	// setup fixtures in backend
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(
 		context.Background(),
@@ -1203,6 +1199,7 @@ func TestListAndGetGateways(t *testing.T) {
 	// Create 2 gateways, 1 with state and device, the other without
 	// g2 will associate to 2 enodebs
 	_, err = configurator.CreateEntities(
+		context.Background(),
 		"n1",
 		[]configurator.NetworkEntity{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
@@ -1396,44 +1393,40 @@ func TestUpdateGateway(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateGateway := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb3"},
-			{
-				Type: lte.CellularGatewayEntityType, Key: "g1",
-				Config: &lteModels.GatewayCellularConfigs{
-					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
-				},
-				Associations: []storage.TypeAndKey{
-					{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-					{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-				},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb2"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb3"},
+		{
+			Type: lte.CellularGatewayEntityType, Key: "g1",
+			Config: &lteModels.GatewayCellularConfigs{
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: "g1"},
-				},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
@@ -1541,43 +1534,39 @@ func TestDeleteGateway(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-			{
-				Type: lte.CellularGatewayEntityType, Key: "g1",
-				Config: &lteModels.GatewayCellularConfigs{
-					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
-				},
-				Associations: []storage.TypeAndKey{
-					{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-					{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-				},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb2"},
+		{
+			Type: lte.CellularGatewayEntityType, Key: "g1",
+			Config: &lteModels.GatewayCellularConfigs{
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: "g1"},
-				},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
@@ -1628,28 +1617,24 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 	getNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.GET).HandlerFunc
 	getEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.GET).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-			{
-				Type: lte.CellularGatewayEntityType, Key: "g1",
-				Config: newDefaultGatewayConfig(),
-				Associations: []storage.TypeAndKey{
-					{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-					{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-				},
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID:   "hw1",
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb2"},
+		{
+			Type: lte.CellularGatewayEntityType, Key: "g1",
+			Config: newDefaultGatewayConfig(),
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID:   "hw1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// 404
@@ -1738,19 +1723,15 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	postEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.POST).HandlerFunc
 	deleteEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb2"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -1955,7 +1936,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularEnodebEntityType, Key: "enb3"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularEnodebEntityType, Key: "enb3"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// happy case
@@ -2089,61 +2070,57 @@ func TestListAndGetEnodebs(t *testing.T) {
 	listEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 	getEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:enodeb_serial", testURLRoot), obsidian.GET).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type:        lte.CellularEnodebEntityType,
-				Key:         "abcdefg",
-				Name:        "abc enodeb",
-				Description: "abc enodeb description",
-				PhysicalID:  "abcdefg",
-				Config: &lteModels.EnodebConfig{
-					ConfigType: "MANAGED",
-					ManagedConfig: &lteModels.EnodebConfiguration{
-						BandwidthMhz:           20,
-						CellID:                 swag.Uint32(1234),
-						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-						Earfcndl:               39450,
-						Pci:                    260,
-						SpecialSubframePattern: 7,
-						SubframeAssignment:     2,
-						Tac:                    1,
-						TransmitEnabled:        swag.Bool(true),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type:        lte.CellularEnodebEntityType,
+			Key:         "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			PhysicalID:  "abcdefg",
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
 				},
-			},
-			{
-				Type:        lte.CellularEnodebEntityType,
-				Key:         "vwxyz",
-				Name:        "xyz enodeb",
-				Description: "xyz enodeb description",
-				PhysicalID:  "vwxyz",
-				Config: &lteModels.EnodebConfig{
-					ConfigType: "MANAGED",
-					ManagedConfig: &lteModels.EnodebConfiguration{
-						BandwidthMhz:           20,
-						CellID:                 swag.Uint32(1234),
-						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-						Earfcndl:               39450,
-						Pci:                    260,
-						SpecialSubframePattern: 7,
-						SubframeAssignment:     2,
-						Tac:                    1,
-						TransmitEnabled:        swag.Bool(true),
-					},
-				},
-			},
-			{
-				Type: lte.CellularGatewayEntityType, Key: "gw1",
-				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "abcdefg"}},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type:        lte.CellularEnodebEntityType,
+			Key:         "vwxyz",
+			Name:        "xyz enodeb",
+			Description: "xyz enodeb description",
+			PhysicalID:  "vwxyz",
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
+			},
+		},
+		{
+			Type: lte.CellularGatewayEntityType, Key: "gw1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "abcdefg"}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
-	expected := map[string]*lteModels.Enodeb{
+	enodebs := map[string]*lteModels.Enodeb{
 		"abcdefg": {
 			AttachedGatewayID: "gw1",
 			Config: &lteModels.EnodebConfiguration{
@@ -2206,6 +2183,12 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Serial:      "vwxyz",
 		},
 	}
+	expected := &lteModels.PaginatedEnodebs{
+		Enodebs:    enodebs,
+		PageToken:  "",
+		TotalCount: 2,
+	}
+
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -2217,6 +2200,38 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	expectedPageToken := "CgdhYmNkZWZn"
+	paginatedExpectation := &lteModels.PaginatedEnodebs{
+		Enodebs:    map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
+		PageToken:  lteModels.PageToken(expectedPageToken),
+		TotalCount: 2,
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "?page_size=1&page_token=",
+		Handler:        listEnodebs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(paginatedExpectation),
+	}
+	tests.RunUnitTest(t, e, tc)
+	paginatedExpectation.Enodebs = map[string]*lteModels.Enodeb{"vwxyz": expected.Enodebs["vwxyz"]}
+	paginatedExpectation.PageToken = ""
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "?page_size=10&page_token=" + expectedPageToken,
+		Handler:        listEnodebs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(paginatedExpectation),
+	}
+	tests.RunUnitTest(t, e, tc)
+	// Run a second time to confirm page token is deterministic
+	tests.RunUnitTest(t, e, tc)
+
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -2224,7 +2239,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 		ParamNames:     []string{"network_id", "enodeb_serial"},
 		ParamValues:    []string{"n1", "abcdefg"},
 		ExpectedStatus: 200,
-		ExpectedResult: expected["abcdefg"],
+		ExpectedResult: expected.Enodebs["abcdefg"],
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2235,7 +2250,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 		ParamNames:     []string{"network_id", "enodeb_serial"},
 		ParamValues:    []string{"n1", "vwxyz"},
 		ExpectedStatus: 200,
-		ExpectedResult: expected["vwxyz"],
+		ExpectedResult: expected.Enodebs["vwxyz"],
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2420,33 +2435,29 @@ func TestUpdateEnodeb(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type:        lte.CellularEnodebEntityType,
-				Key:         "abcdefg",
-				Name:        "abc enodeb",
-				Description: "abc enodeb description",
-				PhysicalID:  "abcdefg",
-				Config: &lteModels.EnodebConfig{
-					ConfigType: "MANAGED",
-					ManagedConfig: &lteModels.EnodebConfiguration{
-						BandwidthMhz:           20,
-						CellID:                 swag.Uint32(1234),
-						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-						Earfcndl:               39450,
-						Pci:                    260,
-						SpecialSubframePattern: 7,
-						SubframeAssignment:     2,
-						Tac:                    1,
-						TransmitEnabled:        swag.Bool(true),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type:        lte.CellularEnodebEntityType,
+			Key:         "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			PhysicalID:  "abcdefg",
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
 				},
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -2605,32 +2616,28 @@ func TestDeleteEnodeb(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type:       lte.CellularEnodebEntityType,
-				Key:        "abcdefg",
-				Name:       "abc enodeb",
-				PhysicalID: "abcdefg",
-				Config: &lteModels.EnodebConfig{
-					ConfigType: "MANAGED",
-					ManagedConfig: &lteModels.EnodebConfiguration{
-						BandwidthMhz:           20,
-						CellID:                 swag.Uint32(1234),
-						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-						Earfcndl:               39450,
-						Pci:                    260,
-						SpecialSubframePattern: 7,
-						SubframeAssignment:     2,
-						Tac:                    1,
-						TransmitEnabled:        swag.Bool(true),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type:       lte.CellularEnodebEntityType,
+			Key:        "abcdefg",
+			Name:       "abc enodeb",
+			PhysicalID: "abcdefg",
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
 				},
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -2660,21 +2667,17 @@ func TestGetEnodebState(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	getEnodebState := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.CellularEnodebEntityType, Key: "serial1",
-				PhysicalID: "serial1",
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "gw1",
-				PhysicalID:   "hwid1",
-				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "serial1"}},
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.CellularEnodebEntityType, Key: "serial1",
+			PhysicalID: "serial1",
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "gw1",
+			PhysicalID:   "hwid1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "serial1"}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// 404
@@ -2768,42 +2771,38 @@ func TestListApns(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.APNEntityType, Key: "oai.ipv4",
-				Config: &lteModels.ApnConfiguration{
-					Ambr: &lteModels.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(200),
-						MaxBandwidthUl: swag.Uint32(200),
-					},
-					QosProfile: &lteModels.QosProfile{
-						ClassID:                 swag.Int32(9),
-						PreemptionCapability:    swag.Bool(true),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(15),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.APNEntityType, Key: "oai.ipv4",
+			Config: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(200),
+					MaxBandwidthUl: swag.Uint32(200),
 				},
-			},
-			{
-				Type: lte.APNEntityType, Key: "oai.ims",
-				Config: &lteModels.ApnConfiguration{
-					Ambr: &lteModels.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(100),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lteModels.QosProfile{
-						ClassID:                 swag.Int32(5),
-						PreemptionCapability:    swag.Bool(true),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(5),
-					},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(9),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(15),
 				},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.APNEntityType, Key: "oai.ims",
+			Config: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(100),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(5),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(5),
+				},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -2870,25 +2869,21 @@ func TestGetApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: lte.APNEntityType, Key: "oai.ipv4",
-			Config: &lteModels.ApnConfiguration{
-				Ambr: &lteModels.AggregatedMaximumBitrate{
-					MaxBandwidthDl: swag.Uint32(200),
-					MaxBandwidthUl: swag.Uint32(200),
-				},
-				QosProfile: &lteModels.QosProfile{
-					ClassID:                 swag.Int32(9),
-					PreemptionCapability:    swag.Bool(true),
-					PreemptionVulnerability: swag.Bool(false),
-					PriorityLevel:           swag.Uint32(15),
-				},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: lte.APNEntityType, Key: "oai.ipv4",
+		Config: &lteModels.ApnConfiguration{
+			Ambr: &lteModels.AggregatedMaximumBitrate{
+				MaxBandwidthDl: swag.Uint32(200),
+				MaxBandwidthUl: swag.Uint32(200),
+			},
+			QosProfile: &lteModels.QosProfile{
+				ClassID:                 swag.Int32(9),
+				PreemptionCapability:    swag.Bool(true),
+				PreemptionVulnerability: swag.Bool(false),
+				PriorityLevel:           swag.Uint32(15),
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -2957,25 +2952,21 @@ func TestUpdateApn(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Add the APN Configuration
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: lte.APNEntityType, Key: "oai.ipv4",
-			Config: &lteModels.ApnConfiguration{
-				Ambr: &lteModels.AggregatedMaximumBitrate{
-					MaxBandwidthDl: swag.Uint32(200),
-					MaxBandwidthUl: swag.Uint32(200),
-				},
-				QosProfile: &lteModels.QosProfile{
-					ClassID:                 swag.Int32(9),
-					PreemptionCapability:    swag.Bool(true),
-					PreemptionVulnerability: swag.Bool(false),
-					PriorityLevel:           swag.Uint32(15),
-				},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: lte.APNEntityType, Key: "oai.ipv4",
+		Config: &lteModels.ApnConfiguration{
+			Ambr: &lteModels.AggregatedMaximumBitrate{
+				MaxBandwidthDl: swag.Uint32(200),
+				MaxBandwidthUl: swag.Uint32(200),
+			},
+			QosProfile: &lteModels.QosProfile{
+				ClassID:                 swag.Int32(9),
+				PreemptionCapability:    swag.Bool(true),
+				PreemptionVulnerability: swag.Bool(false),
+				PriorityLevel:           swag.Uint32(15),
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -3012,42 +3003,38 @@ func TestDeleteApn(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteApn := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.APNEntityType, Key: "oai.ipv4",
-				Config: &lteModels.ApnConfiguration{
-					Ambr: &lteModels.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(200),
-						MaxBandwidthUl: swag.Uint32(200),
-					},
-					QosProfile: &lteModels.QosProfile{
-						ClassID:                 swag.Int32(9),
-						PreemptionCapability:    swag.Bool(true),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(15),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.APNEntityType, Key: "oai.ipv4",
+			Config: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(200),
+					MaxBandwidthUl: swag.Uint32(200),
 				},
-			},
-			{
-				Type: lte.APNEntityType, Key: "oai.ims",
-				Config: &lteModels.ApnConfiguration{
-					Ambr: &lteModels.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(100),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lteModels.QosProfile{
-						ClassID:                 swag.Int32(5),
-						PreemptionCapability:    swag.Bool(true),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(5),
-					},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(9),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(15),
 				},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.APNEntityType, Key: "oai.ims",
+			Config: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(100),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(5),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(5),
+				},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -3091,7 +3078,7 @@ func TestAPNResource(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3416,7 +3403,7 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3539,7 +3526,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3555,7 +3542,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	postAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers, "/magma/v1/lte/:network_id/apns", obsidian.POST).HandlerFunc
 
 	// Create enb0
-	_, err = configurator.CreateEntities("n0", []configurator.NetworkEntity{{Type: lte.CellularEnodebEntityType, Key: "enb0"}}, serdes.Entity)
+	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{{Type: lte.CellularEnodebEntityType, Key: "enb0"}}, serdes.Entity)
 	assert.NoError(t, err)
 
 	gw0 := newMutableGateway("gw0")
@@ -4114,13 +4101,9 @@ func seedGateway(t *testing.T, networkID string, gatewayID string) {
 
 func seedTier(t *testing.T, networkID string) {
 	// setup fixtures in backend
-	_, err := configurator.CreateEntities(
-		networkID,
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t0"},
-		},
-		serdes.Entity,
-	)
+	_, err := configurator.CreateEntities(context.Background(), networkID, []configurator.NetworkEntity{
+		{Type: orc8r.UpgradeTierEntityType, Key: "t0"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }
 

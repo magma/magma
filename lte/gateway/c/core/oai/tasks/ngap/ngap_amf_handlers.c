@@ -726,8 +726,7 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -928,8 +927,7 @@ int ngap_amf_handle_ue_context_release_request(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.AMF_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -1282,8 +1280,7 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
       Ngap_InitialContextSetupFailureIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
@@ -1706,8 +1703,7 @@ status_code_e ngap_amf_handle_pduSession_release_response(
       Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   // gNB UE NGAP ID is limited to 24 bits
-  gnb_ue_ngap_id =
-      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
 
   if ((ie) && ue_ref_p->gnb_ue_ngap_id != gnb_ue_ngap_id) {
     OAILOG_ERROR(
@@ -1793,8 +1789,7 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
     // gNB UE NGAP ID is limited to 24 bits
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }

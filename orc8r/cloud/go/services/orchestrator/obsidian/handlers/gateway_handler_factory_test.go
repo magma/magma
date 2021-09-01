@@ -68,7 +68,7 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 		Type: orc8r.MagmadGatewayType,
 		Name: "gateway 1",
 	}
-	_, err := configurator.CreateEntity(networkID, gateway, serdes.Entity)
+	_, err := configurator.CreateEntity(context2.Background(), networkID, gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -119,7 +119,7 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 		Type: orc8r.MagmadGatewayType,
 		Name: "Gateway 1",
 	}
-	_, err := configurator.CreateEntity(networkID, Gateway, serdes.Entity)
+	_, err := configurator.CreateEntity(context2.Background(), networkID, Gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	// validation failure

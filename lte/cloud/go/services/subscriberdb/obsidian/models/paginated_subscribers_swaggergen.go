@@ -19,7 +19,7 @@ type PaginatedSubscribers struct {
 
 	// next page token
 	// Required: true
-	NextPageToken NextPageToken `json:"next_page_token"`
+	NextPageToken PageToken `json:"next_page_token"`
 
 	// subscribers
 	// Required: true

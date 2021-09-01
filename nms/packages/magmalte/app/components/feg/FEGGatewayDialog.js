@@ -33,7 +33,7 @@ import FEGGatewayContext from '../context/FEGGatewayContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
-import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
+import KeyValueFields from '../KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';

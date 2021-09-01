@@ -901,18 +901,14 @@ func TestUpdateGateway(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Correctly update gateway
-	_, err := configurator.CreateEntities(
-		nID,
-		[]configurator.NetworkEntity{
-			{
-				Type: wifi.MeshEntityType, Key: nmID,
-				Name:         "not_mesh_1",
-				Config:       models2.NewDefaultMeshWifiConfigs(),
-				Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
-			},
+	_, err := configurator.CreateEntities(context.Background(), nID, []configurator.NetworkEntity{
+		{
+			Type: wifi.MeshEntityType, Key: nmID,
+			Name:         "not_mesh_1",
+			Config:       models2.NewDefaultMeshWifiConfigs(),
+			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "PUT",
@@ -1094,17 +1090,13 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 
 	seedNetworks(t)
 	seedGatewaysAndMeshes(t)
-	_, err := configurator.CreateEntities(
-		nID,
-		[]configurator.NetworkEntity{
-			{
-				Type: wifi.MeshEntityType, Key: nmID,
-				Name:   "not_mesh_1",
-				Config: models2.NewDefaultMeshWifiConfigs(),
-			},
+	_, err := configurator.CreateEntities(context.Background(), nID, []configurator.NetworkEntity{
+		{
+			Type: wifi.MeshEntityType, Key: nmID,
+			Name:   "not_mesh_1",
+			Config: models2.NewDefaultMeshWifiConfigs(),
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedEnts := map[string]*configurator.NetworkEntity{
@@ -1930,17 +1922,13 @@ func TestDeleteMesh(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Disassociate gateway then delete mesh
-	_, err := configurator.CreateEntities(
-		nID,
-		[]configurator.NetworkEntity{
-			{
-				Type: wifi.MeshEntityType, Key: nmID,
-				Name:   "not_mesh_1",
-				Config: models2.NewDefaultMeshWifiConfigs(),
-			},
+	_, err := configurator.CreateEntities(context.Background(), nID, []configurator.NetworkEntity{
+		{
+			Type: wifi.MeshEntityType, Key: nmID,
+			Name:   "not_mesh_1",
+			Config: models2.NewDefaultMeshWifiConfigs(),
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	payload := models2.GatewayWifiConfigs{
 		AdditionalProps: map[string]string{
@@ -2244,20 +2232,16 @@ func seedNetworks(t *testing.T) {
 
 func seedPreGateway(t *testing.T) {
 	// Create Tier necessary for the gateway to be in
-	_, err := configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			},
-			{
-				Type: wifi.MeshEntityType, Key: "m1",
-				Name:   "mesh_1",
-				Config: models2.NewDefaultMeshWifiConfigs(),
-			},
+	_, err := configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
 		},
-		serdes.Entity,
-	)
+		{
+			Type: wifi.MeshEntityType, Key: "m1",
+			Name:   "mesh_1",
+			Config: models2.NewDefaultMeshWifiConfigs(),
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }
 
@@ -2266,41 +2250,37 @@ func seedPreMesh(t *testing.T) {
 	nID := "n1"
 	gID := "g1"
 
-	_, err := configurator.CreateEntities(
-		nID,
-		[]configurator.NetworkEntity{
-			{
-				Type: wifi.WifiGatewayType, Key: gID,
-				Name:        "gateway_1",
-				Description: "gateway 1",
-				Config:      models2.NewDefaultWifiGatewayConfig(),
-				ParentAssociations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: gID},
-				},
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: gID,
-				Name:        "gateway_1",
-				Description: "gateway 1",
-				PhysicalID:  "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-				Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-				ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: gID},
-				},
+	_, err := configurator.CreateEntities(context.Background(), nID, []configurator.NetworkEntity{
+		{
+			Type: wifi.WifiGatewayType, Key: gID,
+			Name:        "gateway_1",
+			Description: "gateway 1",
+			Config:      models2.NewDefaultWifiGatewayConfig(),
+			ParentAssociations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: gID},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: gID,
+			Name:        "gateway_1",
+			Description: "gateway 1",
+			PhysicalID:  "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: gID},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }
 
@@ -2308,50 +2288,46 @@ func seedGatewaysAndMeshes(t *testing.T) {
 	nID := "n1"
 	gID := "g1"
 	mID := "m1"
-	_, err := configurator.CreateEntities(
-		nID,
-		[]configurator.NetworkEntity{
-			{
-				Type: wifi.WifiGatewayType, Key: gID,
-				Name:               "gateway_1",
-				Description:        "gateway 1",
-				Config:             models2.NewDefaultWifiGatewayConfig(),
-				ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+	_, err := configurator.CreateEntities(context.Background(), nID, []configurator.NetworkEntity{
+		{
+			Type: wifi.WifiGatewayType, Key: gID,
+			Name:               "gateway_1",
+			Description:        "gateway 1",
+			Config:             models2.NewDefaultWifiGatewayConfig(),
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+		},
+		{
+			Type: orc8r.MagmadGatewayType, Key: gID,
+			Name:        "gateway_1",
+			Description: "gateway 1",
+			PhysicalID:  "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
 			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: gID,
-				Name:        "gateway_1",
-				Description: "gateway 1",
-				PhysicalID:  "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-				Associations: []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-				ParentAssociations: []storage.TypeAndKey{
-					{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-					{Type: wifi.MeshEntityType, Key: mID},
-				},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: gID},
-				},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t2",
-			},
-			{
-				Type: wifi.MeshEntityType, Key: mID,
-				Name:         "mesh_1",
-				Config:       models2.NewDefaultMeshWifiConfigs(),
-				Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: []storage.TypeAndKey{
+				{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+				{Type: wifi.MeshEntityType, Key: mID},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: gID},
+			},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t2",
+		},
+		{
+			Type: wifi.MeshEntityType, Key: mID,
+			Name:         "mesh_1",
+			Config:       models2.NewDefaultMeshWifiConfigs(),
+			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }

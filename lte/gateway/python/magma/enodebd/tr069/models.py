@@ -152,7 +152,7 @@ class ParameterNames(Tr069ComplexModel):
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
-class ParameterKeyType(String.customize(max_length=32)):
+class ParameterKeyType(anySimpleType):
     pass
 
 

@@ -22,15 +22,14 @@ import sys
 import time
 from enum import Enum
 
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common.redis.client import get_default_client
 from magma.configuration.mconfig_managers import get_mconfig_manager
-
 from magma.configuration.service_configs import (
     load_override_config,
     load_service_config,
     save_override_config,
 )
-from lte.protos.mconfig import mconfigs_pb2
 
 return_codes = Enum(
     "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0,
@@ -175,20 +174,23 @@ def ovs_reset_bridges():
     else:
         non_nat_sgi_interface = service_config['nat_iface']
         sgi_management_iface_ip_addr = service_config.get(
-           'sgi_management_iface_ip_addr', mconfig.sgi_management_iface_ip_addr)
+           'sgi_management_iface_ip_addr', mconfig.sgi_management_iface_ip_addr,
+        )
         sgi_management_iface_gw = service_config.get(
-           'sgi_management_iface_gw', mconfig.sgi_management_iface_gw)
+           'sgi_management_iface_gw', mconfig.sgi_management_iface_gw,
+        )
 
     sgi_bridge_name = service_config.get('uplink_bridge', "uplink_br0")
 
     reset_br = "magma-bridge-reset.sh -n %s %s %s %s" % \
-               (sgi_bridge_name,
-                non_nat_sgi_interface,
-                sgi_management_iface_ip_addr,
-                sgi_management_iface_gw)
+               (
+                   sgi_bridge_name,
+                   non_nat_sgi_interface,
+                   sgi_management_iface_ip_addr,
+                   sgi_management_iface_gw,
+               )
     print("ovs-restart: ", reset_br)
     subprocess.call(reset_br.split())
-
 
 
 def sctpd_pre_start():

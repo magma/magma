@@ -15,6 +15,7 @@ limitations under the License.
 //--C includes -----------------------------------------------------------------
 extern "C" {
 #include "intertask_interface.h"
+#include "esm_data.h"
 }
 ////--C++ includes
 ///---------------------------------------------------------------

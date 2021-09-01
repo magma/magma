@@ -34,7 +34,8 @@ def _chunk_targets(hosts: List[str]):
     """
     for i in range(0, len(hosts), CHUNK_SIZE):
         logging.debug(
-            'Yielding [%s:%s] from target hosts', i, i + CHUNK_SIZE)
+            'Yielding [%s:%s] from target hosts', i, i + CHUNK_SIZE,
+        )
         yield hosts[i:i + CHUNK_SIZE]
 
 

@@ -24,7 +24,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
+import KeyValueFields from '../KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';

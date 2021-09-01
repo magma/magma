@@ -445,7 +445,7 @@ class EnforcementStatsTest(unittest.TestCase):
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                .build_requests(),
+            .build_requests(),
             self.testing_controller,
         )
 

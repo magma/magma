@@ -985,12 +985,8 @@ func seedCwfGateway(t *testing.T, id string, hwId string) {
 
 func seedCwfTier(t *testing.T, networkID string) {
 	// setup fixtures in backend
-	_, err := configurator.CreateEntities(
-		networkID,
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		serdes.Entity,
-	)
+	_, err := configurator.CreateEntities(context2.Background(), networkID, []configurator.NetworkEntity{
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }

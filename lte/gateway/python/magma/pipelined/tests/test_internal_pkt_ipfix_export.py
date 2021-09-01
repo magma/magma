@@ -84,8 +84,8 @@ class InternalPktIpfixExportTest(unittest.TestCase):
                     dpi_controller_reference,
                 PipelinedController.Arp:
                     Future(),
-                 PipelinedController.IPFIX:
-                     ipfix_controller_reference,
+                PipelinedController.IPFIX:
+                ipfix_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:

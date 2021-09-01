@@ -664,15 +664,11 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 
 	// preseed 3 subscribers
 	imsi1, imsi2, imsi3 := "IMSI1234567890", "IMSI0987654321", "IMSI1111111111"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.SubscriberEntityType, Key: imsi1},
-			{Type: lte.SubscriberEntityType, Key: imsi2},
-			{Type: lte.SubscriberEntityType, Key: imsi3},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.SubscriberEntityType, Key: imsi1},
+		{Type: lte.SubscriberEntityType, Key: imsi2},
+		{Type: lte.SubscriberEntityType, Key: imsi3},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Create rule assigned to s1, s2

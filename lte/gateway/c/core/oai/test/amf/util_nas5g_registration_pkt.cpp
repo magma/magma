@@ -31,4 +31,33 @@ bool decode_registration_request_msg(
   return (decode_success);
 }
 
+//  API for testing encode registration reject
+bool encode_registration_reject_msg(
+    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len) {
+  bool encode_success = true;
+  uint8_t* encode_reg_buffer =
+      const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
+
+  if (reg_reject->EncodeRegistrationRejectMsg(
+          reg_reject, encode_reg_buffer, len) < 0) {
+    encode_success = false;
+  }
+
+  return (encode_success);
+}
+
+//  API for testing decode registration reject
+bool decode_registration_reject_msg(
+    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len) {
+  bool decode_success = true;
+  uint8_t* decode_reg_buffer =
+      const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
+
+  if (reg_reject->DecodeRegistrationRejectMsg(
+          reg_reject, decode_reg_buffer, len) < 0) {
+    decode_success = false;
+  }
+
+  return (decode_success);
+}
 }  // namespace magma5g

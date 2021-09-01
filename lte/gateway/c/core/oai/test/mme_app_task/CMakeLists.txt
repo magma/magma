@@ -16,6 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
 
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
 
@@ -27,11 +28,14 @@ set(MME_APP_EMM_DECODE_SRC
     )
 set(NAS_EXTENDED_APN_AMBR
     test_ExtendedApnAggregateMaximumBitRate.cpp
+set(MME_APP_CONFIG_SRC
+    test_mme_app_config_partial_tai_list.cpp
     )
 
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
 add_executable(test_mme_app_emm_decode ${MME_APP_EMM_DECODE_SRC})
 add_executable(test_nas_extended_apn_ambr ${NAS_EXTENDED_APN_AMBR})
+add_executable(test_mme_app_config ${MME_APP_CONFIG_SRC})
 
 target_link_libraries(test_mme_app_ue_context_imsi
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
@@ -46,6 +50,11 @@ target_link_libraries(test_nas_extended_apn_ambr
     LIB_BSTR LIB_HASHTABLE gtest gtest_main
      )
 
+target_link_libraries(test_mme_app_config
+    TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    gtest gtest_main
+    )
+
 target_include_directories(test_mme_app_ue_context_imsi PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CHECK_INCLUDE_DIRS}
@@ -59,6 +68,12 @@ target_include_directories(test_nas_extended_apn_ambr PUBLIC
     ${CHECK_INCLUDE_DIRS}
     )
 
+target_include_directories(test_mme_app_config PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CHECK_INCLUDE_DIRS}
+    )
+
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_emm_decode COMMAND test_mme_app_emm_decode)
 add_test(NAME test_nas_extended_apn_ambr COMMAND test_nas_extended_apn_ambr)
+add_test(NAME test_mme_app_config COMMAND test_mme_app_config)

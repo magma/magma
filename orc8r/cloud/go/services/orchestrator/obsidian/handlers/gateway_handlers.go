@@ -34,7 +34,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
-	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -97,10 +96,32 @@ func listGatewaysHandler(c echo.Context) error {
 		return nerr
 	}
 
+	pageSize, pageToken, err := obsidian.GetPaginationParams(c)
+	if err != nil {
+		return err
+	}
+
 	reqCtx := c.Request().Context()
-	ents, _, err := configurator.LoadEntities(
-		nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
-		configurator.FullEntityLoadCriteria(),
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
+		nid,
+		orc8r.MagmadGatewayType,
+		configurator.EntityLoadCriteria{
+			LoadMetadata:     true,
+			LoadConfig:       true,
+			LoadAssocsToThis: true,
+			PageSize:         uint32(pageSize),
+			PageToken:        pageToken,
+		},
+		serdes.Entity,
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	count, err := configurator.CountEntitiesOfType(
+		nid,
+		orc8r.MagmadGatewayType,
+		configurator.EntityLoadCriteria{},
 		serdes.Entity,
 	)
 	if err != nil {
@@ -125,7 +146,13 @@ func listGatewaysHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, makeGateways(entsByTK, devicesByID, statusesByID))
+	gateways := makeGateways(entsByTK, devicesByID, statusesByID)
+	paginatedGateways := models.PaginatedGateways{
+		Gateways:   gateways,
+		PageToken:  models.PageToken(nextPageToken),
+		TotalCount: int64(count),
+	}
+	return c.JSON(http.StatusOK, paginatedGateways)
 }
 
 func createGatewayHandler(c echo.Context) error {
@@ -203,7 +230,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		writes = append(writes, subGateway.GetAdditionalWritesOnCreate()...)
 	}
 
-	if err = configurator.WriteEntities(nid, writes, entitySerdes); err != nil {
+	if err = configurator.WriteEntities(reqCtx, nid, writes, entitySerdes); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "error creating gateway"), http.StatusInternalServerError)
 	}
 	return nil
@@ -308,7 +335,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 		return nerr
 	}
 
-	err = configurator.WriteEntities(nid, writes, entitySerdes)
+	err = configurator.WriteEntities(reqCtx, nid, writes, entitySerdes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -376,7 +403,7 @@ func DeleteMagmadGateway(ctx context.Context, networkID, gatewayID string, addit
 	deletes = append(deletes, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: gatewayID})
 	deletes = append(deletes, additionalDeletes...)
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "error deleting gateway"), http.StatusInternalServerError)
 	}

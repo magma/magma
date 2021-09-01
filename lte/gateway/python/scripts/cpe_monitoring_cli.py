@@ -74,7 +74,7 @@ class MonitoringCLI(object):
                     avg_resp_time = self.matcher.search(out).groups()[1]
                     print(
                         "[{}] => Got response from {} in: {} ms".format(
-                        sttime, ip_addr, avg_resp_time.decode('utf-8'),
+                            sttime, ip_addr, avg_resp_time.decode('utf-8'),
                         ),
                     )
                 sleep(polling_interval)
