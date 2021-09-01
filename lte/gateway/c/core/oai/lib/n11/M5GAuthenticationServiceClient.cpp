@@ -134,7 +134,7 @@ bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info_resync(
 }
 
 void AsyncM5GAuthenticationServiceClient::GetSubscriberAuthInfoRPC(
-    M5GAuthenticationInformationRequest& request,
+    const M5GAuthenticationInformationRequest& request,
     const std::function<void(Status, M5GAuthenticationInformationAnswer)>&
         callback) {
   auto localResp = new AsyncLocalResponse<M5GAuthenticationInformationAnswer>(

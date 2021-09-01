@@ -11,16 +11,14 @@
  * limitations under the License.
  */
 
+#include <gtest/gtest.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
 #include "M5GAmfMock.h"
 #include "amf_app_messages_types.h"
 #include "M5GAuthenticationServiceClient.h"
 #include "Consts.h"
 #include "include/amf_client_servicer.h"
-
-#include <gtest/gtest.h>
-#include <glog/logging.h>
-
-#include <grpcpp/impl/codegen/status.h>
 
 using ::testing::Test;
 

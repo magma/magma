@@ -50,7 +50,7 @@ class MockM5GAuthenticationServiceClient
   MOCK_METHOD2(
       GetSubscriberAuthInfoRPC,
       void(
-          M5GAuthenticationInformationRequest& request,
+          const M5GAuthenticationInformationRequest& request,
           const std::function<void(
               grpc::Status, M5GAuthenticationInformationAnswer)>& callback));
 };

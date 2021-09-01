@@ -26,7 +26,7 @@ namespace magma5g {
  */
 class AmfClientServicer {
  public:
-  AmfClientServicer(){};
+  AmfClientServicer() {}
 
   AmfClientServicer(
       std::shared_ptr<M5GAuthenticationServiceClient> m5g_auth_client)

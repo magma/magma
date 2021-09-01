@@ -156,14 +156,19 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
  ***************************************************************************/
 void* amf_app_thread(void* args) {
   itti_mark_task_ready(TASK_AMF_APP);
-  const task_id_t tasks[]      = {TASK_NGAP, TASK_SERVICE303};
-  amf_metadata_t* amf_metadata = reinterpret_cast<amf_metadata_t*>(args);
+  const task_id_t tasks[] = {TASK_NGAP, TASK_SERVICE303};
+  std::shared_ptr<amf_metadata_t> amf_metadata =
+      std::make_shared<amf_metadata_t>();
+
+  // initialize the metadata and client service entries
+  amf_metadata_initialize(amf_metadata);
 
   init_task_context(
       TASK_AMF_APP, tasks, 2, handle_message, &amf_app_task_zmq_ctx);
   // Service started, but not healthy yet
   send_app_health_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP, false);
   zloop_start(amf_app_task_zmq_ctx.event_loop);
+
   amf_app_exit();
   return NULL;
 }
@@ -186,10 +191,7 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   /*Initialize UE state matrix */
   create_state_matrix();
 
-  // initialize the metadata and client service entries
-  amf_metadata_intialize(&(amf_metadata));
-
-  if (itti_create_task(TASK_AMF_APP, &amf_app_thread, &(amf_metadata)) < 0) {
+  if (itti_create_task(TASK_AMF_APP, &amf_app_thread, NULL) < 0) {
     OAILOG_CRITICAL(LOG_AMF_APP, "Amf app create task failed\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }

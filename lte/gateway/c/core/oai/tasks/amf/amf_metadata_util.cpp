@@ -15,9 +15,16 @@
 #include "include/amf_client_servicer.h"
 #include <memory>
 
-struct amf_metadata_s amf_metadata = {};
+std::shared_ptr<amf_metadata_t> metadata_info_ptr{};
 
 /* Function to initialize amf metadata information */
-void amf_metadata_intialize(amf_metadata_t* metadata_p) {
-  metadata_p->amf_client_servicer_init();
+void amf_metadata_initialize(
+    const std::shared_ptr<amf_metadata_t>& metadata_p) {
+  metadata_info_ptr = std::move(metadata_p);
+
+  metadata_info_ptr->amf_client_servicer_init();
+}
+
+std::shared_ptr<magma5g::AmfClientServicer> amf_get_client_servicer_ref() {
+  return metadata_info_ptr->amf_client_servicer;
 }

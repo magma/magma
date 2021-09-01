@@ -47,7 +47,7 @@ class M5GAuthenticationServiceClient {
 
  private:
   virtual void GetSubscriberAuthInfoRPC(
-      M5GAuthenticationInformationRequest& request,
+      const M5GAuthenticationInformationRequest& request,
       const std::function<void(
           grpc::Status, M5GAuthenticationInformationAnswer)>& callback) = 0;
 };
@@ -78,7 +78,7 @@ class AsyncM5GAuthenticationServiceClient
   std::unique_ptr<M5GSubscriberAuthentication::Stub> stub_{};
 
   void GetSubscriberAuthInfoRPC(
-      M5GAuthenticationInformationRequest& request,
+      const M5GAuthenticationInformationRequest& request,
       const std::function<
           void(grpc::Status, M5GAuthenticationInformationAnswer)>& callback);
 };

@@ -130,7 +130,7 @@ static int start_authentication_information_procedure(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
-  auto amf_client_servicer = amf_metadata.get_client_servicer_ref();
+  auto amf_client_servicer = amf_get_client_servicer_ref();
 
   if (is_initial_req) {
     OAILOG_INFO(
