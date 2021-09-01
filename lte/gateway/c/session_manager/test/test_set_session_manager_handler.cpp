@@ -716,7 +716,7 @@ TEST_F(SessionManagerHandlerTest, test_process_static_rule_installs) {
 
   // activate static-1 and static-qos-3 in advance
   RuleLifetime lifetime;
-  session_state->activate_static_rule("static-1", lifetime, nullptr);
+  session_state->activate_static_5g_rule("static-1", lifetime, nullptr);
   session_state->activate_static_5g_rule("static-qos-3", lifetime, nullptr);
 
   // Create a StaticRuleInstall with all four rules above
