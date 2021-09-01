@@ -383,6 +383,8 @@ int amf_smf_send(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
+  amf_smf_msg.pdu_session_id =
+      msg->payload_container.smf_msg.header.pdu_session_id;
   // Process the decoded NAS message
   switch (msg->payload_container.smf_msg.header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST: {
@@ -415,6 +417,8 @@ int amf_smf_send(
       // Initialize default APN
       memcpy(smf_ctx->apn, "internet", strlen("internet") + 1);
 
+      smf_ctx->smf_proc_data.pti.pti =
+          msg->payload_container.smf_msg.msg.pdu_session_estab_request.pti.pti;
       // send request to SMF over grpc
       /*
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
@@ -427,6 +431,8 @@ int amf_smf_send(
           SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
+      smf_ctx->smf_proc_data.pti.pti = msg->payload_container.smf_msg.msg
+                                           .pdu_session_release_request.pti.pti;
       smf_ctx->retransmission_count = 0;
       if (RETURNok ==
           pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {

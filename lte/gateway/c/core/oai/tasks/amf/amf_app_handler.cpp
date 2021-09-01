@@ -401,8 +401,25 @@ imsi64_t amf_app_handle_initial_ue_message(
               (const hash_key_t) ue_context_p->gnb_ngap_id_key);
           ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
         }
+
+        /* remove amf_ngap_ud_id entry from ue context */
+        amf_remove_ue_context(ue_context_p);
+        ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
+
         // Update AMF UE context with new gnb_ue_ngap_id
         ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
+
+        AMF_APP_GNB_NGAP_ID_KEY(
+            ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
+            initial_pP->gnb_ue_ngap_id);
+
+        // generate new amf_ngap_ue_id
+        ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+            &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
+        amf_insert_ue_context(
+            ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
+            ue_context_p);
         amf_ue_context_update_coll_keys(
             &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
             ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
@@ -662,6 +679,8 @@ void amf_app_handle_pdu_session_response(
        * command to UE and release message to SMF
        */
     }
+
+    amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
     /*Execute PDU establishement accept from AMF to gnodeb */
     pdu_state_handle_message(
         // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
@@ -747,12 +766,14 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
   smf_msg->header.message_type   = PDU_SESSION_ESTABLISHMENT_ACCEPT;
   // smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
-  smf_msg->header.procedure_transaction_id = 0x01;
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-  smf_msg->msg.pdu_session_estab_accept.pti.pti = 0x01;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti =
+      smf_ctx->smf_proc_data.pti.pti;
+  ;
   // smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;

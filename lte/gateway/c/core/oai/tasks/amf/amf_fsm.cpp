@@ -249,6 +249,9 @@ int pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+  smf_context_t* smf_ctx = amf_smf_context_exists_pdu_session_id(
+      ue_m5gmm_context, amf_smf_msg.pdu_session_id);
+
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
@@ -264,19 +267,19 @@ int pdu_state_handle_message(
 
     switch (event) {
       case STATE_PDU_SESSION_ESTABLISHMENT_REQUEST:
-        ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
+        smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
         return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
       case STATE_PDU_SESSION_RELEASE_COMPLETE:
-        ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
+        smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
         return reinterpret_cast<int (*)(amf_smf_release_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.release, imsi);
       case STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT:
-        ue_m5gmm_context->amf_context.smf_context.pdu_session_state =
+        smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
 
         return reinterpret_cast<int (*)(
