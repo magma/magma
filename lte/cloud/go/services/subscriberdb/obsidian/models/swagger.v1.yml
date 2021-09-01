@@ -128,6 +128,25 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/subscribers_v2?verbose=foorbar:
+    get:
+      summary: List names of subscribers in the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
+      responses:
+        '200':
+          description: List of names of subscribers in the network
+          schema:
+            type: array
+            items:
+              $ref: './lte-policydb-swagger.yml#/parameters/subscriber_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/subscribers/{subscriber_id}:
     get:
       summary: Retrieve the subscriber info

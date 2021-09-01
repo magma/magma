@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"magma/orc8r/cloud/go/serde"
 
@@ -226,6 +227,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 		}
 	}
 	pageToken := c.QueryParam(ParamPageToken)
+	verbose := c.QueryParam("verbose")
 	reqCtx := c.Request().Context()
 
 	// First check for query params to filter by
@@ -238,6 +240,13 @@ func listSubscribersV2Handler(c echo.Context) error {
 		if err != nil {
 			return makeErr(err)
 		}
+		if strings.ToLower(verbose) == "false" {
+			subs_keys := make([]string, 0, len(subs))
+			for k := range subs {
+				subs_keys = append(subs_keys, k)
+			}
+			return c.JSON(http.StatusOK, subs_keys)
+		}
 		return c.JSON(http.StatusOK, subs)
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
@@ -249,6 +258,13 @@ func listSubscribersV2Handler(c echo.Context) error {
 		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
 		if err != nil {
 			return makeErr(err)
+		}
+		if strings.ToLower(verbose) == "false" {
+			subs_keys := make([]string, 0, len(subs))
+			for k := range subs {
+				subs_keys = append(subs_keys, k)
+			}
+			return c.JSON(http.StatusOK, subs_keys)
 		}
 		return c.JSON(http.StatusOK, subs)
 	}
@@ -274,6 +290,13 @@ func listSubscribersV2Handler(c echo.Context) error {
 		TotalCount:    int64(count),
 		NextPageToken: subscribermodels.PageToken(nextPageToken),
 		Subscribers:   subs,
+	}
+	if strings.ToLower(verbose) == "false" {
+		subs_keys := make([]string, 0, len(subs))
+		for k := range subs {
+			subs_keys = append(subs_keys, k)
+		}
+		return c.JSON(http.StatusOK, subs_keys)
 	}
 	return c.JSON(http.StatusOK, paginatedSubs)
 }
