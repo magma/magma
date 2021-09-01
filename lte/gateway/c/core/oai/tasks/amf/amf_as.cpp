@@ -39,13 +39,11 @@ extern "C" {
 #include "M5GAuthenticationServiceClient.h"
 #include "M5GMMCause.h"
 #include "3gpp_38.401.h"
-
+#include "amf_common.h"
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
 /*forward declaration*/
@@ -1564,7 +1562,7 @@ static int amf_service_rejectmsg(
   service_reject->message_type.msg_type   = M5G_SERVICE_REJECT;
   service_reject->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
 
-  service_reject->cause.iei         = M5GMM_CAUSE;
+  service_reject->cause.iei         = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
   service_reject->cause.m5gmm_cause = msg->amf_cause;
 
   if (msg->amf_cause == AMF_CAUSE_CONGESTION) {

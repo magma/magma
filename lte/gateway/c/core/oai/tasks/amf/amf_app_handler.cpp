@@ -38,10 +38,7 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "n11_messages_types.h"
 #include "amf_app_timer_management.h"
-
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+#include "amf_common.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;

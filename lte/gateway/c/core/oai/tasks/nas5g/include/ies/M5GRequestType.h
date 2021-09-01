@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 The Magma Authors.
+   Copyright 2021 The Magma Authors.
    This source code is licensed under the BSD-style license found in the
    LICENSE file in the root directory of this source tree.
    Unless required by applicable law or agreed to in writing, software
@@ -10,29 +10,25 @@
  */
 
 #pragma once
-#include <sstream>
-#include <cstdint>
-
-using namespace std;
 namespace magma5g {
-// SSCMode IE Class
-class SSCModeMsg {
+// RequestType Class
+class RequestType {
  public:
   uint8_t iei : 4;
-  uint32_t mode_val : 3;
+  uint32_t type_val : 3;
 
-  SSCModeMsg();
-  ~SSCModeMsg();
-  int EncodeSSCModeMsg(
-      SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeSSCModeMsg(
-      SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
-  void copy(const SSCModeMsg& s) {
-    iei      = s.iei;
-    mode_val = s.mode_val;
+  RequestType();
+  ~RequestType();
+  int EncodeRequestType(
+      RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeRequestType(
+      RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  void copy(const RequestType& p) {
+    iei      = p.iei;
+    type_val = p.type_val;
   }
-  bool isEqual(const SSCModeMsg& s) {
-    if ((iei == s.iei) && (mode_val == s.mode_val)) return true;
+  bool isEqual(const RequestType& p) {
+    if ((iei == p.iei) && (type_val == p.type_val)) return true;
     return false;
   }
 };

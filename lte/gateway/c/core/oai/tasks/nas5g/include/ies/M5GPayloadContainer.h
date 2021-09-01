@@ -12,13 +12,13 @@
 #pragma once
 #include <sstream>
 #include <cstdint>
+#include <string.h>
 #include <SmfMessage.h>
+#define PAYLOAD_CONTAINER_CONTENTS_MAX_LEN 8192
 
-using namespace std;
 namespace magma5g {
 class PayloadContainerMsg {
  public:
-#define PAYLOAD_CONTAINER_CONTENTS_MAX_LEN 8192
   uint8_t iei;
   uint32_t len;
   uint8_t contents[PAYLOAD_CONTAINER_CONTENTS_MAX_LEN];
@@ -32,5 +32,20 @@ class PayloadContainerMsg {
   int DecodePayloadContainerMsg(
       PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
       uint32_t len);
+  void copy(const PayloadContainerMsg& p) {
+    iei = p.iei;
+    len = p.len;
+    memcpy(contents, p.contents, PAYLOAD_CONTAINER_CONTENTS_MAX_LEN);
+    smf_msg.copy(p.smf_msg);
+  }
+
+  bool isEqual(const PayloadContainerMsg& p) {
+    if ((iei == p.iei) && (len == p.len) &&
+        (0 ==
+         memcmp(contents, p.contents, PAYLOAD_CONTAINER_CONTENTS_MAX_LEN)) &&
+        (smf_msg.isEqual(p.smf_msg)))
+      return true;
+    return false;
+  }
 };
 }  // namespace magma5g

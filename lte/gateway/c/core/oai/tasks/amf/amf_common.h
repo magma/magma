@@ -23,6 +23,12 @@ extern "C" {
 }
 #endif
 
+#include "M5GNasEnums.h"
+
+#define QUADLET 4
+#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+  LENGTH += QUADLET - (LENGTH % QUADLET)
+
 namespace magma5g {
 status_code_e amf_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,

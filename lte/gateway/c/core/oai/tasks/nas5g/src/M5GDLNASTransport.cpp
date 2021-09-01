@@ -86,6 +86,29 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
   } else {
     decoded += decoded_result;
   }
+
+  while (decoded < len) {
+    // Size is incremented for the unhandled types by 1 byte
+    uint32_t type = *(buffer + decoded) >= 0x80 ?
+                        ((*(buffer + decoded)) & 0xf0) :
+                        (*(buffer + decoded));
+    decoded_result = 0;
+
+    switch (static_cast<M5GIei>(type)) {
+      case M5GIei::M5GMM_CAUSE: {
+        if ((decoded_result = dl_nas_transport->m5gmm_cause.DecodeM5GMMCauseMsg(
+                 &dl_nas_transport->m5gmm_cause,
+                 static_cast<uint8_t>(M5GIei::M5GMM_CAUSE), buffer + decoded,
+                 len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+      } break;
+      default:
+        break;
+    }
+  }
   return decoded;
 }
 
@@ -166,6 +189,18 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
   } else {
     encoded += encoded_result;
   }
+
+  if (dl_nas_transport->m5gmm_cause.m5gmm_cause) {
+    if ((encoded_result = dl_nas_transport->m5gmm_cause.EncodeM5GMMCauseMsg(
+             &dl_nas_transport->m5gmm_cause,
+             static_cast<uint8_t>(M5GIei::M5GMM_CAUSE), buffer + encoded,
+             len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
+
   return encoded;
 }
 }  // namespace magma5g

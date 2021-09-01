@@ -616,6 +616,10 @@ int _nas5g_message_plain_encode(
     bytes = amf_msg_test.M5gNasMessageEncodeMsg(
         (AmfMsg*) &msg->amf, (uint8_t*) buffer, length);
 
+    if (bytes < 0) {
+      OAILOG_WARNING(LOG_AMF_APP, "Encoding Message Failed");
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
+    }
     OAILOG_DEBUG(
         LOG_AMF_APP, "[%s] Msg plain encode bytes[0-%d]\n%s",
         get_message_type_str(msg->amf.header.message_type).c_str(), bytes,
@@ -667,7 +671,7 @@ static int _nas5g_message_protected_encode(
      */
     int size = _nas5g_message_plain_encode(
         plain_msg, &msg->header, &msg->plain, length);
-    if (size > 0) {
+    if (size > 0 && security) {
       /*
        * Encrypt the encoded plain NAS message
        */
@@ -677,6 +681,7 @@ static int _nas5g_message_protected_encode(
           amf_security_context->direction_encode, size, amf_security_context);
     }
   }
+  free(plain_msg);
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
 }

@@ -29,6 +29,22 @@ class SmfMsgHeader {
   uint8_t pdu_session_id;
   uint8_t procedure_transaction_id;
   uint8_t message_type;
+
+  void copy(const SmfMsgHeader& s) {
+    extended_protocol_discriminator = s.extended_protocol_discriminator;
+    pdu_session_id                  = s.pdu_session_id;
+    procedure_transaction_id        = s.procedure_transaction_id;
+    message_type                    = s.message_type;
+  }
+  bool isEqual(const SmfMsgHeader& s) {
+    if ((extended_protocol_discriminator ==
+         s.extended_protocol_discriminator) &&
+        (pdu_session_id == s.pdu_session_id) &&
+        (procedure_transaction_id == s.procedure_transaction_id) &&
+        (message_type == s.message_type))
+      return true;
+    return false;
+  }
 };
 
 // Smf NAS messages
@@ -57,5 +73,28 @@ class SmfMsg {
   int SmfMsgEncodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer, uint32_t len);
   int SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len);
   int SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len);
+  void copy(const SmfMsg& s) {
+    header.copy(s.header);
+    switch (s.header.message_type) {
+      case PDU_SESSION_ESTABLISHMENT_REQUEST:
+        msg.pdu_session_estab_request.copy(s.msg.pdu_session_estab_request);
+        break;
+      default:
+        break;
+    }
+  }
+  bool isEqual(const SmfMsg& s) {
+    if (!header.isEqual(s.header)) return false;
+    bool status = false;
+    switch (s.header.message_type) {
+      case PDU_SESSION_ESTABLISHMENT_REQUEST:
+        status = msg.pdu_session_estab_request.isEqual(
+            s.msg.pdu_session_estab_request);
+        break;
+      default:
+        break;
+    }
+    return status;
+  }
 };
 }  // namespace magma5g
