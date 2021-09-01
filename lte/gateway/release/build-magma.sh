@@ -128,7 +128,7 @@ MAGMA_DEPS=(
     "libfolly-dev" # required for C++ services
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
-    # "td-agent-bit >= 1.3.2" # fluent-bit
+    "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
