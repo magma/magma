@@ -329,7 +329,7 @@
 
 - name: Install Sentry Native SDK
   vars:
-    sentry_native_version: "0.4.9"
+    sentry_native_version: "0.4.12"
   get_url:
     url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
     dest: "{{ tmp_directory }}/sentry-native.zip"
