@@ -6,12 +6,24 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
-    paths:  # order matters here, always put includes then excludes
-      - '**.py'
 
 jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["**/*.py"]'
+
   run-formatters-and-check-for-errors:
-    name: Run Python formatters and check for errors
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    name: Python Format Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,14 +35,16 @@ jobs:
         run: |
           echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .py$ | xargs)"
       - if: ${{ steps.py-changes.outputs.py }}
-        name: Docker Build
+        name: Build the python-precommit Docker base image
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./lte/gateway/docker/python-precommit/Dockerfile
           push: false
           tags: magma/py-lint:latest
-      - uses: addnab/docker-run-action@v3
+      - if: ${{ steps.py-changes.outputs.py }}
+        name: Format and check for leftover changes
+        uses: addnab/docker-run-action@v3
         with:
           image: magma/py-lint:latest
           options: -u 0 -v ${{ github.workspace }}:/code
