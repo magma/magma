@@ -73,7 +73,7 @@ def test():
 def package(vcs='hg', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
-            vm='magma', os="debian"):
+            vm='magma', os="ubuntu"):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
     destroy_vm = bool(strtobool(destroy_vm))
@@ -119,6 +119,8 @@ def package(vcs='hg', all_deps="False",
 
         with cd('release'):
             mirrored_packages_file = 'mirrored_packages'
+            if os == "ubuntu":
+                mirrored_packages_file += '_focal'
             if vm and vm.startswith('magma_'):
                 mirrored_packages_file += vm[5:]
 
