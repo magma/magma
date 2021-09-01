@@ -510,6 +510,8 @@ int amf_proc_authentication_complete(
         LOG_NAS_AMF,
         "AMF-PROC - Failed to authenticate the UE due to NULL"
         "ue_mm_context\n");
+    amf_cause = AMF_UE_ILLEGAL;
+    rc        = amf_proc_registration_reject(ue_id, amf_cause);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
