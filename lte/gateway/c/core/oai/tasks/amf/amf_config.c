@@ -165,11 +165,12 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
 **                                                                        **
 ***************************************************************************/
 int amf_config_parse_file(amf_config_t* config_pP) {
-  config_t cfg                  = {0};
-  config_setting_t* setting_mme = NULL;
-  config_setting_t* setting     = NULL;
-  config_setting_t* sub2setting = NULL;
-  int aint                      = 0;
+  config_t cfg                   = {0};
+  config_setting_t* setting_mme  = NULL;
+  config_setting_t* setting      = NULL;
+  config_setting_t* sub2setting  = NULL;
+  config_setting_t* setting_ngap = NULL;
+  int aint                       = 0;
   int i = 0, n = 0, stop_index = 0, num = 0;
   const char* astring   = NULL;
   const char* tac       = NULL;
@@ -179,6 +180,8 @@ int amf_config_parse_file(amf_config_t* config_pP) {
   const char* region_id = NULL;
   const char* set_id    = NULL;
   const char* pointer   = NULL;
+  char* default_dns     = NULL;
+  char* default_dns_sec = NULL;
 
   config_init(&cfg);
 
@@ -641,6 +644,23 @@ int amf_config_parse_file(amf_config_t* config_pP) {
         }
         config_pP->guamfi.nb += 1;
       }
+    }
+  }
+
+  setting_ngap = config_lookup(&cfg, NGAP_CONFIG_STRING_NGAP_CONFIG);
+  if (setting_ngap != NULL) {
+    if (config_setting_lookup_string(
+            setting_ngap, NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+            (const char**) &default_dns) &&
+        config_setting_lookup_string(
+            setting_ngap, NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+            (const char**) &default_dns_sec)) {
+      IPV4_STR_ADDR_TO_INADDR(
+          default_dns, config_pP->ipv4.default_dns,
+          "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS !\n");
+      IPV4_STR_ADDR_TO_INADDR(
+          default_dns_sec, config_pP->ipv4.default_dns_sec,
+          "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS SEC!\n");
     }
   }
 

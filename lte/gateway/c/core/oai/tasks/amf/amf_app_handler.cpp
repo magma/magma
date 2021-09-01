@@ -27,6 +27,7 @@ extern "C" {
 #include "common_defs.h"
 #include "conversions.h"
 #include "include/amf_pdu_session_configs.h"
+#include "include/amf_session_manager_pco.h"
 #include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
@@ -688,14 +689,15 @@ int amf_app_handle_pdu_session_accept(
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
   DLNASTransportMsg* encode_msg;
-  amf_nas_message_t msg;
-  uint32_t bytes  = 0;
-  uint32_t len    = 0;
-  SmfMsg* smf_msg = nullptr;
+  amf_nas_message_t msg = {};
+  uint32_t bytes        = 0;
+  uint32_t len          = 0;
+  SmfMsg* smf_msg       = nullptr;
   bstring buffer;
   // smf_ctx declared and set but not used, commented to cleanup warnings
-  smf_context_t* smf_ctx         = nullptr;
-  ue_m5gmm_context_s* ue_context = nullptr;
+  smf_context_t* smf_ctx                           = nullptr;
+  ue_m5gmm_context_s* ue_context                   = nullptr;
+  protocol_configuration_options_t* msg_accept_pco = nullptr;
 
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -813,13 +815,14 @@ int amf_app_handle_pdu_session_accept(
       pdu_session_resp->session_ambr.uplink_units;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
-  //  encode_msg.payload_container.len = PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN;
-  //  len                              = PDU_ESTAB_ACCPET_NAS_PDU_LEN;
-  //  buffer                           = bfromcstralloc(len, "\0");
-  //  bytes = encode_msg.EncodeDLNASTransportMsg(&encode_msg, buffer->data,
-  //  len);
-  encode_msg->payload_container.len = 30;
-  len                               = 41;  // originally 38 and 30
+  msg_accept_pco =
+      &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
+
+  auto pco_len = sm_process_pco_request(&(smf_ctx->pco), msg_accept_pco);
+
+  encode_msg->payload_container.len =
+      PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len;
+  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
@@ -849,6 +852,10 @@ int amf_app_handle_pdu_session_accept(
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
     bdestroy_wrapper(&buffer);
   }
+
+  /* Clean up the PCO contents */
+  sm_free_protocol_configuration_options(&msg_accept_pco);
+
   return rc;
 }
 
@@ -880,6 +887,7 @@ void amf_app_handle_resource_setup_response(
           LOG_AMF_APP, "UE context not found for the ue_id=%u\n", ue_id);
       return;
     }
+
     smf_ctx = amf_smf_context_exists_pdu_session_id(
         ue_context,
         session_seup_resp.pduSessionResource_setup_list.item[0].Pdu_Session_ID);
@@ -897,7 +905,6 @@ void amf_app_handle_resource_setup_response(
     amf_ue_ngap_id_t ue_id;
     amf_smf_establish_t amf_smf_grpc_ies;
     ue_m5gmm_context_s* ue_context = nullptr;
-    smf_context_t* smf_ctx         = nullptr;
     char imsi[IMSI_BCD_DIGITS_MAX + 1];
 
     ue_id = session_seup_resp.amf_ue_ngap_id;
@@ -907,7 +914,6 @@ void amf_app_handle_resource_setup_response(
     if (!ue_context) {
       OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
     }
-    smf_ctx = &ue_context->amf_context.smf_context;
 
     // Store gNB ip and TEID in respective smf_context
     memset(

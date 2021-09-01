@@ -28,6 +28,11 @@
 #define MAX_GUAMI 5
 #define MAX_APN_CORRECTION_MAP_LIST 10
 
+#define NGAP_CONFIG_STRING_NGAP_CONFIG "NGAP"
+#define NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
+#define NGAP_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                        \
+  "DEFAULT_DNS_SEC_IPV4_ADDRESS"
+
 extern char buf_plmn[3];
 
 typedef struct nas5g_config_s {
@@ -139,6 +144,10 @@ typedef struct amf_config_s {
   uint32_t amf_statistic_timer;
   nas5g_config_t nas_config;
   bool use_stateless;
+  struct {
+    struct in_addr default_dns;
+    struct in_addr default_dns_sec;
+  } ipv4;
 } amf_config_t;
 
 int amf_app_init(amf_config_t*);

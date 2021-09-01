@@ -57,4 +57,9 @@
 #define IPCP_CODE_TERMINATE_ACK (0x06)
 #define IPCP_CODE_REJECT (0x07)
 
+/* IPCP Macros */
+#define IPCP_CODE_BYTES 1
+#define IPCP_IDENTIFIER_BYTES 1
+#define IPC_LENGTH_BYTES 2
+
 #endif
