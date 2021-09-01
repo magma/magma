@@ -14,21 +14,16 @@ package testutil
 import (
 	"io/ioutil"
 	"os"
-	"testing"
 )
 
 // MustTempDir returns a randomly generated temp dir from ioutil.TempDir and
-// a cleanup function. If the test failed, the temp dir is not cleaned up to
-// aid in debugging. Any encountered err results in a panic.
-func MustTempDir() (string, func(*testing.T)) {
+// a cleanup function. Any encountered err results in a panic.
+func MustTempDir() (string, func()) {
 	td, err := ioutil.TempDir("", "")
 	if err != nil {
 		panic(err)
 	}
-	return td, func(t *testing.T) {
-		if t.Failed() {
-			return
-		}
+	return td, func() {
 		if err := os.RemoveAll(td); err != nil {
 			panic(err)
 		}

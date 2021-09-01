@@ -96,7 +96,7 @@ func TestNewLogger(t *testing.T) {
 	t.Parallel()
 
 	td, tdDone := testutil.MustTempDir()
-	defer tdDone(t)
+	defer tdDone()
 
 	now := time.Now()
 	t.Log(now)
@@ -136,7 +136,7 @@ func TestLogger_Named(t *testing.T) {
 	t.Parallel()
 
 	td, tdDone := testutil.MustTempDir()
-	defer tdDone(t)
+	defer tdDone()
 
 	now := time.Now()
 	t.Log(now)
@@ -193,7 +193,7 @@ func TestLogger_With(t *testing.T) {
 	t.Parallel()
 
 	td, tdDone := testutil.MustTempDir()
-	defer tdDone(t)
+	defer tdDone()
 
 	now := time.Now()
 	t.Log(now)
