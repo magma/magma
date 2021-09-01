@@ -28,7 +28,11 @@ from lte.protos.oai.mme_nas_state_pb2 import (
 )
 from lte.protos.oai.s1ap_state_pb2 import S1apImsiMap, S1apState, UeDescription
 from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
-from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule, SubscriberPolicySet
+from lte.protos.policydb_pb2 import (
+    InstalledPolicies,
+    PolicyRule,
+    SubscriberPolicySet,
+)
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import (
     get_json_deserializer,
