@@ -319,6 +319,14 @@ status_code_e mme_api_new_guti(
         TAI_ARG(originating_tai));
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
+  if (update_tai_list_to_emm_context(imsi64, *guti, par_tai_list, tai_list) !=
+      RETURNok) {
+    OAILOG_ERROR_UE(
+        LOG_NAS, imsi64,
+        "Updating of TAI list to emm context failed for TAI!" TAI_FMT "\n",
+        TAI_ARG(originating_tai));
+  }
+#if 0
   if (!par_tai_list->plmn) {
     OAILOG_ERROR_UE(LOG_NAS, imsi64, "config PLMN is NULL\n");
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
@@ -338,18 +346,18 @@ status_code_e mme_api_new_guti(
    */
   switch (par_tai_list->list_type) {
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti->gummei.plmn)) {
-        tai_list->partial_tai_list[0].numberofelements =
+      if (IS_PLMN_EQUAL(par_tai_list->plmn[j], guti->gummei.plmn)) {
+        tai_list->partial_tai_list[j].numberofelements =
             par_tai_list->nb_elem - 1;
-        tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
+        tai_list->partial_tai_list[j].typeoflist = par_tai_list->list_type;
         COPY_PLMN(
-            tai_list->partial_tai_list[0]
+            tai_list->partial_tai_list[j]
                 .u.tai_one_plmn_non_consecutive_tacs.plmn,
             guti->gummei.plmn);
 
         // par_tai_list is sorted
         for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
-          tai_list->partial_tai_list[0]
+          tai_list->partial_tai_list[j]
               .u.tai_one_plmn_non_consecutive_tacs.tac[itr] =
               par_tai_list->tac[itr];
         }
@@ -360,17 +368,18 @@ status_code_e mme_api_new_guti(
       }
       break;
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti->gummei.plmn)) {
-        tai_list->partial_tai_list[0].numberofelements =
+      if (IS_PLMN_EQUAL(par_tai_list->plmn[j], guti->gummei.plmn)) {
+        tai_list->partial_tai_list[j].numberofelements =
             par_tai_list->nb_elem - 1;
-        tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
+        tai_list->partial_tai_list[j].typeoflist = par_tai_list->list_type;
 
         COPY_PLMN(
-            tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.plmn,
+            tai_list->partial_tai_list[j].u.tai_one_plmn_consecutive_tacs.plmn,
             guti->gummei.plmn);
 
-        tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.tac =
-            par_tai_list->tac[0];
+        tai_list->partial_tai_list[j].u.tai_one_plmn_consecutive_tacs.tac =
+            par_tai_list->tac[j];
+        j += 1;
       } else {
         OAILOG_ERROR_UE(
             LOG_NAS, imsi64,
@@ -382,17 +391,17 @@ status_code_e mme_api_new_guti(
        * Once equivalent PLMN list is supported,check if the TAI PLMNs are
        * present in equivalent PLMN list
        */
-      tai_list->partial_tai_list[0].numberofelements =
+      tai_list->partial_tai_list[j].numberofelements =
           par_tai_list->nb_elem - 1;
-      tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
+      tai_list->partial_tai_list[j].typeoflist = par_tai_list->list_type;
 
       for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
         COPY_PLMN(
-            tai_list->partial_tai_list[0].u.tai_many_plmn[itr].plmn,
+            tai_list->partial_tai_list[j].u.tai_many_plmn[itr].plmn,
             par_tai_list->plmn[itr]);
 
         // partial tai_list is sorted
-        tai_list->partial_tai_list[0].u.tai_many_plmn[itr].tac =
+        tai_list->partial_tai_list[j].u.tai_many_plmn[itr].tac =
             par_tai_list->tac[itr];
       }
       break;
@@ -410,12 +419,13 @@ status_code_e mme_api_new_guti(
    * We will limit the number to 1 partial list which can have maximum of 16
    * TAIs.
    */
-  tai_list->numberoflists = 1;
+  tai_list->numberoflists = j;
   OAILOG_INFO(
       LOG_NAS,
       "UE " MME_UE_S1AP_ID_FMT "  Got GUTI " GUTI_FMT
       ". The number of TAI partial lists: %d",
       ue_context->mme_ue_s1ap_id, GUTI_ARG(guti), tai_list->numberoflists);
+#endif
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
 }
 

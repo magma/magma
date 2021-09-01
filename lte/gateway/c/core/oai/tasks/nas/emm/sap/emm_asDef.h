@@ -286,9 +286,10 @@ typedef struct emm_as_data_s {
   uint16_t* eps_bearer_context_status; /* TAU EPS bearer context status   */
   uint32_t sgs_loc_updt_status;
   uint32_t* sgs_reject_cause;
-  uint8_t paging_identity; /* Paging_id could be IMSI or TMSI, as indicated by
-                              MME app */
-  bstring cli;             /* Calling Line Identification  */
+  uint8_t paging_identity;   /* Paging_id could be IMSI or TMSI, as indicated by
+                                MME app */
+  bstring cli;               /* Calling Line Identification  */
+  uint8_t eps_update_result; /* TAU EPS update result   */
 } emm_as_data_t;
 
 /*

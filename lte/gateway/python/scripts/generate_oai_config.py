@@ -295,6 +295,7 @@ def _get_context():
             mme_service_config,
         ),
         "service_area_map": _get_service_area_maps(mme_service_config),
+        "accept_combined_attach_tau_wo_csfb": get_service_config_value("mme", "accept_combined_attach_tau_wo_csfb", ""),
         "sentry_config": mme_service_config.sentry_config,
         "enable_converged_core": _get_converged_core_config(mme_service_config),
     }

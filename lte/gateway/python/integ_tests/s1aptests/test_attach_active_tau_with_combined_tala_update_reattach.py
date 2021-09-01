@@ -27,12 +27,11 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_active_tau_with_combined_tala_update_reattach(self):
-        """This test case validates reattach after active combined TAU reject:
+        """This test case validates reattach after active combined TAU with TA/LA updating:
         1. End-to-end attach with attach type COMBINED_EPS_IMSI_ATTACH
         2. Send active TAU request (Combined TALA update)
-        3. Receive TAU reject (Combined TALA update not supported)
-        4. Retry end-to-end combined EPS IMSI attach to verify if UE context
-           was released properly after combined TAU reject
+        3. Receive TAU accept
+        4. Perform end-to-end combined EPS IMSI attach
         """
 
         self._s1ap_wrapper.configUEDevice(1)
@@ -92,28 +91,23 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         req.ueMtmsi.pres = False
         self._s1ap_wrapper.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_TAU_REQ, req)
 
-        # Waiting for TAU Reject Indication -Combined TALA update not supported
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value,
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        )
+        # Waiting for TAU Accept
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
         )
         print(
-            "************************* Received Tracking Area Update Reject "
+            "************************* Received Tracking Area Update Accept "
             "Indication",
         )
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
         print(
-            "************************* Received UE context release indication",
-        )
-
-        print(
-            "************************* Running End to End attach to verify if "
-            "UE context was released properly after combined TAU reject for "
-            "UE id ",
+            "************************* Running End to End attach "
+            "for UE id ",
             ue_id,
         )
         # Now actually complete the attach

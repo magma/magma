@@ -588,7 +588,7 @@ static int emm_as_recv(
       /* Process Extended-Service request */
       rc = emm_recv_tracking_area_update_request(
           ue_id, &emm_msg->tracking_area_update_request, false,
-          originating_tai->tac, emm_cause, decode_status);
+          *originating_tai, emm_cause, decode_status);
 
       break;
 
@@ -891,7 +891,7 @@ static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
       // Process periodic TAU
       rc = emm_recv_tracking_area_update_request(
           msg->ue_id, &emm_msg->tracking_area_update_request, msg->is_initial,
-          msg->tai->tac, emm_cause, &decode_status);
+          *msg->tai, emm_cause, &decode_status);
       break;
 
     case SERVICE_REQUEST:
