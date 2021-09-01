@@ -36,6 +36,7 @@
 #include "AmfServiceClient.h"
 #include "Consts.h"
 #include "EnumToString.h"
+#include "SessionStateTester.h"
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -50,6 +51,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
  public:
   virtual void SetUp() {
     rule_store    = std::make_shared<StaticRuleStore>();
+    reporter      = std::make_shared<MockSessionReporter>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     std::unordered_multimap<std::string, uint32_t> pdr_map;
@@ -75,14 +77,57 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map_ = SessionMap{};
     // creating landing object and invoking contructor
     set_session_manager = std::make_shared<SetMessageManagerHandler>(
-        session_enforcer, *session_store);
+        session_enforcer, *session_store, reporter.get());
+    cfg = build_sm_context(IMSI1, "10.20.30.40", 5);
+    session_state =
+        std::make_shared<SessionState>(IMSI1, SESSION_ID_1, cfg, *rule_store);
+    session_state->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session_state->set_create_session_response(
+        CreateSessionResponse(), nullptr);
+    update_criteria = get_default_update_criteria();
   }
   virtual void TearDown() { delete evb; }
 
-  void insert_static_rule(
+  void insert_static_rule_into_store(
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
+  }
+
+  void insert_static_rule_with_qos_into_store(
+      uint32_t rating_group, const std::string& m_key, const int qci,
+      const std::string& rule_id) {
+    PolicyRule rule =
+        create_policy_rule_with_qos(rule_id, m_key, rating_group, qci);
+    rule_store->insert_rule(rule);
+  }
+
+  SessionConfig build_sm_context(
+      const std::string& imsi,  // assumes IMSI prefix
+      const std::string& ue_ipv4, uint32_t pdu_id) {
+    SetSMSessionContext request;
+    auto* req =
+        request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
+    auto* reqcmn = request.mutable_common_context();
+    req->set_pdu_session_id(pdu_id);
+    req->set_request_type(magma::RequestType::INITIAL_REQUEST);
+    req->mutable_pdu_address()->set_redirect_address_type(
+        magma::RedirectServer::IPV4);
+    req->mutable_pdu_address()->set_redirect_server_address(ue_ipv4);
+    req->set_priority_access(magma::priorityaccess::High);
+    req->set_imei("123456789012345");
+    req->set_gpsi("9876543210");
+    req->set_pcf_id("1357924680123456");
+
+    reqcmn->mutable_sid()->set_id(imsi);
+    reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
+
+    SessionConfig cfg;
+    cfg.common_context       = request.common_context();
+    cfg.rat_specific_context = request.rat_specific_context();
+    cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
+        SSC_MODE_3);
+    return cfg;
   }
 
   void set_sm_session_context(magma::SetSMSessionContext* request) {
@@ -178,6 +223,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
   folly::EventBase* evb;
   SessionMap session_map_;
   std::unordered_multimap<std::string, uint32_t> pdr_map_;
+  std::shared_ptr<MockSessionReporter> reporter;
+  std::shared_ptr<SessionState> session_state;
+  SessionStateUpdateCriteria update_criteria;
+  SessionConfig cfg;
 };  // End of class
 
 TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
@@ -549,7 +598,9 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
   session_enforcer->m5g_pdr_rules_change_and_update_upf(
       session, magma::PdrState::IDLE);
 
-  session_enforcer->m5g_send_session_request_to_upf(session);
+  RulesToProcess pending_activation, pending_deactivation;
+  session_enforcer->m5g_send_session_request_to_upf(
+      session, pending_activation, pending_deactivation);
 
   /* service_handle_request_on_paging() call flows */
   session_enforcer->m5g_move_to_active_state(session, notif, &session_uc);
@@ -655,6 +706,57 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
       .Times(1);
 
   session_enforcer->m5g_move_to_active_state(session, notif, &session_uc);
+}
+
+TEST_F(SessionManagerHandlerTest, test_process_static_rule_installs) {
+  // Insert 1 static rules without qos into static rule store
+  insert_static_rule_into_store(0, "mkey1", "static-1");
+  // Insert 1 static rules with qos into static rule store
+  insert_static_rule_with_qos_into_store(0, "mkey1", 1, "static-qos-3");
+
+  // activate static-1 and static-qos-3 in advance
+  RuleLifetime lifetime;
+  session_state->activate_static_rule("static-1", lifetime, nullptr);
+  session_state->activate_static_5g_rule("static-qos-3", lifetime, nullptr);
+
+  // Create a StaticRuleInstall with all four rules above
+  std::vector<StaticRuleInstall> rule_installs{
+      // should be ignored as it is already active
+      create_static_rule_install("static-1"),
+      // should be ignored as it is already active
+      create_static_rule_install("static-qos-3"),
+
+  };
+  EXPECT_EQ(2, rule_installs.size());
+  RulesToProcess pending_activation, pending_deactivation;
+  session_state->process_static_5g_rule_installs(
+      rule_installs, &pending_activation, &pending_deactivation, nullptr);
+}
+
+TEST_F(SessionManagerHandlerTest, test_process_dynamic_rule_installs) {
+  PolicyRule dynamic_1 = create_policy_rule("dynamic-1", "", 0);
+  PolicyRule dynamic_qos_3 =
+      create_policy_rule_with_qos("dynamic-qos-3", "", 0, 1);
+
+  // Install dynamic rules for dynamic-1 and dynamic-qos-3
+  RuleLifetime lifetime;
+  session_state->insert_dynamic_5g_rule(dynamic_1, lifetime, nullptr);
+  session_state->insert_dynamic_5g_rule(dynamic_qos_3, lifetime, nullptr);
+
+  // Create a StaticRuleInstall with all four rules above
+  std::vector<DynamicRuleInstall> rule_installs{
+      // should be installed even though it is already active
+      create_dynamic_rule_install(dynamic_1),
+      // new non-qos rule
+      create_dynamic_rule_install(dynamic_qos_3),
+  };
+  EXPECT_EQ(2, rule_installs.size());
+  RulesToProcess pending_activation, pending_deactivation;
+  session_state->process_dynamic_5g_rule_installs(
+      rule_installs, &pending_activation, &pending_deactivation, nullptr);
+  EXPECT_EQ(2, pending_activation.size());
+  EXPECT_EQ("dynamic-1", pending_activation[0].rule.id());
+  EXPECT_EQ("dynamic-qos-3", pending_activation[1].rule.id());
 }
 
 int main(int argc, char** argv) {

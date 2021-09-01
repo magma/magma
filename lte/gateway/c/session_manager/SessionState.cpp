@@ -2784,4 +2784,175 @@ bool operator==(const Teids& lhs, const Teids& rhs) {
   return lhs.enb_teid() == rhs.enb_teid() && lhs.agw_teid() == rhs.agw_teid();
 }
 
+void SessionState::process_5g_rules_to_install(
+    const std::vector<StaticRuleInstall>& static_rule_installs,
+    const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+    SessionStateUpdateCriteria* session_uc) {
+  process_static_5g_rule_installs(
+      static_rule_installs, pending_activation, pending_deactivation,
+      session_uc);
+  process_dynamic_5g_rule_installs(
+      dynamic_rule_installs, pending_activation, pending_deactivation,
+      session_uc);
+}
+
+void SessionState::process_static_5g_rule_installs(
+    const std::vector<StaticRuleInstall>& rule_installs,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+    SessionStateUpdateCriteria* session_uc) {
+  std::time_t current_time = std::time(nullptr);
+  for (const StaticRuleInstall& rule_install : rule_installs) {
+    const std::string& rule_id = rule_install.rule_id();
+    RuleLifetime lifetime(rule_install);
+    if (is_static_rule_installed(rule_id)) {
+      // Session proxy may ask for duplicate rule installs.
+      // Ignore them here.
+      MLOG(MWARNING) << "Ignoring static rule install for " << session_id_
+                     << " for rule " << rule_id
+                     << " since it is alreday installed";
+      continue;
+    }
+    PolicyRule static_rule;
+    if (!static_rules_.get_rule(rule_id, &static_rule)) {
+      MLOG(MERROR) << "static rule " << rule_id
+                   << " is not found, skipping install...";
+      continue;
+    }
+
+    // If the rule should be deactivated already, deactivate just in case and
+    // continue
+    if (lifetime.exceeded_lifetime(current_time)) {
+      optional<RuleToProcess> op_remove_info =
+          deactivate_static_5g_rule(rule_id, session_uc);
+      if (op_remove_info) {
+        pending_deactivation->push_back(*op_remove_info);
+      }
+      continue;
+    }
+    // If the rule should be active now, install
+    if (lifetime.is_within_lifetime(current_time)) {
+      RuleToProcess to_process =
+          activate_static_5g_rule(rule_id, lifetime, session_uc);
+      pending_activation->push_back(to_process);
+    }
+  }
+}
+
+void SessionState::process_dynamic_5g_rule_installs(
+    const std::vector<DynamicRuleInstall>& rule_installs,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+    SessionStateUpdateCriteria* session_uc) {
+  std::time_t current_time = std::time(nullptr);
+
+  for (const DynamicRuleInstall& rule_install : rule_installs) {
+    const PolicyRule& dynamic_rule = rule_install.policy_rule();
+    const std::string& rule_id     = dynamic_rule.id();
+    RuleLifetime lifetime(rule_install);
+
+    // If the rule should be deactivated already, deactivate just in case and
+    // continue
+    if (lifetime.exceeded_lifetime(current_time)) {
+      optional<RuleToProcess> op_remove_info =
+          remove_dynamic_rule(rule_id, nullptr, session_uc);
+      if (op_remove_info) {
+        pending_deactivation->push_back(*op_remove_info);
+      }
+      continue;
+    }
+    // If the rule should be active now, install
+    if (lifetime.is_within_lifetime(current_time)) {
+      RuleToProcess to_process =
+          insert_dynamic_5g_rule(dynamic_rule, lifetime, session_uc);
+      pending_activation->push_back(to_process);
+    }
+  }
+}
+
+RuleToProcess SessionState::activate_static_5g_rule(
+    const std::string& rule_id, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria* update_criteria) {
+  RuleToProcess to_process;
+  PolicyRule rule;
+  static_rules_.get_rule(rule_id, &rule);
+  rule_lifetimes_[rule_id] = lifetime;
+  active_static_rules_.push_back(rule_id);
+  if (update_criteria) {
+    update_criteria->static_rules_to_install.insert(rule_id);
+    update_criteria->new_rule_lifetimes[rule_id] = lifetime;
+  }
+  increment_rule_stats(rule_id, update_criteria);
+  to_process.version = get_current_rule_version(rule_id);
+  to_process.rule    = rule;
+  to_process.teids   = config_.common_context.teids();
+  return to_process;
+}
+
+optional<RuleToProcess> SessionState::deactivate_static_5g_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria* update_criteria) {
+  RuleToProcess to_process;
+  auto it = std::find(
+      active_static_rules_.begin(), active_static_rules_.end(), rule_id);
+  if (it == active_static_rules_.end()) {
+    return {};
+  }
+  update_criteria->static_rules_to_uninstall.insert(rule_id);
+  active_static_rules_.erase(it);
+  increment_rule_stats(rule_id, update_criteria);
+
+  PolicyRule rule;
+  if (!static_rules_.get_rule(rule_id, &rule)) {
+    rule.set_id(rule_id);
+  }
+
+  to_process.version = get_current_rule_version(rule.id());
+  to_process.rule    = rule;
+  to_process.teids   = config_.common_context.teids();
+  return to_process;
+}
+
+RuleToProcess SessionState::insert_dynamic_5g_rule(
+    const PolicyRule& rule, const RuleLifetime& lifetime,
+    SessionStateUpdateCriteria* session_uc) {
+  RuleToProcess to_process;
+  rule_lifetimes_[rule.id()] = lifetime;
+  dynamic_rules_.insert_rule(rule);
+  if (session_uc) {
+    session_uc->dynamic_rules_to_install.push_back(rule);
+    session_uc->new_rule_lifetimes[rule.id()] = lifetime;
+  }
+  increment_rule_stats(rule.id(), session_uc);
+
+  to_process.version = get_current_rule_version(rule.id());
+  to_process.rule    = rule;
+  to_process.teids   = config_.common_context.teids();
+
+  return to_process;
+}
+
+void SessionState::process_get_5g_rule_installs(
+    const std::vector<StaticRuleInstall>& static_rule_installs,
+    const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation) {
+  for (const StaticRuleInstall& rule_install : static_rule_installs) {
+    const std::string& rule_id = rule_install.rule_id();
+    PolicyRule rule;
+    RuleToProcess to_process;
+    static_rules_.get_rule(rule_id, &rule);
+    to_process.version = get_current_rule_version(rule.id());
+    to_process.rule    = rule;
+    to_process.teids   = config_.common_context.teids();
+    pending_activation->push_back(to_process);
+    pending_deactivation->push_back(to_process);
+  }
+  for (const DynamicRuleInstall& rule_install : dynamic_rule_installs) {
+    const PolicyRule& dynamic_rule = rule_install.policy_rule();
+    RuleToProcess to_process;
+    to_process.version = get_current_rule_version(dynamic_rule.id());
+    to_process.rule    = dynamic_rule;
+    to_process.teids   = config_.common_context.teids();
+    pending_activation->push_back(to_process);
+    pending_deactivation->push_back(to_process);
+  }
+}
 }  // namespace magma

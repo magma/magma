@@ -735,6 +735,38 @@ class SessionState {
   void increment_rule_stats(
       const std::string& rule_id, SessionStateUpdateCriteria* session_uc);
 
+  void process_5g_rules_to_install(
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      SessionStateUpdateCriteria* session_uc);
+
+  void process_static_5g_rule_installs(
+      const std::vector<StaticRuleInstall>& rule_installs,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      SessionStateUpdateCriteria* session_uc);
+
+  void process_dynamic_5g_rule_installs(
+      const std::vector<DynamicRuleInstall>& rule_installs,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      SessionStateUpdateCriteria* session_uc);
+
+  RuleToProcess activate_static_5g_rule(
+      const std::string& rule_id, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria* update_criteria);
+
+  optional<RuleToProcess> deactivate_static_5g_rule(
+      const std::string& rule_id, SessionStateUpdateCriteria* update_criteria);
+
+  RuleToProcess insert_dynamic_5g_rule(
+      const PolicyRule& rule, const RuleLifetime& lifetime,
+      SessionStateUpdateCriteria* session_uc);
+
+  void process_get_5g_rule_installs(
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation);
+
  private:
   std::string imsi_;
   std::string session_id_;

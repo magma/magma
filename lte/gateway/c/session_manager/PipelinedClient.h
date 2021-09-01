@@ -204,6 +204,8 @@ class PipelinedClient {
    */
   virtual void set_upf_session(
       const SessionState::SessionInfo info,
+      const magma::RulesToProcess to_activate_process,
+      const magma::RulesToProcess to_deactivate_process,
       std::function<void(Status status, UPFSessionContextState)> callback) = 0;
 
   virtual uint32_t get_next_teid()    = 0;
@@ -286,6 +288,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   void set_upf_session(
       const SessionState::SessionInfo info,
+      const magma::RulesToProcess to_activate_process,
+      const magma::RulesToProcess to_deactivate_process,
       std::function<void(Status status, UPFSessionContextState)> callback);
 
   void handle_add_ue_mac_callback(

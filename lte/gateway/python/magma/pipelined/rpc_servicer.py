@@ -1002,7 +1002,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_res = []
         failed_policy_rules_results = []
 
-        session_version = request.session_version
         local_f_teid_ng = request.local_f_teid
 
         # PDR is deleted with ActiveRules or DelActive rules recieved
@@ -1012,23 +1011,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
                 self._ng_deactivate_qer_flows(
                     ipv4, local_f_teid_ng,
-                    qos_enforce_rule, session_version,
+                    qos_enforce_rule,
                 )
             if qos_enforce_rule.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
                 self._ng_deactivate_qer_flows(
                     ipv6, local_f_teid_ng,
-                    qos_enforce_rule, session_version,
+                    qos_enforce_rule,
                 )
 
         elif pdr_entry.pdr_state == PdrState.Value('IDLE'):
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
                 ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
-                self._ng_inactivate_qer_flows(ipv4, qos_enforce_rule, session_version)
+                self._ng_inactivate_qer_flows(ipv4, qos_enforce_rule)
             if qos_enforce_rule.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
-                self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule, session_version)
+                self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule)
 
         # Install PDR rules
         elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
@@ -1039,7 +1038,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 enforcement_res = \
                       self._ng_activate_qer_flow(
                           ipv4, local_f_teid_ng,
-                          qos_enforce_rule, session_version,
+                          qos_enforce_rule,
                       )
                 failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
@@ -1049,7 +1048,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 enforcement_res = \
                       self._ng_activate_qer_flow(
                           ipv6, local_f_teid_ng,
-                          qos_enforce_rule, session_version,
+                          qos_enforce_rule,
                       )
                 failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
@@ -1058,12 +1057,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _ng_inactivate_qer_flows(
         self, ip: IPAddress, qos_enforce_rule: ActivateFlowsRequest,
-        session_version,
     ):
 
-        self._ng_update_version(
-            qos_enforce_rule.sid.id, qos_enforce_rule,
-            ip, session_version,
+        self._update_version(
+            qos_enforce_rule, ip,
         )
 
         rule_ids = [policy.rule.id for policy in qos_enforce_rule.policies]
@@ -1076,28 +1073,26 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _ng_activate_qer_flow(
         self, ip: IPAddress, local_f_teid_ng,
-        qos_enforce_rule: ActivateFlowsRequest, session_version,
+        qos_enforce_rule: ActivateFlowsRequest,
     ):
 
-        self._ng_update_version(
-            qos_enforce_rule.sid.id, qos_enforce_rule,
-            ip, session_version,
+        self._update_version(
+            qos_enforce_rule, ip,
         )
         enforcement_res = self._install_flows_gx(qos_enforce_rule, ip, local_f_teid_ng)
         return enforcement_res
 
     def _ng_deactivate_qer_flows(
         self, ip: IPAddress, local_f_teid_ng,
-        qos_enforce_rule: DeactivateFlowsRequest, session_version,
+        qos_enforce_rule: DeactivateFlowsRequest,
     ):
         logging.debug('Deactivating N4 flows for %s', qos_enforce_rule.sid.id)
 
         rule_ids = []
         rule_ids = [policy.rule_id for policy in qos_enforce_rule.policies]
 
-        self._ng_remove_version(
-            qos_enforce_rule.sid.id, qos_enforce_rule,
-            ip, session_version,
+        self._remove_version(
+            qos_enforce_rule, ip,
         )
 
         self._enforcement_stats.deactivate_default_flow(
@@ -1110,33 +1105,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 qos_enforce_rule.sid.id, ip,
                 rule_ids,
             )
-
-    def _ng_update_version(
-        self, imsi: str, request: ActivateFlowsRequest,
-        ip: IPAddress, session_version: int,
-    ):
-        """
-        Update 5G version for a given subscriber as QOS is installed.
-        """
-        for policy in request.policies:
-            self._service_manager.session_rule_version_mapper.save_version(
-                           imsi, ip, policy.rule.id, session_version,
-            )
-
-    def _ng_remove_version(
-        self, imsi: str, request: DeactivateFlowsRequest,
-        ip: IPAddress, session_version: int,
-    ):
-        """
-        Remove 5G version for a given subscriber as QOS is installed.
-        """
-        for policy in request.policies:
-            self._service_manager.session_rule_version_mapper \
-                .remove(
-                    imsi, ip,
-                    policy.rule_id, session_version,
-                )
-
 
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
