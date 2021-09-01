@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"fmt"
 	"testing"
 
@@ -61,13 +62,13 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	assert.NoError(t, configurator.CreateNetwork(network, serdes.Network))
+	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, serdes.Network))
 	gateway := configurator.NetworkEntity{
 		Key:  "gw1",
 		Type: orc8r.MagmadGatewayType,
 		Name: "gateway 1",
 	}
-	_, err := configurator.CreateEntity(networkID, gateway, serdes.Entity)
+	_, err := configurator.CreateEntity(context2.Background(), networkID, gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -112,13 +113,13 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	assert.NoError(t, configurator.CreateNetwork(network, serdes.Network))
+	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, serdes.Network))
 	Gateway := configurator.NetworkEntity{
 		Key:  "test_gateway_1",
 		Type: orc8r.MagmadGatewayType,
 		Name: "Gateway 1",
 	}
-	_, err := configurator.CreateEntity(networkID, Gateway, serdes.Entity)
+	_, err := configurator.CreateEntity(context2.Background(), networkID, Gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	// validation failure
@@ -197,7 +198,7 @@ type testName struct {
 	Name string
 }
 
-func (m *testName) ValidateModel() error {
+func (m *testName) ValidateModel(context2.Context) error {
 	if m == nil {
 		return fmt.Errorf("Cannot be nil")
 	}

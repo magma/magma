@@ -16,7 +16,7 @@
 
 import '@fbcnms/babel-register/polyfill';
 
-import Index from '@fbcnms/magmalte/app/components/master/Index';
+import Index from './components/master/Index';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';

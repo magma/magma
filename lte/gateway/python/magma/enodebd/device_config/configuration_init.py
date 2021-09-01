@@ -125,7 +125,7 @@ def build_desired_config(
         enb_config.allow_enodeb_transmit,
     )
 
-    post_processor.postprocess(cfg_desired)
+    post_processor.postprocess(mconfig, service_config, cfg_desired)
     return cfg_desired
 
 

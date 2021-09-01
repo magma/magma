@@ -152,7 +152,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 }
 
 func getFeGHwIdForNetwork(ctx context.Context, agNwID string) (string, error) {
-	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType, serdes.Network)
+	cfg, err := configurator.LoadNetworkConfig(ctx, agNwID, feg.FederatedNetworkType, serdes.Network)
 	if err != nil {
 		return "", fmt.Errorf("could not load federated network configs for access network %s: %s", agNwID, err)
 	}
@@ -163,7 +163,7 @@ func getFeGHwIdForNetwork(ctx context.Context, agNwID string) (string, error) {
 	if federatedConfig.FegNetworkID == nil || *federatedConfig.FegNetworkID == "" {
 		return "", fmt.Errorf("FegNetworkID is empty in network config of network: %s", agNwID)
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType, serdes.Network)
+	fegCfg, err := configurator.LoadNetworkConfig(ctx, *federatedConfig.FegNetworkID, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return "", fmt.Errorf("unable to retrieve config for federation network: %s", *federatedConfig.FegNetworkID)
 	}

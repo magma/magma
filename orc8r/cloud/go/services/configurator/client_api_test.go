@@ -13,6 +13,7 @@ limitations under the License.
 package configurator_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -53,10 +54,10 @@ func TestConfiguratorService(t *testing.T) {
 		Description: "description",
 		Configs:     config,
 	}
-	_, err := configurator.CreateNetworks([]configurator.Network{network1}, networkSerdes)
+	_, err := configurator.CreateNetworks(context.Background(), []configurator.Network{network1}, networkSerdes)
 	assert.NoError(t, err)
 
-	networks, notFound, err := configurator.LoadNetworks([]string{networkID1}, true, true, networkSerdes)
+	networks, notFound, err := configurator.LoadNetworks(context.Background(), []string{networkID1}, true, true, networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
 	assert.Equal(t, 1, len(networks))
@@ -73,9 +74,9 @@ func TestConfiguratorService(t *testing.T) {
 		ConfigsToDelete:      toDelete,
 	}
 
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria1}, networkSerdes)
+	err = configurator.UpdateNetworks(context.Background(), []configurator.NetworkUpdateCriteria{updateCriteria1}, networkSerdes)
 	assert.NoError(t, err)
-	networks, notFound, err = configurator.LoadNetworks([]string{networkID1}, true, true, networkSerdes)
+	networks, notFound, err = configurator.LoadNetworks(context.Background(), []string{networkID1}, true, true, networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
 	assert.Equal(t, 1, len(networks))
@@ -90,45 +91,42 @@ func TestConfiguratorService(t *testing.T) {
 		Name:        "test_network2",
 		Description: "description2",
 	}
-	_, err = configurator.CreateNetworks([]configurator.Network{network2}, networkSerdes)
+	_, err = configurator.CreateNetworks(context.Background(), []configurator.Network{network2}, networkSerdes)
 	assert.NoError(t, err)
 
-	networkIDs, err := configurator.ListNetworkIDs()
+	networkIDs, err := configurator.ListNetworkIDs(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(networkIDs))
 	assert.Equal(t, networkID2, networkIDs[1])
 
 	// Delete, Load
-	err = configurator.DeleteNetworks([]string{network2.ID})
+	err = configurator.DeleteNetworks(context.Background(), []string{network2.ID})
 	assert.NoError(t, err)
 
-	networks, notFound, err = configurator.LoadNetworks([]string{networkID2}, true, true, networkSerdes)
+	networks, notFound, err = configurator.LoadNetworks(context.Background(), []string{networkID2}, true, true, networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(networks))
 	assert.Equal(t, 1, len(notFound))
 
 	// Create Networks With Type
-	createdTypedLteNetworks, err := configurator.CreateNetworks(
-		[]configurator.Network{
-			{
-				Name: "lte network 1",
-				Type: "lte",
-				ID:   "test_network3",
-			},
-			{
-				Name: "lte network 2",
-				Type: "lte",
-				ID:   "test_network4",
-			},
+	createdTypedLteNetworks, err := configurator.CreateNetworks(context.Background(), []configurator.Network{
+		{
+			Name: "lte network 1",
+			Type: "lte",
+			ID:   "test_network3",
 		},
-		networkSerdes,
-	)
+		{
+			Name: "lte network 2",
+			Type: "lte",
+			ID:   "test_network4",
+		},
+	}, networkSerdes)
 	assert.NoError(t, err)
 
 	createdTypedLteNetworks[0].Name = ""
 	createdTypedLteNetworks[1].Name = ""
 
-	networks, err = configurator.LoadNetworksOfType("lte", false, false, networkSerdes)
+	networks, err = configurator.LoadNetworksOfType(context.Background(), "lte", false, false, networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, createdTypedLteNetworks, networks)
 
@@ -159,7 +157,7 @@ func TestConfiguratorService(t *testing.T) {
 	}
 
 	// Create, Load
-	_, err = configurator.CreateEntities(networkID1, []configurator.NetworkEntity{entity1, entity2}, entitySerdes)
+	_, err = configurator.CreateEntities(context.Background(), networkID1, []configurator.NetworkEntity{entity1, entity2}, entitySerdes)
 	assert.NoError(t, err)
 
 	entities, entitiesNotFound, err := configurator.LoadEntities(
@@ -207,7 +205,7 @@ func TestConfiguratorService(t *testing.T) {
 		AssociationsToAdd: []storage.TypeAndKey{entityID2},
 	}
 
-	_, err = configurator.UpdateEntities(networkID1, []configurator.EntityUpdateCriteria{entityUpdateCriteria}, entitySerdes)
+	_, err = configurator.UpdateEntities(context.Background(), networkID1, []configurator.EntityUpdateCriteria{entityUpdateCriteria}, entitySerdes)
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,
@@ -229,18 +227,14 @@ func TestConfiguratorService(t *testing.T) {
 
 	// Update foobar, create foobaz, add association fooboo -> foobaz  in 1
 	// client call
-	err = configurator.WriteEntities(
-		networkID1,
-		[]configurator.EntityWriteOperation{
-			configurator.EntityUpdateCriteria{Type: entityID1.Type, Key: entityID1.Key, NewDescription: swag.String("newnewnew")},
-			configurator.NetworkEntity{Type: "foo", Key: "baz"},
-			configurator.EntityUpdateCriteria{
-				Type: entityID2.Type, Key: entityID2.Key,
-				AssociationsToAdd: []storage.TypeAndKey{{Type: "foo", Key: "baz"}},
-			},
+	err = configurator.WriteEntities(context.Background(), networkID1, []configurator.EntityWriteOperation{
+		configurator.EntityUpdateCriteria{Type: entityID1.Type, Key: entityID1.Key, NewDescription: swag.String("newnewnew")},
+		configurator.NetworkEntity{Type: "foo", Key: "baz"},
+		configurator.EntityUpdateCriteria{
+			Type: entityID2.Type, Key: entityID2.Key,
+			AssociationsToAdd: []storage.TypeAndKey{{Type: "foo", Key: "baz"}},
 		},
-		entitySerdes,
-	)
+	}, entitySerdes)
 	assert.NoError(t, err)
 
 	entities, _, err = configurator.LoadEntities(
@@ -280,7 +274,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, expected, entities)
 
 	// Delete, Load
-	err = configurator.DeleteEntities(networkID1, []storage.TypeAndKey{entityID2})
+	err = configurator.DeleteEntities(context.Background(), networkID1, []storage.TypeAndKey{entityID2})
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,

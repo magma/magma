@@ -12,6 +12,7 @@
 #pragma once
 
 #include "M5GRegistrationRequest.h"
+#include "M5GRegistrationReject.h"
 #include "M5GAuthenticationFailure.h"
 #include "M5gNasMessage.h"
 #include "M5GULNASTransport.h"
@@ -33,6 +34,7 @@ class NAS5GPktSnapShot {
   static uint8_t pdu_session_release_complete[12];
   static uint8_t deregistrarion_request[17];
   static uint8_t service_request[37];
+  static uint8_t registration_reject[4];
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);
@@ -72,6 +74,12 @@ class NAS5GPktSnapShot {
 //  API for testing decode registration request
 bool decode_registration_request_msg(
     RegistrationRequestMsg* reg_request, const uint8_t* buffer, uint32_t len);
+
+bool encode_registration_reject_msg(
+    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
+
+bool decode_registration_reject_msg(
+    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
 
 bool decode_auth_failure_decode_msg(
     AuthenticationFailureMsg* auth_failure, const uint8_t* buffer,

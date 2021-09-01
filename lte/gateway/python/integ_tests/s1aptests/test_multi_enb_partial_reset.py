@@ -106,6 +106,7 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
+        time.sleep(0.5)
         # Trigger detach request
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)

@@ -11,6 +11,7 @@ generate_cpp_protos("${NAS_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
 
 message("Proto_srcs are ${PROTO_SRCS}")
 include_directories("${S1AP_C_DIR}")
+include_directories(${CMAKE_SOURCE_DIR})
 set(libnas_api_OBJS
     ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.c
     )

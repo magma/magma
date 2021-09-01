@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -300,21 +301,46 @@ func listEnodebs(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	pageSize, pageToken, err := obsidian.GetPaginationParams(c)
+	if err != nil {
+		return err
+	}
 
-	ents, _, err := configurator.LoadAllEntitiesOfType(
-		nid, lte.CellularEnodebEntityType,
-		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
+		nid,
+		lte.CellularEnodebEntityType,
+		configurator.EntityLoadCriteria{
+			LoadMetadata:     true,
+			LoadConfig:       true,
+			LoadAssocsToThis: true,
+			PageSize:         uint32(pageSize),
+			PageToken:        pageToken,
+		},
 		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := make(map[string]*lte_models.Enodeb, len(ents))
-	for _, ent := range ents {
-		ret[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
+	count, err := configurator.CountEntitiesOfType(
+		nid,
+		lte.CellularEnodebEntityType,
+		configurator.EntityLoadCriteria{},
+		serdes.Entity,
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, ret)
+	enodebs := make(map[string]*lte_models.Enodeb, len(ents))
+	for _, ent := range ents {
+		enodebs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
+	}
+	paginatedEnodebs := &lte_models.PaginatedEnodebs{
+		Enodebs:    enodebs,
+		PageToken:  lte_models.PageToken(nextPageToken),
+		TotalCount: count,
+	}
+	return c.JSON(http.StatusOK, paginatedEnodebs)
 }
 
 func createEnodeb(c echo.Context) error {
@@ -322,12 +348,13 @@ func createEnodeb(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if payload.AttachedGatewayID != "" {
@@ -335,6 +362,7 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		nid,
 		configurator.NetworkEntity{
 			Type:        lte.CellularEnodebEntityType,
@@ -380,12 +408,13 @@ func updateEnodeb(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if payload.AttachedGatewayID != "" {
@@ -395,7 +424,7 @@ func updateEnodeb(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "serial in body must match serial in path")
 	}
 
-	_, err := configurator.UpdateEntity(nid, payload.ToEntityUpdateCriteria(), serdes.Entity)
+	_, err := configurator.UpdateEntity(reqCtx, nid, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -408,7 +437,7 @@ func deleteEnodeb(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(nid, lte.CellularEnodebEntityType, eid)
+	err := configurator.DeleteEntity(c.Request().Context(), nid, lte.CellularEnodebEntityType, eid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -457,6 +486,7 @@ func deleteConnectedEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.UpdateEntity(
+		c.Request().Context(),
 		networkID,
 		(&lte_models.EnodebSerials{}).ToDeleteUpdateCriteria(networkID, gatewayID, enodebSerial),
 		serdes.Entity,
@@ -479,6 +509,7 @@ func addConnectedEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.UpdateEntity(
+		c.Request().Context(),
 		networkID,
 		(&lte_models.EnodebSerials{}).ToCreateUpdateCriteria(networkID, gatewayID, enodebSerial),
 		serdes.Entity,
@@ -516,16 +547,18 @@ func createApn(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		networkID,
 		configurator.NetworkEntity{
 			Type:   lte.APNEntityType,
@@ -564,12 +597,13 @@ func updateApnConfiguration(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -581,7 +615,7 @@ func updateApnConfiguration(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load existing APN"), http.StatusInternalServerError)
 	}
 
-	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.APNEntityType, apnName, payload.ApnConfiguration, serdes.Entity)
+	err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.APNEntityType, apnName, payload.ApnConfiguration, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -593,6 +627,7 @@ func deleteApnConfiguration(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	ent, err := configurator.LoadEntity(
 		networkID, lte.APNEntityType, apnName,
@@ -608,7 +643,7 @@ func deleteApnConfiguration(c echo.Context) error {
 	deletes = append(deletes, ent.ParentAssociations.MultiFilter(lte.APNResourceEntityType, lte.APNPolicyProfileEntityType)...)
 	deletes = append(deletes, ent.GetTypeAndKey())
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(reqCtx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -625,7 +660,7 @@ func AddNetworkWideSubscriberRuleName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := addToNetworkSubscriberConfig(networkID, params[0], "")
+	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
@@ -641,7 +676,7 @@ func AddNetworkWideSubscriberBaseName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := addToNetworkSubscriberConfig(networkID, "", params[0])
+	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
@@ -657,7 +692,7 @@ func RemoveNetworkWideSubscriberRuleName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := removeFromNetworkSubscriberConfig(networkID, params[0], "")
+	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
@@ -673,15 +708,15 @@ func RemoveNetworkWideSubscriberBaseName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := removeFromNetworkSubscriberConfig(networkID, "", params[0])
+	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
-func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
-	network, err := configurator.LoadNetwork(networkID, false, true, serdes.Network)
+func addToNetworkSubscriberConfig(ctx context.Context, networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
 		return err
 	}
@@ -717,11 +752,11 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, policydb_models.BaseName(baseName))
 		}
 	}
-	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
+	return configurator.UpdateNetworkConfig(ctx, networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
 }
 
-func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
-	network, err := configurator.LoadNetwork(networkID, false, true, serdes.Network)
+func removeFromNetworkSubscriberConfig(ctx context.Context, networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
 		return err
 	}
@@ -741,7 +776,7 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 		subscriberConfig.NetworkWideBaseNames = funk.Filter(subscriberConfig.NetworkWideBaseNames,
 			func(b policydb_models.BaseName) bool { return string(b) != baseName }).([]policydb_models.BaseName)
 	}
-	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
+	return configurator.UpdateNetworkConfig(ctx, networkID, lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network)
 }
 
 func getNetworkAndApnName(c echo.Context) (string, string, *echo.HTTPError) {
@@ -778,14 +813,16 @@ func createGatewayPoolHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	gatewayPool := new(lte_models.MutableCellularGatewayPool)
 	if err := c.Bind(gatewayPool); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := gatewayPool.ValidateModel(); err != nil {
+	if err := gatewayPool.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	_, err := configurator.CreateEntity(networkID, gatewayPool.ToEntity(), serdes.Entity)
+	_, err := configurator.CreateEntity(reqCtx, networkID, gatewayPool.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -821,11 +858,13 @@ func updateGatewayPoolHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	gatewayPool := &lte_models.MutableCellularGatewayPool{}
 	if err := c.Bind(gatewayPool); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := gatewayPool.ValidateModel(); err != nil {
+	if err := gatewayPool.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if string(gatewayPool.GatewayPoolID) != gatewayPoolID {
@@ -840,7 +879,7 @@ func updateGatewayPoolHandler(c echo.Context) error {
 	if !exists {
 		return echo.ErrNotFound
 	}
-	_, err = configurator.UpdateEntity(networkID, gatewayPool.ToEntityUpdateCriteria(), serdes.Entity)
+	_, err = configurator.UpdateEntity(reqCtx, networkID, gatewayPool.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -852,6 +891,7 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 	poolEnt, err := configurator.LoadEntity(networkID, lte.CellularGatewayPoolEntityType, poolID, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -872,7 +912,7 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 		)
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	err = configurator.DeleteEntity(networkID, lte.CellularGatewayPoolEntityType, poolID)
+	err = configurator.DeleteEntity(reqCtx, networkID, lte.CellularGatewayPoolEntityType, poolID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

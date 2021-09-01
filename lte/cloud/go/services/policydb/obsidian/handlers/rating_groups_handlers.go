@@ -60,16 +60,17 @@ func CreateRatingGroup(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	group := new(models.RatingGroup)
 	if err := c.Bind(group); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := group.ValidateModel(); err != nil {
+	if err := group.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.CreateEntity(networkID, group.ToEntity(), serdes.Entity)
+	_, err := configurator.CreateEntity(reqCtx, networkID, group.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -102,12 +103,13 @@ func UpdateRatingGroup(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	ratingGroup := new(models.MutableRatingGroup)
 	if err := c.Bind(ratingGroup); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := ratingGroup.ValidateModel(); err != nil {
+	if err := ratingGroup.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	groupID, err := swag.ConvertUint32(ratingGroupID)
@@ -124,7 +126,7 @@ func UpdateRatingGroup(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
-	_, err = configurator.UpdateEntity(networkID, ratingGroup.ToEntityUpdateCriteria(groupID), serdes.Entity)
+	_, err = configurator.UpdateEntity(reqCtx, networkID, ratingGroup.ToEntityUpdateCriteria(groupID), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -137,7 +139,7 @@ func DeleteRatingGroup(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.RatingGroupEntityType, ratingGroupID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

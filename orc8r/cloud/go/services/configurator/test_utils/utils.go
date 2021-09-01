@@ -27,7 +27,7 @@ import (
 )
 
 func RegisterNetwork(t *testing.T, networkID string, networkName string) {
-	err := configurator.CreateNetwork(configurator.Network{ID: networkID, Name: networkName}, nil)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: networkID, Name: networkName}, nil)
 	assert.NoError(t, err)
 }
 
@@ -58,7 +58,7 @@ func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, n
 			Name: name,
 		}
 	}
-	_, err := configurator.CreateEntity(networkID, gwEntity, serdes.Entity)
+	_, err := configurator.CreateEntity(context.Background(), networkID, gwEntity, serdes.Entity)
 	assert.NoError(t, err)
 }
 
@@ -68,5 +68,5 @@ func RemoveGateway(t *testing.T, networkID, gatewayID string) {
 	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	assert.NoError(t, err)
 	assert.NoError(t, device.DeleteDevice(context.Background(), networkID, orc8r.AccessGatewayRecordType, physicalID))
-	assert.NoError(t, configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gatewayID))
+	assert.NoError(t, configurator.DeleteEntity(context.Background(), networkID, orc8r.MagmadGatewayType, gatewayID))
 }

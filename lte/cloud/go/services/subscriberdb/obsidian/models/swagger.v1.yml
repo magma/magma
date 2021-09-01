@@ -405,10 +405,11 @@ definitions:
         example: 10
         x-nullable: false
       next_page_token:
-        $ref: '#/definitions/next_page_token'
+        $ref: './orc8r-swagger-common.yml#/definitions/page_token'
       subscribers:
         type: object
         additionalProperties:
+          # The x-nullable flag is set to true to generate a map of pointers
           x-nullable: true
           $ref: '#/definitions/subscriber'
 
@@ -578,7 +579,3 @@ definitions:
     example:
       - 'internet'
       - 'ims'
-
-  next_page_token:
-    type: string
-    description: Base 64 encoded page token for subsequent paginated API requests

@@ -1,6 +1,7 @@
 package calculations_test
 
 import (
+	context2 "context"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -20,18 +21,14 @@ import (
 func TestSiteCalculations(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity(
-		"n0",
-		configurator.NetworkEntity{
-			Type:       orc8r.MagmadGatewayType,
-			Key:        "g0",
-			Config:     &models.MagmadGatewayConfigs{},
-			PhysicalID: "hw0"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context2.Background(), "n0", configurator.NetworkEntity{
+		Type:       orc8r.MagmadGatewayType,
+		Key:        "g0",
+		Config:     &models.MagmadGatewayConfigs{},
+		PhysicalID: "hw0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
@@ -64,10 +61,10 @@ func TestSiteCalculations(t *testing.T) {
 func TestNetworkCalculations(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
-	configurator.CreateNetwork(configurator.Network{ID: "n0_1", Type: "LTE"}, serdes.Network)
-	configurator.CreateNetwork(configurator.Network{ID: "n1", Type: "FEG_LTE"}, serdes.Network)
-	configurator.CreateNetwork(configurator.Network{ID: "n2_0", Type: "FEG"}, serdes.Network)
-	configurator.CreateNetwork(configurator.Network{ID: "n2_2", Type: "FEG"}, serdes.Network)
+	configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0_1", Type: "LTE"}, serdes.Network)
+	configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: "FEG_LTE"}, serdes.Network)
+	configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n2_0", Type: "FEG"}, serdes.Network)
+	configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n2_2", Type: "FEG"}, serdes.Network)
 	analyticsConfig := &calculations.AnalyticsConfig{
 		Metrics: map[string]calculations.MetricConfig{
 			metrics.NetworkTypeMetric: {

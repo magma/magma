@@ -14,6 +14,8 @@
 package models
 
 import (
+	"context"
+
 	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -34,7 +36,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-func (m *FegNetwork) ValidateModel() error {
+func (m *FegNetwork) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -96,7 +98,7 @@ func (m *FegNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 	return m
 }
 
-func (m *FegLteNetwork) ValidateModel() error {
+func (m *FegLteNetwork) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -160,7 +162,7 @@ func (m *NetworkFederationConfigs) ToUpdateCriteria(network configurator.Network
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, feg.FegNetworkType, m), nil
 }
 
-func (m *FederationGateway) ValidateModel() error {
+func (m *FederationGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -177,7 +179,7 @@ func (m *FederationGateway) FromBackendModels(
 	return m
 }
 
-func (m *MutableFederationGateway) ValidateModel() error {
+func (m *MutableFederationGateway) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 

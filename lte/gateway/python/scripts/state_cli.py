@@ -28,7 +28,11 @@ from lte.protos.oai.mme_nas_state_pb2 import (
 )
 from lte.protos.oai.s1ap_state_pb2 import S1apImsiMap, S1apState, UeDescription
 from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
-from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
+from lte.protos.policydb_pb2 import (
+    InstalledPolicies,
+    PolicyRule,
+    SubscriberPolicySet,
+)
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import (
     get_json_deserializer,
@@ -98,6 +102,7 @@ class StateCLI(object):
         'rule_ids': get_json_deserializer(),
         'rule_versions': get_json_deserializer(),
         'rules': get_proto_deserializer(PolicyRule),
+        'apn_installed': get_proto_deserializer(SubscriberPolicySet),
     }
 
     STATE_PROTOS = {
@@ -112,6 +117,7 @@ class StateCLI(object):
         'mobilityd_ipdesc_record': IPDesc,
         'rules': PolicyRule,
         'installed': InstalledPolicies,
+        'apn_installed': SubscriberPolicySet,
     }
 
     def __init__(self):

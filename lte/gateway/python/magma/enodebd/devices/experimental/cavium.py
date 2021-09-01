@@ -464,7 +464,7 @@ class CaviumTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                          and (str(x) not in excluded_params),
+                and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )
@@ -486,6 +486,6 @@ class CaviumTrDataModel(DataModel):
 
 
 class CaviumTrConfigurationInitializer(EnodebConfigurationPostProcessor):
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
         desired_cfg.set_parameter(ParameterName.CELL_BARRED, True)
         desired_cfg.set_parameter(ParameterName.ADMIN_STATE, True)

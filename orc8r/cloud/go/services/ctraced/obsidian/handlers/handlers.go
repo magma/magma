@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -95,6 +96,8 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 				CallTraceEnding:    false,
 			},
 		}
+		reqCtx := c.Request().Context()
+
 		exists, err := configurator.DoesEntityExist(networkID, orc8r.CallTraceEntityType, cfg.TraceID)
 		if exists {
 			return obsidian.HttpError(errors.New(fmt.Sprintf("Call trace id: %s already exists", cfg.TraceID)))
@@ -102,7 +105,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		if err := ctr.ValidateModel(); err != nil {
+		if err := ctr.ValidateModel(context.Background()); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -120,7 +123,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		}
 
 		createdEntity := ctr.ToEntity()
-		_, err = configurator.CreateEntity(networkID, createdEntity, serdes.Entity)
+		_, err = configurator.CreateEntity(reqCtx, networkID, createdEntity, serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to create call trace"), http.StatusInternalServerError)
 		}
@@ -142,11 +145,13 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 		if nerr != nil {
 			return nerr
 		}
+		reqCtx := c.Request().Context()
+
 		mutableCallTrace := &models.MutableCallTrace{}
 		if err := c.Bind(mutableCallTrace); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
-		if err := mutableCallTrace.ValidateModel(); err != nil {
+		if err := mutableCallTrace.ValidateModel(reqCtx); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -174,7 +179,7 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("failed to save call trace data, network-id: %s, gateway-id: %s, calltrace-id: %s", networkID, callTrace.Config.GatewayID, callTraceID)), http.StatusInternalServerError)
 		}
 
-		_, err = configurator.UpdateEntity(networkID, mutableCallTrace.ToEntityUpdateCriteria(callTraceID, *callTrace), serdes.Entity)
+		_, err = configurator.UpdateEntity(reqCtx, networkID, mutableCallTrace.ToEntityUpdateCriteria(callTraceID, *callTrace), serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -194,7 +199,7 @@ func getDeleteCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(errors.Wrap(err, "failed to delete call trace data"), http.StatusInternalServerError)
 		}
 
-		err = configurator.DeleteEntity(networkID, orc8r.CallTraceEntityType, callTraceID)
+		err = configurator.DeleteEntity(c.Request().Context(), networkID, orc8r.CallTraceEntityType, callTraceID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}

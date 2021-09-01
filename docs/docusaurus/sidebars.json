@@ -145,6 +145,13 @@
     "Upgrade": [
       {
         "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "general/upgrade_intro"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
           "lte/upgrade_debian_to_ubuntu",

@@ -87,6 +87,7 @@ struct amf_procedures_t;
 #define SECURITY_MODE_TIMER_EXPIRY_MSECS 6000
 #define REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS 6000
 #define PAGING_TIMER_EXPIRY_MSECS 4000
+#define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
 
 #define MAX_PAGING_RETRY_COUNT 1
 // Header length boundaries of 5GS Mobility Management messages
@@ -260,6 +261,8 @@ typedef struct smf_context_s {
   paa_t pdu_address;
   uint8_t apn[ACCESS_POINT_NAME_MAX_LENGTH + 1];
   smf_proc_data_t smf_proc_data;
+  struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
+  int retransmission_count;
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;

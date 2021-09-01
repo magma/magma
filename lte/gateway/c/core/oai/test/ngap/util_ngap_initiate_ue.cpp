@@ -261,8 +261,7 @@ bool validate_handle_initial_ue_message(
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
 
   // gNB UE NGAP ID is limited to 24 bits
-  gnb_ue_ngap_id =
-      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
 
   ue_ref->ng_ue_state = NGAP_UE_WAITING_CSR;
 

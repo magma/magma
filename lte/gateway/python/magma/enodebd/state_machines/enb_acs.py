@@ -12,6 +12,7 @@ limitations under the License.
 """
 from abc import ABC, abstractmethod
 from asyncio import BaseEventLoop
+from time import time
 from typing import Any, Type
 
 from magma.common.service import MagmaService
@@ -40,12 +41,15 @@ class EnodebAcsStateMachine(ABC):
     This ABC is more of an interface definition.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, use_param_key: bool = False) -> None:
         self._service = None
         self._desired_cfg = None
         self._device_cfg = None
         self._data_model = None
         self._are_invasive_changes_applied = True
+        # Flag to preseve backwards compatibility
+        self._use_param_key = use_param_key
+        self._param_version_key = None
 
     def has_parameter(self, param: ParameterName) -> bool:
         """
@@ -143,6 +147,8 @@ class EnodebAcsStateMachine(ABC):
 
     @desired_cfg.setter
     def desired_cfg(self, val: EnodebConfiguration) -> None:
+        if self.has_version_key:
+            self.parameter_version_inc()
         self._desired_cfg = val
 
     @property
@@ -156,6 +162,20 @@ class EnodebAcsStateMachine(ABC):
     @property
     def data_model(self) -> DataModel:
         return self._data_model
+
+    @property
+    def has_version_key(self) -> bool:
+        """ Return if the ACS supports param version key """
+        return self._use_param_key
+
+    @property
+    def parameter_version_key(self) -> int:
+        """ Return the param version key """
+        return self._param_version_key
+
+    def parameter_version_inc(self):
+        """ Set the internal version key to the timestamp """
+        self._param_version_key = time()
 
     @data_model.setter
     def data_model(self, data_model) -> None:

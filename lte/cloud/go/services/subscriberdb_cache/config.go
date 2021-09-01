@@ -28,10 +28,10 @@ type Config struct {
 func (config Config) Validate() error {
 	errs := &multierror.Error{}
 	if config.SleepIntervalSecs <= 0 {
-		multierror.Append(errs, errors.Errorf("invalid worker sleep interval"))
+		errs = multierror.Append(errs, errors.Errorf("invalid worker sleep interval"))
 	}
 	if config.UpdateIntervalSecs < 60 {
-		multierror.Append(errs, errors.Errorf("worker update interval smaller than 1 minute"))
+		errs = multierror.Append(errs, errors.Errorf("worker update interval smaller than 1 minute"))
 	}
 	return errs.ErrorOrNil()
 }

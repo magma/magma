@@ -45,7 +45,7 @@ func TestListGateways(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -53,33 +53,48 @@ func TestListGateways(t *testing.T) {
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	listGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways", obsidian.GET).HandlerFunc
+	expected := models.PaginatedGateways{
+		Gateways:   map[string]*models.MagmadGateway{},
+		PageToken:  "",
+		TotalCount: 0,
+	}
 
 	// empty case
 	tc := tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot,
+		URL:            testURLRoot + "?page_size=1&page_token=",
 		Handler:        listGateways,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]models.MagmadGateway{}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// happy path
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
-			{Type: orc8r.MagmadGatewayType, Key: "g2", Config: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+		{Type: orc8r.MagmadGatewayType, Key: "g2", Config: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
-	expectedResult := map[string]models.MagmadGateway{
+	gateways := map[string]*models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
+	}
+	expectedPageToken := "CgJnMQ=="
+	expectedResult := &models.PaginatedGateways{
+		Gateways:   gateways,
+		PageToken:  models.PageToken(expectedPageToken),
+		TotalCount: 2,
+	}
+	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
+	tests.RunUnitTest(t, e, tc)
+
+	gateways = map[string]*models.MagmadGateway{
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
+	tc.URL = testURLRoot + "?page_size=1&page_token=" + expectedPageToken
+	expectedResult.Gateways = gateways
+	expectedResult.PageToken = "CgJnMg=="
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tests.RunUnitTest(t, e, tc)
 
@@ -95,24 +110,26 @@ func TestListGateways(t *testing.T) {
 	expectedState := models.NewDefaultGatewayStatus("hw1")
 	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 
-	expectedResult = map[string]models.MagmadGateway{
+	expectedResult.Gateways = map[string]*models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
+	expectedResult.PageToken = "CgJnMg=="
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
+	tc.URL = testURLRoot + "?page_size=2&page_token="
 	tests.RunUnitTest(t, e, tc)
 }
 
 func TestCreateGateway(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	// create 2 tiers
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1"}, serdes.Entity)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t2"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t2"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -319,44 +336,40 @@ func TestGetGateway(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g2",
-				Name: "barfoo", Description: "bar foo",
-				PhysicalID: "hw2",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: "g1"},
-					{Type: orc8r.MagmadGatewayType, Key: "g2"},
-				},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g2",
+			Name: "barfoo", Description: "bar foo",
+			PhysicalID: "hw2",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: "g1"},
+				{Type: orc8r.MagmadGatewayType, Key: "g2"},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
@@ -439,31 +452,27 @@ func TestUpdateGateway(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
 			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
-			},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
@@ -577,30 +586,26 @@ func TestUpdateGateway(t *testing.T) {
 func TestDeleteGateway(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
@@ -649,7 +654,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	gwConfig := &models.MagmadGatewayConfigs{
@@ -658,23 +663,19 @@ func TestGetPartialReadHandlers(t *testing.T) {
 		CheckinInterval:         15,
 		CheckinTimeout:          5,
 	}
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config:     gwConfig,
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g2",
-				Name: "barfoo", Description: "bar foo",
-				PhysicalID: "hw2",
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config:     gwConfig,
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g2",
+			Name: "barfoo", Description: "bar foo",
+			PhysicalID: "hw2",
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
@@ -801,20 +802,16 @@ func TestGetGatewayTierHandler(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	getGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.GET).HandlerFunc
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	// 404 tier
 	tc := tests.Test{
@@ -829,20 +826,16 @@ func TestGetGatewayTierHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// add a tier and tier -> gateway association
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: orc8r.UpgradeTierEntityType,
-			Key:  "t1",
-			Associations: []storage.TypeAndKey{
-				{
-					Type: orc8r.MagmadGatewayType,
-					Key:  "g1",
-				},
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType,
+		Key:  "t1",
+		Associations: []storage.TypeAndKey{
+			{
+				Type: orc8r.MagmadGatewayType,
+				Key:  "g1",
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// happy
@@ -868,20 +861,16 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	updateGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.PUT).HandlerFunc
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	// 404 tier
 	tc := tests.Test{
@@ -897,20 +886,16 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// add 2 tiers
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.UpgradeTierEntityType,
-				Key:  "t1",
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType,
-				Key:  "t2",
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.UpgradeTierEntityType,
+			Key:  "t1",
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.UpgradeTierEntityType,
+			Key:  "t2",
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// happy add a tier
@@ -1009,7 +994,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	gwConfig := &models.MagmadGatewayConfigs{
@@ -1018,23 +1003,19 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 		CheckinInterval:         15,
 		CheckinTimeout:          5,
 	}
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Name: "foobar", Description: "foo bar",
-				PhysicalID: "hw1",
-				Config:     gwConfig,
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: "g2",
-				Name: "barfoo", Description: "bar foo",
-				PhysicalID: "hw2",
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: "foobar", Description: "foo bar",
+			PhysicalID: "hw1",
+			Config:     gwConfig,
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: "g2",
+			Name: "barfoo", Description: "bar foo",
+			PhysicalID: "hw2",
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)

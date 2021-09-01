@@ -231,7 +231,7 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
         if (sleep_time >= max_sleep_time):
             raise WaitTimeExceeded(
                 "Waiting on pkts exceeded the max({}) sleep time".
-                    format(max_sleep_time),
+                format(max_sleep_time),
             )
 
 
@@ -371,7 +371,7 @@ def wait_for_enforcement_stats(
         if (sleep_time >= max_sleep_time):
             raise WaitTimeExceeded(
                 "Waiting on enforcement stats exceeded the max({}) sleep time".
-                    format(max_sleep_time),
+                format(max_sleep_time),
             )
 
 
@@ -615,7 +615,7 @@ def wait_for_snapshots(
         if sleep_time >= max_sleep_time:
             raise WaitTimeExceeded(
                 "Waiting on pkts exceeded the max({}) sleep time".
-                    format(max_sleep_time),
+                format(max_sleep_time),
             )
 
 

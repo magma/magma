@@ -177,7 +177,19 @@ imsi64_t mme_app_handle_initial_paging_request(
     const itti_s11_paging_request_t* paging_req);
 
 int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id, void* args);
 int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_security_t3460_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_identification_t3470_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_emm_attach_t3450_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_esm_information_t3489_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args);

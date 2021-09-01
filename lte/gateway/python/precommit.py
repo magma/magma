@@ -65,7 +65,7 @@ def _format_diff(paths: List[str]):
         # make sure to change the corresponding github action
         _run_docker_cmd(['isort', path])
         _run_add_trailing_comma(path)
-        autopep8_checks = 'W191,W291,W292,W293,W391,E2,E3'
+        autopep8_checks = 'W191,W291,W292,W293,W391,E131,E2,E3'
         _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
 
 
@@ -102,8 +102,8 @@ def _run(cmd: List[str]) -> None:
 
 
 def _get_diff_against_master() -> List[str]:
-    input = "git diff --name-only --diff-filter=ACMRT master HEAD"
-    changed_files_in_commit = subprocess.run(input.split(), capture_output=True).stdout.decode().split('\n')
+    files = "git diff --name-only --diff-filter=ACMRT master HEAD"
+    changed_files_in_commit = subprocess.run(files.split(), capture_output=True).stdout.decode().split('\n')  # noqa: S603
     changed_py_files = []
     for item in changed_files_in_commit:
         if item.endswith('.py'):

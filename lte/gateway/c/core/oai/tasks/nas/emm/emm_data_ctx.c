@@ -50,6 +50,8 @@
 #include "nas_procedures.h"
 #include "nas_timer.h"
 #include "nas/securityDef.h"
+#include "intertask_interface.h"
+#include "mme_app_timer.h"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt) {
@@ -779,155 +781,6 @@ status_code_e emm_context_upsert_imsi(
 }
 
 //------------------------------------------------------------------------------
-
-void emm_context_stop_all_timers(struct emm_context_s* emm_ctx) {
-#if 0
-  /*
-    * Stop timer T3450
-    */
-  if (emm_ctx->T3450.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3450 (%d)\n", emm_ctx->T3450.id);
-    emm_ctx->T3450.id = nas_timer_stop (emm_ctx->T3450.id);
-  }
-
-  /*
-    * Stop timer T3460
-    */
-  if (emm_ctx->T3460.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3460 (%d)\n", emm_ctx->T3460.id);
-    emm_ctx->T3460.id = nas_timer_stop (emm_ctx->T3460.id);
-  }
-
-  /*
-   * Stop timer T3470
-   */
-  if (emm_ctx->T3470.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3470 (%d)\n", emm_ctx->T3470.id);
-    emm_ctx->T3470.id = nas_timer_stop (emm_ctx->T3470.id);
-  }
-
-  /*
-   * Stop timer timer_s6a_auth_info_rsp
-   */
-  if (emm_ctx->timer_s6a_auth_info_rsp.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer timer_s6a_auth_info_rsp (%d) for ue_id %d \n", emm_ctx->timer_s6a_auth_info_rsp.id, emm_ctx->ue_id);
-    emm_ctx->timer_s6a_auth_info_rsp.id = nas_timer_stop (emm_ctx->timer_s6a_auth_info_rsp.id);
-    if (emm_ctx->timer_s6a_auth_info_rsp_arg != NULL) {
-      free_wrapper (&emm_ctx->timer_s6a_auth_info_rsp_arg);
-      emm_ctx->timer_s6a_auth_info_rsp_arg = NULL;
-    }
-  }
-
-  /*
-   * Stop timer T3422
-   */
-  if (emm_ctx->T3422.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3422 (%d)\n", emm_ctx->T3422.id);
-    emm_ctx->T3422.id = nas_timer_stop (emm_ctx->T3422.id);
-  }
-#endif
-}
-
-//------------------------------------------------------------------------------
-void emm_context_silently_reset_procedures(
-    struct emm_context_s* const emm_ctx) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_stop_all_timers(emm_ctx);
-  // emm_common_cleanup_by_ueid(emm_ctx->ue_id);
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
-}
-//------------------------------------------------------------------------------
-#if 0
-  void
-emm_data_context_dump (
-  const struct emm_context_s * const elm_pP)
-{
-  char                                    imsi_str[16];
-  int                                     k = 0,
-                                          size = 0,
-                                          remaining_size = 0;
-  char                                    key_string[KASME_LENGTH_OCTETS * 2];
-  const int                               step = 3;
-
-  OAILOG_INFO (LOG_NAS_EMM, "EMM-CTX: ue id:           " MME_UE_S1AP_ID_FMT " (UE identifier)\n", elm_pP->ue_id);
-  OAILOG_INFO (LOG_NAS_EMM, "         is_dynamic:       %u      (Dynamically allocated context indicator)\n", elm_pP->is_dynamic);
-  OAILOG_INFO (LOG_NAS_EMM, "         is_attached:      %u      (Attachment indicator)\n", elm_pP->is_attached);
-  OAILOG_INFO (LOG_NAS_EMM, "         is_emergency:     %u      (Emergency bearer services indicator)\n", elm_pP->is_emergency);
-  IMSI_TO_STRING (&elm_pP->_imsi, imsi_str, 16);
-  OAILOG_INFO (LOG_NAS_EMM, "         imsi:             %s      (The IMSI provided by the UE or the MME)\n", imsi_str);
-  OAILOG_INFO (LOG_NAS_EMM, "         imei:             TODO    (The IMEI provided by the UE)\n");
-  OAILOG_INFO (LOG_NAS_EMM, "         imeisv:           TODO    (The IMEISV provided by the UE)\n");
-  OAILOG_INFO (LOG_NAS_EMM, "         guti:             "GUTI_FMT"      (The GUTI assigned to the UE)\n", GUTI_ARG(&elm_pP->_guti));
-  OAILOG_INFO (LOG_NAS_EMM, "         old_guti:         "GUTI_FMT"      (The old GUTI)\n", GUTI_ARG(&elm_pP->_old_guti));
-  for (k=0; k < elm_pP->_tai_list.n_tais; k++) {
-    OAILOG_INFO (LOG_NAS_EMM, "         tai:              "TAI_FMT"   (Tracking area identity the UE is registered to)\n",
-      TAI_ARG(&elm_pP->_tai_list.tai[k]));
-  }
-  OAILOG_INFO (LOG_NAS_EMM, "         eksi:             %u      (Security key set identifier)\n", elm_pP->_security.eksi);
-  OAILOG_INFO (LOG_NAS_EMM, "         auth_vector:              (EPS authentication vector)\n");
-  OAILOG_INFO (LOG_NAS_EMM, "             kasme: " KASME_FORMAT "" KASME_FORMAT "\n",
-                              KASME_DISPLAY_1 (elm_pP->_vector[elm_pP->_security.eksi].kasme),
-                              KASME_DISPLAY_2 (elm_pP->_vector[elm_pP->_security.eksi].kasme));
-  OAILOG_INFO (LOG_NAS_EMM, "             rand:  " RAND_FORMAT "\n", RAND_DISPLAY (elm_pP->_vector[elm_pP->_security.eksi].rand));
-  OAILOG_INFO (LOG_NAS_EMM, "             autn:  " AUTN_FORMAT "\n", AUTN_DISPLAY (elm_pP->_vector[elm_pP->_security.eksi].autn));
-
-
-  for (k = 0; k < XRES_LENGTH_MAX; k++) {
-    snprintf (&key_string[k * step], step, "%02x,", elm_pP->_vector[elm_pP->_security.eksi].xres[k]);
-  }
-
-  key_string[k * step - 1] = '\0';
-  OAILOG_INFO (LOG_NAS_EMM, "             xres:  %s\n", key_string);
-
-  if (IS_EMM_CTXT_PRESENT_SECURITY(elm_pP)) {
-    OAILOG_INFO (LOG_NAS_EMM, "         security context:          (Current EPS NAS security context)\n");
-    OAILOG_INFO (LOG_NAS_EMM, "             type:  %s              (Type of security context)\n",
-        (elm_pP->_security.sc_type == SECURITY_CTX_TYPE_NOT_AVAILABLE)  ? "NOT_AVAILABLE" :
-        (elm_pP->_security.sc_type == SECURITY_CTX_TYPE_PARTIAL_NATIVE) ? "PARTIAL_NATIVE" :
-        (elm_pP->_security.sc_type == SECURITY_CTX_TYPE_FULL_NATIVE)    ? "FULL_NATIVE" :  "MAPPED");
-    OAILOG_INFO (LOG_NAS_EMM, "             eksi:  %u              (NAS key set identifier for E-UTRAN)\n", elm_pP->_security.eksi);
-
-    if (SECURITY_CTX_TYPE_PARTIAL_NATIVE <= elm_pP->_security.sc_type) {
-      OAILOG_INFO (LOG_NAS_EMM, "             dl_count.overflow: %u\n", elm_pP->_security.dl_count.overflow);
-      OAILOG_INFO (LOG_NAS_EMM, "             dl_count.seq_num:  %u\n", elm_pP->_security.dl_count.seq_num);
-      OAILOG_INFO (LOG_NAS_EMM, "             ul_count.overflow: %u\n", elm_pP->_security.ul_count.overflow);
-      OAILOG_INFO (LOG_NAS_EMM, "             ul_count.seq_num:  %u\n", elm_pP->_security.ul_count.seq_num);
-
-      if (SECURITY_CTX_TYPE_FULL_NATIVE <= elm_pP->_security.sc_type) {
-        size = 0;
-        remaining_size = sizeof(key_string);
-
-        for (k = 0; k < AUTH_KNAS_ENC_SIZE; k++) {
-          size += snprintf (&key_string[size], remaining_size, "0x%x ", elm_pP->_security.knas_enc[k]);
-          remaining_size -= size;
-        }
-
-        OAILOG_INFO (LOG_NAS_EMM, "             knas_enc: %s     (NAS cyphering key)\n", key_string);
-
-        size = 0;
-        remaining_size = sizeof(key_string);
-
-        for (k = 0; k < AUTH_KNAS_INT_SIZE; k++) {
-          size += snprintf (&key_string[size], remaining_size, "0x%x ", elm_pP->_security.knas_int[k]);
-          remaining_size -= size;
-        }
-
-
-        OAILOG_INFO (LOG_NAS_EMM, "             knas_int: %s     (NAS integrity key)\n", key_string);
-        OAILOG_INFO (LOG_NAS_EMM, "             TODO  capability");
-        OAILOG_INFO (LOG_NAS_EMM, "             selected_algorithms.encryption:  %x\n", elm_pP->_security.selected_algorithms.encryption);
-        OAILOG_INFO (LOG_NAS_EMM, "             selected_algorithms.integrity:   %x\n", elm_pP->_security.selected_algorithms.integrity);
-      }
-    }
-  } else {
-    OAILOG_INFO (LOG_NAS_EMM, "         No security context\n");
-  }
-
-  OAILOG_INFO (LOG_NAS_EMM, "         _emm_fsm_status     %u\n", elm_pP->_emm_fsm_status);
-  OAILOG_INFO (LOG_NAS_EMM, "         TODO  esm_data_ctx\n");
-}
-#endif
-//------------------------------------------------------------------------------
 void emm_init_context(
     struct emm_context_s* const emm_ctx, const bool init_esm_ctxt) {
   emm_ctx->_emm_fsm_state = EMM_DEREGISTERED;
@@ -967,10 +820,10 @@ void emm_init_context(
 //------------------------------------------------------------------------------
 void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((T3450) && (T3450->id == NAS_TIMER_INACTIVE_ID)) {
-    T3450->id =
-        nas_timer_start(T3450->sec, 0, time_out_cb, timer_callback_args);
+    T3450->id = mme_app_start_timer(
+        T3450->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3450->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3450 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -984,10 +837,10 @@ void nas_start_T3450(
 //------------------------------------------------------------------------------
 void nas_start_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((T3460) && (T3460->id == NAS_TIMER_INACTIVE_ID)) {
-    T3460->id =
-        nas_timer_start(T3460->sec, 0, time_out_cb, timer_callback_args);
+    T3460->id = mme_app_start_timer(
+        T3460->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3460->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3460 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -1001,10 +854,10 @@ void nas_start_T3460(
 //------------------------------------------------------------------------------
 void nas_start_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((T3470) && (T3470->id == NAS_TIMER_INACTIVE_ID)) {
-    T3470->id =
-        nas_timer_start(T3470->sec, 0, time_out_cb, timer_callback_args);
+    T3470->id = mme_app_start_timer(
+        T3470->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3470->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3470 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -1016,12 +869,29 @@ void nas_start_T3470(
   }
 }
 //------------------------------------------------------------------------------
+void nas_start_T3422(
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422,
+    time_out_t time_out_cb) {
+  if ((T3422) && (T3422->id == NAS_TIMER_INACTIVE_ID)) {
+    T3422->id = mme_app_start_timer(
+        T3422->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    if (NAS_TIMER_INACTIVE_ID != T3422->id) {
+      OAILOG_DEBUG(
+          LOG_NAS_EMM, "T3422 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+    } else {
+      OAILOG_ERROR(
+          LOG_NAS_EMM, "Could not start T3422 UE " MME_UE_S1AP_ID_FMT " ",
+          ue_id);
+    }
+  }
+}
+//------------------------------------------------------------------------------
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb) {
   if ((Ts6a_auth_info) && (Ts6a_auth_info->id == NAS_TIMER_INACTIVE_ID)) {
-    Ts6a_auth_info->id = nas_timer_start(
-        Ts6a_auth_info->sec, 0, time_out_cb, timer_callback_args);
+    Ts6a_auth_info->id = mme_app_start_timer(
+        Ts6a_auth_info->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != Ts6a_auth_info->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "Ts6a_auth_info started UE " MME_UE_S1AP_ID_FMT "\n",
@@ -1035,10 +905,10 @@ void nas_start_Ts6a_auth_info(
 }
 //------------------------------------------------------------------------------
 void nas_stop_T3450(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    void* timer_callback_args) {
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450) {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
-    T3450->id = nas_timer_stop(T3450->id, &timer_callback_args);
+    mme_app_stop_timer(T3450->id);
+    T3450->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3450 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1046,10 +916,10 @@ void nas_stop_T3450(
 
 //------------------------------------------------------------------------------
 void nas_stop_T3460(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    void* timer_callback_args) {
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460) {
   if ((T3460) && (T3460->id != NAS_TIMER_INACTIVE_ID)) {
-    T3460->id = nas_timer_stop(T3460->id, &timer_callback_args);
+    mme_app_stop_timer(T3460->id);
+    T3460->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3460 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1057,25 +927,23 @@ void nas_stop_T3460(
 
 //------------------------------------------------------------------------------
 void nas_stop_T3470(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    void* timer_callback_args) {
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470) {
   if ((T3470) && (T3470->id != NAS_TIMER_INACTIVE_ID)) {
-    T3470->id = nas_timer_stop(T3470->id, &timer_callback_args);
+    mme_app_stop_timer(T3470->id);
+    T3470->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3470 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
 }
 
 //------------------------------------------------------------------------------
-void nas_stop_Ts6a_auth_info(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    void* timer_callback_args) {
-  if ((Ts6a_auth_info) && (Ts6a_auth_info->id != NAS_TIMER_INACTIVE_ID)) {
-    Ts6a_auth_info->id =
-        nas_timer_stop(Ts6a_auth_info->id, &timer_callback_args);
+void nas_stop_T3422(
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422) {
+  if ((T3422) && (T3422->id != NAS_TIMER_INACTIVE_ID)) {
+    mme_app_stop_timer(T3422->id);
+    T3422->id = NAS_TIMER_INACTIVE_ID;
     OAILOG_DEBUG(
-        LOG_NAS_EMM, "Ts6a_auth_info stopped UE " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+        LOG_NAS_EMM, "T3422 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
 }
 

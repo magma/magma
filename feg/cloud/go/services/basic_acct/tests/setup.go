@@ -106,86 +106,78 @@ func SetupNetworks(t *testing.T) {
 		servingFegNetworkCfg,
 		federatedLteNetCfg,
 	}
-	_, err := configurator.CreateNetworks(networkConfigs, serdes.Network)
+	_, err := configurator.CreateNetworks(context.Background(), networkConfigs, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		FederatedLteNetworkID,
-		[]configurator.NetworkEntity{
-			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-			{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-			{
-				Type: lte.CellularGatewayEntityType, Key: AgwId,
-				Config: &models3.GatewayCellularConfigs{
-					Epc: &models3.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &models3.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
-				},
-				Associations: []storage.TypeAndKey{
-					{Type: lte.CellularEnodebEntityType, Key: "enb1"},
-					{Type: lte.CellularEnodebEntityType, Key: "enb2"},
-				},
+	_, err = configurator.CreateEntities(context.Background(), FederatedLteNetworkID, []configurator.NetworkEntity{
+		{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		{Type: lte.CellularEnodebEntityType, Key: "enb2"},
+		{
+			Type: lte.CellularGatewayEntityType, Key: AgwId,
+			Config: &models3.GatewayCellularConfigs{
+				Epc: &models3.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &models3.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: AgwId,
-				Name: "lte_gateway", Description: "federated lte gateway",
-				PhysicalID: AgwHwId,
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: AgwId}},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: AgwId},
-				},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: AgwId,
+			Name: "lte_gateway", Description: "federated lte gateway",
+			PhysicalID: AgwHwId,
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: AgwId}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: AgwId},
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), FederatedLteNetworkID, orc8r.AccessGatewayRecordType, AgwHwId, &models.GatewayDevice{HardwareID: AgwHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		ServingFegNetworkID,
-		[]configurator.NetworkEntity{
-			{
-				Type: feg.FegGatewayType, Key: FegId,
+	_, err = configurator.CreateEntities(context.Background(), ServingFegNetworkID, []configurator.NetworkEntity{
+		{
+			Type: feg.FegGatewayType, Key: FegId,
+		},
+		{
+			Type: orc8r.MagmadGatewayType, Key: FegId,
+			Name: "feg_gateway", Description: "federation gateway",
+			PhysicalID: FegHwId,
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
 			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: FegId,
-				Name: "feg_gateway", Description: "federation gateway",
-				PhysicalID: FegHwId,
-				Config: &models.MagmadGatewayConfigs{
-					AutoupgradeEnabled:      swag.Bool(true),
-					AutoupgradePollInterval: 300,
-					CheckinInterval:         15,
-					CheckinTimeout:          5,
-				},
-				Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: FegId}},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: FegId},
-				},
+			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: FegId}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: FegId},
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), ServingFegNetworkID, orc8r.AccessGatewayRecordType, FegHwId, &models.GatewayDevice{HardwareID: FegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
-	actualNHNet, err := configurator.LoadNetwork(NhNetworkID, true, true, serdes.Network)
+	actualNHNet, err := configurator.LoadNetwork(context.Background(), NhNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, nhNetworkConfig, actualNHNet)
 
-	actualFeGNet, err := configurator.LoadNetwork(ServingFegNetworkID, true, true, serdes.Network)
+	actualFeGNet, err := configurator.LoadNetwork(context.Background(), ServingFegNetworkID, true, true, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, servingFegNetworkCfg, actualFeGNet)
 

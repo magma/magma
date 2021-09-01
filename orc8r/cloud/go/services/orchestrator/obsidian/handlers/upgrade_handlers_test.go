@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	context2 "context"
 	"testing"
 
 	models1 "magma/orc8r/cloud/go/models"
@@ -52,17 +53,14 @@ func Test_ListReleaseChannels(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// add a channel
-	_, err := configurator.CreateInternalEntity(
-		configurator.NetworkEntity{
-			Type: orc8r.UpgradeReleaseChannelEntityType, Key: "channel1",
-			Config: &models.ReleaseChannel{
-				ID:                "channel1",
-				Name:              "channel 1",
-				SupportedVersions: []string{"1-1-1-1"},
-			},
+	_, err := configurator.CreateInternalEntity(context2.Background(), configurator.NetworkEntity{
+		Type: orc8r.UpgradeReleaseChannelEntityType, Key: "channel1",
+		Config: &models.ReleaseChannel{
+			ID:                "channel1",
+			Name:              "channel 1",
+			SupportedVersions: []string{"1-1-1-1"},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -145,17 +143,14 @@ func Test_ReleaseChannel(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// add a channel
-	_, err := configurator.CreateInternalEntity(
-		configurator.NetworkEntity{
-			Type: orc8r.UpgradeReleaseChannelEntityType, Key: "channel1",
-			Config: &models.ReleaseChannel{
-				ID:                "channel1",
-				Name:              "channel 1",
-				SupportedVersions: []string{"1-1-1-1"},
-			},
+	_, err := configurator.CreateInternalEntity(context2.Background(), configurator.NetworkEntity{
+		Type: orc8r.UpgradeReleaseChannelEntityType, Key: "channel1",
+		Config: &models.ReleaseChannel{
+			ID:                "channel1",
+			Name:              "channel 1",
+			SupportedVersions: []string{"1-1-1-1"},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// happy get
@@ -229,7 +224,7 @@ func Test_Tiers(t *testing.T) {
 	readTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers, obsidian.GET).HandlerFunc
 	deleteTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers, obsidian.DELETE).HandlerFunc
 
-	assert.NoError(t, configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network))
+	assert.NoError(t, configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network))
 
 	// happy case list
 	tc := tests.Test{
@@ -450,16 +445,12 @@ func TestPartialTierReads(t *testing.T) {
 		Version:  "1-1-1-1",
 	}
 
-	_, err := configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: orc8r.UpgradeTierEntityType, Key: "tier1",
-			Name:         string(tier.Name),
-			Config:       tier,
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
-		},
-		serdes.Entity,
-	)
+	_, err := configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         string(tier.Name),
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
@@ -549,16 +540,12 @@ func TestPartialTierUpdates(t *testing.T) {
 		Version:  "1-1-1-1",
 	}
 
-	_, err := configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Type: orc8r.UpgradeTierEntityType, Key: "tier1",
-			Name:         string(tier.Name),
-			Config:       tier,
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
-		},
-		serdes.Entity,
-	)
+	_, err := configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         string(tier.Name),
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	obsidianHandlers := handlers.GetObsidianHandlers()

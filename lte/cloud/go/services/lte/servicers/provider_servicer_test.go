@@ -69,62 +69,58 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 }
 
 func initSubscriber(t *testing.T, hwID string) {
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: hwID}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: hwID}, serdes.Entity)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.APNEntityType, Key: "apn1",
-				Config: &lte_models.ApnConfiguration{
-					Ambr: &lte_models.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(42),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lte_models.QosProfile{
-						ClassID:                 swag.Int32(1),
-						PreemptionCapability:    swag.Bool(true),
-						PreemptionVulnerability: swag.Bool(true),
-						PriorityLevel:           swag.Uint32(1),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.APNEntityType, Key: "apn1",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(1),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(true),
+					PriorityLevel:           swag.Uint32(1),
 				},
 			},
-			{
-				Type: lte.APNEntityType, Key: "apn2",
-				Config: &lte_models.ApnConfiguration{
-					Ambr: &lte_models.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(42),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lte_models.QosProfile{
-						ClassID:                 swag.Int32(2),
-						PreemptionCapability:    swag.Bool(false),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(2),
-					},
-				},
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI12345",
-				Config: &models.SubscriberConfig{
-					Lte: &models.LteSubscription{
-						State:   "ACTIVE",
-						AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					},
-					StaticIps: map[string]strfmt.IPv4{"apn1": "192.168.100.1"},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
-			},
-			{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.APNEntityType, Key: "apn2",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(2),
+					PreemptionCapability:    swag.Bool(false),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(2),
+				},
+			},
+		},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI12345",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{
+					State:   "ACTIVE",
+					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				},
+				StaticIps: map[string]strfmt.IPv4{"apn1": "192.168.100.1"},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+		},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }

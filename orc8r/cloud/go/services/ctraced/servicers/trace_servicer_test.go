@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	context2 "context"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -40,7 +41,7 @@ func TestCallTraceServicer(t *testing.T) {
 	testGwLogicalId := "g1"
 
 	// Initialize network
-	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkId}, serdes.Network)
+	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
 	assert.NoError(t, err)
 
 	// Create a call trace
@@ -57,15 +58,11 @@ func TestCallTraceServicer(t *testing.T) {
 			CallTraceEnding:    false,
 		},
 	}
-	_, err = configurator.CreateEntity(
-		testNetworkId,
-		configurator.NetworkEntity{
-			Type:   orc8r.CallTraceEntityType,
-			Key:    "CallTrace1",
-			Config: testTrace,
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context2.Background(), testNetworkId, configurator.NetworkEntity{
+		Type:   orc8r.CallTraceEntityType,
+		Key:    "CallTrace1",
+		Config: testTrace,
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Create an identity and context for sending requests as gateway

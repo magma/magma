@@ -28,9 +28,9 @@ from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
     AddObjectsState,
-    BaicellsSendRebootState,
     CheckOptionalParamsState,
     DeleteObjectsState,
+    EnbSendRebootState,
     EndSessionState,
     EnodebAcsState,
     ErrorState,
@@ -81,7 +81,7 @@ class BaicellsRTSHandler(BasicEnodebAcsStateMachine):
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
-            'reboot': BaicellsSendRebootState(self, when_done='wait_reboot'),
+            'reboot': EnbSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty_post_reboot', when_timeout='wait_inform_post_reboot'),
             'wait_inform_post_reboot': WaitInformState(self, when_done='wait_empty_post_reboot', when_boot=None),
@@ -285,7 +285,7 @@ class BaicellsRTSTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                          and (str(x) not in excluded_params),
+                and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )
@@ -305,5 +305,5 @@ class BaicellsRTSTrDataModel(DataModel):
 
 
 class BaicellsRTSTrConfigurationInitializer(EnodebConfigurationPostProcessor):
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
         desired_cfg.set_parameter(ParameterName.CELL_BARRED, False)

@@ -14,6 +14,8 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
@@ -30,14 +32,14 @@ const (
 
 var defaultServices = []string{"SWX_PROXY", "SESSION_PROXY"}
 
-func GetHealthConfigForNetwork(networkID string) *healthConfig {
+func GetHealthConfigForNetwork(ctx context.Context, networkID string) *healthConfig {
 	defaultConfig := &healthConfig{
 		services:              defaultServices,
 		cpuUtilThreshold:      defaultCpuUtilThreshold,
 		memAvailableThreshold: defaultMemAvailableThreshold,
 		staleUpdateThreshold:  defaultStaleUpdateThreshold,
 	}
-	config, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType, serdes.Network)
+	config, err := configurator.LoadNetworkConfig(ctx, networkID, feg.FegNetworkType, serdes.Network)
 	if err != nil {
 		glog.V(2).Infof("Using default health configuration for network %s; %s", networkID, err)
 		return defaultConfig

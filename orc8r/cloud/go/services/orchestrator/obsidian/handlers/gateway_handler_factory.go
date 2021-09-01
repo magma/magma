@@ -125,7 +125,7 @@ func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel, serd
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntities(networkID, updates, serdes)
+			_, err = configurator.UpdateEntities(c.Request().Context(), networkID, updates, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -216,7 +216,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			}
 
 			reqCtx := c.Request().Context()
-			ids, err := configurator.ListEntityKeys(nid, gateway.GetGatewayType())
+			ids, err := configurator.ListEntityKeys(reqCtx, nid, gateway.GetGatewayType())
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

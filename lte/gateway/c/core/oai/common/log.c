@@ -504,6 +504,9 @@ void log_configure(const log_config_t* const config) {
   if ((MAX_LOG_LEVEL > config->async_system_log_level) &&
       (MIN_LOG_LEVEL <= config->async_system_log_level))
     g_oai_log.log_level[LOG_ASYNC_SYSTEM] = config->async_system_log_level;
+  if ((MAX_LOG_LEVEL > config->service303_log_level) &&
+      (MIN_LOG_LEVEL <= config->service303_log_level))
+    g_oai_log.log_level[LOG_SERVICE303] = config->service303_log_level;
   g_oai_log.is_async      = config->is_output_thread_safe;
   g_oai_log.is_ansi_codes = config->color;
   log_init_handler(g_oai_log.is_async);
