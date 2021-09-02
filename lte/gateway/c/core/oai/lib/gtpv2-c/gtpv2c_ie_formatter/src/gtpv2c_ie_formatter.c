@@ -363,15 +363,21 @@ nw_rc_t gtpv2c_ambr_ie_set(nw_gtpv2c_msg_handle_t* msg, ambr_t* ambr) {
   memset(ambr_br, 0, sizeof(ambr_br));
   // if for bps or kbps
 
-  if (ambr->br_unit == KBPS) {
-    INT32_TO_BUFFER((ambr->br_ul / 1000), p_ambr);
-    p_ambr += 4;
-    INT32_TO_BUFFER(((ambr->br_dl / 1000)), p_ambr);
-    // todo: byte order?
-  } else {
-    INT32_TO_BUFFER((ambr->br_ul), p_ambr);
-    p_ambr += 4;
-    INT32_TO_BUFFER(((ambr->br_dl)), p_ambr);
+  switch (ambr->br_unit) {
+    case BPS:
+      INT32_TO_BUFFER((ambr->br_ul), p_ambr);
+      p_ambr += 4;
+      INT32_TO_BUFFER(((ambr->br_dl)), p_ambr);
+      break;
+    case KBPS:
+      INT32_TO_BUFFER((ambr->br_ul / 1000), p_ambr);
+      p_ambr += 4;
+      INT32_TO_BUFFER(((ambr->br_dl / 1000)), p_ambr);
+      break;
+    default:
+      OAILOG_ERROR(
+          LOG_S1AP, "APN AMBR with an invalid unit  = %d\n", ambr->br_unit);
+      return NW_GTPV2C_IE_INCORRECT;
   }
   rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_AMBR, 8, 0, ambr_br);
   DevAssert(NW_OK == rc);

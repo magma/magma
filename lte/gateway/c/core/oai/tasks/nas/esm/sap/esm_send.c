@@ -334,11 +334,18 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
         LOG_NAS_ESM, "ESM-SAP   - EXTENDED APN-AMBR DL %lu UL %lu\n",
         pdn_context_p->subscribed_apn_ambr.br_dl,
         pdn_context_p->subscribed_apn_ambr.br_ul);
-    msg->presencemask |=
-        ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT;
-    extended_bit_rate_value(
-        &msg->extendedapnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
-        pdn_context_p->subscribed_apn_ambr.br_ul);
+    if (((pdn_context_p->subscribed_apn_ambr.br_unit == BPS) &&
+         ((pdn_context_p->subscribed_apn_ambr.br_dl >= 65280000000) ||
+          (pdn_context_p->subscribed_apn_ambr.br_ul >= 65280000000))) ||
+        ((pdn_context_p->subscribed_apn_ambr.br_unit == KBPS) &&
+         ((pdn_context_p->subscribed_apn_ambr.br_dl >= 65280000) ||
+          (pdn_context_p->subscribed_apn_ambr.br_ul >= 65280000)))) {
+      msg->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT;
+      extended_bit_rate_value(
+          &msg->extendedapnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
+          pdn_context_p->subscribed_apn_ambr.br_ul);
+    }
   }
   OAILOG_INFO(
       LOG_NAS_ESM,
