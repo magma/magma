@@ -7,5 +7,4 @@ services:
         volumes:
             - ${MAGMA_ROOT}:/magma
             - ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma
-            - /tmp/bazel:/tmp/bazel
         working_dir: /magma

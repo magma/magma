@@ -256,7 +256,7 @@ class EnforcementTableTest(unittest.TestCase):
         ).add_policy(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                .build_requests(),
+            .build_requests(),
             self.testing_controller,
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)

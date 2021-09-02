@@ -19,14 +19,15 @@
 import numbers
 
 from ryu.base import app_manager
-
 from ryu.controller import ofp_event
-from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER,\
-    DEAD_DISPATCHER
-from ryu.controller.handler import set_ev_cls
+from ryu.controller.handler import (
+    CONFIG_DISPATCHER,
+    DEAD_DISPATCHER,
+    MAIN_DISPATCHER,
+    set_ev_cls,
+)
 
-from . import event
-from . import exception
+from . import event, exception
 
 
 class _SwitchInfo(object):
@@ -82,8 +83,10 @@ class OfctlService(app_manager.RyuApp):
 
     @staticmethod
     def _is_error(msg):
-        return (ofp_event.ofp_msg_to_ev_cls(type(msg)) ==
-                ofp_event.EventOFPErrorMsg)
+        return (
+            ofp_event.ofp_msg_to_ev_cls(type(msg)) ==
+            ofp_event.EventOFPErrorMsg
+        )
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def _switch_features_handler(self, ev):
@@ -92,14 +95,17 @@ class OfctlService(app_manager.RyuApp):
         assert isinstance(id, numbers.Integral)
         old_info = self._switches.get(id, None)
         new_info = _SwitchInfo(datapath=datapath)
-        self.logger.debug('add dpid %s datapath %s new_info %s old_info %s',
-                          id, datapath, new_info, old_info)
+        self.logger.debug(
+            'add dpid %s datapath %s new_info %s old_info %s',
+            id, datapath, new_info, old_info,
+        )
         self._switches[id] = new_info
         if old_info:
             old_info.datapath.close()
             for xid in list(old_info.barriers):
                 self._cancel(
-                    old_info, xid, exception.InvalidDatapath(result=id))
+                    old_info, xid, exception.InvalidDatapath(result=id),
+                )
 
     @set_ev_cls(ofp_event.EventOFPStateChange, DEAD_DISPATCHER)
     def _handle_dead(self, ev):
@@ -139,8 +145,10 @@ class OfctlService(app_manager.RyuApp):
             si = self._switches[datapath.id]
         except KeyError:
             self.logger.error('unknown dpid %s' % (datapath.id,))
-            rep = event.Reply(exception=exception.
-                              InvalidDatapath(result=datapath.id))
+            rep = event.Reply(
+                exception=exception.
+                InvalidDatapath(result=datapath.id),
+            )
             self.reply_to_request(req, rep)
             return
 
@@ -166,12 +174,14 @@ class OfctlService(app_manager.RyuApp):
             if not datapath.send_msg(msg):
                 return self._cancel(
                     si, barrier.xid,
-                    exception.InvalidDatapath(result=datapath.id))
+                    exception.InvalidDatapath(result=datapath.id),
+                )
 
         if not datapath.send_msg(barrier):
             return self._cancel(
                 si, barrier.xid,
-                exception.InvalidDatapath(result=datapath.id))
+                exception.InvalidDatapath(result=datapath.id),
+            )
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
@@ -204,8 +214,10 @@ class OfctlService(app_manager.RyuApp):
         elif len(result) == 1:
             rep = event.Reply(result=result[0])
         else:
-            rep = event.Reply(exception=exception.
-                              UnexpectedMultiReply(result=result))
+            rep = event.Reply(
+                exception=exception.
+                UnexpectedMultiReply(result=result),
+            )
         self.reply_to_request(req, rep)
 
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)

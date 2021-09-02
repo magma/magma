@@ -823,7 +823,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
     def test_fault_after_set_parameters(self) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform(

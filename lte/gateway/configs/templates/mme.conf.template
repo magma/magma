@@ -347,3 +347,10 @@ MME :
      {%- endif %}
    }
 };
+
+NGAP :
+{
+    # DNS address communicated to UEs
+    DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
+    DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+};

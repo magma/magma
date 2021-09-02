@@ -10,6 +10,7 @@
  */
 
 #include "util_nas5g_pkt.h"
+#include "include/amf_session_manager_pco.h"
 #include <gtest/gtest.h>
 #include "intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
@@ -173,6 +174,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
+  protocol_configuration_options_t* pco;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type1_len();
 
@@ -181,21 +183,117 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
 
+  pco = &(pdu_sess_est_req.payload_container.smf_msg.msg
+              .pdu_session_estab_request.protocolconfigurationoptions.pco);
+
+  for (uint8_t i = 0; i < pco->num_protocol_or_container_id; i++) {
+    if (pco->protocol_or_container_ids[i].contents) {
+      bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
+    }
+  }
+
   EXPECT_EQ(decode_res, true);
+}
+
+TEST(test_amf_nas5g_pkt_gen, test_amf_pdu_sess_accept_pco_msg) {
+  uint8_t buffer[1024] = {};
+  uint16_t buf_len     = 1024;
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  uint32_t len    = nas5g_pkt_snap.get_pdu_session_est_type1_len();
+
+  /* Initialize primary and secondary dns */
+  inet_pton(AF_INET, "192.168.1.100", &(amf_config.ipv4.default_dns));
+  inet_pton(AF_INET, "8.8.8.8", &(amf_config.ipv4.default_dns_sec));
+
+  /* Decode the packet */
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+  decode_res = decode_ul_nas_transport_msg(
+      &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
+  EXPECT_EQ(decode_res, true);
+
+  protocol_configuration_options_t* pco_req =
+      &(pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request
+            .protocolconfigurationoptions.pco);
+
+  ProtocolConfigurationOptions protocolconfigruartionoption;
+  protocol_configuration_options_t* pco_resp =
+      &(protocolconfigruartionoption.pco);
+
+  uint8_t ipcp_pattern_match[] = {0x7b, 0x0,  0x14, 0x80, 0x80, 0x21, 0x10, 0x3,
+                                  0x0,  0x0,  0x10, 0x81, 0x6,  0xc0, 0xa8, 0x1,
+                                  0x64, 0x83, 0x6,  0x8,  0x8,  0x8,  0x8};
+  int cmp_res                  = 0;
+  int pco_len                  = 0;
+
+  sm_process_pco_request(pco_req, pco_resp);
+
+  pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
+      &protocolconfigruartionoption,
+      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
+
+  EXPECT_EQ(pco_len, 23);
+
+  cmp_res = memcmp(
+      buffer, ipcp_pattern_match, sizeof(ipcp_pattern_match) / sizeof(uint8_t));
+
+  EXPECT_EQ(cmp_res, 0);
+  sm_free_protocol_configuration_options(&pco_req);
+  sm_free_protocol_configuration_options(&pco_resp);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
+  protocol_configuration_options_t* pco_req;
+  uint8_t buffer[1024]        = {};
+  uint16_t buf_len            = 1024;
+  int cmp_res                 = 0;
+  int pco_len                 = 0;
+  uint8_t dns_pattern_match[] = {0x7b, 0x0,  0x8,  0x80, 0x0, 0xd,
+                                 0x4,  0xc0, 0xa8, 0x1,  0x64};
+
+  /* Encoded Message */
+  ProtocolConfigurationOptions protocolconfigruartionoption;
+  protocol_configuration_options_t* pco_resp =
+      &(protocolconfigruartionoption.pco);
+
+  /* Initialize primary and secondary dns */
+  inet_pton(AF_INET, "192.168.1.100", &(amf_config.ipv4.default_dns));
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type2_len();
 
+  /* Check if uplink pdu packet is parsed properly */
   memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
   decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type2, len);
 
   EXPECT_EQ(decode_res, true);
+
+  pco_req = &(pdu_sess_est_req.payload_container.smf_msg.msg
+                  .pdu_session_estab_request.protocolconfigurationoptions.pco);
+
+  /* Check whether the PCO field is decoded properly */
+  EXPECT_EQ(pco_req->protocol_or_container_ids[0].id, 10);
+  EXPECT_EQ(pco_req->protocol_or_container_ids[1].id, 13);
+
+  sm_process_pco_request(pco_req, pco_resp);
+
+  pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
+      &protocolconfigruartionoption,
+      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
+
+  EXPECT_EQ(pco_len, 11);
+
+  cmp_res = memcmp(
+      buffer, dns_pattern_match, sizeof(dns_pattern_match) / sizeof(uint8_t));
+
+  EXPECT_EQ(cmp_res, 0);
+
+  sm_free_protocol_configuration_options(&pco_req);
+  sm_free_protocol_configuration_options(&pco_resp);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_release_complete_msg) {

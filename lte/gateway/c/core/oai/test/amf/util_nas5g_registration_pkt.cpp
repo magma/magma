@@ -13,6 +13,8 @@
 
 #include <iostream>
 #include "util_nas5g_pkt.h"
+#include "rfc_1877.h"
+#include "rfc_1332.h"
 
 namespace magma5g {
 
@@ -60,4 +62,5 @@ bool decode_registration_reject_msg(
 
   return (decode_success);
 }
+
 }  // namespace magma5g
