@@ -137,4 +137,11 @@ void create_new_attach_info(
     emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
     struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new);
 partial_list_t* emm_verify_orig_tai(const tai_t orig_tai);
+
+status_code_e verify_tau_tai(
+    uint64_t imsi64, guti_t guti, tai_t tai, tai_list_t* emm_ctx_tai);
+
+status_code_e update_tai_list_to_emm_context(
+    uint64_t imsi64, guti_t guti, partial_list_t* par_tai_list,
+    tai_list_t* tai_list);
 #endif /* FILE_EMM_COMMON_SEEN*/

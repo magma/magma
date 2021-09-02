@@ -277,7 +277,6 @@ status_code_e mme_api_new_guti(
   imsi64_t imsi64                = imsi_to_imsi64(imsi);
   bool is_plmn_equal             = false;
   partial_list_t* par_tai_list   = NULL;
-  uint8_t itr                    = 0;
 
   ue_context =
       mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
