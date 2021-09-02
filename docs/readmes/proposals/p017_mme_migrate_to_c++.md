@@ -7,9 +7,9 @@ hide_title: true
 
 # Proposal: C++ Migration
 
-Author(s): [Author Name, Co-Author Name]
+Author(s): [@alexrod, @electronjoe, @lionelgo, @kozat]
 
-Last updated: 04/19/2021
+Last updated: 09/03/2021
 
 Discussion at
 [https://github.com/magma/magma/issues/4074](https://github.com/magma/magma/issues/4074).
