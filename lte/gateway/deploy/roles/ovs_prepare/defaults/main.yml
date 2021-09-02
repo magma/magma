@@ -16,7 +16,6 @@ packages:
   - debhelper
   - dh-autoreconf
   - python-all
-  - python-twisted-conch
   - module-assistant
   - openssl
   - pkg-config
