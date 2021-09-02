@@ -38,7 +38,7 @@ The serialization performance of protobuf is insufficient, so a serialization li
 
 The bad performance is due to the global serialization process (translation, memory allocation, copy).
 
-The replacement libraries considered are "cap'n proto" and "Flat buffers”, they support C/C++ standart API, binary output format and do not need memory copy (zero copy).
+The replacement libraries considered are "cap'n proto" and "Flat buffers”, they support C/C++ standard API, binary output format and do not need memory copy (zero copy).
 
 
 The states that have to be serialized are (To be detailed):
