@@ -16,11 +16,6 @@
     msg: MAGMA_ROOT is required
   when: MAGMA_ROOT is not defined
 
-- name: Validate kernel version supported
-  fail:
-    msg: Kernel {{ ansible_kernel  }} not supported please use 4.9.0-9-amd64
-  when: ansible_kernel != '4.9.0-9-amd64'
-
 - name: Creating "{{ build_folder }}"
   file:
     path: "{{ build_folder | realpath }}"
