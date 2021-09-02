@@ -473,9 +473,10 @@ status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
 
   // Stop T3422
   if (emm_ctx->T3422.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n",
-        emm_ctx->T3422.id, ue_id);
+    OAILOG_DEBUG_UE(
+        LOG_NAS_EMM, emm_ctx->_imsi64,
+        "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n", emm_ctx->T3422.id,
+        ue_id);
     nas_stop_T3422(emm_ctx->_imsi64, &(emm_ctx->T3422));
     if (emm_ctx->t3422_arg) {
       free_wrapper(&emm_ctx->t3422_arg);
