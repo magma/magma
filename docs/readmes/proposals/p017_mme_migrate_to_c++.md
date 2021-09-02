@@ -110,7 +110,15 @@ in various stages from development through production.]
     	Not all context attribute need to be serialized
     * Migrate states (update core code with C++ patterns)
     * Write Unit tests
-* Migrate MME_APP/NAS hashtables (find functions, evaluate performance)
+* Migrate MME_APP/NAS hash tables (find functions, evaluate performance)
+
+  List of hash tables with (Key,Value) types:
+    * state_ue_ht            (mme_ue_s1ap_id_t, ue_mm_context_t*)
+    * UeIpImsiMap            (std::string/ue_ip, vector<imsi64_t>)
+    * guti_ue_context_htbl   (guti_t, mme_ue_s1ap_id_t)
+    * enb_ue_s1ap_id_ue_context_htbl (enb_s1ap_id_key_t, mme_ue_s1ap_id_t)
+    * tun11_ue_context_htbl  (teid_t/mme_teid_s11, mme_ue_s1ap_id_t)
+    * imsi_mme_ue_id_htbl    (imsi64_t, mme_ue_s1ap_id_t)
 * S1AP Serialization migration
     * Write proto
     * Write redis client libraries
@@ -118,7 +126,19 @@ in various stages from development through production.]
     	Not all context attribute need to be serialized
     * Migrate states (update core code)
     * Write Unit tests
-* Migrate S1AP hashtables (find functions, evaluate performance)
+* Migrate S1AP hash tables (find functions, evaluate performance)
+
+  List of hash tables with (Key,Value) types:
+    * enbs                   (sctp_assoc_id_t, enb_description_t*)
+    * mmeid2associd          (mme_ue_s1ap_id_t, sctp_assoc_id_t)
+    * state_ue_ht            (comp_s1ap_id, ue_description_t*)
+    * mme_ue_id_imsi_htbl    (mme_ue_s1ap_id_t, imsi64_t)
+    * ue_id_coll             (mme_ue_s1ap_id_t, uint32_t/comp_s1ap_id)
+* Migrate SPGW hash tables (find functions, evaluate performance)
+
+  List of hash tables with (Key,Value) types:
+    * state_teid_ht_         (s_gw_teid_S11_S4, s_plus_p_gw_eps_bearer_context_information_t*)
+    * state_ue_ht            (imsi64, spgw_ue_context_t*)  
 * Intertask Messaging migration
     * Study message copy avoidance
 * S6a migration (OAI only)
