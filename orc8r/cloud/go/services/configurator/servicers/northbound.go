@@ -150,7 +150,7 @@ func (srv *nbConfiguratorServicer) CountEntities(context context.Context, req *p
 	if err != nil {
 		return emptyRes, nil
 	}
-	countResult, err := store.CountEntities(req.NetworkID, *req.Filter, *req.Criteria)
+	countResult, err := store.CountEntities(req.NetworkID, *req.Filter)
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return emptyRes, err
