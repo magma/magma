@@ -937,13 +937,11 @@ void nas_stop_T3470(
 }
 
 //------------------------------------------------------------------------------
-void nas_stop_T3422(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422) {
+void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422) {
   if ((T3422) && (T3422->id != NAS_TIMER_INACTIVE_ID)) {
     mme_app_stop_timer(T3422->id);
     T3422->id = NAS_TIMER_INACTIVE_ID;
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "T3422 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+    OAILOG_DEBUG_UE(LOG_NAS_EMM, imsi64, "T3422 stopped ");
   }
 }
 
