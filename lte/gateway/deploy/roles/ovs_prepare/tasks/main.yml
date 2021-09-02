@@ -17,6 +17,7 @@
   when: MAGMA_ROOT is not defined
 
 - name: Creating "{{ build_folder }}"
+  become: true
   file:
     path: "{{ build_folder | realpath }}"
     state: directory
@@ -67,6 +68,7 @@
   register: ovs_dest_stat
 
 - name: Prepare the ovs source code
+  become: true
   block:
     - name: Cloning the ovs "{{ ovs_version }}".
       git:
@@ -106,6 +108,7 @@
   register: ovs_depcomp
 
 - name: Execute the boot.sh script.
+  become: true
   command: sh boot.sh  # noqa 301
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
