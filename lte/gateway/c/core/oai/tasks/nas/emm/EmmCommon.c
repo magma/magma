@@ -540,6 +540,22 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, par_list);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:        update_tai_list_to_emm_context                            **
+ **                                                                        **
+ ** Description: Updates the new TAI list to emm context                   **
+ **                                                                        **
+ ** Inputs:      imsi64, guti                                              **
+ **              par_tai_list: pointer to the matching partial_list_t      **
+ **                            in mme_config                               **
+ **              tai_list: pointer to tai_list_t in emm context            **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
 status_code_e update_tai_list_to_emm_context(
     uint64_t imsi64, guti_t guti, partial_list_t* par_tai_list,
     tai_list_t* tai_list) {
@@ -643,6 +659,22 @@ status_code_e update_tai_list_to_emm_context(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:        verify_tau_tai                                            **
+ **                                                                        **
+ ** Description: Verifies if the TAI received during TAU                   **
+ **              is configured                                             **
+ **                                                                        **
+ ** Inputs:      imsi,guti,                                                **
+ **              tai: TAI received in TAU                                  **
+ **              emm_ctx_tai: pointer to tai_list_t in emm context         **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
 status_code_e verify_tau_tai(
     uint64_t imsi64, guti_t guti, tai_t tai, tai_list_t* emm_ctx_tai) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -651,7 +683,6 @@ status_code_e verify_tau_tai(
    * TAI lists stored in mme_config and update the new TAI to emm context.
    * Note that there is only one partial list stored in emm context.
    */
-  // tai.tac = 20;
   switch (emm_ctx_tai->partial_tai_list[0].typeoflist) {
     case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
       if ((IS_PLMN_EQUAL(
@@ -696,13 +727,18 @@ status_code_e verify_tau_tai(
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
+  // Check if the TAI matches with the partial lists in mme_config
   partial_list_t* par_list = emm_verify_orig_tai(tai);
   if (par_list) {
+    /* Update the new partial list to emm_context. For now, emm context
+     * contains only one partial list
+     */
     if (update_tai_list_to_emm_context(imsi64, guti, par_list, emm_ctx_tai) ==
-        RETURNok)
+        RETURNok) {
       OAILOG_DEBUG_UE(
           LOG_NAS_EMM, imsi64, "New TAI list updated to emm context\n");
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
   }
   OAILOG_ERROR_UE(
       LOG_NAS_EMM, imsi64, " Verification of TAI received in TAU failed\n");

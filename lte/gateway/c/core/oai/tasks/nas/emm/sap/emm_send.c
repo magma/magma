@@ -1135,8 +1135,12 @@ status_code_e emm_send_tracking_area_update_accept_dl_nas(
         "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d)\n",
         TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
         emm_msg->tailist.numberoflists, size);
-    AssertFatal(
-        emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
+    if (emm_msg->tailist.numberoflists > 16) {
+      OAILOG_ERROR(
+          LOG_NAS_EMM, "Too many TAIs in TAI list %d",
+          emm_msg->tailist.numberoflists);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+    }
     for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
       if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
           emm_msg->tailist.partial_tai_list[p].typeoflist) {

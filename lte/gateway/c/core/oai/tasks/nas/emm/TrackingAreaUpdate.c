@@ -357,7 +357,7 @@ status_code_e emm_proc_tracking_area_update_request(
           "tac = %d not configured, sending tau_reject "
           "message "
           "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
-          tai.tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
+          tai.tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_TA_NOT_ALLOWED);
       free_emm_tau_request_ies(&ies);
       if (emm_tracking_area_update_reject(
               ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_TA_NOT_ALLOWED) !=
