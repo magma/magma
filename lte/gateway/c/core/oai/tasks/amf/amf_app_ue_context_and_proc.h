@@ -59,6 +59,7 @@ extern "C" {
 #include "M5GDeRegistrationAcceptUEInit.h"
 #include "M5GULNASTransport.h"
 #include "M5GDLNASTransport.h"
+#include "M5GServiceReject.h"
 
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
@@ -455,6 +456,7 @@ union mobility_msg_u {
   RegistrationRejectMsg registrationrejectmsg;
   ServiceRequestMsg service_request;
   ServiceAcceptMsg service_accept;
+  ServiceRejectMsg service_reject;
   IdentityRequestMsg identityrequestmsg;
   IdentityResponseMsg identityresponsemsg;
   AuthenticationRequestMsg authenticationrequestmsg;

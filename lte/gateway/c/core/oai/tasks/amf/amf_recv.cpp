@@ -49,6 +49,7 @@ int amf_handle_service_request(
   uint16_t pdu_reactivation_result = 0;
   uint32_t tmsi_stored;
   paging_context_t* paging_ctx = nullptr;
+  guti_and_amf_id_t guti_and_amf_id;
 
   OAILOG_DEBUG(
       LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
@@ -74,7 +75,7 @@ int amf_handle_service_request(
       LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n", tmsi_stored);
   OAILOG_DEBUG(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
-  if (ue_context) {
+  if (ue_context && (tmsi_rcv == tmsi_stored)) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
         "TMSI matched for the UE id %d "
@@ -93,45 +94,86 @@ int amf_handle_service_request(
       OAILOG_DEBUG(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
     }
 
+    imsi64_t imsi64                 = ue_context->amf_context.imsi64;
+    guti_and_amf_id.amf_guti.m_tmsi = ue_context->amf_context.m5_guti.m_tmsi;
+    guti_and_amf_id.amf_guti.guamfi = ue_context->amf_context.m5_guti.guamfi;
+    guti_and_amf_id.amf_ue_ngap_id  = ue_id;
+    if (amf_supi_guti_map.size() == 0) {
+      // first entry.
+      amf_supi_guti_map.insert(
+          std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+    } else {
+      /* already elements exist then check if same imsi already present
+       * if same imsi then update/overwrite the element
+       */
+      std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+          amf_supi_guti_map.find(imsi64);
+      if (found_imsi == amf_supi_guti_map.end()) {
+        // it is new entry to map
+        amf_supi_guti_map.insert(
+            std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+      } else {
+        // Overwrite the second element.
+        found_imsi->second = guti_and_amf_id;
+      }
+    }
+
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
       amf_sap.primitive = AMFAS_ESTABLISH_CNF;
 
       amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
       amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
-
-      /* GUTI have already updated in amf_context during Identification
-       * response complete, now assign to amf_sap
-       */
-      amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
-      rc                                = amf_sap_send(&amf_sap);
-      ue_context->mm_state              = REGISTERED_CONNECTED;
+      rc                                    = amf_sap_send(&amf_sap);
+      ue_context->mm_state                  = REGISTERED_CONNECTED;
     } else if (
         (msg->service_type.service_type_value == SERVICE_TYPE_DATA) ||
         (msg->service_type.service_type_value ==
          SERVICE_TYPE_HIGH_PRIORITY_ACCESS)) {
-      OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is Data \n");
-      for (uint16_t session_id = 1; session_id < (sizeof(session_id) * 8);
-           session_id++) {
-        if (msg->uplink_data_status.uplinkDataStatus & (1 << session_id)) {
-          smf_context_t* smf_context =
-              amf_smf_context_exists_pdu_session_id(ue_context, session_id);
-          if (smf_context) {
-            pdu_session_status |= (1 << session_id);
-            IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
-            if (smf_context->pdu_address.pdn_type == IPv4) {
-              inet_ntop(
-                  AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr),
-                  ip_str, INET_ADDRSTRLEN);
+      if ((msg->service_type.service_type_value == SERVICE_TYPE_DATA) &&
+          !(msg->uplink_data_status.uplinkDataStatus)) {
+        // prepare and send reject message.
+        OAILOG_INFO(
+            LOG_NAS_AMF,
+            "Sending service reject with cuase condtional IE missing\n");
+        amf_sap.primitive                     = AMFAS_ESTABLISH_REJ;
+        amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+        amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+        if (msg->pdu_session_status.iei) {
+          amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
+              AMF_AS_PDU_SESSION_STATUS;
+          amf_sap.u.amf_as.u.establish.pdu_session_status =
+              msg->pdu_session_status.pduSessionStatus;
+        }
+        amf_sap.u.amf_as.u.establish.amf_cause =
+            AMF_CAUSE_CONDITIONAL_IE_MISSING;
+        rc = amf_sap_send(&amf_sap);
+      } else {
+        OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is Data \n");
+        for (uint16_t session_id = 1; session_id < (sizeof(session_id) * 8);
+             session_id++) {
+          if (msg->uplink_data_status.uplinkDataStatus & (1 << session_id)) {
+            smf_context_t* smf_context =
+                amf_smf_context_exists_pdu_session_id(ue_context, session_id);
+            if (smf_context) {
+              pdu_session_status |= (1 << session_id);
+              IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+              if (smf_context->pdu_address.pdn_type == IPv4) {
+                inet_ntop(
+                    AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr),
+                    ip_str, INET_ADDRSTRLEN);
+              }
+
+              OAILOG_DEBUG(
+                  LOG_NAS_AMF,
+                  "Sending session request to SMF on service request for "
+                  "sessiond %u\n",
+                  session_id);
+              notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
+              // construct the proto structure and send message to SMF
+              amf_smf_notification_send(
+                  ue_id, ue_context, notify_ue_event_type);
             }
-            OAILOG_DEBUG(
-                LOG_NAS_AMF,
-                "Sending session request to SMF on service request for "
-                "sessiond %u\n",
-                session_id);
-            notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
-            // construct the proto structure and send message to SMF
-            amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
           }
         }
       }
@@ -143,9 +185,7 @@ int amf_handle_service_request(
     }
   } else {
     OAILOG_WARNING(
-        LOG_NAS_AMF,
-        "TMSI not matched for "
-        "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+        LOG_NAS_AMF, "TMSI not matched for ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
         ue_id);
 
     // Send prepare and send reject message.
@@ -153,11 +193,14 @@ int amf_handle_service_request(
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
 
-    /* GUTI have already updated in amf_context during Identification
-     * response complete, now assign to amf_sap
-     */
-    amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
-    rc                                = amf_sap_send(&amf_sap);
+    if (msg->pdu_session_status.iei) {
+      amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
+          AMF_AS_PDU_SESSION_STATUS;
+      amf_sap.u.amf_as.u.establish.pdu_session_status =
+          msg->pdu_session_status.pduSessionStatus;
+    }
+    amf_sap.u.amf_as.u.establish.amf_cause = AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED;
+    rc                                     = amf_sap_send(&amf_sap);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

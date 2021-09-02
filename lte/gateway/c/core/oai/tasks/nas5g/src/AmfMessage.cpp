@@ -301,6 +301,10 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
       encode_result = msg->msg.svc_acpt.EncodeServiceAcceptMsg(
           &msg->msg.svc_acpt, buffer, len);
       break;
+    case M5G_SERVICE_REJECT:
+      encode_result = msg->msg.svc_rej.EncodeServiceRejectMsg(
+          &msg->msg.svc_rej, buffer, len);
+      break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;
   }

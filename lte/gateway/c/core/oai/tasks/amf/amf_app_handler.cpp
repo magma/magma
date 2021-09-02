@@ -649,6 +649,7 @@ void amf_app_handle_pdu_session_response(
     // pdu session state
     smf_ctx->pdu_session_state = ACTIVE;
     amf_sap_t amf_sap;
+    memset(&amf_sap, 0, sizeof(amf_sap_t));
     amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
