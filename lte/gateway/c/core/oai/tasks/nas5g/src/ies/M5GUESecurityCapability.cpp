@@ -46,26 +46,26 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   // 5GS encryption algorithms
   ea                     = *(buffer + decoded);
-  ue_sec_capability->ea0 = (*(buffer + decoded) >> 7) & 0x1;
-  ue_sec_capability->ea1 = (*(buffer + decoded) >> 6) & 0x1;
-  ue_sec_capability->ea2 = (*(buffer + decoded) >> 5) & 0x1;
-  ue_sec_capability->ea3 = (*(buffer + decoded) >> 4) & 0x1;
-  ue_sec_capability->ea4 = (*(buffer + decoded) >> 3) & 0x1;
-  ue_sec_capability->ea5 = (*(buffer + decoded) >> 2) & 0x1;
-  ue_sec_capability->ea6 = (*(buffer + decoded) >> 1) & 0x1;
-  ue_sec_capability->ea7 = *(buffer + decoded) & 0x1;
+  ue_sec_capability->ea0 = (ea >> 7) & 0x1;
+  ue_sec_capability->ea1 = (ea >> 6) & 0x1;
+  ue_sec_capability->ea2 = (ea >> 5) & 0x1;
+  ue_sec_capability->ea3 = (ea >> 4) & 0x1;
+  ue_sec_capability->ea4 = (ea >> 3) & 0x1;
+  ue_sec_capability->ea5 = (ea >> 2) & 0x1;
+  ue_sec_capability->ea6 = (ea >> 1) & 0x1;
+  ue_sec_capability->ea7 = ea & 0x1;
   decoded++;
 
   // 5GS integrity algorithm
   ia                     = *(buffer + decoded);
-  ue_sec_capability->ia0 = (*(buffer + decoded) >> 7) & 0x1;
-  ue_sec_capability->ia1 = (*(buffer + decoded) >> 6) & 0x1;
-  ue_sec_capability->ia2 = (*(buffer + decoded) >> 5) & 0x1;
-  ue_sec_capability->ia3 = (*(buffer + decoded) >> 4) & 0x1;
-  ue_sec_capability->ia4 = (*(buffer + decoded) >> 3) & 0x1;
-  ue_sec_capability->ia5 = (*(buffer + decoded) >> 2) & 0x1;
-  ue_sec_capability->ia6 = (*(buffer + decoded) >> 1) & 0x1;
-  ue_sec_capability->ia7 = *(buffer + decoded) & 0x1;
+  ue_sec_capability->ia0 = (ia >> 7) & 0x1;
+  ue_sec_capability->ia1 = (ia >> 6) & 0x1;
+  ue_sec_capability->ia2 = (ia >> 5) & 0x1;
+  ue_sec_capability->ia3 = (ia >> 4) & 0x1;
+  ue_sec_capability->ia4 = (ia >> 3) & 0x1;
+  ue_sec_capability->ia5 = (ia >> 2) & 0x1;
+  ue_sec_capability->ia6 = (ia >> 1) & 0x1;
+  ue_sec_capability->ia7 = ia & 0x1;
   decoded++;
 
   // If any optional buffers are present skip it.
