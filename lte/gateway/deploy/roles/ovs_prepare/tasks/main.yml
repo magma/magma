@@ -24,6 +24,13 @@
     mode: 0755
   register: GIT_HOME
 
+- name: Delete /var/cache/apt/archives if exists
+  become: true
+  file:
+    path: /var/cache/apt/archives
+    state: absent
+  changed_when: false
+
 - name: Update and upgrade apt packages
   become: true
   apt:
