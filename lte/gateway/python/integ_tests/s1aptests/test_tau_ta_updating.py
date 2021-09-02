@@ -38,6 +38,7 @@ class TestTauTaUpdating(unittest.TestCase):
         Update Type=TA Updating and active flag set to false
         """
         num_ues = 2
+        wait_for_s1_context_rel = False
         self._s1ap_wrapper.configUEDevice(num_ues)
         ue_ids = []
         # Attach
@@ -151,7 +152,9 @@ class TestTauTaUpdating(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
+                ue,
+                s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+                wait_for_s1_context_rel,
             )
 
 

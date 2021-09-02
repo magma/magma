@@ -36,6 +36,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
         MME sends TAU reject as the tac is not configured in mme.conf
         """
         num_ues = 1
+        wait_for_s1_context_rel = False
         self._s1ap_wrapper.configUEDevice(num_ues)
         # Attach
         req = self._s1ap_wrapper.ue_req
@@ -121,7 +122,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
-            False,
+            wait_for_s1_context_rel,
         )
 
 
