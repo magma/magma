@@ -465,7 +465,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
         self.logger.debug("Processing stats of %d flows", len(aggregated_msgs))
         try:
-            current_usage = self._get_usage_from_flow_stat(aggregated_msgs)
+            current_usage = self._get_usage_from_flow_stat(aggregated_msgs, True)
         except ConnectionError:
             self.logger.error('Failed processing stats, redis unavailable')
             self.unhandled_stats_msgs.append(stats_msgs)
@@ -539,7 +539,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Failed remove old flows, redis unavailable')
             return
 
-    def _get_usage_from_flow_stat(self, flow_stats):
+    def _get_usage_from_flow_stat(self, flow_stats, report_flag):
         """
         Update the rule record map with the flow stat and return the
         updated map.
@@ -576,6 +576,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             ipv6_addr = _get_ipv6(flow_stat)
 
             local_f_teid_ng = _get_ng_local_f_id(flow_stat)
+            if local_f_teid_ng and report_flag:
+                continue
 
             # use a compound key to separate flows for the same rule but for
             # different subscribers
@@ -737,7 +739,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             for r in response:
                 aggregated_msgs += r.body
 
-            usage = self._get_usage_from_flow_stat(aggregated_msgs)
+            usage = self._get_usage_from_flow_stat(aggregated_msgs, False)
             self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
             record_table = RuleRecordTable(
                 records=usage.values(),
