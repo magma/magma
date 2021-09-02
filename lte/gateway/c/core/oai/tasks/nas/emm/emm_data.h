@@ -568,8 +568,7 @@ void nas_stop_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460);
 void nas_stop_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470);
-void nas_stop_T3422(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422);
+void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422);
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
     time_out_t time_out_cb);
