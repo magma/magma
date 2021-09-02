@@ -16,6 +16,7 @@ limitations under the License.
 extern "C" {
 #include "intertask_interface.h"
 #include "esm_data.h"
+#include "mme_app_timer.h"
 }
 ////--C++ includes
 ///---------------------------------------------------------------
@@ -29,7 +30,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-typedef uint32_t TimerArgType;
+typedef timer_arg_t TimerArgType;
 
 class MmeUeContext {
  private:
@@ -47,7 +48,7 @@ class MmeUeContext {
 
   int StartTimer(
       size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      TimerArgType id);
+      TimerArgType& arg);
   void StopTimer(int timer_id);
 
   bool GetTimerArg(const int timer_id, TimerArgType* arg) const;

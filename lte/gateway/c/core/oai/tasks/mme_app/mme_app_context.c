@@ -138,13 +138,13 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
   new_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   new_p->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
 
-  new_p->initial_context_setup_rsp_timer = (struct mme_app_timer_t){
+  new_p->initial_context_setup_rsp_timer = (nas_timer_t){
       MME_APP_TIMER_INACTIVE_ID, MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
-  new_p->paging_response_timer = (struct mme_app_timer_t){
+  new_p->paging_response_timer = (nas_timer_t){
       MME_APP_TIMER_INACTIVE_ID, MME_APP_PAGING_RESPONSE_TIMER_VALUE};
-  new_p->ulr_response_timer = (struct mme_app_timer_t){
-      MME_APP_TIMER_INACTIVE_ID, MME_APP_ULR_RESPONSE_TIMER_VALUE};
-  new_p->ue_context_modification_timer = (struct mme_app_timer_t){
+  new_p->ulr_response_timer = (nas_timer_t){MME_APP_TIMER_INACTIVE_ID,
+                                            MME_APP_ULR_RESPONSE_TIMER_VALUE};
+  new_p->ue_context_modification_timer = (nas_timer_t){
       MME_APP_TIMER_INACTIVE_ID, MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
 
   new_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
@@ -2253,16 +2253,16 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
              ESM_EBR_ACTIVE_PENDING)) {
           bearer_context_p->esm_ebr_context.timer.sec = T3485_DEFAULT_VALUE;
           default_eps_bearer_activate_t3485_handler(
-              bearer_context_p->esm_ebr_context.args,
-              &ue_context_p->emm_context._imsi64);
+              NULL, bearer_context_p->esm_ebr_context.timer.id,
+              bearer_context_p->esm_ebr_context.args);
         } else {  // Invoke callback registered for default bearer's
                   // deactivation procedure
-          if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
-              (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+          if ((bearer_context_p->esm_ebr_context.args) &&
+              (bearer_context_p->esm_ebr_context.status ==
                ESM_EBR_INACTIVE_PENDING)) {
             eps_bearer_deactivate_t3495_handler(
-                ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
-                &ue_context_p->emm_context._imsi64);
+                NULL, bearer_context_p->esm_ebr_context.timer.id,
+                bearer_context_p->esm_ebr_context.args);
           }
         }
       } else {
@@ -2272,16 +2272,16 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
              ESM_EBR_ACTIVE_PENDING)) {
           bearer_context_p->esm_ebr_context.timer.sec = T3485_DEFAULT_VALUE;
           dedicated_eps_bearer_activate_t3485_handler(
-              bearer_context_p->esm_ebr_context.args,
-              &ue_context_p->emm_context._imsi64);
+              NULL, bearer_context_p->esm_ebr_context.timer.id,
+              bearer_context_p->esm_ebr_context.args);
         } else {  // Invoke callback registered for dedicated bearer's
                   // deactivation procedure
-          if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
-              (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+          if ((bearer_context_p->esm_ebr_context.args) &&
+              (bearer_context_p->esm_ebr_context.status ==
                ESM_EBR_INACTIVE_PENDING)) {
             eps_bearer_deactivate_t3495_handler(
-                ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
-                &ue_context_p->emm_context._imsi64);
+                NULL, bearer_context_p->esm_ebr_context.timer.id,
+                bearer_context_p->esm_ebr_context.args);
           }
         }
       }
