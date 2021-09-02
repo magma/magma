@@ -1,0 +1,24 @@
+---
+name: lint-golangci
+on:  # yamllint disable-line rule:truthy
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - .github/workflows/golangci-lint.yml
+      - src/go/**
+
+jobs:
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          golangci_lint_flags: '--config=../../.golangci.yml'
+          reporter: github-pr-review  # Comments on PR with review comments.
+          workdir: src/go/
