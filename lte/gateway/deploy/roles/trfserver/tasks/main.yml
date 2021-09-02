@@ -17,11 +17,6 @@
     msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
   when: preburn or full_provision
 
-# requires Debian 9.2 (Stretch)
-- name: Check Linux distribution version
-  fail: msg="Unsupported host OS {{ ansible_distribution }} {{ ansible_distribution_release }}. Must be Debian 9 (Stretch)"
-  when: ansible_distribution != 'Debian' or ansible_distribution_release != 'stretch'
-
 - name: Create symlink for trfserver scripts
   file:
     src: '{{ magma_root }}/lte/gateway/deploy/roles/trfserver/files/{{ item }}'
@@ -72,9 +67,9 @@
 - name: Install the latest iperf3
   apt:
     deb: "https://iperf.fr/download/ubuntu/{{ item }}"
+    state: present
   with_items:
     - iperf3_3.1.3-1_amd64.deb
-    - libiperf0_3.1.3-1_amd64.deb
   when: preburn
 
 - name: Add convenience function for starting the trfgen test servers

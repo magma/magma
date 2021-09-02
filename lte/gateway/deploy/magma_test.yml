@@ -13,9 +13,9 @@
     # - role: stretch_snapshot
     - role: apt_cache
       vars:
-        distribution: "stretch"
+        distribution: "focal"
         oai_build: "{{ c_build }}/core/oai"
-        repo: "dev"
+        repo: "dev-focal"
     - role: pkgrepo
     - role: python_dev
     - role: dev_common

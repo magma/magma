@@ -12,6 +12,9 @@
 # limitations under the License.
 ################################################################################
 
+- name: Add gpg
+  apt: pkg=gpg state=present update_cache=yes
+
 - name: Add GPG key for magma repository
   apt_key:
     url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
