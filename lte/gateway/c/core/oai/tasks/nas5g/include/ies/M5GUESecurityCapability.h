@@ -20,6 +20,7 @@ class UESecurityCapabilityMsg {
 #define UE_SECURITY_CAPABILITY_MIN_LENGTH 1
   uint8_t length;
   uint8_t iei;
+  uint8_t ea;
   uint8_t ea0 : 1;
   uint8_t ea1 : 1;
   uint8_t ea2 : 1;
@@ -28,6 +29,7 @@ class UESecurityCapabilityMsg {
   uint8_t ea5 : 1;
   uint8_t ea6 : 1;
   uint8_t ea7 : 1;
+  uint8_t ia;
   uint8_t ia0 : 1;
   uint8_t ia1 : 1;
   uint8_t ia2 : 1;

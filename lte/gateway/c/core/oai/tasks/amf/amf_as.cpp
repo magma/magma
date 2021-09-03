@@ -1503,7 +1503,7 @@ static int amf_as_establish_rej(
         amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
     if (bytes > 0) {
       // This is to indicate AMF-APP to release the NGAP UE context after
-      //       // sending the message.
+      // sending the message.
       as_msg->err_code = M5G_AS_TERMINATED_NAS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_NAS_ESTABLISH_RSP_);
     }
