@@ -334,8 +334,10 @@ void MmeNasStateConverter::bearer_context_list_to_proto(
         ue_context_proto->add_bearer_contexts();
     if (state_ue_context.bearer_contexts[i]) {
       OAILOG_DEBUG(
-          LOG_MME_APP, "writing bearer context at index %d with ebi %d", i,
-          state_ue_context.bearer_contexts[i]->ebi);
+          LOG_MME_APP,
+          "writing bearer context at index %d with ebi %d timer id %ld", i,
+          state_ue_context.bearer_contexts[i]->ebi,
+          state_ue_context.bearer_contexts[i]->esm_ebr_context.timer.id);
       bearer_ctxt_proto->set_validity(oai::BearerContext::VALID);
       bearer_context_to_proto(
           *state_ue_context.bearer_contexts[i], bearer_ctxt_proto);
@@ -350,7 +352,6 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (ue_context_proto.bearer_contexts(i).validity() ==
         oai::BearerContext::VALID) {
-      OAILOG_DEBUG(LOG_MME_APP, "reading bearer context at index %d", i);
       auto* eps_bearer_ctxt =
           (bearer_context_t*) calloc(1, sizeof(bearer_context_t));
       proto_to_bearer_context(
@@ -360,6 +361,12 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
         state_ue_context->bearer_contexts[i]->esm_ebr_context.args->ctx =
             &state_ue_context->emm_context;
       }
+      OAILOG_DEBUG(
+          LOG_MME_APP,
+          "Reading bearer context at index %d with ebi %d timer id %ld", i,
+          state_ue_context->bearer_contexts[i]->ebi,
+          state_ue_context->bearer_contexts[i]->esm_ebr_context.timer.id);
+
     } else {
       state_ue_context->bearer_contexts[i] = nullptr;
     }
