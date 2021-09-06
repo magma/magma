@@ -44,6 +44,7 @@
 #include "digest.h"
 #include "nas_procedures.h"
 #include "common_defs.h"
+#include "mme_app_timer.h"
 
 // TODO: Add unit tests for common procedure functions
 static nas_emm_common_proc_t* get_nas_common_procedure(
