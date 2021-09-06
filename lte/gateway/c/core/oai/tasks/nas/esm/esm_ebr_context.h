@@ -42,6 +42,7 @@ Description Defines functions used to handle EPS bearer contexts.
 #include "common_types.h"
 #include "emm_data.h"
 #include "esm_data.h"
+#include <czmq.h>
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -74,9 +75,12 @@ ebi_t esm_ebr_context_release(
 
 void free_esm_ebr_context(esm_ebr_context_t* ctx);
 
-void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64);
+int default_eps_bearer_activate_t3485_handler(
+    zloop_t* loop, int timer_id, void* args);
 
-void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64);
+int dedicated_eps_bearer_activate_t3485_handler(
+    zloop_t* loop, int timer_id, void* args);
 
-void eps_bearer_deactivate_t3495_handler(void*, imsi64_t* imsi64);
+int eps_bearer_deactivate_t3495_handler(
+    zloop_t* loop, int timer_id, void* args);
 #endif /* ESM_EBR_CONTEXT_SEEN */

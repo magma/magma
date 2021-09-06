@@ -48,6 +48,7 @@
 #include "emm_data.h"
 #include "esm_data.h"
 #include "emm_cnDef.h"
+#include "nas_timer.h"
 
 typedef enum {
   ECM_IDLE = 0,
@@ -102,11 +103,6 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
 #define MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2    // In seconds
 #define MME_APP_PAGING_RESPONSE_TIMER_VALUE 4            // In seconds
 #define MME_APP_ULR_RESPONSE_TIMER_VALUE 3               // In seconds
-/* Timer structure */
-struct mme_app_timer_t {
-  long id;      /* The timer identifier                 */
-  uint32_t sec; /* The timer interval value in seconds  */
-};
 
 /** @struct bearer_context_t
  *  @brief Parameters that should be kept for an eps bearer.
@@ -267,7 +263,7 @@ typedef struct sgs_context_s {
   /* Non EPS Alert Flag */
   bool neaf;
   /* SGS Location update timer */
-  struct mme_app_timer_t ts6_1_timer;
+  nas_timer_t ts6_1_timer;
 
 #define EPS_DETACH_RETRANSMISSION_COUNTER_MAX 2
 #define IMSI_DETACH_RETRANSMISSION_COUNTER_MAX 2
@@ -275,16 +271,16 @@ typedef struct sgs_context_s {
 #define IMPLICIT_EPS_DETACH_RETRANSMISSION_COUNTER_MAX 2
 
   /* SGS EPS Detach indication timer */
-  struct mme_app_timer_t ts8_timer;
+  nas_timer_t ts8_timer;
   unsigned int ts8_retransmission_count;
   /* SGS IMSI Detach indication timer */
-  struct mme_app_timer_t ts9_timer;
+  nas_timer_t ts9_timer;
   unsigned int ts9_retransmission_count;
   /* SGS IMPLICIT IMSI DETACH INDICATION timer */
-  struct mme_app_timer_t ts10_timer;
+  nas_timer_t ts10_timer;
   unsigned int ts10_retransmission_count;
   /* SGS IMPLICIT EPS DETACH INDICATION timer */
-  struct mme_app_timer_t ts13_timer;
+  nas_timer_t ts13_timer;
   unsigned int ts13_retransmission_count;
 
   /* message_p: To store S1AP NAS DL DATA REQ in case of UE initiated IMSI or
@@ -411,22 +407,22 @@ typedef struct ue_mm_context_s {
   /* mobile_reachability_timer: Start when UE moves to idle state.
    *             Stop when UE moves to connected state
    */
-  struct mme_app_timer_t mobile_reachability_timer;
+  nas_timer_t mobile_reachability_timer;
   time_t time_mobile_reachability_timer_started;
   /* implicit_detach_timer: Start at the expiry of Mobile Reachability timer.
    * Stop when UE moves to connected state
    */
-  struct mme_app_timer_t implicit_detach_timer;
+  nas_timer_t implicit_detach_timer;
   time_t time_implicit_detach_timer_started;
   /* Initial Context Setup Procedure Guard timer */
-  struct mme_app_timer_t initial_context_setup_rsp_timer;
+  nas_timer_t initial_context_setup_rsp_timer;
   time_t time_ics_rsp_timer_started;
   /* UE Context Modification Procedure Guard timer */
-  struct mme_app_timer_t ue_context_modification_timer;
+  nas_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */
 #define MAX_PAGING_RETRY_COUNT 1
   uint8_t paging_retx_count;
-  struct mme_app_timer_t paging_response_timer;
+  nas_timer_t paging_response_timer;
   time_t time_paging_response_timer_started;
   /* send_ue_purge_request: If true MME shall send S6a- Purge Req to
    * delete contexts at HSS
@@ -436,7 +432,7 @@ typedef struct ue_mm_context_s {
   bool hss_initiated_detach;
   bool location_info_confirmed_in_hss;
   /* S6a- update location request guard timer */
-  struct mme_app_timer_t ulr_response_timer;
+  nas_timer_t ulr_response_timer;
   sgs_context_t* sgs_context;
   uint8_t attach_type;
   lai_t lai;

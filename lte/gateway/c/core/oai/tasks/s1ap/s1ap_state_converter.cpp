@@ -255,7 +255,7 @@ void S1apStateConverter::proto_to_supported_ta_list(
     const oai::SupportedTaList& supported_ta_list_proto) {
   supported_ta_list_state->list_count = supported_ta_list_proto.list_count();
   for (int idx = 0; idx < supported_ta_list_state->list_count; idx++) {
-    OAILOG_DEBUG(LOG_MME_APP, "reading bearer context at index %d", idx);
+    OAILOG_DEBUG(LOG_MME_APP, "reading supported ta list at index %d", idx);
     proto_to_supported_tai_items(
         &supported_ta_list_state->supported_tai_items[idx],
         supported_ta_list_proto.supported_tai_items(idx));
