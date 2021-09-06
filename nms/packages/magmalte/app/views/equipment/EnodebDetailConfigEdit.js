@@ -233,6 +233,7 @@ type OptConfig = {
   subframeAssignment: string,
   pci: string,
   tac: string,
+  a1_threshold_rsrp: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -279,6 +280,7 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
+    a1_threshold_rsrp: String(config.ho_algorithm_config.a1_threshold_rsrp ?? ''),
   });
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -472,6 +474,16 @@ export function RanEdit(props: Props) {
                 />
               </AltFormField>
 
+              <AltFormField label={'A1 Thraeshold Rsrp'}>
+                <OutlinedInput
+                  data-testid="a1_threshold_rsrp"
+                  placeholder="Enter A1THRESHOLDRSRP"
+                  fullWidth={true}
+                  value={optConfig.a1_threshold_rsrp}
+                  onChange={({target}) => handleOptChange('a1_threshold_rsrp', target.value)}
+                />
+              </AltFormField>
+
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
                   <Select
@@ -624,7 +636,11 @@ function isNumberInRange(value: string | number, lower: number, upper: number) {
 }
 
 function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
-  const response = {...config, bandwidth_mhz: optConfig.bandwidthMhz};
+  const response = {...config, bandwidth_mhz: optConfig.bandwidthMhz,
+                    ho_algorithm_config: {
+                          a1_threshold_rsrp: null,
+                    },
+  };
 
   if (!isNumberInRange(config.cell_id, 0, Math.pow(2, 28) - 1)) {
     throw Error('Invalid Configuration Cell ID. Valid range 0 - (2^28) - 1');
@@ -665,6 +681,9 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     }
     response['tac'] = parseInt(optConfig.tac);
   }
+  if (optConfig.a1_threshold_rsrp !== '') {
 
+    response.ho_algorithm_config.a1_threshold_rsrp = parseInt(optConfig.a1_threshold_rsrp);
+  }
   return response;
 }

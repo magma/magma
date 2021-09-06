@@ -36,6 +36,9 @@ type EnodebConfiguration struct {
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
 
+	// ho algorithm config
+	HoAlgorithmConfig *HoAlgorithmConfiguration `json:"ho_algorithm_config,omitempty"`
+
 	// pci
 	// Maximum: 503
 	// Minimum: > 0
@@ -72,6 +75,10 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDeviceClass(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHoAlgorithmConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -195,6 +202,24 @@ func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error
 	// value enum
 	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateHoAlgorithmConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HoAlgorithmConfig) { // not required
+		return nil
+	}
+
+	if m.HoAlgorithmConfig != nil {
+		if err := m.HoAlgorithmConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ho_algorithm_config")
+			}
+			return err
+		}
 	}
 
 	return nil

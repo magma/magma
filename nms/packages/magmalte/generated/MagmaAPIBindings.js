@@ -359,6 +359,7 @@ export type enodeb_configuration = {
     subframe_assignment ? : number,
     tac ? : number,
     transmit_enabled: boolean,
+    ho_algorithm: ho_algorithm,
 };
 export type enodeb_serials = Array < string >
 ;
@@ -1540,6 +1541,10 @@ export type wifi_network = {
     id: network_id,
     name: network_name,
     wifi: network_wifi_configs,
+};
+
+export type ho_algorithm = {
+    a1_threshold_rsrp: number,
 };
 
 export default class MagmaAPIBindings {
