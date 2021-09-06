@@ -462,6 +462,30 @@ TEST(test_amf_nas5g_pkt_process, test_amf_registration_reject_msg) {
       decode_reg_rej.m5gmm_cause.m5gmm_cause);
 }
 
+TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
+  ServiceRejectMsg service_reject;
+  uint8_t buffer[50] = {0};
+
+  service_reject.extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+
+  service_reject.sec_header_type.sec_hdr = 0;
+  service_reject.spare_half_octet.spare  = 0;
+
+  service_reject.message_type.msg_type               = M5G_SERVICE_REJECT;
+  service_reject.pdu_session_status.iei              = PDU_SESSION_STATUS;
+  service_reject.pdu_session_status.len              = 0x02;
+  service_reject.pdu_session_status.pduSessionStatus = 0x05;
+  service_reject.cause.iei                           = M5GMM_CAUSE;
+  service_reject.cause.m5gmm_cause                   = 9;
+  service_reject.t3346Value.iei                      = GPRS_TIMER2;
+  service_reject.t3346Value.len                      = 1;
+  service_reject.t3346Value.timervalue               = 60;
+
+  EXPECT_NE(
+      service_reject.EncodeServiceRejectMsg(&service_reject, buffer, 0), 0);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
