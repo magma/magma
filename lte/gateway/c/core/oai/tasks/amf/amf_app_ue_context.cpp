@@ -27,7 +27,6 @@ extern "C" {
 #include "amf_app_state_manager.h"
 #include "amf_recv.h"
 #include "amf_common.h"
-//#include "amf_app_defs.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
