@@ -49,6 +49,19 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'a1_threshold_rsrp', 'lte_a1_threshold_rsrq',
+        'hysteresis', 'time_to_trigger',
+        'a2_threshold_rsrp', 'lte_a2_threshold_rsrq',
+        'lte_a2_threshold_rsrp_irat_volte', 'lte_a2_threshold_rsrq_irat_volte',
+        'a3_offset', 'a3_offset_anr',
+        'a4_threshold_rsrp', 'lte_intra_a5_threshold_1_rsrp',
+        'lte_intra_a5_threshold_2_rsrp', 'b2_threshold1_rsrp',
+        'b2_threshold2_rsrp', 'b2_geran_irat_threshold',
+        'qrxlevmin_sib1', 'qrxlevminoffset',
+        's_intrasearch', 's_nonintrasearch',
+        'qrxlevmin_sib3', 'reselection_priority',
+        'threshservinglow', 'x2_enable_disable',
+        'ciphering_algorithm', 'integrity_algorithm',
     ],
 )
 
@@ -87,6 +100,33 @@ def build_desired_config(
     # Attempt to load device configuration from YANG before service mconfig
     enb_config = _get_enb_yang_config(device_config) or \
                  _get_enb_config(mconfig, device_config)
+    # Ho Algorithm
+    _set_algorithm_a1_threshold_rsrp(cfg_desired, enb_config.a1_threshold_rsrp)
+    # _set_algorithm_lte_a1_threshold_rsrq(cfg_desired, enb_config.lte_a1_threshold_rsrq)
+    # _set_algorithm_hysteresis(cfg_desired, enb_config.hysteresis)
+    # _set_algorithm_time_to_trigger(cfg_desired, enb_config.time_to_trigger)
+    _set_algorithm_a2_threshold_rsrp(cfg_desired, enb_config.a2_threshold_rsrp)
+    # _set_algorithm_lte_a2_threshold_rsrq(cfg_desired, enb_config.lte_a2_threshold_rsrq)
+    # _set_algorithm_lte_a2_threshold_rsrp_irat_volte(cfg_desired, enb_config.lte_a2_threshold_rsrp_irat_volte)
+    # _set_algorithm_lte_a2_threshold_rsrq_irat_volte(cfg_desired, enb_config.lte_a2_threshold_rsrq_irat_volte)
+    _set_algorithm_a3_offset(cfg_desired, enb_config.a3_offset)
+    _set_algorithm_a3_offset_anr(cfg_desired, enb_config.a3_offset_anr)
+    _set_algorithm_a4_threshold_rsrp(cfg_desired, enb_config.a4_threshold_rsrp)
+    _set_algorithm_lte_intra_a5_threshold_1_rsrp(cfg_desired, enb_config.lte_intra_a5_threshold_1_rsrp)
+    _set_algorithm_lte_intra_a5_threshold_2_rsrp(cfg_desired, enb_config.lte_intra_a5_threshold_2_rsrp)
+    _set_algorithm_b2_threshold1_rsrp(cfg_desired, enb_config.b2_threshold1_rsrp)
+    _set_algorithm_b2_threshold2_rsrp(cfg_desired, enb_config.b2_threshold2_rsrp)
+    _set_algorithm_b2_geran_irat_threshold(cfg_desired, enb_config.b2_geran_irat_threshold)
+    _set_algorithm_qrxlevmin_sib1(cfg_desired, enb_config.qrxlevmin_sib1)
+    _set_algorithm_qrxlevminoffset(cfg_desired, enb_config.qrxlevminoffset)
+    _set_algorithm_s_intrasearch(cfg_desired, enb_config.s_intrasearch)
+    _set_algorithm_s_nonintrasearch(cfg_desired, enb_config.s_nonintrasearch)
+    _set_algorithm_qrxlevmin_sib3(cfg_desired, enb_config.qrxlevmin_sib3)
+    _set_algorithm_reselection_priority(cfg_desired, enb_config.reselection_priority)
+    _set_algorithm_threshservinglow(cfg_desired, enb_config.threshservinglow)
+    _set_algorithm_x2_enable_disable(cfg_desired, enb_config.x2_enable_disable)
+    _set_algorithm_ciphering_algorithm(cfg_desired, enb_config.ciphering_algorithm)
+    _set_algorithm_integrity_algorithm(cfg_desired, enb_config.integrity_algorithm)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,
@@ -206,6 +246,43 @@ def _get_enb_config(
                 subframe_assignment = enb_config.subframe_assignment
                 special_subframe_pattern = \
                     enb_config.special_subframe_pattern
+
+            if enb_config.a1_threshold_rsrp is not None:
+                a1_threshold_rsrp = enb_config.a1_threshold_rsrp
+            if enb_config.lte_a1_threshold_rsrq is not None:
+                lte_a1_threshold_rsrq = enb_config.lte_a1_threshold_rsrq
+            if enb_config.hysteresis is not None:
+                hysteresis = enb_config.hysteresis
+            if enb_config.time_to_trigger is not None:
+                time_to_trigger = enb_config.time_to_trigger
+            if enb_config.a2_threshold_rsrp is not None:
+                a2_threshold_rsrp = enb_config.a2_threshold_rsrp
+            if enb_config.lte_a2_threshold_rsrq is not None:
+                lte_a2_threshold_rsrq = enb_config.lte_a2_threshold_rsrq
+            if enb_config.lte_a2_threshold_rsrp_irat_volte is not None:
+                lte_a2_threshold_rsrp_irat_volte = enb_config.lte_a2_threshold_rsrp_irat_volte
+            if enb_config.lte_a2_threshold_rsrq_irat_volte is not None:
+                lte_a2_threshold_rsrq_irat_volte = enb_config.lte_a2_threshold_rsrq_irat_volte
+
+            a3_offset = enb_config.a3_offset
+            a3_offset_anr = enb_config.a3_offset_anr
+            a4_threshold_rsrp = enb_config.a4_threshold_rsrp
+            lte_intra_a5_threshold_1_rsrp = enb_config.lte_intra_a5_threshold_1_rsrp
+            lte_intra_a5_threshold_2_rsrp = enb_config.lte_intra_a5_threshold_2_rsrp
+            b2_threshold1_rsrp = enb_config.b2_threshold1_rsrp
+            b2_threshold2_rsrp = enb_config.b2_threshold2_rsrp
+            b2_geran_irat_threshold = enb_config.b2_geran_irat_threshold
+            qrxlevmin_sib1 = enb_config.qrxlevmin_sib1
+            qrxlevminoffset = enb_config.qrxlevminoffset
+            s_intrasearch = enb_config.s_intrasearch
+            s_nonintrasearch = enb_config.s_nonintrasearch
+            qrxlevmin_sib3 = enb_config.qrxlevmin_sib3
+            reselection_priority = enb_config.reselection_priority
+            threshservinglow = enb_config.threshservinglow
+            x2_enable_disable = enb_config.x2_enable_disable
+            ciphering_algorithm = enb_config.ciphering_algorithm
+            integrity_algorithm = enb_config.integrity_algorithm
+
         else:
             raise ConfigurationError(
                 'Could not construct desired config '
@@ -246,6 +323,32 @@ def _get_enb_config(
         allow_enodeb_transmit=allow_enodeb_transmit,
         mme_address=None,
         mme_port=None,
+        a1_threshold_rsrp=a1_threshold_rsrp,
+        lte_a1_threshold_rsrq=lte_a1_threshold_rsrq,
+        hysteresis=hysteresis,
+        time_to_trigger=time_to_trigger,
+        a2_threshold_rsrp=a2_threshold_rsrp,
+        lte_a2_threshold_rsrq=lte_a2_threshold_rsrq,
+        lte_a2_threshold_rsrp_irat_volte=lte_a2_threshold_rsrp_irat_volte,
+        lte_a2_threshold_rsrq_irat_volte=lte_a2_threshold_rsrq_irat_volte,
+        a3_offset=a3_offset,
+        a3_offset_anr=a3_offset_anr,
+        a4_threshold_rsrp=a4_threshold_rsrp,
+        lte_intra_a5_threshold_1_rsrp=lte_intra_a5_threshold_1_rsrp,
+        lte_intra_a5_threshold_2_rsrp=lte_intra_a5_threshold_2_rsrp,
+        b2_threshold1_rsrp=b2_threshold1_rsrp,
+        b2_threshold2_rsrp=b2_threshold2_rsrp,
+        b2_geran_irat_threshold=b2_geran_irat_threshold,
+        qrxlevmin_sib1=qrxlevmin_sib1,
+        qrxlevminoffset=qrxlevminoffset,
+        s_intrasearch=s_intrasearch,
+        s_nonintrasearch=s_nonintrasearch,
+        qrxlevmin_sib3=qrxlevmin_sib3,
+        reselection_priority=reselection_priority,
+        threshservinglow=threshservinglow,
+        x2_enable_disable=x2_enable_disable,
+        ciphering_algorithm=ciphering_algorithm,
+        integrity_algorithm=integrity_algorithm,
     )
     return single_enodeb_config
 
@@ -476,7 +579,265 @@ def _set_plmnids_tac(
                 object_name,
             )
     cfg.set_parameter(ParameterName.TAC, tac)
+def _set_algorithm_a1_threshold_rsrp(
+    cfg: EnodebConfiguration,
+    a1_threshold_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - a1_threshold_rsrp
+    """
+    cfg.set_parameter(ParameterName.A1_THRESHOLD_RSRP, a1_threshold_rsrp)
 
+def _set_algorithm_lte_a1_threshold_rsrq(
+    cfg: EnodebConfiguration,
+    lte_a1_threshold_rsrq: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_a1_threshold_rsrq
+    """
+    cfg.set_parameter(ParameterName.LTE_A1_THRESHOLD_RSRQ, lte_a1_threshold_rsrq)
+
+def _set_algorithm_hysteresis(
+    cfg: EnodebConfiguration,
+    hysteresis: int,
+) -> None:
+    """
+    Set the following parameters:
+     - hysteresis
+    """
+    cfg.set_parameter(ParameterName.HYSTERESIS, hysteresis)
+
+def _set_algorithm_time_to_trigger(
+    cfg: EnodebConfiguration,
+    time_to_trigger: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - time_to_trigger
+    """
+    cfg.set_parameter(ParameterName.TIME_TO_TRIGGER, time_to_trigger)
+
+def _set_algorithm_a2_threshold_rsrp(
+    cfg: EnodebConfiguration,
+    a2_threshold_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - a2_threshold_rsrp
+    """
+    cfg.set_parameter(ParameterName.A2_THRESHOLD_RSRP, a2_threshold_rsrp)
+
+def _set_algorithm_lte_a2_threshold_rsrq(
+    cfg: EnodebConfiguration,
+    lte_a2_threshold_rsrq: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_a2_threshold_rsrq
+    """
+    cfg.set_parameter(ParameterName.LTE_A2_THRESHOLD_RSRQ, lte_a2_threshold_rsrq)
+
+def _set_algorithm_lte_a2_threshold_rsrp_irat_volte(
+    cfg: EnodebConfiguration,
+    lte_a2_threshold_rsrp_irat_volte: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_a2_threshold_rsrp_irat_volte
+    """
+    cfg.set_parameter(ParameterName.LTE_A2_THRESHOLD_RSRP_IRAT_VOLTE, lte_a2_threshold_rsrp_irat_volte)
+
+def _set_algorithm_lte_a2_threshold_rsrq_irat_volte(
+    cfg: EnodebConfiguration,
+    lte_a2_threshold_rsrq_irat_volte: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_a2_threshold_rsrq_irat_volte
+    """
+    cfg.set_parameter(ParameterName.LTE_A2_THRESHOLD_RSRQ_IRAT_VOLTE, lte_a2_threshold_rsrq_irat_volte)
+
+def _set_algorithm_a3_offset(
+    cfg: EnodebConfiguration,
+    a3_offset: int,
+) -> None:
+    """
+    Set the following parameters:
+     - a3_offset
+    """
+    cfg.set_parameter(ParameterName.A3_OFFSET, a3_offset)
+
+def _set_algorithm_a3_offset_anr(
+    cfg: EnodebConfiguration,
+    a3_offset_anr: int,
+) -> None:
+    """
+    Set the following parameters:
+     - a3_offset_anr
+    """
+    cfg.set_parameter(ParameterName.A3_OFFSET_ANR, a3_offset_anr)
+
+def _set_algorithm_a4_threshold_rsrp(
+    cfg: EnodebConfiguration,
+    a4_threshold_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - a4_threshold_rsrp
+    """
+    cfg.set_parameter(ParameterName.A4_THRESHOLD_RSRP, a4_threshold_rsrp)
+
+def _set_algorithm_lte_intra_a5_threshold_1_rsrp(
+    cfg: EnodebConfiguration,
+    lte_intra_a5_threshold_1_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_intra_a5_threshold_1_rsrp
+    """
+    cfg.set_parameter(ParameterName.LTE_INTRA_A5_THRESHOLD_1_RSRP, lte_intra_a5_threshold_1_rsrp)
+
+def _set_algorithm_lte_intra_a5_threshold_2_rsrp(
+    cfg: EnodebConfiguration,
+    lte_intra_a5_threshold_2_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_intra_a5_threshold_2_rsrp
+    """
+    cfg.set_parameter(ParameterName.LTE_INTRA_A5_THRESHOLD_2_RSRP, lte_intra_a5_threshold_2_rsrp)
+
+def _set_algorithm_b2_threshold1_rsrp(
+    cfg: EnodebConfiguration,
+    b2_threshold1_rsrp: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - b2_threshold1_rsrp
+    """
+    cfg.set_parameter(ParameterName.B2_THRESHOLD1_RSRP, b2_threshold1_rsrp)
+
+def _set_algorithm_b2_threshold2_rsrp(
+    cfg: EnodebConfiguration,
+    b2_threshold2_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - b2_threshold2_rsrp
+    """
+    cfg.set_parameter(ParameterName.B2_THRESHOLD2_RSRP, b2_threshold2_rsrp)
+
+def _set_algorithm_b2_geran_irat_threshold(
+    cfg: EnodebConfiguration,
+    b2_geran_irat_threshold: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - b2_geran_irat_threshold
+    """
+    cfg.set_parameter(ParameterName.B2_GERAN_IRAT_THRESHOLD, b2_geran_irat_threshold)
+
+def _set_algorithm_qrxlevmin_sib1(
+    cfg: EnodebConfiguration,
+    qrxlevmin_sib1: int,
+) -> None:
+    """
+    Set the following parameters:
+     - qrxlevmin_sib1
+    """
+    cfg.set_parameter(ParameterName.QRXLEVMIN_SIB1, qrxlevmin_sib1)
+
+def _set_algorithm_qrxlevminoffset(
+    cfg: EnodebConfiguration,
+    qrxlevminoffset: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - qrxlevminoffset
+    """
+    cfg.set_parameter(ParameterName.QRXLEVMINOFFSET, qrxlevminoffset)
+
+def _set_algorithm_s_intrasearch(
+    cfg: EnodebConfiguration,
+    s_intrasearch: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - s_intrasearch
+    """
+    cfg.set_parameter(ParameterName.S_INTRASEARCH, s_intrasearch)
+
+def _set_algorithm_s_nonintrasearch(
+    cfg: EnodebConfiguration,
+    s_nonintrasearch: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_a2_threshold_rsrq_irat_volte
+    """
+    cfg.set_parameter(ParameterName.S_NONINTRASEARCH, s_nonintrasearch)
+
+def _set_algorithm_qrxlevmin_sib3(
+    cfg: EnodebConfiguration,
+    qrxlevmin_sib3: int,
+) -> None:
+    """
+    Set the following parameters:
+     - qrxlevmin_sib3
+    """
+    cfg.set_parameter(ParameterName.QRXLEVMIN_SIB3, qrxlevmin_sib3)
+
+def _set_algorithm_reselection_priority(
+    cfg: EnodebConfiguration,
+    reselection_priority: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - reselection_priority
+    """
+    cfg.set_parameter(ParameterName.RESELECTION_PRIORITY, reselection_priority)
+
+def _set_algorithm_threshservinglow(
+    cfg: EnodebConfiguration,
+    threshservinglow: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - threshservinglow
+    """
+    cfg.set_parameter(ParameterName.THRESHSERVINGLOW, threshservinglow)
+
+def _set_algorithm_x2_enable_disable(
+    cfg: EnodebConfiguration,
+    x2_enable_disable: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - x2_enable_disable
+    """
+    cfg.set_parameter(ParameterName.X2_ENABLE_DISABLE, x2_enable_disable)
+
+def _set_algorithm_ciphering_algorithm(
+    cfg: EnodebConfiguration,
+    ciphering_algorithm: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - ciphering_algorithm
+    """
+    cfg.set_parameter(ParameterName.CIPHERING_ALGORITHM, ciphering_algorithm)
+
+def _set_algorithm_integrity_algorithm(
+    cfg: EnodebConfiguration,
+    integrity_algorithm: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - integrity_algorithm
+    """
+    cfg.set_parameter(ParameterName.INTEGRITY_ALGORITHM, integrity_algorithm)
 
 def _set_earfcn_freq_band_mode(
     device_cfg: EnodebConfiguration,

@@ -397,6 +397,37 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
 
+             //Ho Algorithm Config
+            hoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
+            if hoAlgorithmConfig != nil {
+				enbMconfig.A1ThresholdRsrp = int32(hoAlgorithmConfig.A1ThresholdRsrp)
+				enbMconfig.LteA1ThresholdRsrq = int32(hoAlgorithmConfig.LteA1ThresholdRsrq)
+				enbMconfig.Hysteresis = int32(hoAlgorithmConfig.Hysteresis)
+				enbMconfig.TimeToTrigger = string(hoAlgorithmConfig.TimeToTrigger)
+				enbMconfig.A2ThresholdRsrp = int32(hoAlgorithmConfig.A2ThresholdRsrp)
+				enbMconfig.LteA2ThresholdRsrpIratVolte = int32(hoAlgorithmConfig.LteA2ThresholdRsrpIratVolte)
+				enbMconfig.LteA2ThresholdRsrq = int32(hoAlgorithmConfig.LteA2ThresholdRsrq)
+				enbMconfig.LteA2ThresholdRsrqIratVolte = int32(hoAlgorithmConfig.LteA2ThresholdRsrqIratVolte)
+				enbMconfig.A3Offset = int32(hoAlgorithmConfig.A3Offset)
+				enbMconfig.A3OffsetAnr = int32(hoAlgorithmConfig.A3OffsetAnr)
+				enbMconfig.A4ThresholdRsrp = int32(hoAlgorithmConfig.A4ThresholdRsrp)
+				enbMconfig.LteIntraA5Threshold_1Rsrp = int32(hoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
+				enbMconfig.LteIntraA5Threshold_2Rsrp = int32(hoAlgorithmConfig.LteIntraA5Threshold2Rsrp)
+				enbMconfig.B2Threshold1Rsrp = uint32(hoAlgorithmConfig.B2Threshold1Rsrp)
+				enbMconfig.B2Threshold2Rsrp = int32(hoAlgorithmConfig.B2Threshold2Rsrp)
+				enbMconfig.B2GeranIratThreshold = uint32(hoAlgorithmConfig.B2GeranIratThreshold)
+				enbMconfig.QrxlevminSib1 = int32(hoAlgorithmConfig.QrxlevminSib1)
+				enbMconfig.Qrxlevminoffset = uint32(hoAlgorithmConfig.Qrxlevminoffset)
+				enbMconfig.SIntrasearch = uint32(hoAlgorithmConfig.SIntrasearch)
+				enbMconfig.SNonintrasearch = uint32(hoAlgorithmConfig.SNonintrasearch)
+				enbMconfig.QrxlevminSib3 = int32(hoAlgorithmConfig.QrxlevminSib3)
+				enbMconfig.ReselectionPriority = uint32(hoAlgorithmConfig.ReselectionPriority)
+				enbMconfig.Threshservinglow = uint32(hoAlgorithmConfig.Threshservinglow)
+				enbMconfig.X2EnableDisable = swag.BoolValue(hoAlgorithmConfig.X2EnableDisable)
+				enbMconfig.CipheringAlgorithm = string(hoAlgorithmConfig.CipheringAlgorithm)
+				enbMconfig.IntegrityAlgorithm = string(hoAlgorithmConfig.IntegrityAlgorithm)
+
+            }
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
