@@ -12,21 +12,20 @@ limitations under the License.
 */
 #ifndef FILE_MME_UE_CONTEXT_H_SEEN
 #define FILE_MME_UE_CONTEXT_H_SEEN
-//--C includes -----------------------------------------------------------------
+// C includes --------------------------------------------------------------
 extern "C" {
 #include "intertask_interface.h"
 #include "esm_data.h"
 #include "mme_app_timer.h"
 }
-////--C++ includes
-///---------------------------------------------------------------
+// C++ includes ------------------------------------------------------------
 #include <czmq.h>
 #include <map>
+#include <utility>
 #include <stddef.h>
 #include <stdint.h>
-#include <utility>
-////--Other includes
-///-------------------------------------------------------------
+// Other includes ----------------------------------------------------------
+
 namespace magma {
 namespace lte {
 
