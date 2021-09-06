@@ -20,13 +20,13 @@ extern "C" {
 }
 ////--C++ includes
 ///---------------------------------------------------------------
-////--Other includes
-///-------------------------------------------------------------
 #include <czmq.h>
 #include <map>
 #include <stddef.h>
 #include <stdint.h>
-
+#include <utility>
+////--Other includes
+///-------------------------------------------------------------
 namespace magma {
 namespace lte {
 
@@ -48,7 +48,7 @@ class MmeUeContext {
 
   int StartTimer(
       size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      TimerArgType& arg);
+      const TimerArgType& arg);
   void StopTimer(int timer_id);
 
   bool GetTimerArg(const int timer_id, TimerArgType* arg) const;

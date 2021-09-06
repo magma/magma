@@ -110,7 +110,7 @@ namespace lte {
 //------------------------------------------------------------------------------
 int MmeUeContext::StartTimer(
     size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    TimerArgType& arg) {
+    const TimerArgType& arg) {
   int timer_id = -1;
   if ((timer_id = start_timer(
            &mme_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {

@@ -753,7 +753,6 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           /*
            * Re-start T3450 timer
            */
-          void* timer_callback_arg = NULL;
           nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450);
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
