@@ -213,6 +213,8 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   // Remove stored UE context from AMF core.
   amf_remove_ue_context(ue_context);
 
+  amf_delete_ue_context(ue_context);
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
