@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <functional>
 #include <memory>
+#include "s6a_client_api.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
@@ -73,6 +74,8 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
   bool set_smf_session(SetSMSessionContext& request);
 
   bool set_smf_notification(SetSmNotificationContext& notify);
+
+  bool n11_update_location_req(const s6a_update_location_req_t* const ulr_p);
 };
 
 }  // namespace magma5g

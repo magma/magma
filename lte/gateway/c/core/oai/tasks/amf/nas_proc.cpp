@@ -468,4 +468,42 @@ int amf_nas_proc_authentication_info_answer(
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+int amf_handle_s6a_update_location_ans(
+    const s6a_update_location_ans_t* ula_pP) {
+  imsi64_t imsi64                   = INVALID_IMSI64;
+  int rc                            = RETURNerror;
+  amf_context_t* amf_ctxt_p         = NULL;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  int amf_cause                     = -1;
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
+
+  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+
+  if (ue_mm_context) {
+    amf_ctxt_p = &ue_mm_context->amf_context;
+  }
+
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  amf_ue_ngap_id_t amf_ue_ngap_id = ue_mm_context->amf_ue_ngap_id;
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "Received update location Answer from Subscriberdb for"
+      " ue_id = %d\n",
+      amf_ue_ngap_id);
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF, "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "\n",
+      ula_pP->subscription_data.subscribed_ambr.br_ul,
+      ula_pP->subscription_data.subscribed_ambr.br_dl);
+
+  return 0;
+}
+
 }  // namespace magma5g

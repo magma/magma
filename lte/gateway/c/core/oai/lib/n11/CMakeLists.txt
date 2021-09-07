@@ -27,10 +27,12 @@ target_link_libraries(LIB_N11
     LIB_MOBILITY_CLIENT
     SERVICE_REGISTRY
     ASYNC_GRPC
+    LIB_S6A_PROXY
     MAGMA_CONFIG
     )
 
 target_include_directories(LIB_N11 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${MAGMA_LIB_DIR}/s6a_proxy
     $<TARGET_FILE_DIR:LIB_N11>
     )

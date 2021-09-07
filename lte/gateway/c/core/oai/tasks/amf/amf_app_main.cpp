@@ -98,6 +98,17 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_smf_handle_ip_address_response(response_p);
       break;
 
+    case S6A_UPDATE_LOCATION_ANS: {
+      /*
+       * We received the update location answer message from HSS -> Handle it
+       */
+      OAILOG_INFO(
+          LOG_MME_APP,
+          "Received S6A Update Location Answer from subscriberd\n");
+      amf_handle_s6a_update_location_ans(
+          &received_message_p->ittiMsg.s6a_update_location_ans);
+    } break;
+
     /* Handle PDU session resource setup response */
     case NGAP_PDUSESSIONRESOURCE_SETUP_RSP:
       /* This is non-nas message and can be handled directly to check if failure

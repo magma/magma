@@ -26,9 +26,17 @@
 
 #include "includes/ServiceRegistrySingleton.h"
 #include "SmfServiceClient.h"
+#include "s6a_messages_types.h"
+#include "proto_msg_to_itti_msg.h"
+#include "common_types.h"
+#include "conversions.h"
+#include "S6aClient.h"
+
 using grpc::Status;
 using magma::AsyncLocalResponse;
 using magma::ServiceRegistrySingleton;
+
+extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 void handle_session_context_response(
     grpc::Status status, magma::lte::SmContextVoid response) {
@@ -166,6 +174,78 @@ AsyncSmfServiceClient::AsyncSmfServiceClient() {
 AsyncSmfServiceClient& AsyncSmfServiceClient::getInstance() {
   static AsyncSmfServiceClient instance;
   return instance;
+}
+
+static void handle_subs_update_location_info_ans(
+    const std::string& imsi, uint8_t imsi_length, const grpc::Status& status,
+    magma::feg::UpdateLocationAnswer response) {
+  MessageDef* message_p;
+  s6a_update_location_ans_t* itti_msg = NULL;
+
+  if (!status.ok()) {
+    std::cout << "get_subs_auth_info fails with code " << status.error_code()
+              << ", msg: " << status.error_message() << std::endl;
+
+    return;
+  }
+
+  message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, S6A_UPDATE_LOCATION_ANS);
+  itti_msg = &message_p->ittiMsg.s6a_update_location_ans;
+
+  strncpy(itti_msg->imsi, imsi.c_str(), imsi_length);
+  itti_msg->imsi_length = imsi_length;
+
+  if (status.ok()) {
+    if (response.error_code() < magma::feg::ErrorCode::COMMAND_UNSUPORTED) {
+      std::cout << "[INFO] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
+                << imsi << "; Status: " << status.error_message()
+                << "; StatusCode: " << response.error_code() << std::endl;
+
+      itti_msg->result.present     = S6A_RESULT_BASE;
+      itti_msg->result.choice.base = DIAMETER_SUCCESS;
+      magma::convert_proto_msg_to_itti_s6a_update_location_ans(
+          response, itti_msg);
+    } else {
+      itti_msg->result.present = S6A_RESULT_EXPERIMENTAL;
+      itti_msg->result.choice.experimental =
+          (s6a_experimental_result_t) response.error_code();
+    }
+  } else {
+    std::cout << "[ERROR] " << status.error_code() << ": "
+              << status.error_message() << std::endl;
+    std::cout << "[ERROR]  Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
+              << imsi << "; Status: " << status.error_message()
+              << "; ErrorCode: " << response.error_code() << std::endl;
+
+    itti_msg->result.present     = S6A_RESULT_BASE;
+    itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
+  }
+  std::cout << "[INFO] sent itti S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
+            << std::endl;
+
+  IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
+}
+
+bool amf_update_location_req(const s6a_update_location_req_t* const ulr_p) {
+  auto imsi_len = ulr_p->imsi_length;
+  std::cout << "[DEBUG] Sending S6A-UPDATE_LOCATION_REQUEST with IMSI: "
+            << std::string(ulr_p->imsi) << std::endl;
+
+  magma::S6aClient::update_location_request(
+      ulr_p,
+      [imsiStr = std::string(ulr_p->imsi), imsi_len](
+          grpc::Status status, magma::feg::UpdateLocationAnswer response) {
+        handle_subs_update_location_info_ans(
+            imsiStr, imsi_len, status, response);
+      });
+  return true;
+}
+
+bool AsyncSmfServiceClient::n11_update_location_req(
+    const s6a_update_location_req_t* const ulr_p) {
+  return amf_update_location_req(ulr_p);
 }
 
 }  // namespace magma5g
