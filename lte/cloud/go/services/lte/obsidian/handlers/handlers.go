@@ -322,12 +322,7 @@ func listEnodebs(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	count, err := configurator.CountEntitiesOfType(
-		nid,
-		lte.CellularEnodebEntityType,
-		configurator.EntityLoadCriteria{},
-		serdes.Entity,
-	)
+	count, err := configurator.CountEntitiesOfType(nid, lte.CellularEnodebEntityType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

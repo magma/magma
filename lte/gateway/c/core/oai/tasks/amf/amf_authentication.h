@@ -31,6 +31,8 @@ typedef struct nas5g_amf_auth_proc_s {
   uint8_t rand[AUTH_RAND_SIZE]; /* Random challenge number  */
   uint8_t autn[AUTH_AUTN_SIZE]; /* Authentication token     */
   int amf_cause;
+  int retry_sync_failure;
+#define MAX_SYNC_FAILURES 2
 } nas5g_amf_auth_proc_t;
 
 typedef struct nas5g_auth_info_proc_s {

@@ -44,6 +44,7 @@
 #include "digest.h"
 #include "nas_procedures.h"
 #include "common_defs.h"
+#include "mme_app_timer.h"
 
 // TODO: Add unit tests for common procedure functions
 static nas_emm_common_proc_t* get_nas_common_procedure(
@@ -471,10 +472,7 @@ void nas_delete_detach_procedure(struct emm_context_s* emm_context) {
 
     // Stop T3422 if running
     if (emm_context->T3422.id != NAS_TIMER_INACTIVE_ID) {
-      void* unused          = NULL;
-      void** timer_callback = &unused;
-      emm_context->T3422.id =
-          nas_timer_stop(emm_context->T3422.id, timer_callback);
+      nas_stop_T3422(emm_context->_imsi64, &(emm_context->T3422));
     }
     if (emm_context->t3422_arg) {
       free_wrapper(&emm_context->t3422_arg);
