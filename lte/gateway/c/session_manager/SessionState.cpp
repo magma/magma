@@ -2930,6 +2930,30 @@ RuleToProcess SessionState::insert_dynamic_5g_rule(
   return to_process;
 }
 
+optional<RuleToProcess> SessionState::remove_dynamic_5g_rule(
+    const std::string& rule_id, PolicyRule* rule_out,
+    SessionStateUpdateCriteria* session_uc) {
+  PolicyRule rule;
+  RuleToProcess to_process;
+  bool removed = dynamic_rules_.remove_rule(rule_id, &rule);
+  if (!removed) {
+    return {};
+  }
+  if (rule_out) {
+    *rule_out = rule;
+  }
+  if (session_uc) {
+    session_uc->dynamic_rules_to_uninstall.insert(rule_id);
+  }
+  increment_rule_stats(rule_id, session_uc);
+
+  to_process.version = get_current_rule_version(rule.id());
+  to_process.rule    = rule;
+  to_process.teids   = config_.common_context.teids();
+
+  return to_process;
+}
+
 void SessionState::process_get_5g_rule_installs(
     const std::vector<StaticRuleInstall>& static_rule_installs,
     const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
@@ -2955,4 +2979,17 @@ void SessionState::process_get_5g_rule_installs(
     pending_deactivation->push_back(to_process);
   }
 }
+
+void SessionState::remove_all_5g_rules_for_termination(
+    SessionStateUpdateCriteria* session_uc) {
+  std::vector<PolicyRule> dynamic_rules;
+  dynamic_rules_.get_rules(dynamic_rules);
+  for (PolicyRule& policy : dynamic_rules) {
+    remove_dynamic_5g_rule(policy.id(), nullptr, session_uc);
+  }
+  for (const std::string& rule_id : active_static_rules_) {
+    deactivate_static_5g_rule(rule_id, session_uc);
+  }
+}
+
 }  // namespace magma

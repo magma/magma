@@ -762,10 +762,17 @@ class SessionState {
       const PolicyRule& rule, const RuleLifetime& lifetime,
       SessionStateUpdateCriteria* session_uc);
 
+  optional<RuleToProcess> remove_dynamic_5g_rule(
+      const std::string& rule_id, PolicyRule* rule_out,
+      SessionStateUpdateCriteria* session_uc);
+
   void process_get_5g_rule_installs(
       const std::vector<StaticRuleInstall>& static_rule_installs,
       const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
       RulesToProcess* pending_activation, RulesToProcess* pending_deactivation);
+
+  void remove_all_5g_rules_for_termination(
+      SessionStateUpdateCriteria* session_uc);
 
  private:
   std::string imsi_;

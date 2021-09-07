@@ -33,8 +33,8 @@ using std::experimental::optional;
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
     magma::SessionState::SessionInfo info,
-    const magma::RulesToProcess& to_activate_process,
-    const magma::RulesToProcess& to_deactivate_process) {
+    const magma::RulesToProcess& rules_to_activate,
+    const magma::RulesToProcess& rules_to_deactivate) {
   magma::SessionSet req;
   req.set_subscriber_id(info.subscriber_id);
   req.set_session_version(info.ver_no);
@@ -44,7 +44,7 @@ magma::SessionSet create_session_set_req(
   req.mutable_state()->set_state(info.state);
 
   for (auto& final_req : info.pdr_rules) {
-    for (const auto& val : to_activate_process) {
+    for (const auto& val : rules_to_activate) {
       magma::VersionedPolicy versioned_rule;
       versioned_rule.set_version(val.version);
       versioned_rule.mutable_rule()->set_id(val.rule.id());
@@ -74,7 +74,7 @@ magma::SessionSet create_session_set_req(
           ->Add()
           ->CopyFrom(versioned_rule);
     }
-    for (const magma::RuleToProcess& val : to_deactivate_process) {
+    for (const magma::RuleToProcess& val : rules_to_deactivate) {
       magma::VersionedPolicyID versioned_policy;
       versioned_policy.set_version(val.version);
       versioned_policy.set_rule_id(val.rule.id());
@@ -363,11 +363,11 @@ void AsyncPipelinedClient::setup_lte(
 // Method to Setup UPF Session
 void AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionInfo info,
-    const magma::RulesToProcess to_activate_process,
-    const magma::RulesToProcess to_deactivate_process,
+    const magma::RulesToProcess rules_to_activate,
+    const magma::RulesToProcess rules_to_deactivate,
     std::function<void(Status status, UPFSessionContextState)> callback) {
   SessionSet setup_session_req =
-      create_session_set_req(info, to_activate_process, to_deactivate_process);
+      create_session_set_req(info, rules_to_activate, rules_to_deactivate);
   set_upf_session_rpc(setup_session_req, callback);
 }
 

@@ -315,6 +315,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
       pdr_map_.erase(imsi);
     }
   }
+  session->remove_all_5g_rules_for_termination(session_uc);
   /* Forcefully terminate session context on time out
    * time out = 5000ms from sessiond.yml config file
    */
