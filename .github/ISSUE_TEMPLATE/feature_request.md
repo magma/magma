@@ -22,7 +22,7 @@ A clear and concise description of what the problem is, under which scenarios or
 **Additional context**
 Add any other context or screenshots about the problem here. You can also provide links to relevant resources.
 
-### Describe your idea(optional)
+### Describe your idea (optional)
 
 **Description**
 A clear and concise description of any alternative solutions or features you've considered.
