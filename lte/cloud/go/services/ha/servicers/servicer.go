@@ -57,7 +57,7 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 	if !secondaryGw.Registered() {
 		return ret, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
-	cfg, err := configurator.LoadEntityConfig(secondaryGw.GetNetworkId(), lte.CellularGatewayEntityType, secondaryGw.LogicalId, lte_models.EntitySerdes)
+	cfg, err := configurator.LoadEntityConfig(ctx, secondaryGw.GetNetworkId(), lte.CellularGatewayEntityType, secondaryGw.LogicalId, lte_models.EntitySerdes)
 	if err != nil {
 		errors.Wrap(err, "unable to load cellular gateway configs to find primary gateway's in its pool")
 		return ret, err
@@ -75,7 +75,7 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 	callingRelativeCapacity := cellularCfg.Pooling[0].MmeRelativeCapacity
 	gwIDsToEnbs := map[string][]string{}
 	for _, record := range cellularCfg.Pooling {
-		gwIDsToEnbsInPool, err := s.getPrimaryGatewaysToEnodebs(secondaryGw.GetNetworkId(), string(record.GatewayPoolID), callingRelativeCapacity)
+		gwIDsToEnbsInPool, err := s.getPrimaryGatewaysToEnodebs(ctx, secondaryGw.GetNetworkId(), string(record.GatewayPoolID), callingRelativeCapacity)
 		if err != nil {
 			return &lte_protos.GetEnodebOffloadStateResponse{}, err
 		}
@@ -111,7 +111,7 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 				glog.Error(err)
 				continue
 			}
-			enbID, err := s.getEnodebID(secondaryGw.NetworkId, secondaryGw.LogicalId, enb)
+			enbID, err := s.getEnodebID(ctx, secondaryGw.NetworkId, secondaryGw.LogicalId, enb)
 			if err != nil {
 				glog.Error(err)
 				continue
@@ -122,8 +122,9 @@ func (s *HAServicer) GetEnodebOffloadState(ctx context.Context, req *lte_protos.
 	return &lte_protos.GetEnodebOffloadStateResponse{EnodebOffloadStates: enbSNsToOffloadState}, nil
 }
 
-func (s *HAServicer) getPrimaryGatewaysToEnodebs(networkID string, gatewayPoolID string, callingRelativeCapacity uint32) (map[string][]string, error) {
+func (s *HAServicer) getPrimaryGatewaysToEnodebs(ctx context.Context, networkID string, gatewayPoolID string, callingRelativeCapacity uint32) (map[string][]string, error) {
 	poolEnt, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		lte_models.EntitySerdes,
@@ -134,6 +135,7 @@ func (s *HAServicer) getPrimaryGatewaysToEnodebs(networkID string, gatewayPoolID
 	primaryGatewaysToEnbs := map[string][]string{}
 	for _, gw := range poolEnt.Associations.Filter(lte.CellularGatewayEntityType) {
 		ent, err := configurator.LoadEntity(
+			ctx,
 			networkID, lte.CellularGatewayEntityType, gw.Key,
 			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 			lte_models.EntitySerdes,
@@ -160,7 +162,7 @@ func (s *HAServicer) getPrimaryGatewaysToEnodebs(networkID string, gatewayPoolID
 }
 
 func (s *HAServicer) isGatewayCheckinValid(ctx context.Context, networkID string, gatewayID string) (bool, error) {
-	hwID, err := s.getHardwareIDFromGatewayID(networkID, gatewayID)
+	hwID, err := s.getHardwareIDFromGatewayID(ctx, networkID, gatewayID)
 	if err != nil {
 		return false, err
 	}
@@ -194,8 +196,8 @@ func (s *HAServicer) getOffloadStateForEnb(ctx context.Context, networkID string
 	return lte_protos.GetEnodebOffloadStateResponse_PRIMARY_CONNECTED_AND_SERVING_UES, nil
 }
 
-func (s *HAServicer) getEnodebID(networkID string, hwID string, enodebSn string) (uint32, error) {
-	cfg, err := configurator.LoadEntityConfig(networkID, lte.CellularEnodebEntityType, enodebSn, serdes.Entity)
+func (s *HAServicer) getEnodebID(ctx context.Context, networkID string, hwID string, enodebSn string) (uint32, error) {
+	cfg, err := configurator.LoadEntityConfig(ctx, networkID, lte.CellularEnodebEntityType, enodebSn, serdes.Entity)
 	if err != nil {
 		return 0, err
 	}
@@ -219,8 +221,9 @@ func (s *HAServicer) getEnodebID(networkID string, hwID string, enodebSn string)
 	}
 }
 
-func (s *HAServicer) getHardwareIDFromGatewayID(networkID string, gatewayID string) (string, error) {
+func (s *HAServicer) getHardwareIDFromGatewayID(ctx context.Context, networkID string, gatewayID string) (string, error) {
 	ent, err := configurator.LoadEntity(
+		ctx,
 		networkID, orc8r.MagmadGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{LoadMetadata: true}, serdes.Entity,
 	)

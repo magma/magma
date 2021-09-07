@@ -73,7 +73,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 		glog.Errorf("Expected %s, but found %s as Hardware ID", checkID.HardwareId, hardwareID)
 		hardwareID = checkID.HardwareId
 	}
-	networkID, gatewayID, err := getNetworkAndEntityIDForPhysicalID(hardwareID)
+	networkID, gatewayID, err := getNetworkAndEntityIDForPhysicalID(ctx, hardwareID)
 	if err != nil {
 		return new(protos.Void), err
 	}
@@ -214,11 +214,11 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func getNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, error) {
+func getNetworkAndEntityIDForPhysicalID(ctx context.Context, physicalID string) (string, string, error) {
 	if len(physicalID) == 0 {
 		return "", "", errors.New("Empty Hardware ID")
 	}
-	entity, err := configurator.LoadEntityForPhysicalID(physicalID, configurator.EntityLoadCriteria{}, serdes.Entity)
+	entity, err := configurator.LoadEntityForPhysicalID(ctx, physicalID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return "", "", err
 	}

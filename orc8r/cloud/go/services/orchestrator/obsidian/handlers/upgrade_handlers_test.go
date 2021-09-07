@@ -20,6 +20,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 
 	models1 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -92,6 +93,7 @@ func Test_CreateReleaseChannel(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	entity, err := configurator.LoadInternalEntity(
+		context.Background(),
 		orc8r.UpgradeReleaseChannelEntityType, "channel1", configurator.EntityLoadCriteria{LoadMetadata: true,
 			LoadConfig: true},
 		serdes.Entity,
@@ -178,6 +180,7 @@ func Test_ReleaseChannel(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	channelEntity, err := configurator.LoadInternalEntity(
+		context.Background(),
 		orc8r.UpgradeReleaseChannelEntityType, "channel1",
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -204,6 +207,7 @@ func Test_ReleaseChannel(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	_, err = configurator.LoadInternalEntity(
+		context.Background(),
 		orc8r.UpgradeReleaseChannelEntityType, "channel1",
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,
@@ -282,11 +286,7 @@ func Test_Tiers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entities, _, err := configurator.LoadEntities(
-		"n1", swag.String(orc8r.UpgradeTierEntityType), nil, nil, nil,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	entities, _, err := configurator.LoadEntities(context2.Background(), "n1", swag.String(orc8r.UpgradeTierEntityType), nil, nil, nil, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
@@ -322,11 +322,7 @@ func Test_Tiers(t *testing.T) {
 		{Type: orc8r.MagmadGatewayType, Key: "g2"},
 		{Type: orc8r.UpgradeTierEntityType, Key: "tier1"},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, nil, nil, entitiesToQuery,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context2.Background(), "n1", nil, nil, nil, entitiesToQuery, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
@@ -404,11 +400,7 @@ func Test_Tiers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, nil, nil, entitiesToQuery,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context2.Background(), "n1", nil, nil, nil, entitiesToQuery, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
@@ -579,11 +571,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID:      "2",
 		Version:      1,
 	}
-	actualTier, err := configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err := configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -609,11 +597,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID:      "2",
 		Version:      2,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -639,11 +623,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID:      "2",
 		Version:      3,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -671,11 +651,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID: "2",
 		Version: 4,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -704,11 +680,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID: "2",
 		Version: 5,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -748,11 +720,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID: "2",
 		Version: 6,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -794,11 +762,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID: "2",
 		Version: 7,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 
@@ -825,11 +789,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		GraphID: "2",
 		Version: 8,
 	}
-	actualTier, err = configurator.LoadEntity(
-		"n1", orc8r.UpgradeTierEntityType, "tier1",
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
-		serdes.Entity,
-	)
+	actualTier, err = configurator.LoadEntity(context2.Background(), "n1", orc8r.UpgradeTierEntityType, "tier1", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTier, actualTier)
 }

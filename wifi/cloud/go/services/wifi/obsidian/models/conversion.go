@@ -14,6 +14,8 @@
 package models
 
 import (
+	"context"
+
 	"github.com/go-openapi/swag"
 
 	"magma/orc8r/cloud/go/models"
@@ -135,9 +137,7 @@ func (m *MutableWifiGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
 }
 
-func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(
-	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
-) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var ret []configurator.EntityWriteOperation
 	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: wifi.WifiGatewayType, Key: string(m.ID)}]
 	if !ok {
@@ -168,8 +168,8 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(
 	return ret, nil
 }
 
-func (m *GatewayWifiConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	wifiConfig, err := configurator.LoadEntityConfig(networkID, wifi.WifiGatewayType, gatewayID, EntitySerdes)
+func (m *GatewayWifiConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
+	wifiConfig, err := configurator.LoadEntityConfig(ctx, networkID, wifi.WifiGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (m *GatewayWifiConfigs) FromBackendModels(networkID string, gatewayID strin
 	return nil
 }
 
-func (m *GatewayWifiConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayWifiConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	ret := []configurator.EntityUpdateCriteria{}
 
 	ret = append(ret, configurator.EntityUpdateCriteria{
@@ -185,7 +185,7 @@ func (m *GatewayWifiConfigs) ToUpdateCriteria(networkID string, gatewayID string
 		NewConfig: m,
 	})
 
-	existingWifiConfigEnt, err := configurator.LoadEntityConfig(networkID, wifi.WifiGatewayType, gatewayID, EntitySerdes)
+	existingWifiConfigEnt, err := configurator.LoadEntityConfig(ctx, networkID, wifi.WifiGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return nil, err
 	}
@@ -238,8 +238,8 @@ func (m *WifiMesh) ToUpdateCriteria() []configurator.EntityUpdateCriteria {
 	}
 }
 
-func (m *MeshWifiConfigs) FromBackendModels(networkID string, meshID string) error {
-	meshConfig, err := configurator.LoadEntityConfig(networkID, wifi.MeshEntityType, meshID, EntitySerdes)
+func (m *MeshWifiConfigs) FromBackendModels(ctx context.Context, networkID string, meshID string) error {
+	meshConfig, err := configurator.LoadEntityConfig(ctx, networkID, wifi.MeshEntityType, meshID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -247,7 +247,7 @@ func (m *MeshWifiConfigs) FromBackendModels(networkID string, meshID string) err
 	return nil
 }
 
-func (m *MeshWifiConfigs) ToUpdateCriteria(networkID string, meshID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *MeshWifiConfigs) ToUpdateCriteria(ctx context.Context, networkID string, meshID string) ([]configurator.EntityUpdateCriteria, error) {
 	ret := []configurator.EntityUpdateCriteria{}
 
 	ret = append(ret, configurator.EntityUpdateCriteria{
@@ -258,8 +258,9 @@ func (m *MeshWifiConfigs) ToUpdateCriteria(networkID string, meshID string) ([]c
 	return ret, nil
 }
 
-func (m *MeshName) FromBackendModels(networkID string, meshID string) error {
+func (m *MeshName) FromBackendModels(ctx context.Context, networkID string, meshID string) error {
 	meshEnt, err := configurator.LoadEntity(
+		ctx,
 		networkID, wifi.MeshEntityType, meshID,
 		configurator.EntityLoadCriteria{LoadMetadata: true},
 		EntitySerdes,
@@ -271,7 +272,7 @@ func (m *MeshName) FromBackendModels(networkID string, meshID string) error {
 	return nil
 }
 
-func (m *MeshName) ToUpdateCriteria(networkID string, meshID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *MeshName) ToUpdateCriteria(ctx context.Context, networkID string, meshID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
 			Type: wifi.MeshEntityType, Key: meshID,

@@ -43,6 +43,7 @@ func reportGatewayStatus() error {
 	}
 	for _, networkID := range networks {
 		gateways, _, err := configurator.LoadEntities(
+			context.Background(),
 			networkID,
 			swag.String(orc8r.MagmadGatewayType),
 			nil,

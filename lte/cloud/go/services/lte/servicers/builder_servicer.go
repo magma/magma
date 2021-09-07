@@ -119,7 +119,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 	heConfig := getHEConfig(cellularGwConfig.HeConfig)
-	npTasks, liUes := getNetworkProbeConfig(network.ID)
+	npTasks, liUes := getNetworkProbeConfig(ctx, network.ID)
 
 	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
 	if err != nil {
@@ -593,10 +593,11 @@ func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig 
 	return ret
 }
 
-func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mconfig.PipelineD_LiUes) {
+func getNetworkProbeConfig(ctx context.Context, networkID string) ([]*lte_mconfig.NProbeTask, *lte_mconfig.PipelineD_LiUes) {
 	liUes := &lte_mconfig.PipelineD_LiUes{}
 	npTasks := []*lte_mconfig.NProbeTask{}
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		ctx,
 		networkID,
 		lte.NetworkProbeTaskEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},

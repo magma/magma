@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-openapi/swag"
@@ -157,7 +158,7 @@ func (m *NetworkDescription) GetFromNetwork(network configurator.Network) interf
 	return NetworkDescription(network.Description)
 }
 
-func (m *GatewayName) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayName) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
 			Key:     gatewayID,
@@ -167,8 +168,9 @@ func (m *GatewayName) ToUpdateCriteria(networkID string, gatewayID string) ([]co
 	}, nil
 }
 
-func (m *GatewayName) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayName) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	entity, err := configurator.LoadSerializedEntity(
+		ctx,
 		networkID, orc8r.MagmadGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{LoadMetadata: true},
 	)
@@ -179,7 +181,7 @@ func (m *GatewayName) FromBackendModels(networkID string, gatewayID string) erro
 	return nil
 }
 
-func (m *GatewayDescription) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayDescription) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
 			Key:            gatewayID,
@@ -189,8 +191,9 @@ func (m *GatewayDescription) ToUpdateCriteria(networkID string, gatewayID string
 	}, nil
 }
 
-func (m *GatewayDescription) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayDescription) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	entity, err := configurator.LoadSerializedEntity(
+		ctx,
 		networkID, orc8r.MagmadGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{LoadMetadata: true},
 	)

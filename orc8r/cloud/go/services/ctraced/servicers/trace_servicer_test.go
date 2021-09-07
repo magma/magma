@@ -86,11 +86,7 @@ func TestCallTraceServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that the call trace has ended
-	ent, err := configurator.LoadEntity(
-		testNetworkId, orc8r.CallTraceEntityType, "CallTrace1",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err := configurator.LoadEntity(context2.Background(), testNetworkId, orc8r.CallTraceEntityType, "CallTrace1", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	testCallTrace := (&models.CallTrace{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, true, testCallTrace.State.CallTraceAvailable)
