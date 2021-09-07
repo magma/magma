@@ -95,7 +95,7 @@ interface `en9`.
 **On the physical AGW**
 - Change the static IP address of `eth1` to match the one expected by the test
 VM
-  - `sudo sed -i 's/address 10.0.2.1/address 192.168.60.142/g'`
+  - `sudo sed -i 's/address 10.0.2.1/address 192.168.8.178/g'`
   ` /etc/network/interfaces.d/eth1`
   - `sudo ifdown eth1`
   - `sudo ifup eth1`
