@@ -10,6 +10,7 @@
  */
 
 #include <sstream>
+#include "M5gNasMessage.h"
 #include "M5GServiceReject.h"
 #include "M5GCommonDefs.h"
 
@@ -20,7 +21,46 @@ ServiceRejectMsg::~ServiceRejectMsg(){};
 // Decoding Service Reject Message and its IEs
 int ServiceRejectMsg::DecodeServiceRejectMsg(
     ServiceRejectMsg* svc_rej, uint8_t* buffer, uint32_t len) {
-  return 0;
+  uint32_t decoded   = 0;
+  int decoded_result = 0;
+
+  if ((decoded_result = svc_rej->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                &svc_rej->extended_protocol_discriminator, 0,
+                                buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = svc_rej->spare_half_octet.DecodeSpareHalfOctetMsg(
+           &svc_rej->spare_half_octet, 0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = svc_rej->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           &svc_rej->sec_header_type, 0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = svc_rej->message_type.DecodeMessageTypeMsg(
+           &svc_rej->message_type, 0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = svc_rej->cause.DecodeM5GMMCauseMsg(
+           &svc_rej->cause, 0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if (decoded < len) {
+    if ((decoded_result = svc_rej->pdu_session_status.DecodePDUSessionStatus(
+             &svc_rej->pdu_session_status, PDU_SESSION_STATUS, buffer + decoded,
+             len - decoded)) < 0)
+      return decoded_result;
+    else
+      decoded += decoded_result;
+  }
+
+  return decoded;
 }
 
 // Encoding Service Reject Message and its IEs
