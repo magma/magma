@@ -4,7 +4,7 @@ name: cwag-workflow
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
-      - master
+      - issue-8699-test
     paths:
       - 'orc8r/**'
       - 'lte/**'
@@ -13,13 +13,26 @@ on:  # yamllint disable-line rule:truthy
   pull_request:
     branches:
       - master
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
-      - 'feg/**'
-      - 'cwf/**'
+    types:
+      - opened
+      - reopened
+      - synchronize
 jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["orc8r/**", "lte/**", "feg/**", "cwf/**"]' 
   cwag-precommit:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    name: cwag pre-commit job
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -62,6 +75,9 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   cwag-build:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    name: cwag build job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -96,6 +112,9 @@ jobs:
           fi
         # TODO bring up the containers and check for crashloops
   cwag-deploy:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    name: cwag deploy job
     needs:
       - cwag-precommit
       # TODO Should also need cwf-integ-test
@@ -182,6 +201,9 @@ jobs:
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   xwfm-deploy-latest:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    name: xwfm deploy job
     needs:
       - cwag-deploy
     runs-on: ubuntu-latest
