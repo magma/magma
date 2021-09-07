@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.system.id="Blaze" type="BLAZE_CPP_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../..">
+      <sourceFolder url="file://$MODULE_DIR$/../../.." isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../bazel-bin" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../bazel-genfiles" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../bazel-out" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../bazel-testlogs" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../bazel-magma" />
+      <excludeFolder url="file://$MODULE_DIR$/../.." />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

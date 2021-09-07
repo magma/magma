@@ -61,7 +61,7 @@ def cpp_testing_deps():
         name = "com_google_googletest",
         sha256 = "5cf189eb6847b4f8fc603a3ffff3b0771c08eec7dd4bd961bfd45477dd13eb73",
         strip_prefix = "googletest-609281088cfefc76f9d0ce82e1ff6c30cc3591e5",
-        urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
+        urls = ["https://github.com/google/googletest/archive/ba96d0b1161f540656efdaed035b3c062b60e006.zip"],
     )
 
 def prometheus_cpp_deps():

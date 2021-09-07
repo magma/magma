@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s nullglob
+
+docker exec magma-builder bazel --output_user_root="${HOME}/.cache/bazel-magma" "$@"
