@@ -6,6 +6,15 @@ endif ()
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
+pkg_search_module(OPENSSL openssl REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIRS})
+
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+include_directories(${CRYPTO_INCLUDE_DIRS})
+
+pkg_search_module(NETTLE nettle REQUIRED)
+include_directories(${NETTLE_INCLUDE_DIRS})
+
 # compile the needed protos
 set(COMMON_CPP_PROTOS common_types)
 set(REDIS_CPP_PROTOS redis)
@@ -65,6 +74,7 @@ add_library(COMMON ${COMMON_SRC})
 
 target_link_libraries(COMMON
         lfds710
+        crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES} ${NETTLE_LIBRARIES}
         LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB
         )
 

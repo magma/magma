@@ -9,18 +9,30 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(mme_app_task)
-add_subdirectory(mobility_client)
-add_subdirectory(openflow)
-add_subdirectory(spgw_task)
-add_subdirectory(ngap)
-add_subdirectory(itti)
-add_subdirectory(pipelined_client)
-add_subdirectory(amf)
-add_subdirectory(n11)
-add_subdirectory(s1ap_task)
-add_subdirectory(sgw_s8_task)
+include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/tasks/sgw_s8")
+
+set(SGW_S8_TEST_CONFIG_SRC
+    sgw_s8_test.cpp
+    sgw_csr.cpp
+    )
+
+add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC})
+
+target_link_libraries(sgw_s8_test
+    LIB_S8_PROXY
+    ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    TASK_SGW_S8
+    gtest gtest_main
+    )
+
+target_include_directories(sgw_s8_test PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CHECK_INCLUDE_DIRS}
+    )
+
+add_test(NAME test_sgw_s8 COMMAND sgw_s8_test)
