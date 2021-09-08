@@ -26,7 +26,6 @@ const (
 	DirectoryRecordType     = "directory_record"
 	StringMapSerdeType      = "string_map"
 	NetworkSentryConfig     = "sentry_config"
-	StateConfig             = "state_config"
 
 	DnsdNetworkType = "dnsd_network"
 
