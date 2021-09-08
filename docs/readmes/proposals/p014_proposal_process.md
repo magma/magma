@@ -165,4 +165,4 @@ The following open source / public Proposal processes were surveyed and consider
 
 - [Chromium Design Doc Process](https://chromium.googlesource.com/chromium/src/+/master/docs/contributing.md#design-documents)
 - [IETF RFC Process](https://www.ietf.org/standards/process/informal/)
-- [Python PEP Process](https://www.python.org/dev/peps/pep-0001/#:~:text=A%20Process%20PEP%20describes%20a,an%20event%20in)%20a%20process.&text=Examples%20include%20procedures%2C%20guidelines%2C%20changes,also%20considered%20a%20Process%20PEP.)
+- [Python PEP Process](https://www.python.org/dev/peps/pep-0001/#:~:text=A%20Process%20PEP%20describes%20a,an%20event%20in)
