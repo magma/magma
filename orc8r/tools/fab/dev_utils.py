@@ -214,12 +214,10 @@ def is_hw_id_registered(
     """
     # gateways is a dict mapping gw ID to full resource
     gateways = cloud_get(
-        #f'networks/{network_id}/gateways',
         f'lte/{network_id}/gateways',
         admin_cert=admin_cert,
     )
     for gw in gateways.values():
-        print(gw)
         if gw['device']['hardware_id'] == hw_id:
             return True, gw['id']
     return False, ''
