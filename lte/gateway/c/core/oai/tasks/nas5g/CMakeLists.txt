@@ -40,6 +40,7 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GDLNASTransport.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceAccept.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceReject.cpp
 
     )
 
@@ -84,6 +85,8 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GPDUSessionReActivationResult.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GUplinkDataStatus.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GProtocolConfigurationOptions.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer2.cpp
+
     )
 
 add_library(LIB_NAS5G

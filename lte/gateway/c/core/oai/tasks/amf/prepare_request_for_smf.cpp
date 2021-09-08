@@ -80,10 +80,8 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
 
   TeidSet* gnode_endpoint = req_rat_specific->mutable_gnode_endpoint();
-  uint32_t nTeid          = (message->gnb_gtp_teid[0] << 24) |
-                   (message->gnb_gtp_teid[1] << 16) |
-                   (message->gnb_gtp_teid[2] << 8) | (message->gnb_gtp_teid[3]);
-  gnode_endpoint->set_teid(nTeid);
+
+  gnode_endpoint->set_teid(message->gnb_gtp_teid);
 
   char ipv4_str[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
@@ -107,7 +105,7 @@ int create_session_grpc_req_on_gnb_setup_rsp(
 ***************************************************************************/
 int amf_smf_create_ipv4_session_grpc_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
-    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr) {
   OAILOG_INFO(
       LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
@@ -132,7 +130,7 @@ int amf_smf_create_pdu_session(
       imsi);
   AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
       imsi, "internet", message->pdu_session_id, message->pti, AF_INET,
-      message->gnb_gtp_teid, 4, message->gnb_gtp_teid_ip_addr, 4);
+      message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4);
 
   return (RETURNok);
 }

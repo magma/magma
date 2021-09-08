@@ -167,9 +167,7 @@ void set_amf_smf_context(
   memset(
       smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
       sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
-  memset(
-      smf_ctx->gtp_tunnel_id.gnb_gtp_teid, '\0',
-      sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid));
+  smf_ctx->gtp_tunnel_id.gnb_gtp_teid = 0x0;
 }
 
 /***************************************************************************
@@ -418,15 +416,14 @@ int amf_smf_send(
       memset(
           amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr, '\0',
           sizeof(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr));
-      memset(
-          amf_smf_msg.u.establish.gnb_gtp_teid, '\0',
-          sizeof(amf_smf_msg.u.establish.gnb_gtp_teid));
+
+      amf_smf_msg.u.establish.gnb_gtp_teid = 0x0;
       memcpy(
           amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr,
           smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
-      memcpy(
-          amf_smf_msg.u.establish.gnb_gtp_teid,
-          smf_ctx->gtp_tunnel_id.gnb_gtp_teid, GNB_TEID_LEN);
+
+      amf_smf_msg.u.establish.gnb_gtp_teid =
+          smf_ctx->gtp_tunnel_id.gnb_gtp_teid;
 
       // Initialize default APN
       memcpy(smf_ctx->apn, "internet", strlen("internet") + 1);

@@ -992,6 +992,9 @@ std::string get_message_type_str(uint8_t type) {
     case M5G_SERVICE_ACCEPT:
       msgtype_str = "M5G_SERVICE_ACCEPT";
       break;
+    case M5G_SERVICE_REJECT:
+      msgtype_str = "M5G_SERVICE_REJECT";
+      break;
     case M5G_IDENTITY_REQUEST:
       msgtype_str = "M5G_IDENTITY_REQUEST";
       break;
