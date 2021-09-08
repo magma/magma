@@ -39,7 +39,6 @@ orc8rDbName: orc8r
 orc8rDbId: orc8rdb
 orc8rDbs:
   - "{{orc8rDbId}}"
-orc8rDbEventSubscription: orc8r-rds-events
 orc8rSnsName: orc8r-sns
 
 
