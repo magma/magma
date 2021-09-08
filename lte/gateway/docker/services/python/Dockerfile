@@ -49,15 +49,19 @@ ENV VIRTUAL_ENV=/build
 ARG JSONPOINTER_VERSION=1.13
 
 RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-venv virtualenv git python3-eventlet python3-pystemd python3-jinja2 python3-pystemd nghttp2-proxy net-tools inetutils-ping redis-server wget ethtool\
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-venv virtualenv git python3-eventlet python3-pystemd python3-jinja2 python3-pystemd nghttp2-proxy net-tools inetutils-ping redis-server wget ethtool linux-headers-`uname -r`\
   && cd /usr/local/bin \
   && ln -s /usr/bin/python3 python
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 
+RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
+RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
+
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
-RUN DEBIAN_FRONTEND=noninteractive apt-get  update && apt-get install -y td-agent-bit
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get  update && apt-get install -y td-agent-bit libopenvswitch openvswitch-datapath-dkms openvswitch-common openvswitch-switch
 
 COPY --from=builder /build /build
 COPY --from=builder /magma /magma
