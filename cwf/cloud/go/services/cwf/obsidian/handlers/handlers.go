@@ -359,7 +359,7 @@ func createHAPairHandler(c echo.Context) error {
 	if err := haPair.ValidateModel(context.Background()); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	_, err := configurator.CreateEntity(networkID, haPair.ToEntity(), serdes.Entity)
+	_, err := configurator.CreateEntity(c.Request().Context(), networkID, haPair.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -398,11 +398,13 @@ func updateHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	mutableHaPair := new(cwfModels.MutableCwfHaPair)
 	if err := c.Bind(mutableHaPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := mutableHaPair.ValidateModel(context.Background()); err != nil {
+	if err := mutableHaPair.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if mutableHaPair.HaPairID != haPairID {
@@ -417,7 +419,7 @@ func updateHAPairHandler(c echo.Context) error {
 	if !exists {
 		return echo.ErrNotFound
 	}
-	_, err = configurator.UpdateEntity(networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID), serdes.Entity)
+	_, err = configurator.UpdateEntity(reqCtx, networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -429,7 +431,7 @@ func deleteHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := configurator.DeleteEntity(networkID, cwf.CwfHAPairType, haPairID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

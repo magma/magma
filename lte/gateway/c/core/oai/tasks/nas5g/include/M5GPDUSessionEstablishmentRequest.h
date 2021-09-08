@@ -19,6 +19,7 @@
 #include "M5GIntegrityProtMaxDataRate.h"
 #include "M5GPDUSessionType.h"
 #include "M5GSSCMode.h"
+#include "M5GProtocolConfigurationOptions.h"
 
 using namespace std;
 namespace magma5g {
@@ -34,6 +35,7 @@ class PDUSessionEstablishmentRequestMsg {
   IntegrityProtMaxDataRateMsg integrity_prot_max_data_rate;
   PDUSessionTypeMsg pdu_session_type;
   SSCModeMsg ssc_mode;
+  ProtocolConfigurationOptions protocolconfigurationoptions;
 
   PDUSessionEstablishmentRequestMsg();
   ~PDUSessionEstablishmentRequestMsg();

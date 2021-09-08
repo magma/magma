@@ -45,11 +45,6 @@ uint16_t amf_as_establish_cnf(
     const amf_as_establish_t* establish,
     nas5g_establish_rsp_t* nas_establish_rsp);
 
-// For _AMFAS_ESTABLISH_REJ primitive
-uint16_t amf_as_establish_rej(
-    const amf_as_establish_t* establish,
-    nas5g_establish_rsp_t* nas_establish_rsp);
-
 enum nas_error_code_t {
   AS_SUCCESS = 1,          /* Success code, transaction is going on    */
   AS_TERMINATED_NAS,       /* Transaction terminated by NAS        */

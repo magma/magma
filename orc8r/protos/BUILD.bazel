@@ -25,6 +25,17 @@ proto_library(
     srcs = ["common.proto"],
 )
 
+cpp_proto_library(
+    name = "digest_cpp_proto",
+    protos = [":digest_proto"],
+)
+
+proto_library(
+    name = "digest_proto",
+    srcs = ["digest.proto"],
+    deps = ["@protobuf//:any_proto"],
+)
+
 cpp_grpc_library(
     name = "eventd_cpp_grpc",
     protos = [":eventd_proto"],
@@ -34,6 +45,18 @@ cpp_grpc_library(
 proto_library(
     name = "eventd_proto",
     srcs = ["eventd.proto"],
+    deps = [":common_proto"],
+)
+
+cpp_grpc_library(
+    name = "directoryd_cpp_grpc",
+    protos = [":directoryd_proto"],
+    deps = [":common_cpp_proto"],
+)
+
+proto_library(
+    name = "directoryd_proto",
+    srcs = ["directoryd.proto"],
     deps = [":common_proto"],
 )
 

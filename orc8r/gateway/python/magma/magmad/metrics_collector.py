@@ -282,7 +282,7 @@ class MetricsCollector(object):
                     self.scrape_done, future, target,
                 ),
             )
-        
+
         self._loop.call_later(
             target.interval,
             self.scrape_prometheus_target, target,

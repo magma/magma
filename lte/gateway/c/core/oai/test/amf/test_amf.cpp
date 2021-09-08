@@ -10,6 +10,7 @@
  */
 
 #include "util_nas5g_pkt.h"
+#include "include/amf_session_manager_pco.h"
 #include <gtest/gtest.h>
 #include "intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
@@ -89,6 +90,8 @@ uint8_t NAS5GPktSnapShot::service_request[37] = {
     0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 0x7e, 0x00, 0x4c, 0x10,
     0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40,
     0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
+
+uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
@@ -171,6 +174,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
+  protocol_configuration_options_t* pco;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type1_len();
 
@@ -179,21 +183,117 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
 
+  pco = &(pdu_sess_est_req.payload_container.smf_msg.msg
+              .pdu_session_estab_request.protocolconfigurationoptions.pco);
+
+  for (uint8_t i = 0; i < pco->num_protocol_or_container_id; i++) {
+    if (pco->protocol_or_container_ids[i].contents) {
+      bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
+    }
+  }
+
   EXPECT_EQ(decode_res, true);
+}
+
+TEST(test_amf_nas5g_pkt_gen, test_amf_pdu_sess_accept_pco_msg) {
+  uint8_t buffer[1024] = {};
+  uint16_t buf_len     = 1024;
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  uint32_t len    = nas5g_pkt_snap.get_pdu_session_est_type1_len();
+
+  /* Initialize primary and secondary dns */
+  inet_pton(AF_INET, "192.168.1.100", &(amf_config.ipv4.default_dns));
+  inet_pton(AF_INET, "8.8.8.8", &(amf_config.ipv4.default_dns_sec));
+
+  /* Decode the packet */
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+  decode_res = decode_ul_nas_transport_msg(
+      &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
+  EXPECT_EQ(decode_res, true);
+
+  protocol_configuration_options_t* pco_req =
+      &(pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request
+            .protocolconfigurationoptions.pco);
+
+  ProtocolConfigurationOptions protocolconfigruartionoption;
+  protocol_configuration_options_t* pco_resp =
+      &(protocolconfigruartionoption.pco);
+
+  uint8_t ipcp_pattern_match[] = {0x7b, 0x0,  0x14, 0x80, 0x80, 0x21, 0x10, 0x3,
+                                  0x0,  0x0,  0x10, 0x81, 0x6,  0xc0, 0xa8, 0x1,
+                                  0x64, 0x83, 0x6,  0x8,  0x8,  0x8,  0x8};
+  int cmp_res                  = 0;
+  int pco_len                  = 0;
+
+  sm_process_pco_request(pco_req, pco_resp);
+
+  pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
+      &protocolconfigruartionoption,
+      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
+
+  EXPECT_EQ(pco_len, 23);
+
+  cmp_res = memcmp(
+      buffer, ipcp_pattern_match, sizeof(ipcp_pattern_match) / sizeof(uint8_t));
+
+  EXPECT_EQ(cmp_res, 0);
+  sm_free_protocol_configuration_options(&pco_req);
+  sm_free_protocol_configuration_options(&pco_resp);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
+  protocol_configuration_options_t* pco_req;
+  uint8_t buffer[1024]        = {};
+  uint16_t buf_len            = 1024;
+  int cmp_res                 = 0;
+  int pco_len                 = 0;
+  uint8_t dns_pattern_match[] = {0x7b, 0x0,  0x8,  0x80, 0x0, 0xd,
+                                 0x4,  0xc0, 0xa8, 0x1,  0x64};
+
+  /* Encoded Message */
+  ProtocolConfigurationOptions protocolconfigruartionoption;
+  protocol_configuration_options_t* pco_resp =
+      &(protocolconfigruartionoption.pco);
+
+  /* Initialize primary and secondary dns */
+  inet_pton(AF_INET, "192.168.1.100", &(amf_config.ipv4.default_dns));
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type2_len();
 
+  /* Check if uplink pdu packet is parsed properly */
   memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
   decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type2, len);
 
   EXPECT_EQ(decode_res, true);
+
+  pco_req = &(pdu_sess_est_req.payload_container.smf_msg.msg
+                  .pdu_session_estab_request.protocolconfigurationoptions.pco);
+
+  /* Check whether the PCO field is decoded properly */
+  EXPECT_EQ(pco_req->protocol_or_container_ids[0].id, 10);
+  EXPECT_EQ(pco_req->protocol_or_container_ids[1].id, 13);
+
+  sm_process_pco_request(pco_req, pco_resp);
+
+  pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
+      &protocolconfigruartionoption,
+      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
+
+  EXPECT_EQ(pco_len, 11);
+
+  cmp_res = memcmp(
+      buffer, dns_pattern_match, sizeof(dns_pattern_match) / sizeof(uint8_t));
+
+  EXPECT_EQ(cmp_res, 0);
+
+  sm_free_protocol_configuration_options(&pco_req);
+  sm_free_protocol_configuration_options(&pco_resp);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_release_complete_msg) {
@@ -320,6 +420,101 @@ TEST(test_smf_context_struct, test_smf_context_creation) {
   EXPECT_TRUE(0 == smf_context->n_active_pdus);
   EXPECT_TRUE(0 == smf_context->pdu_session_version);
   delete ue_context;
+}
+
+/* Test for registration reject */
+TEST(test_amf_nas5g_pkt_process, test_amf_registration_reject_msg) {
+  uint8_t buffer[4] = {0};
+  // registration reject message
+  RegistrationRejectMsg reg_rej;
+  RegistrationRejectMsg decode_reg_rej;
+  reg_rej.extended_protocol_discriminator.extended_proto_discriminator = 0x7e;
+  reg_rej.sec_header_type.sec_hdr                                      = 0;
+  reg_rej.spare_half_octet.spare                                       = 0;
+  reg_rej.message_type.msg_type                                        = 0x44;
+  reg_rej.m5gmm_cause.m5gmm_cause                                      = 23;
+
+  bool encode_res = false;
+  bool decode_res = false;
+
+  uint32_t len = 4;
+
+  encode_res = encode_registration_reject_msg(&reg_rej, buffer, len);
+
+  decode_res = decode_registration_reject_msg(&decode_reg_rej, buffer, len);
+
+  EXPECT_EQ(encode_res, true);
+  EXPECT_EQ(decode_res, true);
+
+  EXPECT_TRUE(
+      reg_rej.extended_protocol_discriminator.extended_proto_discriminator ==
+      decode_reg_rej.extended_protocol_discriminator
+          .extended_proto_discriminator);
+  EXPECT_TRUE(
+      reg_rej.sec_header_type.sec_hdr ==
+      decode_reg_rej.sec_header_type.sec_hdr);
+  EXPECT_TRUE(
+      reg_rej.spare_half_octet.spare == decode_reg_rej.spare_half_octet.spare);
+  EXPECT_TRUE(
+      reg_rej.message_type.msg_type == decode_reg_rej.message_type.msg_type);
+  EXPECT_TRUE(
+      reg_rej.m5gmm_cause.m5gmm_cause ==
+      decode_reg_rej.m5gmm_cause.m5gmm_cause);
+}
+
+TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
+  ServiceRejectMsg service_reject, decoded_service_rej;
+  uint8_t buffer[50] = {0};
+  uint8_t len        = 8;
+
+  int encode_res = 0, decode_res = 0;
+
+  service_reject.extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+
+  service_reject.sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  service_reject.spare_half_octet.spare  = 0;
+
+  service_reject.message_type.msg_type               = M5G_SERVICE_REJECT;
+  service_reject.pdu_session_status.iei              = PDU_SESSION_STATUS;
+  service_reject.pdu_session_status.len              = 0x02;
+  service_reject.pdu_session_status.pduSessionStatus = 0x05;
+  service_reject.cause.iei                           = M5GMM_CAUSE;
+  service_reject.cause.m5gmm_cause                   = 9;
+  service_reject.t3346Value.iei                      = GPRS_TIMER2;
+  service_reject.t3346Value.len                      = 1;
+  service_reject.t3346Value.timervalue               = 60;
+
+  encode_res =
+      service_reject.EncodeServiceRejectMsg(&service_reject, buffer, len);
+
+  EXPECT_EQ(encode_res, len);
+
+  decode_res = decoded_service_rej.DecodeServiceRejectMsg(
+      &decoded_service_rej, buffer, len);
+
+  EXPECT_EQ(decode_res, len);
+
+  EXPECT_EQ(
+      service_reject.sec_header_type.sec_hdr,
+      decoded_service_rej.sec_header_type.sec_hdr);
+  EXPECT_EQ(
+      service_reject.spare_half_octet.spare,
+      decoded_service_rej.spare_half_octet.spare);
+  EXPECT_EQ(
+      service_reject.message_type.msg_type,
+      decoded_service_rej.message_type.msg_type);
+  EXPECT_EQ(
+      service_reject.pdu_session_status.iei,
+      decoded_service_rej.pdu_session_status.iei);
+  EXPECT_EQ(
+      service_reject.pdu_session_status.len,
+      decoded_service_rej.pdu_session_status.len);
+  EXPECT_EQ(
+      service_reject.pdu_session_status.pduSessionStatus,
+      decoded_service_rej.pdu_session_status.pduSessionStatus);
+  EXPECT_EQ(
+      service_reject.cause.m5gmm_cause, decoded_service_rej.cause.m5gmm_cause);
 }
 
 int main(int argc, char** argv) {

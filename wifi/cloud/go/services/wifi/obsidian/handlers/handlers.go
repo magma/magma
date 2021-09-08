@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"reflect"
 	"sort"
@@ -192,13 +191,15 @@ func deleteGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	gwEnt, err := configurator.LoadEntity(nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil && err != merrors.ErrNotFound {
 		return obsidian.HttpError(err)
 	}
 
-	reqCtx := c.Request().Context()
 	err = configurator.DeleteEntities(
+		reqCtx,
 		nid,
 		[]storage.TypeAndKey{
 			{Type: orc8r.MagmadGatewayType, Key: gid},
@@ -241,12 +242,13 @@ func createMesh(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &wifimodels.WifiMesh{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -256,6 +258,7 @@ func createMesh(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		nid,
 		configurator.NetworkEntity{
 			Type:         wifi.MeshEntityType,
@@ -297,12 +300,13 @@ func updateMesh(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &wifimodels.WifiMesh{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if string(payload.ID) != mid {
@@ -329,7 +333,7 @@ func updateMesh(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "can't update gateways here! please update the individual gateways instead.")
 	}
 
-	_, err = configurator.UpdateEntities(nid, payload.ToUpdateCriteria(), serdes.Entity)
+	_, err = configurator.UpdateEntities(reqCtx, nid, payload.ToUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -341,6 +345,7 @@ func deleteMesh(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
@@ -355,7 +360,7 @@ func deleteMesh(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "can't delete a mesh with gateways!")
 	}
 
-	err = configurator.DeleteEntity(nid, wifi.MeshEntityType, mid)
+	err = configurator.DeleteEntity(reqCtx, nid, wifi.MeshEntityType, mid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

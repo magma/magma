@@ -52,9 +52,9 @@ func TestListSubscribers(t *testing.T) {
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
-	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	gw, err := configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
@@ -64,56 +64,52 @@ func TestListSubscribers(t *testing.T) {
 	// other inactive with a sub profile
 	// 2 APNs active for the active sub, 1 with an assigned static IP and the
 	// other without
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.APNEntityType, Key: "apn1",
-				Config: &lte_models.ApnConfiguration{
-					Ambr: &lte_models.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(42),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lte_models.QosProfile{
-						ClassID:                 swag.Int32(1),
-						PreemptionCapability:    swag.Bool(true),
-						PreemptionVulnerability: swag.Bool(true),
-						PriorityLevel:           swag.Uint32(1),
-					},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.APNEntityType, Key: "apn1",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(1),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(true),
+					PriorityLevel:           swag.Uint32(1),
 				},
 			},
-			{
-				Type: lte.APNEntityType, Key: "apn2",
-				Config: &lte_models.ApnConfiguration{
-					Ambr: &lte_models.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(42),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lte_models.QosProfile{
-						ClassID:                 swag.Int32(2),
-						PreemptionCapability:    swag.Bool(false),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(2),
-					},
-				},
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI00001",
-				Config: &models.SubscriberConfig{
-					Lte: &models.LteSubscription{
-						State:   "ACTIVE",
-						AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					},
-					StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
-			},
-			{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.APNEntityType, Key: "apn2",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(2),
+					PreemptionCapability:    swag.Bool(false),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(2),
+				},
+			},
+		},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI00001",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{
+					State:   "ACTIVE",
+					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				},
+				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+		},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Fetch first page of subscribers
@@ -203,24 +199,20 @@ func TestListSubscribers(t *testing.T) {
 	assert.Empty(t, res.NextPageToken)
 
 	// Create policies and base name associated to sub
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.BaseNameEntityType, Key: "bn1",
-				Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
-			},
-			{
-				Type: lte.PolicyRuleEntityType, Key: "r1",
-				Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
-			},
-			{
-				Type: lte.PolicyRuleEntityType, Key: "r2",
-				Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
-			},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type: lte.BaseNameEntityType, Key: "bn1",
+			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: lte.PolicyRuleEntityType, Key: "r1",
+			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
+		},
+		{
+			Type: lte.PolicyRuleEntityType, Key: "r2",
+			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedProtos[0].Lte.AssignedPolicies = []string{"r1", "r2"}
@@ -255,7 +247,7 @@ func TestListSubscribers(t *testing.T) {
 		Key:               gw.Key,
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource1"}},
 	})
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{
@@ -271,20 +263,16 @@ func TestListSubscribers(t *testing.T) {
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	// Create 8 more subscribers to test max page size
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: lte.SubscriberEntityType, Key: "IMSI99991", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99992", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99993", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99994", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99995", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99996", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99997", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-			{Type: lte.SubscriberEntityType, Key: "IMSI99998", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{Type: lte.SubscriberEntityType, Key: "IMSI99991", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99992", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99993", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99994", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99995", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99996", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99997", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99998", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// max page size for the configurator test service is 10 entities
@@ -316,7 +304,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 	}, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	gw, err := configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
@@ -409,7 +397,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 	assert.True(t, proto.Equal(expectedDigestTree, res.Digests))
 
 	// The servicer should append gateway-specific apn resources data to returned subscriber protos
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
 		Type: lte.APNEntityType, Key: "apn1",
 		Config: &lte_models.ApnConfiguration{},
 	}, serdes.Entity)
@@ -434,7 +422,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 		Key:               gw.Key,
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource1"}},
 	})
-	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	err = configurator.WriteEntities(context.Background(), "n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{
@@ -491,7 +479,7 @@ func TestListSubscribersSetLastResyncTime(t *testing.T) {
 	}, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
@@ -548,7 +536,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: true, ResyncIntervalSecs: 1000}, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
@@ -606,7 +594,7 @@ func TestSyncSubscribers(t *testing.T) {
 	servicer := servicers.NewSubscriberdbServicer(configs, storeReader)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
@@ -756,7 +744,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())

@@ -727,19 +727,23 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         try:
             response = ofctl_api.send_msg(
                 self, message, reply_cls=parser.OFPFlowStatsReply,
-                reply_multi=False,
+                reply_multi=True,
             )
-            if response == None:
+            if not response:
                 self.logger.error("No rule records match the specified cookie and cookie mask")
                 return RuleRecordTable()
-            else:
-                usage = self._get_usage_from_flow_stat(response.body)
-                self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
-                record_table = RuleRecordTable(
-                    records=usage.values(),
-                    epoch=global_epoch,
-                )
-                return record_table
+
+            aggregated_msgs = []
+            for r in response:
+                aggregated_msgs += r.body
+
+            usage = self._get_usage_from_flow_stat(aggregated_msgs)
+            self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
+            record_table = RuleRecordTable(
+                records=usage.values(),
+                epoch=global_epoch,
+            )
+            return record_table
         except (InvalidDatapath, OFError, UnexpectedMultiReply):
             self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
             return RuleRecordTable()

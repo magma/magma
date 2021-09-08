@@ -24,15 +24,11 @@ func TestSiteCalculations(t *testing.T) {
 	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity(
-		"n0",
-		configurator.NetworkEntity{
-			Type:       orc8r.MagmadGatewayType,
-			Key:        "g0",
-			Config:     &models.MagmadGatewayConfigs{},
-			PhysicalID: "hw0"},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context2.Background(), "n0", configurator.NetworkEntity{
+		Type:       orc8r.MagmadGatewayType,
+		Key:        "g0",
+		Config:     &models.MagmadGatewayConfigs{},
+		PhysicalID: "hw0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")

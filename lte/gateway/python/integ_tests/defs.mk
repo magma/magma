@@ -141,7 +141,6 @@ s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_looped.py \
 s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
-s1aptests/test_multi_enb_multi_ue_diff_tac.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
@@ -177,6 +176,7 @@ s1aptests/test_attach_esm_info_timerexpiration_max_retries.py \
 s1aptests/test_attach_service_without_mac.py \
 s1aptests/test_paging_request.py \
 s1aptests/test_multi_enb_paging_request.py \
+s1aptests/test_multi_enb_multi_ue_diff_tac.py \
 s1aptests/test_enb_partial_reset_with_unknown_ue_s1ap_ids.py \
 s1aptests/test_attach_auth_mac_failure.py \
 s1aptests/test_attach_esm_information_timerexpiration.py \

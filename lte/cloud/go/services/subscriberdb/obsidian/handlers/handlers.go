@@ -261,18 +261,13 @@ func listSubscribersV2Handler(c echo.Context) error {
 	}
 
 	// get total number of subscribers
-	loadCriteria := configurator.EntityLoadCriteria{}
-	count, err := configurator.CountEntitiesOfType(
-		networkID,
-		lte.SubscriberEntityType,
-		loadCriteria,
-		serdes.Entity)
+	count, err := configurator.CountEntitiesOfType(networkID, lte.SubscriberEntityType)
 	if err != nil {
 		return c.JSON(http.StatusOK, nil)
 	}
 	paginatedSubs := subscribermodels.PaginatedSubscribers{
 		TotalCount:    int64(count),
-		NextPageToken: subscribermodels.NextPageToken(nextPageToken),
+		NextPageToken: subscribermodels.PageToken(nextPageToken),
 		Subscribers:   subs,
 	}
 	return c.JSON(http.StatusOK, paginatedSubs)
@@ -297,7 +292,7 @@ func createSubscriberHandler(c echo.Context) error {
 		return nerr
 	}
 
-	nerr = createSubscribers(networkID, payload)
+	nerr = createSubscribers(reqCtx, networkID, payload)
 	if nerr != nil {
 		return nerr
 	}
@@ -324,7 +319,7 @@ func createSubscribersV2Handler(c echo.Context) error {
 		return nerr
 	}
 
-	nerr = createSubscribers(networkID, payload...)
+	nerr = createSubscribers(reqCtx, networkID, payload...)
 	if nerr != nil {
 		return nerr
 	}
@@ -368,7 +363,7 @@ func updateSubscriberHandler(c echo.Context) error {
 		return nerr
 	}
 
-	err := updateSubscriber(networkID, payload)
+	err := updateSubscriber(reqCtx, networkID, payload)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -381,7 +376,7 @@ func deleteSubscriberHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := deleteSubscriber(networkID, subscriberID)
+	err := deleteSubscriber(c.Request().Context(), networkID, subscriberID)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -519,6 +514,7 @@ func updateSubscriberProfile(c echo.Context) error {
 	}
 
 	_, err = configurator.UpdateEntity(
+		reqCtx,
 		networkID,
 		configurator.EntityUpdateCriteria{Type: lte.SubscriberEntityType, Key: subscriberID, NewConfig: desiredCfg},
 		serdes.Entity,
@@ -535,6 +531,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		if nerr != nil {
 			return nerr
 		}
+		reqCtx := c.Request().Context()
 
 		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 		if err != nil {
@@ -543,7 +540,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 
 		newConfig := cfg.(*subscribermodels.SubscriberConfig)
 		newConfig.Lte.State = desiredState
-		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
+		err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -733,7 +730,7 @@ func loadMutableSubscriberPage(networkID string, pageSize uint32, pageToken stri
 	return subs, nextPageToken, nil
 }
 
-func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscriber) *echo.HTTPError {
+func createSubscribers(ctx context.Context, networkID string, subs ...*subscribermodels.MutableSubscriber) *echo.HTTPError {
 	var ents configurator.NetworkEntities
 	var ids []string
 	uniqueIDs := map[string]int{}
@@ -761,7 +758,7 @@ func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscr
 		return obsidian.HttpError(errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()), http.StatusBadRequest)
 	}
 
-	_, err = configurator.CreateEntities(networkID, ents, serdes.Entity)
+	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -794,7 +791,7 @@ func getCreateSubscriberEnts(sub *subscribermodels.MutableSubscriber) configurat
 	return ents
 }
 
-func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber) error {
+func updateSubscriber(ctx context.Context, networkID string, sub *subscribermodels.MutableSubscriber) error {
 	var writes []configurator.EntityWriteOperation
 
 	existingSub, err := configurator.LoadEntity(
@@ -828,7 +825,7 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	}
 	writes = append(writes, subUpdate)
 
-	err = configurator.WriteEntities(networkID, writes, serdes.Entity)
+	err = configurator.WriteEntities(ctx, networkID, writes, serdes.Entity)
 	if err != nil {
 		return err
 	}
@@ -836,7 +833,7 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	return nil
 }
 
-func deleteSubscriber(networkID, key string) error {
+func deleteSubscriber(ctx context.Context, networkID, key string) error {
 	ent, err := configurator.LoadEntity(
 		networkID, lte.SubscriberEntityType, key,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
@@ -870,7 +867,7 @@ func deleteSubscriber(networkID, key string) error {
 	deletes = append(deletes, sub.ToTK())
 	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
 
-	err = configurator.DeleteEntities(networkID, deletes)
+	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

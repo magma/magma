@@ -88,7 +88,7 @@ class NodeStateManager:
     def _send_messsage_wrapper(self, node_message):
         return send_node_state_association_request(
             node_message,\
-                                                   self._sessiond_setinterface,
+            self._sessiond_setinterface,
         )
 
     def _send_association_request_message(self, assoc_message):

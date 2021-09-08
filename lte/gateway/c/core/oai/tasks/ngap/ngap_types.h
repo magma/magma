@@ -83,8 +83,7 @@ struct ngap_timer_t {
 typedef struct m5g_ue_description_s {
   enum ng_ue_state_s ng_ue_state;  ///< NGAP UE state
 
-  gnb_ue_ngap_id_t
-      gnb_ue_ngap_id : 24;          ///< Unique UE id over gNB (24 bits wide)
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;  ///< Unique UE id over gNB (24 bits wide)
   amf_ue_ngap_id_t amf_ue_ngap_id;  ///< Unique UE id over AMF (32 bits wide)
   sctp_assoc_id_t sctp_assoc_id;  ///< Assoc id of gNB which this UE is attached
   uint64_t comp_ngap_id;          ///< Unique composite UE id (sctp_assoc_id &

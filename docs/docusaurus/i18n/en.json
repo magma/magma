@@ -87,6 +87,9 @@
       "feg/session_proxy": {
         "title": "feg/session_proxy"
       },
+      "general/upgrade_intro": {
+        "title": "Introduction"
+      },
       "howtos/call_tracing": {
         "title": "Call Tracing"
       },
@@ -104,6 +107,9 @@
       },
       "howtos/readme_package": {
         "title": "Packaging"
+      },
+      "howtos/troubleshooting/agw_healthcheck": {
+        "title": "Perform Access Gateway health check"
       },
       "howtos/troubleshooting/agw_unable_to_checkin": {
         "title": "Access Gateway Unable to Check-in to Orchestrator"
@@ -428,6 +434,12 @@
       },
       "proposals/p019_enodeb_cbrs_support": {
         "title": "Enodebd CBRS Support"
+      },
+      "proposals/sim_integration": {
+        "title": "SIM Management System Integration"
+      },
+      "proposals/p020_sgi_tunnel_transport": {
+        "title": "L3 transport for AGW"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"

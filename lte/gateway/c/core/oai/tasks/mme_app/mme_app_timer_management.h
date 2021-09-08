@@ -12,23 +12,24 @@ limitations under the License.
 */
 #ifndef FILE_MME_UE_CONTEXT_H_SEEN
 #define FILE_MME_UE_CONTEXT_H_SEEN
-//--C includes -----------------------------------------------------------------
+// C includes --------------------------------------------------------------
 extern "C" {
 #include "intertask_interface.h"
+#include "esm_data.h"
+#include "mme_app_timer.h"
 }
-////--C++ includes
-///---------------------------------------------------------------
-////--Other includes
-///-------------------------------------------------------------
+// C++ includes ------------------------------------------------------------
 #include <czmq.h>
 #include <map>
+#include <utility>
 #include <stddef.h>
 #include <stdint.h>
+// Other includes ----------------------------------------------------------
 
 namespace magma {
 namespace lte {
 
-typedef uint32_t TimerArgType;
+typedef timer_arg_t TimerArgType;
 
 class MmeUeContext {
  private:
@@ -46,7 +47,7 @@ class MmeUeContext {
 
   int StartTimer(
       size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      TimerArgType id);
+      const TimerArgType& arg);
   void StopTimer(int timer_id);
 
   bool GetTimerArg(const int timer_id, TimerArgType* arg) const;

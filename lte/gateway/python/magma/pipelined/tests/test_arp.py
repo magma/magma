@@ -230,7 +230,7 @@ class ARPTableRestTest(unittest.TestCase):
                 DIRECTION_REG,
                 0x10,
             )
-                                               .build_requests(),
+            .build_requests(),
         )
         flow_query = RyuRestFlowQuery(
             self.TID,
@@ -272,7 +272,7 @@ class ARPTableRestTest(unittest.TestCase):
                 DIRECTION_REG,
                 0x1,
             )
-                                               .build_requests(),
+            .build_requests(),
         )
         flow_query = RyuRestFlowQuery(
             self.TID, match={

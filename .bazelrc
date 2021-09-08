@@ -1,6 +1,22 @@
 startup --output_user_root=/tmp/bazel
 
-# Can't mount the build cache as a volume on macOS without setting the spawn_strategy to local
-# See https://github.com/bazelbuild/rules_foreign_cc/issues/667
-build --spawn_strategy=local
+build --announce_rc
 build --cxxopt=-std=c++14
+build --cxxopt=-g2
+
+# For building with Bazel inside the Magma-Builder Docker container
+build:docker --disk_cache=/magma/.bazel-cache
+build:docker --repository_cache=/magma/.bazel-cache-repo
+
+# For building with Bazel inside the Magma VM
+build:vm --sandbox_writable_path=/home/vagrant/.ccache
+build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
+build:vm --repository_cache=.bazel-cache-repo
+build:vm --define=folly_so=1
+
+build:asan --strip=never
+build:asan --copt=-fsanitize=address
+build:asan --copt=-O0
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --linkopt=-fsanitize=address
+build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always

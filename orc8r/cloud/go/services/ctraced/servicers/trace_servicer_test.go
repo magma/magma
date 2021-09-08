@@ -58,15 +58,11 @@ func TestCallTraceServicer(t *testing.T) {
 			CallTraceEnding:    false,
 		},
 	}
-	_, err = configurator.CreateEntity(
-		testNetworkId,
-		configurator.NetworkEntity{
-			Type:   orc8r.CallTraceEntityType,
-			Key:    "CallTrace1",
-			Config: testTrace,
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context2.Background(), testNetworkId, configurator.NetworkEntity{
+		Type:   orc8r.CallTraceEntityType,
+		Key:    "CallTrace1",
+		Config: testTrace,
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Create an identity and context for sending requests as gateway

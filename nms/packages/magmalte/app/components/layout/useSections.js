@@ -24,11 +24,8 @@ import {CWF, FEG, LTE, WIFI, coalesceNetworkType} from '@fbcnms/types/network';
 
 import {getCWFSections} from '../cwf/CWFSections';
 import {getFEGSections} from '../feg/FEGSections';
-import {
-  getLteSections,
-  getLteSectionsV2,
-} from '@fbcnms/magmalte/app/components/lte/LteSections';
-import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
+import {getLteSections, getLteSectionsV2} from '../lte/LteSections';
+import {getMeshSections} from '../wifi/WifiSections';
 import {useContext, useEffect, useState} from 'react';
 
 export default function useSections(): SectionsConfigs {

@@ -40,7 +40,6 @@
 #include "queue.h"
 #include "nas/securityDef.h"
 #include "security_types.h"
-#include <czmq.h>
 
 struct emm_context_s;
 struct nas_base_proc_s;
@@ -60,7 +59,6 @@ typedef int (*pdu_in_resp_t)(
 typedef int (*pdu_in_rej_t)(struct emm_context_s*, void* arg);  // REJECT.
 typedef int (*pdu_out_rej_t)(
     struct emm_context_s*, struct nas_base_proc_s*);  // REJECT.
-typedef int (*time_out_t)(zloop_t* loop, int timer_id, void* args);
 
 typedef int (*sdu_out_delivered_t)(
     struct emm_context_s*, struct nas_emm_proc_s*);

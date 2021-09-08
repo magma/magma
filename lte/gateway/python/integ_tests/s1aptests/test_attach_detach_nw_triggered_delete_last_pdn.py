@@ -122,6 +122,7 @@ class TestAttachDetachNwTriggeredDeleteLastPdn(unittest.TestCase):
             )
 
             # Verify that all UL/DL flows are deleted
+            time.sleep(5)
             self._s1ap_wrapper._s1_util.verify_flow_rules_deletion()
 
 
