@@ -170,7 +170,7 @@ def get_all_ips_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
 def get_ip_from_if_cidr(iface_name, preference=IpPreference.IPV4_PREFERRED):
     """
     Get IPAddress with netmask from interface name and
-    transform into CIDR (eth1 -> 192.168.8.178/24)
+    transform into CIDR (eth1 -> 192.168.60.142/24)
     notation return as string.
     """
     ip, netmask = get_if_ip_with_netmask(iface_name, preference)
@@ -185,7 +185,7 @@ def get_all_ips_from_if_cidr(
 ):
     """
     Get all IPAddresses with netmask from interface name and
-    transform into CIDR (eth1 -> 192.168.8.178/24) notation
+    transform into CIDR (eth1 -> 192.168.60.142/24) notation
     return as a list of string.
     """
 
