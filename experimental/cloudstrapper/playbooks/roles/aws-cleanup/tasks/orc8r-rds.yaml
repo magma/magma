@@ -28,6 +28,9 @@
 - name: delete rds subnet group
   command: aws rds delete-db-subnet-group --db-subnet-group-name "{{ orc8rRdsSubnetGroup }}"
   register: result
+  until: result is not failed
+  retries: 5
+  delay: 30
   failed_when:
     - result.stderr != ''
     - not 'DBSubnetGroupNotFoundFault' in result.stderr

@@ -24,7 +24,7 @@ fullStacks:
   - stackSanRamonAgwA
   - stackSanRamonNetwork
 orc8rDbs:
-  - orc8rdb
+  - "{{ orc8rDbId }}"
 orc8rDbSnapshots:
   - orc8rdb-final-snapshot
 orc8rDbParameterGroups:

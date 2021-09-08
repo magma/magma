@@ -1425,6 +1425,7 @@ jobs:
           name: Propagate Vars for agw
           command: |
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-0ee28a2012a15bd10/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsCloudstrapperAmi: /s/:.*$/: ami-0cf2292e23eda64c6/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rVersion: /s/:.*$/: '"$VERSION"'/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rLabel: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
       - run:
