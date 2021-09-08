@@ -142,12 +142,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(
     // Resend detach request message to the UE
     emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id, data->detach_type);
   } else {
-    // Abort the detach procedure and perform implicit detach
-    if (data) {
-      // Free timer argument
-      free_wrapper((void**) &data);
-      emm_ctx->t3422_arg = NULL;
-    }
+    // Abort the detach procedure and perform implicit detach    
     if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       /*
@@ -157,6 +152,11 @@ status_code_e mme_app_handle_detach_t3422_expiry(
       emm_detach_request_params.switch_off = 1;
       emm_detach_request_params.type       = 0;
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
+    }
+    if (data) {
+      // Free timer argument
+      free_wrapper((void**) &data);
+      emm_ctx->t3422_arg = NULL;
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

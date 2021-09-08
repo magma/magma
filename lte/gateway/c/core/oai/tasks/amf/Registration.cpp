@@ -716,6 +716,7 @@ static int registration_accept_t3550_handler(
       amf_proc_registration_abort(amf_ctx, ue_amf_context);
       // Clean up all the sessions.
       amf_smf_context_cleanup_pdu_session(ue_amf_context);
+      amf_free_ue_context(ue_amf_context);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
@@ -1140,7 +1141,6 @@ int amf_proc_registration_abort(
     message_p->ittiMsgHeader.imsi = ue_amf_context->amf_context.imsi64;
     send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
     amf_delete_registration_proc(amf_ctx);
-    amf_remove_ue_context(ue_amf_context);
     rc = RETURNok;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
