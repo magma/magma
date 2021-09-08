@@ -143,11 +143,6 @@ status_code_e mme_app_handle_detach_t3422_expiry(
     emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id, data->detach_type);
   } else {
     // Abort the detach procedure and perform implicit detach
-    if (data) {
-      // Free timer argument
-      free_wrapper((void**) &data);
-      emm_ctx->t3422_arg = NULL;
-    }
     if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       /*
@@ -157,6 +152,11 @@ status_code_e mme_app_handle_detach_t3422_expiry(
       emm_detach_request_params.switch_off = 1;
       emm_detach_request_params.type       = 0;
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
+    }
+    if (data) {
+      // Free timer argument
+      free_wrapper((void**) &data);
+      emm_ctx->t3422_arg = NULL;
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -363,9 +363,14 @@ status_code_e emm_proc_detach_request(
       " (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       emm_detach_type_str[params->type], params->type, ue_id);
   /*
-   * Get the UE emm context
+   * Get the UE context and emm context
    */
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
+  ue_mm_context_t* ue_context_p = NULL;
+  ue_context_p                  = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_context_t* emm_ctx        = NULL;
+  if (ue_context_p) {
+    emm_ctx = &ue_context_p->emm_context;
+  }
 
   if (emm_ctx == NULL) {
     OAILOG_WARNING(
@@ -383,6 +388,9 @@ status_code_e emm_proc_detach_request(
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_not_sent");
     detach_success_event(emm_ctx->_imsi64, "detach_accept_not_sent");
+    if (ue_context_p->ecm_state == ECM_CONNECTED) {
+      update_mme_app_stats_connected_ue_sub();
+    }
     rc = RETURNok;
   } else {
     /*
