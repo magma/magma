@@ -437,7 +437,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     h_rc = hashtable_ts_remove(
         amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-        (void**) &ue_context_p);
+        reinterpret_cast<void**>(&ue_context_p));
     ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
   }
 
