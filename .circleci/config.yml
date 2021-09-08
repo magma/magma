@@ -1428,16 +1428,25 @@ jobs:
             sed -i -e '/^orc8rVersion: /s/:.*$/: '"$VERSION"'/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rLabel: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
       - run:
+          name: Propagate names for AWS essential components
+          command: |
+            sed -i -e '/^keyBoot: /s/:.*$/: deploy-orc8r-keyboot/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^keyHost: /s/:.*$/: deploy-orc8r-keyhost/' $VARS_DIR/defaults.yaml
+      - run:
+          name: Create Key
+          command: |
+            ansible-playbook $WORK_DIR/aws-prerequisites.yaml -e "dirLocalInventory=$VARS_DIR" --tags keyCreate
+      - run:
           name: Deploy and configure Agw
           no_output_timeout: 30m
           command: |
-            ansible-playbook $WORK_DIR/agw-provision.yaml -e "dirLocalInventory=$VARS_DIR"  -e "idSite=awstest" -e "idGw=awstest"
-            ansible-playbook $WORK_DIR/agw-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=$VARS_DIR" -e "agw=tag_Name_awstest" -u ubuntu
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "dirLocalInventory=$VARS_DIR"  -e "idSite=TestCluster" -e "idGw=awstest"
+            ansible-playbook $WORK_DIR/agw-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=$VARS_DIR" -e "agw=tag_Name_TestCluster" -u ubuntu
       - run:
           name: Clean AWS resources
           when: always
           command: |
-            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags  agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r
+            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags  keys,agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r
       - notify-magma:
           artifact_name: AGW AWS AMI
           version_path: $VERSION

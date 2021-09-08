@@ -22,6 +22,9 @@
   with_items:
     - "{{ orc8rDbs }}"
 
+- name: wait a little longer
+  command: sleep 60
+
 - name: delete rds subnet group
   command: aws rds delete-db-subnet-group --db-subnet-group-name "{{ orc8rRdsSubnetGroup }}"
   register: result
