@@ -179,10 +179,11 @@ ENV MAGMA_ROOT /magma
 ENV C_BUILD /build/c
 ENV TZ=Europe/Paris
 
-RUN apt-get -y update && apt-get -y install apt-utils
-
 # Install runtime dependencies
 RUN apt-get -y update && apt-get -y install \
+  apt-utils \
+  wget \
+  gnupg \
   sudo \
   libyaml-cpp-dev \
   libgoogle-glog-dev \
@@ -190,12 +191,17 @@ RUN apt-get -y update && apt-get -y install \
   libtins-dev \
   libmnl-dev \
   libsctp-dev \
-      psmisc \
-      openssl \
-      net-tools \
-      tshark \
-      tzdata \
+  psmisc \
+  openssl \
+  net-tools \
+  tshark \
+  tzdata \
   && rm -rf /var/lib/apt/lists/*
+
+RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
+RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
+
+RUN apt-get update && apt-get install -y libopenvswitch openvswitch-datapath-dkms openvswitch-common openvswitch-switch
 
 # Copy pre-built shared object files
 COPY --from=builder /usr/lib/x86_64-linux-gnu/liblsan.so.0 /usr/lib/x86_64-linux-gnu/

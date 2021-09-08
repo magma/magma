@@ -5,6 +5,7 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: lte/gateway/docker/services/c/Dockerfile
+
   gateway_python:
     build:
       context: ${BUILD_CONTEXT}

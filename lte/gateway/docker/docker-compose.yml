@@ -13,6 +13,7 @@ x-standard-volumes: &volumes_anchor
   - ${CERTS_VOLUME}:/var/opt/magma/certs
   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
   - ${SNOWFLAKE_PATH}:/etc/snowflake
+  - /var/run/openvswitch:/var/run/openvswitch
 
 x-generic-service: &service
   volumes: *volumes_anchor
@@ -23,12 +24,12 @@ x-generic-service: &service
 # Generic python anchor to avoid repetition for agw python services
 x-agw-python-service: &pyservice
   <<: *service
-  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}agw_gateway_python:${IMAGE_VERSION}
 
 # Generic anchor for lte c services
 x-lte-cservice: &ltecservice
   <<: *service
-  image: ${DOCKER_REGISTRY}gateway_c:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}agw_gateway_c:${IMAGE_VERSION}
 
 services:
   magmad:
@@ -39,73 +40,90 @@ services:
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
     command: /usr/bin/env python3 -m magma.magmad.main
+
   mobilityd:
     <<: *pyservice
     container_name: mobilityd
     depends_on:
       - redis
     command: /usr/bin/env python3 -m magma.mobilityd.main
+
   directoryd:
     <<: *pyservice
     container_name: directoryd
     depends_on:
       - redis
     command: /usr/bin/env python3 -m magma.directoryd.main
+
   subscriberdb:
     <<: *pyservice
     container_name: subscriberdb
     command: /usr/bin/env python3 -m magma.subscriberdb.main
+
   policydb:
     <<: *pyservice
     container_name: policydb
     depends_on:
       - redis
     command: /usr/bin/env python3 -m magma.policydb.main
+
   pipelined:
     <<: *pyservice
     container_name: pipelined
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
     command: /usr/bin/env python3 -m magma.pipelined.main
+    #command: sh -c 'yes'
+
   enodebd:
     <<: *pyservice
     container_name: enodebd
     command: /usr/bin/env python3 -m magma.enodebd.main
+
   state:
     <<: *pyservice
     container_name: state
     depends_on:
       - redis
     command: /usr/bin/env python3 -m magma.state.main
+
   eventd:
     <<: *pyservice
     container_name: eventd
     command: /usr/bin/env python3 -m magma.eventd.main
+
   health:
     <<: *pyservice
     container_name: health
     command: /usr/bin/env python3 -m magma.health.main
+
   monitord:
     <<: *pyservice
     container_name: monitord
     command: /usr/bin/env python3 -m magma.monitord.main
+
   redirectd:
     <<: *pyservice
     container_name: redirectd
     command: /usr/bin/env python3 -m magma.redirectd.main
+
   smsd:
     <<: *pyservice
     container_name: smsd
     command: /usr/bin/env python3 -m magma.smsd.main
+
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
     command: >
       sh -c "/usr/local/bin/generate_nghttpx_config.py && sed -i 's/errorlog-syslog=yes/errorlog-syslog=no/' /var/opt/magma/tmp/nghttpx.conf &&\
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
   ctraced:
     <<: *pyservice
     container_name: ctraced
     command: /usr/bin/env python3 -m magma.ctraced.main
-
 
   sessiond:
     <<: *ltecservice
@@ -125,22 +143,27 @@ services:
       sh -c "mkdir -p /var/opt/magma/cores &&
         sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
         /usr/local/bin/sessiond"
+
   sctpd:
     <<: *ltecservice
     container_name: sctpd
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 1
     command: /usr/local/bin/sctpd
+
   connectiond:
     <<: *ltecservice
     container_name: connectiond
     privileged: true
     command: /usr/local/bin/connectiond
+
   liagentd:
     <<: *ltecservice
     container_name: liagentd
     privileged: true
     command: /usr/local/bin/liagentd
+    restart: "no"
+
   mme:
     <<: *ltecservice
     container_name: oai_mme
@@ -150,10 +173,6 @@ services:
       - seccomp:unconfined
     privileged: true
     command: /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
-  #envoy_controller:
-  #  <<: *cservice
-  #  container_name: envoy_controller
-  #  image: envoy_controller:${IMAGE_VERSION}
 
   redis:
     <<: *pyservice
@@ -171,3 +190,9 @@ services:
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+
+  #envoy_controller:
+  #  <<: *cservice
+  #  container_name: envoy_controller
+  #  image: envoy_controller:${IMAGE_VERSION}
+
