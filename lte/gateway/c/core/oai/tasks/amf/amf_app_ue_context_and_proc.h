@@ -234,7 +234,7 @@ typedef struct teid_upf_gnb_s {
   uint8_t upf_gtp_teid_ip_addr[16];
   uint8_t upf_gtp_teid[4];
   uint8_t gnb_gtp_teid_ip_addr[16];
-  uint8_t gnb_gtp_teid[4];
+  uint32_t gnb_gtp_teid;
 } teid_upf_gnb_t;
 
 // Data get communicated with SMF and stored for reference

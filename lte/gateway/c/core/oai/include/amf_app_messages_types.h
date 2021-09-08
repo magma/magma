@@ -123,7 +123,7 @@ typedef struct itti_amf_ip_allocation_response_s {
   uint32_t pdu_session_type;
 
   /* GNB GTP Tunnel Identifier */
-  uint8_t gnb_gtp_teid[5];
+  uint32_t gnb_gtp_teid;
 
   /* GNB End Point IP address */
   uint8_t gnb_gtp_teid_ip_addr[16];

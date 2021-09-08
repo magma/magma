@@ -44,7 +44,7 @@ namespace magma5g {
 
 SetSMSessionContext create_sm_pdu_session_v4(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
-    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version) {
   magma::lte::SetSMSessionContext req;
 
@@ -86,9 +86,7 @@ SetSMSessionContext create_sm_pdu_session_v4(
   req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
 
   // TEID of GNB
-  uint32_t nTeid = (gnb_gtp_teid[0] << 24) | (gnb_gtp_teid[1] << 16) |
-                   (gnb_gtp_teid[2] << 8) | (gnb_gtp_teid[3]);
-  req_rat_specific->mutable_gnode_endpoint()->set_teid(nTeid);
+  req_rat_specific->mutable_gnode_endpoint()->set_teid(gnb_gtp_teid);
 
   // IP Address of GNB
 
@@ -108,7 +106,7 @@ SetSMSessionContext create_sm_pdu_session_v4(
 
 int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
-    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version) {
   magma::lte::SetSMSessionContext req = create_sm_pdu_session_v4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
