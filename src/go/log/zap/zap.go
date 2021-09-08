@@ -9,6 +9,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package zap implements github.com/magma/magma/log via github.com/uber-go/zap
+//
+// Basic usage:
+//
+//	import (
+//		uber_zap "go.uber.org/zap"
+//
+//		"github.com/magma/magma/log"
+//		"github.com/magma/magma/log/zap"
+//	)
+//
+//	lm := log.NewManager(zap.NewLogger(uber_zap.NewDevelopmentConfig()))
+//	lm.LoggerFor("thing").Info().Print("hello")
+//	// Output: [thing] hello
 package zap
 
 import (

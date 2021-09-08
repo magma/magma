@@ -18,21 +18,29 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/magma/magma/log"
-	"github.com/magma/magma/protos/magma/sctpd"
+	pb "github.com/magma/magma/protos/magma/sctpd"
 )
 
+// ProxyUplinkServer handles SctpdUplinkServer RPCs by calling out to a
+// provided SctpdUplinkClient.
 type ProxyUplinkServer struct {
-	client sctpd.SctpdUplinkClient
+	client pb.SctpdUplinkClient
 
 	log.Logger
-	*sctpd.UnimplementedSctpdUplinkServer
+	*pb.UnimplementedSctpdUplinkServer
 }
 
+// NewProxyUplinkServer creates a new ProxyUplinkServer with the provided
+// logger and client connection.
 func NewProxyUplinkServer(logger log.Logger, cc *grpc.ClientConn) *ProxyUplinkServer {
-	return &ProxyUplinkServer{Logger: logger, client: sctpd.NewSctpdUplinkClient(cc)}
+	return &ProxyUplinkServer{
+		Logger: logger,
+		client: pb.NewSctpdUplinkClient(cc),
+	}
 }
 
-func (p *ProxyUplinkServer) SendUl(ctx context.Context, req *sctpd.SendUlReq) (*sctpd.SendUlRes, error) {
+// SendUl proxies calls to SctpdUplink.SendUl.
+func (p *ProxyUplinkServer) SendUl(ctx context.Context, req *pb.SendUlReq) (*pb.SendUlRes, error) {
 	p.Logger.
 		With("assoc_id", req.GetAssocId()).
 		With("stream", req.GetStream()).
@@ -42,7 +50,8 @@ func (p *ProxyUplinkServer) SendUl(ctx context.Context, req *sctpd.SendUlReq) (*
 	return p.client.SendUl(ctx, req)
 }
 
-func (p *ProxyUplinkServer) NewAssoc(ctx context.Context, req *sctpd.NewAssocReq) (*sctpd.NewAssocRes, error) {
+// NewAssoc proxies calls to SctpdUplink.NewAssoc.
+func (p *ProxyUplinkServer) NewAssoc(ctx context.Context, req *pb.NewAssocReq) (*pb.NewAssocRes, error) {
 	p.Logger.
 		With("assoc_id", req.GetAssocId()).
 		With("instreams", req.GetInstreams()).
@@ -53,7 +62,8 @@ func (p *ProxyUplinkServer) NewAssoc(ctx context.Context, req *sctpd.NewAssocReq
 	return p.client.NewAssoc(ctx, req)
 }
 
-func (p *ProxyUplinkServer) CloseAssoc(ctx context.Context, req *sctpd.CloseAssocReq) (*sctpd.CloseAssocRes, error) {
+// CloseAssoc proxies calls to SctpdUplink.CloseAssoc.
+func (p *ProxyUplinkServer) CloseAssoc(ctx context.Context, req *pb.CloseAssocReq) (*pb.CloseAssocRes, error) {
 	p.Logger.
 		With("assoc_id", req.GetAssocId()).
 		With("is_reset", req.GetIsReset()).

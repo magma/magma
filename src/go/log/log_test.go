@@ -114,8 +114,8 @@ func TestManagedLogger_Named(t *testing.T) {
 
 	root := m.LoggerFor("")
 	foo := root.Named("foo")
-	managedFoo, ok := foo.(*ManagedLogger)
-	assert.True(t, ok, "logger in log.Manager must be *ManagedLogger")
+	managedFoo, ok := foo.(*managedLogger)
+	assert.True(t, ok, "logger in log.Manager must be *managedLogger")
 	assert.Same(t, fooml, managedFoo.Logger)
 
 	assert.Len(t, m.loggers, 2)
@@ -138,7 +138,7 @@ func TestManagedLogger_Named(t *testing.T) {
 
 func TestManagedLogger_Named_MissingRoot(t *testing.T) {
 	m := &Manager{}
-	ml := &ManagedLogger{Manager: m}
+	ml := &managedLogger{Manager: m}
 
 	defer func() {
 		r := recover()
@@ -161,9 +161,9 @@ func TestManagedLogger_Named_MissingIntermediate(t *testing.T) {
 		Return(nil)
 
 	m := &Manager{}
-	rootLogger := &ManagedLogger{Manager: m, Logger: ml}
-	foobarLogger := &ManagedLogger{Manager: m, names: []string{"foo", "bar"}}
-	m.loggers = map[string]*ManagedLogger{
+	rootLogger := &managedLogger{Manager: m, Logger: ml}
+	foobarLogger := &managedLogger{Manager: m, names: []string{"foo", "bar"}}
+	m.loggers = map[string]*managedLogger{
 		"":        rootLogger,
 		"foo.bar": foobarLogger,
 	}

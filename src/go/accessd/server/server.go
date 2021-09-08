@@ -20,8 +20,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/magma/magma/log"
-	"github.com/magma/magma/protos/magma/sctpd"
-	service_sctpd "github.com/magma/magma/service/sctpd"
+	sctpdpb "github.com/magma/magma/protos/magma/sctpd"
+	"github.com/magma/magma/service/sctpd"
 )
 
 const (
@@ -42,8 +42,8 @@ func newServer(logger log.Logger) *grpc.Server {
 	if err != nil {
 		panic(err)
 	}
-	sctpdUplinkServer := service_sctpd.NewProxyUplinkServer(logger, mmeGrpcConn)
-	sctpd.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
+	sctpdUplinkServer := sctpd.NewProxyUplinkServer(logger, mmeGrpcConn)
+	sctpdpb.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
 
 	return grpcServer
 }

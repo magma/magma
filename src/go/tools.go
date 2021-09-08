@@ -12,6 +12,8 @@
 //go:build tools
 // +build tools
 
+// Package tools is a convention to ensure `go mod tidy` adds development tool
+// packages to go.mod / go.sum.
 package tools
 
 import (
