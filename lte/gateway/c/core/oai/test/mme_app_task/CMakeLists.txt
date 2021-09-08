@@ -38,6 +38,7 @@ set(MME_APP_EMM_DECODE_SRC
     )
 set(MME_APP_CONFIG_SRC
     test_mme_app_config_partial_tai_list.cpp
+    )
 set(MME_APP_PROC_SRC
     test_mme_procedures.cpp
     )
@@ -60,7 +61,6 @@ target_link_libraries(test_mme_app_procedures
     LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES}
     )
-
 target_link_libraries(test_mme_app_config
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     gtest gtest_main
@@ -78,7 +78,6 @@ target_include_directories(test_mme_app_procedures PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CHECK_INCLUDE_DIRS}
     )
-
 target_include_directories(test_mme_app_config PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CHECK_INCLUDE_DIRS}
@@ -86,8 +85,5 @@ target_include_directories(test_mme_app_config PUBLIC
 
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_emm_decode COMMAND test_mme_app_emm_decode)
-<<<<<<< HEAD
 add_test(NAME test_mme_app_config COMMAND test_mme_app_config)
-=======
 add_test(NAME test_mme_app_procedures COMMAND test_mme_app_procedures)
->>>>>>> b415d316a (Initial boilerplate)
