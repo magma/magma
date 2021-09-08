@@ -397,7 +397,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
 
-             //Ho Algorithm Config
+
             hoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
             if hoAlgorithmConfig != nil {
 				enbMconfig.A1ThresholdRsrp = int32(hoAlgorithmConfig.A1ThresholdRsrp)
@@ -412,11 +412,11 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 				enbMconfig.A3OffsetAnr = int32(hoAlgorithmConfig.A3OffsetAnr)
 				enbMconfig.A4ThresholdRsrp = int32(hoAlgorithmConfig.A4ThresholdRsrp)
 				enbMconfig.LteIntraA5Threshold_1Rsrp = int32(hoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
-				enbMconfig.LteIntraA5Threshold_2Rsrp = int32(hoAlgorithmConfig.LteIntraA5Threshold2Rsrp)
-				enbMconfig.B2Threshold1Rsrp = uint32(hoAlgorithmConfig.B2Threshold1Rsrp)
+				enbMconfig.LteIntraA5Threshold_2Rsrp = hoAlgorithmConfig.LteIntraA5Threshold2Rsrp
+				enbMconfig.B2Threshold1Rsrp = hoAlgorithmConfig.B2Threshold1Rsrp
 				enbMconfig.B2Threshold2Rsrp = int32(hoAlgorithmConfig.B2Threshold2Rsrp)
 				enbMconfig.B2GeranIratThreshold = uint32(hoAlgorithmConfig.B2GeranIratThreshold)
-				enbMconfig.QrxlevminSib1 = int32(hoAlgorithmConfig.QrxlevminSib1)
+				enbMconfig.QrxlevminSib1 = oAlgorithmConfig.QrxlevminSib1
 				enbMconfig.Qrxlevminoffset = uint32(hoAlgorithmConfig.Qrxlevminoffset)
 				enbMconfig.SIntrasearch = uint32(hoAlgorithmConfig.SIntrasearch)
 				enbMconfig.SNonintrasearch = uint32(hoAlgorithmConfig.SNonintrasearch)
