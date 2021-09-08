@@ -42,7 +42,7 @@
 - name: gather all route tables for this subnet
   ec2_vpc_route_table_info:
     filters:
-      vpc_id: "{{ factVpcId }}"
+      vpc-id: "{{ factVpcId }}"
   register: valRtb
   when: factVpcId is defined
 

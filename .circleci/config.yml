@@ -1411,8 +1411,8 @@ jobs:
             sed -i -e '/^orc8rTfCluster: /s/:.*$/: orc8r-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rTfEs: /s/:.*$/: orc8r-es-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rTfRdsNotifs: /s/:.*$/: orc8r-rds-events-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^orc8rDbName: /s/:.*$/: orc8r-db'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^orc8rDbId: /s/:.*$/: orc8r-db-id-'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rDbName: /s/:.*$/: orc8rdb'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^orc8rDbId: /s/:.*$/: orc8rdbid-'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rDomainName: /s/:.*$/: orc8rtest.com/' $VARS_DIR/cluster.yaml
             sed -i -e '/^orc8rSnsName: /s/:.*$/: orc8r-sns-test'"${CIRCLE_SHA1:7:8}"'/' $VARS_DIR/cluster.yaml
             sed -i -e '/^userBootstrap: /s/:.*$/: circleci/' $VARS_DIR/defaults.yaml
