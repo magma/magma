@@ -428,6 +428,7 @@ void amf_config_exit(void) {
   pthread_rwlock_destroy(&amf_config.rw_lock);
   amf_config_free(&amf_config);
 }
+
 void clear_amf_config(amf_config_t* amf_config) {
   if (!amf_config) return;
 
@@ -466,6 +467,14 @@ void copy_amf_config_from_mme_config(
   dest->relative_capacity              = src->relative_capacity;
   dest->use_stateless                  = src->use_stateless;
   dest->unauthenticated_imsi_supported = src->unauthenticated_imsi_supported;
+
+  // NAS-5G setting
+  for (int i = 0; i < 8; i++) {
+    dest->nas_config.preferred_integrity_algorithm[i] =
+        src->nas_config.prefered_integrity_algorithm[i];
+    dest->nas_config.preferred_ciphering_algorithm[i] =
+        src->nas_config.prefered_ciphering_algorithm[i];
+  }
 
   // TAI list setting
   copy_served_tai_config_list(dest, src);
