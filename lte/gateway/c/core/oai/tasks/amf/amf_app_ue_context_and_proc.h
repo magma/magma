@@ -846,5 +846,5 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
-
+void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 }  // namespace magma5g
