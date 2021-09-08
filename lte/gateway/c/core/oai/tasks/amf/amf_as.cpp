@@ -37,6 +37,7 @@ extern "C" {
 #include "proto_msg_to_itti_msg.h"
 #include "ngap_messages_types.h"
 #include "M5GAuthenticationServiceClient.h"
+#include "M5GMMCause.h"
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
@@ -49,15 +50,17 @@ namespace magma5g {
 /*forward declaration*/
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
-static int amf_as_establish_rej(
-    const amf_as_establish_t* msg, nas5g_establish_rsp_t* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
 static int amf_as_security_rej(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
+static int amf_as_establish_rej(
+    const amf_as_establish_t* msg, nas5g_establish_rsp_t* amf_msg);
 // Setup the security header of the given NAS message
 static AMFMsg* amf_as_set_header(
     amf_nas_message_t* msg, const amf_as_security_data_t* security);
+static int amf_service_rejectmsg(
+    const amf_as_establish_t* msg, ServiceRejectMsg* service_reject);
 /**************************************************************************
 **                                                                       **
 ** Name        : amf_as_send()                                           **
@@ -116,10 +119,10 @@ int amf_as_send(amf_as_t* msg) {
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   amf_security_context_t* amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
-  int decoder_rc        = 1;
-  int rc                = RETURNerror;
-  tai_t originating_tai = {0};
-  amf_nas_message_t nas_msg;
+  int decoder_rc                       = 1;
+  int rc                               = RETURNerror;
+  tai_t originating_tai                = {0};
+  amf_nas_message_t nas_msg            = {0};
   ue_m5gmm_context_s* ue_m5gmm_context = NULL;
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (ue_m5gmm_context == NULL) {
@@ -278,17 +281,6 @@ int amf_as_send_ng(const amf_as_t* msg) {
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       } break;
       case AS_NAS_ESTABLISH_RSP_: {
-        if (as_msg.msg.nas_establish_rsp.err_code == M5G_AS_SUCCESS) {
-          // This flow is to release the UE context after sending the NAS
-          // message.
-          amf_app_handle_nas_dl_req(
-              as_msg.msg.nas_establish_rsp.ue_id,
-              as_msg.msg.nas_establish_rsp.nas_msg,
-              as_msg.msg.nas_establish_rsp.err_code);
-          as_msg.msg.nas_establish_rsp.nas_msg = NULL;
-          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-          break;
-        }
         amf_app_handle_nas_dl_req(
             as_msg.msg.nas_establish_rsp.ue_id,
             as_msg.msg.nas_establish_rsp.nas_msg,
@@ -1350,7 +1342,7 @@ uint16_t amf_as_establish_cnf(
       break;
   }
 
-  if (size > 0) {
+  if ((size > 0) && amf_security_context) {
     nas_msg.header.sequence_number = amf_security_context->dl_count.seq_num;
   } else {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
@@ -1430,86 +1422,148 @@ int amf_send_registration_reject(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
-/***************************************************************************
-**                                                                        **
-** Name:    amf_as_establish_rej()                                        **
-**                                                                        **
-** Description: Processes the AMFAS-SAP connection establish reject       **
-**                                                                        **
-** Inputs:  amf_as_establish_t : msg                                      **
-**          nas5g_establish_rsp_t : amf_msg                               **
-**                                                                        **
-**      Others:    None                                                   **
-**                                                                        **
-** Outputs:                                                               **
-**      Return:    The identifier of the AS message                       **
-**      Others:    None                                                   **
-**                                                                        **
-***************************************************************************/
+/****************************************************************************
+ **                                                                        **
+ ** Name:             amf_as_establish_Rej()                               **
+ **                                                                        **
+ ** Description:      Processes the AMFAS-SAP connection establish Reject  **
+ **      primitive of PDU session                                          **
+ **                                                                        **
+ ** AMFAS-SAP-AMF->AS:ESTABLISH_REJ - NAS signaling connection             **
+ **                                                                        **
+ ** Inputs:   msg:    The AMFAS-SAP primitive to process                   **
+ **           Others: None                                                 **
+ **                                                                        **
+ ** Outputs:  as_msg: The message to send to the AS                        **
+ **           Return: The identifier of the AS message                     **
+ **           Others: None                                                 **
+ **                                                                        **
+ ***************************************************************************/
 static int amf_as_establish_rej(
     const amf_as_establish_t* msg, nas5g_establish_rsp_t* as_msg) {
-  int size                  = 0;
+  int size    = 0;
+  int ret_val = 0;
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "Send AS connection establish Reject for (ue_id = "
+      "%d)\n",
+      msg->ue_id);
   amf_nas_message_t nas_msg = {0};
   // Setting-up the AS message
   as_msg->ue_id = msg->ue_id;
-  /*
-   * Setup the NAS security header
-   */
+
+  as_msg->nas_msg                              = msg->nas_msg;
+  as_msg->presencemask                         = msg->presencemask;
+  as_msg->m5g_service_type                     = msg->service_type;
+  amf_context_t* amf_ctx                       = NULL;
+  amf_security_context_t* amf_security_context = NULL;
+  amf_ctx                                      = amf_context_get(msg->ue_id);
+  if (amf_ctx) {
+    if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+      amf_security_context                  = &amf_ctx->_security;
+      as_msg->selected_encryption_algorithm = (uint16_t) htons(
+          0x10000 >> amf_security_context->selected_algorithms.encryption);
+      as_msg->selected_integrity_algorithm = (uint16_t) htons(
+          0x10000 >> amf_security_context->selected_algorithms.integrity);
+      as_msg->nas_ul_count = 0x00000000 |
+                             (amf_security_context->ul_count.overflow << 8) |
+                             amf_security_context->ul_count.seq_num;
+    }
+  } else {
+    OAILOG_WARNING(LOG_NAS_AMF, "AMFAS-SAP - AMF Context is NULL...!");
+  }
+
   AMFMsg* amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
 
+  switch (msg->nas_info) {
+    case AMF_AS_NAS_INFO_REGISTERED:
+      size = amf_send_registration_reject(
+          msg, &amf_msg->msg.registrationrejectmsg);
+      nas_msg.plain.amf.header.message_type = REG_REJECT;
+      nas_msg.plain.amf.header.extended_protocol_discriminator =
+          M5G_MOBILITY_MANAGEMENT_MESSAGES;
+      break;
+    case AMF_AS_NAS_INFO_SR:
+      size = amf_service_rejectmsg(msg, &amf_msg->msg.service_reject);
+      nas_msg.plain.amf.header.message_type = M5G_SERVICE_REJECT;
+      nas_msg.plain.amf.header.extended_protocol_discriminator =
+          M5G_MOBILITY_MANAGEMENT_MESSAGES;
+      break;
+    case AMF_AS_NAS_INFO_TAU:
+    case AMF_AS_NAS_INFO_NONE:
+      as_msg->err_code = M5G_AS_SUCCESS;
+      ret_val          = AS_NAS_ESTABLISH_CNF_;
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+    default:
+      OAILOG_WARNING(
+          LOG_NAS_AMF,
+          "AMFAS-SAP - Type of initial NAS "
+          "message 0x%.2x is not valid\n",
+          msg->nas_info);
+      break;
+  }
+
   /*
-   * Setup the NAS information messag
+   * Encode the NAS security message
    */
-  if (amf_msg) {
-    switch (msg->nas_info) {
-      case AMF_AS_NAS_INFO_REGISTERED:
-        size = amf_send_registration_reject(
-            msg, &amf_msg->msg.registrationrejectmsg);
-        nas_msg.plain.amf.header.message_type = REG_REJECT;
-        nas_msg.plain.amf.header.extended_protocol_discriminator =
-            M5G_MOBILITY_MANAGEMENT_MESSAGES;
-        break;
-      default:
-        OAILOG_WARNING(
-            LOG_NAS_AMF,
-            "AMFAS-SAP - Type of initial NAS "
-            "message 0x%.2x is not valid\n",
-            msg->nas_info);
-    }
-  }
-  if (size > 0) {
-    struct amf_context_s* amf_ctx                = NULL;
-    amf_security_context_t* amf_security_context = NULL;
-    ue_m5gmm_context_t* ue_mm_context =
-        amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+  int bytes =
+      amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
 
-    if (ue_mm_context) {
-      amf_ctx = &ue_mm_context->amf_context;
-      if (amf_ctx) {
-        if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
-          amf_security_context = &amf_ctx->_security;
-          nas_msg.header.sequence_number =
-              amf_security_context->dl_count.seq_num;
-          OAILOG_DEBUG(
-              LOG_NAS_AMF, "Set nas_msg.header.sequence_number -> %u\n",
-              nas_msg.header.sequence_number);
-        }
-      }
-    }
-    /*
-     * Encode the initial NAS information message
-     */
-    int bytes =
-        amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
-    if (bytes > 0) {
-      // This is to indicate AMF-APP to release the NGAP UE context after
-      // sending the message.
-      as_msg->err_code = M5G_AS_TERMINATED_NAS;
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_NAS_ESTABLISH_RSP_);
-    }
+  if (bytes > 0) {
+    as_msg->err_code = M5G_AS_TERMINATED_NAS;
+    ret_val          = AS_NAS_ESTABLISH_RSP_;
+  } else {
+    OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:        amf_service_rejectmsg()                                   **
+ **                                                                        **
+ ** Description: Builds Service reject message                             **
+ **                                                                        **
+ **              The Service reject message is sent by the                 **
+ **              network to the UEi.                                       **
+ **                                                                        **
+ ** Inputs:      msg:           The AMFMsg    primitive to process         **
+ **              Others:        None                                       **
+ **                                                                        **
+ ** Outputs:     amf_msg:       The AMF message to be sent                 **
+ **              Return:        The size of the AMF message                **
+ **              Others:        None                                       **
+ **                                                                        **
+ ***************************************************************************/
+static int amf_service_rejectmsg(
+    const amf_as_establish_t* msg, ServiceRejectMsg* service_reject) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int size = M5G_SERVICE_REJECT_MINIMUM_LENGTH;
+
+  if (msg->pdu_session_status_ie & AMF_AS_PDU_SESSION_STATUS) {
+    service_reject->pdu_session_status.iei = PDU_SESSION_STATUS;
+    service_reject->pdu_session_status.len = 0x02;
+    service_reject->pdu_session_status.pduSessionStatus =
+        msg->pdu_session_status;
+  }
+
+  service_reject->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  service_reject->message_type.msg_type   = M5G_SERVICE_REJECT;
+  service_reject->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+
+  service_reject->cause.iei         = M5GMM_CAUSE;
+  service_reject->cause.m5gmm_cause = msg->amf_cause;
+
+  if (msg->amf_cause == AMF_CAUSE_CONGESTION) {
+    service_reject->t3346Value.iei        = GPRS_TIMER2;
+    service_reject->t3346Value.len        = 1;
+    service_reject->t3346Value.timervalue = 60;
+  }
+
+  size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+}
 }  // namespace magma5g
