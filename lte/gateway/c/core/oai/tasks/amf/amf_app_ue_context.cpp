@@ -409,13 +409,13 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_delete_ue_context()                                       **
+ ** Name:    amf_free_ue_context()                                         **
  **                                                                        **
  ** Description: Deletes the ue context                                    **
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-void amf_delete_ue_context(ue_m5gmm_context_s* ue_context_p) {
+void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
@@ -456,6 +456,5 @@ void amf_delete_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   delete ue_context_p;
   ue_context_p = NULL;
-  return;
 }
 }  // namespace magma5g
