@@ -37,6 +37,9 @@
 #include "emm_esmDef.h"
 #include "esm_msg.h"
 #include "nas_timer.h"
+#include "mme_app_defs.h"
+#include "mme_app_timer.h"
+
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
@@ -44,11 +47,6 @@
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
-
-/*
-   Timer handlers
-*/
-static void esm_information_t3489_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
@@ -151,35 +149,55 @@ status_code_e esm_proc_esm_information_response(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    _esm_information_t3489_handler()                    **
+ ** Name:    mme_app_handle_esm_information_t3489_expiry                   **
  **                                                                        **
  ** Description: T3489 timeout handler                                     **
  **                                                                        **
  **              3GPP TS 24.301, section 6.4.4.5, case a                   **
- **      On the first expiry of the timer T3489, the MME shall re- **
- **      send the DEACTIVATE EPS BEARER CONTEXT REQUEST and shall  **
- **      reset and restart timer T3489. This retransmission is     **
- **      repeated four times, i.e. on the fifth expiry of timer    **
- **      T3489, the MME shall abort the procedure and deactivate   **
- **      the EPS bearer context locally.                           **
+ **      On the first expiry of the timer T3489, the MME shall re-         **
+ **      send the DEACTIVATE EPS BEARER CONTEXT REQUEST and shall          **
+ **      reset and restart timer T3489. This retransmission is             **
+ **      repeated four times, i.e. on the fifth expiry of timer            **
+ **      T3489, the MME shall abort the procedure and deactivate           **
+ **      the EPS bearer context locally.                                   **
  **                                                                        **
- ** Inputs:  args:      handler parameters                         **
- **      Others:    None                                       **
+ ** Inputs:  args:      handler parameters                                 **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    None                                       **
- **      Others:    None                                       **
+ **      Return:    None                                                   **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-static void esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
+status_code_e mme_app_handle_esm_information_t3489_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
+  }
+
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, "Deactivate EPS Bearer Ctx Request T3489 Timer");
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
+  }
+
+  emm_context_t* emm_context = &ue_context_p->emm_context;
   /*
    * Get retransmission timer parameters data
    */
-  esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
+  esm_ebr_timer_data_t* esm_ebr_timer_data =
+      (esm_ebr_timer_data_t*) (emm_context->esm_ctx.t3489_arg);
 
-  if (esm_ebr_timer_data && esm_ebr_timer_data->ctx) {
+  if (esm_ebr_timer_data) {
     /*
      * Increment the retransmission counter
      */
@@ -191,16 +209,14 @@ static void esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
         "retransmission counter = %d\n",
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->count);
 
-    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < ESM_INFORMATION_COUNTER_MAX) {
       // Unset the timer id maintained in the esm_ctx, as the timer is no
       // longer valid.
-      esm_ebr_timer_data->ctx->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
+      emm_context->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
       /*
        * Re-send deactivate EPS bearer context request message to the UE
        */
-      esm_information(
-          esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, esm_ebr_timer_data);
+      esm_information(emm_context, esm_ebr_timer_data->ebi, esm_ebr_timer_data);
     } else {
       /*
        * The maximum number of deactivate EPS bearer context request
@@ -211,16 +227,13 @@ static void esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
        *
        * Stop timer T3489
        */
-      esm_ebr_timer_data->ctx->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
-      /*
-       * Re-start T3489 timer
-       */
+      emm_context->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
       bdestroy_wrapper(&esm_ebr_timer_data->msg);
       free_wrapper((void**) &esm_ebr_timer_data);
     }
   }
 
-  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+  OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 
 /*
@@ -233,10 +246,10 @@ static void esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
  **                                                                        **
  ** Name:    _esm_information()                                            **
  **                                                                        **
- ** Description: Sends DEACTIVATE EPS BEREAR CONTEXT REQUEST message and   **
+ ** Description: Sends DEACTIVATE EPS BEARER CONTEXT REQUEST message and   **
  **      starts timer T3489.                                               **
- **      Function also clearns out any existing T3489 timers referenced    **
- **      by the esm_ctx datastructure.                                     **
+ **      Function also cleans out any existing T3489 timers referenced     **
+ **      by the esm_ctx data structure.                                    **
  **                                                                        **
  ** Inputs:  ue_id:      UE local identifier                               **
  **      ebi:       EPS bearer identity                                    **
@@ -275,9 +288,12 @@ static int esm_information(
     /*
      * Start T3489 timer
      */
-    emm_context_p->esm_ctx.T3489.id = nas_timer_start(
-        emm_context_p->esm_ctx.T3489.sec, 0 /*usec*/,
-        esm_information_t3489_handler, data);
+    nas_start_T3489(
+        ue_id, &(emm_context_p->esm_ctx.T3489),
+        mme_app_handle_esm_information_t3489_expiry);
+  }
+  if (NAS_TIMER_INACTIVE_ID != emm_context_p->esm_ctx.T3489.id) {
+    emm_context_p->esm_ctx.t3489_arg = (void*) data;
 
     OAILOG_INFO(
         LOG_NAS_EMM,
@@ -287,6 +303,7 @@ static int esm_information(
   } else {
     bdestroy_wrapper(&data->msg);
     free_wrapper((void**) &data);
+    rc = RETURNerror;
   }
   bdestroy_wrapper(&emm_esm->msg);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);

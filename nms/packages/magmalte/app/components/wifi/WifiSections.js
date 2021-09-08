@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
+import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from '../insights/alarms/Alarms';

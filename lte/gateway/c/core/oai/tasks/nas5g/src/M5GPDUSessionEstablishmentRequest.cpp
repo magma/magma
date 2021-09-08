@@ -100,26 +100,33 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
           decoded += decoded_result;
         }
         break;
+
+      case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE:
+        if ((decoded_result =
+                 pdu_session_estab_request->protocolconfigurationoptions
+                     .DecodeProtocolConfigurationOptions(
+                         &pdu_session_estab_request
+                              ->protocolconfigurationoptions,
+                         REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE,
+                         buffer + decoded, len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
       case REQUEST_5GSM_CAPABILITY_TYPE:
       case REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
       case REQUEST_ALWAYS_ON_PDU_SESSION_REQUESTED_TYPE:
       case REQUEST_SM_PDU_DN_REQUEST_CONTAINER_TYPE:
-      case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE:
       case REQUEST_HEADER_COMPRESSION_CONFIGURATION_TYPE:
       case REQUEST_DS_TT_ETHERNET_PORT_MAC_ADDRESS_TYPE:
       case REQUEST_UE_DS_TT_RESIDENCE_TIME_TYPE:
       case REQUEST_PORT_MANAGEMENT_INFORMATION_CONTAINER_TYPE:
 
         // TLV Types. 1 byte for Type and 1 Byte for size
-        type_len = sizeof(uint8_t);
-
-        if (type == REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE) {
-          length_len = 2 * sizeof(uint8_t);
-          DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
-        } else {
-          length_len = sizeof(uint8_t);
-          DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
-        }
+        type_len   = sizeof(uint8_t);
+        length_len = sizeof(uint8_t);
+        DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
 
         decoded += (length_len + decoded_result);
         break;

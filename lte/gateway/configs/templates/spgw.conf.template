@@ -47,6 +47,7 @@ S-GW :
       UPLINK_MAC                           = "{{ ovs_uplink_mac }}";
       MULTI_TUNNEL                         = "{{ ovs_multi_tunnel }}";
       GTP_ECHO                             = "{{ ovs_gtpu_echo_resp }}";
+      AGW_L3_TUNNEL                        = "{{ agw_l3_tunnel }}";
       PIPELINED_CONFIG_ENABLED             = "{{ pipelined_managed_tbl0 }}";
     };
 };

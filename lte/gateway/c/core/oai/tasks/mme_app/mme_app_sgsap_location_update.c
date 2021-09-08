@@ -935,7 +935,7 @@ status_code_e mme_app_handle_ts6_1_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);

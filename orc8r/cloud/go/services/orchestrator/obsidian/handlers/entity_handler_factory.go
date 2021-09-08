@@ -116,7 +116,7 @@ func GetPartialUpdateEntityHandler(path string, paramName string, model PartialE
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntities(networkID, updates, serdes)
+			_, err = configurator.UpdateEntities(c.Request().Context(), networkID, updates, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

@@ -41,7 +41,7 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 static void handle_allocate_ipv4_address_status(
     const grpc::Status& status, struct in_addr in_ip4_addr, int vlan,
     const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
-    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t gnb_gtp_teid_len,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
     uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   MessageDef* message_p;
   message_p =
@@ -62,7 +62,8 @@ static void handle_allocate_ipv4_address_status(
   amf_ip_allocation_response_p->paa.pdn_type     = IPv4;
   amf_ip_allocation_response_p->paa.vlan         = vlan;
 
-  memcpy(amf_ip_allocation_response_p->gnb_gtp_teid, gnb_gtp_teid, 4);
+  amf_ip_allocation_response_p->gnb_gtp_teid = gnb_gtp_teid;
+
   memcpy(
       amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
       4);
@@ -82,16 +83,14 @@ namespace magma5g {
 
 int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
     const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
-    uint8_t pti, uint32_t pdu_session_type, uint8_t* gnb_gtp_teid,
-    uint8_t gnb_gtp_teid_len, uint8_t* gnb_gtp_teid_ip_addr,
-    uint8_t gnb_gtp_teid_ip_addr_len) {
+    uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str           = std::string(apn);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id_str, apn,
       [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
-       gnb_gtp_teid, gnb_gtp_teid_len, gnb_gtp_teid_ip_addr,
-       gnb_gtp_teid_ip_addr_len](
+       gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in_addr addr;
         std::string ipv4_addr_str;
@@ -104,8 +103,8 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
 
         handle_allocate_ipv4_address_status(
             status, addr, vlan, subscriber_id_str.c_str(), apn, pdu_session_id,
-            pti, pdu_session_type, gnb_gtp_teid, gnb_gtp_teid_len,
-            gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
+            pti, pdu_session_type, gnb_gtp_teid, gnb_gtp_teid_ip_addr,
+            gnb_gtp_teid_ip_addr_len);
       });
   return RETURNok;
 }

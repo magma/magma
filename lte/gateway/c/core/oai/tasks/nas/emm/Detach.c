@@ -42,6 +42,8 @@
 #include "mme_api.h"
 #include "mme_events.h"
 #include "nas_procedures.h"
+#include "mme_app_defs.h"
+#include "mme_app_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -68,7 +70,7 @@ static const char* emm_sgs_detach_type_str[] = {"EPS",
                                                 "RESERVED"};
 /****************************************************************************
  **                                                                        **
- ** Name:    detach_t3422_handler()                                       **
+ ** Name:    mme_app_handle_detach_t3422_expiry() **
  **                                                                        **
  ** Description: T3422 timeout handler                                     **
  **      Upon T3422 timer expiration, the Detach request                   **
@@ -85,36 +87,60 @@ static const char* emm_sgs_detach_type_str[] = {"EPS",
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void detach_t3422_handler(void* args, imsi64_t* imsi64) {
+status_code_e mme_app_handle_detach_t3422_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  nw_detach_data_t* data = (nw_detach_data_t*) (args);
+
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  nw_detach_data_t* data          = NULL;
+  emm_context_t* emm_ctx          = NULL;
+  // if args is not NULL, then the function is called during start up
+  // as part of resumed timers.
+  if (args) {
+    data           = (nw_detach_data_t*) (args);
+    mme_ue_s1ap_id = data->ue_id;
+    emm_ctx        = emm_context_get(&_emm_data, mme_ue_s1ap_id);
+  } else {
+    if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+      OAILOG_WARNING(
+          LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
+    struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+        mme_ue_s1ap_id, "Detach Procedure T3422 Timer");
+    if (ue_context_p == NULL) {
+      OAILOG_ERROR(
+          LOG_MME_APP,
+          "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+          "\n",
+          mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
+    emm_ctx = &ue_context_p->emm_context;
+    data    = (nw_detach_data_t*) emm_ctx->t3422_arg;
+  }
 
   if (!data) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "The argument for network initiated"
         "detach timer is NULL \n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  mme_ue_s1ap_id_t ue_id = data->ue_id;
-  uint8_t detach_type    = data->detach_type;
-
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
-  if (emm_ctx) {
-    *imsi64 = emm_ctx->_imsi64;
-  }
   // Increment the retransmission counter
   data->retransmission_count += 1;
   OAILOG_WARNING(
       LOG_NAS_EMM,
       "EMM-PROC: T3422 timer expired,retransmission "
       "counter = %d for ue id " MME_UE_S1AP_ID_FMT "\n",
-      data->retransmission_count, ue_id);
+      data->retransmission_count, mme_ue_s1ap_id);
 
   if (data->retransmission_count < DETACH_REQ_COUNTER_MAX) {
     // Resend detach request message to the UE
-    emm_proc_nw_initiated_detach_request(ue_id, data->detach_type);
+    emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id, data->detach_type);
   } else {
     // Abort the detach procedure and perform implicit detach
     if (data) {
@@ -122,7 +148,7 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
       free_wrapper((void**) &data);
       emm_ctx->t3422_arg = NULL;
     }
-    if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
+    if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       /*
        * This is implicit detach procedure, therefore, setting detach type as
@@ -130,10 +156,10 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
        */
       emm_detach_request_params.switch_off = 1;
       emm_detach_request_params.type       = 0;
-      emm_proc_detach_request(ue_id, &emm_detach_request_params);
+      emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
     }
   }
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 void _clear_emm_ctxt(emm_context_t* emm_context) {
@@ -447,12 +473,11 @@ status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
 
   // Stop T3422
   if (emm_ctx->T3422.id != NAS_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n",
-        emm_ctx->T3422.id, ue_id);
-    void* unused          = NULL;
-    void** timer_callback = &unused;
-    emm_ctx->T3422.id     = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
+    OAILOG_DEBUG_UE(
+        LOG_NAS_EMM, emm_ctx->_imsi64,
+        "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n", emm_ctx->T3422.id,
+        ue_id);
+    nas_stop_T3422(emm_ctx->_imsi64, &(emm_ctx->T3422));
     if (emm_ctx->t3422_arg) {
       free_wrapper(&emm_ctx->t3422_arg);
       emm_ctx->t3422_arg = NULL;
@@ -542,20 +567,16 @@ status_code_e emm_proc_nw_initiated_detach_request(
       /*
        * Re-start T3422 timer
        */
-      void* unused          = NULL;
-      void** timer_callback = &unused;
-      emm_ctx->T3422.id     = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
-      nw_detach_data_t* data = (nw_detach_data_t*) emm_ctx->t3422_arg;
-      emm_ctx->T3422.id      = nas_timer_start(
-          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
+      nas_stop_T3422(emm_ctx->_imsi64, &(emm_ctx->T3422));
+      nas_start_T3422(
+          ue_id, &(emm_ctx->T3422), mme_app_handle_detach_t3422_expiry);
     } else {
       /*
        * Start T3422 timer
        */
       if (emm_ctx->t3422_arg) {
-        emm_ctx->T3422.id = nas_timer_start(
-            emm_ctx->T3422.sec, 0, detach_t3422_handler,
-            (void*) emm_ctx->t3422_arg);
+        nas_start_T3422(
+            ue_id, &(emm_ctx->T3422), mme_app_handle_detach_t3422_expiry);
       } else {
         nw_detach_data_t* data =
             (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
@@ -570,9 +591,9 @@ status_code_e emm_proc_nw_initiated_detach_request(
         data->ue_id                = ue_id;
         data->retransmission_count = 0;
         data->detach_type          = detach_type;
-        emm_ctx->T3422.id          = nas_timer_start(
-            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
-        emm_ctx->t3422_arg = (void*) data;
+        emm_ctx->t3422_arg         = (void*) data;
+        nas_start_T3422(
+            ue_id, &(emm_ctx->T3422), mme_app_handle_detach_t3422_expiry);
       }
     }
   }

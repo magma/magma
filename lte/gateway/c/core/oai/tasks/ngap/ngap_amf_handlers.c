@@ -528,7 +528,7 @@ status_code_e ngap_generate_ng_setup_response(
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_NGSetupResponseIEs__value_PR_AMFName;
 
-  char* amf_name = "AMF1";
+  char* amf_name = "AMF_1";
 
   OCTET_STRING_fromBuf(&ie->value.choice.AMFName, amf_name, strlen(amf_name));
 
@@ -592,14 +592,18 @@ amf_config_read_lock(&amf_config);
   Ngap_AMFSetID_t* amfc       = NULL;
   Ngap_AMFPointer_t* aMFP     = NULL;
 
+  amf_config_read_lock(&amf_config);
   amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
-  INT8_TO_OCTET_STRING(1, amf_gid);  // 8
+  INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[0].amf_regionid, amf_gid);  // 8
 
   amfc = &servedGUAMFI->gUAMI.aMFSetID;
-  UE_ID_INDEX_TO_BIT_STRING(1, amfc);  // 10
+  UE_ID_INDEX_TO_BIT_STRING(
+      amf_config.guamfi.guamfi[0].amf_set_id, amfc);  // 10  // 10
 
   aMFP = &servedGUAMFI->gUAMI.aMFPointer;
-  AMF_POINTER_TO_BIT_STRING(1, aMFP);  // 6
+  AMF_POINTER_TO_BIT_STRING(
+      amf_config.guamfi.guamfi[0].amf_pointer, aMFP);  // 6
+  amf_config_unlock(&amf_config);
 
   /*************************Temp code******************************/
 
@@ -726,8 +730,7 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -928,8 +931,7 @@ int ngap_amf_handle_ue_context_release_request(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.AMF_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -1282,8 +1284,7 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
       Ngap_InitialContextSetupFailureIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
@@ -1706,8 +1707,7 @@ status_code_e ngap_amf_handle_pduSession_release_response(
       Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   // gNB UE NGAP ID is limited to 24 bits
-  gnb_ue_ngap_id =
-      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
 
   if ((ie) && ue_ref_p->gnb_ue_ngap_id != gnb_ue_ngap_id) {
     OAILOG_ERROR(
@@ -1793,8 +1793,7 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
     // gNB UE NGAP ID is limited to 24 bits
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
-        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }

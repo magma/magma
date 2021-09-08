@@ -28,7 +28,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   std::string apn("magmacore.com");
   uint32_t pdu_session_id         = 0x5;
   uint32_t pdu_session_type       = 3;
-  uint8_t gnb_gtp_teid[4]         = {0x0, 0x0, 0x0, 0x1};
+  uint32_t gnb_gtp_teid           = 1;
   uint8_t pti                     = 10;
   uint8_t gnb_gtp_teid_ip_addr[4] = {0};  //("10.20.30.40")
   gnb_gtp_teid_ip_addr[0]         = 0xA;

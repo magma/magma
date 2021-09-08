@@ -91,7 +91,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// ---
 	// Check for upgrade find version ahead of what tier is configured to
 	// ---
-	err = configurator.CreateOrUpdateEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1", &models2.Tier{Version: "0.0.0-0-abcdefg"}, serdes.Entity)
+	err = configurator.CreateOrUpdateEntityConfig(context.Background(), "n1", orc8r.UpgradeTierEntityType, "t1", &models2.Tier{Version: "0.0.0-0-abcdefg"}, serdes.Entity)
 	assert.NoError(t, err)
 	mockResp = &http.Response{Status: "200", Body: ioutil.NopCloser(bytes.NewBuffer(testdata))}
 	cli.On("Get", mock.AnythingOfType("string")).Return(mockResp, nil).Times(1)
@@ -805,56 +805,48 @@ func RegisterAGW(t *testing.T) {
 	// Register an AGW
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1", Config: &models2.Tier{Name: "t1", Version: "0.3.74-1560824953-b50f1bab"}},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1", Config: &models2.Tier{Name: "t1", Version: "0.3.74-1560824953-b50f1bab"}}, serdes.Entity)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type:         orc8r.MagmadGatewayType,
-				Key:          "g1",
-				Config:       &models2.MagmadGatewayConfigs{},
-				PhysicalID:   "hw1",
-				Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Type:         orc8r.MagmadGatewayType,
+			Key:          "g1",
+			Config:       &models2.MagmadGatewayConfigs{},
+			PhysicalID:   "hw1",
+			Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+		},
+		{
+			Type:       lte.CellularEnodebEntityType,
+			Key:        "1202000038269KP0037",
+			PhysicalID: "1202000038269KP0037",
+			Config: &ltemodels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
 			},
-			{
-				Type:       lte.CellularEnodebEntityType,
-				Key:        "1202000038269KP0037",
-				PhysicalID: "1202000038269KP0037",
-				Config: &ltemodels.EnodebConfiguration{
-					BandwidthMhz:           20,
-					CellID:                 swag.Uint32(1234),
-					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-					Earfcndl:               39450,
-					Pci:                    260,
-					SpecialSubframePattern: 7,
-					SubframeAssignment:     2,
-					Tac:                    1,
-					TransmitEnabled:        swag.Bool(true),
-				},
-			},
-			{
-				Type:        lte.SubscriberEntityType,
-				Key:         "IMSI1234567890",
-				Name:        "subscriber1",
-				Description: "mock subscriber",
-				Config: &subscribermodels.SubscriberConfig{
-					Lte: &subscribermodels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						State:      "ACTIVE",
-						SubProfile: "default",
-					},
+		},
+		{
+			Type:        lte.SubscriberEntityType,
+			Key:         "IMSI1234567890",
+			Name:        "subscriber1",
+			Description: "mock subscriber",
+			Config: &subscribermodels.SubscriberConfig{
+				Lte: &subscribermodels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:      "ACTIVE",
+					SubProfile: "default",
 				},
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 }
 

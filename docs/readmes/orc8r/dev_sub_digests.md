@@ -31,14 +31,14 @@ This pattern relies on generating, storing, and communicating digests (aka hashe
 
 The subscriber digests pattern specifically generates and utilizes two types of digests
 
-1. **Flat digests**: a digest of the entire set of subscriber configs of a network
-2. **Per-subscriber digests**: a digest of a single subscriber config object. For a network, the list of per-subscriber digests is tracked and distributed en masse
+1. **Root digests**: digest of the entire set of subscriber configs in a network
+2. **Leaf digests**: digest of a single subscriber config object. For a network, this list of per-subscriber digests is tracked and distributed en masse
 
 NOTE: currently, a decoupling process between subscriber config objects and their gateway-specific APN resource configurations is conducted to ensure the generated digests are representative and also network-general. See [additional notes](#apn-resource-configs-handling) for more details.
 
 ### Subscriber digests cache
 
-*subscriberdb_cache* is a single-pod service in charge of managing network digests. The service constantly generates new flat digests and per-subscriber digests at a configurable interval for each network.
+*subscriberdb_cache* is a single-pod service in charge of managing network digests. The service constantly generates new digests at a configurable interval for each network.
 
 The generated digests are written to a cloud SQL store to which *subscriberdb* has read-only access. In this way, *subscriberdb* can directly read the most up-to-date digests from the SQL store, preserving the limited resources of the *subscriberdb_cache* singleton.
 
@@ -50,7 +50,7 @@ That is, every time an update of the digests are detected, *subscriberdb_cache* 
 
 ### AGW digest store
 
-Aside from its subscriber database, a gateway also manages SQL stores for its local flat and per-subscriber digests.
+Aside from its subscriber database, a gateway also manages SQL stores for its local root and leaf digests.
 
 Every time a gateway synchronizes its subscriber configs with the cloud, it receives the latest cloud digests, which it writes to local SQL store. These digests represent the version of subscriber configs stored in the gateway, and they are used in the gateway's subsequent requests to the cloud.
 
@@ -58,18 +58,18 @@ Every time a gateway synchronizes its subscriber configs with the cloud, it rece
 
 The current interactions between the *subscriberdb* cloud servicer and the AGW client involve 3 servicer endpoints
 
-1. `CheckSubscribersInSync`
-    - AGW sends its local flat digest
+1. `CheckInSync`
+    - AGW sends its local root digest
     - Cloud compares the AGW digest with the cloud digest. Depending on whether they are the same, the cloud returns a signal for whether the AGW is in-sync
 
-2. If AGW is not in-sync: `SyncSubscribers`
-    - AGW sends its local per-subscriber digests
-    - Cloud compares the AGW digests with the cloud digests, and calculates the changeset between the two sets of per-subscriber digests. That is, it locates the subscribers to renew and delete on the AGW side
+2. If AGW is not in-sync: `Sync`
+    - AGW sends its local leaf digests
+    - Cloud compares the AGW digests with the cloud digests, and calculates the changeset between the two sets of leaf digests. That is, it locates the subscribers to renew and delete on the AGW side
         - If the changeset is of a reasonable (configurable) size, returns the data needed to update AGW locally, as well as the latest cloud digests
         - If not, returns a signal for AGW to conduct a full-on resync
 3. If AGW receives resync signal: `ListSubscribers`
     - AGW sends desired page size, as well as the current page token (until all pages are fetched)
-    - Cloud returns the corresponding page of data loaded from *subscriberdb_cache*, as well as the latest cloud digests
+    - Cloud returns the corresponding cached page of data as well as the latest cloud digests
 
 ## Additional Notes
 

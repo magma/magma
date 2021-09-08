@@ -22,6 +22,7 @@
 #include "3gpp_24.008.h"
 #include "emm_data.h"
 #include "nas_timer.h"
+#include "nas_procedures.h"
 #include "esm_data.h"
 #include "esm_proc.h"
 #include "log.h"
@@ -30,6 +31,8 @@
 #include "mme_app_ue_context.h"
 #include "mme_config.h"
 #include "3gpp_36.401.h"
+#include "mme_app_defs.h"
+#include "mme_app_timer.h"
 
 // free allocated structs
 //------------------------------------------------------------------------------
@@ -43,8 +46,7 @@ void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
     }
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
       esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-      esm_ebr_context->timer.id                = nas_timer_stop(
-          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data);
+      nas_timer_stop(&(esm_ebr_context->timer));
       /*
        * Release the retransmisison timer parameters
        */
@@ -67,19 +69,23 @@ void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context) {
   }
 }
 
-// free allocated structs
 //------------------------------------------------------------------------------
-// void free_esm_pdn(esm_pdn_t * pdn)
-//{
-//  if (pdn) {
-//    bdestroy_wrapper (&pdn->apn);
-//    unsigned int i;
-//    for (i=0; i < ESM_DATA_EPS_BEARER_MAX; i++) {
-//      free_esm_bearer(pdn->bearer[i]);
-//    }
-//    free_wrapper((void**)&pdn);
-//  }
-//}
+void nas_start_T3489(
+    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3489,
+    time_out_t time_out_cb) {
+  if ((T3489) && (T3489->id == NAS_TIMER_INACTIVE_ID)) {
+    T3489->id = mme_app_start_timer(
+        T3489->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    if (NAS_TIMER_INACTIVE_ID != T3489->id) {
+      OAILOG_DEBUG(
+          LOG_NAS_EMM, "T3489 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+    } else {
+      OAILOG_ERROR(
+          LOG_NAS_EMM, "Could not start T3489 UE " MME_UE_S1AP_ID_FMT " ",
+          ue_id);
+    }
+  }
+}
 
 //------------------------------------------------------------------------------
 void nas_stop_T3489(esm_context_t* const esm_ctx) {
@@ -89,23 +95,16 @@ void nas_stop_T3489(esm_context_t* const esm_ctx) {
     ue_mm_context_t* ue_mm_context =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     mme_ue_s1ap_id_t ue_id = ue_mm_context->mme_ue_s1ap_id;
-    void* nas_timer_callback_args;
-    esm_ctx->T3489.id =
-        nas_timer_stop(esm_ctx->T3489.id, (void**) &nas_timer_callback_args);
-    if (NAS_TIMER_INACTIVE_ID == esm_ctx->T3489.id) {
-      OAILOG_INFO(
-          LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
-      if (nas_timer_callback_args) {
-        esm_ebr_timer_data_t* data =
-            (esm_ebr_timer_data_t*) nas_timer_callback_args;
-        data->ctx = NULL;
-        bdestroy_wrapper(&data->msg);
-        free_wrapper((void**) &data);
-      }
-    } else {
-      OAILOG_ERROR(
-          LOG_NAS_EMM, "Could not stop T3489 UE " MME_UE_S1AP_ID_FMT "\n",
-          ue_id);
+    mme_app_stop_timer(esm_ctx->T3489.id);
+    esm_ctx->T3489.id = NAS_TIMER_INACTIVE_ID;
+
+    OAILOG_DEBUG(
+        LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+    if (esm_ctx->t3489_arg) {
+      esm_ebr_timer_data_t* data = (esm_ebr_timer_data_t*) esm_ctx->t3489_arg;
+      data->ctx                  = NULL;
+      bdestroy_wrapper(&data->msg);
+      free_wrapper((void**) &data);
     }
   }
 }

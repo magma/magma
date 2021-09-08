@@ -53,23 +53,6 @@ magma::DeleteBearerRequest create_delete_bearer_req(
   return req;
 }
 
-magma::CreateBearerRequest create_add_bearer_req(
-    const std::string& imsi, const std::string& apn_ip_addr,
-    const uint32_t linked_bearer_id,
-    const std::vector<magma::PolicyRule>& flows) {
-  magma::CreateBearerRequest req;
-  req.mutable_sid()->set_id(imsi);
-  req.set_ip_addr(apn_ip_addr);
-  req.set_link_bearer_id(linked_bearer_id);
-
-  auto req_policy_rules = req.mutable_policy_rules();
-  for (const auto& flow : flows) {
-    req_policy_rules->Add()->CopyFrom(flow);
-  }
-
-  return req;
-}
-
 }  // namespace
 
 namespace magma {

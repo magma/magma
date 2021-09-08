@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"sort"
 	"strings"
@@ -82,6 +81,7 @@ func CreateBaseName(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	bnrEnt := bnr.ToEntity()
+	reqCtx := c.Request().Context()
 
 	// Verify that subscribers and policies exist
 	parents := bnr.GetParentAssocs()
@@ -106,7 +106,7 @@ func CreateBaseName(c echo.Context) error {
 			writes = append(writes, w)
 		}
 	}
-	if err := configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
+	if err := configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to create base name"), http.StatusInternalServerError)
 	}
 
@@ -139,6 +139,7 @@ func UpdateBaseName(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	bnr := &models.BaseNameRecord{}
 	if err := c.Bind(bnr); err != nil {
@@ -193,7 +194,7 @@ func UpdateBaseName(c echo.Context) error {
 		writes = append(writes, w)
 	}
 
-	if err = configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
+	if err = configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update base name"), http.StatusInternalServerError)
 	}
 
@@ -206,7 +207,7 @@ func DeleteBaseName(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.BaseNameEntityType, baseName)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.BaseNameEntityType, baseName)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -253,12 +254,13 @@ func CreateRule(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	rule := &models.PolicyRule{}
 	if err := c.Bind(rule); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := rule.ValidateModel(context.Background()); err != nil {
+	if err := rule.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -289,7 +291,7 @@ func CreateRule(c echo.Context) error {
 		writes = append(writes, w)
 	}
 
-	if err := configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
+	if err := configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to create policy"), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusCreated)
@@ -321,12 +323,13 @@ func UpdateRule(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	rule := &models.PolicyRule{}
 	if err := c.Bind(rule); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := rule.ValidateModel(context.Background()); err != nil {
+	if err := rule.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if ruleID != string(rule.ID) {
@@ -383,7 +386,7 @@ func UpdateRule(c echo.Context) error {
 		writes = append(writes, w)
 	}
 
-	if err = configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
+	if err = configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update policy rule"), http.StatusInternalServerError)
 	}
 
@@ -396,7 +399,7 @@ func DeleteRule(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntityType, ruleID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.PolicyRuleEntityType, ruleID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -434,11 +437,13 @@ func createQoSProfile(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
+
 	profile := &models.PolicyQosProfile{}
 	if err := c.Bind(profile); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := profile.ValidateModel(context.Background()); err != nil {
+	if err := profile.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -450,7 +455,7 @@ func createQoSProfile(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	_, err = configurator.CreateEntity(networkID, profile.ToEntity(), serdes.Entity)
+	_, err = configurator.CreateEntity(reqCtx, networkID, profile.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -463,7 +468,7 @@ func deleteQoSProfile(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.PolicyQoSProfileEntityType, profileID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.PolicyQoSProfileEntityType, profileID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

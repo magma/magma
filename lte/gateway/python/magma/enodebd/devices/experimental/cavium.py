@@ -464,7 +464,7 @@ class CaviumTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                          and (str(x) not in excluded_params),
+                and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )

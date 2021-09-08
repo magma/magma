@@ -41,6 +41,8 @@
 #include "esm_sapDef.h"
 #include "esm_pt.h"
 #include "mme_app_state.h"
+#include "mme_app_timer.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -398,23 +400,52 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
+status_code_e eps_bearer_deactivate_t3495_handler(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+
+  timer_arg_t timer_args;
+  if (args) {
+    timer_args = *((timer_arg_t*) args);
+  } else if (!mme_app_get_timer_arg(timer_id, &timer_args)) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
+  }
+  mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
+
+  ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
+      ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
+  if (ue_mm_context == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
+  }
+
+  ebi_t ebi = timer_args.ebi;
   int rc;
   bool delete_default_bearer = false;
-  ebi_t ebi                  = 0;
-  mme_ue_s1ap_id_t ue_id     = 0;
-  int bid                    = BEARERS_PER_UE;
+  int bid                    = EBI_TO_INDEX(ebi);
 
-  /*
-   * Get retransmission timer parameters data
-   */
-  esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
+  bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
+  if (bearer_context == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+        "Failed to find bearer context for bearer_id:%u and "
+        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
+  }
 
-  if (esm_ebr_timer_data && esm_ebr_timer_data->ctx) {
-    /*
-     * Increment the retransmission counter
-     */
+  esm_ebr_context_t* ebr_ctx = &(bearer_context->esm_ebr_context);
+
+  if (ebr_ctx && ebr_ctx->args) {
+    // Get retransmission timer parameters data
+    esm_ebr_timer_data_t* esm_ebr_timer_data =
+        (esm_ebr_timer_data_t*) (ebr_ctx->args);
+    // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING(
         LOG_NAS_ESM,
@@ -423,31 +454,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
         "retransmission counter = %d\n",
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
         esm_ebr_timer_data->count);
-    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
 
-    // on timer expiry set the timer_id to inactive
-    ue_mm_context_t* ue_mm_context =
-        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
-    bearer_context_t* bearer_context = NULL;
-    esm_ebr_context_t* ebr_ctx       = NULL;
-    if (!ue_mm_context) {
-      OAILOG_ERROR_UE(
-          LOG_NAS_ESM, *imsi64,
-          "Failed to find ue context for ue_id " MME_UE_S1AP_ID_FMT "\n",
-          esm_ebr_timer_data->ue_id);
-      OAILOG_FUNC_OUT(LOG_NAS_ESM);
-    }
-    bearer_context =
-        ue_mm_context->bearer_contexts[EBI_TO_INDEX(esm_ebr_timer_data->ebi)];
-    if (bearer_context == NULL) {
-      OAILOG_ERROR_UE(
-          LOG_NAS_ESM, *imsi64,
-          "Failed to find bearer context for bearer_id:%u and "
-          "ue_id " MME_UE_S1AP_ID_FMT "\n",
-          esm_ebr_timer_data->ebi, esm_ebr_timer_data->ue_id);
-      OAILOG_FUNC_OUT(LOG_NAS_ESM);
-    }
-    ebr_ctx           = &bearer_context->esm_ebr_context;
     ebr_ctx->timer.id = NAS_TIMER_INACTIVE_ID;
     if (esm_ebr_timer_data->count < EPS_BEARER_DEACTIVATE_COUNTER_MAX) {
       /*
@@ -460,30 +467,9 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
     } else {
       /*
        * The maximum number of deactivate EPS bearer context request
-       * message retransmission has exceed
+       * message retransmission has exceeded
        */
-      ue_mm_context_t* ue_mm_context =
-          mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
 
-      ebi   = esm_ebr_timer_data->ebi;
-      ue_id = esm_ebr_timer_data->ue_id;
-      // Find the index in which the bearer id is stored
-      for (bid = 0; bid < BEARERS_PER_UE; bid++) {
-        if (ue_mm_context->bearer_contexts[bid]) {
-          if (ue_mm_context->bearer_contexts[bid]->ebi == ebi) {
-            break;
-          }
-        }
-      }
-
-      if (bid >= BEARERS_PER_UE) {
-        OAILOG_WARNING(
-            LOG_NAS_ESM,
-            "ESM-PROC  - Did not find bearer context for "
-            "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d), \n",
-            ue_id, ebi);
-        OAILOG_FUNC_OUT(LOG_NAS_ESM);
-      }
       // Fetch pdn id using bearer index
       pdn_cid_t pdn_id = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
 
@@ -495,7 +481,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
             "\n"
             "pdn_id=%d\n",
             ue_id, pdn_id);
-        OAILOG_FUNC_OUT(LOG_NAS_ESM);
+        OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
       }
       // Send bearer_deactivation_reject to MME
       teid_t s_gw_teid_s11_s4 =
@@ -539,7 +525,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
     }
   }
 
-  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+  OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 /*
    --------------------------------------------------------------------------
@@ -549,7 +535,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _eps_bearer_deactivate()                                  **
+ ** Name:    eps_bearer_deactivate()                                  **
  **                                                                        **
  ** Description: Sends DEACTIVATE EPS BEREAR CONTEXT REQUEST message and   **
  **      starts timer T3495                                        **

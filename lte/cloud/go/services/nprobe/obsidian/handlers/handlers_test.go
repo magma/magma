@@ -119,32 +119,28 @@ func TestListNetworkProbeTasks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Key:  "IMSI1234",
-				Type: lte.NetworkProbeTaskEntityType,
-				Config: &models.NetworkProbeTaskDetails{
-					TargetID:      "IMSI1234",
-					TargetType:    "imsi",
-					DeliveryType:  "events_only",
-					CorrelationID: 8674665223082154000,
-				},
-			},
-			{
-				Key:  "IMSI1235",
-				Type: lte.NetworkProbeTaskEntityType,
-				Config: &models.NetworkProbeTaskDetails{
-					TargetID:      "IMSI1235",
-					TargetType:    "imsi",
-					DeliveryType:  "all",
-					CorrelationID: 8674665223082154099,
-				},
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Key:  "IMSI1234",
+			Type: lte.NetworkProbeTaskEntityType,
+			Config: &models.NetworkProbeTaskDetails{
+				TargetID:      "IMSI1234",
+				TargetType:    "imsi",
+				DeliveryType:  "events_only",
+				CorrelationID: 8674665223082154000,
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Key:  "IMSI1235",
+			Type: lte.NetworkProbeTaskEntityType,
+			Config: &models.NetworkProbeTaskDetails{
+				TargetID:      "IMSI1235",
+				TargetType:    "imsi",
+				DeliveryType:  "all",
+				CorrelationID: 8674665223082154099,
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -199,20 +195,16 @@ func TestGetNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Key:  "IMSI1234",
-			Type: lte.NetworkProbeTaskEntityType,
-			Config: &models.NetworkProbeTaskDetails{
-				TargetID:      "IMSI1234",
-				TargetType:    "imsi",
-				DeliveryType:  "events_only",
-				CorrelationID: 8674665223082154000,
-			},
+	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+		Key:  "IMSI1234",
+		Type: lte.NetworkProbeTaskEntityType,
+		Config: &models.NetworkProbeTaskDetails{
+			TargetID:      "IMSI1234",
+			TargetType:    "imsi",
+			DeliveryType:  "events_only",
+			CorrelationID: 8674665223082154000,
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -269,20 +261,16 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Add the NetworkProbeTask
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Key:  "IMSI1234",
-			Type: lte.NetworkProbeTaskEntityType,
-			Config: &models.NetworkProbeTaskDetails{
-				TargetID:      "IMSI1234",
-				TargetType:    "imsi",
-				DeliveryType:  "events_only",
-				CorrelationID: 8674665223082154000,
-			},
+	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+		Key:  "IMSI1234",
+		Type: lte.NetworkProbeTaskEntityType,
+		Config: &models.NetworkProbeTaskDetails{
+			TargetID:      "IMSI1234",
+			TargetType:    "imsi",
+			DeliveryType:  "events_only",
+			CorrelationID: 8674665223082154000,
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -319,32 +307,28 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	deleteNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Key:  "IMSI1234",
-				Type: lte.NetworkProbeTaskEntityType,
-				Config: &models.NetworkProbeTaskDetails{
-					TargetID:      "IMSI1234",
-					TargetType:    "imsi",
-					DeliveryType:  "events_only",
-					CorrelationID: 8674665223082154000,
-				},
-			},
-			{
-				Key:  "IMSI1235",
-				Type: lte.NetworkProbeTaskEntityType,
-				Config: &models.NetworkProbeTaskDetails{
-					TargetID:      "IMSI1235",
-					TargetType:    "imsi",
-					DeliveryType:  "all",
-					CorrelationID: 8674665223082154099,
-				},
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Key:  "IMSI1234",
+			Type: lte.NetworkProbeTaskEntityType,
+			Config: &models.NetworkProbeTaskDetails{
+				TargetID:      "IMSI1234",
+				TargetType:    "imsi",
+				DeliveryType:  "events_only",
+				CorrelationID: 8674665223082154000,
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Key:  "IMSI1235",
+			Type: lte.NetworkProbeTaskEntityType,
+			Config: &models.NetworkProbeTaskDetails{
+				TargetID:      "IMSI1235",
+				TargetType:    "imsi",
+				DeliveryType:  "all",
+				CorrelationID: 8674665223082154099,
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -441,28 +425,24 @@ func TestListNetworkProbeDestinations(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Key:  "1111-2222-3333",
-				Type: lte.NetworkProbeDestinationEntityType,
-				Config: &models.NetworkProbeDestinationDetails{
-					DeliveryAddress: "127.0.0.1:4000",
-					DeliveryType:    "all",
-				},
-			},
-			{
-				Key:  "2222-3333-4444",
-				Type: lte.NetworkProbeDestinationEntityType,
-				Config: &models.NetworkProbeDestinationDetails{
-					DeliveryAddress: "127.0.0.1:4001",
-					DeliveryType:    "all",
-				},
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Key:  "1111-2222-3333",
+			Type: lte.NetworkProbeDestinationEntityType,
+			Config: &models.NetworkProbeDestinationDetails{
+				DeliveryAddress: "127.0.0.1:4000",
+				DeliveryType:    "all",
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Key:  "2222-3333-4444",
+			Type: lte.NetworkProbeDestinationEntityType,
+			Config: &models.NetworkProbeDestinationDetails{
+				DeliveryAddress: "127.0.0.1:4001",
+				DeliveryType:    "all",
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -513,18 +493,14 @@ func TestGetNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Key:  "1111-2222-3333",
-			Type: lte.NetworkProbeDestinationEntityType,
-			Config: &models.NetworkProbeDestinationDetails{
-				DeliveryAddress: "127.0.0.1:4000",
-				DeliveryType:    "all",
-			},
+	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+		Key:  "1111-2222-3333",
+		Type: lte.NetworkProbeDestinationEntityType,
+		Config: &models.NetworkProbeDestinationDetails{
+			DeliveryAddress: "127.0.0.1:4000",
+			DeliveryType:    "all",
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -580,18 +556,14 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Add the NetworkProbeDestination
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{
-			Key:  "1111-2222-3333",
-			Type: lte.NetworkProbeDestinationEntityType,
-			Config: &models.NetworkProbeDestinationDetails{
-				DeliveryAddress: "127.0.0.1:4000",
-				DeliveryType:    "all",
-			},
+	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+		Key:  "1111-2222-3333",
+		Type: lte.NetworkProbeDestinationEntityType,
+		Config: &models.NetworkProbeDestinationDetails{
+			DeliveryAddress: "127.0.0.1:4000",
+			DeliveryType:    "all",
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -628,34 +600,30 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	deleteNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Key:  "1111-2222-3333",
-				Type: lte.NetworkProbeDestinationEntityType,
-				Config: &models.NetworkProbeDestinationDetails{
-					DeliveryAddress:  "127.0.0.1:4000",
-					DeliveryType:     "events_only",
-					Certificate:      &b64_encoded,
-					PrivateKey:       &b64_encoded,
-					SkipVerifyServer: true,
-				},
-			},
-			{
-				Key:  "2222-3333-4444",
-				Type: lte.NetworkProbeDestinationEntityType,
-				Config: &models.NetworkProbeDestinationDetails{
-					DeliveryAddress:  "127.0.0.1:4001",
-					DeliveryType:     "all",
-					Certificate:      &b64_encoded,
-					PrivateKey:       &b64_encoded,
-					SkipVerifyServer: true,
-				},
+	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+		{
+			Key:  "1111-2222-3333",
+			Type: lte.NetworkProbeDestinationEntityType,
+			Config: &models.NetworkProbeDestinationDetails{
+				DeliveryAddress:  "127.0.0.1:4000",
+				DeliveryType:     "events_only",
+				Certificate:      &b64_encoded,
+				PrivateKey:       &b64_encoded,
+				SkipVerifyServer: true,
 			},
 		},
-		serdes.Entity,
-	)
+		{
+			Key:  "2222-3333-4444",
+			Type: lte.NetworkProbeDestinationEntityType,
+			Config: &models.NetworkProbeDestinationDetails{
+				DeliveryAddress:  "127.0.0.1:4001",
+				DeliveryType:     "all",
+				Certificate:      &b64_encoded,
+				PrivateKey:       &b64_encoded,
+				SkipVerifyServer: true,
+			},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc := tests.Test{

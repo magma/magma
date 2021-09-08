@@ -40,6 +40,8 @@
 
 #include <string.h>  // memcpy
 #include <arpa/inet.h>
+
+#define GNB_GTP_TEID_FMT "%08x"
 //------------------------------------------------------------------------------
 #define STOLEN_REF
 #define CLONE_REF

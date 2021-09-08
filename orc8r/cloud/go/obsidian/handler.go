@@ -57,6 +57,11 @@ const (
 	networkWildcard = "N*"
 )
 
+const (
+	ParamPageSize  = "page_size"
+	ParamPageToken = "page_token"
+)
+
 var registries = map[HttpMethod]handlerRegistry{
 	GET:    {},
 	POST:   {},
@@ -321,4 +326,19 @@ func NetworkIdHttpErr() *echo.HTTPError {
 
 func TenantIdHttpErr() *echo.HTTPError {
 	return HttpError(fmt.Errorf("Missing Tenant ID"), http.StatusBadRequest)
+}
+
+// GetPaginationParams returns page size and token params.
+func GetPaginationParams(c echo.Context) (uint64, string, error) {
+	pageSizeStr := c.QueryParam(ParamPageSize)
+	pageToken := c.QueryParam(ParamPageToken)
+	if pageSizeStr == "" {
+		return 0, pageToken, nil
+	}
+	pageSize, err := strconv.ParseUint(pageSizeStr, 10, 32)
+	if err != nil {
+		err := errors.Wrap(err, "invalid page size parameter")
+		return 0, pageToken, HttpError(err, http.StatusBadRequest)
+	}
+	return pageSize, pageToken, nil
 }

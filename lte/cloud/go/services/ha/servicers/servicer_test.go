@@ -62,63 +62,51 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Initialize HA network topology
-	_, err = configurator.CreateEntity(
-		testNetworkId,
-		configurator.NetworkEntity{
-			Type:   lte.CellularEnodebEntityType,
-			Key:    enbSn,
-			Config: newDefaultUnmanagedEnodebConfig(),
-		},
-		serdes.Entity,
-	)
+	_, err = configurator.CreateEntity(context.Background(), testNetworkId, configurator.NetworkEntity{
+		Type:   lte.CellularEnodebEntityType,
+		Key:    enbSn,
+		Config: newDefaultUnmanagedEnodebConfig(),
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		testNetworkId,
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.CellularGatewayEntityType, Key: testGwId1,
-				Config:       newDefaultGatewayConfig(1, 255),
-				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: testGwId1,
-				Name: "foobar", Description: "foo bar",
-				PhysicalID:   testGwHwId1,
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwId1}},
-			},
-			{
-				Type: lte.CellularGatewayEntityType, Key: testGwId2,
-				Config:       newDefaultGatewayConfig(2, 1),
-				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: testGwId2,
-				Name: "foobar2", Description: "foo bar",
-				PhysicalID:   testGwHwId2,
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwId2}},
-			},
+	_, err = configurator.CreateEntities(context.Background(), testNetworkId, []configurator.NetworkEntity{
+		{
+			Type: lte.CellularGatewayEntityType, Key: testGwId1,
+			Config:       newDefaultGatewayConfig(1, 255),
+			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
 		},
-		serdes.Entity,
-	)
+		{
+			Type: orc8r.MagmadGatewayType, Key: testGwId1,
+			Name: "foobar", Description: "foo bar",
+			PhysicalID:   testGwHwId1,
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwId1}},
+		},
+		{
+			Type: lte.CellularGatewayEntityType, Key: testGwId2,
+			Config:       newDefaultGatewayConfig(2, 1),
+			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
+		},
+		{
+			Type: orc8r.MagmadGatewayType, Key: testGwId2,
+			Name: "foobar2", Description: "foo bar",
+			PhysicalID:   testGwHwId2,
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwId2}},
+		},
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities(
-		testNetworkId,
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.CellularGatewayPoolEntityType, Key: testGwPool,
-				Config: &lte_models.CellularGatewayPoolConfigs{
-					MmeGroupID: 1,
-				},
-				Associations: []storage.TypeAndKey{
-					{Type: lte.CellularGatewayEntityType, Key: testGwId1},
-					{Type: lte.CellularGatewayEntityType, Key: testGwId2},
-				},
+	_, err = configurator.CreateEntities(context.Background(), testNetworkId, []configurator.NetworkEntity{
+		{
+			Type: lte.CellularGatewayPoolEntityType, Key: testGwPool,
+			Config: &lte_models.CellularGatewayPoolConfigs{
+				MmeGroupID: 1,
+			},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularGatewayEntityType, Key: testGwId1},
+				{Type: lte.CellularGatewayEntityType, Key: testGwId2},
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// Initialize network state for given devices

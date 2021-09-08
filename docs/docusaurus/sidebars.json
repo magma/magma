@@ -182,6 +182,7 @@
         "type": "subcategory",
         "label": "General",
         "ids": [
+          "howtos/troubleshooting/agw_healthcheck",
           "howtos/troubleshooting/agw_unable_to_checkin",
           "howtos/troubleshooting/user_unable_to_attach",
           "howtos/troubleshooting/update_certificates",
@@ -326,7 +327,8 @@
           "proposals/p008_apn_correction",
           "proposals/p013_Ubuntu_upgrade",
           "proposals/p018_control_network_metrics",
-          "proposals/p019_enodeb_cbrs_support"
+          "proposals/p019_enodeb_cbrs_support",
+          "proposals/p020_sgi_tunnel_transport"
         ]
       },
       {
