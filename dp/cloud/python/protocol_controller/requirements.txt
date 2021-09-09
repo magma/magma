@@ -1,0 +1,6 @@
+click==7.1.2
+Flask==2.0.1
+Flask-JSON==0.3.4
+grpcio==1.37.1
+grpcio-tools==1.37.1
+marshmallow==3.12.1

@@ -1,0 +1,57 @@
+name: Active mode controller unit tests
+
+on:
+  pull_request:
+    branches:
+      - "move_dp_to_magma"
+    paths:
+      - "dp/cloud/go/active_mode_controller/**"
+      - ".github/workflows/dp-active-mode-controller.yml"
+  push:
+    #branches:
+    #  - "move_dp_to_magma"
+    #paths:
+    #  - "dp/cloud/go/active_mode_controller/**"
+    #  - ".github/workflows/dp-active-mode-controller.yml"
+
+jobs:
+  active_mode_controller_unit_tests:
+    name: "Active mode controller unit tests"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: dp/cloud/go/active_mode_controller
+
+    strategy:
+      matrix:
+        go-version:
+          - 1.16
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Run Go linter
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.42
+          working-directory: dp/cloud/go/active_mode_controller
+          skip-go-installation: true
+
+      - name: Run Go tests
+        run: |
+          go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests,active-mode-controller
+          name: codecov-active-mode-controller
+          fail_ci_if_error: false
+          verbose: true

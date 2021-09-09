@@ -1,0 +1,38 @@
+name: Ingress tests
+
+on: 
+  pull_request:
+    branches:
+      - 'move_dp_to_magma'
+
+jobs:
+  ingress_tests:
+    name: "${{ matrix.ingress }} tests"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ingress:
+          - contour
+          - nginx
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Minikube
+      uses: manusa/actions-setup-minikube@v2.4.1
+      with:
+        minikube version: 'v1.21.0'
+        kubernetes version: 'v1.20.7'
+        github token: ${{ secrets.GITHUB_TOKEN }}
+        start args: "--memory=6952m --addons=metrics-server"
+        driver: "docker"
+
+    - name: Setup Minikube
+      run: |
+        make _ci_init
+
+    - name: Run ingress tests
+      timeout-minutes: 5
+      env:
+        KUBECONFIG: "/home/runner/.kube/config"
+      run: | 
+        CI=false make _ci_ingress_tests_${{ matrix.ingress }}

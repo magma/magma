@@ -1,0 +1,29 @@
+name: Helm chart smoke tests
+
+on: 
+  pull_request:
+    branches:
+      - 'move_dp_to_magma'
+
+jobs:
+  helm_chart_tests:
+    name: "Helm chart smoke tests"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Minikube
+      uses: manusa/actions-setup-minikube@v2.4.1
+      with:
+        minikube version: 'v1.21.0'
+        kubernetes version: 'v1.20.7'
+        github token: ${{ secrets.GITHUB_TOKEN }}
+        start args: "--memory=6952m --addons=metrics-server"
+        driver: "docker"
+
+    - name: Setup Minikube
+      run: |
+        make _ci_init
+
+    - name: Run helm chart smoke tests
+      run: | 
+        CI=false make _ci_chart_smoke_tests

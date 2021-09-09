@@ -1,0 +1,74 @@
+name: Radio controller unit tests
+
+on: 
+  pull_request:
+    branches:
+      - "move_dp_to_magma"
+    paths:
+      - "dp/cloud/python/radio_controller/**"
+      - ".github/workflows/radio-controller.yml"
+  push:
+    #branches:
+    #  - "move_dp_to_magma"
+    #paths:
+    #  - "dp/cloud/python/radio_controller/**"
+    #  - ".github/workflows/dp-radio-controller.yml"
+
+jobs:
+  radio_controller_unit_tests:
+    name: "Radio controller unit tests"
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}"
+
+    defaults:
+      run:
+        working-directory: dp/cloud/python/radio_controller
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+    - name: Generate protobufs
+      working-directory: "${{ github.workspace }}"
+      run: |
+        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
+        dp/protos/requests.proto
+        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
+        dp/protos/active_mode.proto
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      run: |
+        coverage run --source=. -m pytest tests/unit
+        coverage report
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        flags: unittests,radio-controller
+        name: codecov-radio-controller
+        fail_ci_if_error: false
+        verbose: true

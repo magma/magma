@@ -1,0 +1,52 @@
+name: DP Integration tests
+
+on: 
+  pull_request:
+    branches:
+      - move_dp_to_magma
+      - move_dp_to_magma_rework
+  push:
+
+jobs:
+  integation_tests:
+    name: "All"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: dp
+    env:
+      TEST_DIR: /tmp/integration-tests-results
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Minikube
+      uses: manusa/actions-setup-minikube@v2.4.1
+      with:
+        minikube version: 'v1.21.0'
+        kubernetes version: 'v1.20.7'
+        github token: ${{ secrets.GITHUB_TOKEN }}
+        start args: "--memory=6952m --addons=metrics-server" 
+        driver: "docker"
+
+    - name: Setup Minikube
+      run: |
+        make _ci_init
+
+    - name: Get minikube IP and prepare directory for test results
+      run: |
+        minikube ip
+        mkdir -p $TEST_DIR
+        minikube mount $TEST_DIR:$TEST_DIR &
+
+    - name: Run integration tests
+      run: | 
+        make _ci_integration_tests
+
+    - name: Upload integration test results
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: integration-tests-results
+        path: ${{ env.TEST_DIR }}

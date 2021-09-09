@@ -1,0 +1,65 @@
+name: Configuration controller unit tests
+
+on: 
+  pull_request:
+    branches:
+      - "move_dp_to_magma"
+    paths:
+      - "dp/cloud/python/configuration_controller/**"
+      - ".github/workflows/configuration-controller.yml"
+  push:
+    #paths:
+    #  - "dp/cloud/python/configuration_controller/**"
+    #  - ".github/workflows/dp-configuration-controller.yml"
+
+jobs:
+  configuration_controller_unit_tests:
+    name: "Configuration controller unit tests"
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}"
+
+    defaults:
+      run:
+        working-directory: dp/cloud/python/configuration_controller
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      run: |
+        echo "pajtonpaf: $PYTHONPATH"
+        coverage run --source=. -m pytest tests/unit
+        coverage report
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        flags: unittests,configuration-controller
+        name: codecov-configuration-controller
+        fail_ci_if_error: false
+        verbose: true

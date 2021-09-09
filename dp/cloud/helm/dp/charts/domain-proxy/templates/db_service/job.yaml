@@ -1,0 +1,41 @@
+{{- if .Values.db_service.enabled -}}
+apiVersion: {{ template "domain-proxy.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ include "domain-proxy.db_service.fullname" . }}-{{ .Release.Revision }}
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      {{- with .Values.db_service.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.db_service.serviceAccountName" . }}
+      containers:
+      - name: {{ .Values.db_service.name }}
+        image: >-
+          {{ .Values.db_service.image.repository -}}:
+          {{- .Values.db_service.image.tag |
+          default .Chart.AppVersion }}
+        env:
+          {{- range $key, $value := .Values.db_service.extraEnv }}
+          - name: {{ $key }}
+            value: {{ $value }}
+          {{- end }}
+      restartPolicy: Never
+      initContainers:
+      - name: {{ .Values.db_service.name }}-init
+        image: >-
+          {{ .Values.db_service.image.repository -}}:
+          {{- .Values.db_service.image.tag |
+          default .Chart.AppVersion }}
+        env:
+          {{- range $key, $value := .Values.db_service.extraEnv }}
+          - name: {{ $key }}
+            value: {{ $value }}
+          {{- end }}
+        command: ["alembic"]
+        args: ["upgrade","head"]
+  backoffLimit: 4
+{{- end }}
