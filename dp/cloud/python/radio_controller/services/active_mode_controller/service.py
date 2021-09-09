@@ -3,14 +3,15 @@ import logging
 
 from sqlalchemy.orm import joinedload
 
-from dp.protos.active_mode_pb2 import GetStateRequest, State, ToggleActiveModeParams, ToggleActiveModeResponse, Unregistered, \
-    Registered, Granted, Authorized, ActiveModeConfig, Cbsd, Grant, Channel, FrequencyRange, On, Off, _CBSDSTATE
+from dp.protos.active_mode_pb2 import GetStateRequest, State, ToggleActiveModeParams, ToggleActiveModeResponse, \
+    ActiveModeConfig, Cbsd, Grant, Channel, _CBSDSTATE
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from dp.cloud.python.db_service.models import DBActiveModeConfig, DBCbsd, DBGrant, DBGrantState, DBChannel, DBCbsdState, DBRequest, \
     DBRequestState
 from dp.cloud.python.db_service.session_manager import SessionManager, Session
 from dp.cloud.python.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping, switch_mapping
 from dp.cloud.python.mappings.types import GrantStates, Switch, RequestStates
+from dp.protos.common_pb2 import FrequencyRange
 
 logger = logging.getLogger(__name__)
 

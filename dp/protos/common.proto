@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package magma.dp;
+
+enum GrantState {
+  Idle = 0;
+  Granted = 1;
+  Authorized = 2;
+}
+
+message FrequencyRange {
+  int64 low = 1;
+  int64 high = 2;
+}

@@ -1,0 +1,22 @@
+
+syntax = "proto3";
+
+import "dp/protos/common.proto";
+
+option go_package = "magma/dp/cloud/go/protos";
+
+message CBSDStateRequest {
+  string user_id = 1;
+  string fcc_id = 2;
+  string serial_number = 3;
+}
+
+message CBSDStateResult {
+  magma.dp.FrequencyRange frequency_range = 1; // Hz
+  float MaxEirp = 2; // dB/MHz
+  magma.dp.GrantState grant_state = 3;
+}
+
+service TR069DPService {
+    rpc GetCBSDState (CBSDStateRequest) returns (CBSDStateResult) {}
+}

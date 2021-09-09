@@ -11,6 +11,7 @@ COPY dp/cloud/python/fixtures dp/cloud/python/fixtures
 RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/test_runner/requirements.txt
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/requests.proto
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/active_mode.proto
+RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/common.proto
 
 WORKDIR dp/cloud/python/test_runner
 

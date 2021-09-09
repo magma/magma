@@ -3,14 +3,16 @@ from datetime import datetime
 
 from google.protobuf.json_format import MessageToDict
 
-from dp.protos import active_mode_pb2 as active_mode
 from dp.cloud.python.db_service.db_initialize import DBInitializer
-from dp.cloud.python.db_service.models import DBCbsd, DBCbsdState, DBGrant, DBGrantState, DBActiveModeConfig, DBChannel, DBRequest, \
-    DBRequestType, DBRequestState
+from dp.cloud.python.db_service.models import DBCbsd, DBCbsdState, DBGrant, DBGrantState, DBActiveModeConfig, \
+    DBChannel, DBRequest, DBRequestType, DBRequestState
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.local_db_test_case import LocalDBTestCase
 from dp.cloud.python.mappings.types import CbsdStates, GrantStates, RequestTypes, RequestStates
 from dp.cloud.python.radio_controller.services.active_mode_controller.service import ActiveModeControllerService
+from dp.protos.active_mode_pb2 import State, GetStateRequest, ActiveModeConfig, Registered, Cbsd, Grant, Channel, \
+    Unregistered
+from dp.protos.common_pb2 import Granted, Authorized, FrequencyRange
 
 
 class ActiveModeControllerTestCase(LocalDBTestCase):
@@ -121,44 +123,44 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         self.session.commit()
 
         # When
-        actual_state = self.amc_service.GetState(active_mode.GetStateRequest(), None)
+        actual_state = self.amc_service.GetState(GetStateRequest(), None)
 
         # Then
-        expected_state = active_mode.State(
+        expected_state = State(
             active_mode_configs=[
-                active_mode.ActiveModeConfig(
-                    desired_state=active_mode.Registered,
-                    cbsd=active_mode.Cbsd(
+                ActiveModeConfig(
+                    desired_state=Registered,
+                    cbsd=Cbsd(
                         id="some_cbsd_id",
                         user_id="some_user_id",
                         fcc_id="some_fcc_id",
                         serial_number="some_serial_number",
-                        state=active_mode.Registered,
+                        state=Registered,
                         grants=[
-                            active_mode.Grant(
+                            Grant(
                                 id="some_granted_grant_id",
-                                state=active_mode.Granted,
+                                state=Granted,
                                 heartbeat_interval_sec=100,
                                 last_heartbeat_timestamp=200,
                             ),
-                            active_mode.Grant(
+                            Grant(
                                 id="some_authorized_grant_id",
-                                state=active_mode.Authorized,
+                                state=Authorized,
                                 heartbeat_interval_sec=300,
                                 last_heartbeat_timestamp=400,
                             ),
                         ],
                         channels=[
-                            active_mode.Channel(
-                                frequency_range=active_mode.FrequencyRange(
+                            Channel(
+                                frequency_range=FrequencyRange(
                                     low=50,
                                     high=60,
                                 ),
                                 max_eirp=24.5,
                                 last_eirp=25.5,
                             ),
-                            active_mode.Channel(
-                                frequency_range=active_mode.FrequencyRange(
+                            Channel(
+                                frequency_range=FrequencyRange(
                                     low=70,
                                     high=80,
                                 ),
@@ -170,11 +172,11 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
                         eirp_capability=26.5,
                     ),
                 ),
-                active_mode.ActiveModeConfig(
-                    desired_state=active_mode.Unregistered,
-                    cbsd=active_mode.Cbsd(
+                ActiveModeConfig(
+                    desired_state=Unregistered,
+                    cbsd=Cbsd(
                         id="other_cbsd_id",
-                        state=active_mode.Unregistered,
+                        state=Unregistered,
                     )
                 ),
             ]

@@ -12,12 +12,15 @@ COPY dp/protos dp/protos
 RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/radio_controller/requirements.txt
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/requests.proto
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/active_mode.proto
+RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/common.proto
 
 FROM standard-version as tests-version
 COPY /dp/cloud/python/db_service/db_initialize.py dp/cloud/python/db_service/
 COPY dp/cloud/python/db_service/tests dp/cloud/python/db_service/tests
 RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/radio_controller/tests/requirements.txt
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/requests.proto
+RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/active_mode.proto
+RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/common.proto
 
 FROM ${ENV}-version as final
 
