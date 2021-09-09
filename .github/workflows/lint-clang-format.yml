@@ -1,0 +1,24 @@
+---
+name: lint-clang-format
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - .github/workflows/lint-clang-format.yml
+      - lte/gateway/c/**
+      - orc8r/gateway/c/**
+
+jobs:
+  lint-clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: 'orc8r/gateway/c lte/gateway/c'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 7
+          style: file
