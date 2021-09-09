@@ -1,11 +1,16 @@
 ---
 name: reviewdog-workflow
 on:  # yamllint disable-line rule:truthy
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - reopened
       - synchronize
+
+# Applies on all review jobs below
+# See Reviewdog doc provided at https://github.com/reviewdog/reviewdog
+# github-pr-check: Adds lint as annotations in the PR that can be toggled by pressing 'a'
+# github-pr-review: Adds lint as GitHub comments 
 
 jobs:
   pre_job_go_determinator:
@@ -33,7 +38,7 @@ jobs:
           paths: '[".github/workflows/reviewdog-workflow.yml", "lte/gateway/c/**", "orc8r/gateway/c/**"]'
 
   cpplint:
-    if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_skip != 'true' }}
+    if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_skip == 'false' }}
     ##
     #  Cpplint aims to lint to the Google Style guide. For detailed
     #  rationale on each linting rule, see
@@ -62,10 +67,10 @@ jobs:
             --extensions=hh,c,hpp,cpp,cuh,cc,cxx,c++,hxx,h,h++,cu \
             --filter=build/include_subdir,build/c++11 \
             --linelength=120 2>&1 \
-             | ./reviewdog -efm="%f:%l: %m" -name="cpplint" -reporter="github-pr-review" -level="warning"
+             | ./reviewdog -efm="%f:%l: %m" -name="cpplint" -reporter="github-pr-check" -level="warning"
 
   golangci-lint:
-    if: ${{ needs.pre_job_go_determinator.outputs.should_skip != 'true' }}
+    if: ${{ needs.pre_job_go_determinator.outputs.should_skip == 'false' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
@@ -87,7 +92,7 @@ jobs:
         uses: reviewdog/action-hadolint@v1
         with:
           github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review  # Default is github-pr-check
+          reporter: github-pr-check  # Default is github-pr-check
           # Ignore DL3005-"Do not use apt-get upgrade or dist-upgrade"
           hadolint_ignore: DL3005
           filter_mode: added  # All added or modified lines
@@ -116,7 +121,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           filter_mode: added # Any added or changed content.
-          reporter: github-pr-review # Post code review comments. Falls back to Annotations.
+          reporter: github-pr-check # Post code review comments. Falls back to Annotations.
           pattern: "*.sh" # Optional.
           # Other options omitted here but possible.
           # - fail_on_error
@@ -140,7 +145,7 @@ jobs:
         name: wemake-python-styleguide
         uses: wemake-services/wemake-python-styleguide@0.15.2
         with:
-          reporter: 'github-pr-review'
+          reporter: 'github-pr-check'
           path: ${{ steps.py-changes.outputs.py }}
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
@@ -156,5 +161,5 @@ jobs:
           github_token: ${{ secrets.github_token }}
           level: warning
           filter_mode: added  # Any added or changed content.
-          reporter: github-pr-review  # Comments on PR with review comments.
+          reporter: github-pr-check  # Comments on PR with review comments.
           yamllint_flags: "-d .github/workflows/config/yamllint_config.yml ."
