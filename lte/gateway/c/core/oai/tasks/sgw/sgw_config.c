@@ -313,6 +313,7 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
     char* multi_tunnel                          = NULL;
     char* agw_l3_tunnel                         = NULL;
     char* gtp_echo                              = NULL;
+    char* gtp_csum                              = NULL;
 
     char* uplink_mac             = NULL;
     char* pipelined_managed_tbl0 = NULL;
@@ -341,6 +342,9 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_GTP_ECHO,
             (const char**) &gtp_echo) &&
+        config_setting_lookup_string(
+            ovs_settings, SGW_CONFIG_STRING_OVS_GTP_CHECKSUM,
+            (const char**) &gtp_csum) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_AGW_L3_TUNNEL,
             (const char**) &agw_l3_tunnel) &&
@@ -378,6 +382,12 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         config_pP->ovs_config.gtp_echo = false;
       }
       OAILOG_INFO(LOG_SPGW_APP, "GTP-U echo response enable: %s\n", gtp_echo);
+      if (strcasecmp(gtp_csum, "true") == 0) {
+        config_pP->ovs_config.gtp_csum = true;
+      } else {
+        config_pP->ovs_config.gtp_csum = false;
+      }
+      OAILOG_INFO(LOG_SPGW_APP, "GTP-U checksum enable: %s\n", gtp_csum);
 
       if (strcasecmp(agw_l3_tunnel, "true") == 0) {
         config_pP->agw_l3_tunnel = true;
