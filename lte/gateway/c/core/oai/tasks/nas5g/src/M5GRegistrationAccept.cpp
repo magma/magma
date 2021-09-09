@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GRegistrationAccept.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,10 +20,10 @@ RegistrationAcceptMsg::~RegistrationAcceptMsg(){};
 // Decoding Registration Accept Message and its IEs
 int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(
     RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, REGISTRATION_ACCEPT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                       REGISTRATION_ACCEPT_MINIMUM_LENGTH, len);
 
   if ((decoded_result = reg_accept->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
@@ -63,10 +63,10 @@ int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(
 // Encoding Registration Accept Message and its IEs
 int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(
     RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, REGISTRATION_ACCEPT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       REGISTRATION_ACCEPT_MINIMUM_LENGTH, len);
 
   if ((encoded_result = reg_accept->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(

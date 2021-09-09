@@ -12,11 +12,11 @@
  */
 #pragma once
 
-#include <prometheus/registry.h>
-#include <prometheus/family.h>
 #include <prometheus/counter.h>
+#include <prometheus/family.h>
 #include <prometheus/gauge.h>
 #include <prometheus/histogram.h>
+#include <prometheus/registry.h>
 
 #include <map>
 #include <memory>
@@ -39,12 +39,11 @@ using namespace orc8r;
  * constuct a single instance of a metric family per name and a single
  * instance for each label set in that family.
  */
-template<typename T, typename MetricFamilyFactory>
+template <typename T, typename MetricFamilyFactory>
 class MetricsRegistry {
  public:
-  MetricsRegistry(
-      const std::shared_ptr<prometheus::Registry>& registry,
-      const MetricFamilyFactory& factory);
+  MetricsRegistry(const std::shared_ptr<prometheus::Registry>& registry,
+                  const MetricFamilyFactory& factory);
 
   /**
    * Get or create a metric instance matching this name and label set
@@ -54,19 +53,17 @@ class MetricsRegistry {
    * @param args...: other arguments the Metric constructor may need
    * @return prometheus T instance
    */
-  template<typename... Args>
-  T& Get(
-      const std::string& name, const std::map<std::string, std::string>& labels,
-      Args&&... args);
+  template <typename... Args>
+  T& Get(const std::string& name,
+         const std::map<std::string, std::string>& labels, Args&&... args);
 
   /**
    * Remove a metric instance specified by name/labels
    * @param name
    * @param labels
    */
-  void Remove(
-      const std::string& name,
-      const std::map<std::string, std::string>& labels);
+  void Remove(const std::string& name,
+              const std::map<std::string, std::string>& labels);
 
   const std::size_t SizeFamilies() { return families_.size(); }
 
@@ -77,30 +74,29 @@ class MetricsRegistry {
       const std::string& name,
       const std::map<std::string, std::string>& labels);
   // Convert labels to enums if applicable
-  static void parse_labels(
-      const std::map<std::string, std::string>& labels,
-      std::map<std::string, std::string>& parsed_labels);
+  static void parse_labels(const std::map<std::string, std::string>& labels,
+                           std::map<std::string, std::string>& parsed_labels);
   std::unordered_map<std::size_t, Family<T>*> families_;
   std::unordered_map<std::size_t, T*> metrics_;
   const std::shared_ptr<prometheus::Registry>& registry_;
   const MetricFamilyFactory& factory_;
 };
 
-template<typename T, typename MetricFamilyFactory>
+template <typename T, typename MetricFamilyFactory>
 MetricsRegistry<T, MetricFamilyFactory>::MetricsRegistry(
     const std::shared_ptr<prometheus::Registry>& registry,
     const MetricFamilyFactory& factory)
     : registry_(registry), factory_(factory) {}
 
-template<typename T, typename MetricFamilyFactory>
-template<typename... Args>
+template <typename T, typename MetricFamilyFactory>
+template <typename... Args>
 T& MetricsRegistry<T, MetricFamilyFactory>::Get(
     const std::string& name, const std::map<std::string, std::string>& labels,
     Args&&... args) {
   // Create the family if we haven't seen it before
   Family<T>* family;
   size_t name_hash = std::hash<std::string>{}(name);
-  auto family_it   = families_.find(name_hash);
+  auto family_it = families_.find(name_hash);
   if (family_it != families_.end()) {
     family = family_it->second;
   } else {
@@ -116,7 +112,7 @@ T& MetricsRegistry<T, MetricFamilyFactory>::Get(
   // Create the metric if we haven't seen it before
   T* metric;
   size_t metric_hash = hash_name_and_labels(name, labels);
-  auto metric_it     = metrics_.find(metric_hash);
+  auto metric_it = metrics_.find(metric_hash);
   if (metric_it != metrics_.end()) {
     metric = metric_it->second;
   } else {
@@ -128,12 +124,12 @@ T& MetricsRegistry<T, MetricFamilyFactory>::Get(
   return *metric;
 }
 
-template<typename T, typename MetricFamilyFactory>
+template <typename T, typename MetricFamilyFactory>
 void MetricsRegistry<T, MetricFamilyFactory>::Remove(
     const std::string& name, const std::map<std::string, std::string>& labels) {
   Family<T>* family;
   size_t name_hash = std::hash<std::string>{}(name);
-  auto family_it   = families_.find(name_hash);
+  auto family_it = families_.find(name_hash);
   if (family_it == families_.end()) {
     return;
   }
@@ -141,7 +137,7 @@ void MetricsRegistry<T, MetricFamilyFactory>::Remove(
 
   T* metric;
   size_t metric_hash = hash_name_and_labels(name, labels);
-  auto metric_it     = metrics_.find(metric_hash);
+  auto metric_it = metrics_.find(metric_hash);
   if (metric_it == metrics_.end()) {
     return;
   }
@@ -150,7 +146,7 @@ void MetricsRegistry<T, MetricFamilyFactory>::Remove(
   metrics_.erase(metric_hash);
 }
 
-template<typename T, typename MetricFamilyFactory>
+template <typename T, typename MetricFamilyFactory>
 std::size_t MetricsRegistry<T, MetricFamilyFactory>::hash_name_and_labels(
     const std::string& name, const std::map<std::string, std::string>& labels) {
   auto combined = std::accumulate(
@@ -162,7 +158,7 @@ std::size_t MetricsRegistry<T, MetricFamilyFactory>::hash_name_and_labels(
   return std::hash<std::string>{}(combined);
 }
 
-template<typename T, typename MetricFamilyFactory>
+template <typename T, typename MetricFamilyFactory>
 void MetricsRegistry<T, MetricFamilyFactory>::parse_labels(
     const std::map<std::string, std::string>& labels,
     std::map<std::string, std::string>& parsed_labels) {
@@ -170,9 +166,9 @@ void MetricsRegistry<T, MetricFamilyFactory>::parse_labels(
     // convert label name
     MetricLabelName label_name_enum;
     const std::string& label_name =
-        MetricLabelName_Parse(label_pair.first, &label_name_enum) ?
-            std::to_string(label_name_enum) :
-            label_pair.first;
+        MetricLabelName_Parse(label_pair.first, &label_name_enum)
+            ? std::to_string(label_name_enum)
+            : label_pair.first;
     // insert into new map
     parsed_labels.insert({{label_name, label_pair.second}});
   }

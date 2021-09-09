@@ -125,11 +125,11 @@ typedef union MobileIdentity_tag {
   NoMobileIdentity_t no_id;
 } MobileIdentity;
 
-int encode_mobile_identity(
-    MobileIdentity* mobileidentity, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
-int decode_mobile_identity(
-    MobileIdentity* mobileidentity, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
 void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei);
 

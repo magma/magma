@@ -14,20 +14,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
 #include "dynamic_memory_check.h"
+#include "log.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
 #include "amf_app_state_manager.h"
+#include "common_defs.h"
 
 namespace magma5g {
 constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";
 constexpr char AMF_UE_ID_UE_CTXT_TABLE_NAME[] =
     "amf_app_amf_ue_ngap_id_ue_context_htbl";
 constexpr char AMF_IMSI_UE_ID_TABLE_NAME[] = "amf_app_imsi_ue_context_htbl";
-constexpr char AMF_TUN_UE_ID_TABLE_NAME[]  = "amf_app_tun11_ue_context_htbl";
+constexpr char AMF_TUN_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_context_htbl";
 constexpr char AMF_GUTI_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_context_htbl";
 constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
     "anf_app_gnb_ue_ngap_id_ue_context_htbl";
@@ -36,7 +36,7 @@ constexpr char AMF_TASK_NAME[] = "AMF";
 /*hash function similar to default to initialize during hash table
  * initialization*/
 static hash_size_t amf_def_hashfunc(const uint64_t keyP) {
-  return (hash_size_t) keyP;
+  return (hash_size_t)keyP;
 }
 
 /**
@@ -51,13 +51,13 @@ AmfNasStateManager& AmfNasStateManager::getInstance() {
 // Singleton class initializer which calls to create new object of
 // AmfNasStateManager
 int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
-  uint32_t rc            = RETURNok;
+  uint32_t rc = RETURNok;
   persist_state_enabled_ = amf_config_p->use_stateless;
-  max_ue_htbl_lists_     = amf_config_p->max_ues;
-  amf_statistic_timer_   = amf_config_p->amf_statistic_timer;
-  log_task               = LOG_AMF_APP;
-  task_name              = AMF_TASK_NAME;
-  table_key              = AMF_NAS_STATE_KEY;
+  max_ue_htbl_lists_ = amf_config_p->max_ues;
+  amf_statistic_timer_ = amf_config_p->amf_statistic_timer;
+  log_task = LOG_AMF_APP;
+  task_name = AMF_TASK_NAME;
+  table_key = AMF_NAS_STATE_KEY;
 
   // Allocate the local AMF state and create respective single object
   create_state();
@@ -78,7 +78,7 @@ int amf_nas_state_init(const amf_config_t* amf_config_p) {
 // Create an object of AmfNasStateManager and Initialize memory
 // for AMF state before doing any operation from data store
 void AmfNasStateManager::create_state() {
-  state_cache_p                               = new (amf_app_desc_t);
+  state_cache_p = new (amf_app_desc_t);
   state_cache_p->amf_app_ue_ngap_id_generator = 1;
   create_hashtables();
 
@@ -88,7 +88,7 @@ void AmfNasStateManager::create_state() {
 
 // Create the hashtables for AMF and NAS state
 void AmfNasStateManager::create_hashtables() {
-  bstring b          = bfromcstr(AMF_IMSI_UE_ID_TABLE_NAME);
+  bstring b = bfromcstr(AMF_IMSI_UE_ID_TABLE_NAME);
   max_ue_htbl_lists_ = 2;
   state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl =
       hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
@@ -98,8 +98,8 @@ void AmfNasStateManager::create_hashtables() {
       hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   btrunc(b, 0);
   bassigncstr(b, AMF_UE_ID_UE_CTXT_TABLE_NAME);
-  state_ue_ht = hashtable_ts_create(
-      max_ue_htbl_lists_, nullptr, amf_app_state_free_ue_context, b);
+  state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
+                                    amf_app_state_free_ue_context, b);
   btrunc(b, 0);
   bassigncstr(b, AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
   state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl =
@@ -115,7 +115,7 @@ void AmfNasStateManager::create_hashtables() {
 void AmfNasStateManager::amf_nas_state_init_local_state() {
   // create statistic timer locally
   state_cache_p->m5_statistic_timer_period = amf_statistic_timer_;
-  state_cache_p->m5_statistic_timer_id     = 0;
+  state_cache_p->m5_statistic_timer_id = 0;
 }
 
 /**
@@ -153,9 +153,7 @@ void AmfNasStateManager::clear_amf_nas_hashtables() {
       state_cache_p->amf_ue_contexts.guti_ue_context_htbl);
 }
 
-hash_table_ts_t* AmfNasStateManager::get_ue_state_ht() {
-  return state_ue_ht;
-}
+hash_table_ts_t* AmfNasStateManager::get_ue_state_ht() { return state_ue_ht; }
 
 hash_table_ts_t* get_amf_ue_state() {
   return AmfNasStateManager::getInstance().get_ue_state_ht();

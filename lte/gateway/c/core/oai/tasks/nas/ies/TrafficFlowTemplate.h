@@ -176,15 +176,13 @@ typedef struct TrafficFlowTemplate_tag {
   ParameterList parameterlist;
 } TrafficFlowTemplate;
 
-int encode_traffic_flow_template(
-    TrafficFlowTemplate* trafficflowtemplate, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_traffic_flow_template(TrafficFlowTemplate* trafficflowtemplate,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len);
 
-int decode_traffic_flow_template(
-    TrafficFlowTemplate* trafficflowtemplate, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_traffic_flow_template(TrafficFlowTemplate* trafficflowtemplate,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len);
 
-void dump_traffic_flow_template_xml(
-    TrafficFlowTemplate* trafficflowtemplate, uint8_t iei);
+void dump_traffic_flow_template_xml(TrafficFlowTemplate* trafficflowtemplate,
+                                    uint8_t iei);
 
 #endif /* TRAFFIC FLOW TEMPLATE_H_ */

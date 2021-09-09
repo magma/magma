@@ -20,8 +20,8 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
+#include "includes/GRPCReceiver.h"
 
 namespace magma {
 using namespace orc8r;

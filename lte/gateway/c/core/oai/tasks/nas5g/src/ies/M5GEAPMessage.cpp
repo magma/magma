@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
+#include "M5GEAPMessage.h"
 #include <cstdint>
 #include <cstring>
-#include "M5GEAPMessage.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -21,14 +21,14 @@ EAPMessageMsg::EAPMessageMsg(){};
 EAPMessageMsg::~EAPMessageMsg(){};
 
 // Decode EAP Message
-int EAPMessageMsg::DecodeEAPMessageMsg(
-    EAPMessageMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+int EAPMessageMsg::DecodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   /*** Will be supported POST MVC ***/
   if (iei > 0) {
-    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
+    CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
     IES_DECODE_U16(buffer, decoded, ielen);
   }
   CHECK_LENGTH_DECODER(len - decoded, ielen);
@@ -36,15 +36,15 @@ int EAPMessageMsg::DecodeEAPMessageMsg(
 };
 
 // Encode EAP Message
-int EAPMessageMsg::EncodeEAPMessageMsg(
-    EAPMessageMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EAP_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) eap_message->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)eap_message->iei);
     *buffer = iei;
     encoded++;
   }

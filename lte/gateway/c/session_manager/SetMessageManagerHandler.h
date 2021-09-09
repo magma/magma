@@ -19,14 +19,14 @@
 *****************************************************************************/
 #pragma once
 #include <functional>
-#include <string>
 #include <memory>
+#include <string>
 
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include "SessionStateEnforcer.h"
 #include "SessionID.h"
+#include "SessionStateEnforcer.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -59,9 +59,8 @@ class SetMessageManager {
 
 class SetMessageManagerHandler : public SetMessageManager {
  public:
-  SetMessageManagerHandler(
-      std::shared_ptr<SessionStateEnforcer> m5G_monitor,
-      SessionStore& session_store);
+  SetMessageManagerHandler(std::shared_ptr<SessionStateEnforcer> m5G_monitor,
+                           SessionStore& session_store);
   ~SetMessageManagerHandler() {}
 
   /* Paging, idle state change notifcation receiving */
@@ -95,15 +94,14 @@ class SetMessageManagerHandler : public SetMessageManager {
    * session_map in memoery and response set message to AMF by gRPC.
    * It uses SessionStateEnforcer object to create new session state.
    */
-  void send_create_session(
-      SessionMap& session_map, const std::string& imsi, SessionConfig& cfg,
-      uint32_t& pdu_id);
+  void send_create_session(SessionMap& session_map, const std::string& imsi,
+                           SessionConfig& cfg, uint32_t& pdu_id);
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 
   /*Release request message handling*/
-  void initiate_release_session(
-      SessionMap& session_map, const uint32_t& pdu_id, const std::string& imsi);
+  void initiate_release_session(SessionMap& session_map, const uint32_t& pdu_id,
+                                const std::string& imsi);
 
  private:
   SessionStore& session_store_;

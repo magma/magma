@@ -10,8 +10,8 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {
@@ -23,11 +23,9 @@ class PDUSessionIdentityMsg {
 
   PDUSessionIdentityMsg();
   ~PDUSessionIdentityMsg();
-  int EncodePDUSessionIdentityMsg(
-      PDUSessionIdentityMsg* pdu_session_id, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodePDUSessionIdentityMsg(
-      PDUSessionIdentityMsg* pdu_session_id, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodePDUSessionIdentityMsg(PDUSessionIdentityMsg* pdu_session_id,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionIdentityMsg(PDUSessionIdentityMsg* pdu_session_id,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

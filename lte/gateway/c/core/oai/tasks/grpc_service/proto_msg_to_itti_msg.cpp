@@ -22,9 +22,9 @@
 #include <iostream>
 #include <string>
 
-#include "bstrlib.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
+#include "bstrlib.h"
 #include "common_ies.h"
 #include "feg/protos/csfb.pb.h"
 #include "lte/protos/sms_orc8r.pb.h"
@@ -64,7 +64,7 @@ namespace magma {
 using namespace feg;
 void convert_proto_msg_to_itti_sgsap_eps_detach_ack(
     const EPSDetachAck* msg, itti_sgsap_eps_detach_ack_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
@@ -73,7 +73,7 @@ void convert_proto_msg_to_itti_sgsap_eps_detach_ack(
 
 void convert_proto_msg_to_itti_sgsap_imsi_detach_ack(
     const IMSIDetachAck* msg, itti_sgsap_imsi_detach_ack_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
@@ -83,7 +83,7 @@ void convert_proto_msg_to_itti_sgsap_imsi_detach_ack(
 void convert_proto_msg_to_itti_sgsap_location_update_accept(
     const LocationUpdateAccept* msg,
     itti_sgsap_location_update_acc_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
@@ -93,10 +93,10 @@ void convert_proto_msg_to_itti_sgsap_location_update_accept(
   itti_msg->laicsfb = itti_lai;
 
   if (msg->newIMSITMSI_case() == LocationUpdateAccept::kNewImsi) {
-    itti_msg->presencemask            = SGSAP_MOBILE_IDENTITY;
+    itti_msg->presencemask = SGSAP_MOBILE_IDENTITY;
     itti_msg->mobileid.typeofidentity = MOBILE_IDENTITY_IMSI;
-    auto new_imsi                     = msg->new_imsi();
-    itti_msg->mobileid.length         = new_imsi.length();
+    auto new_imsi = msg->new_imsi();
+    itti_msg->mobileid.length = new_imsi.length();
     strcpy(itti_msg->mobileid.u.imsi, new_imsi.c_str());
   } else if (msg->newIMSITMSI_case() == LocationUpdateAccept::kNewTmsi) {
     auto new_tmsi = msg->new_tmsi();
@@ -108,9 +108,9 @@ void convert_proto_msg_to_itti_sgsap_location_update_accept(
       itti_msg->presencemask = 0;
       return;
     }
-    itti_msg->presencemask            = SGSAP_MOBILE_IDENTITY;
+    itti_msg->presencemask = SGSAP_MOBILE_IDENTITY;
     itti_msg->mobileid.typeofidentity = MOBILE_IDENTITY_TMSI;
-    itti_msg->mobileid.length         = new_tmsi.length();
+    itti_msg->mobileid.length = new_tmsi.length();
     for (int i = 0; i < TMSI_SIZE; ++i) {
       itti_msg->mobileid.u.tmsi[i] = new_tmsi[i];
     }
@@ -124,11 +124,11 @@ void convert_proto_msg_to_itti_sgsap_location_update_accept(
 void convert_proto_msg_to_itti_sgsap_location_update_reject(
     const LocationUpdateReject* msg,
     itti_sgsap_location_update_rej_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
-  auto cause      = msg->reject_cause();
+  auto cause = msg->reject_cause();
   itti_msg->cause = static_cast<SgsRejectCause_t>(cause[0]);
 
   auto lai = msg->location_area_identifier();
@@ -146,11 +146,11 @@ void convert_proto_msg_to_itti_sgsap_location_update_reject(
 
 void convert_proto_msg_to_itti_sgsap_paging_request(
     const PagingRequest* msg, itti_sgsap_paging_request_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
-  auto service_indicator      = msg->service_indicator();
+  auto service_indicator = msg->service_indicator();
   itti_msg->service_indicator = static_cast<uint8_t>(service_indicator[0]);
 
   uint8_t presencemask = 0;
@@ -173,9 +173,9 @@ void convert_proto_msg_to_itti_sgsap_paging_request(
     }
 
     tagbstring* cli_tbstr = new tagbstring();
-    cli_tbstr->mlen       = cli.length();
-    cli_tbstr->slen       = cli.length();
-    cli_tbstr->data       = cli_char;
+    cli_tbstr->mlen = cli.length();
+    cli_tbstr->slen = cli.length();
+    cli_tbstr->data = cli_char;
 
     itti_msg->opt_cli = cli_tbstr;
   }
@@ -193,17 +193,17 @@ void convert_proto_msg_to_itti_sgsap_paging_request(
   return;
 }
 
-void convert_proto_msg_to_itti_sgsap_status_t(
-    const Status* msg, itti_sgsap_status_t* itti_msg) {
+void convert_proto_msg_to_itti_sgsap_status_t(const Status* msg,
+                                              itti_sgsap_status_t* itti_msg) {
   uint8_t presencemask = 0;
-  auto imsi            = msg->imsi();
+  auto imsi = msg->imsi();
   if (imsi.length() != 0) {
-    presencemask          = presencemask | SGSAP_IMSI;
+    presencemask = presencemask | SGSAP_IMSI;
     itti_msg->imsi_length = imsi.length();
     strcpy(itti_msg->imsi, imsi.c_str());
   }
 
-  auto sgs_cause  = msg->sgs_cause();
+  auto sgs_cause = msg->sgs_cause();
   itti_msg->cause = static_cast<SgsCause_t>(sgs_cause[0]);
 
   itti_msg->presencemask = presencemask;
@@ -213,7 +213,7 @@ void convert_proto_msg_to_itti_sgsap_status_t(
 
 void convert_proto_msg_to_itti_sgsap_vlr_reset_indication(
     const ResetIndication* msg, itti_sgsap_vlr_reset_indication_t* itti_msg) {
-  auto vlr_name    = msg->vlr_name();
+  auto vlr_name = msg->vlr_name();
   itti_msg->length = vlr_name.length();
   strcpy(itti_msg->vlr_name, vlr_name.c_str());
   return;
@@ -221,7 +221,7 @@ void convert_proto_msg_to_itti_sgsap_vlr_reset_indication(
 
 void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
     const DownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
@@ -236,14 +236,14 @@ void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
 
 void convert_proto_msg_to_itti_sgsap_release_req(
     const ReleaseRequest* msg, itti_sgsap_release_req_t* itti_msg) {
-  uint8_t presencemask  = 0;
-  auto imsi             = msg->imsi();
+  uint8_t presencemask = 0;
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
   auto sgs_cause = msg->sgs_cause();
   if (sgs_cause.length() != 0) {
-    presencemask        = presencemask | RELEASE_REQ_CAUSE_PARAMETER_PRESENT;
+    presencemask = presencemask | RELEASE_REQ_CAUSE_PARAMETER_PRESENT;
     itti_msg->opt_cause = static_cast<SgsCause_t>(sgs_cause[0]);
   }
   itti_msg->presencemask = presencemask;
@@ -252,7 +252,7 @@ void convert_proto_msg_to_itti_sgsap_release_req(
 
 void convert_proto_msg_to_itti_sgsap_alert_request(
     const AlertRequest* msg, itti_sgsap_alert_request_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 
@@ -261,7 +261,7 @@ void convert_proto_msg_to_itti_sgsap_alert_request(
 
 void convert_proto_msg_to_itti_sgsap_service_abort_req(
     const ServiceAbortRequest* msg, itti_sgsap_service_abort_req_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
   return;
@@ -270,7 +270,7 @@ void convert_proto_msg_to_itti_sgsap_service_abort_req(
 void convert_proto_msg_to_itti_sgsap_mm_information_req(
     const MMInformationRequest* msg,
     itti_sgsap_mm_information_req_t* itti_msg) {
-  auto imsi             = msg->imsi();
+  auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
 

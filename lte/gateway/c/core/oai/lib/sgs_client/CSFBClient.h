@@ -20,12 +20,12 @@
 #include <gmp.h>
 #include <grpc++/grpc++.h>
 #include <stdint.h>
-#include <string>
 #include <functional>
 #include <memory>
+#include <string>
 
-#include "includes/GRPCReceiver.h"
 #include "feg/protos/csfb.grpc.pb.h"
+#include "includes/GRPCReceiver.h"
 #include "sgs_messages_types.h"
 
 extern "C" {
@@ -54,16 +54,14 @@ class CSFBClient : public GRPCReceiver {
   /**
    * Send SGsAP-ALERT-ACK
    */
-  static void alert_ack(
-      const itti_sgsap_alert_ack_t* msg,
-      std::function<void(grpc::Status, Void)> callback);
+  static void alert_ack(const itti_sgsap_alert_ack_t* msg,
+                        std::function<void(grpc::Status, Void)> callback);
 
   /**
    * Send SGsAP-ALERT-REJECT
    */
-  static void alert_reject(
-      const itti_sgsap_alert_reject_t* msg,
-      std::function<void(grpc::Status, Void)> callback);
+  static void alert_reject(const itti_sgsap_alert_reject_t* msg,
+                           std::function<void(grpc::Status, Void)> callback);
 
   /**
    * Send SGsAP-LOCATION-UPDATE-REQUEST
@@ -96,16 +94,14 @@ class CSFBClient : public GRPCReceiver {
   /**
    * SGsAP-PAGING-REJECT
    */
-  static void paging_reject(
-      const itti_sgsap_paging_reject_t* msg,
-      std::function<void(grpc::Status, Void)> callback);
+  static void paging_reject(const itti_sgsap_paging_reject_t* msg,
+                            std::function<void(grpc::Status, Void)> callback);
 
   /**
    * SGsAP-SERVICE-REQUEST
    */
-  static void service_request(
-      const itti_sgsap_service_request_t* msg,
-      std::function<void(grpc::Status, Void)> callback);
+  static void service_request(const itti_sgsap_service_request_t* msg,
+                              std::function<void(grpc::Status, Void)> callback);
 
   /**
    * SGsAP-UE-ACTIVITY-INDICATION
@@ -117,9 +113,8 @@ class CSFBClient : public GRPCReceiver {
   /**
    * SGsAP-UE-UNREACHABLE
    */
-  static void ue_unreachable(
-      const itti_sgsap_ue_unreachable_t* msg,
-      std::function<void(grpc::Status, Void)> callback);
+  static void ue_unreachable(const itti_sgsap_ue_unreachable_t* msg,
+                             std::function<void(grpc::Status, Void)> callback);
 
   /**
    * SGsAP-UPLINK-UNITDATA

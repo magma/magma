@@ -39,8 +39,8 @@ fluid_msg::of13::FlowMod DefaultMessenger::create_default_flow_mod(
   return fm;
 }
 
-void DefaultMessenger::send_of_msg(
-    fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn) const {
+void DefaultMessenger::send_of_msg(fluid_msg::OFMsg& of_msg,
+                                   fluid_base::OFConnection* ofconn) const {
   uint8_t* buffer;
   buffer = of_msg.pack();
   ofconn->send(buffer, of_msg.length());

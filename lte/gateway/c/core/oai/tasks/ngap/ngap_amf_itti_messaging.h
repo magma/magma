@@ -13,20 +13,19 @@
 
 #pragma once
 
+#include <czmq.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <czmq.h>
 
-#include "common_defs.h"
 #include "3gpp_23.003.h"
 #include "3gpp_38.401.h"
 #include "3gpp_38.413.h"
 #include "Ngap_Cause.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "common_types.h"
-#include "intertask_interface.h"
 #include "intertask_interface.h"
 #include "ngap_state.h"
 
@@ -39,9 +38,10 @@ task_zmq_ctx_t ngap_task_zmq_ctx;
  * \param amf_ue_ngap_id_t amf_ue_ngap_id
  * @returns int
  **/
-status_code_e ngap_amf_itti_send_sctp_request(
-    STOLEN_REF bstring* payload, const uint32_t sctp_assoc_id_t,
-    const sctp_stream_id_t stream, const amf_ue_ngap_id_t ue_id);
+status_code_e ngap_amf_itti_send_sctp_request(STOLEN_REF bstring* payload,
+                                              const uint32_t sctp_assoc_id_t,
+                                              const sctp_stream_id_t stream,
+                                              const amf_ue_ngap_id_t ue_id);
 
 /** \brief pass NAS msg to AMF
  * \param amf_ue_ngap_id_t amf_ue_ngap_id
@@ -50,9 +50,9 @@ status_code_e ngap_amf_itti_send_sctp_request(
  * \param cgi E-UTRAN Cell Global Identification
  * @returns int
  **/
-status_code_e ngap_amf_itti_nas_uplink_ind(
-    const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload, const tai_t* tai,
-    const ecgi_t* cgi);
+status_code_e ngap_amf_itti_nas_uplink_ind(const amf_ue_ngap_id_t ue_id,
+                                           STOLEN_REF bstring* payload,
+                                           const tai_t* tai, const ecgi_t* cgi);
 
 /** \brief Handle initial_ue_message
  * \param assoc_id SCTP association ID
@@ -81,7 +81,8 @@ void ngap_amf_itti_ngap_initial_ue_message(
     const void* opt_relay_node_indicator,      /* unused*/
     const long ue_ctx_req);
 
-void ngap_amf_itti_nas_non_delivery_ind(
-    const amf_ue_ngap_id_t ue_id, uint8_t* const nas_msg,
-    const size_t nas_msg_length, const Ngap_Cause_t* const cause,
-    const imsi64_t imsi64);
+void ngap_amf_itti_nas_non_delivery_ind(const amf_ue_ngap_id_t ue_id,
+                                        uint8_t* const nas_msg,
+                                        const size_t nas_msg_length,
+                                        const Ngap_Cause_t* const cause,
+                                        const imsi64_t imsi64);

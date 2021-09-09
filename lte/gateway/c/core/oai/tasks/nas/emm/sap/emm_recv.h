@@ -39,27 +39,27 @@ Description Defines functions executed at the EMMAS Service Access
 
 #include <stdbool.h>
 
-#include "EmmStatus.h"
-#include "DetachRequest.h"
-#include "DetachAccept.h"
-#include "AttachRequest.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
 #include "AttachComplete.h"
-#include "TrackingAreaUpdateRequest.h"
-#include "TrackingAreaUpdateComplete.h"
-#include "ServiceRequest.h"
+#include "AttachRequest.h"
+#include "AuthenticationFailure.h"
+#include "AuthenticationResponse.h"
+#include "DetachAccept.h"
+#include "DetachRequest.h"
+#include "EmmStatus.h"
 #include "ExtendedServiceRequest.h"
 #include "GutiReallocationComplete.h"
-#include "AuthenticationResponse.h"
-#include "AuthenticationFailure.h"
 #include "IdentityResponse.h"
 #include "NASSecurityModeComplete.h"
 #include "SecurityModeReject.h"
+#include "ServiceRequest.h"
+#include "TrackingAreaIdentity.h"
+#include "TrackingAreaUpdateComplete.h"
+#include "TrackingAreaUpdateRequest.h"
 #include "UplinkNasTransport.h"
 #include "common_defs.h"
 #include "nas_message.h"
-#include "3gpp_23.003.h"
-#include "3gpp_36.401.h"
-#include "TrackingAreaIdentity.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -82,9 +82,9 @@ Description Defines functions executed at the EMMAS Service Access
  * Functions executed by the MME upon receiving EMM message from the UE
  * --------------------------------------------------------------------------
  */
-status_code_e emm_recv_status(
-    mme_ue_s1ap_id_t ueid, emm_status_msg* msg, int* emm_cause,
-    const nas_message_decode_status_t* const status);
+status_code_e emm_recv_status(mme_ue_s1ap_id_t ueid, emm_status_msg* msg,
+                              int* emm_cause,
+                              const nas_message_decode_status_t* const status);
 
 status_code_e emm_recv_attach_request(
     const mme_ue_s1ap_id_t ue_id, const tai_t* const originating_tai,

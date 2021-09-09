@@ -20,24 +20,24 @@
 
 #include <stdint.h>
 
-#include "MessageType.h"
-#include "NasRequestType.h"
-#include "EsmInformationTransferFlag.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_33.401.h"
-#include "security_types.h"
-#include "common_types.h"
+#include "EsmInformationTransferFlag.h"
+#include "MessageType.h"
+#include "NasRequestType.h"
 #include "PdnType.h"
+#include "common_types.h"
+#include "security_types.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define PDN_CONNECTIVITY_REQUEST_MINIMUM_LENGTH (PDN_TYPE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define PDN_CONNECTIVITY_REQUEST_MAXIMUM_LENGTH                                \
-  (PDN_TYPE_MAXIMUM_LENGTH + ESM_INFORMATION_TRANSFER_FLAG_MAXIMUM_LENGTH +    \
-   ACCESS_POINT_NAME_IE_MAX_LENGTH +                                           \
+#define PDN_CONNECTIVITY_REQUEST_MAXIMUM_LENGTH                             \
+  (PDN_TYPE_MAXIMUM_LENGTH + ESM_INFORMATION_TRANSFER_FLAG_MAXIMUM_LENGTH + \
+   ACCESS_POINT_NAME_IE_MAX_LENGTH +                                        \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -53,7 +53,7 @@ typedef enum pdn_connectivity_request_iei_tag {
   PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_IEI = SM_ACCESS_POINT_NAME_IEI,
   PDN_CONNECTIVITY_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
       SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
-  PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_IEI          = 0xC0,
+  PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_IEI = 0xC0,
   PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI = 0xC1,
 } pdn_connectivity_request_iei;
 

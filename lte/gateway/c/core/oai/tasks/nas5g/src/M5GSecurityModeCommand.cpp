@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GSecurityModeCommand.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,7 +20,7 @@ SecurityModeCommandMsg::~SecurityModeCommandMsg(){};
 // Decode SecurityModeCommand Message and its IEs
 int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(
     SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Checking Pointer

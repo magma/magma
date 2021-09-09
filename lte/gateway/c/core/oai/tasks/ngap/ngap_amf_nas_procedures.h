@@ -13,18 +13,18 @@
 
 #pragma once
 
-#include "common_defs.h"
 #include "3gpp_38.401.h"
-#include "bstrlib.h"
-#include "common_types.h"
 #include "amf_app_messages_types.h"
+#include "bstrlib.h"
+#include "common_defs.h"
+#include "common_types.h"
 #include "ngap_messages_types.h"
 #include "ngap_state.h"
 struct ngap_message_s;
 
-#define FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)                             \
-  DevCheck((aSN).size == 2, (aSN).size, 0, 0);                                 \
-  DevCheck((aSN).bits_unused == 6, (aSN).bits_unused, 6, 0);                   \
+#define FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)           \
+  DevCheck((aSN).size == 2, (aSN).size, 0, 0);               \
+  DevCheck((aSN).bits_unused == 6, (aSN).bits_unused, 6, 0); \
   Amf_Set_Id = (aSN.buf[0] << 2) + ((aSN.buf[1] >> 6) & 0x03);
 
 /** \brief Handle an Initial UE message.
@@ -33,9 +33,10 @@ struct ngap_message_s;
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-status_code_e ngap_amf_handle_initial_ue_message(
-    ngap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
+status_code_e ngap_amf_handle_initial_ue_message(ngap_state_t* state,
+                                                 const sctp_assoc_id_t assocId,
+                                                 const sctp_stream_id_t stream,
+                                                 Ngap_NGAP_PDU_t* message);
 
 /** \brief Handle an Uplink NAS transport message.
  * Process the RRC transparent container and forward it to NAS entity.
@@ -66,9 +67,10 @@ status_code_e ngap_generate_downlink_nas_transport(
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-status_code_e ngap_amf_handle_nas_non_delivery(
-    ngap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
+status_code_e ngap_amf_handle_nas_non_delivery(ngap_state_t* state,
+                                               const sctp_assoc_id_t assocId,
+                                               const sctp_stream_id_t stream,
+                                               Ngap_NGAP_PDU_t* message);
 
 void ngap_handle_conn_est_cnf(
     ngap_state_t* state,
@@ -89,9 +91,10 @@ void ngap_handle_amf_ue_id_notification(
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-status_code_e ngap_amf_handle_nas_non_delivery(
-    ngap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
+status_code_e ngap_amf_handle_nas_non_delivery(ngap_state_t* state,
+                                               const sctp_assoc_id_t assocId,
+                                               const sctp_stream_id_t stream,
+                                               Ngap_NGAP_PDU_t* message);
 
 status_code_e ngap_amf_nas_pdusession_resource_setup_stream(
     itti_ngap_pdusession_resource_setup_req_t* const

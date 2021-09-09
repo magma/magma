@@ -19,8 +19,8 @@
 #include "lte/protos/s6a_service.pb.h"
 
 extern "C" {
-#include "s6a_service_handler.h"
 #include "log.h"
+#include "s6a_service_handler.h"
 }
 #include "S6aServiceImpl.h"
 
@@ -41,14 +41,14 @@ using namespace lte;
 
 S6aServiceImpl::S6aServiceImpl() {}
 
-Status S6aServiceImpl::DeleteSubscriber(
-    ServerContext* context, const DeleteSubscriberRequest* request,
-    DeleteSubscriberResponse* response) {
+Status S6aServiceImpl::DeleteSubscriber(ServerContext* context,
+                                        const DeleteSubscriberRequest* request,
+                                        DeleteSubscriberResponse* response) {
   auto imsi_size = request->imsi_list_size();
   for (int i = 0; i < imsi_size; i++) {
     auto imsi = request->imsi_list(i);
-    OAILOG_INFO(
-        LOG_MME_APP, "Sending deleting subscriber %s request\n ", imsi.c_str());
+    OAILOG_INFO(LOG_MME_APP, "Sending deleting subscriber %s request\n ",
+                imsi.c_str());
     auto imsi_len = imsi.length();
     delete_subscriber_request(imsi.c_str(), imsi_len);
   }

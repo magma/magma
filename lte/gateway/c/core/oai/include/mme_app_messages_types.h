@@ -43,27 +43,27 @@
 #include "3gpp_24.007.h"
 #include "3gpp_36.401.h"
 #include "common_types.h"
-#include "nas/securityDef.h"
 #include "nas/as_message.h"
+#include "nas/securityDef.h"
 #include "s1ap_messages_types.h"
 
-#include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "S1ap_HandoverType.h"
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
 
-#define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
+#define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR) \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf
-#define MME_APP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                              \
+#define MME_APP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR) \
   (mSGpTR)->ittiMsg.mme_app_initial_context_setup_rsp
-#define MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(mSGpTR)                          \
+#define MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(mSGpTR) \
   (mSGpTR)->ittiMsg.mme_app_initial_context_setup_failure
-#define MME_APP_S1AP_MME_UE_ID_NOTIFICATION(mSGpTR)                            \
+#define MME_APP_S1AP_MME_UE_ID_NOTIFICATION(mSGpTR) \
   (mSGpTR)->ittiMsg.mme_app_s1ap_mme_ue_id_notification
 #define MME_APP_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.mme_app_ul_data_ind
 #define MME_APP_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_cnf
 #define MME_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_rej
-#define MME_APP_HANDOVER_REQUEST(mSGpTR)                                       \
+#define MME_APP_HANDOVER_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.mme_app_handover_request
-#define MME_APP_HANDOVER_COMMAND(mSGpTR)                                       \
+#define MME_APP_HANDOVER_COMMAND(mSGpTR) \
   (mSGpTR)->ittiMsg.mme_app_handover_command
 
 typedef struct itti_mme_app_connection_establishment_cnf_s {

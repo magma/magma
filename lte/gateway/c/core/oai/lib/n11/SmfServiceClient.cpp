@@ -10,28 +10,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <arpa/inet.h>
 #include <google/protobuf/util/time_util.h>
-#include <cassert>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.pb.h>
-#include <arpa/inet.h>
 #include <utility>
 
-#include "includes/ServiceRegistrySingleton.h"
 #include "SmfServiceClient.h"
+#include "includes/ServiceRegistrySingleton.h"
 using grpc::Status;
 using magma::AsyncLocalResponse;
 using magma::ServiceRegistrySingleton;
 
-void handle_session_context_response(
-    grpc::Status status, magma::lte::SmContextVoid response) {
+void handle_session_context_response(grpc::Status status,
+                                     magma::lte::SmContextVoid response) {
   if (!status.ok()) {
     std::cout << "AsyncSetAmfSessionContext fails with code "
               << status.error_code() << ", msg: " << status.error_message()
@@ -58,7 +58,7 @@ SetSMSessionContext create_sm_pdu_session_v4(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
 
   // Encode APU
-  req_common->set_apn((char*) apn);
+  req_common->set_apn((char*)apn);
 
   // Encode RAT TYPE
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
@@ -95,11 +95,11 @@ SetSMSessionContext create_sm_pdu_session_v4(
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   // Set the PTI
-  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+  req_rat_specific->set_procedure_trans_identity((const char*)(&(pti)));
 
   // Set the PDU Address
   req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
-      (char*) ipv4_addr);
+      (char*)ipv4_addr);
 
   return (req);
 }
@@ -117,10 +117,10 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
 }
 
 bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
-  SetSMFSessionRPC(
-      request, [](const Status& status, const SmContextVoid& response) {
-        handle_session_context_response(status, response);
-      });
+  SetSMFSessionRPC(request,
+                   [](const Status& status, const SmContextVoid& response) {
+                     handle_session_context_response(status, response);
+                   });
 
   return true;
 }
@@ -128,8 +128,8 @@ bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
 void AsyncSmfServiceClient::SetSMFSessionRPC(
     SetSMSessionContext& request,
     const std::function<void(Status, SmContextVoid)>& callback) {
-  auto localResp = new AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
 
   localResp->set_response_reader(std::move(stub_->AsyncSetAmfSessionContext(
       localResp->get_context(), request, &queue_)));
@@ -148,8 +148,8 @@ bool AsyncSmfServiceClient::set_smf_notification(
 void AsyncSmfServiceClient::SetSMFNotificationRPC(
     SetSmNotificationContext& notify,
     const std::function<void(Status, SmContextVoid)>& callback) {
-  auto localResp = new AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
 
   localResp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
       localResp->get_context(), notify, &queue_)));

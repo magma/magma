@@ -42,15 +42,15 @@
 #include "common_types.h"
 #include "security_types.h"
 
-#define S6A_UPDATE_LOCATION_REQ(mSGpTR)                                        \
+#define S6A_UPDATE_LOCATION_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.s6a_update_location_req
-#define S6A_UPDATE_LOCATION_ANS(mSGpTR)                                        \
+#define S6A_UPDATE_LOCATION_ANS(mSGpTR) \
   (mSGpTR)->ittiMsg.s6a_update_location_ans
 #define S6A_AUTH_INFO_REQ(mSGpTR) (mSGpTR)->ittiMsg.s6a_auth_info_req
 #define S6A_AUTH_INFO_ANS(mSGpTR) (mSGpTR)->ittiMsg.s6a_auth_info_ans
-#define S6A_CANCEL_LOCATION_REQ(mSGpTR)                                        \
+#define S6A_CANCEL_LOCATION_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.s6a_cancel_location_req
-#define S6A_CANCEL_LOCATION_ANS(mSGpTR)                                        \
+#define S6A_CANCEL_LOCATION_ANS(mSGpTR) \
   (mSGpTR)->ittiMsg.s6a_cancel_location_ans
 #define S6A_PURGE_UE_REQ(mSGpTR) (mSGpTR)->ittiMsg.s6a_purge_ue_req
 #define S6A_PURGE_UE_ANS(mSGpTR) (mSGpTR)->ittiMsg.s6a_purge_ue_ans

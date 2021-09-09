@@ -12,8 +12,8 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
+#include "M5GSecurityHeaderType.h"
 #include "M5GSpareHalfOctet.h"
 
 using namespace std;
@@ -28,10 +28,10 @@ class AuthenticationRejectMsg {
 
   AuthenticationRejectMsg();
   ~AuthenticationRejectMsg();
-  int DecodeAuthenticationRejectMsg(
-      AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationRejectMsg(
-      AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationRejectMsg(AuthenticationRejectMsg* auth_reject,
+                                    uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationRejectMsg(AuthenticationRejectMsg* auth_reject,
+                                    uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 /*****************************************************************************

@@ -11,16 +11,16 @@
 
 #pragma once
 #include <sstream>
-#include "M5gNasMessage.h"
+#include "M5GABBA.h"
+#include "M5GAuthenticationParameterAUTN.h"
+#include "M5GAuthenticationParameterRAND.h"
+#include "M5GEAPMessage.h"
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
-#include "M5GSpareHalfOctet.h"
 #include "M5GMessageType.h"
 #include "M5GNASKeySetIdentifier.h"
-#include "M5GABBA.h"
-#include "M5GAuthenticationParameterRAND.h"
-#include "M5GAuthenticationParameterAUTN.h"
-#include "M5GEAPMessage.h"
+#include "M5GSecurityHeaderType.h"
+#include "M5GSpareHalfOctet.h"
+#include "M5gNasMessage.h"
 
 using namespace std;
 
@@ -41,10 +41,10 @@ class AuthenticationRequestMsg {
 
   AuthenticationRequestMsg();
   ~AuthenticationRequestMsg();
-  int DecodeAuthenticationRequestMsg(
-      AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationRequestMsg(
-      AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationRequestMsg(AuthenticationRequestMsg* auth_request,
+                                     uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationRequestMsg(AuthenticationRequestMsg* auth_request,
+                                     uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

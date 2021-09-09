@@ -10,8 +10,8 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 using namespace std;
 namespace magma5g {
 class M5GUplinkDataStatus {
@@ -22,11 +22,9 @@ class M5GUplinkDataStatus {
 
   M5GUplinkDataStatus();
   ~M5GUplinkDataStatus();
-  int EncodeUplinkDataStatus(
-      M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeUplinkDataStatus(
-      M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodeUplinkDataStatus(M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
+  int DecodeUplinkDataStatus(M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

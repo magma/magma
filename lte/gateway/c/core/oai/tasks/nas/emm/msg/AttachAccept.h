@@ -20,23 +20,23 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EpsAttachResult.h"
-#include "TrackingAreaIdentityList.h"
-#include "EsmMessageContainer.h"
-#include "EpsMobileIdentity.h"
-#include "EmmCause.h"
-#include "EpsNetworkFeatureSupport.h"
-#include "AdditionalUpdateResult.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "AdditionalUpdateResult.h"
+#include "EmmCause.h"
+#include "EpsAttachResult.h"
+#include "EpsMobileIdentity.h"
+#include "EpsNetworkFeatureSupport.h"
+#include "EsmMessageContainer.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
+#include "TrackingAreaIdentityList.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define ATTACH_ACCEPT_MINIMUM_LENGTH                                           \
-  (EPS_ATTACH_RESULT_MINIMUM_LENGTH + GPRS_TIMER_IE_MIN_LENGTH +               \
-   TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH +                                \
+#define ATTACH_ACCEPT_MINIMUM_LENGTH                             \
+  (EPS_ATTACH_RESULT_MINIMUM_LENGTH + GPRS_TIMER_IE_MIN_LENGTH + \
+   TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH +                  \
    ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
@@ -69,14 +69,14 @@ typedef enum attach_accept_iei_tag {
   ATTACH_ACCEPT_GUTI_IEI = 0x50, /* 0x50 = 80 */
   ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI =
       C_LOCATION_AREA_IDENTIFICATION_IEI,
-  ATTACH_ACCEPT_MS_IDENTITY_IEI                 = C_MOBILE_IDENTITY_IEI,
-  ATTACH_ACCEPT_EMM_CAUSE_IEI                   = 0x53, /* 0x53 = 83 */
-  ATTACH_ACCEPT_T3402_VALUE_IEI                 = GPRS_C_TIMER_3402_VALUE_IEI,
-  ATTACH_ACCEPT_T3423_VALUE_IEI                 = GPRS_C_TIMER_3423_VALUE_IEI,
-  ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI            = C_PLMN_LIST_IEI,
-  ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI       = MM_EMERGENCY_NUMBER_LIST_IEI,
+  ATTACH_ACCEPT_MS_IDENTITY_IEI = C_MOBILE_IDENTITY_IEI,
+  ATTACH_ACCEPT_EMM_CAUSE_IEI = 0x53, /* 0x53 = 83 */
+  ATTACH_ACCEPT_T3402_VALUE_IEI = GPRS_C_TIMER_3402_VALUE_IEI,
+  ATTACH_ACCEPT_T3423_VALUE_IEI = GPRS_C_TIMER_3423_VALUE_IEI,
+  ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI = C_PLMN_LIST_IEI,
+  ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI = MM_EMERGENCY_NUMBER_LIST_IEI,
   ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI = 0x64, /* 0x64 = 100 */
-  ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI    = 0xF0, /* 0xF0 = 240 */
+  ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI = 0xF0,    /* 0xF0 = 240 */
 } attach_accept_iei;
 
 /*
@@ -110,10 +110,10 @@ typedef struct attach_accept_msg_tag {
   additional_update_result_t additionalupdateresult;
 } attach_accept_msg;
 
-int decode_attach_accept(
-    attach_accept_msg* attachaccept, uint8_t* buffer, uint32_t len);
+int decode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
+                         uint32_t len);
 
-int encode_attach_accept(
-    attach_accept_msg* attachaccept, uint8_t* buffer, uint32_t len);
+int encode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
+                         uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_ACCEPT_SEEN) */

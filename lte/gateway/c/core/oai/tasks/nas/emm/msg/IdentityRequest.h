@@ -20,11 +20,11 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define IDENTITY_REQUEST_MINIMUM_LENGTH (IDENTITY_TYPE_2_IE_MIN_LENGTH)
@@ -47,10 +47,10 @@ typedef struct identity_request_msg_tag {
   identity_type2_t identitytype;
 } identity_request_msg;
 
-int decode_identity_request(
-    identity_request_msg* identityrequest, uint8_t* buffer, uint32_t len);
+int decode_identity_request(identity_request_msg* identityrequest,
+                            uint8_t* buffer, uint32_t len);
 
-int encode_identity_request(
-    identity_request_msg* identityrequest, uint8_t* buffer, uint32_t len);
+int encode_identity_request(identity_request_msg* identityrequest,
+                            uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_IDENTITY_REQUEST_SEEN) */

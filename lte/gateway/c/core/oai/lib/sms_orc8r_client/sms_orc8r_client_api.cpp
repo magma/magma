@@ -19,9 +19,9 @@
 #include <iostream>
 #include <string>
 
-#include "sms_orc8r_client_api.h"
 #include "SMSOrc8rClient.h"
 #include "orc8r/protos/common.pb.h"
+#include "sms_orc8r_client_api.h"
 
 extern "C" {
 #include "log.h"

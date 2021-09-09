@@ -26,8 +26,8 @@ class YAMLUtils final {
    * override any parameters it defines, and keep any existing parameters in
    * default_node that it doesn't define
    */
-  static YAML::Node merge_nodes(
-      const YAML::Node& default_node, const YAML::Node& override_node);
+  static YAML::Node merge_nodes(const YAML::Node& default_node,
+                                const YAML::Node& override_node);
 };
 
 }  // namespace magma

@@ -45,13 +45,13 @@ namespace lte {
 
 #define ASCII_ZERO 0x30
 #define PLMN_BYTES 6
-#define BSTRING_TO_STRING(bstr, str_ptr)                                       \
-  do {                                                                         \
-    *str_ptr = std::string(bdata(bstr), blength(bstr));                        \
+#define BSTRING_TO_STRING(bstr, str_ptr)                \
+  do {                                                  \
+    *str_ptr = std::string(bdata(bstr), blength(bstr)); \
   } while (0) /* Convert bstring to std::string */
-#define STRING_TO_BSTRING(str, bstr)                                           \
-  do {                                                                         \
-    bstr = bfromcstr(str.c_str());                                             \
+#define STRING_TO_BSTRING(str, bstr) \
+  do {                               \
+    bstr = bfromcstr(str.c_str());   \
   } while (0) /* Convert bstring to std::string */
 
 /**
@@ -76,7 +76,7 @@ class StateConverter {
    * @param conversion_callable conversion function for each entry of hashtable
    * @param log_task_level log level for task (LOG_MME_APP, LOG_SPGW_APP)
    */
-  template<typename NodeType, typename ProtoMessage>
+  template <typename NodeType, typename ProtoMessage>
   static void hashtable_ts_to_proto(
       hash_table_ts_t* state_ht,
       google::protobuf::Map<unsigned int, ProtoMessage>* proto_map,
@@ -90,22 +90,21 @@ class StateConverter {
 
     for (int i = 0; i < ht_keys->num_keys; i++) {
       NodeType* node;
-      ht_rc = hashtable_ts_get(
-          state_ht, (hash_key_t) ht_keys->keys[i], (void**) &node);
+      ht_rc = hashtable_ts_get(state_ht, (hash_key_t)ht_keys->keys[i],
+                               (void**)&node);
       if (ht_rc == HASH_TABLE_OK) {
         ProtoMessage proto;
-        conversion_callable((NodeType*) node, &proto);
+        conversion_callable((NodeType*)node, &proto);
         (*proto_map)[ht_keys->keys[i]] = proto;
       } else {
-        OAILOG_ERROR(
-            log_task_level, "Key %lu not found on %s hashtable",
-            ht_keys->keys[i], state_ht->name->data);
+        OAILOG_ERROR(log_task_level, "Key %lu not found on %s hashtable",
+                     ht_keys->keys[i], state_ht->name->data);
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(ht_keys);
   }
 
-  template<typename ProtoMessage, typename NodeType>
+  template <typename ProtoMessage, typename NodeType>
   static void proto_to_hashtable_ts(
       const google::protobuf::Map<unsigned int, ProtoMessage>& proto_map,
       hash_table_ts_t* state_ht,
@@ -114,17 +113,16 @@ class StateConverter {
     for (const auto& entry : proto_map) {
       auto proto = entry.second;
       NodeType* node_type;
-      node_type = (NodeType*) calloc(1, sizeof(NodeType));
+      node_type = (NodeType*)calloc(1, sizeof(NodeType));
       conversion_callable(proto, node_type);
       auto ht_rc =
-          hashtable_ts_insert(state_ht, (hash_key_t) entry.first, node_type);
+          hashtable_ts_insert(state_ht, (hash_key_t)entry.first, node_type);
       if (ht_rc != HASH_TABLE_OK) {
         if (ht_rc == HASH_TABLE_INSERT_OVERWRITTEN_DATA) {
           OAILOG_INFO(LOG_SPGW_APP, "Overwriting data on key: %i", entry.first);
         } else {
-          OAILOG_ERROR(
-              log_task_level, "Failed to insert node on hashtable %s",
-              state_ht->name->data);
+          OAILOG_ERROR(log_task_level, "Failed to insert node on hashtable %s",
+                       state_ht->name->data);
         }
       }
     }

@@ -16,8 +16,8 @@
 #include <grpc++/grpc++.h>
 #include <grpcpp/impl/codegen/status.h>
 
-#include "lte/protos/session_manager.grpc.pb.h"
 #include "lte/protos/policydb.pb.h"
+#include "lte/protos/session_manager.grpc.pb.h"
 
 namespace grpc {
 class ServerContext;
@@ -44,13 +44,13 @@ class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
  public:
   AmfServiceImpl();
 
-  grpc::Status SetAmfNotification(
-      ServerContext* context, const SetSmNotificationContext* notif,
-      SmContextVoid* response) override;
+  grpc::Status SetAmfNotification(ServerContext* context,
+                                  const SetSmNotificationContext* notif,
+                                  SmContextVoid* response) override;
 
-  grpc::Status SetSmfSessionContext(
-      ServerContext* context, const SetSMSessionContextAccess* request,
-      SmContextVoid* response) override;
+  grpc::Status SetSmfSessionContext(ServerContext* context,
+                                    const SetSMSessionContextAccess* request,
+                                    SmContextVoid* response) override;
 };
 
 }  // namespace magma

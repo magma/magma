@@ -33,17 +33,17 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-MESSAGE_DEF(
-    GTPV1U_CREATE_TUNNEL_REQ, Gtpv1uCreateTunnelReq, gtpv1uCreateTunnelReq)
-MESSAGE_DEF(
-    GTPV1U_CREATE_TUNNEL_RESP, Gtpv1uCreateTunnelResp, gtpv1uCreateTunnelResp)
-MESSAGE_DEF(
-    GTPV1U_UPDATE_TUNNEL_REQ, Gtpv1uUpdateTunnelReq, gtpv1uUpdateTunnelReq)
-MESSAGE_DEF(
-    GTPV1U_UPDATE_TUNNEL_RESP, Gtpv1uUpdateTunnelResp, gtpv1uUpdateTunnelResp)
-MESSAGE_DEF(
-    GTPV1U_DELETE_TUNNEL_REQ, Gtpv1uDeleteTunnelReq, gtpv1uDeleteTunnelReq)
-MESSAGE_DEF(
-    GTPV1U_DELETE_TUNNEL_RESP, Gtpv1uDeleteTunnelResp, gtpv1uDeleteTunnelResp)
+MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_REQ, Gtpv1uCreateTunnelReq,
+            gtpv1uCreateTunnelReq)
+MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_RESP, Gtpv1uCreateTunnelResp,
+            gtpv1uCreateTunnelResp)
+MESSAGE_DEF(GTPV1U_UPDATE_TUNNEL_REQ, Gtpv1uUpdateTunnelReq,
+            gtpv1uUpdateTunnelReq)
+MESSAGE_DEF(GTPV1U_UPDATE_TUNNEL_RESP, Gtpv1uUpdateTunnelResp,
+            gtpv1uUpdateTunnelResp)
+MESSAGE_DEF(GTPV1U_DELETE_TUNNEL_REQ, Gtpv1uDeleteTunnelReq,
+            gtpv1uDeleteTunnelReq)
+MESSAGE_DEF(GTPV1U_DELETE_TUNNEL_RESP, Gtpv1uDeleteTunnelResp,
+            gtpv1uDeleteTunnelResp)
 MESSAGE_DEF(GTPV1U_TUNNEL_DATA_IND, Gtpv1uTunnelDataInd, gtpv1uTunnelDataInd)
 MESSAGE_DEF(GTPV1U_TUNNEL_DATA_REQ, Gtpv1uTunnelDataReq, gtpv1uTunnelDataReq)

@@ -11,17 +11,17 @@
 
 #pragma once
 
-#include "M5GRegistrationRequest.h"
-#include "M5GRegistrationReject.h"
+#include "3gpp_24.008.h"
 #include "M5GAuthenticationFailure.h"
-#include "M5gNasMessage.h"
-#include "M5GULNASTransport.h"
 #include "M5GDeRegistrationRequestUEInit.h"
-#include "M5GServiceRequest.h"
+#include "M5GRegistrationReject.h"
+#include "M5GRegistrationRequest.h"
 #include "M5GServiceAccept.h"
+#include "M5GServiceRequest.h"
+#include "M5GULNASTransport.h"
+#include "M5gNasMessage.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
-#include "3gpp_24.008.h"
 
 namespace magma5g {
 
@@ -73,28 +73,27 @@ class NAS5GPktSnapShot {
 };
 
 //  API for testing decode registration request
-bool decode_registration_request_msg(
-    RegistrationRequestMsg* reg_request, const uint8_t* buffer, uint32_t len);
+bool decode_registration_request_msg(RegistrationRequestMsg* reg_request,
+                                     const uint8_t* buffer, uint32_t len);
 
-bool encode_registration_reject_msg(
-    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
+bool encode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
+                                    const uint8_t* buffer, uint32_t len);
 
-bool decode_registration_reject_msg(
-    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
+bool decode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
+                                    const uint8_t* buffer, uint32_t len);
 
-bool decode_auth_failure_decode_msg(
-    AuthenticationFailureMsg* auth_failure, const uint8_t* buffer,
-    uint32_t len);
+bool decode_auth_failure_decode_msg(AuthenticationFailureMsg* auth_failure,
+                                    const uint8_t* buffer, uint32_t len);
 
-bool decode_ul_nas_transport_msg(
-    ULNASTransportMsg* ul_nas_pdu, const uint8_t* buffer, uint32_t len);
+bool decode_ul_nas_transport_msg(ULNASTransportMsg* ul_nas_pdu,
+                                 const uint8_t* buffer, uint32_t len);
 
 bool decode_ul_nas_deregister_request_msg(
     DeRegistrationRequestUEInitMsg* dereg_req, const uint8_t* buffer,
     uint32_t len);
 
-bool decode_service_request_msg(
-    ServiceRequestMsg* sv_request, const uint8_t* buffer, uint32_t len);
+bool decode_service_request_msg(ServiceRequestMsg* sv_request,
+                                const uint8_t* buffer, uint32_t len);
 
 void gen_ipcp_pco_options(protocol_configuration_options_t* const pco_resp);
 

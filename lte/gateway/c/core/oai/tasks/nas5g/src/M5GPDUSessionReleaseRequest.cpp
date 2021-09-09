@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GPDUSessionReleaseRequest.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -21,10 +21,10 @@ PDUSessionReleaseRequestMsg::~PDUSessionReleaseRequestMsg(){};
 int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(
     PDUSessionReleaseRequestMsg* pdu_session_release_request, uint8_t* buffer,
     uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, PDU_SESSION_RELEASE_REQ_MIN_LEN, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, PDU_SESSION_RELEASE_REQ_MIN_LEN,
+                                       len);
 
   MLOG(MDEBUG) << "DecodePDUSessionReleaseRequestMsg\n";
   if ((decoded_result =

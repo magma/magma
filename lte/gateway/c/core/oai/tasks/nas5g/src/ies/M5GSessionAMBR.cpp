@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "M5GSessionAMBR.h"
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -20,16 +20,18 @@ SessionAMBRMsg::SessionAMBRMsg(){};
 SessionAMBRMsg::~SessionAMBRMsg(){};
 
 // Decode SessionAMBR IE
-int SessionAMBRMsg::DecodeSessionAMBRMsg(
-    SessionAMBRMsg* session_ambr, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
+                                         uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   int decoded = 0;
   // Not yet Implemented, will be supported POST MVC
   return (decoded);
 };
 
 // Encode SessionAMBR IE
-int SessionAMBRMsg::EncodeSessionAMBRMsg(
-    SessionAMBRMsg* session_ambr, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
+                                         uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -37,13 +39,13 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AMBR_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, session_ambr->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, session_ambr->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeSessionAMBRMsg: iei" << hex << int(*buffer);
     encoded++;
   }
 
-  lenPtr              = (uint8_t*) (buffer + encoded);
+  lenPtr = (uint8_t*)(buffer + encoded);
   *(buffer + encoded) = session_ambr->length;
   encoded++;
 

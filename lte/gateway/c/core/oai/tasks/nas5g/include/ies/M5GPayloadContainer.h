@@ -10,9 +10,9 @@
 */
 
 #pragma once
-#include <sstream>
-#include <cstdint>
 #include <SmfMessage.h>
+#include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {
@@ -26,11 +26,9 @@ class PayloadContainerMsg {
 
   PayloadContainerMsg();
   ~PayloadContainerMsg();
-  int EncodePayloadContainerMsg(
-      PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodePayloadContainerMsg(
-      PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodePayloadContainerMsg(PayloadContainerMsg* payload_container,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodePayloadContainerMsg(PayloadContainerMsg* payload_container,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

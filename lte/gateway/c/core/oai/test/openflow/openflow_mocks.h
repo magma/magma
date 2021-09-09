@@ -28,8 +28,8 @@ using namespace fluid_base;
  */
 class MockApplication : public Application {
  public:
-  MOCK_METHOD2(
-      event_callback, void(const ControllerEvent&, const OpenflowMessenger&));
+  MOCK_METHOD2(event_callback,
+               void(const ControllerEvent&, const OpenflowMessenger&));
 };
 
 /**
@@ -45,7 +45,6 @@ class MockMessenger : public OpenflowMessenger {
     return messenger.create_default_flow_mod(table_id, command, priority);
   }
 
-  MOCK_CONST_METHOD2(
-      send_of_msg,
-      void(fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn));
+  MOCK_CONST_METHOD2(send_of_msg, void(fluid_msg::OFMsg& of_msg,
+                                       fluid_base::OFConnection* ofconn));
 };

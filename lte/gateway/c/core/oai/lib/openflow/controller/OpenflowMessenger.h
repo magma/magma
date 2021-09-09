@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include <fluid/of13msg.hh>
 #include <fluid/OFServer.hh>
+#include <fluid/of13msg.hh>
 
 namespace openflow {
 /**
@@ -45,8 +45,8 @@ class OpenflowMessenger {
    * @param flow_mod - a flow modification (add/delete) to make
    * @param ofconn - the connection to send the flow mod to
    */
-  virtual void send_of_msg(
-      fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn) const {}
+  virtual void send_of_msg(fluid_msg::OFMsg& of_msg,
+                           fluid_base::OFConnection* ofconn) const {}
 };
 
 /**
@@ -58,8 +58,8 @@ class DefaultMessenger : public OpenflowMessenger {
       uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
       uint16_t priority) const;
 
-  void send_of_msg(
-      fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn) const;
+  void send_of_msg(fluid_msg::OFMsg& of_msg,
+                   fluid_base::OFConnection* ofconn) const;
 };
 
 }  // namespace openflow

@@ -31,8 +31,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  *----------------------------------------------------------------------------*/
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifndef __NW_TYPES_H__
 #define __NW_TYPES_H__

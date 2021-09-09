@@ -27,12 +27,10 @@
 
 typedef bstring LcsClientIdentity;
 
-int encode_lcs_client_identity(
-    LcsClientIdentity lcsclientidentity, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_lcs_client_identity(LcsClientIdentity lcsclientidentity, uint8_t iei,
+                               uint8_t* buffer, uint32_t len);
 
-int decode_lcs_client_identity(
-    LcsClientIdentity* lcsclientidentity, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_lcs_client_identity(LcsClientIdentity* lcsclientidentity,
+                               uint8_t iei, uint8_t* buffer, uint32_t len);
 
 #endif /* LCS_CLIENT_IDENTITY_SEEN */

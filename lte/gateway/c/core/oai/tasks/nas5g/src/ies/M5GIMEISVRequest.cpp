@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
+#include "M5GIMEISVRequest.h"
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GIMEISVRequest.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -20,21 +20,21 @@ namespace magma5g {
 ImeisvRequestMsg::ImeisvRequestMsg(){};
 ImeisvRequestMsg::~ImeisvRequestMsg(){};
 
-int ImeisvRequestMsg::DecodeImeisvRequestMsg(
-    ImeisvRequestMsg* imeisv_request, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
+                                             uint8_t iei, uint8_t* buffer,
+                                             uint32_t len) {
   int decoded = 0;
 
   MLOG(MDEBUG) << "DecoseImeisvRequestMsg : ";
 
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, IMEISV_REQUEST_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IMEISV_REQUEST_MINIMUM_LENGTH,
+                                       len);
 
   if (iei > 0) {
-    CHECK_IEI_DECODER((unsigned char) (*buffer & 0xf0), iei);
+    CHECK_IEI_DECODER((unsigned char)(*buffer & 0xf0), iei);
   }
 
-  imeisv_request->spare          = (*(buffer + decoded) >> 7) & 0x1;
+  imeisv_request->spare = (*(buffer + decoded) >> 7) & 0x1;
   imeisv_request->imeisv_request = (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
   MLOG(MDEBUG) << "   spare = " << dec << int(imeisv_request->spare);
@@ -43,9 +43,9 @@ int ImeisvRequestMsg::DecodeImeisvRequestMsg(
   return decoded;
 };
 
-int ImeisvRequestMsg::EncodeImeisvRequestMsg(
-    ImeisvRequestMsg* imeisv_request, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int ImeisvRequestMsg::EncodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
+                                             uint8_t iei, uint8_t* buffer,
+                                             uint32_t len) {
   uint32_t encoded = 0;
 
   MLOG(MDEBUG) << " EncodeImeisvRequestMsg : " << endl;

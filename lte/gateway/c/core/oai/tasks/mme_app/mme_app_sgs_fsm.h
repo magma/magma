@@ -35,10 +35,10 @@ Description Defines the SGS State Machine handling
 #ifndef FILE_SGS_FSM_SEEN
 #define FILE_SGS_FSM_SEEN
 
+#include "3gpp_36.401.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "sgs_messages_types.h"
-#include "3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -63,7 +63,7 @@ typedef enum {
 
 typedef enum sgs_fsm_state_e {
   SGS_STATE_MIN = 0,
-  SGS_INVALID   = SGS_STATE_MIN,
+  SGS_INVALID = SGS_STATE_MIN,
   SGS_NULL,
   SGS_LA_UPDATE_REQUESTED,
   SGS_ASSOCIATED,
@@ -85,8 +85,8 @@ typedef struct {
 /****************************************************************************/
 
 status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt);
-status_code_e sgs_fsm_set_status(
-    mme_ue_s1ap_id_t ue_id, void* ctx, sgs_fsm_state_t state);
+status_code_e sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void* ctx,
+                                 sgs_fsm_state_t state);
 void sgs_fsm_initialize(void);
 sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ueid, void* ctx);
 

@@ -14,18 +14,18 @@ limitations under the License.
 #pragma once
 
 #include <state_manager.h>
-#include "sgw_s8_state.h"
-#include "lte/protos/oai/sgw_state.pb.h"
-#include "sgw_s8_state_converter.h"
 #include "common_defs.h"
+#include "lte/protos/oai/sgw_state.pb.h"
+#include "sgw_s8_state.h"
+#include "sgw_s8_state_converter.h"
 
 namespace {
-constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
+constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
 constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
     "s11_bearer_context_information_htbl";
 constexpr char SGW_STATE_TABLE_NAME[] = "sgw_state";
-constexpr char SGW_TASK_NAME[]        = "SGW";
+constexpr char SGW_TASK_NAME[] = "SGW";
 }  // namespace
 
 namespace magma {
@@ -36,9 +36,9 @@ namespace lte {
  * that contains functions to maintain SGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SgwStateManager : public StateManager<
-                            sgw_state_t, spgw_ue_context_t, oai::SgwState,
-                            oai::SgwUeContext, SgwStateConverter> {
+class SgwStateManager
+    : public StateManager<sgw_state_t, spgw_ue_context_t, oai::SgwState,
+                          oai::SgwUeContext, SgwStateConverter> {
  public:
   /**
    * Returns an instance of SgwStateManager, guaranteed to be thread safe and

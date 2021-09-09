@@ -30,15 +30,15 @@
 
 typedef uint8_t request_type_t;
 
-int encode_request_type(
-    request_type_t* requesttype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_request_type(request_type_t* requesttype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len);
 
 uint8_t encode_u8_request_type(request_type_t* requesttype);
 
-int decode_request_type(
-    request_type_t* requesttype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_request_type(request_type_t* requesttype, uint8_t iei,
+                        uint8_t* buffer, uint32_t len);
 
-int decode_u8_request_type(
-    request_type_t* requesttype, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_request_type(request_type_t* requesttype, uint8_t iei,
+                           uint8_t value, uint32_t len);
 
 #endif /* NAS_REQUEST_TYPE_SEEN */

@@ -20,9 +20,9 @@
 #include <gmp.h>
 #include <grpc++/grpc++.h>
 #include <stdint.h>
-#include <string>
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "includes/GRPCReceiver.h"
 #include "lte/protos/sms_orc8r.grpc.pb.h"

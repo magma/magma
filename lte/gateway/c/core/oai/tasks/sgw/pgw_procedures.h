@@ -24,10 +24,10 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "queue.h"
 #include "3gpp_23.401.h"
 #include "common_types.h"
 #include "pgw_pcef_emulation.h"
+#include "queue.h"
 #include "sgw_context_manager.h"
 
 typedef enum {

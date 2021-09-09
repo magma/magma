@@ -9,10 +9,10 @@
   limitations under the License.
 */
 
+#include "M5GSecurityHeaderType.h"
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GSecurityHeaderType.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -27,7 +27,7 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
   int decoded = 0;
 
   MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
-  sec_header_type->sec_hdr = *(buffer) &0xf;
+  sec_header_type->sec_hdr = *(buffer)&0xf;
   decoded++;
   MLOG(MDEBUG) << " Security header type = " << dec
                << int(sec_header_type->sec_hdr);

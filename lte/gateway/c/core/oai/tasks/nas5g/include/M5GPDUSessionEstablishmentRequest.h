@@ -11,15 +11,15 @@
 
 #pragma once
 #include <sstream>
-#include "M5gNasMessage.h"
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GPDUSessionIdentity.h"
-#include "M5GPTI.h"
-#include "M5GMessageType.h"
 #include "M5GIntegrityProtMaxDataRate.h"
+#include "M5GMessageType.h"
+#include "M5GPDUSessionIdentity.h"
 #include "M5GPDUSessionType.h"
-#include "M5GSSCMode.h"
+#include "M5GPTI.h"
 #include "M5GProtocolConfigurationOptions.h"
+#include "M5GSSCMode.h"
+#include "M5gNasMessage.h"
 
 using namespace std;
 namespace magma5g {

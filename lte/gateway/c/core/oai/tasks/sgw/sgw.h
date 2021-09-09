@@ -24,18 +24,18 @@
 
 #ifndef FILE_SGW_SEEN
 #define FILE_SGW_SEEN
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 
 #include "bstrlib.h"
-#include "queue.h"
 #include "hashtable.h"
+#include "queue.h"
 
-#include "nas/commonDef.h"
 #include "common_types.h"
-#include "sgw_context_manager.h"
 #include "gtpv1u_sgw_defs.h"
+#include "nas/commonDef.h"
 #include "pgw_pcef_emulation.h"
+#include "sgw_context_manager.h"
 
 typedef struct sgw_app_s {
   bstring sgw_if_name_S1u_S12_S4_up;

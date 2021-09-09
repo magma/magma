@@ -15,24 +15,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
 #include "conversions.h"
-#include "log.h"
 #include "dynamic_memory_check.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "log.h"
 #include "secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
 #include "3gpp_23.003.h"
-#include "common_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_authentication.h"
-#include "amf_recv.h"
-#include "amf_identity.h"
-#include "amf_sap.h"
 #include "M5GAuthenticationServiceClient.h"
 #include "amf_app_timer_management.h"
+#include "amf_app_ue_context_and_proc.h"
+#include "amf_authentication.h"
+#include "amf_identity.h"
+#include "amf_recv.h"
+#include "amf_sap.h"
+#include "common_defs.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
@@ -43,16 +43,16 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 amf_as_data_t amf_data_sec_auth;
-static int authenthication_t3560_handler(
-    zloop_t* loop, int timer_id, void* output);
+static int authenthication_t3560_handler(zloop_t* loop, int timer_id,
+                                         void* output);
 
 nas_amf_smc_proc_t* get_nas5g_common_procedure_smc(const amf_context_t* ctxt) {
-  return (nas_amf_smc_proc_t*) get_nas5g_common_procedure(
-      ctxt, AMF_COMM_PROC_SMC);
+  return (nas_amf_smc_proc_t*)get_nas5g_common_procedure(ctxt,
+                                                         AMF_COMM_PROC_SMC);
 }
 
-nas5g_cn_proc_t* get_nas5g_cn_procedure(
-    const amf_context_t* ctxt, cn5g_proc_type_t proc_type) {
+nas5g_cn_proc_t* get_nas5g_cn_procedure(const amf_context_t* ctxt,
+                                        cn5g_proc_type_t proc_type) {
   if (ctxt) {
     if (ctxt->amf_procedures) {
       nas5g_cn_procedure_t* p1 = LIST_FIRST(&ctxt->amf_procedures->cn_procs);
@@ -69,8 +69,8 @@ nas5g_cn_proc_t* get_nas5g_cn_procedure(
   return NULL;
 }
 
-static int calculate_amf_serving_network_name(
-    amf_context_t* amf_ctx, uint8_t* snni);
+static int calculate_amf_serving_network_name(amf_context_t* amf_ctx,
+                                              uint8_t* snni);
 /***************************************************************************
 **                                                                        **
 ** Name:    get_nas5g_cn_procedure_auth_info()                            **
@@ -82,8 +82,8 @@ static int calculate_amf_serving_network_name(
 ***************************************************************************/
 nas5g_auth_info_proc_t* get_nas5g_cn_procedure_auth_info(
     const amf_context_t* ctxt) {
-  return (nas5g_auth_info_proc_t*) get_nas5g_cn_procedure(
-      ctxt, CN5G_PROC_AUTH_INFO);
+  return (nas5g_auth_info_proc_t*)get_nas5g_cn_procedure(ctxt,
+                                                         CN5G_PROC_AUTH_INFO);
 }
 
 /***************************************************************************
@@ -119,10 +119,10 @@ static int start_authentication_information_procedure(
       &auth_proc->amf_com_proc.amf_proc.base_proc;
   auth_proc->amf_com_proc.amf_proc.base_proc.child =
       &auth_info_proc->cn_proc.base_proc;
-  auth_info_proc->ue_id  = ue_id;
+  auth_info_proc->ue_id = ue_id;
   auth_info_proc->resync = auth_info_proc->request_sent;
 
-  bool is_initial_req          = !(auth_info_proc->request_sent);
+  bool is_initial_req = !(auth_info_proc->request_sent);
   auth_info_proc->request_sent = true;
 
   IMSI64_TO_STRING(amf_context->imsi64, imsi_str, IMSI_LENGTH);
@@ -133,10 +133,9 @@ static int start_authentication_information_procedure(
   }
 
   if (is_initial_req) {
-    OAILOG_INFO(
-        LOG_AMF_APP,
-        "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info\n",
-        imsi_str);
+    OAILOG_INFO(LOG_AMF_APP,
+                "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info\n",
+                imsi_str);
     AsyncM5GAuthenticationServiceClient::getInstance().get_subs_auth_info(
         imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), ue_id);
   } else if (auts->data) {
@@ -209,8 +208,8 @@ nas_amf_common_proc_t* get_nas5g_common_procedure(
 ***************************************************************************/
 nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
     const amf_context_t* const ctxt) {
-  return (nas5g_amf_auth_proc_t*) get_nas5g_common_procedure(
-      ctxt, AMF_COMM_PROC_AUTH);
+  return (nas5g_amf_auth_proc_t*)get_nas5g_common_procedure(ctxt,
+                                                            AMF_COMM_PROC_AUTH);
 }
 
 /****************************************************************************
@@ -227,18 +226,17 @@ nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
  **     Others: None                                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_authentication_abort(
-    amf_context_t* amf_ctx, struct nas5g_base_proc_t* base_proc) {
+static int amf_authentication_abort(amf_context_t* amf_ctx,
+                                    struct nas5g_base_proc_t* base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   if ((base_proc) && (amf_ctx)) {
     ue_m5gmm_context_s* ue_mm_context =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
-    OAILOG_DEBUG(
-        LOG_NAS_AMF,
-        "AMF-PROC  - Abort authentication procedure invoked "
-        "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
-        ue_mm_context->amf_ue_ngap_id);
+    OAILOG_DEBUG(LOG_NAS_AMF,
+                 "AMF-PROC  - Abort authentication procedure invoked "
+                 "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
+                 ue_mm_context->amf_ue_ngap_id);
 
     rc = RETURNok;
   }
@@ -260,18 +258,18 @@ nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
   }
   nas5g_amf_auth_proc_t* auth_proc = new (nas5g_amf_auth_proc_t)();
   auth_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
-  auth_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
-  auth_proc->amf_com_proc.type                    = AMF_COMM_PROC_AUTH;
-  auth_proc->retry_sync_failure                   = 0;
+  auth_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
+  auth_proc->amf_com_proc.type = AMF_COMM_PROC_AUTH;
+  auth_proc->retry_sync_failure = 0;
   nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t();
   if (wrapper) {
     wrapper->proc = &auth_proc->amf_com_proc;
-    LIST_INSERT_HEAD(
-        &amf_context->amf_procedures->amf_common_procs, wrapper, entries);
+    LIST_INSERT_HEAD(&amf_context->amf_procedures->amf_common_procs, wrapper,
+                     entries);
     OAILOG_TRACE(LOG_NAS_AMF, "New AMF_COMM_PROC_AUTH\n");
     return auth_proc;
   } else {
-    free_wrapper((void**) &auth_proc);
+    free_wrapper((void**)&auth_proc);
   }
   return NULL;
 }
@@ -284,14 +282,13 @@ nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_proc_authentication(
-    amf_context_t* amf_context,
-    nas_amf_specific_proc_t* const amf_specific_proc, success_cb_t success,
-    failure_cb_t failure) {
+int amf_proc_authentication(amf_context_t* amf_context,
+                            nas_amf_specific_proc_t* const amf_specific_proc,
+                            success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc                  = RETURNerror;
+  int rc = RETURNerror;
   bool run_auth_info_proc = false;
-  ksi_t eksi              = 0;
+  ksi_t eksi = 0;
   OAILOG_DEBUG(LOG_NGAP, "starting Authentication procedure");
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
@@ -309,14 +306,14 @@ int amf_proc_authentication(
         auth_proc->is_cause_is_registered = false;
       }
     }
-    auth_proc->amf_cause            = AMF_CAUSE_SUCCESS;
+    auth_proc->amf_cause = AMF_CAUSE_SUCCESS;
     auth_proc->retransmission_count = 0;
-    auth_proc->ue_id                = ue_id;
-    ((nas5g_base_proc_t*) auth_proc)->parent =
-        (nas5g_base_proc_t*) amf_specific_proc;
-    auth_proc->amf_com_proc.amf_proc.delivered               = NULL;
-    auth_proc->amf_com_proc.amf_proc.not_delivered           = NULL;
-    auth_proc->amf_com_proc.amf_proc.not_delivered_ho        = NULL;
+    auth_proc->ue_id = ue_id;
+    ((nas5g_base_proc_t*)auth_proc)->parent =
+        (nas5g_base_proc_t*)amf_specific_proc;
+    auth_proc->amf_com_proc.amf_proc.delivered = NULL;
+    auth_proc->amf_com_proc.amf_proc.not_delivered = NULL;
+    auth_proc->amf_com_proc.amf_proc.not_delivered_ho = NULL;
     auth_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     auth_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
     auth_proc->amf_com_proc.amf_proc.base_proc.abort = amf_authentication_abort;
@@ -339,14 +336,14 @@ int amf_proc_authentication(
         eksi = (amf_context->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
       }
       for (; eksi < MAX_5G_AUTH_VECTORS; eksi++) {
-        if (IS_AMF_CTXT_VALID_AUTH_VECTOR(
-                amf_context, (eksi % MAX_5G_AUTH_VECTORS))) {
+        if (IS_AMF_CTXT_VALID_AUTH_VECTOR(amf_context,
+                                          (eksi % MAX_5G_AUTH_VECTORS))) {
           break;
         }
       }
       // eksi should always be 0
-      if (!IS_AMF_CTXT_VALID_AUTH_VECTOR(
-              amf_context, (eksi % MAX_5G_AUTH_VECTORS))) {
+      if (!IS_AMF_CTXT_VALID_AUTH_VECTOR(amf_context,
+                                         (eksi % MAX_5G_AUTH_VECTORS))) {
         run_auth_info_proc = true;
       } else {
         rc = amf_proc_authentication_ksi(
@@ -358,8 +355,8 @@ int amf_proc_authentication(
       }
     }
     if (run_auth_info_proc) {
-      rc = start_authentication_information_procedure(
-          amf_context, auth_proc, NULL);
+      rc = start_authentication_information_procedure(amf_context, auth_proc,
+                                                      NULL);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -415,11 +412,10 @@ int amf_proc_authentication_ksi(
                         (AMF_REGISTERED == amf_context->amf_fsm_state))) {
     ue_id = PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
                 ->amf_ue_ngap_id;
-    OAILOG_DEBUG(
-        LOG_NAS_AMF,
-        "ue_id= " AMF_UE_NGAP_ID_FMT
-        " AMF-PROC  - Initiate Authentication KSI = %d\n",
-        ue_id, ksi);
+    OAILOG_DEBUG(LOG_NAS_AMF,
+                 "ue_id= " AMF_UE_NGAP_ID_FMT
+                 " AMF-PROC  - Initiate Authentication KSI = %d\n",
+                 ue_id, ksi);
     if (auth_proc) {
       if (AMF_SPEC_PROC_TYPE_REGISTRATION == amf_specific_proc->type)
         auth_proc->is_cause_is_registered = true;
@@ -433,12 +429,12 @@ int amf_proc_authentication_ksi(
     if (autn) {
       memcpy(auth_proc->autn, autn, AUTH_AUTN_SIZE);
     }
-    auth_proc->amf_cause            = AMF_CAUSE_SUCCESS;
+    auth_proc->amf_cause = AMF_CAUSE_SUCCESS;
     auth_proc->retransmission_count = 0;
-    auth_proc->ue_id                = ue_id;
-    ((nas5g_base_proc_t*) auth_proc)->parent =
-        (nas5g_base_proc_t*) amf_specific_proc;
-    auth_proc->amf_com_proc.amf_proc.delivered               = NULL;
+    auth_proc->ue_id = ue_id;
+    ((nas5g_base_proc_t*)auth_proc)->parent =
+        (nas5g_base_proc_t*)amf_specific_proc;
+    auth_proc->amf_com_proc.amf_proc.delivered = NULL;
     auth_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     auth_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
     auth_proc->amf_com_proc.amf_proc.base_proc.abort = amf_authentication_abort;
@@ -454,11 +450,11 @@ int amf_proc_authentication_ksi(
     /*
      * Notify AMF that common procedure has been initiated
      */
-    amf_sap_t amf_sap       = {};
-    amf_sap.primitive       = AMFREG_COMMON_PROC_REQ;
+    amf_sap_t amf_sap = {};
+    amf_sap.primitive = AMFREG_COMMON_PROC_REQ;
     amf_sap.u.amf_reg.ue_id = ue_id;
-    amf_sap.u.amf_reg.ctx   = amf_context;
-    rc                      = amf_sap_send(&amf_sap);
+    amf_sap.u.amf_reg.ctx = amf_context;
+    rc = amf_sap_send(&amf_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -486,47 +482,44 @@ int amf_proc_authentication_ksi(
  **      Others:    amf_data, T3560                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_authentication_complete(
-    amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
-    const unsigned char* res) {
+int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
+                                     AuthenticationResponseMsg* msg,
+                                     int amf_cause, const unsigned char* res) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc                         = RETURNerror;
+  int rc = RETURNerror;
   bool is_xres_validation_failed = false;
   nas_amf_smc_proc_t nas_amf_smc_proc_autn;
   nas_amf_registration_proc_t* registration_proc = NULL;
-  nas5g_amf_auth_proc_t* auth_proc               = NULL;
+  nas5g_amf_auth_proc_t* auth_proc = NULL;
 
-  OAILOG_DEBUG(
-      LOG_NAS_AMF,
-      "Authentication  procedures complete for "
-      "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_DEBUG(LOG_NAS_AMF,
+               "Authentication  procedures complete for "
+               "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+               ue_id);
   ue_m5gmm_context_s* ue_mm_context = NULL;
 
   amf_context_t* amf_ctx = NULL;
-  ue_mm_context          = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_mm_context) {
-    OAILOG_WARNING(
-        LOG_NAS_AMF,
-        "AMF-PROC - Failed to authenticate the UE due to NULL"
-        "ue_mm_context\n");
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "AMF-PROC - Failed to authenticate the UE due to NULL"
+                   "ue_mm_context\n");
     amf_cause = AMF_UE_ILLEGAL;
-    rc        = amf_proc_registration_reject(ue_id, amf_cause);
+    rc = amf_proc_registration_reject(ue_id, amf_cause);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
   amf_ctx = &ue_mm_context->amf_context;
 
   registration_proc = get_nas_specific_procedure_registration(amf_ctx);
-  auth_proc         = get_nas5g_common_procedure_authentication(amf_ctx);
+  auth_proc = get_nas5g_common_procedure_authentication(amf_ctx);
 
   if (auth_proc) {
     /*    Stop Timer T3560 */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "Timer:  Stopping Authentication Timer T3560 with id = %lu\n",
-        auth_proc->T3560.id);
+    OAILOG_DEBUG(LOG_NAS_EMM,
+                 "Timer:  Stopping Authentication Timer T3560 with id = %lu\n",
+                 auth_proc->T3560.id);
     amf_app_stop_timer(auth_proc->T3560.id);
     auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
@@ -551,12 +544,12 @@ int amf_proc_authentication_complete(
      */
     if (is_xres_validation_failed) {
       auth_proc->retransmission_count++;
-      OAILOG_WARNING(
-          LOG_NAS_AMF, "Authentication failure due to RES,XRES mismatch \n");
+      OAILOG_WARNING(LOG_NAS_AMF,
+                     "Authentication failure due to RES,XRES mismatch \n");
       if (registration_proc &&
           (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
         rc = amf_proc_identification(
-            amf_ctx, (nas_amf_proc_t*) registration_proc, IDENTITY_TYPE_2_IMSI,
+            amf_ctx, (nas_amf_proc_t*)registration_proc, IDENTITY_TYPE_2_IMSI,
             amf_registration_success_identification_cb,
             amf_registration_failure_identification_cb);
       } else {
@@ -567,11 +560,11 @@ int amf_proc_authentication_complete(
         /*
          * Notify AMF that the authentication procedure failed
          */
-        amf_sap_t amf_sap                    = {};
-        amf_sap.primitive                    = AMFAS_SECURITY_REJ;
-        amf_sap.u.amf_as.u.security.ue_id    = ue_id;
+        amf_sap_t amf_sap = {};
+        amf_sap.primitive = AMFAS_SECURITY_REJ;
+        amf_sap.u.amf_as.u.security.ue_id = ue_id;
         amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
-        rc                                   = amf_sap_send(&amf_sap);
+        rc = amf_sap_send(&amf_sap);
       }
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }
@@ -581,14 +574,14 @@ int amf_proc_authentication_complete(
     /*
      * Notify AMF that the authentication procedure successfully completed
      */
-    amf_sap_t amf_sap               = {};
-    amf_sap.primitive               = AMFREG_COMMON_PROC_CNF;
-    amf_sap.u.amf_reg.ue_id         = ue_id;
-    amf_sap.u.amf_reg.ctx           = amf_ctx;
-    amf_sap.u.amf_reg.notify        = true;
-    amf_sap.u.amf_reg.free_proc     = true;
+    amf_sap_t amf_sap = {};
+    amf_sap.primitive = AMFREG_COMMON_PROC_CNF;
+    amf_sap.u.amf_reg.ue_id = ue_id;
+    amf_sap.u.amf_reg.ctx = amf_ctx;
+    amf_sap.u.amf_reg.notify = true;
+    amf_sap.u.amf_reg.free_proc = true;
     amf_sap.u.amf_reg.u.common_proc = &auth_proc->amf_com_proc;
-    rc                              = amf_sap_send(&amf_sap);
+    rc = amf_sap_send(&amf_sap);
   } else {
     OAILOG_ERROR(LOG_NAS_AMF, "Auth proc is null");
   }
@@ -599,8 +592,8 @@ int amf_proc_authentication_complete(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-inline void amf_ctx_clear_attribute_present(
-    amf_context_t* const ctxt, const int attribute_bit_pos) {
+inline void amf_ctx_clear_attribute_present(amf_context_t* const ctxt,
+                                            const int attribute_bit_pos) {
   ctxt->member_present_mask &= ~attribute_bit_pos;
   ctxt->member_valid_mask &= ~attribute_bit_pos;
 }
@@ -609,7 +602,7 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
   amf_ctx_clear_attribute_present(ctxt, AMF_CTXT_MEMBER_AUTH_VECTORS);
 
   for (int i = 0; i < MAX_EPS_AUTH_VECTORS; i++) {
-    memset((void*) &ctxt->_vector[i], 0, sizeof(ctxt->_vector[i]));
+    memset((void*)&ctxt->_vector[i], 0, sizeof(ctxt->_vector[i]));
     amf_ctx_clear_attribute_present(ctxt, AMF_CTXT_MEMBER_AUTH_VECTOR0 + i);
   }
 
@@ -617,12 +610,12 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
 }
 
 int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
-  int rc                               = RETURNerror;
-  amf_sap_t amf_sap                    = {};
-  amf_sap.primitive                    = AMFAS_SECURITY_REJ;
-  amf_sap.u.amf_as.u.security.ue_id    = ue_id;
+  int rc = RETURNerror;
+  amf_sap_t amf_sap = {};
+  amf_sap.primitive = AMFAS_SECURITY_REJ;
+  amf_sap.u.amf_as.u.security.ue_id = ue_id;
   amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
-  rc                                   = amf_sap_send(&amf_sap);
+  rc = amf_sap_send(&amf_sap);
   return rc;
 }
 
@@ -649,29 +642,28 @@ int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
  **      Others:    amf_data, T3560                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_authentication_failure(
-    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause) {
+int amf_proc_authentication_failure(amf_ue_ngap_id_t ue_id,
+                                    AuthenticationFailureMsg* msg,
+                                    int amf_cause) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  OAILOG_DEBUG(
-      LOG_NAS_AMF,
-      "Authentication  procedures failed for "
-      "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_DEBUG(LOG_NAS_AMF,
+               "Authentication  procedures failed for "
+               "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+               ue_id);
 
-  int rc                            = RETURNerror;
+  int rc = RETURNerror;
   ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx            = NULL;
+  amf_context_t* amf_ctx = NULL;
 
   ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_mm_context) {
-    OAILOG_WARNING(
-        LOG_NAS_AMF, "Sending Auth Reject as UE MM Context is not found\n");
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "Sending Auth Reject as UE MM Context is not found\n");
     rc = amf_auth_auth_rej(ue_id);
-    OAILOG_WARNING(
-        LOG_NAS_AMF,
-        "AMF-PROC - Failed to authenticate the UE due to NULL"
-        "ue_mm_context\n");
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "AMF-PROC - Failed to authenticate the UE due to NULL"
+                   "ue_mm_context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
@@ -685,41 +677,39 @@ int amf_proc_authentication_failure(
   }
 
   /*	Stop Timer T3560 */
-  OAILOG_DEBUG(
-      LOG_NAS_EMM,
-      "Timer:  Stopping Authentication Timer T3560 with id = %lu\n",
-      auth_proc->T3560.id);
+  OAILOG_DEBUG(LOG_NAS_EMM,
+               "Timer:  Stopping Authentication Timer T3560 with id = %lu\n",
+               auth_proc->T3560.id);
   amf_app_stop_timer(auth_proc->T3560.id);
   auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
-  OAILOG_DEBUG(
-      LOG_NAS_AMF, "authentication of the ue is failed with error : %d",
-      msg->m5gmm_cause.m5gmm_cause);
+  OAILOG_DEBUG(LOG_NAS_AMF,
+               "authentication of the ue is failed with error : %d",
+               msg->m5gmm_cause.m5gmm_cause);
 
   switch (msg->m5gmm_cause.m5gmm_cause) {
     case AMF_CAUSE_NGKSI_ALREADY_INUSE: {
-      OAILOG_WARNING(
-          LOG_NAS_AMF, "Authentication failure received with NGSKI\n");
+      OAILOG_WARNING(LOG_NAS_AMF,
+                     "Authentication failure received with NGSKI\n");
       nas_amf_registration_proc_t* registration_proc =
           get_nas_specific_procedure_registration(amf_ctx);
 
       amf_ctx->_security.eksi = auth_proc->ksi;
       OAILOG_DEBUG(LOG_NAS_AMF, "Updated EKSI %d\n", amf_ctx->_security.eksi);
-      rc = amf_start_registration_proc_authentication(
-          amf_ctx, registration_proc);
+      rc = amf_start_registration_proc_authentication(amf_ctx,
+                                                      registration_proc);
       break;
     }
     case AMF_CAUSE_MAC_FAILURE: {
       auth_proc->retransmission_count++;
       nas_amf_registration_proc_t* registration_proc =
           get_nas_specific_procedure_registration(amf_ctx);
-      OAILOG_DEBUG(
-          LOG_NAS_AMF,
-          "Authentication failure received with failure response\n");
+      OAILOG_DEBUG(LOG_NAS_AMF,
+                   "Authentication failure received with failure response\n");
       if (registration_proc &&
           (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
         rc = amf_proc_identification(
-            amf_ctx, (nas_amf_proc_t*) registration_proc, IDENTITY_TYPE_2_IMSI,
+            amf_ctx, (nas_amf_proc_t*)registration_proc, IDENTITY_TYPE_2_IMSI,
             amf_registration_success_identification_cb,
             amf_registration_failure_identification_cb);
       } else {
@@ -744,28 +734,25 @@ int amf_proc_authentication_failure(
         rc = amf_auth_auth_rej(ue_id);
       } else {
         struct tagbstring resync_param;
-        resync_param.data = (unsigned char*) calloc(1, RESYNC_PARAM_LENGTH);
+        resync_param.data = (unsigned char*)calloc(1, RESYNC_PARAM_LENGTH);
         if (resync_param.data == NULL) {
-          OAILOG_ERROR(
-              LOG_NAS_AMF,
-              "Sending authentication reject with cause "
-              "AMF_CAUSE_SYNCH_FAILURE\n");
+          OAILOG_ERROR(LOG_NAS_AMF,
+                       "Sending authentication reject with cause "
+                       "AMF_CAUSE_SYNCH_FAILURE\n");
           rc = amf_auth_auth_rej(ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
         }
 
-        memcpy(
-            resync_param.data,
-            (amf_ctx->_vector[amf_ctx->_security.vector_index].rand),
-            RAND_LENGTH_OCTETS);
+        memcpy(resync_param.data,
+               (amf_ctx->_vector[amf_ctx->_security.vector_index].rand),
+               RAND_LENGTH_OCTETS);
 
-        memcpy(
-            (resync_param.data + RAND_LENGTH_OCTETS),
-            msg->auth_failure_ie.authentication_failure_info->data,
-            AUTS_LENGTH);
+        memcpy((resync_param.data + RAND_LENGTH_OCTETS),
+               msg->auth_failure_ie.authentication_failure_info->data,
+               AUTS_LENGTH);
 
-        start_authentication_information_procedure_synch(
-            amf_ctx, auth_proc, &resync_param);
+        start_authentication_information_procedure_synch(amf_ctx, auth_proc,
+                                                         &resync_param);
         free_wrapper(reinterpret_cast<void**>(&resync_param.data));
 
         amf_ctx_clear_auth_vectors(amf_ctx);
@@ -800,25 +787,25 @@ int amf_proc_authentication_failure(
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int amf_send_authentication_request(
-    amf_context_t* amf_ctx, nas5g_amf_auth_proc_t* auth_proc) {
+int amf_send_authentication_request(amf_context_t* amf_ctx,
+                                    nas5g_amf_auth_proc_t* auth_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc              = RETURNerror;
+  int rc = RETURNerror;
   auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
   if (auth_proc) {
     /*
      * Notify AMF-AS SAP that Authentication Request message has to be sent
      * to the UE
      */
-    amf_sap_t amf_sap                = {};
-    amf_sap.primitive                = AMFAS_SECURITY_REQ;
+    amf_sap_t amf_sap = {};
+    amf_sap.primitive = AMFAS_SECURITY_REQ;
     amf_sap.u.amf_as.u.security.guti = {0};
     //    amf_sap.u.amf_as.u.security.ue_id    = auth_proc->ue_id;
     amf_sap.u.amf_as.u.security.ue_id =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->amf_ue_ngap_id;
 
     amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
-    amf_sap.u.amf_as.u.security.ksi      = auth_proc->ksi;
+    amf_sap.u.amf_as.u.security.ksi = auth_proc->ksi;
     memcpy(amf_sap.u.amf_as.u.security.rand, auth_proc->rand, AUTH_RAND_SIZE);
     memcpy(amf_sap.u.amf_as.u.security.autn, auth_proc->autn, AUTH_AUTN_SIZE);
 
@@ -831,9 +818,9 @@ int amf_send_authentication_request(
     rc = amf_sap_send(&amf_sap);
 
     if (rc != RETURNerror) {
-      OAILOG_WARNING(
-          LOG_NAS_AMF, " T3560:Start Authenthication Timer for ue id:%d\n",
-          auth_proc->ue_id);
+      OAILOG_WARNING(LOG_NAS_AMF,
+                     " T3560:Start Authenthication Timer for ue id:%d\n",
+                     auth_proc->ue_id);
       auth_proc->T3560.id = amf_app_start_timer(
           AUTHENTICATION_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
           authenthication_t3560_handler, auth_proc->ue_id);
@@ -845,12 +832,12 @@ int amf_send_authentication_request(
 }
 
 // Fetch the serving network name
-static int calculate_amf_serving_network_name(
-    amf_context_t* amf_ctx, unsigned char* snni) {
-  uint32_t mcc              = 0;
-  uint32_t mnc              = 0;
+static int calculate_amf_serving_network_name(amf_context_t* amf_ctx,
+                                              unsigned char* snni) {
+  uint32_t mcc = 0;
+  uint32_t mnc = 0;
   uint32_t mnc_digit_length = 0;
-  char snni_buffer[40]      = {0};
+  char snni_buffer[40] = {0};
 
   /* Building 32 bytes of string with serving network SN
    * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
@@ -889,10 +876,10 @@ static int calculate_amf_serving_network_name(
 int amf_authentication_proc_success(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  nas5g_amf_auth_proc_t* auth_proc       = NULL;
+  nas5g_amf_auth_proc_t* auth_proc = NULL;
   nas5g_auth_info_proc_t* auth_info_proc = NULL;
-  uint8_t snni[40]                       = {0};
-  int rc                                 = RETURNerror;
+  uint8_t snni[40] = {0};
+  int rc = RETURNerror;
 
   /* Get Auth Proc */
   auth_proc = get_nas5g_common_procedure_authentication(amf_ctx);
@@ -912,33 +899,29 @@ int amf_authentication_proc_success(amf_context_t* amf_ctx) {
     eksi = (amf_ctx->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
   }
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "Security eksi:%x, eksi=%x", amf_ctx->_security.eksi, eksi);
+  OAILOG_DEBUG(LOG_AMF_APP, "Security eksi:%x, eksi=%x",
+               amf_ctx->_security.eksi, eksi);
 
   rc = calculate_amf_serving_network_name(amf_ctx, snni);
   if (rc != RETURNok) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
-  memcpy(
-      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].kseaf,
-      auth_info_proc->vector[0]->kseaf, KSEAF_LENGTH_OCTETS);
+  memcpy(amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].kseaf,
+         auth_info_proc->vector[0]->kseaf, KSEAF_LENGTH_OCTETS);
 
-  memcpy(
-      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].autn,
-      auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
+  memcpy(amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].autn,
+         auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
 
-  memcpy(
-      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].rand,
-      auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
+  memcpy(amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].rand,
+         auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
 
   amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
       .xres_star_length = auth_info_proc->vector[0]->xres_star.size;
 
-  memcpy(
-      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-          .xres_star,
-      auth_info_proc->vector[0]->xres_star.data, AUTH_XRES_SIZE);
+  memcpy(amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
+             .xres_star,
+         auth_info_proc->vector[0]->xres_star.data, AUTH_XRES_SIZE);
 
   /* Set the vector and corresponding vectors */
   amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_AUTH_VECTOR0);
@@ -958,17 +941,17 @@ int amf_authentication_proc_success(amf_context_t* amf_ctx) {
 }
 
 /* Timer Expiry Handler for AUTHENTHICATION Timer T3560 */
-static int authenthication_t3560_handler(
-    zloop_t* loop, int timer_id, void* arg) {
+static int authenthication_t3560_handler(zloop_t* loop, int timer_id,
+                                         void* arg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
 
   if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
-    OAILOG_WARNING(
-        LOG_AMF_APP, "T3560: Invalid Timer Id expiration, Timer Id: %u\n",
-        timer_id);
+    OAILOG_WARNING(LOG_AMF_APP,
+                   "T3560: Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
@@ -976,45 +959,41 @@ static int authenthication_t3560_handler(
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
-    OAILOG_DEBUG(
-        LOG_NAS_AMF, "T3560: ue_amf_context is NULL for ue id: %d\n", ue_id);
+    OAILOG_DEBUG(LOG_NAS_AMF, "T3560: ue_amf_context is NULL for ue id: %d\n",
+                 ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   amf_ctx = &ue_amf_context->amf_context;
 
   if (!(amf_ctx)) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "T3560: Timer expired no amf context for ue id: %d\n",
-        ue_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "T3560: Timer expired no amf context for ue id: %d\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   nas5g_amf_auth_proc_t* auth_proc =
       get_nas5g_common_procedure_authentication(amf_ctx);
   if (auth_proc) {
-    OAILOG_WARNING(
-        LOG_AMF_APP, "T3560: timer expired timer id %lu ue id %d\n",
-        auth_proc->T3560.id, auth_proc->ue_id);
+    OAILOG_WARNING(LOG_AMF_APP, "T3560: timer expired timer id %lu ue id %d\n",
+                   auth_proc->T3560.id, auth_proc->ue_id);
     auth_proc->T3560.id = -1;
     /*
      *Increment the retransmission counter
      */
     auth_proc->retransmission_count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_AMF, "T3560: Timer expired, retransmission counter = %d\n",
-        auth_proc->retransmission_count);
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "T3560: Timer expired, retransmission counter = %d\n",
+                   auth_proc->retransmission_count);
 
     if (auth_proc->retransmission_count < AUTHENTICATION_COUNTER_MAX) {
-      OAILOG_ERROR(
-          LOG_NAS_AMF,
-          "T3560: Retransmitting amf_send_authentication_request\n");
+      OAILOG_ERROR(LOG_NAS_AMF,
+                   "T3560: Retransmitting amf_send_authentication_request\n");
       amf_send_authentication_request(amf_ctx, auth_proc);
     } else {
-      OAILOG_ERROR(
-          LOG_AMF_APP,
-          "T3560: Maximum retires done hence Abort the authentication "
-          "procedure\n");
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "T3560: Maximum retires done hence Abort the authentication "
+                   "procedure\n");
       amf_proc_registration_abort(amf_ctx, ue_amf_context);
     }
   }

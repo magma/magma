@@ -34,17 +34,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "common_ies.h"
-#include "common_types.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
+#include "common_ies.h"
+#include "common_types.h"
 #include "intertask_interface.h"
 
 void bytes_to_lai(const char* bytes, lai_t* lai);
 void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi);
 
-void bytes_to_mobile_identity(
-    const char* bytes, uint8_t mobile_identity_len, bool is_imsi,
-    MobileIdentity_t* mobile_identity);
+void bytes_to_mobile_identity(const char* bytes, uint8_t mobile_identity_len,
+                              bool is_imsi, MobileIdentity_t* mobile_identity);
 
 #endif /* FILE_BYTES_TO_IE_SEEN */

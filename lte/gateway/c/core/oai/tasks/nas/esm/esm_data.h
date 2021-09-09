@@ -36,12 +36,12 @@ Description Defines internal private data handled by EPS Session
 #ifndef __ESMDATA_H__
 #define __ESMDATA_H__
 
-#include "nas_timer.h"
-#include "nas/networkDef.h"
-#include "tree.h"
 #include "3gpp_24.007.h"
-#include "mme_api.h"
 #include "EsmCause.h"
+#include "mme_api.h"
+#include "nas/networkDef.h"
+#include "nas_timer.h"
+#include "tree.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -205,18 +205,17 @@ typedef struct esm_data_s {
 
 void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context);
 void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context);
-void nas_start_T3489(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    time_out_t time_out_cb);
+void nas_start_T3489(const mme_ue_s1ap_id_t ue_id,
+                     struct nas_timer_s* const T3470, time_out_t time_out_cb);
 void nas_stop_T3489(esm_context_t* const esm_ctx);
 void free_esm_context_content(esm_context_t* esm_ctx);
 void esm_init_context(struct esm_context_s* esm_ctx);
 
-struct esm_context_s* esm_data_context_get(
-    esm_data_t* esm_data, unsigned int _ueid);
+struct esm_context_s* esm_data_context_get(esm_data_t* esm_data,
+                                           unsigned int _ueid);
 
-struct esm_context_s* esm_data_context_remove(
-    esm_data_t* esm_data, struct esm_context_s* elm);
+struct esm_context_s* esm_data_context_remove(esm_data_t* esm_data,
+                                              struct esm_context_s* elm);
 
 void esm_data_context_add(esm_data_t* esm_data, struct esm_context_s* elm);
 

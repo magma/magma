@@ -28,20 +28,20 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#include <string>
-#include <vector>
-#include <regex>
-#include <algorithm>
-#include <fstream>
-#include <cstdio>
-#include <stdlib.h>
-#include <unistd.h>
 #include "glog_logging.h"
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <algorithm>
+#include <cstdio>
+#include <fstream>
+#include <regex>
+#include <string>
+#include <vector>
 
-#include <sys/types.h>
 #include <dirent.h>
+#include <sys/types.h>
 
 std::vector<std::string> read_directory(const std::string& dir_path) {
   char* absolute_dir_path = realpath(dir_path.c_str(), nullptr);
@@ -60,14 +60,14 @@ std::vector<std::string> read_directory(const std::string& dir_path) {
   return res;
 }
 
-void init_logging(
-    const char* log_dir, const char* app_name, uint32_t default_verbosity) {
+void init_logging(const char* log_dir, const char* app_name,
+                  uint32_t default_verbosity) {
   google::InitGoogleLogging(app_name);
 
   // disable log prefix (file, line, etc as it's manually added in oai/log.c)
   FLAGS_log_prefix = false;
-  FLAGS_log_dir    = log_dir;
-  FLAGS_v          = default_verbosity;
+  FLAGS_log_dir = log_dir;
+  FLAGS_v = default_verbosity;
 }
 
 void init_logging(const char* app_name, uint32_t default_verbosity) {
@@ -75,7 +75,7 @@ void init_logging(const char* app_name, uint32_t default_verbosity) {
   init_logging(log_dir, app_name, default_verbosity);
 
   // symlink glog output to /var/log/mme.log
-  auto mme_log_path  = "/var/log/mme.log";
+  auto mme_log_path = "/var/log/mme.log";
   auto glog_log_path = "/var/log/MME.INFO";
 
   std::remove(mme_log_path);
@@ -96,9 +96,7 @@ void init_logging(const char* app_name, uint32_t default_verbosity) {
   }
 }
 
-void flush_log(int32_t log_level) {
-  google::FlushLogFiles(log_level);
-}
+void flush_log(int32_t log_level) { google::FlushLogFiles(log_level); }
 
 void log_string(int32_t log_level, const char* str) {
   VLOG(log_level) << str;

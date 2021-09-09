@@ -12,8 +12,8 @@ limitations under the License.
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
+#include "M5GSecurityHeaderType.h"
 #include "M5GSpareHalfOctet.h"
 #include "bstrlib.h"
 
@@ -30,10 +30,10 @@ class RegistrationCompleteMsg {
 
   RegistrationCompleteMsg();
   ~RegistrationCompleteMsg();
-  int DecodeRegistrationCompleteMsg(
-      RegistrationCompleteMsg* reg_complete, uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationCompleteMsg(
-      RegistrationCompleteMsg* reg_complete, uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationCompleteMsg(RegistrationCompleteMsg* reg_complete,
+                                    uint8_t* buffer, uint32_t len);
+  int EncodeRegistrationCompleteMsg(RegistrationCompleteMsg* reg_complete,
+                                    uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

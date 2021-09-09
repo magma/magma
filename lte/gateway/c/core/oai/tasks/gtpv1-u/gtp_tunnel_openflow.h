@@ -20,9 +20,8 @@
 #include <net/if.h>
 
 // openflow init framework
-int openflow_init(
-    struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0, int* fd1u,
-    bool persist_state);
+int openflow_init(struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0,
+                  int* fd1u, bool persist_state);
 
 // openflow uninit flows
 int openflow_uninit(void);

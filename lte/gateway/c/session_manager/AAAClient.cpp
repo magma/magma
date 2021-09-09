@@ -16,9 +16,9 @@
 #include <utility>
 
 #include "AAAClient.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "SessionState.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "magma_logging.h"
 
 using grpc::Status;
 
@@ -72,20 +72,20 @@ AsyncAAAClient::AsyncAAAClient()
           magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
               "aaa_server", magma::ServiceRegistrySingleton::LOCAL)) {}
 
-bool AsyncAAAClient::terminate_session(
-    const std::string& radius_session_id, const std::string& imsi) {
+bool AsyncAAAClient::terminate_session(const std::string& radius_session_id,
+                                       const std::string& imsi) {
   auto req = create_deactivate_req(radius_session_id, imsi);
-  terminate_session_rpc(
-      req, [radius_session_id, imsi](Status status, acct_resp resp) {
-        if (status.ok()) {
-          MLOG(MDEBUG) << "Terminated session for Radius ID:"
-                       << radius_session_id << ", IMSI: " << imsi;
-        } else {
-          MLOG(MERROR) << "Could not add terminate session. Radius ID:"
-                       << radius_session_id << ", IMSI: " << imsi
-                       << ", Error: " << status.error_message();
-        }
-      });
+  terminate_session_rpc(req, [radius_session_id, imsi](Status status,
+                                                       acct_resp resp) {
+    if (status.ok()) {
+      MLOG(MDEBUG) << "Terminated session for Radius ID:" << radius_session_id
+                   << ", IMSI: " << imsi;
+    } else {
+      MLOG(MERROR) << "Could not add terminate session. Radius ID:"
+                   << radius_session_id << ", IMSI: " << imsi
+                   << ", Error: " << status.error_message();
+    }
+  });
   return true;
 }
 

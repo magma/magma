@@ -31,9 +31,9 @@
 #define FILE_SPGW_TYPES_SEEN
 
 #include "3gpp_23.401.h"
+#include "gtpv1u_types.h"
 #include "ip_forward_messages_types.h"
 #include "sgw_ie_defs.h"
-#include "gtpv1u_types.h"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier

@@ -20,18 +20,18 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EmmCause.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "EmmCause.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define AUTHENTICATION_FAILURE_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define AUTHENTICATION_FAILURE_MAXIMUM_LENGTH                                  \
+#define AUTHENTICATION_FAILURE_MAXIMUM_LENGTH \
   (EMM_CAUSE_MAXIMUM_LENGTH + AUTHENTICATION_FAILURE_PARAMETER_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

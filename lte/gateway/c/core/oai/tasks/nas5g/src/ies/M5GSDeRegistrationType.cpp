@@ -9,10 +9,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include "M5GSDeRegistrationType.h"
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GSDeRegistrationType.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -25,9 +25,9 @@ int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
-  de_reg_type->switchoff       = (*(buffer + decoded) >> 3) & 0x01;
+  de_reg_type->switchoff = (*(buffer + decoded) >> 3) & 0x01;
   de_reg_type->re_reg_required = (*(buffer + decoded) >> 2) & 0x01;
-  de_reg_type->access_type     = *(buffer + decoded) & 0x03;
+  de_reg_type->access_type = *(buffer + decoded) & 0x03;
   MLOG(MDEBUG) << "DecodeM5GSDe-RegistrationType : \n   switchoff = " << hex
                << int(de_reg_type->switchoff);
   MLOG(MDEBUG) << "   re_reg_required = " << hex

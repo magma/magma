@@ -25,21 +25,21 @@
 #include "ngap_types.h"
 
 enum {
-  TA_LIST_UNKNOWN_TAC        = -2,
-  TA_LIST_UNKNOWN_PLMN       = -1,
-  TA_LIST_RET_OK             = 0,
-  TA_LIST_NO_MATCH           = 0x1,
+  TA_LIST_UNKNOWN_TAC = -2,
+  TA_LIST_UNKNOWN_PLMN = -1,
+  TA_LIST_RET_OK = 0,
+  TA_LIST_NO_MATCH = 0x1,
   TA_LIST_AT_LEAST_ONE_MATCH = 0x2,
-  TA_LIST_COMPLETE_MATCH     = 0x3,
+  TA_LIST_COMPLETE_MATCH = 0x3,
 };
 
 typedef enum s_nssai_sst_s {
-  _SST_eMBB  = 1,
+  _SST_eMBB = 1,
   _SST_URLLC = 2,
-  _SST_mMTC  = 3,
+  _SST_mMTC = 3,
 } s_nssai_sst_t;
 
 int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list);
-int ngap_paging_compare_ta_lists(
-    m5g_supported_ta_list_t* enb_ta_list, const paging_tai_list_t* p_tai_list,
-    uint8_t p_tai_list_count);
+int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t* enb_ta_list,
+                                 const paging_tai_list_t* p_tai_list,
+                                 uint8_t p_tai_list_count);

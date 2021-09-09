@@ -13,14 +13,14 @@
 
 #pragma once
 
+#include <arpa/inet.h>
 #include <pthread.h>
 #include <stdint.h>
-#include <arpa/inet.h>
 #include <stdlib.h>
-#include "amf_default_values.h"
-#include "common_types.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
+#include "amf_default_values.h"
+#include "common_types.h"
 #include "log.h"
 #include "service303.h"
 
@@ -30,7 +30,7 @@
 
 #define NGAP_CONFIG_STRING_NGAP_CONFIG "NGAP"
 #define NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
-#define NGAP_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                        \
+#define NGAP_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 
 extern char buf_plmn[3];
@@ -108,11 +108,11 @@ typedef struct guamfi_config_s {
 #define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
 #define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
-#define amf_config_read_lock(aMFcONFIG)                                        \
+#define amf_config_read_lock(aMFcONFIG) \
   pthread_rwlock_rdlock(&(aMFcONFIG)->rw_lock)
-#define amf_config_write_lock(aMFcONFIG)                                       \
+#define amf_config_write_lock(aMFcONFIG) \
   pthread_rwlock_wrlock(&(aMFcONFIG)->rw_lock)
-#define amf_config_unlock(aMFcONFIG)                                           \
+#define amf_config_unlock(aMFcONFIG) \
   pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)
 
   uint64_t imsi64_t;         /*holds the IMSI value*/
@@ -154,9 +154,9 @@ int amf_app_init(amf_config_t*);
 
 extern amf_config_t amf_config; /*global*/
 
-int amf_config_find_mnc_length(
-    const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,
-    const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);
+int amf_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,
+                               const char mcc_digit3P, const char mnc_digit1P,
+                               const char mnc_digit2P, const char mnc_digit3P);
 
 void amf_config_init(amf_config_t*);
 int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);

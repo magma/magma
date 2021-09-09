@@ -8,10 +8,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include <sstream>
-#include <cstdint>
-#include <string.h>
 #include "M5GTAIList.h"
+#include <string.h>
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 using namespace std;
 namespace magma5g {
@@ -19,11 +19,11 @@ TAIListMsg::TAIListMsg(){};
 
 TAIListMsg::~TAIListMsg(){};
 
-int TAIListMsg::EncodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) TAIList->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)TAIList->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "iei = " << hex << int(*(buffer + encoded));
     encoded++;
@@ -59,8 +59,8 @@ int TAIListMsg::EncodeTAIListMsg(
 
   return (encoded);
 }
-int TAIListMsg::DecodeTAIListMsg(
-    TAIListMsg* TAIList, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int TAIListMsg::DecodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   return 0;
 }
 

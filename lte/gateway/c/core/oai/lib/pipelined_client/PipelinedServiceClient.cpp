@@ -13,26 +13,26 @@
 
 #include "PipelinedServiceClient.h"
 
-#include <utility>
-#include <cassert>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <netinet/in.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
 
+#include "common_defs.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
-#include "lte/protos/mobilityd.pb.h"
-#include "orc8r/protos/common.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "common_defs.h"
+#include "orc8r/protos/common.pb.h"
 #include "proto_converters.h"
 
 namespace grpc {

@@ -20,12 +20,12 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EmmCause.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "EmmCause.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define EMM_STATUS_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)

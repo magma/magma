@@ -32,14 +32,14 @@
 
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
-#include "common_ies.h"
 #include "TrackingAreaIdentity.h"
+#include "common_ies.h"
 
-#define SGSAP_LOCATION_UPDATE_REQ(mSGpTR)                                      \
+#define SGSAP_LOCATION_UPDATE_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_location_update_req
-#define SGSAP_LOCATION_UPDATE_ACC(mSGpTR)                                      \
+#define SGSAP_LOCATION_UPDATE_ACC(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_location_update_acc
-#define SGSAP_LOCATION_UPDATE_REJ(mSGpTR)                                      \
+#define SGSAP_LOCATION_UPDATE_REJ(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_location_update_rej
 #define SGSAP_SERVICE_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.sgsap_service_request
 #define SGSAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.sgsap_paging_request
@@ -50,22 +50,22 @@
 #define SGSAP_IMSI_DETACH_IND(mSGpTR) (mSGpTR)->ittiMsg.sgsap_imsi_detach_ind
 #define SGSAP_IMSI_DETACH_ACK(mSGpTR) (mSGpTR)->ittiMsg.sgsap_imsi_detach_ack
 #define SGSAP_STATUS(mSGpTR) (mSGpTR)->ittiMsg.sgsap_status
-#define SGSAP_TMSI_REALLOC_COMP(mSGpTR)                                        \
+#define SGSAP_TMSI_REALLOC_COMP(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_tmsi_realloc_comp
-#define SGSAP_MM_INFORMATION_REQ(mSGpTR)                                       \
+#define SGSAP_MM_INFORMATION_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_mm_information_req
 #define SGSAP_ALERT_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.sgsap_alert_request
 #define SGSAP_ALERT_ACK(mSGpTR) (mSGpTR)->ittiMsg.sgsap_alert_ack
 #define SGSAP_ALERT_REJECT(mSGpTR) (mSGpTR)->ittiMsg.sgsap_alert_reject
 #define SGSAP_UPLINK_UNITDATA(mSGpTR) (mSGpTR)->ittiMsg.sgsap_uplink_unitdata
-#define SGSAP_DOWNLINK_UNITDATA(mSGpTR)                                        \
+#define SGSAP_DOWNLINK_UNITDATA(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_downlink_unitdata
 #define SGSAP_RELEASE_REQ(mSGpTR) (mSGpTR)->ittiMsg.sgsap_release_req
 #define SGSAP_UE_ACTIVITY_IND(mSGpTR) (mSGpTR)->ittiMsg.sgsap_ue_activity_ind
-#define SGSAP_VLR_RESET_INDICATION(mSGpTR)                                     \
+#define SGSAP_VLR_RESET_INDICATION(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_vlr_reset_indication
 #define SGSAP_VLR_RESET_ACK(mSGpTR) (mSGpTR)->ittiMsg.sgsap_vlr_reset_ack
-#define SGSAP_SERVICE_ABORT_REQ(mSGpTR)                                        \
+#define SGSAP_SERVICE_ABORT_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.sgsap_service_abort_req
 
 typedef enum SgsCause_e {
@@ -88,39 +88,39 @@ typedef enum SgsCause_e {
 
 typedef enum SgsRejectCause_e {
   SGS_INVALID_CAUSE,
-  SGS_IMSI_UNKNOWN_IN_HLR                              = 2,
-  SGS_ILLEGAL_MS                                       = 3,
-  SGS_IMSI_UNKNOWN_IN_VLR                              = 4,
-  SGS_IMEI_NOT_ACCEPTED                                = 5,
-  SGS_ILLEGAL_UE                                       = 6,
-  SGS_PLMN_NOT_ALLOWED                                 = 11,
-  SGS_LOCATION_AREA_NOT_ALLOWED                        = 12,
-  SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA        = 13,
-  SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA               = 15,
-  SGS_MSC_NOT_REACHABLE                                = 16,
-  SGS_NETWORK_FAILURE                                  = 17,
-  SGS_MAC_FAILURE                                      = 20,
-  SGS_SYNCH_FAILURE                                    = 21,
-  SGS_CONGESTION                                       = 22,
-  SGS_GSM_AUTHENTICATION_UNACCEPTABLE                  = 23,
-  SGS_NOT_AUTHORIZED_FOR_THIS_CSG                      = 25,
-  SGS_SERVICE_OPTION_NOT_SUPPORTED                     = 32,
-  SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED          = 33,
-  SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER          = 34,
-  SGS_CALL_CANNOT_BE_IDENTIFIED                        = 38,
-  SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL                   = 48,
-  SGS_SEMANTICALLY_INCORRECT_MESSAGE                   = 95,
-  SGS_INVALID_MANDATORY_INFORMATION                    = 96,
-  SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED            = 97,
-  SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE      = 98,
+  SGS_IMSI_UNKNOWN_IN_HLR = 2,
+  SGS_ILLEGAL_MS = 3,
+  SGS_IMSI_UNKNOWN_IN_VLR = 4,
+  SGS_IMEI_NOT_ACCEPTED = 5,
+  SGS_ILLEGAL_UE = 6,
+  SGS_PLMN_NOT_ALLOWED = 11,
+  SGS_LOCATION_AREA_NOT_ALLOWED = 12,
+  SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA = 13,
+  SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA = 15,
+  SGS_MSC_NOT_REACHABLE = 16,
+  SGS_NETWORK_FAILURE = 17,
+  SGS_MAC_FAILURE = 20,
+  SGS_SYNCH_FAILURE = 21,
+  SGS_CONGESTION = 22,
+  SGS_GSM_AUTHENTICATION_UNACCEPTABLE = 23,
+  SGS_NOT_AUTHORIZED_FOR_THIS_CSG = 25,
+  SGS_SERVICE_OPTION_NOT_SUPPORTED = 32,
+  SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED = 33,
+  SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER = 34,
+  SGS_CALL_CANNOT_BE_IDENTIFIED = 38,
+  SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL = 48,
+  SGS_SEMANTICALLY_INCORRECT_MESSAGE = 95,
+  SGS_INVALID_MANDATORY_INFORMATION = 96,
+  SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED = 97,
+  SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE = 98,
   SGS_INFORMATION_ELEMENT_NON_EXISTENT_NOT_IMPLEMENTED = 99,
-  SGS_CONDITIONAL_IE_ERROR                             = 100,
-  SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE           = 101,
-  SGS_PROTOCOL_ERROR_UNSPECIFIED                       = 111
+  SGS_CONDITIONAL_IE_ERROR = 100,
+  SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE = 101,
+  SGS_PROTOCOL_ERROR_UNSPECIFIED = 111
 } SgsRejectCause_t;
 
 typedef enum LocationUpdateType_e {
-  IMSI_ATTACH            = 1,
+  IMSI_ATTACH = 1,
   NORMAL_LOCATION_UPDATE = 2
 } LocationUpdateType_t;
 

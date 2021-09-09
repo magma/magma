@@ -13,7 +13,7 @@ limitations under the License.
 
 // WARNING: Do not include this header directly. Use intertask_interface.h
 // instead.
-MESSAGE_DEF(
-    S8_CREATE_SESSION_RSP, s8_create_session_response_t, s8_create_session_rsp)
-MESSAGE_DEF(
-    S8_DELETE_SESSION_RSP, s8_delete_session_response_t, s8_delete_session_rsp)
+MESSAGE_DEF(S8_CREATE_SESSION_RSP, s8_create_session_response_t,
+            s8_create_session_rsp)
+MESSAGE_DEF(S8_DELETE_SESSION_RSP, s8_delete_session_response_t,
+            s8_delete_session_rsp)

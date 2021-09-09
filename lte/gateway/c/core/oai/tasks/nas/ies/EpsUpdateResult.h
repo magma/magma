@@ -30,18 +30,15 @@
 
 typedef uint8_t eps_update_result_t;
 
-int encode_eps_update_result(
-    eps_update_result_t* epsupdateresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_eps_update_result(eps_update_result_t* epsupdateresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 
 uint8_t encode_u8_eps_update_result(eps_update_result_t* epsupdateresult);
 
-int decode_eps_update_result(
-    eps_update_result_t* epsupdateresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_eps_update_result(eps_update_result_t* epsupdateresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 
-int decode_u8_eps_update_result(
-    eps_update_result_t* epsupdateresult, uint8_t iei, uint8_t value,
-    uint32_t len);
+int decode_u8_eps_update_result(eps_update_result_t* epsupdateresult,
+                                uint8_t iei, uint8_t value, uint32_t len);
 
 #endif /* EPS UPDATE RESULT_SEEN */

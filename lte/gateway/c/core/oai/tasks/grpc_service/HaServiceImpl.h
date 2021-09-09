@@ -19,8 +19,8 @@ limitations under the License.
 #include "lte/protos/ha_service.grpc.pb.h"
 
 extern "C" {
-#include "log.h"
 #include "hashtable.h"
+#include "log.h"
 }
 
 namespace magma {
@@ -39,9 +39,9 @@ class HaServiceImpl final : public HaService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status StartAgwOffload(
-      grpc::ServerContext* context, const StartAgwOffloadRequest* request,
-      StartAgwOffloadResponse* response) override;
+  grpc::Status StartAgwOffload(grpc::ServerContext* context,
+                               const StartAgwOffloadRequest* request,
+                               StartAgwOffloadResponse* response) override;
 };
 
 }  // namespace lte

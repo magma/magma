@@ -36,23 +36,23 @@ Description Defines internal private data handled by EPS Mobility
 #define FILE_EMM_DATA_SEEN
 
 #include <sys/types.h>
-#include "common_defs.h"
-#include "queue.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "nas/securityDef.h"
-#include "TrackingAreaIdentityList.h"
-#include "emm_fsm.h"
-#include "nas_timer.h"
-#include "nas_procedures.h"
-#include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
+#include "3gpp_24.301.h"
 #include "AdditionalUpdateType.h"
-#include "UeNetworkCapability.h"
 #include "EpsBearerContextStatus.h"
 #include "EpsNetworkFeatureSupport.h"
 #include "MobileStationClassmark2.h"
+#include "TrackingAreaIdentityList.h"
+#include "UeNetworkCapability.h"
+#include "common_defs.h"
+#include "emm_fsm.h"
 #include "esm_data.h"
+#include "hashtable.h"
+#include "nas/securityDef.h"
+#include "nas_procedures.h"
+#include "nas_timer.h"
+#include "obj_hashtable.h"
+#include "queue.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -185,33 +185,33 @@ typedef struct emm_context_s {
   // this bitmask is here because we wanted to avoid modifying the EmmCommon
   // interface
   uint32_t common_proc_mask; /* bitmask, see significance of bits below */
-#define EMM_CTXT_COMMON_PROC_GUTI ((uint32_t) 1 << 0)
-#define EMM_CTXT_COMMON_PROC_AUTH ((uint32_t) 1 << 1)
-#define EMM_CTXT_COMMON_PROC_SMC ((uint32_t) 1 << 2)
-#define EMM_CTXT_COMMON_PROC_IDENT ((uint32_t) 1 << 3)
-#define EMM_CTXT_COMMON_PROC_INFO ((uint32_t) 1 << 4)
+#define EMM_CTXT_COMMON_PROC_GUTI ((uint32_t)1 << 0)
+#define EMM_CTXT_COMMON_PROC_AUTH ((uint32_t)1 << 1)
+#define EMM_CTXT_COMMON_PROC_SMC ((uint32_t)1 << 2)
+#define EMM_CTXT_COMMON_PROC_IDENT ((uint32_t)1 << 3)
+#define EMM_CTXT_COMMON_PROC_INFO ((uint32_t)1 << 4)
 
   uint32_t member_present_mask; /* bitmask, see significance of bits below */
   uint32_t member_valid_mask;   /* bitmask, see significance of bits below */
-#define EMM_CTXT_MEMBER_IMSI ((uint32_t) 1 << 0)
-#define EMM_CTXT_MEMBER_IMEI ((uint32_t) 1 << 1)
-#define EMM_CTXT_MEMBER_IMEI_SV ((uint32_t) 1 << 2)
-#define EMM_CTXT_MEMBER_OLD_GUTI ((uint32_t) 1 << 3)
-#define EMM_CTXT_MEMBER_GUTI ((uint32_t) 1 << 4)
-#define EMM_CTXT_MEMBER_TAI_LIST ((uint32_t) 1 << 5)
-#define EMM_CTXT_MEMBER_LVR_TAI ((uint32_t) 1 << 6)
-#define EMM_CTXT_MEMBER_AUTH_VECTORS ((uint32_t) 1 << 7)
-#define EMM_CTXT_MEMBER_SECURITY ((uint32_t) 1 << 8)
-#define EMM_CTXT_MEMBER_NON_CURRENT_SECURITY ((uint32_t) 1 << 9)
-#define EMM_CTXT_MEMBER_UE_NETWORK_CAPABILITY_IE ((uint32_t) 1 << 10)
-#define EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE ((uint32_t) 1 << 11)
-#define EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER ((uint32_t) 1 << 12)
-#define EMM_CTXT_MEMBER_PENDING_DRX_PARAMETER ((uint32_t) 1 << 13)
-#define EMM_CTXT_MEMBER_EPS_BEARER_CONTEXT_STATUS ((uint32_t) 1 << 14)
-#define EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2 ((uint32_t) 1 << 15)
-#define EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY ((uint32_t) 1 << 16)
+#define EMM_CTXT_MEMBER_IMSI ((uint32_t)1 << 0)
+#define EMM_CTXT_MEMBER_IMEI ((uint32_t)1 << 1)
+#define EMM_CTXT_MEMBER_IMEI_SV ((uint32_t)1 << 2)
+#define EMM_CTXT_MEMBER_OLD_GUTI ((uint32_t)1 << 3)
+#define EMM_CTXT_MEMBER_GUTI ((uint32_t)1 << 4)
+#define EMM_CTXT_MEMBER_TAI_LIST ((uint32_t)1 << 5)
+#define EMM_CTXT_MEMBER_LVR_TAI ((uint32_t)1 << 6)
+#define EMM_CTXT_MEMBER_AUTH_VECTORS ((uint32_t)1 << 7)
+#define EMM_CTXT_MEMBER_SECURITY ((uint32_t)1 << 8)
+#define EMM_CTXT_MEMBER_NON_CURRENT_SECURITY ((uint32_t)1 << 9)
+#define EMM_CTXT_MEMBER_UE_NETWORK_CAPABILITY_IE ((uint32_t)1 << 10)
+#define EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE ((uint32_t)1 << 11)
+#define EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER ((uint32_t)1 << 12)
+#define EMM_CTXT_MEMBER_PENDING_DRX_PARAMETER ((uint32_t)1 << 13)
+#define EMM_CTXT_MEMBER_EPS_BEARER_CONTEXT_STATUS ((uint32_t)1 << 14)
+#define EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2 ((uint32_t)1 << 15)
+#define EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY ((uint32_t)1 << 16)
 
-#define EMM_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t) 1 << 26)
+#define EMM_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t)1 << 26)
   //#define           EMM_CTXT_MEMBER_AUTH_VECTOR1                 ((uint32_t)1
   //<< 27)  // reserved bit for AUTH VECTOR #define EMM_CTXT_MEMBER_AUTH_VECTOR2
   //((uint32_t)1 << 28)  // reserved bit for AUTH VECTOR #define
@@ -221,13 +221,13 @@ typedef struct emm_context_s {
   // EMM_CTXT_MEMBER_AUTH_VECTOR5                 ((uint32_t)1 << 31)  //
   // reserved bit for AUTH VECTOR
 
-#define EMM_CTXT_MEMBER_SET_BIT(eMmCtXtMemBeRmAsK, bIt)                        \
-  do {                                                                         \
-    (eMmCtXtMemBeRmAsK) |= bIt;                                                \
+#define EMM_CTXT_MEMBER_SET_BIT(eMmCtXtMemBeRmAsK, bIt) \
+  do {                                                  \
+    (eMmCtXtMemBeRmAsK) |= bIt;                         \
   } while (0)
-#define EMM_CTXT_MEMBER_CLEAR_BIT(eMmCtXtMemBeRmAsK, bIt)                      \
-  do {                                                                         \
-    (eMmCtXtMemBeRmAsK) &= ~bIt;                                               \
+#define EMM_CTXT_MEMBER_CLEAR_BIT(eMmCtXtMemBeRmAsK, bIt) \
+  do {                                                    \
+    (eMmCtXtMemBeRmAsK) &= ~bIt;                          \
   } while (0)
 
   // imsi present mean we know it but was not checked with identity proc, or was
@@ -304,71 +304,71 @@ typedef struct emm_context_s {
   bstring esm_msg; /* ESM message contained within the initial request*/
 #define EMM_CN_SAP_BUFFER_SIZE 4096
 
-#define IS_EMM_CTXT_PRESENT_IMSI(eMmCtXtPtR)                                   \
+#define IS_EMM_CTXT_PRESENT_IMSI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_IMSI))
-#define IS_EMM_CTXT_PRESENT_IMEI(eMmCtXtPtR)                                   \
+#define IS_EMM_CTXT_PRESENT_IMEI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_IMEI))
-#define IS_EMM_CTXT_PRESENT_IMEISV(eMmCtXtPtR)                                 \
+#define IS_EMM_CTXT_PRESENT_IMEISV(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_IMEI_SV))
-#define IS_EMM_CTXT_PRESENT_OLD_GUTI(eMmCtXtPtR)                               \
+#define IS_EMM_CTXT_PRESENT_OLD_GUTI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_OLD_GUTI))
-#define IS_EMM_CTXT_PRESENT_GUTI(eMmCtXtPtR)                                   \
+#define IS_EMM_CTXT_PRESENT_GUTI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_GUTI))
-#define IS_EMM_CTXT_PRESENT_TAI_LIST(eMmCtXtPtR)                               \
+#define IS_EMM_CTXT_PRESENT_TAI_LIST(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_TAI_LIST))
-#define IS_EMM_CTXT_PRESENT_LVR_TAI(eMmCtXtPtR)                                \
+#define IS_EMM_CTXT_PRESENT_LVR_TAI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_LVR_TAI))
-#define IS_EMM_CTXT_PRESENT_AUTH_VECTORS(eMmCtXtPtR)                           \
+#define IS_EMM_CTXT_PRESENT_AUTH_VECTORS(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_AUTH_VECTORS))
-#define IS_EMM_CTXT_PRESENT_SECURITY(eMmCtXtPtR)                               \
+#define IS_EMM_CTXT_PRESENT_SECURITY(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_SECURITY))
-#define IS_EMM_CTXT_PRESENT_NON_CURRENT_SECURITY(eMmCtXtPtR)                   \
+#define IS_EMM_CTXT_PRESENT_NON_CURRENT_SECURITY(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_NON_CURRENT_SECURITY))
-#define IS_EMM_CTXT_PRESENT_UE_NETWORK_CAPABILITY(eMmCtXtPtR)                  \
-  (!!((eMmCtXtPtR)->member_present_mask &                                      \
+#define IS_EMM_CTXT_PRESENT_UE_NETWORK_CAPABILITY(eMmCtXtPtR) \
+  (!!((eMmCtXtPtR)->member_present_mask &                     \
       EMM_CTXT_MEMBER_UE_NETWORK_CAPABILITY_IE))
-#define IS_EMM_CTXT_PRESENT_MS_NETWORK_CAPABILITY(eMmCtXtPtR)                  \
-  (!!((eMmCtXtPtR)->member_present_mask &                                      \
+#define IS_EMM_CTXT_PRESENT_MS_NETWORK_CAPABILITY(eMmCtXtPtR) \
+  (!!((eMmCtXtPtR)->member_present_mask &                     \
       EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE))
-#define IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY(eMmCtXtPtR)      \
-  (!!((eMmCtXtPtR)->member_present_mask &                                      \
+#define IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY(eMmCtXtPtR) \
+  (!!((eMmCtXtPtR)->member_present_mask &                                 \
       EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY))
 
-#define IS_EMM_CTXT_PRESENT_AUTH_VECTOR(eMmCtXtPtR, KsI)                       \
-  (!!((eMmCtXtPtR)->member_present_mask &                                      \
+#define IS_EMM_CTXT_PRESENT_AUTH_VECTOR(eMmCtXtPtR, KsI) \
+  (!!((eMmCtXtPtR)->member_present_mask &                \
       ((EMM_CTXT_MEMBER_AUTH_VECTOR0) << KsI)))
-#define IS_EMM_CTXT_PRESENT_MOB_STATION_CLSMARK2(eMmCtXtPtR)                   \
+#define IS_EMM_CTXT_PRESENT_MOB_STATION_CLSMARK2(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_present_mask & EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2))
 
-#define IS_EMM_CTXT_VALID_IMSI(eMmCtXtPtR)                                     \
+#define IS_EMM_CTXT_VALID_IMSI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_IMSI))
-#define IS_EMM_CTXT_VALID_IMEI(eMmCtXtPtR)                                     \
+#define IS_EMM_CTXT_VALID_IMEI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_IMEI))
-#define IS_EMM_CTXT_VALID_IMEISV(eMmCtXtPtR)                                   \
+#define IS_EMM_CTXT_VALID_IMEISV(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_IMEI_SV))
-#define IS_EMM_CTXT_VALID_OLD_GUTI(eMmCtXtPtR)                                 \
+#define IS_EMM_CTXT_VALID_OLD_GUTI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_OLD_GUTI))
-#define IS_EMM_CTXT_VALID_GUTI(eMmCtXtPtR)                                     \
+#define IS_EMM_CTXT_VALID_GUTI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_GUTI))
-#define IS_EMM_CTXT_VALID_TAI_LIST(eMmCtXtPtR)                                 \
+#define IS_EMM_CTXT_VALID_TAI_LIST(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_TAI_LIST))
-#define IS_EMM_CTXT_VALID_LVR_TAI(eMmCtXtPtR)                                  \
+#define IS_EMM_CTXT_VALID_LVR_TAI(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_LVR_TAI))
-#define IS_EMM_CTXT_VALID_AUTH_VECTORS(eMmCtXtPtR)                             \
+#define IS_EMM_CTXT_VALID_AUTH_VECTORS(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_AUTH_VECTORS))
-#define IS_EMM_CTXT_VALID_SECURITY(eMmCtXtPtR)                                 \
+#define IS_EMM_CTXT_VALID_SECURITY(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_SECURITY))
-#define IS_EMM_CTXT_VALID_NON_CURRENT_SECURITY(eMmCtXtPtR)                     \
+#define IS_EMM_CTXT_VALID_NON_CURRENT_SECURITY(eMmCtXtPtR) \
   (!!((eMmCtXtPtR)->member_valid_mask & EMM_CTXT_MEMBER_NON_CURRENT_SECURITY))
-#define IS_EMM_CTXT_VALID_UE_NETWORK_CAPABILITY(eMmCtXtPtR)                    \
-  (!!((eMmCtXtPtR)->member_valid_mask &                                        \
+#define IS_EMM_CTXT_VALID_UE_NETWORK_CAPABILITY(eMmCtXtPtR) \
+  (!!((eMmCtXtPtR)->member_valid_mask &                     \
       EMM_CTXT_MEMBER_UE_NETWORK_CAPABILITY_IE))
-#define IS_EMM_CTXT_VALID_MS_NETWORK_CAPABILITY(eMmCtXtPtR)                    \
-  (!!((eMmCtXtPtR)->member_valid_mask &                                        \
+#define IS_EMM_CTXT_VALID_MS_NETWORK_CAPABILITY(eMmCtXtPtR) \
+  (!!((eMmCtXtPtR)->member_valid_mask &                     \
       EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE))
 
-#define IS_EMM_CTXT_VALID_AUTH_VECTOR(eMmCtXtPtR, KsI)                         \
-  (!!((eMmCtXtPtR)->member_valid_mask &                                        \
+#define IS_EMM_CTXT_VALID_AUTH_VECTOR(eMmCtXtPtR, KsI) \
+  (!!((eMmCtXtPtR)->member_valid_mask &                \
       ((EMM_CTXT_MEMBER_AUTH_VECTOR0) << KsI)))
 
   // CSFB related parameters
@@ -417,22 +417,22 @@ typedef struct {
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt)
     __attribute__((nonnull));
 
-void emm_ctx_unmark_common_procedure_running(
-    emm_context_t* const ctxt, const int attribute_bit_pos)
+void emm_ctx_unmark_common_procedure_running(emm_context_t* const ctxt,
+                                             const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_set_attribute_present(
-    emm_context_t* const ctxt, const int attribute_bit_pos)
+void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
+                                   const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_clear_attribute_present(
-    emm_context_t* const ctxt, const int attribute_bit_pos)
+void emm_ctx_clear_attribute_present(emm_context_t* const ctxt,
+                                     const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_set_attribute_valid(
-    emm_context_t* const ctxt, const int attribute_bit_pos)
+void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
+                                 const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_clear_attribute_valid(
-    emm_context_t* const ctxt, const int attribute_bit_pos)
+void emm_ctx_clear_attribute_valid(emm_context_t* const ctxt,
+                                   const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
 
 void emm_ctx_clear_guti(emm_context_t* const ctxt) __attribute__((nonnull))
@@ -453,9 +453,9 @@ void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_valid_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
-    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
+                            imsi64_t imsi64) __attribute__((nonnull))
+__attribute__((flatten));
 
 void emm_ctx_clear_imei(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
@@ -490,31 +490,31 @@ void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_security_vector_index(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_security_vector_index(
-    emm_context_t* const ctxt, int vector_index) __attribute__((nonnull))
-__attribute__((flatten));
+void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
+                                       int vector_index)
+    __attribute__((nonnull)) __attribute__((flatten));
 
 void emm_ctx_clear_non_current_security(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_non_current_security_vector_index(emm_context_t* const ctxt)
     __attribute__((nonnull));
-void emm_ctx_set_non_current_security_vector_index(
-    emm_context_t* const ctxt, int vector_index) __attribute__((nonnull));
+void emm_ctx_set_non_current_security_vector_index(emm_context_t* const ctxt,
+                                                   int vector_index)
+    __attribute__((nonnull));
 
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
     __attribute__((nonnull));
-void emm_ctx_set_ue_nw_cap(
-    emm_context_t* const ctxt,
-    const ue_network_capability_t* const ue_nw_cap_ie) __attribute__((nonnull));
+void emm_ctx_set_ue_nw_cap(emm_context_t* const ctxt,
+                           const ue_network_capability_t* const ue_nw_cap_ie)
+    __attribute__((nonnull));
 void emm_ctx_set_valid_ue_nw_cap(
     emm_context_t* const ctxt,
     const ue_network_capability_t* const ue_nw_cap_ie) __attribute__((nonnull));
 
 void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt)
     __attribute__((nonnull));
-void emm_ctx_set_ms_nw_cap(
-    emm_context_t* const ctxt,
-    const ms_network_capability_t* const ms_nw_cap_ie);
+void emm_ctx_set_ms_nw_cap(emm_context_t* const ctxt,
+                           const ms_network_capability_t* const ms_nw_cap_ie);
 void emm_ctx_set_valid_ms_nw_cap(
     emm_context_t* const ctxt,
     const ms_network_capability_t* const ms_nw_cap_ie);
@@ -528,8 +528,9 @@ void emm_ctx_clear_drx_parameter(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_drx_parameter(emm_context_t* const ctxt, drx_parameter_t* drx)
     __attribute__((nonnull));
-void emm_ctx_set_valid_drx_parameter(
-    emm_context_t* const ctxt, drx_parameter_t* drx) __attribute__((nonnull));
+void emm_ctx_set_valid_drx_parameter(emm_context_t* const ctxt,
+                                     drx_parameter_t* drx)
+    __attribute__((nonnull));
 
 void emm_ctx_clear_ue_additional_security_capability(emm_context_t* const ctxt)
     __attribute__((nonnull));
@@ -537,53 +538,49 @@ void emm_ctx_set_ue_additional_security_capability(
     emm_context_t* const ctxt, ue_additional_security_capability_t* drx)
     __attribute__((nonnull));
 
-void free_emm_ctx_memory(
-    emm_context_t* const ctxt, const mme_ue_s1ap_id_t ue_id);
+void free_emm_ctx_memory(emm_context_t* const ctxt,
+                         const mme_ue_s1ap_id_t ue_id);
 
-struct emm_context_s* emm_context_get(
-    emm_data_t* emm_data, const mme_ue_s1ap_id_t ue_id);
-struct emm_context_s* emm_context_get_by_imsi(
-    emm_data_t* emm_data, imsi64_t imsi64);
-struct emm_context_s* emm_context_get_by_guti(
-    emm_data_t* emm_data, guti_t* guti);
+struct emm_context_s* emm_context_get(emm_data_t* emm_data,
+                                      const mme_ue_s1ap_id_t ue_id);
+struct emm_context_s* emm_context_get_by_imsi(emm_data_t* emm_data,
+                                              imsi64_t imsi64);
+struct emm_context_s* emm_context_get_by_guti(emm_data_t* emm_data,
+                                              guti_t* guti);
 
-status_code_e emm_context_upsert_imsi(
-    emm_data_t* emm_data, struct emm_context_s* elm) __attribute__((nonnull));
-
-void nas_start_T3450(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    time_out_t time_out_cb);
-void nas_start_T3460(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    time_out_t time_out_cb);
-void nas_start_T3470(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    time_out_t time_out_cb);
-void nas_start_T3422(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422,
-    time_out_t time_out_cb);
-void nas_stop_T3450(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450);
-void nas_stop_T3460(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460);
-void nas_stop_T3470(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470);
-void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422);
-void nas_start_Ts6a_auth_info(
-    const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    time_out_t time_out_cb);
-void emm_init_context(
-    struct emm_context_s* const emm_ctx, const bool init_esm_ctxt)
+status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
+                                      struct emm_context_s* elm)
     __attribute__((nonnull));
+
+void nas_start_T3450(const mme_ue_s1ap_id_t ue_id,
+                     struct nas_timer_s* const T3450, time_out_t time_out_cb);
+void nas_start_T3460(const mme_ue_s1ap_id_t ue_id,
+                     struct nas_timer_s* const T3460, time_out_t time_out_cb);
+void nas_start_T3470(const mme_ue_s1ap_id_t ue_id,
+                     struct nas_timer_s* const T3470, time_out_t time_out_cb);
+void nas_start_T3422(const mme_ue_s1ap_id_t ue_id,
+                     struct nas_timer_s* const T3422, time_out_t time_out_cb);
+void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
+                    struct nas_timer_s* const T3450);
+void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,
+                    struct nas_timer_s* const T3460);
+void nas_stop_T3470(const mme_ue_s1ap_id_t ue_id,
+                    struct nas_timer_s* const T3470);
+void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422);
+void nas_start_Ts6a_auth_info(const mme_ue_s1ap_id_t ue_id,
+                              struct nas_timer_s* const Ts6a_auth_info,
+                              time_out_t time_out_cb);
+void emm_init_context(struct emm_context_s* const emm_ctx,
+                      const bool init_esm_ctxt) __attribute__((nonnull));
 void emm_context_free(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content_except_key_fields(
     struct emm_context_s* const emm_ctx) __attribute__((nonnull));
-void emm_context_dump(
-    const struct emm_context_s* const elm_pP, const uint8_t indent_spaces,
-    bstring bstr_dump) __attribute__((nonnull));
+void emm_context_dump(const struct emm_context_s* const elm_pP,
+                      const uint8_t indent_spaces, bstring bstr_dump)
+    __attribute__((nonnull));
 
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/

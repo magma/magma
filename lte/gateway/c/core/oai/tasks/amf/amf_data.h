@@ -17,24 +17,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "bstrlib.h"
 #include "3gpp_24.501.h"
+#include "bstrlib.h"
 #ifdef __cplusplus
 };
 #endif
 #include "amf_securityDef.h"
 
 typedef uint8_t ksi_t;
-#define AMF_CTXT_MEMBER_AUTH_VECTORS ((uint32_t) 1 << 7)
-#define AMF_CTXT_MEMBER_SECURITY ((uint32_t) 1 << 8)
-#define AMF_CTXT_MEMBER_GUTI ((uint32_t) 1 << 4)
-#define AMF_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t) 1 << 26)
-#define IS_AMF_CTXT_PRESENT_SECURITY(aMfCtXtPtR)                               \
+#define AMF_CTXT_MEMBER_AUTH_VECTORS ((uint32_t)1 << 7)
+#define AMF_CTXT_MEMBER_SECURITY ((uint32_t)1 << 8)
+#define AMF_CTXT_MEMBER_GUTI ((uint32_t)1 << 4)
+#define AMF_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t)1 << 26)
+#define IS_AMF_CTXT_PRESENT_SECURITY(aMfCtXtPtR) \
   (!!((aMfCtXtPtR)->member_present_mask & AMF_CTXT_MEMBER_SECURITY))
-#define IS_AMF_CTXT_VALID_AUTH_VECTORS(aMfCtXtPtR)                             \
+#define IS_AMF_CTXT_VALID_AUTH_VECTORS(aMfCtXtPtR) \
   (!!((aMfCtXtPtR)->member_valid_mask & AMF_CTXT_MEMBER_AUTH_VECTORS))
-#define IS_AMF_CTXT_VALID_AUTH_VECTOR(aMfCtXtPtR, KsI)                         \
-  (!!((aMfCtXtPtR)->member_valid_mask &                                        \
+#define IS_AMF_CTXT_VALID_AUTH_VECTOR(aMfCtXtPtR, KsI) \
+  (!!((aMfCtXtPtR)->member_valid_mask &                \
       ((AMF_CTXT_MEMBER_AUTH_VECTOR0) << KsI)))
 #define AUTS_LENGTH 14
 #define RAND_LENGTH_BITS (128)
@@ -90,7 +90,7 @@ typedef struct n6_auth_info_req_s {
 
 typedef enum {
   AMF_IMEISV_NOT_REQUESTED = 0,
-  AMF_IMEISV_REQUESTED     = 1
+  AMF_IMEISV_REQUESTED = 1
 } amf_imeisv_req_type_t;
 
 }  // namespace magma5g

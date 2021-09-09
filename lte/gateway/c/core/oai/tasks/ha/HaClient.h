@@ -23,8 +23,8 @@
 #include <functional>
 #include <memory>
 
-#include "lte/protos/ha_orc8r.grpc.pb.h"
 #include "includes/GRPCReceiver.h"
+#include "lte/protos/ha_orc8r.grpc.pb.h"
 
 namespace magma {
 

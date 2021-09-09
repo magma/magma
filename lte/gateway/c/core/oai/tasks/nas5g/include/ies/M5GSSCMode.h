@@ -10,8 +10,8 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {
@@ -23,9 +23,9 @@ class SSCModeMsg {
 
   SSCModeMsg();
   ~SSCModeMsg();
-  int EncodeSSCModeMsg(
-      SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeSSCModeMsg(
-      SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer,
+                       uint32_t len);
+  int DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer,
+                       uint32_t len);
 };
 }  // namespace magma5g

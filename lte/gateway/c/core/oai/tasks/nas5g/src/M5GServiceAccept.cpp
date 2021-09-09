@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GServiceAccept.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -18,18 +18,18 @@ ServiceAcceptMsg::ServiceAcceptMsg(){};
 ServiceAcceptMsg::~ServiceAcceptMsg(){};
 
 // Decoding Service Accept Message and its IEs
-int ServiceAcceptMsg::DecodeServiceAcceptMsg(
-    ServiceAcceptMsg* svc_acpt, uint8_t* buffer, uint32_t len) {
+int ServiceAcceptMsg::DecodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
+                                             uint8_t* buffer, uint32_t len) {
   return 0;
 }
 
 // Encoding Service Accept Message and its IEs
-int ServiceAcceptMsg::EncodeServiceAcceptMsg(
-    ServiceAcceptMsg* svc_acpt, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
+                                             uint8_t* buffer, uint32_t len) {
+  uint32_t encoded = 0;
   int encoded_result = 0;
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, SERVICE_ACCEPT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, SERVICE_ACCEPT_MINIMUM_LENGTH,
+                                       len);
 
   if ((encoded_result = svc_acpt->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(

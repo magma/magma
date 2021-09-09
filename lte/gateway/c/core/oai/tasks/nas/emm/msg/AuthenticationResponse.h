@@ -20,18 +20,18 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define AUTHENTICATION_RESPONSE_MINIMUM_LENGTH                                 \
+#define AUTHENTICATION_RESPONSE_MINIMUM_LENGTH \
   (AUTHENTICATION_RESPONSE_PARAMETER_IE_MIN_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define AUTHENTICATION_RESPONSE_MAXIMUM_LENGTH                                 \
+#define AUTHENTICATION_RESPONSE_MAXIMUM_LENGTH \
   (AUTHENTICATION_RESPONSE_PARAMETER_IE_MAX_LENGTH)
 
 /*

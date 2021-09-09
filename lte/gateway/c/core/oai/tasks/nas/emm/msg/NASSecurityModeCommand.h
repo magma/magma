@@ -18,29 +18,29 @@
 #ifndef FILE_NAS_SECURITY_MODE_COMMAND_SEEN
 #define FILE_NAS_SECURITY_MODE_COMMAND_SEEN
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "NasSecurityAlgorithms.h"
-#include "NasKeySetIdentifier.h"
-#include "UeAdditionalSecurityCapability.h"
-#include "UeSecurityCapability.h"
-#include "Nonce.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
+#include "NasKeySetIdentifier.h"
+#include "NasSecurityAlgorithms.h"
+#include "Nonce.h"
+#include "SecurityHeaderType.h"
+#include "UeAdditionalSecurityCapability.h"
+#include "UeSecurityCapability.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define SECURITY_MODE_COMMAND_MINIMUM_LENGTH                                   \
-  (NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH +                                    \
-   NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH +                                     \
+#define SECURITY_MODE_COMMAND_MINIMUM_LENGTH \
+  (NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH +  \
+   NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH +   \
    UE_SECURITY_CAPABILITY_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define SECURITY_MODE_COMMAND_MAXIMUM_LENGTH                                   \
-  (NAS_SECURITY_ALGORITHMS_MAXIMUM_LENGTH +                                    \
-   NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +                                     \
-   UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH + IMEISV_REQUEST_IE_MAX_LENGTH +      \
-   NONCE_MAXIMUM_LENGTH + NONCE_MAXIMUM_LENGTH +                               \
+#define SECURITY_MODE_COMMAND_MAXIMUM_LENGTH                              \
+  (NAS_SECURITY_ALGORITHMS_MAXIMUM_LENGTH +                               \
+   NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +                                \
+   UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH + IMEISV_REQUEST_IE_MAX_LENGTH + \
+   NONCE_MAXIMUM_LENGTH + NONCE_MAXIMUM_LENGTH +                          \
    UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -49,14 +49,14 @@
 #define SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT (1 << 0)
 #define SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_PRESENT (1 << 1)
 #define SECURITY_MODE_COMMAND_NONCEMME_PRESENT (1 << 2)
-#define SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT   \
+#define SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT \
   (1 << 3)
 
 typedef enum security_mode_command_iei_tag {
   SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI =
       GMM_IMEISV_REQUEST_IEI,                        /* 0xC0 = 192 */
   SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI = 0x55, /* 0x55 = 85 */
-  SECURITY_MODE_COMMAND_NONCEMME_IEI         = 0x56, /* 0x56 = 86 */
+  SECURITY_MODE_COMMAND_NONCEMME_IEI = 0x56,         /* 0x56 = 86 */
   SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI = 0x6F,
 } security_mode_command_iei;
 
@@ -83,12 +83,10 @@ typedef struct security_mode_command_msg_tag {
   nonce_t noncemme;
 } security_mode_command_msg;
 
-int decode_security_mode_command(
-    security_mode_command_msg* securitymodecommand, uint8_t* buffer,
-    uint32_t len);
+int decode_security_mode_command(security_mode_command_msg* securitymodecommand,
+                                 uint8_t* buffer, uint32_t len);
 
-int encode_security_mode_command(
-    security_mode_command_msg* securitymodecommand, uint8_t* buffer,
-    uint32_t len);
+int encode_security_mode_command(security_mode_command_msg* securitymodecommand,
+                                 uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_NAS_SECURITY_MODE_COMMAND_SEEN) */

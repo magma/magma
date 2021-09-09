@@ -50,8 +50,8 @@ enum ControllerEventType {
  */
 class ControllerEvent {
  public:
-  ControllerEvent(
-      fluid_base::OFConnection* ofconn, const ControllerEventType type);
+  ControllerEvent(fluid_base::OFConnection* ofconn,
+                  const ControllerEventType type);
 
   virtual ~ControllerEvent() {}
 
@@ -71,9 +71,8 @@ class ControllerEvent {
  */
 class DataEvent : public ControllerEvent {
  public:
-  DataEvent(
-      fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-      const void* data, const size_t len, const ControllerEventType type);
+  DataEvent(fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+            const void* data, const size_t len, const ControllerEventType type);
 
   ~DataEvent();
 
@@ -91,9 +90,9 @@ class DataEvent : public ControllerEvent {
  */
 class PacketInEvent : public DataEvent {
  public:
-  PacketInEvent(
-      fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-      const void* data, const size_t len);
+  PacketInEvent(fluid_base::OFConnection* ofconn,
+                fluid_base::OFHandler& ofhandler, const void* data,
+                const size_t len);
 };
 
 /**
@@ -101,9 +100,9 @@ class PacketInEvent : public DataEvent {
  */
 class SwitchUpEvent : public DataEvent {
  public:
-  SwitchUpEvent(
-      fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-      const void* data, const size_t len);
+  SwitchUpEvent(fluid_base::OFConnection* ofconn,
+                fluid_base::OFHandler& ofhandler, const void* data,
+                const size_t len);
 };
 
 /**
@@ -119,8 +118,8 @@ class SwitchDownEvent : public ControllerEvent {
  */
 class ErrorEvent : public ControllerEvent {
  public:
-  ErrorEvent(
-      fluid_base::OFConnection* ofconn, const struct ofp_error_msg* error_msg);
+  ErrorEvent(fluid_base::OFConnection* ofconn,
+             const struct ofp_error_msg* error_msg);
 
   const uint16_t get_error_type() const;
   const uint16_t get_error_code() const;
@@ -172,32 +171,32 @@ class UeNetworkInfo {
  */
 class AddGTPTunnelEvent : public ExternalEvent {
  public:
-  AddGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const uint32_t in_tei,
-      const uint32_t out_tei, const char* imsi,
-      const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
-      uint32_t enb_gtp_port);
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                    int vlan, const struct in_addr enb_ip,
+                    const uint32_t in_tei, const uint32_t out_tei,
+                    const char* imsi, const struct ip_flow_dl* dl_flow,
+                    const uint32_t dl_flow_precedence, uint32_t enb_gtp_port);
 
-  AddGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const uint32_t in_tei,
-      const uint32_t out_tei, const char* imsi, uint32_t enb_gtp_port);
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                    int vlan, const struct in_addr enb_ip,
+                    const uint32_t in_tei, const uint32_t out_tei,
+                    const char* imsi, uint32_t enb_gtp_port);
 
-  AddGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const struct in_addr pgw_ip,
-      const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
-      const uint32_t pgw_out_tei, const char* imsi,
-      const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
-      uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                    int vlan, const struct in_addr enb_ip,
+                    const struct in_addr pgw_ip, const uint32_t in_tei,
+                    const uint32_t out_tei, const uint32_t pgw_in_tei,
+                    const uint32_t pgw_out_tei, const char* imsi,
+                    const struct ip_flow_dl* dl_flow,
+                    const uint32_t dl_flow_precedence, uint32_t enb_gtp_port,
+                    uint32_t pgw_gtp_port);
 
-  AddGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const struct in_addr pgw_ip,
-      const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
-      const uint32_t pgw_out_tei, const char* imsi, uint32_t enb_gtp_port,
-      uint32_t pgw_gtp_port);
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                    int vlan, const struct in_addr enb_ip,
+                    const struct in_addr pgw_ip, const uint32_t in_tei,
+                    const uint32_t out_tei, const uint32_t pgw_in_tei,
+                    const uint32_t pgw_out_tei, const char* imsi,
+                    uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
@@ -239,21 +238,18 @@ class AddGTPTunnelEvent : public ExternalEvent {
  */
 class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
-  DeleteGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei, const struct ip_flow_dl* dl_flow,
-      uint32_t enb_gtp_port);
-  DeleteGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei, uint32_t enb_gtp_port);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                       const uint32_t in_tei, const struct ip_flow_dl* dl_flow,
+                       uint32_t enb_gtp_port);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                       const uint32_t in_tei, uint32_t enb_gtp_port);
 
-  DeleteGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei, const struct ip_flow_dl* dl_flow,
-      uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
-  DeleteGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei, uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                       const uint32_t in_tei, const struct ip_flow_dl* dl_flow,
+                       uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+                       const uint32_t in_tei, uint32_t enb_gtp_port,
+                       uint32_t pgw_gtp_port);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
@@ -281,13 +277,14 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
  */
 class HandleDataOnGTPTunnelEvent : public ExternalEvent {
  public:
-  HandleDataOnGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei, const ControllerEventType event_type,
-      const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence);
-  HandleDataOnGTPTunnelEvent(
-      const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei, const ControllerEventType event_type);
+  HandleDataOnGTPTunnelEvent(const struct in_addr ue_ip,
+                             struct in6_addr* ue_ipv6, const uint32_t in_tei,
+                             const ControllerEventType event_type,
+                             const struct ip_flow_dl* dl_flow,
+                             const uint32_t dl_flow_precedence);
+  HandleDataOnGTPTunnelEvent(const struct in_addr ue_ip,
+                             struct in6_addr* ue_ipv6, const uint32_t in_tei,
+                             const ControllerEventType event_type);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;

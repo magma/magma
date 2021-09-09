@@ -53,7 +53,7 @@
 /* Map task id to printable name. */
 const task_info_t tasks_info[] = {
     {0, "TASK_UNKNOWN", "ipc:///run/IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
+#define TASK_DEF(tHREADiD) \
   {tHREADiD##_THREAD, #tHREADiD, "ipc:///run/IPC_" #tHREADiD},
 #include <tasks_def.h>
 #undef TASK_DEF
@@ -77,11 +77,11 @@ const message_info_t messages_info[] = {
  * \param messages_info Pointer on messages information as created by this
  * include file
  **/
-int itti_init(
-    task_id_t task_max, thread_id_t thread_max, MessagesIds messages_id_max,
-    const task_info_t* tasks_info, const message_info_t* messages_info,
-    const char* const messages_definition_xml,
-    const char* const dump_file_name);
+int itti_init(task_id_t task_max, thread_id_t thread_max,
+              MessagesIds messages_id_max, const task_info_t* tasks_info,
+              const message_info_t* messages_info,
+              const char* const messages_definition_xml,
+              const char* const dump_file_name);
 
 #endif /* INTERTASK_INTERFACE_INIT_H_ */
 /* @} */

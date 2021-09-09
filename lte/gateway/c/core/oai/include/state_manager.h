@@ -23,16 +23,16 @@ extern "C" {
 
 #include <assertions.h>
 #include <common_defs.h>
-#include <cstdlib>
-#include <log.h>
 #include <hashtable.h>
+#include <log.h>
+#include <cstdlib>
 
 #ifdef __cplusplus
 }
 #endif
 
-#include <unordered_map>
 #include <conversions.h>
+#include <unordered_map>
 #include "redis_utils/redis_client.h"
 
 namespace {
@@ -42,9 +42,8 @@ constexpr char IMSI_PREFIX[] = "IMSI";
 namespace magma {
 namespace lte {
 
-template<
-    typename StateType, typename UeContextType, typename ProtoType,
-    typename ProtoUe, typename StateConverter>
+template <typename StateType, typename UeContextType, typename ProtoType,
+          typename ProtoUe, typename StateConverter>
 class StateManager {
  public:
   /**
@@ -106,7 +105,7 @@ class StateManager {
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
     for (const auto& key : keys) {
       ProtoUe ue_proto = ProtoUe();
-      auto* ue_context = (UeContextType*) (calloc(1, sizeof(UeContextType)));
+      auto* ue_context = (UeContextType*)(calloc(1, sizeof(UeContextType)));
       if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
         return RETURNerror;
       }
@@ -116,8 +115,8 @@ class StateManager {
 
       StateConverter::proto_to_ue(ue_proto, ue_context);
 
-      hashtable_ts_insert(
-          state_ue_ht, get_imsi_from_key(key), (void*) ue_context);
+      hashtable_ts_insert(state_ue_ht, get_imsi_from_key(key),
+                          (void*)ue_context);
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     }
     return RETURNok;
@@ -151,14 +150,14 @@ class StateManager {
         }
         OAILOG_DEBUG(log_task, "Finished writing state");
         this->task_state_version++;
-        this->state_dirty     = false;
+        this->state_dirty = false;
         this->task_state_hash = new_hash;
       }
     }
   }
 
-  virtual void write_ue_state_to_db(
-      const UeContextType* ue_context, const std::string& imsi_str) {
+  virtual void write_ue_state_to_db(const UeContextType* ue_context,
+                                    const std::string& imsi_str) {
     AssertFatal(
         is_initialized,
         "StateManager init() function should be called to initialize state");
@@ -173,16 +172,15 @@ class StateManager {
       std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
       if (redis_client->write_proto_str(
               key, proto_str, ue_state_version[imsi_str]) != RETURNok) {
-        OAILOG_ERROR(
-            log_task, "Failed to write UE state to db for IMSI %s",
-            imsi_str.c_str());
+        OAILOG_ERROR(log_task, "Failed to write UE state to db for IMSI %s",
+                     imsi_str.c_str());
         return;
       }
 
       this->ue_state_version[imsi_str]++;
       this->ue_state_hash[imsi_str] = new_hash;
-      OAILOG_DEBUG(
-          log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+      OAILOG_DEBUG(log_task, "Finished writing UE state for IMSI %s",
+                   imsi_str.c_str());
     }
   }
 
@@ -192,7 +190,7 @@ class StateManager {
         "StateManager init() function should be called to initialize state");
 
     char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-    IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+    IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
     return imsi_str;
   }
 

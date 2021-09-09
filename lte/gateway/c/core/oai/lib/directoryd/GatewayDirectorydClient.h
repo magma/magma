@@ -23,8 +23,8 @@
 #include <memory>
 #include <string>
 
-#include "orc8r/protos/directoryd.grpc.pb.h"
 #include "includes/GRPCReceiver.h"
+#include "orc8r/protos/directoryd.grpc.pb.h"
 #include "orc8r/protos/directoryd.pb.h"
 
 namespace grpc {
@@ -49,21 +49,20 @@ using namespace orc8r;
  */
 class GatewayDirectoryServiceClient : public GRPCReceiver {
  public:
-  static bool UpdateRecord(
-      const std::string& id, const std::string& location,
-      std::function<void(Status, Void)> callback);
+  static bool UpdateRecord(const std::string& id, const std::string& location,
+                           std::function<void(Status, Void)> callback);
 
-  static bool UpdateRecordField(
-      const std::string& id, const std::string& field_key,
-      const std::string& field_value,
-      std::function<void(Status, Void)> callback);
+  static bool UpdateRecordField(const std::string& id,
+                                const std::string& field_key,
+                                const std::string& field_value,
+                                std::function<void(Status, Void)> callback);
 
-  static bool DeleteRecord(
-      const std::string& id, std::function<void(Status, Void)> callback);
+  static bool DeleteRecord(const std::string& id,
+                           std::function<void(Status, Void)> callback);
 
  private:
-  static bool updateRecordImpl(
-      UpdateRecordRequest& request, std::function<void(Status, Void)> callback);
+  static bool updateRecordImpl(UpdateRecordRequest& request,
+                               std::function<void(Status, Void)> callback);
 
  public:
   GatewayDirectoryServiceClient(GatewayDirectoryServiceClient const&) = delete;

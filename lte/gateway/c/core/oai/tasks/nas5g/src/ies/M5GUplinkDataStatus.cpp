@@ -9,12 +9,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
+#include "M5GUplinkDataStatus.h"
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 #include "M5GCommonDefs.h"
-#include "M5GUplinkDataStatus.h"
 
 using namespace std;
 namespace magma5g {

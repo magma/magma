@@ -40,17 +40,17 @@
 #include "3gpp_requirements.h"
 #include "log.h"
 
-#define REQUIREMENT_3GPP_33_401(rElEaSe_sEcTiOn__OaImark)                      \
-  REQUIREMENT_3GPP_SPEC(                                                       \
-      LOG_S1AP, "Hit 3GPP TS 33_401" #rElEaSe_sEcTiOn__OaImark                 \
+#define REQUIREMENT_3GPP_33_401(rElEaSe_sEcTiOn__OaImark)              \
+  REQUIREMENT_3GPP_SPEC(LOG_S1AP,                                      \
+                        "Hit 3GPP TS 33_401" #rElEaSe_sEcTiOn__OaImark \
+                        " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
+#define NO_REQUIREMENT_3GPP_33_401(rElEaSe_sEcTiOn__OaImark)                \
+  REQUIREMENT_3GPP_SPEC(                                                    \
+      LOG_S1AP, "#NOT IMPLEMENTED 3GPP TS 33_401" #rElEaSe_sEcTiOn__OaImark \
                 " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
-#define NO_REQUIREMENT_3GPP_33_401(rElEaSe_sEcTiOn__OaImark)                   \
-  REQUIREMENT_3GPP_SPEC(                                                       \
-      LOG_S1AP, "#NOT IMPLEMENTED 3GPP TS 33_401" #rElEaSe_sEcTiOn__OaImark    \
-                " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
-#define NOT_REQUIREMENT_3GPP_33_401(rElEaSe_sEcTiOn__OaImark)                  \
-  REQUIREMENT_3GPP_SPEC(                                                       \
-      LOG_S1AP, "#NOT ASSERTED 3GPP TS 33_401" #rElEaSe_sEcTiOn__OaImark       \
+#define NOT_REQUIREMENT_3GPP_33_401(rElEaSe_sEcTiOn__OaImark)            \
+  REQUIREMENT_3GPP_SPEC(                                                 \
+      LOG_S1AP, "#NOT ASSERTED 3GPP TS 33_401" #rElEaSe_sEcTiOn__OaImark \
                 " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
 
 //-----------------------------------------------------------------------------------------------------------------------

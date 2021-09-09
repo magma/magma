@@ -19,8 +19,8 @@
 
 #include <string>
 
-#include <cpp_redis/cpp_redis>
 #include <google/protobuf/message.h>
+#include <cpp_redis/cpp_redis>
 
 #include <common_defs.h>
 #include "orc8r/protos/redis.pb.h"
@@ -61,8 +61,8 @@ class RedisClient {
    * @param version
    * @return response code of operation
    */
-  status_code_e write_proto_str(
-      const std::string& key, const std::string& proto_msg, uint64_t version);
+  status_code_e write_proto_str(const std::string& key,
+                                const std::string& proto_msg, uint64_t version);
 
   /**
    * Converts protobuf Message and parses it to string
@@ -70,17 +70,16 @@ class RedisClient {
    * @param str_to_serialize
    * @return response code of operation
    */
-  static status_code_e serialize(
-      const google::protobuf::Message& proto_msg,
-      std::string& str_to_serialize);
+  static status_code_e serialize(const google::protobuf::Message& proto_msg,
+                                 std::string& str_to_serialize);
 
   /**
    * Reads value from redis mapped to key and returns proto object
    * @param key
    * @return response code of operation
    */
-  status_code_e read_proto(
-      const std::string& key, google::protobuf::Message& proto_msg);
+  status_code_e read_proto(const std::string& key,
+                           google::protobuf::Message& proto_msg);
 
   int read_version(const std::string& key);
 
@@ -100,8 +99,8 @@ class RedisClient {
    * @param state_out
    * @return response code of operation
    */
-  status_code_e read_redis_state(
-      const std::string& key, orc8r::RedisState& state_out);
+  status_code_e read_redis_state(const std::string& key,
+                                 orc8r::RedisState& state_out);
 
   /**
    * Takes a string and parses it to protobuf Message
@@ -109,9 +108,8 @@ class RedisClient {
    * @param str_to_deserialize
    * @return response code of operation
    */
-  static status_code_e deserialize(
-      google::protobuf::Message& proto_msg,
-      const std::string& str_to_deserialize);
+  static status_code_e deserialize(google::protobuf::Message& proto_msg,
+                                   const std::string& str_to_deserialize);
 };
 
 }  // namespace lte

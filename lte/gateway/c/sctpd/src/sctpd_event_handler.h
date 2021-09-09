@@ -27,17 +27,15 @@ class SctpdEventHandler : public SctpEventHandler {
   explicit SctpdEventHandler(SctpdUplinkClient& client);
 
   // Relay new assocation to MME/AMF over GRPC
-  int HandleNewAssoc(
-      uint32_t ppid, uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
-      std::string& ran_cp_ipaddr) override;
+  int HandleNewAssoc(uint32_t ppid, uint32_t assoc_id, uint32_t instreams,
+                     uint32_t outstreams, std::string& ran_cp_ipaddr) override;
 
   // Relay close assocation to MME/AMF over GRPC
   void HandleCloseAssoc(uint32_t ppid, uint32_t assoc_id, bool reset) override;
 
   // Relay new message to MME over GRPC
-  void HandleRecv(
-      uint32_t ppid, uint32_t assoc_id, uint32_t stream,
-      const std::string& payload) override;
+  void HandleRecv(uint32_t ppid, uint32_t assoc_id, uint32_t stream,
+                  const std::string& payload) override;
 
  private:
   SctpdUplinkClient& _client;

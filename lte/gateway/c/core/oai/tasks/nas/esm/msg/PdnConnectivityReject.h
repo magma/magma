@@ -19,17 +19,17 @@
 #define PDN_CONNECTIVITY_REJECT_H_
 #include <stdint.h>
 
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "EsmCause.h"
+#include "MessageType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define PDN_CONNECTIVITY_REJECT_MINIMUM_LENGTH (ESM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define PDN_CONNECTIVITY_REJECT_MAXIMUM_LENGTH                                 \
+#define PDN_CONNECTIVITY_REJECT_MAXIMUM_LENGTH \
   (ESM_CAUSE_MAXIMUM_LENGTH + PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

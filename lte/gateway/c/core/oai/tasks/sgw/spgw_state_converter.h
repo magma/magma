@@ -29,13 +29,13 @@ extern "C" {
 }
 #endif
 
-#include "state_converter.h"
-#include "lte/protos/oai/std_3gpp_types.pb.h"
 #include "lte/protos/oai/spgw_state.pb.h"
-#include "spgw_types.h"
-#include "pgw_types.h"
+#include "lte/protos/oai/std_3gpp_types.pb.h"
 #include "pgw_procedures.h"
+#include "pgw_types.h"
 #include "spgw_state.h"
+#include "spgw_types.h"
+#include "state_converter.h"
 
 namespace magma {
 namespace lte {
@@ -51,8 +51,8 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_proto SpgwState proto object to be written to
    * Memory is owned by the caller
    */
-  static void state_to_proto(
-      const spgw_state_t* spgw_state, oai::SpgwState* spgw_proto);
+  static void state_to_proto(const spgw_state_t* spgw_state,
+                             oai::SpgwState* spgw_proto);
 
   /**
    * Main function to convert SPGW proto to state definition
@@ -60,14 +60,14 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_state const pointer to spgw_state struct
    * Memory is owned by the caller
    */
-  static void proto_to_state(
-      const oai::SpgwState& proto, spgw_state_t* spgw_state);
+  static void proto_to_state(const oai::SpgwState& proto,
+                             spgw_state_t* spgw_state);
 
-  static void ue_to_proto(
-      const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto);
+  static void ue_to_proto(const spgw_ue_context_t* ue_state,
+                          oai::SpgwUeContext* ue_proto);
 
-  static void proto_to_ue(
-      const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p);
+  static void proto_to_ue(const oai::SpgwUeContext& ue_proto,
+                          spgw_ue_context_t* ue_context_p);
 
  private:
   SpgwStateConverter();
@@ -114,16 +114,16 @@ class SpgwStateConverter : StateConverter {
    * @param state_pdn
    * @param proto_pdn
    */
-  static void sgw_pdn_connection_to_proto(
-      const sgw_pdn_connection_t* state_pdn, oai::SgwPdnConnection* proto_pdn);
+  static void sgw_pdn_connection_to_proto(const sgw_pdn_connection_t* state_pdn,
+                                          oai::SgwPdnConnection* proto_pdn);
 
   /**
    * Converts proto to sgw pdn connection struct
    * @param proto
    * @param state_pdn
    */
-  static void proto_to_sgw_pdn_connection(
-      const oai::SgwPdnConnection& proto, sgw_pdn_connection_t* state_pdn);
+  static void proto_to_sgw_pdn_connection(const oai::SgwPdnConnection& proto,
+                                          sgw_pdn_connection_t* state_pdn);
 
   /**
    * Converts itti_s11_create_session_request struct to proto, memory is
@@ -198,9 +198,8 @@ class SpgwStateConverter : StateConverter {
    * @param eps_bearer_qos_state
    * @param eps_bearer_qos_proto
    */
-  static void eps_bearer_qos_to_proto(
-      const bearer_qos_t* eps_bearer_qos_state,
-      oai::SgwBearerQos* eps_bearer_qos_proto);
+  static void eps_bearer_qos_to_proto(const bearer_qos_t* eps_bearer_qos_state,
+                                      oai::SgwBearerQos* eps_bearer_qos_proto);
 
   /**
    * Converts proto to eps bearer QOS struct
@@ -216,41 +215,40 @@ class SpgwStateConverter : StateConverter {
    * @param gtp_data
    * @param gtp_proto
    */
-  static void gtpv1u_data_to_proto(
-      const gtpv1u_data_t* gtp_data, oai::GTPV1uData* gtp_proto);
+  static void gtpv1u_data_to_proto(const gtpv1u_data_t* gtp_data,
+                                   oai::GTPV1uData* gtp_proto);
 
   /**
    * Converts proto to gtpv1u_data struct
    * @param gtp_proto
    * @param gtp_data
    */
-  static void proto_to_gtpv1u_data(
-      const oai::GTPV1uData& gtp_proto, gtpv1u_data_t* gtp_data);
+  static void proto_to_gtpv1u_data(const oai::GTPV1uData& gtp_proto,
+                                   gtpv1u_data_t* gtp_data);
 
   /**
    * Converts port range struct to proto, memory is owned by the caller
    * @param port_range
    * @param port_range_proto
    */
-  static void port_range_to_proto(
-      const port_range_t* port_range, oai::PortRange* port_range_proto);
+  static void port_range_to_proto(const port_range_t* port_range,
+                                  oai::PortRange* port_range_proto);
 
   /**
    * Converts proto to port range struct
    * @param port_range_proto
    * @param port_range
    */
-  static void proto_to_port_range(
-      const oai::PortRange& port_range_proto, port_range_t* port_range);
+  static void proto_to_port_range(const oai::PortRange& port_range_proto,
+                                  port_range_t* port_range);
 
   /**
    * Converts packet filter struct to proto, memory is owned by the caller
    * @param packet_filter
    * @param packet_filter_proto
    */
-  static void packet_filter_to_proto(
-      const packet_filter_t* packet_filter,
-      oai::PacketFilter* packet_filter_proto);
+  static void packet_filter_to_proto(const packet_filter_t* packet_filter,
+                                     oai::PacketFilter* packet_filter_proto);
 
   /**
    * Converts proto to packet filter struct

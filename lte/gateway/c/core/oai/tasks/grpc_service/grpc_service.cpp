@@ -20,14 +20,14 @@
 #include <grpcpp/security/server_credentials.h>
 #include <memory>
 
+#include "AmfServiceImpl.h"
 #include "CSFBGatewayServiceImpl.h"
-#include "SMSOrc8rGatewayServiceImpl.h"
+#include "HaServiceImpl.h"
 #include "S1apServiceImpl.h"
 #include "S6aGatewayImpl.h"
 #include "S6aServiceImpl.h"
+#include "SMSOrc8rGatewayServiceImpl.h"
 #include "SpgwServiceImpl.h"
-#include "AmfServiceImpl.h"
-#include "HaServiceImpl.h"
 
 extern "C" {
 #include "log.h"
@@ -60,11 +60,11 @@ static std::unique_ptr<Server> server;
 // MagmaService, which implements Service303::Service as the
 // base service and can add other services on top.
 void start_grpc_service(bstring server_address) {
-  OAILOG_INFO(
-      LOG_SPGW_APP, "Starting service at : %s\n ", bdata(server_address));
+  OAILOG_INFO(LOG_SPGW_APP, "Starting service at : %s\n ",
+              bdata(server_address));
   ServerBuilder builder;
-  builder.AddListeningPort(
-      bdata(server_address), grpc::InsecureServerCredentials());
+  builder.AddListeningPort(bdata(server_address),
+                           grpc::InsecureServerCredentials());
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
   builder.RegisterService(&spgw_service);
 #endif

@@ -17,9 +17,9 @@
 #include <folly/dynamic.h>            // for dynamic
 #include <folly/json.h>               // for parseJson, toJson
 #include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes...
-#include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <stddef.h>                   // for size_t
 #include <stdint.h>                   // for uint32_t
+#include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <algorithm>                  // for max
 #include <cpp_redis/core/client.hpp>  // for client, client::connect_state
 #include <cpp_redis/core/reply.hpp>   // for reply
@@ -29,10 +29,10 @@
 #include <unordered_map>              // for _Node_iterator, unordered_map
 #include <utility>                    // for move, pair
 #include <vector>                     // for vector
+#include "SessionState.h"             // for SessionState
+#include "StoredState.h"              // for deserialize_stored_session, ser...
 #include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
-#include "SessionState.h"                  // for SessionState
-#include "StoredState.h"    // for deserialize_stored_session, ser...
-#include "magma_logging.h"  // for MERROR, MLOG
+#include "magma_logging.h"                 // for MERROR, MLOG
 namespace magma {
 class StaticRuleStore;
 }
@@ -40,16 +40,16 @@ class StaticRuleStore;
 namespace magma {
 namespace lte {
 
-RedisStoreClient::RedisStoreClient(
-    std::shared_ptr<cpp_redis::client> client, const std::string& redis_table,
-    std::shared_ptr<StaticRuleStore> rule_store)
+RedisStoreClient::RedisStoreClient(std::shared_ptr<cpp_redis::client> client,
+                                   const std::string& redis_table,
+                                   std::shared_ptr<StaticRuleStore> rule_store)
     : client_(client), redis_table_(redis_table), rule_store_(rule_store) {}
 
 bool RedisStoreClient::try_redis_connect() {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
-  auto port   = config["port"].as<uint32_t>();
-  auto addr   = config["bind"].as<std::string>();
+  auto port = config["port"].as<uint32_t>();
+  auto addr = config["bind"].as<std::string>();
   try {
     client_->connect(
         addr, port,
@@ -126,7 +126,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
       MLOG(MERROR) << "Non string key found in sessions from redis";
       continue;
     }
-    auto key         = key_reply.as_string();
+    auto key = key_reply.as_string();
     auto value_reply = array[i + 1];
     if (!value_reply.is_string()) {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;

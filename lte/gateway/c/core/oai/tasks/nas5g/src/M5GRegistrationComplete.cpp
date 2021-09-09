@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GRegistrationComplete.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,7 +20,7 @@ RegistrationCompleteMsg::~RegistrationCompleteMsg(){};
 // Decoding Registration Complete Message and its IEs
 int RegistrationCompleteMsg::DecodeRegistrationCompleteMsg(
     RegistrationCompleteMsg* reg_complete, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_COMPLETE_MINIMUM_LENGTH, len);
@@ -58,7 +58,7 @@ int RegistrationCompleteMsg::DecodeRegistrationCompleteMsg(
 // Encoding Registration Complete Message and its IEs
 int RegistrationCompleteMsg::EncodeRegistrationCompleteMsg(
     RegistrationCompleteMsg* reg_complete, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, REGISTRATION_COMPLETE_MINIMUM_LENGTH, len);

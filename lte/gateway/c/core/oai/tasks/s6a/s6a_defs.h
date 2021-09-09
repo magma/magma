@@ -31,9 +31,9 @@
 #include <freeDiameter/libfdcore.h>
 
 #include "common_defs.h"
+#include "intertask_interface.h"
 #include "mme_config.h"
 #include "queue.h"
-#include "intertask_interface.h"
 
 extern task_zmq_ctx_t s6a_task_zmq_ctx;
 
@@ -64,13 +64,13 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
  */
 #define DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE (4181)
 
-#define DIAMETER_ERROR_IS_VENDOR(x)                                            \
-  ((x == DIAMETER_ERROR_USER_UNKNOWN) ||                                       \
-   (x == DIAMETER_ERROR_ROAMING_NOT_ALLOWED) ||                                \
-   (x == DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION) ||                           \
-   (x == DIAMETER_ERROR_RAT_NOT_ALLOWED) ||                                    \
-   (x == DIAMETER_ERROR_EQUIPMENT_UNKNOWN) ||                                  \
-   (x == DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE) ||                          \
+#define DIAMETER_ERROR_IS_VENDOR(x)                   \
+  ((x == DIAMETER_ERROR_USER_UNKNOWN) ||              \
+   (x == DIAMETER_ERROR_ROAMING_NOT_ALLOWED) ||       \
+   (x == DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION) ||  \
+   (x == DIAMETER_ERROR_RAT_NOT_ALLOWED) ||           \
+   (x == DIAMETER_ERROR_EQUIPMENT_UNKNOWN) ||         \
+   (x == DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE) || \
    (x == DIAMETER_ERROR_UNKOWN_SERVING_NODE))
 
 typedef struct {
@@ -214,17 +214,16 @@ status_code_e s6a_fd_init_dict_objs(void);
 status_code_e s6a_parse_subscription_data(
     struct avp* avp_subscription_data, subscription_data_t* subscription_data);
 
-int s6a_parse_supported_features(
-    struct avp* avp_supported_features,
-    supported_features_t* subscription_data);
+int s6a_parse_supported_features(struct avp* avp_supported_features,
+                                 supported_features_t* subscription_data);
 
-status_code_e s6a_parse_experimental_result(
-    struct avp* avp, s6a_experimental_result_t* ptr);
+status_code_e s6a_parse_experimental_result(struct avp* avp,
+                                            s6a_experimental_result_t* ptr);
 char* experimental_retcode_2_string(uint32_t ret_code);
 char* retcode_2_string(uint32_t ret_code);
 
-int s6a_add_result_code(
-    struct msg* ans, struct avp* failed_avp, int result_code, int experimental);
+int s6a_add_result_code(struct msg* ans, struct avp* failed_avp,
+                        int result_code, int experimental);
 
 void send_activate_messages(void);
 

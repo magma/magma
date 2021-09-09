@@ -10,8 +10,8 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {
@@ -22,11 +22,9 @@ class SpareHalfOctetMsg {
 
   SpareHalfOctetMsg();
   ~SpareHalfOctetMsg();
-  int EncodeSpareHalfOctetMsg(
-      SpareHalfOctetMsg* spare_half_octet, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeSpareHalfOctetMsg(
-      SpareHalfOctetMsg* spare_half_octet, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int EncodeSpareHalfOctetMsg(SpareHalfOctetMsg* spare_half_octet, uint8_t iei,
+                              uint8_t* buffer, uint32_t len);
+  int DecodeSpareHalfOctetMsg(SpareHalfOctetMsg* spare_half_octet, uint8_t iei,
+                              uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

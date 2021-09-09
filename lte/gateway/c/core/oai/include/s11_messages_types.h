@@ -38,45 +38,45 @@
 
 #include "sgw_ie_defs.h"
 
-#define S11_CREATE_SESSION_REQUEST(mSGpTR)                                     \
+#define S11_CREATE_SESSION_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_create_session_request
-#define S11_CREATE_SESSION_RESPONSE(mSGpTR)                                    \
+#define S11_CREATE_SESSION_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_create_session_response
-#define S11_CREATE_BEARER_REQUEST(mSGpTR)                                      \
+#define S11_CREATE_BEARER_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_create_bearer_request
-#define S11_CREATE_BEARER_RESPONSE(mSGpTR)                                     \
+#define S11_CREATE_BEARER_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_create_bearer_response
-#define S11_MODIFY_BEARER_REQUEST(mSGpTR)                                      \
+#define S11_MODIFY_BEARER_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_modify_bearer_request
-#define S11_MODIFY_BEARER_RESPONSE(mSGpTR)                                     \
+#define S11_MODIFY_BEARER_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_modify_bearer_response
-#define S11_DELETE_SESSION_REQUEST(mSGpTR)                                     \
+#define S11_DELETE_SESSION_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_delete_session_request
-#define S11_DELETE_BEARER_COMMAND(mSGpTR)                                      \
+#define S11_DELETE_BEARER_COMMAND(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_delete_bearer_command
-#define S11_DELETE_SESSION_RESPONSE(mSGpTR)                                    \
+#define S11_DELETE_SESSION_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_delete_session_response
-#define S11_RELEASE_ACCESS_BEARERS_REQUEST(mSGpTR)                             \
+#define S11_RELEASE_ACCESS_BEARERS_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_release_access_bearers_request
-#define S11_RELEASE_ACCESS_BEARERS_RESPONSE(mSGpTR)                            \
+#define S11_RELEASE_ACCESS_BEARERS_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_release_access_bearers_response
 #define S11_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.s11_paging_request
 #define S11_PAGING_RESPONSE(mSGpTR) (mSGpTR)->ittiMsg.s11_paging_response
-#define S11_SUSPEND_NOTIFICATION(mSGpTR)                                       \
+#define S11_SUSPEND_NOTIFICATION(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_suspend_notification
-#define S11_SUSPEND_ACKNOWLEDGE(mSGpTR)                                        \
+#define S11_SUSPEND_ACKNOWLEDGE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_suspend_acknowledge
-#define S11_MODIFY_UE_AMBR_REQUEST(mSGpTR)                                     \
+#define S11_MODIFY_UE_AMBR_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_modify_ue_ambr_request
-#define S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST(mSGpTR)                       \
+#define S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_nw_init_actv_bearer_request
-#define S11_NW_INITIATED_ACTIVATE_BEARER_RESP(mSGpTR)                          \
+#define S11_NW_INITIATED_ACTIVATE_BEARER_RESP(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_nw_init_actv_bearer_rsp
-#define S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST(mSGpTR)                     \
+#define S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_request
-#define S11_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR)                        \
+#define S11_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_rsp
-#define S11_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE(mSGpTR)                     \
+#define S11_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_downlink_data_notification_acknowledge
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_initiated_ded_bearer_actv_request_t

@@ -73,16 +73,15 @@ void esm_ebr_initialize(void);
 status_code_e esm_ebr_assign(emm_context_t* emm_context);
 status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi);
 
-status_code_e esm_ebr_start_timer(
-    emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
-    uint32_t sec, time_out_t cb);
+status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
+                                  CLONE_REF const_bstring msg, uint32_t sec,
+                                  time_out_t cb);
 status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi);
 
 ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status);
 
-status_code_e esm_ebr_set_status(
-    emm_context_t* emm_context, ebi_t ebi, esm_ebr_state status,
-    bool ue_requested);
+status_code_e esm_ebr_set_status(emm_context_t* emm_context, ebi_t ebi,
+                                 esm_ebr_state status, bool ue_requested);
 esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi);
 
 bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi);

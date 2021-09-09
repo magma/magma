@@ -15,8 +15,8 @@
 #include <mutex>
 
 #include <grpc++/grpc++.h>
-#include <lte/protos/session_manager.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 
 #include "includes/GRPCReceiver.h"
 

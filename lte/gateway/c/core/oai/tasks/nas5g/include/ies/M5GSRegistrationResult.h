@@ -10,8 +10,8 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {

@@ -109,7 +109,7 @@ typedef struct imsi_s {
       uint8_t digit15 : 4;
     } num; /*!< \brief  IMSI shall consist of decimal digits (0 through 9)
               only.*/
-#define IMSI_BCD8_SIZE                                                         \
+#define IMSI_BCD8_SIZE \
   8 /*!< \brief  The number of digits in IMSI shall not exceed 15.       */
     uint8_t value[IMSI_BCD8_SIZE];
   } u;
@@ -139,11 +139,11 @@ typedef uint32_t
                TMSI consists of 4 octets. It can be coded using a full
                hexadecimal representation. */
 
-#define INVALID_TMSI                                                           \
-  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32    \
-                bits equal to 1 (this is because the TMSI must be stored in    \
-                the SIM, and the SIM uses 4 octets with all bits               \
-                                                                        equal  \
+#define INVALID_TMSI                                                          \
+  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32   \
+                bits equal to 1 (this is because the TMSI must be stored in   \
+                the SIM, and the SIM uses 4 octets with all bits              \
+                                                                        equal \
                 to 1 to indicate that no valid TMSI is available).  */
 
 // 2.5 Structure of LMSI
@@ -154,11 +154,11 @@ typedef uint32_t
 // 2.8 Globally Unique Temporary UE Identity (GUTI)
 //------------------------------------------------------------------------------
 
-#define INVALID_M_TMSI                                                         \
-  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32    \
-                bits equal to 1 (this is because the TMSI must be stored in    \
-                the SIM, and the SIM uses 4 octets with all bits               \
-                                                                        equal  \
+#define INVALID_M_TMSI                                                        \
+  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32   \
+                bits equal to 1 (this is because the TMSI must be stored in   \
+                the SIM, and the SIM uses 4 octets with all bits              \
+                                                                        equal \
                 to 1 to indicate that no valid TMSI is available).  */
 
 typedef uint16_t

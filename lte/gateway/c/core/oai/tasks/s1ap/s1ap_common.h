@@ -391,47 +391,48 @@ extern int asn1_xer_print;
 
 #include <stdbool.h>
 
-#include "mme_default_values.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "3gpp_33.401.h"
-#include "security_types.h"
 #include "common_types.h"
+#include "mme_default_values.h"
 #include "s1ap_state.h"
+#include "security_types.h"
 
-#define S1AP_FIND_PROTOCOLIE_BY_ID(IE_TYPE, ie, container, IE_ID, mandatory)   \
-  do {                                                                         \
-    IE_TYPE** ptr;                                                             \
-    ie = NULL;                                                                 \
-    for (ptr = container->protocolIEs.list.array;                              \
-         ptr < &container->protocolIEs.list                                    \
-                    .array[container->protocolIEs.list.count];                 \
-         ptr++) {                                                              \
-      if ((*ptr)->id == IE_ID) {                                               \
-        ie = *ptr;                                                             \
-        break;                                                                 \
-      }                                                                        \
-    }                                                                          \
-    if (ie == NULL) {                                                          \
-      if (mandatory)                                                           \
-        OAILOG_ERROR(                                                          \
-            LOG_S1AP,                                                          \
-            "S1AP_FIND_PROTOCOLIE_BY_ID %ld: %s %d: Mandatory ie is NULL\n",   \
-            IE_ID, __FILE__, __LINE__);                                        \
-      else                                                                     \
-        OAILOG_DEBUG(                                                          \
-            LOG_S1AP,                                                          \
-            "S1AP_FIND_PROTOCOLIE_BY_ID %ld: %s %d: Optional ie is NULL\n",    \
-            IE_ID, __FILE__, __LINE__);                                        \
-    }                                                                          \
-                                                                               \
+#define S1AP_FIND_PROTOCOLIE_BY_ID(IE_TYPE, ie, container, IE_ID, mandatory) \
+  do {                                                                       \
+    IE_TYPE** ptr;                                                           \
+    ie = NULL;                                                               \
+    for (ptr = container->protocolIEs.list.array;                            \
+         ptr < &container->protocolIEs.list                                  \
+                    .array[container->protocolIEs.list.count];               \
+         ptr++) {                                                            \
+      if ((*ptr)->id == IE_ID) {                                             \
+        ie = *ptr;                                                           \
+        break;                                                               \
+      }                                                                      \
+    }                                                                        \
+    if (ie == NULL) {                                                        \
+      if (mandatory)                                                         \
+        OAILOG_ERROR(                                                        \
+            LOG_S1AP,                                                        \
+            "S1AP_FIND_PROTOCOLIE_BY_ID %ld: %s %d: Mandatory ie is NULL\n", \
+            IE_ID, __FILE__, __LINE__);                                      \
+      else                                                                   \
+        OAILOG_DEBUG(                                                        \
+            LOG_S1AP,                                                        \
+            "S1AP_FIND_PROTOCOLIE_BY_ID %ld: %s %d: Optional ie is NULL\n",  \
+            IE_ID, __FILE__, __LINE__);                                      \
+    }                                                                        \
+                                                                             \
   } while (0)
 
 /** \brief Function callback prototype.
  **/
-typedef int (*s1ap_message_handler_t)(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu);
+typedef int (*s1ap_message_handler_t)(s1ap_state_t* state,
+                                      const sctp_assoc_id_t assoc_id,
+                                      const sctp_stream_id_t stream,
+                                      S1ap_S1AP_PDU_t* pdu);
 
 /** \brief Handle criticality
  \param criticality Criticality of the IE

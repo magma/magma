@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include <netinet/ip.h>
 #include <arpa/inet.h>
+#include <netinet/ip.h>
 #include <string>
 
 #include "GTPApplication.h"
@@ -24,8 +24,8 @@
 #include "gtpv1u.h"
 
 extern "C" {
-#include "log.h"
 #include "bstrlib.h"
+#include "log.h"
 }
 
 using namespace fluid_msg;
@@ -33,12 +33,13 @@ using namespace fluid_msg;
 namespace openflow {
 
 const std::string GTPApplication::GTP_PORT_MAC = "02:00:00:00:00:01";
-const std::uint16_t OFPVID_PRESENT             = 0x1000;
+const std::uint16_t OFPVID_PRESENT = 0x1000;
 
-GTPApplication::GTPApplication(
-    const std::string& uplink_mac, uint32_t gtp_port_num, uint32_t mtr_port_num,
-    uint32_t internal_sampling_port_num, uint32_t internal_sampling_fwd_tbl_num,
-    uint32_t uplink_port_num)
+GTPApplication::GTPApplication(const std::string& uplink_mac,
+                               uint32_t gtp_port_num, uint32_t mtr_port_num,
+                               uint32_t internal_sampling_port_num,
+                               uint32_t internal_sampling_fwd_tbl_num,
+                               uint32_t uplink_port_num)
     : uplink_mac_(uplink_mac),
       gtp0_port_num_(gtp_port_num),
       mtr_port_num_(mtr_port_num),
@@ -46,15 +47,15 @@ GTPApplication::GTPApplication(
       internal_sampling_fwd_tbl_num_(internal_sampling_fwd_tbl_num),
       uplink_port_num_(uplink_port_num) {}
 
-void GTPApplication::event_callback(
-    const ControllerEvent& ev, const OpenflowMessenger& messenger) {
+void GTPApplication::event_callback(const ControllerEvent& ev,
+                                    const OpenflowMessenger& messenger) {
   if (ev.get_type() == EVENT_ADD_GTP_TUNNEL) {
     auto add_tunnel_event = static_cast<const AddGTPTunnelEvent&>(ev);
     add_uplink_tunnel_flow(add_tunnel_event, messenger);
-    add_downlink_tunnel_flow(
-        add_tunnel_event, messenger, uplink_port_num_, false, false);
-    add_downlink_tunnel_flow(
-        add_tunnel_event, messenger, mtr_port_num_, false, false);
+    add_downlink_tunnel_flow(add_tunnel_event, messenger, uplink_port_num_,
+                             false, false);
+    add_downlink_tunnel_flow(add_tunnel_event, messenger, mtr_port_num_, false,
+                             false);
     add_downlink_arp_flow(add_tunnel_event, messenger, uplink_port_num_);
     add_downlink_arp_flow(add_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DELETE_GTP_TUNNEL) {
@@ -80,8 +81,8 @@ void GTPApplication::event_callback(
       pgw_port = GTPApplication::gtp0_port_num_;
     }
     add_downlink_tunnel_flow(add_tunnel_event, messenger, pgw_port, true, true);
-    add_downlink_tunnel_flow(
-        add_tunnel_event, messenger, mtr_port_num_, true, true);
+    add_downlink_tunnel_flow(add_tunnel_event, messenger, mtr_port_num_, true,
+                             true);
     add_downlink_arp_flow(add_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DELETE_GTP_S8_TUNNEL) {
     auto del_tunnel_event = static_cast<const DeleteGTPTunnelEvent&>(ev);
@@ -99,20 +100,20 @@ void GTPApplication::event_callback(
     auto discard_tunnel_flow =
         static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
     discard_uplink_tunnel_flow(discard_tunnel_flow, messenger);
-    discard_downlink_tunnel_flow(
-        discard_tunnel_flow, messenger, uplink_port_num_);
+    discard_downlink_tunnel_flow(discard_tunnel_flow, messenger,
+                                 uplink_port_num_);
     discard_downlink_tunnel_flow(discard_tunnel_flow, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_FORWARD_DATA_ON_GTP_TUNNEL) {
     auto forward_tunnel_flow =
         static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
     forward_uplink_tunnel_flow(forward_tunnel_flow, messenger);
-    forward_downlink_tunnel_flow(
-        forward_tunnel_flow, messenger, uplink_port_num_);
+    forward_downlink_tunnel_flow(forward_tunnel_flow, messenger,
+                                 uplink_port_num_);
     forward_downlink_tunnel_flow(forward_tunnel_flow, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_SWITCH_UP) {
-    install_internal_pkt_fwd_flow(
-        ev.get_connection(), messenger, internal_sampling_port_num_,
-        internal_sampling_fwd_tbl_num_);
+    install_internal_pkt_fwd_flow(ev.get_connection(), messenger,
+                                  internal_sampling_port_num_,
+                                  internal_sampling_fwd_tbl_num_);
   }
 }
 
@@ -136,8 +137,8 @@ void GTPApplication::install_internal_pkt_fwd_flow(
 /*
  * Helper method to add matching for adding/deleting the uplink flow
  */
-void GTPApplication::add_tunnel_match(
-    of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei) {
+void GTPApplication::add_tunnel_match(of13::FlowMod& uplink_fm,
+                                      uint32_t gtp_port, uint32_t i_tei) {
   if (gtp_port == 0) {
     gtp_port = GTPApplication::gtp0_port_num_;
   }
@@ -213,10 +214,10 @@ void GTPApplication::add_uplink_s8_tunnel_flow(
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
   add_tunnel_match(uplink_fm, ev.get_enb_gtp_portno(), ev.get_in_tei());
 
-  add_tunnel_flow_action(
-      ev.get_pgw_out_tei(), ev.get_in_tei(), ev.get_imsi(), ev.get_pgw_ip(),
-      ev.get_pgw_gtp_portno(), ev.get_connection(), messenger, uplink_fm,
-      "S8 Uplink", true);
+  add_tunnel_flow_action(ev.get_pgw_out_tei(), ev.get_in_tei(), ev.get_imsi(),
+                         ev.get_pgw_ip(), ev.get_pgw_gtp_portno(),
+                         ev.get_connection(), messenger, uplink_fm, "S8 Uplink",
+                         true);
 }
 
 void GTPApplication::delete_uplink_tunnel_flow(
@@ -235,8 +236,8 @@ void GTPApplication::delete_uplink_tunnel_flow(
 /*
  * Helper method to add matching for adding/deleting the downlink flow
  */
-static void add_downlink_arp_match(
-    of13::FlowMod& downlink_fm, const struct in_addr& ue_ip, uint32_t port)
+static void add_downlink_arp_match(of13::FlowMod& downlink_fm,
+                                   const struct in_addr& ue_ip, uint32_t port)
 
 {
   // Set match on uplink port and IP eth type
@@ -250,8 +251,8 @@ static void add_downlink_arp_match(
   downlink_fm.add_oxm_field(arptpa);
 }
 
-static void add_downlink_match(
-    of13::FlowMod& downlink_fm, const struct in_addr& ue_ip, uint32_t port) {
+static void add_downlink_match(of13::FlowMod& downlink_fm,
+                               const struct in_addr& ue_ip, uint32_t port) {
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
@@ -263,15 +264,16 @@ static void add_downlink_match(
   downlink_fm.add_oxm_field(ip_match);
 }
 
-static void mask_ipv6_address(
-    uint8_t* dst, const uint8_t* src, const uint8_t* mask) {
+static void mask_ipv6_address(uint8_t* dst, const uint8_t* src,
+                              const uint8_t* mask) {
   for (int i = 0; i < INET6_ADDRSTRLEN; i++) {
     dst[i] = src[i] & mask[i];
   }
 }
 
-static void add_downlink_match_ipv6(
-    of13::FlowMod& downlink_fm, const struct in6_addr& ue_ip6, uint32_t port) {
+static void add_downlink_match_ipv6(of13::FlowMod& downlink_fm,
+                                    const struct in6_addr& ue_ip6,
+                                    uint32_t port) {
   // Set match on uplink port and IP eth type
   static IPAddress mask("ffff:ffff:ffff:ffff::");
   of13::InPort uplink_port_match(port);
@@ -284,8 +286,8 @@ static void add_downlink_match_ipv6(
 
   // Match UE IP destination
   struct in6_addr ue_ip6_masked;
-  mask_ipv6_address(
-      (uint8_t*) &ue_ip6_masked, (const uint8_t*) &ue_ip6, mask.getIPv6());
+  mask_ipv6_address((uint8_t*)&ue_ip6_masked, (const uint8_t*)&ue_ip6,
+                    mask.getIPv6());
 
   of13::IPv6Dst ipv6_dst(IPAddress(ue_ip6_masked), mask);
   downlink_fm.add_oxm_field(ipv6_dst);
@@ -294,8 +296,8 @@ static void add_downlink_match_ipv6(
 /**
  * Helper function to add dedicated brr flow match
  */
-static void add_ded_brr_dl_match(
-    of13::FlowMod& downlink_fm, const struct ip_flow_dl& flow, uint32_t port) {
+static void add_ded_brr_dl_match(of13::FlowMod& downlink_fm,
+                                 const struct ip_flow_dl& flow, uint32_t port) {
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
@@ -323,9 +325,8 @@ static void add_ded_brr_dl_match(
       // Match on the prefix portion -- this is UE IPv6 address
       static IPAddress mask("ffff:ffff:ffff:ffff::");
       struct in6_addr dst_ip6_masked;
-      mask_ipv6_address(
-          (uint8_t*) &dst_ip6_masked, (const uint8_t*) &flow.dst_ip6,
-          mask.getIPv6());
+      mask_ipv6_address((uint8_t*)&dst_ip6_masked,
+                        (const uint8_t*)&flow.dst_ip6, mask.getIPv6());
 
       of13::IPv6Dst ipv6_dst(IPAddress(dst_ip6_masked), mask);
       downlink_fm.add_oxm_field(ipv6_dst);
@@ -427,10 +428,10 @@ void GTPApplication::add_downlink_tunnel_flow_action(
     in_teid = ev.get_in_tei();
   }
 
-  add_tunnel_flow_action(
-      ev.get_out_tei(), in_teid, ev.get_imsi(), ev.get_enb_ip(),
-      ev.get_enb_gtp_portno(), ev.get_connection(), messenger, downlink_fm,
-      "S1 Downlink", passthrough);
+  add_tunnel_flow_action(ev.get_out_tei(), in_teid, ev.get_imsi(),
+                         ev.get_enb_ip(), ev.get_enb_gtp_portno(),
+                         ev.get_connection(), messenger, downlink_fm,
+                         "S1 Downlink", passthrough);
 }
 
 void GTPApplication::add_downlink_tunnel_flow_ipv4(
@@ -442,8 +443,8 @@ void GTPApplication::add_downlink_tunnel_flow_ipv4(
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
 
   add_downlink_match(downlink_fm, ev.get_ue_ip(), ingress_port);
-  add_downlink_tunnel_flow_action(
-      ev, messenger, downlink_fm, passthrough, from_pgw);
+  add_downlink_tunnel_flow_action(ev, messenger, downlink_fm, passthrough,
+                                  from_pgw);
 }
 
 void GTPApplication::add_downlink_tunnel_flow_ipv6(
@@ -454,10 +455,10 @@ void GTPApplication::add_downlink_tunnel_flow_ipv6(
   of13::FlowMod downlink_fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
 
-  add_downlink_match_ipv6(
-      downlink_fm, ev.get_ue_info().get_ipv6(), ingress_port);
-  add_downlink_tunnel_flow_action(
-      ev, messenger, downlink_fm, passthrough, from_pgw);
+  add_downlink_match_ipv6(downlink_fm, ev.get_ue_info().get_ipv6(),
+                          ingress_port);
+  add_downlink_tunnel_flow_action(ev, messenger, downlink_fm, passthrough,
+                                  from_pgw);
 }
 
 void GTPApplication::add_downlink_tunnel_flow_ded_brr(
@@ -469,27 +470,27 @@ void GTPApplication::add_downlink_tunnel_flow_ded_brr(
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
 
   add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow(), ingress_port);
-  add_downlink_tunnel_flow_action(
-      ev, messenger, downlink_fm, passthrough, from_pgw);
+  add_downlink_tunnel_flow_action(ev, messenger, downlink_fm, passthrough,
+                                  from_pgw);
 }
 
 void GTPApplication::add_downlink_tunnel_flow(
     const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port, bool passthrough, bool from_pgw) {
   if (ev.is_dl_flow_valid()) {
-    add_downlink_tunnel_flow_ded_brr(
-        ev, messenger, ingress_port, passthrough, from_pgw);
+    add_downlink_tunnel_flow_ded_brr(ev, messenger, ingress_port, passthrough,
+                                     from_pgw);
     return;
   }
   UeNetworkInfo ue_info = ev.get_ue_info();
 
   if (ue_info.is_ue_ipv4_addr_valid()) {
-    add_downlink_tunnel_flow_ipv4(
-        ev, messenger, ingress_port, passthrough, from_pgw);
+    add_downlink_tunnel_flow_ipv4(ev, messenger, ingress_port, passthrough,
+                                  from_pgw);
   }
   if (ue_info.is_ue_ipv6_addr_valid()) {
-    add_downlink_tunnel_flow_ipv6(
-        ev, messenger, ingress_port, passthrough, from_pgw);
+    add_downlink_tunnel_flow_ipv6(ev, messenger, ingress_port, passthrough,
+                                  from_pgw);
   }
 }
 
@@ -516,9 +517,9 @@ void GTPApplication::add_downlink_arp_flow_action(
   OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "ARP flow added\n");
 }
 
-void GTPApplication::add_downlink_arp_flow(
-    const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-    uint32_t ingress_port) {
+void GTPApplication::add_downlink_arp_flow(const AddGTPTunnelEvent& ev,
+                                           const OpenflowMessenger& messenger,
+                                           uint32_t ingress_port) {
   uint32_t flow_priority =
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm =
@@ -564,8 +565,8 @@ void GTPApplication::delete_downlink_tunnel_flow_ipv6(
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
 
-  add_downlink_match_ipv6(
-      downlink_fm, ev.get_ue_info().get_ipv6(), ingress_port);
+  add_downlink_match_ipv6(downlink_fm, ev.get_ue_info().get_ipv6(),
+                          ingress_port);
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
 

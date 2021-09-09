@@ -25,34 +25,34 @@
 #ifndef FILE_PGW_CONFIG_SEEN
 #define FILE_PGW_CONFIG_SEEN
 
-#include <sys/socket.h>  // inet_aton
-#include <netinet/in.h>  // inet_aton
 #include <arpa/inet.h>   // inet_aton
+#include <netinet/in.h>  // inet_aton
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/socket.h>  // inet_aton
 
-#include "queue.h"
 #include "bstrlib.h"
 #include "pgw_types.h"
+#include "queue.h"
 
 #define PGW_CONFIG_STRING_PGW_CONFIG "P-GW"
 #define PGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
-#define PGW_CONFIG_STRING_PGW_INTERFACE_NAME_FOR_S5_S8                         \
+#define PGW_CONFIG_STRING_PGW_INTERFACE_NAME_FOR_S5_S8 \
   "PGW_INTERFACE_NAME_FOR_S5_S8"
-#define PGW_CONFIG_STRING_PGW_INTERFACE_NAME_FOR_SGI                           \
+#define PGW_CONFIG_STRING_PGW_INTERFACE_NAME_FOR_SGI \
   "PGW_INTERFACE_NAME_FOR_SGI"
 #define PGW_CONFIG_STRING_PGW_IPV4_ADDR_FOR_SGI "PGW_IPV4_ADDRESS_FOR_SGI"
 #define PGW_CONFIG_STRING_PGW_MASQUERADE_SGI "PGW_MASQUERADE_SGI"
 #define PGW_CONFIG_STRING_UE_TCP_MSS_CLAMPING "UE_TCP_MSS_CLAMPING"
-#define PGW_CONFIG_STRING_NAS_FORCE_PUSH_PCO                                   \
+#define PGW_CONFIG_STRING_NAS_FORCE_PUSH_PCO \
   "FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS"
 
 #define PGW_CONFIG_STRING_IP_ADDRESS_POOL "IP_ADDRESS_POOL"
 #define PGW_CONFIG_STRING_IPV4_ADDRESS_LIST "IPV4_LIST"
 #define PGW_CONFIG_STRING_IPV4_PREFIX_DELIMITER '/'
 #define PGW_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
-#define PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
+#define PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define PGW_CONFIG_STRING_UE_MTU "UE_MTU"
 #define PGW_CONFIG_STRING_GTPV1U_REALIZATION "GTPV1U_REALIZATION"
@@ -66,9 +66,9 @@
 #define PGW_CONFIG_STRING_PCEF_ENABLED "PCEF_ENABLED"
 #define PGW_CONFIG_STRING_TRAFFIC_SHAPPING_ENABLED "TRAFFIC_SHAPPING_ENABLED"
 #define PGW_CONFIG_STRING_TCP_ECN_ENABLED "TCP_ECN_ENABLED"
-#define PGW_CONFIG_STRING_AUTOMATIC_PUSH_DEDICATED_BEARER_PCC_RULE             \
+#define PGW_CONFIG_STRING_AUTOMATIC_PUSH_DEDICATED_BEARER_PCC_RULE \
   "AUTOMATIC_PUSH_DEDICATED_BEARER_PCC_RULE"
-#define PGW_CONFIG_STRING_DEFAULT_BEARER_STATIC_PCC_RULE                       \
+#define PGW_CONFIG_STRING_DEFAULT_BEARER_STATIC_PCC_RULE \
   "DEFAULT_BEARER_STATIC_PCC_RULE"
 #define PGW_CONFIG_STRING_PUSH_STATIC_PCC_RULES "PUSH_STATIC_PCC_RULES"
 #define PGW_CONFIG_STRING_APN_AMBR_UL "APN_AMBR_UL"
@@ -146,11 +146,11 @@ int pgw_config_parse_file(pgw_config_t* config_pP);
 void pgw_config_display(pgw_config_t* config_p);
 void free_pgw_config(pgw_config_t* pgw_config_p);
 
-#define pgw_config_read_lock(pGWcONFIG)                                        \
+#define pgw_config_read_lock(pGWcONFIG) \
   pthread_rwlock_rdlock(&(pGWcONFIG)->rw_lock)
-#define pgw_config_write_lock(pGWcONFIG)                                       \
+#define pgw_config_write_lock(pGWcONFIG) \
   pthread_rwlock_wrlock(&(pGWcONFIG)->rw_lock)
-#define pgw_config_unlock(pGWcONFIG)                                           \
+#define pgw_config_unlock(pGWcONFIG) \
   pthread_rwlock_unlock(&(pGWcONFIG)->rw_lock)
 
 #endif /* FILE_PGW_CONFIG_SEEN */

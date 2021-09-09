@@ -20,10 +20,10 @@
 
 #include <stdint.h>
 
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_INFORMATION_REQUEST_MINIMUM_LENGTH (0)

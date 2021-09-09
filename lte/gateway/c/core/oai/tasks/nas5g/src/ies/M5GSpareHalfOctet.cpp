@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
+#include "M5GSpareHalfOctet.h"
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GSpareHalfOctet.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;

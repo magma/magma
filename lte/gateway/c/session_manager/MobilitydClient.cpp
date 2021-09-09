@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include "MobilitydClient.h"
 #include <memory>
 #include <utility>
-#include "MobilitydClient.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
@@ -32,8 +32,8 @@ AsyncMobilitydClient::AsyncMobilitydClient()
 void AsyncMobilitydClient::get_subscriberid_from_ipv4(
     const IPAddress& ue_ip_addr,
     std::function<void(Status status, SubscriberID)> callback) {
-  auto local_resp = new AsyncLocalResponse<SubscriberID>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto local_resp = new AsyncLocalResponse<SubscriberID>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(stub_->AsyncGetSubscriberIDFromIP(
       local_resp->get_context(), ue_ip_addr, &queue_)));
 }

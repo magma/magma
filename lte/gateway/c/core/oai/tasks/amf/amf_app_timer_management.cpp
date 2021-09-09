@@ -12,10 +12,10 @@ limitations under the License.
 */
 //--C includes -----------------------------------------------------------------
 extern "C" {
-#include "log.h"
+#include "common_types.h"
 #include "conversions.h"
 #include "intertask_interface.h"
-#include "common_types.h"
+#include "log.h"
 }
 #include "amf_app_timer_management.h"
 //--C++ includes ---------------------------------------------------------------
@@ -28,11 +28,10 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 typedef uint32_t timer_arg_t;
 
 //------------------------------------------------------------------------------
-int amf_app_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    timer_arg_t id) {
-  return magma5g::AmfUeContext::Instance().StartTimer(
-      msec, repeat, handler, id);
+int amf_app_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, timer_arg_t id) {
+  return magma5g::AmfUeContext::Instance().StartTimer(msec, repeat, handler,
+                                                      id);
 }
 
 //------------------------------------------------------------------------------
@@ -46,12 +45,11 @@ bool amf_app_get_timer_arg(int timer_id, timer_arg_t* arg) {
 }
 
 //------------------------------------------------------------------------------
-int AmfUeContext::StartTimer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    timer_arg_t arg) {
+int AmfUeContext::StartTimer(size_t msec, timer_repeat_t repeat,
+                             zloop_timer_fn handler, timer_arg_t arg) {
   int timer_id = -1;
-  if ((timer_id = start_timer(
-           &amf_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
+  if ((timer_id = start_timer(&amf_app_task_zmq_ctx, msec, repeat, handler,
+                              nullptr)) != -1) {
     amf_app_timers.insert(std::pair<int, uint32_t>(timer_id, arg));
   }
   return timer_id;
@@ -72,11 +70,10 @@ bool AmfUeContext::GetTimerArg(const int timer_id, timer_arg_t* arg) const {
 }
 
 //------------------------------------------------------------------------------
-int amf_pdu_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    ue_pdu_id_t id) {
-  return magma5g::AmfUeContext::Instance().StartPduTimer(
-      msec, repeat, handler, id);
+int amf_pdu_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, ue_pdu_id_t id) {
+  return magma5g::AmfUeContext::Instance().StartPduTimer(msec, repeat, handler,
+                                                         id);
 }
 
 //------------------------------------------------------------------------------
@@ -90,12 +87,11 @@ bool amf_pdu_get_timer_arg(int timer_id, ue_pdu_id_t* arg) {
 }
 
 //------------------------------------------------------------------------------
-int AmfUeContext::StartPduTimer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-    ue_pdu_id_t arg) {
+int AmfUeContext::StartPduTimer(size_t msec, timer_repeat_t repeat,
+                                zloop_timer_fn handler, ue_pdu_id_t arg) {
   int timer_id = -1;
-  if ((timer_id = start_timer(
-           &amf_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
+  if ((timer_id = start_timer(&amf_app_task_zmq_ctx, msec, repeat, handler,
+                              nullptr)) != -1) {
     amf_pdu_timers[timer_id] = arg;
   }
   return timer_id;

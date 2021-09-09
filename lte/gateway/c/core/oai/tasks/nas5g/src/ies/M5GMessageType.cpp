@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
+#include "M5GMessageType.h"
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GMessageType.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -21,8 +21,9 @@ MessageTypeMsg::MessageTypeMsg(){};
 MessageTypeMsg::~MessageTypeMsg(){};
 
 // Decode MessageType IE
-int MessageTypeMsg::DecodeMessageTypeMsg(
-    MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
+                                         uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   uint8_t decoded = 0;
 
   MLOG(MDEBUG) << "   DecodeMessageTypeMsg : ";
@@ -33,8 +34,9 @@ int MessageTypeMsg::DecodeMessageTypeMsg(
 };
 
 // Encode MessageType IE
-int MessageTypeMsg::EncodeMessageTypeMsg(
-    MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
+                                         uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   uint8_t encoded = 0;
 
   MLOG(MDEBUG) << " EncodeMessageTypeMsg : ";

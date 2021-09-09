@@ -43,7 +43,7 @@ Description Defines the EMMAS Service Access Point that provides
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
 #define QUADLET 4
-#define EMM_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+#define EMM_GET_BYTE_ALIGNED_LENGTH(LENGTH) \
   LENGTH += QUADLET - (LENGTH % QUADLET)
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/

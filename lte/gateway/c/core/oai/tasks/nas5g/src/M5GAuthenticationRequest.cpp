@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
+#include "M5GAuthenticationRequest.h"
 #include <iostream>
 #include <sstream>
-#include "M5GAuthenticationRequest.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -30,7 +30,7 @@ int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(
 // Encode AuthenticationRequest Messsage
 int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
     AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

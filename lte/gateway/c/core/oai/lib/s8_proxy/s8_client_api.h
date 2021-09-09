@@ -15,8 +15,8 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
 #include "common_types.h"
+#include "intertask_interface.h"
 
 void send_s8_create_session_request(
     teid_t sgw_s11_teid, const itti_s11_create_session_request_t* msg,

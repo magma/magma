@@ -66,16 +66,16 @@
 */
 
 /* Converts a string to 128 bits gmplib integer holder */
-#define STRING_TO_XBITS(sTRING, lENGTH, cONTAINER, rET)                        \
-  do {                                                                         \
-    memcpy(cONTAINER, sTRING, lENGTH);                                         \
-    rET = 0;                                                                   \
+#define STRING_TO_XBITS(sTRING, lENGTH, cONTAINER, rET) \
+  do {                                                  \
+    memcpy(cONTAINER, sTRING, lENGTH);                  \
+    rET = 0;                                            \
   } while (0)
 
-#define STRING_TO_128BITS(sTRING, cONTAINER, rET)                              \
+#define STRING_TO_128BITS(sTRING, cONTAINER, rET) \
   STRING_TO_XBITS(sTRING, 16, cONTAINER, rET)
 
-#define STRING_TO_256BITS(sTRING, cONTAINER, rET)                              \
+#define STRING_TO_256BITS(sTRING, cONTAINER, rET) \
   STRING_TO_XBITS(sTRING, 32, cONTAINER, rET)
 
 #define STRING_TO_RAND STRING_TO_128BITS
@@ -83,10 +83,10 @@
 #define STRING_TO_AUTH_RES STRING_TO_128BITS
 #define STRING_TO_AUTN STRING_TO_128BITS
 #define STRING_TO_KASME STRING_TO_256BITS
-#define STRING_TO_XRES(sTRING, lENGTH, cONTAINER, rET)                         \
-  do {                                                                         \
-    STRING_TO_XBITS(sTRING, lENGTH, (cONTAINER)->data, rET);                   \
-    if (rET != -1) (cONTAINER)->size = lENGTH;                                 \
+#define STRING_TO_XRES(sTRING, lENGTH, cONTAINER, rET)       \
+  do {                                                       \
+    STRING_TO_XBITS(sTRING, lENGTH, (cONTAINER)->data, rET); \
+    if (rET != -1) (cONTAINER)->size = lENGTH;               \
   } while (0)
 
 /* RES amd XRES can have a variable length of 4-16 octets */
@@ -95,8 +95,8 @@ typedef struct {
   uint8_t data[XRES_LENGTH_MAX];
 } res_t;
 
-#define FORMAT_128BITS                                                         \
-  "%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%"    \
+#define FORMAT_128BITS                                                      \
+  "%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%" \
   "02x,%02x"
 #define XRES_FORMAT FORMAT_128BITS
 #define RAND_FORMAT FORMAT_128BITS
@@ -107,9 +107,9 @@ typedef struct {
   bUFFER[0], bUFFER[1], bUFFER[2], bUFFER[3], bUFFER[4], bUFFER[5], bUFFER[6], \
       bUFFER[7], bUFFER[8], bUFFER[9], bUFFER[10], bUFFER[11], bUFFER[12],     \
       bUFFER[13], bUFFER[14], bUFFER[15]
-#define DISPLAY_128BITS_2(bUFFER)                                              \
-  bUFFER[16], bUFFER[17], bUFFER[18], bUFFER[19], bUFFER[20], bUFFER[21],      \
-      bUFFER[22], bUFFER[23], bUFFER[24], bUFFER[25], bUFFER[26], bUFFER[27],  \
+#define DISPLAY_128BITS_2(bUFFER)                                             \
+  bUFFER[16], bUFFER[17], bUFFER[18], bUFFER[19], bUFFER[20], bUFFER[21],     \
+      bUFFER[22], bUFFER[23], bUFFER[24], bUFFER[25], bUFFER[26], bUFFER[27], \
       bUFFER[28], bUFFER[29], bUFFER[30], bUFFER[31]
 
 #define XRES_DISPLAY(bUFFER) DISPLAY_128BITS(bUFFER)
@@ -155,8 +155,8 @@ typedef enum {
   NAS_INT_ALG = 0x02,
   RRC_ENC_ALG = 0x03,
   RRC_INT_ALG = 0x04,
-  UP_ENC_ALG  = 0x05,
-  UP_INT_ALG  = 0x06
+  UP_ENC_ALG = 0x05,
+  UP_INT_ALG = 0x06
 } algorithm_type_dist_t;
 
 #endif /* FILE_SECURITY_TYPES_SEEN */

@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GPDUSessionModificationReject.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -28,7 +28,7 @@ int PDUSessionModificationRejectMsg::DecodePDUSessionModificationRejectMsg(
 int PDUSessionModificationRejectMsg::EncodePDUSessionModificationRejectMsg(
     PDUSessionModificationRejectMsg* pdu_session_modif_reject, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_REJECT_MIN_LEN, len);

@@ -13,8 +13,8 @@ limitations under the License.
 
 #pragma once
 #include "common_types.h"
-#include "s11_messages_types.h"
 #include "intertask_interface.h"
+#include "s11_messages_types.h"
 #include "spgw_types.h"
 
 void sgw_s8_handle_s11_create_session_request(

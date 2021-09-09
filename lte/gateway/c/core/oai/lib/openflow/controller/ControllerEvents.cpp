@@ -15,72 +15,60 @@
  *      contact@openairinterface.org
  */
 
+#include "ControllerEvents.h"
 #include <netinet/in.h>
 #include <string.h>
-#include "ControllerEvents.h"
 
 using namespace fluid_msg;
 
 namespace openflow {
 
-ControllerEvent::ControllerEvent(
-    fluid_base::OFConnection* ofconn, const ControllerEventType type)
+ControllerEvent::ControllerEvent(fluid_base::OFConnection* ofconn,
+                                 const ControllerEventType type)
     : ofconn_(ofconn), type_(type) {}
 
-const ControllerEventType ControllerEvent::get_type() const {
-  return type_;
-}
+const ControllerEventType ControllerEvent::get_type() const { return type_; }
 
 fluid_base::OFConnection* ControllerEvent::get_connection() const {
   return ofconn_;
 }
 
-DataEvent::DataEvent(
-    fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-    const void* data, const size_t len, const ControllerEventType type)
+DataEvent::DataEvent(fluid_base::OFConnection* ofconn,
+                     fluid_base::OFHandler& ofhandler, const void* data,
+                     const size_t len, const ControllerEventType type)
     : ControllerEvent(ofconn, type),
       ofhandler_(ofhandler),
       data_(static_cast<const uint8_t*>(data)),
       len_(len) {}
 
-DataEvent::~DataEvent() {
-  ofhandler_.free_data(const_cast<uint8_t*>(data_));
-}
+DataEvent::~DataEvent() { ofhandler_.free_data(const_cast<uint8_t*>(data_)); }
 
-const uint8_t* DataEvent::get_data() const {
-  return data_;
-}
+const uint8_t* DataEvent::get_data() const { return data_; }
 
-const size_t DataEvent::get_length() const {
-  return len_;
-}
+const size_t DataEvent::get_length() const { return len_; }
 
-PacketInEvent::PacketInEvent(
-    fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-    const void* data, const size_t len)
+PacketInEvent::PacketInEvent(fluid_base::OFConnection* ofconn,
+                             fluid_base::OFHandler& ofhandler, const void* data,
+                             const size_t len)
     : DataEvent(ofconn, ofhandler, data, len, EVENT_PACKET_IN) {}
 
-SwitchUpEvent::SwitchUpEvent(
-    fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-    const void* data, const size_t len)
+SwitchUpEvent::SwitchUpEvent(fluid_base::OFConnection* ofconn,
+                             fluid_base::OFHandler& ofhandler, const void* data,
+                             const size_t len)
     : DataEvent(ofconn, ofhandler, data, len, EVENT_SWITCH_UP) {}
 
 SwitchDownEvent::SwitchDownEvent(fluid_base::OFConnection* ofconn)
     : ControllerEvent(ofconn, EVENT_SWITCH_DOWN) {}
 
-ErrorEvent::ErrorEvent(
-    fluid_base::OFConnection* ofconn, const struct ofp_error_msg* error_msg)
+ErrorEvent::ErrorEvent(fluid_base::OFConnection* ofconn,
+                       const struct ofp_error_msg* error_msg)
     : error_type_(ntohs(error_msg->type)),
       error_code_(ntohs(error_msg->code)),
       ControllerEvent(ofconn, EVENT_ERROR) {}
 
-const uint16_t ErrorEvent::get_error_type() const {
-  return error_type_;
-}
+const uint16_t ErrorEvent::get_error_type() const { return error_type_; }
 
-const uint16_t ErrorEvent::get_error_code() const {
-  return error_code_;
-}
+const uint16_t ErrorEvent::get_error_code() const { return error_code_; }
 
 ExternalEvent::ExternalEvent(const ControllerEventType type)
     : ControllerEvent(NULL, type) {}
@@ -92,8 +80,8 @@ void ExternalEvent::set_of_connection(fluid_base::OFConnection* ofconn) {
 UeNetworkInfo::UeNetworkInfo(const struct in_addr ue_ip)
     : ue_ip_(ue_ip), vlan_(0), ue_ipv6_(in6addr_any) {}
 
-UeNetworkInfo::UeNetworkInfo(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6)
+UeNetworkInfo::UeNetworkInfo(const struct in_addr ue_ip,
+                             struct in6_addr* ue_ipv6)
     : ue_ip_(ue_ip), vlan_(0) {
   if (ue_ipv6) {
     ue_ipv6_ = *ue_ipv6;
@@ -105,8 +93,8 @@ UeNetworkInfo::UeNetworkInfo(
 UeNetworkInfo::UeNetworkInfo(const struct in_addr ue_ip, int vlan)
     : ue_ip_(ue_ip), vlan_(vlan), ue_ipv6_(in6addr_any) {}
 
-UeNetworkInfo::UeNetworkInfo(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan)
+UeNetworkInfo::UeNetworkInfo(const struct in_addr ue_ip,
+                             struct in6_addr* ue_ipv6, int vlan)
     : ue_ip_(ue_ip), vlan_(vlan) {
   if (ue_ipv6) {
     ue_ipv6_ = *ue_ipv6;
@@ -123,22 +111,18 @@ const bool UeNetworkInfo::is_ue_ipv4_addr_valid() const {
   return ue_ip_.s_addr != INADDR_ANY;
 }
 
-const struct in_addr& UeNetworkInfo::get_ip() const {
-  return ue_ip_;
-}
+const struct in_addr& UeNetworkInfo::get_ip() const { return ue_ip_; }
 
-const struct in6_addr& UeNetworkInfo::get_ipv6() const {
-  return ue_ipv6_;
-}
+const struct in6_addr& UeNetworkInfo::get_ipv6() const { return ue_ipv6_; }
 
-const int UeNetworkInfo::get_vlan() const {
-  return vlan_;
-}
+const int UeNetworkInfo::get_vlan() const { return vlan_; }
 
-AddGTPTunnelEvent::AddGTPTunnelEvent(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-    const struct in_addr enb_ip, const uint32_t in_tei, const uint32_t out_tei,
-    const char* imsi, uint32_t enb_gtp_port)
+AddGTPTunnelEvent::AddGTPTunnelEvent(const struct in_addr ue_ip,
+                                     struct in6_addr* ue_ipv6, int vlan,
+                                     const struct in_addr enb_ip,
+                                     const uint32_t in_tei,
+                                     const uint32_t out_tei, const char* imsi,
+                                     uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6, vlan),
       enb_ip_(enb_ip),
       pgw_ip_(INADDR_ZERO),
@@ -225,33 +209,21 @@ const struct UeNetworkInfo& AddGTPTunnelEvent::get_ue_info() const {
   return ue_info_;
 }
 
-const struct in_addr& AddGTPTunnelEvent::get_enb_ip() const {
-  return enb_ip_;
-}
+const struct in_addr& AddGTPTunnelEvent::get_enb_ip() const { return enb_ip_; }
 
-const struct in_addr& AddGTPTunnelEvent::get_pgw_ip() const {
-  return pgw_ip_;
-}
+const struct in_addr& AddGTPTunnelEvent::get_pgw_ip() const { return pgw_ip_; }
 
-const uint32_t AddGTPTunnelEvent::get_in_tei() const {
-  return in_tei_;
-}
+const uint32_t AddGTPTunnelEvent::get_in_tei() const { return in_tei_; }
 
-const uint32_t AddGTPTunnelEvent::get_out_tei() const {
-  return out_tei_;
-}
+const uint32_t AddGTPTunnelEvent::get_out_tei() const { return out_tei_; }
 
-const uint32_t AddGTPTunnelEvent::get_pgw_in_tei() const {
-  return pgw_in_tei_;
-}
+const uint32_t AddGTPTunnelEvent::get_pgw_in_tei() const { return pgw_in_tei_; }
 
 const uint32_t AddGTPTunnelEvent::get_pgw_out_tei() const {
   return pgw_out_tei_;
 }
 
-const std::string& AddGTPTunnelEvent::get_imsi() const {
-  return imsi_;
-}
+const std::string& AddGTPTunnelEvent::get_imsi() const { return imsi_; }
 
 const bool AddGTPTunnelEvent::is_dl_flow_valid() const {
   return dl_flow_valid_;
@@ -273,9 +245,11 @@ const uint32_t AddGTPTunnelEvent::get_pgw_gtp_portno() const {
   return pgw_gtp_port_;
 }
 
-DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
-    const struct ip_flow_dl* dl_flow, uint32_t enb_gtp_port)
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(const struct in_addr ue_ip,
+                                           struct in6_addr* ue_ipv6,
+                                           const uint32_t in_tei,
+                                           const struct ip_flow_dl* dl_flow,
+                                           uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6),
       in_tei_(in_tei),
       dl_flow_valid_(true),
@@ -284,9 +258,10 @@ DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(0) {}
 
-DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
-    uint32_t enb_gtp_port)
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(const struct in_addr ue_ip,
+                                           struct in6_addr* ue_ipv6,
+                                           const uint32_t in_tei,
+                                           uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6),
       in_tei_(in_tei),
       dl_flow_valid_(false),
@@ -295,10 +270,12 @@ DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(0) {}
 
-DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
-    const struct ip_flow_dl* dl_flow, uint32_t enb_gtp_port,
-    uint32_t pgw_gtp_port)
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(const struct in_addr ue_ip,
+                                           struct in6_addr* ue_ipv6,
+                                           const uint32_t in_tei,
+                                           const struct ip_flow_dl* dl_flow,
+                                           uint32_t enb_gtp_port,
+                                           uint32_t pgw_gtp_port)
     : ue_info_(ue_ip, ue_ipv6),
       in_tei_(in_tei),
       dl_flow_valid_(true),
@@ -307,9 +284,11 @@ DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(pgw_gtp_port) {}
 
-DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
-    uint32_t enb_gtp_port, uint32_t pgw_gtp_port)
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(const struct in_addr ue_ip,
+                                           struct in6_addr* ue_ipv6,
+                                           const uint32_t in_tei,
+                                           uint32_t enb_gtp_port,
+                                           uint32_t pgw_gtp_port)
     : ue_info_(ue_ip, ue_ipv6),
       in_tei_(in_tei),
       dl_flow_valid_(false),
@@ -326,9 +305,7 @@ const struct in_addr& DeleteGTPTunnelEvent::get_ue_ip() const {
   return ue_info_.get_ip();
 }
 
-const uint32_t DeleteGTPTunnelEvent::get_in_tei() const {
-  return in_tei_;
-}
+const uint32_t DeleteGTPTunnelEvent::get_in_tei() const { return in_tei_; }
 
 const bool DeleteGTPTunnelEvent::is_dl_flow_valid() const {
   return dl_flow_valid_;

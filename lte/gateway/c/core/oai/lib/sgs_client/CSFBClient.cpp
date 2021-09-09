@@ -20,9 +20,9 @@
 #include <utility>
 
 #include "CSFBClient.h"
-#include "itti_msg_to_proto_msg.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "feg/protos/csfb.pb.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "itti_msg_to_proto_msg.h"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {
@@ -67,9 +67,8 @@ void CSFBClient::location_update_request(
   local_response->set_response_reader(std::move(response_reader));
 }
 
-void CSFBClient::alert_ack(
-    const itti_sgsap_alert_ack_t* msg,
-    std::function<void(grpc::Status, Void)> callback) {
+void CSFBClient::alert_ack(const itti_sgsap_alert_ack_t* msg,
+                           std::function<void(grpc::Status, Void)> callback) {
   CSFBClient& client = get_instance();
   AlertAck proto_msg = convert_itti_sgsap_alert_ack_to_proto_msg(msg);
   auto local_response =
@@ -82,7 +81,7 @@ void CSFBClient::alert_ack(
 void CSFBClient::alert_reject(
     const itti_sgsap_alert_reject_t* msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client    = get_instance();
+  CSFBClient& client = get_instance();
   AlertReject proto_msg = convert_itti_sgsap_alert_reject_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
@@ -133,7 +132,7 @@ void CSFBClient::imsi_detach_indication(
 void CSFBClient::paging_reject(
     const itti_sgsap_paging_reject_t* msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client     = get_instance();
+  CSFBClient& client = get_instance();
   PagingReject proto_msg = convert_itti_sgsap_paging_reject_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
@@ -171,7 +170,7 @@ void CSFBClient::ue_activity_indication(
 void CSFBClient::ue_unreachable(
     const itti_sgsap_ue_unreachable_t* msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client      = get_instance();
+  CSFBClient& client = get_instance();
   UEUnreachable proto_msg = convert_itti_sgsap_ue_unreachable_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);

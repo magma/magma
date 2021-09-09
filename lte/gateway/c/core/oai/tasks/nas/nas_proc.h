@@ -37,17 +37,17 @@ Description NAS procedure call manager
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "common_defs.h"
-#include "mme_config.h"
-#include "emm_cnDef.h"
-#include "nas/commonDef.h"
-#include "nas/networkDef.h"
 #include "3gpp_23.003.h"
 #include "3gpp_36.401.h"
 #include "TrackingAreaIdentity.h"
-#include "nas/as_message.h"
 #include "bstrlib.h"
+#include "common_defs.h"
+#include "emm_cnDef.h"
 #include "mme_app_defs.h"
+#include "mme_config.h"
+#include "nas/as_message.h"
+#include "nas/commonDef.h"
+#include "nas/networkDef.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
 #include "sgs_messages_types.h"
@@ -89,15 +89,16 @@ status_code_e nas_proc_establish_ind(
     const tai_t originating_tai, const ecgi_t ecgi, const as_cause_t as_cause,
     const s_tmsi_t s_tmsi, STOLEN_REF bstring* msg);
 
-status_code_e nas_proc_dl_transfer_cnf(
-    const mme_ue_s1ap_id_t ueid, const nas_error_code_t status,
-    STOLEN_REF bstring* nas_msg);
-status_code_e nas_proc_dl_transfer_rej(
-    const mme_ue_s1ap_id_t ueid, const nas_error_code_t status,
-    STOLEN_REF bstring* nas_msg);
-status_code_e nas_proc_ul_transfer_ind(
-    const mme_ue_s1ap_id_t ueid, const tai_t originating_tai, const ecgi_t cgi,
-    STOLEN_REF bstring* msg);
+status_code_e nas_proc_dl_transfer_cnf(const mme_ue_s1ap_id_t ueid,
+                                       const nas_error_code_t status,
+                                       STOLEN_REF bstring* nas_msg);
+status_code_e nas_proc_dl_transfer_rej(const mme_ue_s1ap_id_t ueid,
+                                       const nas_error_code_t status,
+                                       STOLEN_REF bstring* nas_msg);
+status_code_e nas_proc_ul_transfer_ind(const mme_ue_s1ap_id_t ueid,
+                                       const tai_t originating_tai,
+                                       const ecgi_t cgi,
+                                       STOLEN_REF bstring* msg);
 
 /*
  * --------------------------------------------------------------------------
@@ -106,10 +107,11 @@ status_code_e nas_proc_ul_transfer_ind(
  */
 status_code_e nas_proc_authentication_info_answer(
     mme_app_desc_t* mme_app_desc_p, s6a_auth_info_ans_t* ans);
-status_code_e nas_proc_auth_param_res(
-    mme_ue_s1ap_id_t ue_id, uint8_t nb_vectors, eutran_vector_t* vectors);
-status_code_e nas_proc_auth_param_fail(
-    mme_ue_s1ap_id_t ue_id, nas_cause_t cause);
+status_code_e nas_proc_auth_param_res(mme_ue_s1ap_id_t ue_id,
+                                      uint8_t nb_vectors,
+                                      eutran_vector_t* vectors);
+status_code_e nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id,
+                                       nas_cause_t cause);
 status_code_e nas_proc_ula_success(mme_ue_s1ap_id_t ue_id);
 status_code_e nas_proc_cs_respose_success(
     emm_cn_cs_response_success_t* nas_cs_response_success);
@@ -129,8 +131,8 @@ status_code_e nas_proc_downlink_unitdata(
 status_code_e nas_proc_sgs_release_req(itti_sgsap_release_req_t* sgs_rel);
 status_code_e nas_proc_cs_domain_mm_information_request(
     itti_sgsap_mm_information_req_t* const mm_information_req_pP);
-status_code_e nas_proc_cs_service_notification(
-    mme_ue_s1ap_id_t ue_id, uint8_t paging_id, bstring cli);
+status_code_e nas_proc_cs_service_notification(mme_ue_s1ap_id_t ue_id,
+                                               uint8_t paging_id, bstring cli);
 status_code_e nas_proc_delete_dedicated_bearer(
     emm_cn_deactivate_dedicated_bearer_req_t* emm_cn_deactivate);
 status_code_e nas_proc_pdn_disconnect_rsp(

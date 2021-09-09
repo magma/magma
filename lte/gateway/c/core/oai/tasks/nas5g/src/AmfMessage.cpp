@@ -9,17 +9,15 @@
    limitations under the License.
  */
 
+#include "AmfMessage.h"
 #include <iostream>
 #include <sstream>
-#include "AmfMessage.h"
-#include "M5gNasMessage.h"
 #include "M5GCommonDefs.h"
+#include "M5gNasMessage.h"
 
 using namespace std;
 namespace magma5g {
-AmfMsg::AmfMsg() {
-  memset(&msg, 0, sizeof(MMsg_u));
-};
+AmfMsg::AmfMsg() { memset(&msg, 0, sizeof(MMsg_u)); };
 
 AmfMsg::~AmfMsg(){};
 MMsg_u::MMsg_u(){};
@@ -84,8 +82,8 @@ int AmfMsg::M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
 }
 
 // Decode AMF Message Header
-int AmfMsg::AmfMsgDecodeHeaderMsg(
-    AmfMsgHeader_s* hdr, uint8_t* buffer, uint32_t len) {
+int AmfMsg::AmfMsgDecodeHeaderMsg(AmfMsgHeader_s* hdr, uint8_t* buffer,
+                                  uint32_t len) {
   int size = 0;
 
   MLOG(MDEBUG) << "AmfMsgDecodeHeaderMsg:" << endl;
@@ -111,8 +109,8 @@ int AmfMsg::AmfMsgDecodeHeaderMsg(
 }
 
 // Encode AMF Message Header
-int AmfMsg::AmfMsgEncodeHeaderMsg(
-    AmfMsgHeader_s* hdr, uint8_t* buffer, uint32_t len) {
+int AmfMsg::AmfMsgEncodeHeaderMsg(AmfMsgHeader_s* hdr, uint8_t* buffer,
+                                  uint32_t len) {
   int size = 0;
 
   MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg: ";
@@ -129,7 +127,7 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);
   }
-  if ((unsigned char) hdr->extended_protocol_discriminator !=
+  if ((unsigned char)hdr->extended_protocol_discriminator !=
       M5G_MOBILITY_MANAGEMENT_MESSAGES) {
     MLOG(MERROR) << "Error : TLV not supported";
     return (TLV_PROTOCOL_NOT_SUPPORTED);
@@ -149,7 +147,7 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   }
   MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.message_type);
 
-  switch ((unsigned char) msg->header.message_type) {
+  switch ((unsigned char)msg->header.message_type) {
     case REG_REQUEST:
       decode_result = msg->msg.reg_request.DecodeRegistrationRequestMsg(
           &msg->msg.reg_request, buffer, len);
@@ -235,7 +233,7 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     MLOG(MERROR) << "Error : Buffer is Empty";
     return (RETURNerror);
   }
-  switch ((unsigned char) msg->header.message_type) {
+  switch ((unsigned char)msg->header.message_type) {
     case REG_REQUEST:
       encode_result = msg->msg.reg_request.EncodeRegistrationRequestMsg(
           &msg->msg.reg_request, buffer, len);
@@ -302,8 +300,8 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
           &msg->msg.svc_acpt, buffer, len);
       break;
     case M5G_SERVICE_REJECT:
-      encode_result = msg->msg.svc_rej.EncodeServiceRejectMsg(
-          &msg->msg.svc_rej, buffer, len);
+      encode_result = msg->msg.svc_rej.EncodeServiceRejectMsg(&msg->msg.svc_rej,
+                                                              buffer, len);
       break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;

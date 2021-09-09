@@ -15,23 +15,23 @@
  *      contact@openairinterface.org
  */
 
+#include "ControllerMain.h"
+#include "BaseApplication.h"
+#include "GTPApplication.h"
 #include "OpenflowController.h"
 #include "PagingApplication.h"
-#include "BaseApplication.h"
-#include "ControllerMain.h"
-#include "GTPApplication.h"
 extern "C" {
+#include "common_defs.h"
 #include "log.h"
 #include "spgw_config.h"
-#include "common_defs.h"
 }
 
-static const int OFP_LOCAL   = 65534;
+static const int OFP_LOCAL = 65534;
 static const int OF13P_LOCAL = 0xfffffffe;
 
 namespace {
-openflow::OpenflowController ctrl(
-    CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS, false);
+openflow::OpenflowController ctrl(CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS,
+                                  false);
 }
 
 int start_of_controller(bool persist_state) {
@@ -91,11 +91,13 @@ static void* external_event_callback(std::shared_ptr<void> data) {
   return NULL;
 }
 
-int openflow_controller_add_gtp_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    uint32_t i_tei, uint32_t o_tei, const char* imsi,
-    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
-    uint32_t gtp_portno) {
+int openflow_controller_add_gtp_tunnel(struct in_addr ue,
+                                       struct in6_addr* ue_ipv6, int vlan,
+                                       struct in_addr enb, uint32_t i_tei,
+                                       uint32_t o_tei, const char* imsi,
+                                       struct ip_flow_dl* flow_dl,
+                                       uint32_t flow_precedence_dl,
+                                       uint32_t gtp_portno) {
   if (flow_dl) {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
         ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
@@ -109,9 +111,10 @@ int openflow_controller_add_gtp_tunnel(
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
-int openflow_controller_del_gtp_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-    struct ip_flow_dl* flow_dl, uint32_t gtp_portno) {
+int openflow_controller_del_gtp_tunnel(struct in_addr ue,
+                                       struct in6_addr* ue_ipv6, uint32_t i_tei,
+                                       struct ip_flow_dl* flow_dl,
+                                       uint32_t gtp_portno) {
   if (flow_dl) {
     auto del_tunnel = std::make_shared<openflow::DeleteGTPTunnelEvent>(
         ue, ue_ipv6, i_tei, flow_dl, gtp_portno);
@@ -158,9 +161,10 @@ int openflow_controller_del_gtp_s8_tunnel(
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
-int openflow_controller_discard_data_on_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-    struct ip_flow_dl* flow_dl) {
+int openflow_controller_discard_data_on_tunnel(struct in_addr ue,
+                                               struct in6_addr* ue_ipv6,
+                                               uint32_t i_tei,
+                                               struct ip_flow_dl* flow_dl) {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
         ue, ue_ipv6, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl,
@@ -174,9 +178,11 @@ int openflow_controller_discard_data_on_tunnel(
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
-int openflow_controller_forward_data_on_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl) {
+int openflow_controller_forward_data_on_tunnel(struct in_addr ue,
+                                               struct in6_addr* ue_ipv6,
+                                               uint32_t i_tei,
+                                               struct ip_flow_dl* flow_dl,
+                                               uint32_t flow_precedence_dl) {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
         ue, ue_ipv6, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL, flow_dl,

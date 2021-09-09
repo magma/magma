@@ -15,10 +15,10 @@
  *      contact@openairinterface.org
  */
 
-#include "util_ngap_pkt.h"
-#include "dynamic_memory_check.h"
 #include <gtest/gtest.h>
 #include <thread>
+#include "dynamic_memory_check.h"
+#include "util_ngap_pkt.h"
 
 using ::testing::Test;
 
@@ -30,7 +30,7 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_asn_raw) {
   Ngap_NGAP_PDU_t decode_pdu;
   Ngap_NGSetupFailure_t* container;
   Ngap_NGSetupFailureIEs_t* ie;
-  int ret        = 0;
+  int ret = 0;
   bool decode_op = false;
 
   ret = ngap_ng_setup_failure_stream(
@@ -42,8 +42,8 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_asn_raw) {
 
   container =
       &decode_pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
-  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
-      Ngap_NGSetupFailureIEs_t, ie, container, Ngap_ProtocolIE_ID_id_Cause);
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupFailureIEs_t, ie, container,
+                                      Ngap_ProtocolIE_ID_id_Cause);
 
   EXPECT_FALSE(ie == nullptr);
   EXPECT_TRUE(ie->value.choice.Cause.present == Ngap_Cause_PR_misc);
@@ -60,14 +60,14 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_pdu) {
   Ngap_NGSetupFailure_t* container;
   Ngap_NGSetupFailureIEs_t* ie;
   uint8_t* buffer_p = NULL;
-  uint32_t length   = 0;
-  int ret           = 0;
-  bool decode_op    = false;
+  uint32_t length = 0;
+  int ret = 0;
+  bool decode_op = false;
 
   memset(&encode_pdu, 0, sizeof(encode_pdu));
 
-  ngap_ng_setup_failure_pdu(
-      Ngap_Cause_PR_misc, Ngap_CauseMisc_unspecified, encode_pdu);
+  ngap_ng_setup_failure_pdu(Ngap_Cause_PR_misc, Ngap_CauseMisc_unspecified,
+                            encode_pdu);
   ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
 
   EXPECT_TRUE(ret == 0);
@@ -81,8 +81,8 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_pdu) {
 
   container =
       &decode_pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
-  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
-      Ngap_NGSetupFailureIEs_t, ie, container, Ngap_ProtocolIE_ID_id_Cause);
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupFailureIEs_t, ie, container,
+                                      Ngap_ProtocolIE_ID_id_Cause);
 
   EXPECT_FALSE(ie == nullptr);
   EXPECT_TRUE(ie->value.choice.Cause.present == Ngap_Cause_PR_misc);
@@ -93,7 +93,7 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_pdu) {
 }
 
 TEST(test_ngap_pkt_tests, test_ngap_initiate_ue_message) {
-  bool output    = false;
+  bool output = false;
   int decode_ops = -1;
   bstring stream;
   Ngap_NGAP_PDU_t decode_pdu;
@@ -114,7 +114,7 @@ TEST(test_ngap_pkt_tests, test_ngap_initiate_ue_message) {
 }
 
 TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_setup_req) {
-  bool output    = false;
+  bool output = false;
   int decode_ops = -1;
   bstring stream;
   Ngap_NGAP_PDU_t decode_pdu;
@@ -135,7 +135,7 @@ TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_setup_req) {
 }
 
 TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_setup_stream) {
-  bool output    = false;
+  bool output = false;
   int decode_ops = -1;
   bstring stream;
   Ngap_NGAP_PDU_t decode_pdu;
@@ -156,7 +156,7 @@ TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_setup_stream) {
 }
 
 TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_rel_cmd_stream) {
-  bool output    = false;
+  bool output = false;
   int decode_ops = -1;
   bstring stream;
   Ngap_NGAP_PDU_t decode_pdu;
@@ -187,9 +187,9 @@ TEST(test_ngap_pkt_tests, test_ngap_init_ue_msg_pdu) {
   memset(&ue_ref, 0, sizeof(m5g_ue_description_t));
   memset(&gNB_ref, 0, sizeof(gnb_description_t));
 
-  gNB_ref.sctp_assoc_id    = 1;
+  gNB_ref.sctp_assoc_id = 1;
   gNB_ref.next_sctp_stream = 3;
-  gNB_ref.gnb_id           = 2;
+  gNB_ref.gnb_id = 2;
 
   memset(&ue_ref, 0, sizeof(m5g_ue_description_t));
 
@@ -230,9 +230,9 @@ TEST(test_ngap_pkt_tests, test_ngap_Five_G_TMSI) {
   decode_ops = ngap_amf_decode_pdu(&decode_pdu, stream_fiveg_tmsi);
   EXPECT_TRUE(decode_ops == 0);
 
-  gNB_ref.sctp_assoc_id    = 1;
+  gNB_ref.sctp_assoc_id = 1;
   gNB_ref.next_sctp_stream = 3;
-  gNB_ref.gnb_id           = 2;
+  gNB_ref.gnb_id = 2;
 
   res = validate_handle_initial_ue_message(&gNB_ref, &ue_ref, &decode_pdu);
   EXPECT_TRUE(res == true);

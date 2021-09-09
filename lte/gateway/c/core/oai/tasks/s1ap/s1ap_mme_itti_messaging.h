@@ -25,17 +25,17 @@
 #ifndef FILE_S1AP_MME_ITTI_MESSAGING_SEEN
 #define FILE_S1AP_MME_ITTI_MESSAGING_SEEN
 
+#include <czmq.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <czmq.h>
 
-#include "common_defs.h"
 #include "3gpp_23.003.h"
 #include "3gpp_36.401.h"
 #include "S1ap_Cause.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "common_types.h"
 #include "intertask_interface.h"
 
@@ -44,16 +44,18 @@
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 extern long s1ap_last_msg_latency;
 
-status_code_e s1ap_mme_itti_send_sctp_request(
-    STOLEN_REF bstring* payload, const uint32_t sctp_assoc_id_t,
-    const sctp_stream_id_t stream, const mme_ue_s1ap_id_t ue_id);
+status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
+                                              const uint32_t sctp_assoc_id_t,
+                                              const sctp_stream_id_t stream,
+                                              const mme_ue_s1ap_id_t ue_id);
 
-status_code_e s1ap_mme_itti_nas_uplink_ind(
-    const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
-    const tai_t* const tai, const ecgi_t* const cgi);
+status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
+                                           STOLEN_REF bstring* payload,
+                                           const tai_t* const tai,
+                                           const ecgi_t* const cgi);
 
-status_code_e s1ap_mme_itti_nas_downlink_cnf(
-    const mme_ue_s1ap_id_t ue_id, const bool is_success);
+status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
+                                             const bool is_success);
 
 void s1ap_mme_itti_s1ap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t enb_id,
@@ -66,10 +68,11 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
     const void* const opt_cell_gw_transport_address,  // unused
     const void* const opt_relay_node_indicator);      // unused
 
-void s1ap_mme_itti_nas_non_delivery_ind(
-    const mme_ue_s1ap_id_t ue_id, uint8_t* const nas_msg,
-    const size_t nas_msg_length, const S1ap_Cause_t* const cause,
-    imsi64_t imsi64);
+void s1ap_mme_itti_nas_non_delivery_ind(const mme_ue_s1ap_id_t ue_id,
+                                        uint8_t* const nas_msg,
+                                        const size_t nas_msg_length,
+                                        const S1ap_Cause_t* const cause,
+                                        imsi64_t imsi64);
 
 status_code_e s1ap_mme_itti_s1ap_path_switch_request(
     const sctp_assoc_id_t assoc_id, const uint32_t enb_id,

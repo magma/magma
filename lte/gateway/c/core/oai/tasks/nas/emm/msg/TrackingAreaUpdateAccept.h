@@ -20,34 +20,34 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EpsUpdateResult.h"
-#include "EpsMobileIdentity.h"
-#include "TrackingAreaIdentityList.h"
-#include "EpsBearerContextStatus.h"
-#include "EmmCause.h"
-#include "EpsNetworkFeatureSupport.h"
-#include "AdditionalUpdateResult.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "AdditionalUpdateResult.h"
+#include "EmmCause.h"
+#include "EpsBearerContextStatus.h"
+#include "EpsMobileIdentity.h"
+#include "EpsNetworkFeatureSupport.h"
+#include "EpsUpdateResult.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
+#include "TrackingAreaIdentityList.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define TRACKING_AREA_UPDATE_ACCEPT_MINIMUM_LENGTH                             \
+#define TRACKING_AREA_UPDATE_ACCEPT_MINIMUM_LENGTH \
   (EPS_UPDATE_RESULT_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define TRACKING_AREA_UPDATE_ACCEPT_MAXIMUM_LENGTH                             \
-  (EPS_UPDATE_RESULT_MAXIMUM_LENGTH + GPRS_TIMER_MAXIMUM_LENGTH +              \
-   EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH +                                        \
-   TRACKING_AREA_IDENTITY_LIST_MAXIMUM_LENGTH +                                \
-   EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH +                                  \
-   LOCATION_AREA_IDENTIFICATION_MAXIMUM_LENGTH +                               \
-   MOBILE_IDENTITY_MAXIMUM_LENGTH + EMM_CAUSE_MAXIMUM_LENGTH +                 \
-   GPRS_TIMER_MAXIMUM_LENGTH + GPRS_TIMER_MAXIMUM_LENGTH +                     \
-   PLMN_LIST_MAXIMUM_LENGTH + EMERGENCY_NUMBER_LIST_MAXIMUM_LENGTH +           \
-   EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH +                                \
+#define TRACKING_AREA_UPDATE_ACCEPT_MAXIMUM_LENGTH                   \
+  (EPS_UPDATE_RESULT_MAXIMUM_LENGTH + GPRS_TIMER_MAXIMUM_LENGTH +    \
+   EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH +                              \
+   TRACKING_AREA_IDENTITY_LIST_MAXIMUM_LENGTH +                      \
+   EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH +                        \
+   LOCATION_AREA_IDENTIFICATION_MAXIMUM_LENGTH +                     \
+   MOBILE_IDENTITY_MAXIMUM_LENGTH + EMM_CAUSE_MAXIMUM_LENGTH +       \
+   GPRS_TIMER_MAXIMUM_LENGTH + GPRS_TIMER_MAXIMUM_LENGTH +           \
+   PLMN_LIST_MAXIMUM_LENGTH + EMERGENCY_NUMBER_LIST_MAXIMUM_LENGTH + \
+   EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH +                      \
    ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -57,7 +57,7 @@
 #define TRACKING_AREA_UPDATE_ACCEPT_GUTI_PRESENT (1 << 1)
 #define TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_PRESENT (1 << 2)
 #define TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT (1 << 3)
-#define TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT       \
+#define TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT \
   (1 << 4)
 #define TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT (1 << 5)
 #define TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_PRESENT (1 << 6)
@@ -65,18 +65,18 @@
 #define TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_PRESENT (1 << 8)
 #define TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_PRESENT (1 << 9)
 #define TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT (1 << 10)
-#define TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT        \
+#define TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT \
   (1 << 11)
 #define TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT (1 << 12)
 
 typedef enum tracking_area_update_accept_iei_tag {
   TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI = GPRS_C_TIMER_3412_VALUE_IEI,
-  TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI        = 0x50, /* 0x50 = 80 */
-  TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI    = 0x54, /* 0x54 = 84 */
+  TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI = 0x50,     /* 0x50 = 80 */
+  TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI = 0x54, /* 0x54 = 84 */
   TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_IEI =
       0x57, /* 0x57 = 87 */
   TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI = C_MOBILE_IDENTITY_IEI,
-  TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI   = 0x53, /* 0x53 = 83 */
+  TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI = 0x53, /* 0x53 = 83 */
   TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI = GPRS_C_TIMER_3402_VALUE_IEI,
   TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI = GPRS_C_TIMER_3423_VALUE_IEI,
   TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI = C_PLMN_LIST_IEI,

@@ -36,8 +36,8 @@ Description Timer utilities
 
 #include <czmq.h>
 
-#include "3gpp_36.401.h"
 #include "3gpp_24.007.h"
+#include "3gpp_36.401.h"
 #include "common_defs.h"
 #include "common_types.h"
 /****************************************************************************/
@@ -84,9 +84,8 @@ typedef struct nas_itti_timer_arg_s {
 
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
-void nas_timer_start(
-    nas_timer_t* const timer, time_out_t time_out_cb,
-    timer_arg_t* time_out_cb_args);
+void nas_timer_start(nas_timer_t* const timer, time_out_t time_out_cb,
+                     timer_arg_t* time_out_cb_args);
 void nas_timer_stop(nas_timer_t* const timer);
 void mme_app_nas_timer_handle_signal_expiry(
     long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg, imsi64_t* imsi64);

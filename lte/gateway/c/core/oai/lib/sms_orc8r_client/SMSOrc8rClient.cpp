@@ -20,8 +20,8 @@
 #include <utility>
 
 #include "SMSOrc8rClient.h"
-#include "itti_msg_to_proto_msg.h"
 #include "includes/ServiceRegistrySingleton.h"
+#include "itti_msg_to_proto_msg.h"
 #include "lte/protos/sms_orc8r.pb.h"
 #include "orc8r/protos/common.pb.h"
 

@@ -12,12 +12,12 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
-#include "M5GSRegistrationType.h"
 #include "M5GNASKeySetIdentifier.h"
 #include "M5GSMobileIdentity.h"
+#include "M5GSRegistrationType.h"
+#include "M5GSecurityHeaderType.h"
+#include "M5GSpareHalfOctet.h"
 #include "M5GUESecurityCapability.h"
 
 using namespace std;
@@ -61,10 +61,10 @@ class RegistrationRequestMsg {
 
   RegistrationRequestMsg();
   ~RegistrationRequestMsg();
-  int DecodeRegistrationRequestMsg(
-      RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationRequestMsg(
-      RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationRequestMsg(RegistrationRequestMsg* reg_request,
+                                   uint8_t* buffer, uint32_t len);
+  int EncodeRegistrationRequestMsg(RegistrationRequestMsg* reg_request,
+                                   uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

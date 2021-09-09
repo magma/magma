@@ -48,8 +48,8 @@
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
 #include "common_types.h"
-#include "s11_messages_types.h"
 #include "gx_messages_types.h"
+#include "s11_messages_types.h"
 
 //==============================================================================
 // 5.7 Information storage

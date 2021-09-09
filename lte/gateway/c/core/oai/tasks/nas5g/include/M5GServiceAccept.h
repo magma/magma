@@ -12,11 +12,11 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
+#include "M5GMessageType.h"
+#include "M5GPDUSessionReActivationResult.h"
+#include "M5GPDUSessionStatus.h"
 #include "M5GSecurityHeaderType.h"
 #include "M5GSpareHalfOctet.h"
-#include "M5GMessageType.h"
-#include "M5GPDUSessionStatus.h"
-#include "M5GPDUSessionReActivationResult.h"
 
 using namespace std;
 namespace magma5g {
@@ -33,9 +33,9 @@ class ServiceAcceptMsg {
 
   ServiceAcceptMsg();
   ~ServiceAcceptMsg();
-  int DecodeServiceAcceptMsg(
-      ServiceAcceptMsg* service_accept, uint8_t* buffer, uint32_t len);
-  int EncodeServiceAcceptMsg(
-      ServiceAcceptMsg* service_accept, uint8_t* buffer, uint32_t len);
+  int DecodeServiceAcceptMsg(ServiceAcceptMsg* service_accept, uint8_t* buffer,
+                             uint32_t len);
+  int EncodeServiceAcceptMsg(ServiceAcceptMsg* service_accept, uint8_t* buffer,
+                             uint32_t len);
 };
 }  // namespace magma5g

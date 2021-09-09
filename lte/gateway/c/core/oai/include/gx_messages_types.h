@@ -43,16 +43,16 @@
 #include "3gpp_29.274.h"
 #include "ip_forward_messages_types.h"
 
-#define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
+#define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.gx_nw_init_actv_bearer_request
-#define GX_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                          \
+#define GX_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.gx_nw_init_deactv_bearer_request
 
-#define POLICY_RULE_NAME_MAXLEN                                                \
+#define POLICY_RULE_NAME_MAXLEN \
   100  // The policy name will be truncated to this
 
 typedef enum {
-  PCEF_STATUS_OK     = 0,
+  PCEF_STATUS_OK = 0,
   PCEF_STATUS_FAILED = 1,
 } PcefRpcStatus_t;
 

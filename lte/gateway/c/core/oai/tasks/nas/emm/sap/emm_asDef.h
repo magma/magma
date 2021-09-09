@@ -36,15 +36,15 @@ Description Defines the EMM primitives available at the EMMAS Service
 *****************************************************************************/
 #ifndef FILE_EMM_ASDEF_SEEN
 #define FILE_EMM_ASDEF_SEEN
-#include "common_types.h"
-#include "nas/commonDef.h"
-#include "nas/securityDef.h"
-#include "MobileIdentity.h"
-#include "TrackingAreaIdentityList.h"
-#include "3gpp_36.401.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "3gpp_36.401.h"
+#include "MobileIdentity.h"
+#include "TrackingAreaIdentityList.h"
+#include "common_types.h"
+#include "nas/commonDef.h"
+#include "nas/securityDef.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -268,7 +268,7 @@ typedef struct emm_as_data_s {
 #define EMM_AS_NAS_DATA_ATTACH_ACCEPT 0x04 /* Attach Accept            */
 #define EMM_AS_NAS_EMM_INFORMATION 0x05    /* Emm information          */
 #define EMM_AS_NAS_DATA_DETACH_ACCEPT 0x06 /* Detach Accept            */
-#define EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION                                \
+#define EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION \
   0x07                                   /* CS Service Notification  */
 #define EMM_AS_NAS_DATA_INFO_SR 0x08     /* Service Reject in DL NAS */
 #define EMM_AS_NAS_DL_NAS_TRANSPORT 0x09 /* Downlink Nas Transport */
@@ -373,8 +373,7 @@ typedef struct emm_as_s {
  * Defined in LowerLayer.c
  * Setup security data according to the given EPS security context
  */
-void emm_as_set_security_data(
-    emm_as_security_data_t* data, const void* context, bool is_new,
-    bool is_ciphered);
+void emm_as_set_security_data(emm_as_security_data_t* data, const void* context,
+                              bool is_new, bool is_ciphered);
 
 #endif /* FILE_EMM_ASDEF_SEEN*/

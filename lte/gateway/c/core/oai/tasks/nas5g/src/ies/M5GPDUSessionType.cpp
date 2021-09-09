@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
+#include "M5GPDUSessionType.h"
 #include <cstdint>
 #include <cstring>
-#include "M5GPDUSessionType.h"
+#include <iostream>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -53,7 +53,7 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
                << pdu_session_type->type_val << endl;
   if (iei > 0) {
     *buffer = (pdu_session_type->iei & 0x0f) << 4;
-    CHECK_IEI_ENCODER((unsigned char) iei, pdu_session_type->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, pdu_session_type->iei);
     MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: iei" << hex << int(*buffer)
                  << endl;
   }

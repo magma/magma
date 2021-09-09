@@ -26,28 +26,28 @@ extern "C" {
 #endif
 
 #include "common_defs.h"
-#include "s6a_messages.h"
-#include "s6a_messages_types.h"
+#include "dynamic_memory_check.h"
 #include "intertask_interface.h"
 #include "mme_config.h"
-#include "dynamic_memory_check.h"
+#include "s6a_messages.h"
+#include "s6a_messages_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "s6a_fd_iface.h"
 #include "includes/MetricsHelpers.h"
+#include "s6a_fd_iface.h"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 
 using namespace std;
 
 extern task_zmq_ctx_t s6a_task_zmq_ctx;
 
 static int gnutls_log_level = 9;
-static long timer_id        = 0;
+static long timer_id = 0;
 
 static void fd_gnutls_debug(int level, const char* str);
 static void oai_fd_logger(int loglevel, const char* format, va_list args);
@@ -88,11 +88,10 @@ static int handle_timer(zloop_t* loop, int id, void* arg) {
      * * the previous one is active, causing a seg fault.
      */
     increment_counter("s6a_subscriberdb_connection_failure", 1, NO_LABELS);
-    OAILOG_ERROR(
-        LOG_S6A, "s6a_fd_new_peer has failed (%s:%d)\n", __FILE__, __LINE__);
-    timer_id = start_timer(
-        &s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC, TIMER_REPEAT_ONCE,
-        handle_timer, NULL);
+    OAILOG_ERROR(LOG_S6A, "s6a_fd_new_peer has failed (%s:%d)\n", __FILE__,
+                 __LINE__);
+    timer_id = start_timer(&s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC,
+                           TIMER_REPEAT_ONCE, handle_timer, NULL);
   }
   return 0;
 }
@@ -143,9 +142,9 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
 
   ret = fd_core_parseconf(bdata(config->conf_file));
   if (ret) {
-    OAILOG_ERROR(
-        LOG_S6A, "An error occurred during fd_core_parseconf file : %s.\n",
-        bdata(config->conf_file));
+    OAILOG_ERROR(LOG_S6A,
+                 "An error occurred during fd_core_parseconf file : %s.\n",
+                 bdata(config->conf_file));
     std::runtime_error("An error occurred during fd_core_parseconf file");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_parseconf done\n");
@@ -155,10 +154,10 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
    * Set gnutls debug level ?
    */
   if (gnutls_log_level) {
-    gnutls_global_set_log_function((gnutls_log_func) fd_gnutls_debug);
+    gnutls_global_set_log_function((gnutls_log_func)fd_gnutls_debug);
     gnutls_global_set_log_level(gnutls_log_level);
-    OAILOG_DEBUG(
-        LOG_S6A, "Enabled GNUTLS debug at level %d\n", gnutls_log_level);
+    OAILOG_DEBUG(LOG_S6A, "Enabled GNUTLS debug at level %d\n",
+                 gnutls_log_level);
   }
 
   /*
@@ -166,8 +165,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
    */
   ret = fd_core_start();
   if (ret) {
-    OAILOG_ERROR(
-        LOG_S6A, "An error occurred during freeDiameter core library start\n");
+    OAILOG_ERROR(LOG_S6A,
+                 "An error occurred during freeDiameter core library start\n");
     std::runtime_error(
         "An error occurred during freeDiameter core library "
         "start");
@@ -177,8 +176,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
 
   ret = fd_core_waitstartcomplete();
   if (ret) {
-    OAILOG_ERROR(
-        LOG_S6A, "An error occurred during freeDiameter core library start\n");
+    OAILOG_ERROR(LOG_S6A,
+                 "An error occurred during freeDiameter core library start\n");
     std::runtime_error(
         "An error occurred during freeDiameter core library "
         "start\n");
@@ -194,15 +193,13 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
     OAILOG_DEBUG(LOG_S6A, "s6a_fd_init_dict_objs done\n");
   }
 
-  OAILOG_DEBUG(
-      LOG_S6A,
-      "Initializing S6a interface over free-diameter:"
-      "DONE\n");
+  OAILOG_DEBUG(LOG_S6A,
+               "Initializing S6a interface over free-diameter:"
+               "DONE\n");
 
   /* Add timer here to connect to peer */
-  timer_id = start_timer(
-      &s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC, TIMER_REPEAT_ONCE,
-      handle_timer, NULL);
+  timer_id = start_timer(&s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC,
+                         TIMER_REPEAT_ONCE, handle_timer, NULL);
 }
 
 //------------------------------------------------------------------------------
@@ -237,9 +234,9 @@ bool S6aFdIface::purge_ue(const char* imsi) {
 S6aFdIface::~S6aFdIface() {
   stop_timer(&s6a_task_zmq_ctx, timer_id);
   // Release all resources
-  free_wrapper((void**) &fd_g_config->cnf_diamid);
+  free_wrapper((void**)&fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;
-  int rv                      = RETURNok;
+  int rv = RETURNok;
   /* Initialize shutdown of the framework */
   rv = fd_core_shutdown();
   if (rv) {

@@ -43,7 +43,7 @@
 // By default it is assumed that your compiler can deal with and has enabled
 // exception handlling.  If this is not the case then you will need to
 // #define BSTRLIB_DOESNT_THROW_EXCEPTIONS
-#if !defined(BSTRLIB_THROWS_EXCEPTIONS) &&                                     \
+#if !defined(BSTRLIB_THROWS_EXCEPTIONS) && \
     !defined(BSTRLIB_DOESNT_THROW_EXCEPTIONS)
 #define BSTRLIB_THROWS_EXCEPTIONS
 #endif
@@ -64,8 +64,8 @@
 #pragma warning 549 10
 #endif
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #if defined(__WATCOMC__)
 #pragma warning 604 9
@@ -97,7 +97,7 @@ struct CBStringException {
  public:
   CBStringException(const char* inmsg) : needToFree(0) {
     if (inmsg) {
-      msg = (char*) malloc(1 + strlen(inmsg));
+      msg = (char*)malloc(1 + strlen(inmsg));
       if (NULL == msg)
         msg = "Out of memory";
       else {
@@ -112,19 +112,19 @@ struct CBStringException {
     if (needToFree) {
       free(msg);
       needToFree = 0;
-      msg        = NULL;
+      msg = NULL;
     }
   }
   virtual const char* what() const throw() { return msg; }
 };
 #endif
-#define bstringThrow(er)                                                       \
-  {                                                                            \
-    CBStringException bstr__cppwrapper_exception("CBString::" er "");          \
-    throw bstr__cppwrapper_exception;                                          \
+#define bstringThrow(er)                                              \
+  {                                                                   \
+    CBStringException bstr__cppwrapper_exception("CBString::" er ""); \
+    throw bstr__cppwrapper_exception;                                 \
   }
 #else
-#define bstringThrow(er)                                                       \
+#define bstringThrow(er) \
   {}
 #endif
 
@@ -141,8 +141,8 @@ class CBCharWriteProtected {
   const struct tagbstring& s;
   unsigned int idx;
   CBCharWriteProtected(const struct tagbstring& c, int i)
-      : s(c), idx((unsigned int) i) {
-    if (idx >= (unsigned) s.slen) {
+      : s(c), idx((unsigned int)i) {
+    if (idx >= (unsigned)s.slen) {
       bstringThrow("character index out of bounds");
     }
   }
@@ -153,18 +153,18 @@ class CBCharWriteProtected {
       bstringThrow("Write protection error");
     } else {
 #ifndef BSTRLIB_THROWS_EXCEPTIONS
-      if (idx >= (unsigned) s.slen) return '\0';
+      if (idx >= (unsigned)s.slen) return '\0';
 #endif
-      s.data[idx] = (unsigned char) c;
+      s.data[idx] = (unsigned char)c;
     }
-    return (char) s.data[idx];
+    return (char)s.data[idx];
   }
   inline unsigned char operator=(unsigned char c) {
     if (s.mlen <= 0) {
       bstringThrow("Write protection error");
     } else {
 #ifndef BSTRLIB_THROWS_EXCEPTIONS
-      if (idx >= (unsigned) s.slen) return '\0';
+      if (idx >= (unsigned)s.slen) return '\0';
 #endif
       s.data[idx] = c;
     }
@@ -172,7 +172,7 @@ class CBCharWriteProtected {
   }
   inline operator unsigned char() const {
 #ifndef BSTRLIB_THROWS_EXCEPTIONS
-    if (idx >= (unsigned) s.slen) return (unsigned char) '\0';
+    if (idx >= (unsigned)s.slen) return (unsigned char)'\0';
 #endif
     return s.data[idx];
   }
@@ -259,9 +259,9 @@ struct CBString : public tagbstring {
   bool operator>=(const unsigned char* s) const;
 
   // Casts
-  inline operator const char*() const { return (const char*) data; }
+  inline operator const char*() const { return (const char*)data; }
   inline operator const unsigned char*() const {
-    return (const unsigned char*) data;
+    return (const unsigned char*)data;
   }
   operator double() const;
   operator float() const;
@@ -272,7 +272,7 @@ struct CBString : public tagbstring {
   inline int length() const { return slen; }
 
   inline unsigned char character(int i) const {
-    if (((unsigned) i) >= (unsigned) slen) {
+    if (((unsigned)i) >= (unsigned)slen) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
       bstringThrow("character idx out of bounds");
 #else
@@ -318,8 +318,8 @@ struct CBString : public tagbstring {
   void findreplace(const CBString& find, const char* repl, int pos = 0);
   void findreplace(const char* find, const CBString& repl, int pos = 0);
   void findreplace(const char* find, const char* repl, int pos = 0);
-  void findreplacecaseless(
-      const CBString& find, const CBString& repl, int pos = 0);
+  void findreplacecaseless(const CBString& find, const CBString& repl,
+                           int pos = 0);
   void findreplacecaseless(const CBString& find, const char* repl, int pos = 0);
   void findreplacecaseless(const char* find, const CBString& repl, int pos = 0);
   void findreplacecaseless(const char* find, const char* repl, int pos = 0);
@@ -384,8 +384,8 @@ inline const CBString operator*(int count, const CBString& b) {
 #if defined(BSTRLIB_CAN_USE_IOSTREAM)
 extern std::ostream& operator<<(std::ostream& sout, CBString b);
 extern std::istream& operator>>(std::istream& sin, CBString& b);
-extern std::istream& getline(
-    std::istream& sin, CBString& b, char terminator = '\n');
+extern std::istream& getline(std::istream& sin, CBString& b,
+                             char terminator = '\n');
 #endif
 
 struct CBStream {

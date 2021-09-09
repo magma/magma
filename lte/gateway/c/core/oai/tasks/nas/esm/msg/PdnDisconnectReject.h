@@ -19,17 +19,17 @@
 #define PDN_DISCONNECT_REJECT_H_
 #include <stdint.h>
 
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "EsmCause.h"
+#include "MessageType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define PDN_DISCONNECT_REJECT_MINIMUM_LENGTH (ESM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define PDN_DISCONNECT_REJECT_MAXIMUM_LENGTH                                   \
+#define PDN_DISCONNECT_REJECT_MAXIMUM_LENGTH \
   (ESM_CAUSE_MAXIMUM_LENGTH + PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -61,12 +61,10 @@ typedef struct pdn_disconnect_reject_msg_tag {
   protocol_configuration_options_t protocolconfigurationoptions;
 } pdn_disconnect_reject_msg;
 
-int decode_pdn_disconnect_reject(
-    pdn_disconnect_reject_msg* pdndisconnectreject, uint8_t* buffer,
-    uint32_t len);
+int decode_pdn_disconnect_reject(pdn_disconnect_reject_msg* pdndisconnectreject,
+                                 uint8_t* buffer, uint32_t len);
 
-int encode_pdn_disconnect_reject(
-    pdn_disconnect_reject_msg* pdndisconnectreject, uint8_t* buffer,
-    uint32_t len);
+int encode_pdn_disconnect_reject(pdn_disconnect_reject_msg* pdndisconnectreject,
+                                 uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(PDN_DISCONNECT_REJECT_H_) */

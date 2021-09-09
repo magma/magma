@@ -20,24 +20,24 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "PagingIdentity.h"
-#include "Cli.h"
-#include "SsCode.h"
-#include "LcsIndicator.h"
-#include "LcsClientIdentity.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "Cli.h"
+#include "LcsClientIdentity.h"
+#include "LcsIndicator.h"
+#include "MessageType.h"
+#include "PagingIdentity.h"
+#include "SecurityHeaderType.h"
+#include "SsCode.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define CS_SERVICE_NOTIFICATION_MINIMUM_LENGTH (PAGING_IDENTITY_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define CS_SERVICE_NOTIFICATION_MAXIMUM_LENGTH                                 \
-  (PAGING_IDENTITY_MAXIMUM_LENGTH + CLI_MAXIMUM_LENGTH +                       \
-   SS_CODE_MAXIMUM_LENGTH + LCS_INDICATOR_MAXIMUM_LENGTH +                     \
+#define CS_SERVICE_NOTIFICATION_MAXIMUM_LENGTH             \
+  (PAGING_IDENTITY_MAXIMUM_LENGTH + CLI_MAXIMUM_LENGTH +   \
+   SS_CODE_MAXIMUM_LENGTH + LCS_INDICATOR_MAXIMUM_LENGTH + \
    LCS_CLIENT_IDENTITY_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -49,9 +49,9 @@
 #define CS_SERVICE_NOTIFICATION_LCS_CLIENT_IDENTITY_PRESENT (1 << 3)
 
 typedef enum cs_service_notification_iei_tag {
-  CS_SERVICE_NOTIFICATION_CLI_IEI                 = 0x60, /* 0x60 = 96 */
-  CS_SERVICE_NOTIFICATION_SS_CODE_IEI             = 0x61, /* 0x61 = 97 */
-  CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI       = 0x62, /* 0x62 = 98 */
+  CS_SERVICE_NOTIFICATION_CLI_IEI = 0x60,                 /* 0x60 = 96 */
+  CS_SERVICE_NOTIFICATION_SS_CODE_IEI = 0x61,             /* 0x61 = 97 */
+  CS_SERVICE_NOTIFICATION_LCS_INDICATOR_IEI = 0x62,       /* 0x62 = 98 */
   CS_SERVICE_NOTIFICATION_LCS_CLIENT_IDENTITY_IEI = 0x63, /* 0x63 = 99 */
 } cs_service_notification_iei;
 

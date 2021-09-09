@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "M5GPTI.h"
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -20,8 +20,8 @@ PTIMsg::PTIMsg(){};
 PTIMsg::~PTIMsg(){};
 
 // Decode PTI IE
-int PTIMsg::DecodePTIMsg(
-    PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
+                         uint32_t len) {
   uint8_t decoded = 0;
 
   MLOG(MDEBUG) << " DecodePTIMsg : ";
@@ -33,8 +33,8 @@ int PTIMsg::DecodePTIMsg(
 };
 
 // Encode PTI IE
-int PTIMsg::EncodePTIMsg(
-    PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int PTIMsg::EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
+                         uint32_t len) {
   int encoded = 0;
 
   MLOG(MDEBUG) << " EncodePTIMsg : ";

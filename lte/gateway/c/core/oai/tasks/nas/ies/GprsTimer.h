@@ -31,13 +31,13 @@ typedef struct GprsTimer_tag {
   uint8_t timervalue : 5;
 } GprsTimer;
 
-int encode_gprs_timer(
-    GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_gprs_timer(GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer,
+                      uint32_t len);
 
 void dump_gprs_timer_xml(GprsTimer* gprstimer, uint8_t iei);
 
-int decode_gprs_timer(
-    GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_gprs_timer(GprsTimer* gprstimer, uint8_t iei, uint8_t* buffer,
+                      uint32_t len);
 
 long gprs_timer_value(GprsTimer* gprstimer);
 

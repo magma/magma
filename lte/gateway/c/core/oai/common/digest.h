@@ -42,8 +42,8 @@
 #include <stddef.h>
 #include "common_defs.h"
 
-status_code_e digest_buffer(
-    const EVP_MD* (*evp_x)(void), const unsigned char* buffer,
-    size_t buffer_len, unsigned char** digest, unsigned int* digest_len);
+status_code_e digest_buffer(const EVP_MD* (*evp_x)(void),
+                            const unsigned char* buffer, size_t buffer_len,
+                            unsigned char** digest, unsigned int* digest_len);
 
 #endif /* FILE_DIGEST_SEEN */

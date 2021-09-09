@@ -19,10 +19,10 @@
 #include <iostream>
 #include <string>
 
-#include "lte/protos/mconfig/mconfigs.pb.h"
+#include "bstrlib.h"
 #include "includes/MConfigLoader.h"
 #include "itti_msg_to_proto_msg.h"
-#include "bstrlib.h"
+#include "lte/protos/mconfig/mconfigs.pb.h"
 
 extern "C" {
 #include "ie_to_bytes.h"
@@ -52,8 +52,8 @@ SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
 
   ret.set_imsi(msg->imsi, msg->imsi_length);
 
-  ret.set_nas_message_container(
-      bdata(msg->nas_msg_container), blength(msg->nas_msg_container));
+  ret.set_nas_message_container(bdata(msg->nas_msg_container),
+                                blength(msg->nas_msg_container));
 
   // optional fields
   if (msg->presencemask & UPLINK_UNITDATA_IMEISV_PARAMETER_PRESENT) {
@@ -66,10 +66,10 @@ SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
   if (msg->presencemask &
       UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT) {
     char mobile_station_classmark2[IE_LENGTH_MOBILE_STATION_CLASSMARK2];
-    mobile_station_classmark2_to_bytes(
-        &msg->opt_mobilestationclassmark2, mobile_station_classmark2);
-    ret.set_mobile_station_classmark2(
-        mobile_station_classmark2, IE_LENGTH_MOBILE_STATION_CLASSMARK2);
+    mobile_station_classmark2_to_bytes(&msg->opt_mobilestationclassmark2,
+                                       mobile_station_classmark2);
+    ret.set_mobile_station_classmark2(mobile_station_classmark2,
+                                      IE_LENGTH_MOBILE_STATION_CLASSMARK2);
   }
   if (msg->presencemask & UPLINK_UNITDATA_TAI_PARAMETER_PRESENT) {
     char tai[IE_LENGTH_TAI];

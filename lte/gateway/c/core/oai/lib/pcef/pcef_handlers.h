@@ -24,8 +24,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
 #include "common_types.h"
+#include "intertask_interface.h"
 #include "ip_forward_messages_types.h"
 #include "spgw_types.h"
 
@@ -57,10 +57,9 @@ struct pcef_create_session_data {
  * the PCEF and sends an S5 ITTI message to SGW when done.
  * This is a long process, so it needs to by asynchronous
  */
-void pcef_create_session(
-    const char* imsi, const char* ip4, const char* ip6,
-    const struct pcef_create_session_data* session_data,
-    s5_create_session_request_t bearer_request);
+void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
+                         const struct pcef_create_session_data* session_data,
+                         s5_create_session_request_t bearer_request);
 
 /**
  * pcef_end_session is a *synchronous* call that ends the UE session in the
@@ -74,15 +73,16 @@ bool pcef_end_session(char* imsi, char* apn);
  * rule id to the newly created bearer id for a particular session that is
  * uniquely identified by imsi and default bearer id.
  */
-void pcef_send_policy2bearer_binding(
-    const char* imsi, const uint8_t default_bearer_id,
-    const char* policy_rule_name, const uint8_t eps_bearer_id,
-    const uint32_t eps_bearer_agw_teid, const uint32_t eps_bearer_enb_teid);
+void pcef_send_policy2bearer_binding(const char* imsi,
+                                     const uint8_t default_bearer_id,
+                                     const char* policy_rule_name,
+                                     const uint8_t eps_bearer_id,
+                                     const uint32_t eps_bearer_agw_teid,
+                                     const uint32_t eps_bearer_enb_teid);
 
-void get_session_req_data(
-    spgw_state_t* spgw_state,
-    const itti_s11_create_session_request_t* saved_req,
-    struct pcef_create_session_data* data);
+void get_session_req_data(spgw_state_t* spgw_state,
+                          const itti_s11_create_session_request_t* saved_req,
+                          struct pcef_create_session_data* data);
 
 /**
  * pcef_update_teids is an asynchronous call that updates
@@ -90,9 +90,8 @@ void get_session_req_data(
  * uniquely identified by imsi and default bearer id.
  */
 
-void pcef_update_teids(
-    const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
-    uint32_t agw_teid);
+void pcef_update_teids(const char* imsi, uint8_t default_bearer_id,
+                       uint32_t enb_teid, uint32_t agw_teid);
 
 int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn);

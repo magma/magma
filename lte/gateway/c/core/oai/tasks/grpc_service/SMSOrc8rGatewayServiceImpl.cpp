@@ -17,13 +17,13 @@
 #include <iostream>
 
 #include "SMSOrc8rGatewayServiceImpl.h"
-#include "proto_msg_to_itti_msg.h"
 #include "common_ies.h"
+#include "proto_msg_to_itti_msg.h"
 #include "sgs_messages_types.h"
 
 extern "C" {
-#include "sms_orc8r_service_handler.h"
 #include "log.h"
+#include "sms_orc8r_service_handler.h"
 
 namespace grpc {
 class ServerContext;

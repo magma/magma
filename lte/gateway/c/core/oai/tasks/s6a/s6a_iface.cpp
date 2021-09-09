@@ -19,9 +19,9 @@
 extern "C" {
 #endif
 #include "common_defs.h"
-#include "s6a_messages_types.h"
-#include "s6a_c_iface.h"
 #include "intertask_interface.h"
+#include "s6a_c_iface.h"
+#include "s6a_messages_types.h"
 #ifdef __cplusplus
 }
 #endif
@@ -32,8 +32,8 @@ extern "C" {
 #include "s6a_fd_iface.h"
 #endif
 
-#include <new>
 #include <exception>
+#include <new>
 
 S6aViface* s6a_interface = nullptr;
 

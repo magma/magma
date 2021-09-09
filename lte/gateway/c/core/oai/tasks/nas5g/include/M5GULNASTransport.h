@@ -12,11 +12,11 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
-#include "M5GPayloadContainerType.h"
 #include "M5GPayloadContainer.h"
+#include "M5GPayloadContainerType.h"
+#include "M5GSecurityHeaderType.h"
+#include "M5GSpareHalfOctet.h"
 
 using namespace std;
 namespace magma5g {
@@ -33,10 +33,10 @@ class ULNASTransportMsg {
 
   ULNASTransportMsg();
   ~ULNASTransportMsg();
-  int DecodeULNASTransportMsg(
-      ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len);
-  int EncodeULNASTransportMsg(
-      ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len);
+  int DecodeULNASTransportMsg(ULNASTransportMsg* ul_nas_transport,
+                              uint8_t* buffer, uint32_t len);
+  int EncodeULNASTransportMsg(ULNASTransportMsg* ul_nas_transport,
+                              uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

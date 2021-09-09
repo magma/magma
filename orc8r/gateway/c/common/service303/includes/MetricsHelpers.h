@@ -34,8 +34,8 @@ void remove_counter(const char* name, size_t n_labels, ...);
  * @param n_labels number of labels
  * @param ... label args (name, value)
  */
-void increment_counter(
-    const char* name, double increment, size_t n_labels, ...);
+void increment_counter(const char* name, double increment, size_t n_labels,
+                       ...);
 
 /**
  * Remove the gauge metric that matches name+labels given
@@ -87,8 +87,8 @@ double get_gauge(const char* name, size_t n_labels, ...);
  * @param n_labels number of labels
  * @param ... label args (name, value)
  */
-void observe_histogram(
-    const char* name, double observation, size_t n_labels, ...);
+void observe_histogram(const char* name, double observation, size_t n_labels,
+                       ...);
 
 #ifdef __cplusplus
 }

@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
-#include <netinet/ip.h>
-#include <arpa/inet.h>
-#include "OpenflowController.h"
 #include "PagingApplication.h"
+#include <arpa/inet.h>
+#include <netinet/ip.h>
 #include "MobilityClientAPI.h"
+#include "OpenflowController.h"
 
 extern "C" {
 #include "log.h"
@@ -38,15 +38,15 @@ uint32_t prefix2mask(int prefix) {
   }
 }
 
-void PagingApplication::event_callback(
-    const ControllerEvent& ev, const OpenflowMessenger& messenger) {
+void PagingApplication::event_callback(const ControllerEvent& ev,
+                                       const OpenflowMessenger& messenger) {
   if (ev.get_type() == EVENT_PACKET_IN) {
     OAILOG_DEBUG(LOG_GTPV1U, "Handling packet-in message in paging app\n");
     const PacketInEvent& pi = static_cast<const PacketInEvent&>(ev);
     of13::PacketIn ofpi;
     ofpi.unpack(const_cast<uint8_t*>(pi.get_data()));
-    handle_paging_message(
-        ev.get_connection(), static_cast<uint8_t*>(ofpi.data()), messenger);
+    handle_paging_message(ev.get_connection(),
+                          static_cast<uint8_t*>(ofpi.data()), messenger);
   } else if (ev.get_type() == EVENT_ADD_PAGING_RULE) {
     auto add_paging_rule_event = static_cast<const AddPagingRuleEvent&>(ev);
     add_paging_flow(add_paging_rule_event, messenger);
@@ -61,12 +61,12 @@ void PagingApplication::handle_paging_message(
     fluid_base::OFConnection* ofconn, uint8_t* data,
     const OpenflowMessenger& messenger) {
   // send paging request to MME
-  struct ip* ip_header = (struct ip*) (data + ETH_HEADER_LENGTH);
+  struct ip* ip_header = (struct ip*)(data + ETH_HEADER_LENGTH);
   struct in_addr dest_ip;
   memcpy(&dest_ip, &ip_header->ip_dst, sizeof(struct in_addr));
   char* dest_ip_str = inet_ntoa(dest_ip);
-  OAILOG_DEBUG(
-      LOG_GTPV1U, "Initiating paging procedure for IP %s\n", dest_ip_str);
+  OAILOG_DEBUG(LOG_GTPV1U, "Initiating paging procedure for IP %s\n",
+               dest_ip_str);
   sgw_send_paging_request(&dest_ip);
 
   /*
@@ -90,8 +90,8 @@ void PagingApplication::handle_paging_message(
   return;
 }
 
-void PagingApplication::add_paging_flow(
-    const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger) {
+void PagingApplication::add_paging_flow(const AddPagingRuleEvent& ev,
+                                        const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY);
   // IP eth type
@@ -116,8 +116,8 @@ void PagingApplication::add_paging_flow(
   OAILOG_INFO(LOG_GTPV1U, "Added paging flow rule for UE IP %s\n", ip_str);
 }
 
-void PagingApplication::delete_paging_flow(
-    const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger) {
+void PagingApplication::delete_paging_flow(const DeletePagingRuleEvent& ev,
+                                           const OpenflowMessenger& messenger) {
   of13::FlowMod fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
 

@@ -12,9 +12,9 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
+#include "M5GMessageType.h"
 #include "M5GPDUSessionIdentity.h"
 #include "M5GPTI.h"
-#include "M5GMessageType.h"
 
 using namespace std;
 namespace magma5g {

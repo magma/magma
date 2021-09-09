@@ -14,9 +14,9 @@
 #pragma once
 
 #include "3gpp_23.003.h"
+#include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
 #include "n11_messages_types.h"
-#include "TrackingAreaIdentity.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
 #define MAX_QosFlow 16

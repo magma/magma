@@ -53,9 +53,9 @@ class SMSOrc8rGatewayServiceImpl final
    * @param response (out): Void defined in common.proto
    * @return grpc Status instance
    */
-  grpc::Status SMODownlink(
-      ServerContext* context, const SMODownlinkUnitdata* request,
-      Void* response) override;
+  grpc::Status SMODownlink(ServerContext* context,
+                           const SMODownlinkUnitdata* request,
+                           Void* response) override;
 };
 
 }  // namespace magma

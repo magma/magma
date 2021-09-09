@@ -38,11 +38,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tree.h"
-#include "NwTypes.h"
-#include "NwUtils.h"
 #include "NwError.h"
 #include "NwGtpv2c.h"
+#include "NwTypes.h"
+#include "NwUtils.h"
+#include "tree.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,12 +63,13 @@ typedef struct nw_gtpv2c_tunnel_s {
   struct nw_gtpv2c_tunnel_s* next;
 } nw_gtpv2c_tunnel_t;
 
-nw_gtpv2c_tunnel_t* nwGtpv2cTunnelNew(
-    struct nw_gtpv2c_stack_s* hStack, uint32_t teid,
-    struct sockaddr* ipAddrRemote, nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel);
+nw_gtpv2c_tunnel_t* nwGtpv2cTunnelNew(struct nw_gtpv2c_stack_s* hStack,
+                                      uint32_t teid,
+                                      struct sockaddr* ipAddrRemote,
+                                      nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel);
 
-nw_rc_t nwGtpv2cTunnelDelete(
-    struct nw_gtpv2c_stack_s* pStack, nw_gtpv2c_tunnel_t* thiz);
+nw_rc_t nwGtpv2cTunnelDelete(struct nw_gtpv2c_stack_s* pStack,
+                             nw_gtpv2c_tunnel_t* thiz);
 
 nw_rc_t nwGtpv2cTunnelGetUlpTunnelHandle(
     nw_gtpv2c_tunnel_t* thiz, nw_gtpv2c_ulp_tunnel_handle_t* phUlpTunnel);

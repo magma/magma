@@ -10,16 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
+#include <gtest/gtest.h>
 
 #include <grpcpp/impl/codegen/status.h>
-#include "lte/protos/subscriberauth.pb.h"
 #include "lte/protos/subscriberauth.grpc.pb.h"
+#include "lte/protos/subscriberauth.pb.h"
 
-#include "amf_client_proto_msg_to_itti_msg.h"
-#include "amf_app_messages_types.h"
 #include "M5GAuthenticationServiceClient.h"
+#include "amf_app_messages_types.h"
+#include "amf_client_proto_msg_to_itti_msg.h"
 
 using ::testing::Test;
 
@@ -28,9 +28,8 @@ task_zmq_ctx_t grpc_service_task_zmq_ctx;
 namespace magma {
 namespace lte {
 
-TEST(
-    test_convert_proto_msg_to_itti_m5g_auth_info_ans,
-    convert_proto_msg_to_itti_m5g_auth_info_ans) {
+TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
+     convert_proto_msg_to_itti_m5g_auth_info_ans) {
   magma::lte::M5GAuthenticationInformationAnswer response;
   itti_amf_subs_auth_info_ans_t amf_app_subs_auth_info_resp_p;
 
@@ -55,9 +54,8 @@ TEST(
       expect_auth_info.auth_info.m5gauth_vector[0];
   memcpy(expected_m5gauth_vector.rand, rand.c_str(), rand.length());
   expected_m5gauth_vector.xres_star.size = xres_star.length();
-  memcpy(
-      expected_m5gauth_vector.xres_star.data, xres_star.c_str(),
-      xres_star.length());
+  memcpy(expected_m5gauth_vector.xres_star.data, xres_star.c_str(),
+         xres_star.length());
   memcpy(expected_m5gauth_vector.autn, autn.c_str(), autn.length());
   memcpy(expected_m5gauth_vector.kseaf, kseaf.c_str(), kseaf.length());
 
@@ -65,28 +63,19 @@ TEST(
   m5gauth_vector_t& generated_m5gauth_vector =
       amf_app_subs_auth_info_resp_p.auth_info.m5gauth_vector[0];
 
-  EXPECT_TRUE(
-      expect_auth_info.auth_info.nb_of_vectors ==
-      amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors);
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.rand, generated_m5gauth_vector.rand,
-               rand.length()));
-  EXPECT_TRUE(
-      expected_m5gauth_vector.xres_star.size ==
-      generated_m5gauth_vector.xres_star.size);
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.xres_star.data,
-               generated_m5gauth_vector.xres_star.data, xres_star.length()));
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.autn, generated_m5gauth_vector.autn,
-               autn.length()));
-  EXPECT_TRUE(
-      0 == memcmp(
-               expected_m5gauth_vector.kseaf, generated_m5gauth_vector.kseaf,
-               kseaf.length()));
+  EXPECT_TRUE(expect_auth_info.auth_info.nb_of_vectors ==
+              amf_app_subs_auth_info_resp_p.auth_info.nb_of_vectors);
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.rand,
+                          generated_m5gauth_vector.rand, rand.length()));
+  EXPECT_TRUE(expected_m5gauth_vector.xres_star.size ==
+              generated_m5gauth_vector.xres_star.size);
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.xres_star.data,
+                          generated_m5gauth_vector.xres_star.data,
+                          xres_star.length()));
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.autn,
+                          generated_m5gauth_vector.autn, autn.length()));
+  EXPECT_TRUE(0 == memcmp(expected_m5gauth_vector.kseaf,
+                          generated_m5gauth_vector.kseaf, kseaf.length()));
 }
 
 TEST(test_get_subs_auth_info, get_subs_auth_info) {

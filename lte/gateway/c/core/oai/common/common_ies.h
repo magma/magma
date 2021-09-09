@@ -79,13 +79,13 @@ typedef struct MobileStationClassmark2_s {
 
 typedef enum additional_updt_s {
   MME_APP_NO_ADDITIONAL_INFO = 0,
-  MME_APP_SMS_ONLY           = 1
+  MME_APP_SMS_ONLY = 1
 } additional_updt_t;
 
 typedef enum additional_updt_result_s {
   ADDITONAL_UPDT_RES_NO_ADDITIONAL_INFO = 0,
-  ADDITONAL_UPDT_RESCSFB_NOT_PREFERRED  = 1,
-  ADDITONAL_UPDT_RES_SMS_ONLY           = 2,
+  ADDITONAL_UPDT_RESCSFB_NOT_PREFERRED = 1,
+  ADDITONAL_UPDT_RES_SMS_ONLY = 2,
 } additional_updt_result_t;
 
 typedef enum ongoing_procedure_s {

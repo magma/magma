@@ -15,21 +15,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
+#include "amf_config.h"
 #include "assertions.h"
 #include "conversions.h"
-#include "amf_config.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
+#include "log.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
 #include <unordered_map>
-#include "amf_identity.h"
-#include "amf_sap.h"
-#include "amf_recv.h"
 #include "amf_app_timer_management.h"
+#include "amf_identity.h"
+#include "amf_recv.h"
+#include "amf_sap.h"
+#include "common_defs.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -45,8 +45,8 @@ std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_ctx_set_attribute_valid(
-    amf_context_t* ctxt, const uint32_t attribute_bit_pos) {
+void amf_ctx_set_attribute_valid(amf_context_t* ctxt,
+                                 const uint32_t attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
   ctxt->member_valid_mask |= attribute_bit_pos;
 }
@@ -59,8 +59,8 @@ void amf_ctx_set_attribute_valid(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_ctx_set_attribute_present(
-    amf_context_t* ctxt, const int attribute_bit_pos) {
+void amf_ctx_set_attribute_present(amf_context_t* ctxt,
+                                   const int attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
 }
 
@@ -74,8 +74,8 @@ void amf_ctx_set_attribute_present(
 ***************************************************************************/
 nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
     const amf_context_t* ctxt) {
-  return (nas_amf_ident_proc_t*) get_nas5g_common_procedure(
-      ctxt, AMF_COMM_PROC_IDENT);
+  return (nas_amf_ident_proc_t*)get_nas5g_common_procedure(ctxt,
+                                                           AMF_COMM_PROC_IDENT);
 }
 
 /***************************************************************************
@@ -113,19 +113,20 @@ void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
  **      Others:    amf_data, T3570                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_identification_complete(
-    const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
-    imeisv_t* const imeisv, uint32_t* const tmsi, guti_m5_t* amf_ctx_guti) {
+int amf_proc_identification_complete(const amf_ue_ngap_id_t ue_id,
+                                     imsi_t* const imsi, imei_t* const imei,
+                                     imeisv_t* const imeisv,
+                                     uint32_t* const tmsi,
+                                     guti_m5_t* amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc                 = RETURNerror;
-  amf_sap_t amf_sap      = {};
+  int rc = RETURNerror;
+  amf_sap_t amf_sap = {};
   amf_context_t* amf_ctx = NULL;
 
-  OAILOG_DEBUG(
-      LOG_NAS_AMF,
-      "Identification procedure complete for "
-      "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
-      ue_id);
+  OAILOG_DEBUG(LOG_NAS_AMF,
+               "Identification procedure complete for "
+               "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
+               ue_id);
 
   ue_m5gmm_context_s* ue_mm_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -140,9 +141,8 @@ int amf_proc_identification_complete(
      * Stop timer T3570
      */
 
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "Timer: Stopping Identity timer with ID %lu\n",
-        ident_proc->T3570.id);
+    OAILOG_DEBUG(LOG_AMF_APP, "Timer: Stopping Identity timer with ID %lu\n",
+                 ident_proc->T3570.id);
     amf_app_stop_timer(ident_proc->T3570.id);
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
 
@@ -153,14 +153,13 @@ int amf_proc_identification_complete(
       imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
       amf_ctx_set_valid_imsi(amf_ctx, imsi, imsi64);
       amf_context_upsert_imsi(amf_ctx);
-      amf_ctx->imsi64      = imsi64;
+      amf_ctx->imsi64 = imsi64;
       amf_ctx->imsi.length = 8;
-      amf_ctx->m5_guti     = *amf_ctx_guti;
+      amf_ctx->m5_guti = *amf_ctx_guti;
     } else {
-      OAILOG_ERROR(
-          LOG_AMF_APP,
-          "should not happen because this type of identity is not "
-          "requested by AMF");
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "should not happen because this type of identity is not "
+                   "requested by AMF");
     }
     /*
      * Notify AMF that the identification procedure successfully completed
@@ -179,8 +178,8 @@ int amf_proc_identification_complete(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_app_generate_guti_on_supi(
-    amf_guti_m5g_t* amf_guti, supi_as_imsi_t* supi_imsi) {
+void amf_app_generate_guti_on_supi(amf_guti_m5g_t* amf_guti,
+                                   supi_as_imsi_t* supi_imsi) {
   /* Generate GUTI with 5g-tmsi as rand value */
   amf_guti->guamfi.plmn.mcc_digit1 = supi_imsi->plmn.mcc_digit1;
   amf_guti->guamfi.plmn.mcc_digit2 = supi_imsi->plmn.mcc_digit2;
@@ -190,21 +189,20 @@ void amf_app_generate_guti_on_supi(
   amf_guti->guamfi.plmn.mnc_digit3 = supi_imsi->plmn.mnc_digit3;
 
   // tmsi value is 4 octet random value.
-  amf_guti->m_tmsi = htonl((uint32_t) rand());
+  amf_guti->m_tmsi = htonl((uint32_t)rand());
 
   // Filling data from amf_config file considering only one gNB
   amf_config_read_lock(&amf_config);
   amf_guti->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_regionid;
 
   // TODO: Temp hardcoded change to remove later
-  amf_guti->guamfi.amf_set_id  = amf_config.guamfi.guamfi[0].amf_set_id;
+  amf_guti->guamfi.amf_set_id = amf_config.guamfi.guamfi[0].amf_set_id;
   amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "amf_region_id %u amf_set_id %u amf_pointer %u",
-      amf_config.guamfi.guamfi[0].amf_regionid,
-      amf_config.guamfi.guamfi[0].amf_set_id,
-      amf_config.guamfi.guamfi[0].amf_pointer);
+  OAILOG_DEBUG(LOG_AMF_APP, "amf_region_id %u amf_set_id %u amf_pointer %u",
+               amf_config.guamfi.guamfi[0].amf_regionid,
+               amf_config.guamfi.guamfi[0].amf_set_id,
+               amf_config.guamfi.guamfi[0].amf_pointer);
 
   amf_config_unlock(&amf_config);
   return;

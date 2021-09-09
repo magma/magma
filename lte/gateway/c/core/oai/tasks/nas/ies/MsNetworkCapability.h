@@ -18,20 +18,19 @@
 #ifndef MS_NETWORK_CAPABILITY_H_
 #define MS_NETWORK_CAPABILITY_H_
 #include <stdint.h>
-#include "bstrlib.h"
 #include "3gpp_24.008.h"
+#include "bstrlib.h"
 
 typedef ms_network_capability_t MsNetworkCapability;
 
-int encode_ms_network_capability(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len) __attribute__((unused));
+int encode_ms_network_capability(MsNetworkCapability* msnetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len)
+    __attribute__((unused));
 
-int decode_ms_network_capability(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_ms_network_capability(MsNetworkCapability* msnetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len);
 
-void dump_ms_network_capability_xml(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei);
+void dump_ms_network_capability_xml(MsNetworkCapability* msnetworkcapability,
+                                    uint8_t iei);
 
 #endif /* MS NETWORK CAPABILITY_H_ */

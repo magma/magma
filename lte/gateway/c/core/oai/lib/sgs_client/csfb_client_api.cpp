@@ -19,13 +19,11 @@
 #include <iostream>
 #include <string>
 
-#include "csfb_client_api.h"
 #include "CSFBClient.h"
+#include "csfb_client_api.h"
 #include "orc8r/protos/common.pb.h"
 
-void empty_callback(grpc::Status status, magma::Void void_response) {
-  return;
-}
+void empty_callback(grpc::Status status, magma::Void void_response) { return; }
 
 void send_alert_ack(const itti_sgsap_alert_ack_t* msg) {
   magma::CSFBClient::alert_ack(msg, empty_callback);
@@ -39,8 +37,8 @@ void send_location_update_request(const itti_sgsap_location_update_req_t* msg) {
   std::cout << "[DEBUG] Sending LOCATION_UDPATE_REQUEST with IMSI: "
             << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::location_update_request(
-      msg, [imsiStr = std::string(msg->imsi)](
-               grpc::Status status, magma::Void void_response) {
+      msg, [imsiStr = std::string(msg->imsi)](grpc::Status status,
+                                              magma::Void void_response) {
         if (status.ok()) {
           std::cout
               << "[DEBUG] Successfully sent LOCATION_UDPATE_REQUEST with IMSI: "
@@ -59,8 +57,8 @@ void send_tmsi_reallocation_complete(
   std::cout << "[DEBUG] Sending TMSI_REALLOCATION_COMPLETE with IMSI: "
             << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::tmsi_reallocation_complete(
-      msg, [imsiStr = std::string(msg->imsi)](
-               grpc::Status status, magma::Void void_response) {
+      msg, [imsiStr = std::string(msg->imsi)](grpc::Status status,
+                                              magma::Void void_response) {
         if (status.ok()) {
           std::cout
               << "[DEBUG] "

@@ -11,12 +11,12 @@
 
 #pragma once
 #include <sstream>
+#include "M5GEAPMessage.h"
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
 #include "M5GNASKeySetIdentifier.h"
-#include "M5GEAPMessage.h"
+#include "M5GSecurityHeaderType.h"
+#include "M5GSpareHalfOctet.h"
 
 using namespace std;
 namespace magma5g {
@@ -32,10 +32,10 @@ class AuthenticationResultMsg {
   NASKeySetIdentifierMsg nas_key_set_identifier;
   EAPMessageMsg eap_message;
 #define AUTHENTICATION_RESULT_MINIMUM_LENGTH 10
-  int DecodeAuthenticationResultMsg(
-      AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationResultMsg(
-      AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationResultMsg(AuthenticationResultMsg* auth_result,
+                                    uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationResultMsg(AuthenticationResultMsg* auth_result,
+                                    uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

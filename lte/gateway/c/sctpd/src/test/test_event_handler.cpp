@@ -69,7 +69,7 @@ class EventHandlerTest : public ::testing::Test {
     auto channel = grpc::CreateChannel("", grpc::InsecureChannelCredentials());
 
     _uplink_client = std::make_unique<MockSctpdUplinkClient>(channel);
-    _handler       = std::make_unique<SctpdEventHandler>(*_uplink_client);
+    _handler = std::make_unique<SctpdEventHandler>(*_uplink_client);
   }
 
   SendUlReq send_ul_req;
@@ -90,17 +90,17 @@ TEST_F(EventHandlerTest, test_event_handler_new_assoc) {
       Property(&NewAssocReq::outstreams, Eq(new_assoc_req.outstreams()));
   auto correct_ran_cp_ipaddr =
       Property(&NewAssocReq::ran_cp_ipaddr, Eq(new_assoc_req.ran_cp_ipaddr()));
-  auto correct_new_assoc_req = AllOf(
-      correct_ppid, correct_assoc_id, correct_instreams, correct_outstreams,
-      correct_ran_cp_ipaddr);
+  auto correct_new_assoc_req =
+      AllOf(correct_ppid, correct_assoc_id, correct_instreams,
+            correct_outstreams, correct_ran_cp_ipaddr);
 
   EXPECT_CALL(*_uplink_client, newAssoc(correct_new_assoc_req, NotNull()))
       .Times(1);
 
   auto ran_cp_ipaddr = new_assoc_req.ran_cp_ipaddr();
-  _handler->HandleNewAssoc(
-      new_assoc_req.ppid(), new_assoc_req.assoc_id(), new_assoc_req.instreams(),
-      new_assoc_req.outstreams(), ran_cp_ipaddr);
+  _handler->HandleNewAssoc(new_assoc_req.ppid(), new_assoc_req.assoc_id(),
+                           new_assoc_req.instreams(),
+                           new_assoc_req.outstreams(), ran_cp_ipaddr);
 }
 
 TEST_F(EventHandlerTest, test_event_handler_close_assoc) {
@@ -116,9 +116,8 @@ TEST_F(EventHandlerTest, test_event_handler_close_assoc) {
   EXPECT_CALL(*_uplink_client, closeAssoc(correct_close_assoc_req, NotNull()))
       .Times(1);
 
-  _handler->HandleCloseAssoc(
-      close_assoc_req.ppid(), close_assoc_req.assoc_id(),
-      close_assoc_req.is_reset());
+  _handler->HandleCloseAssoc(close_assoc_req.ppid(), close_assoc_req.assoc_id(),
+                             close_assoc_req.is_reset());
 }
 
 TEST_F(EventHandlerTest, test_event_handler_send_ul) {
@@ -133,9 +132,8 @@ TEST_F(EventHandlerTest, test_event_handler_send_ul) {
 
   EXPECT_CALL(*_uplink_client, sendUl(correct_send_ul_req, NotNull())).Times(1);
 
-  _handler->HandleRecv(
-      send_ul_req.ppid(), send_ul_req.assoc_id(), send_ul_req.stream(),
-      send_ul_req.payload());
+  _handler->HandleRecv(send_ul_req.ppid(), send_ul_req.assoc_id(),
+                       send_ul_req.stream(), send_ul_req.payload());
 }
 
 }  // namespace sctpd
@@ -144,6 +142,6 @@ TEST_F(EventHandlerTest, test_event_handler_send_ul) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
+  FLAGS_v = 10;
   return RUN_ALL_TESTS();
 }

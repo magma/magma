@@ -28,17 +28,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "3gpp_24.008.h"
 #include "3gpp_23.003.h"
+#include "3gpp_24.008.h"
 #include "3gpp_33.401.h"
 #include "3gpp_36.401.h"
 #include "bstrlib.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "emm_fsm.h"
+#include "nas/securityDef.h"
 #include "nas_timer.h"
 #include "queue.h"
-#include "nas/securityDef.h"
 #include "security_types.h"
 
 struct emm_context_s;
@@ -53,19 +53,18 @@ typedef int (*success_cb_t)(struct emm_context_s*);
 typedef int (*failure_cb_t)(struct emm_context_s*);
 typedef int (*proc_abort_t)(struct emm_context_s*, struct nas_base_proc_s*);
 
-typedef int (*pdu_in_resp_t)(
-    struct emm_context_s*,
-    void* arg);  // can be RESPONSE, COMPLETE, ACCEPT
+typedef int (*pdu_in_resp_t)(struct emm_context_s*,
+                             void* arg);  // can be RESPONSE, COMPLETE, ACCEPT
 typedef int (*pdu_in_rej_t)(struct emm_context_s*, void* arg);  // REJECT.
-typedef int (*pdu_out_rej_t)(
-    struct emm_context_s*, struct nas_base_proc_s*);  // REJECT.
+typedef int (*pdu_out_rej_t)(struct emm_context_s*,
+                             struct nas_base_proc_s*);  // REJECT.
 
-typedef int (*sdu_out_delivered_t)(
-    struct emm_context_s*, struct nas_emm_proc_s*);
-typedef int (*sdu_out_not_delivered_t)(
-    struct emm_context_s*, struct nas_emm_proc_s*);
-typedef int (*sdu_out_not_delivered_ho_t)(
-    struct emm_context_s*, struct nas_emm_proc_s*);
+typedef int (*sdu_out_delivered_t)(struct emm_context_s*,
+                                   struct nas_emm_proc_s*);
+typedef int (*sdu_out_not_delivered_t)(struct emm_context_s*,
+                                       struct nas_emm_proc_s*);
+typedef int (*sdu_out_not_delivered_ho_t)(struct emm_context_s*,
+                                          struct nas_emm_proc_s*);
 
 typedef enum {
   NAS_PROC_TYPE_NONE = 0,
@@ -437,18 +436,18 @@ bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc);
 bool is_nas_attach_complete_received(
     const nas_emm_attach_proc_t* const attach_proc);
 
-status_code_e nas_unlink_procedures(
-    nas_base_proc_t* const parent_proc, nas_base_proc_t* const child_proc);
+status_code_e nas_unlink_procedures(nas_base_proc_t* const parent_proc,
+                                    nas_base_proc_t* const child_proc);
 
 void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context);
-void nas_delete_common_procedure(
-    struct emm_context_s* const emm_context, nas_emm_common_proc_t** proc);
+void nas_delete_common_procedure(struct emm_context_s* const emm_context,
+                                 nas_emm_common_proc_t** proc);
 void nas_delete_attach_procedure(struct emm_context_s* const emm_context);
 void nas_delete_tau_procedure(struct emm_context_s* emm_context);
 void nas_delete_detach_procedure(struct emm_context_s* emm_context);
 
-void nas_delete_cn_procedure(
-    struct emm_context_s* emm_context, nas_cn_proc_t* cn_proc);
+void nas_delete_cn_procedure(struct emm_context_s* emm_context,
+                             nas_cn_proc_t* cn_proc);
 
 nas_emm_attach_proc_t* nas_new_attach_procedure(
     struct emm_context_s* const emm_context);
@@ -465,11 +464,12 @@ nas_emm_smc_proc_t* nas_new_smc_procedure(
 nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
     struct emm_context_s* const emm_context);
 
-void nas_digest_msg(
-    const unsigned char* const msg, const size_t msg_len, char* const digest,
-    /*INOUT*/ size_t* const digest_length);
-void nas_emm_procedure_register_emm_message(
-    mme_ue_s1ap_id_t ue_id, const uint64_t puid, bstring nas_msg);
+void nas_digest_msg(const unsigned char* const msg, const size_t msg_len,
+                    char* const digest,
+                    /*INOUT*/ size_t* const digest_length);
+void nas_emm_procedure_register_emm_message(mme_ue_s1ap_id_t ue_id,
+                                            const uint64_t puid,
+                                            bstring nas_msg);
 nas_emm_proc_t* nas_emm_find_procedure_by_msg_digest(
     struct emm_context_s* const emm_context, const char* const digest,
     const size_t digest_bytes, const size_t msg_size);

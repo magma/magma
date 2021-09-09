@@ -20,23 +20,23 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "ServiceType.h"
-#include "NasKeySetIdentifier.h"
-#include "CsfbResponse.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "CsfbResponse.h"
+#include "MessageType.h"
+#include "NasKeySetIdentifier.h"
+#include "SecurityHeaderType.h"
+#include "ServiceType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define EXTENDED_SERVICE_REQUEST_MINIMUM_LENGTH                                \
-  (SERVICE_TYPE_MINIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH +       \
+#define EXTENDED_SERVICE_REQUEST_MINIMUM_LENGTH                          \
+  (SERVICE_TYPE_MINIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH + \
    MOBILE_IDENTITY_IE_MIN_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define EXTENDED_SERVICE_REQUEST_MAXIMUM_LENGTH                                \
-  (SERVICE_TYPE_MAXIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +       \
+#define EXTENDED_SERVICE_REQUEST_MAXIMUM_LENGTH                          \
+  (SERVICE_TYPE_MAXIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH + \
    MOBILE_IDENTITY_IE_MAX_LENGTH + CSFB_RESPONSE_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

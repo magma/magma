@@ -29,15 +29,15 @@
 
 typedef bool guti_type_t;
 
-int encode_guti_type(
-    guti_type_t* gutitype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 
 uint8_t encode_u8_guti_type(guti_type_t* gutitype);
 
-int decode_guti_type(
-    guti_type_t* gutitype, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 
-int decode_u8_guti_type(
-    guti_type_t* gutitype, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t value,
+                        uint32_t len);
 
 #endif /* GUTI_TYPE_SEEN */

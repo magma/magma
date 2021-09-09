@@ -12,8 +12,8 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
+#include "M5GSecurityHeaderType.h"
 #include "M5GSpareHalfOctet.h"
 
 using namespace std;

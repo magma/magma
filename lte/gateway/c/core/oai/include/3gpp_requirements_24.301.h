@@ -40,22 +40,22 @@
 #include "3gpp_requirements.h"
 #include "log.h"
 
-#define REQUIREMENT_3GPP_24_301(rElEaSe_sEcTiOn__OaImark)                      \
-  REQUIREMENT_3GPP_SPEC(                                                       \
-      LOG_NAS, "Hit 3GPP TS 24_301" #rElEaSe_sEcTiOn__OaImark                  \
+#define REQUIREMENT_3GPP_24_301(rElEaSe_sEcTiOn__OaImark)              \
+  REQUIREMENT_3GPP_SPEC(LOG_NAS,                                       \
+                        "Hit 3GPP TS 24_301" #rElEaSe_sEcTiOn__OaImark \
+                        " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
+#define NO_REQUIREMENT_3GPP_24_301(rElEaSe_sEcTiOn__OaImark)               \
+  REQUIREMENT_3GPP_SPEC(                                                   \
+      LOG_NAS, "#NOT IMPLEMENTED 3GPP TS 24_301" #rElEaSe_sEcTiOn__OaImark \
                " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
-#define NO_REQUIREMENT_3GPP_24_301(rElEaSe_sEcTiOn__OaImark)                   \
-  REQUIREMENT_3GPP_SPEC(                                                       \
-      LOG_NAS, "#NOT IMPLEMENTED 3GPP TS 24_301" #rElEaSe_sEcTiOn__OaImark     \
-               " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
-#define NOT_REQUIREMENT_3GPP_24_301(rElEaSe_sEcTiOn__OaImark)                  \
-  REQUIREMENT_3GPP_SPEC(                                                       \
-      LOG_NAS, "#NOT ASSERTED 3GPP TS 24_301" #rElEaSe_sEcTiOn__OaImark        \
+#define NOT_REQUIREMENT_3GPP_24_301(rElEaSe_sEcTiOn__OaImark)           \
+  REQUIREMENT_3GPP_SPEC(                                                \
+      LOG_NAS, "#NOT ASSERTED 3GPP TS 24_301" #rElEaSe_sEcTiOn__OaImark \
                " : " rElEaSe_sEcTiOn__OaImark##_BRIEF "\n")
 
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define R10_4_4_4_3__1                                                         \
+#define R10_4_4_4_3__1 \
   "MME24.301R10_4.4.4.3_1: Integrity checking of NAS signalling messages in the MME\
                                                                                                                         \
     Except the messages listed below, no NAS signalling messages shall be processed by the receiving EMM entity in the  \
@@ -78,10 +78,10 @@
                                                                                                                         \
     All ESM messages are integrity protected except a PDN CONNECTIVITY REQUEST message if it is sent                    \
     piggybacked in ATTACH REQUEST message and NAS security is not activated.                                           "
-#define R10_4_4_4_3__1_BRIEF                                                   \
+#define R10_4_4_4_3__1_BRIEF \
   "Integrity checking of NAS signalling messages exception in the MME"
 
-#define R10_4_4_4_3__2                                                         \
+#define R10_4_4_4_3__2 \
   "MME24.301R10_4.4.4.3_2: Integrity checking of NAS signalling messages in the MME                \
                                                                                                                         \
     Once a current EPS security context exists, until the secure exchange of NAS messages has been established for the  \
@@ -104,7 +104,7 @@
 // GUTI REALLOCATION
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define R10_5_4_1_6_c                                                          \
+#define R10_5_4_1_6_c \
   "GUTI reallocation and attach procedure collision                                                 \
     If the network receives an ATTACH REQUEST message before the ongoing GUTI reallocation procedure has                \
 been completed the network shall proceed with the attach procedure after deletion of the EMM context."
@@ -114,7 +114,7 @@ been completed the network shall proceed with the attach procedure after deletio
 // AUTHENTICATION
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define R10_5_4_2_2                                                            \
+#define R10_5_4_2_2 \
   "Authentication initiation by the network                                                           \
     When a NAS signalling connection exists, the network can initiate an authentication procedure at any time. For      \
     restrictions applicable after handover or inter-system handover to S1 mode see subclause 5.5.3.2.3.                 \
@@ -124,33 +124,33 @@ been completed the network shall proceed with the attach procedure after deletio
 #define R10_5_4_2_2_BRIEF "Authentication initiation by the network"
 
 //------------------------------
-#define R10_5_4_2_4__1                                                         \
+#define R10_5_4_2_4__1 \
   "Authentication completion by the network                                                        \
     Upon receipt of an AUTHENTICATION RESPONSE message, the network stops the timer T3460 and checks the                \
     correctness of RES (see 3GPP TS 33.401 [19])."
-#define R10_5_4_2_4__1_BRIEF                                                   \
+#define R10_5_4_2_4__1_BRIEF \
   "AUTHENTICATION RESPONSE received, stop T3460, check RES"
 
-#define R10_5_4_2_4__2                                                         \
+#define R10_5_4_2_4__2 \
   "Authentication completion by the network                                                        \
     If the authentication procedure has been completed successfully and the related eKSI is stored in the EPS security  \
     context of the network, the network shall include a different eKSI value in the AUTHENTICATION REQUEST              \
     message when it initiates a new authentication procedure."
-#define R10_5_4_2_4__2_BRIEF                                                   \
-  "authentication procedure is success, new eKSI for new authentication "      \
+#define R10_5_4_2_4__2_BRIEF                                              \
+  "authentication procedure is success, new eKSI for new authentication " \
   "procedure"
 
-#define R10_5_4_2_4__3                                                         \
+#define R10_5_4_2_4__3 \
   "Authentication completion by the network                                                        \
     Upon receipt of an AUTHENTICATION FAILURE message, the network stops the timer T3460. In the case where the         \
     EMM cause #21 \"synch failure\" is received, the core network may renegotiate with the HSS/AuC and provide the UE   \
     with new authentication parameters."
-#define R10_5_4_2_4__3_BRIEF                                                   \
-  "AUTHENTICATION FAILURE received with EMM cause sync failure, renegociate "  \
+#define R10_5_4_2_4__3_BRIEF                                                  \
+  "AUTHENTICATION FAILURE received with EMM cause sync failure, renegociate " \
   "with HSS."
 
 //------------------------------
-#define R10_5_4_2_5__1                                                         \
+#define R10_5_4_2_5__1 \
   "Authentication not accepted by the network                                                       \
     If the authentication response returned by the UE is not valid, the network response depends upon the type of identity \
     used by the UE in the initial NAS message, that is:                                                                 \
@@ -162,12 +162,12 @@ been completed the network shall proceed with the attach procedure after deletio
     network (i.e. authentication has really failed), the network should proceed as described below."
 #define R10_5_4_2_5__1_BRIEF "AUTHENTICATION RESPONSE not accepted"
 
-#define R10_5_4_2_5__2                                                         \
+#define R10_5_4_2_5__2 \
   "Authentication not accepted by the network                                                       \
     If the IMSI was used for identification in the initial NAS message, or the network decides not to initiate the       \
     identification procedure after an unsuccessful authentication procedure, the network should send an                  \
     AUTHENTICATION REJECT message to the UE."
-#define R10_5_4_2_5__2_BRIEF                                                   \
+#define R10_5_4_2_5__2_BRIEF \
   "AUTHENTICATION RESPONSE not accepted send AUTHENTICATION REJECT"
 
 // Upon receipt of an AUTHENTICATION REJECT message, the UE shall set the update
@@ -200,14 +200,14 @@ been completed the network shall proceed with the attach procedure after deletio
 // bearer services only.
 
 //------------------------------
-#define R10_5_4_2_7_a                                                          \
+#define R10_5_4_2_7_a \
   "Abnormal cases                                                                                   \
     Lower layer failure:                                                                                                \
     Upon detection of lower layer failure before the AUTHENTICATION RESPONSE is received, the network                   \
     shall abort the procedure."
 #define R10_5_4_2_7_a_BRIEF "Lower layer failure"
 
-#define R10_5_4_2_7_b                                                          \
+#define R10_5_4_2_7_b \
   "Abnormal cases                                                                                   \
     Expiry of timer T3460:                                                                                              \
     The network shall, on the first expiry of the timer T3460, retransmit the AUTHENTICATION REQUEST                    \
@@ -225,7 +225,7 @@ been completed the network shall proceed with the attach procedure after deletio
    retransmission timers that are running (e.g. T3410, T3417, T3421 or
    T3430)."*/
 
-#define R10_5_4_2_7_c__2                                                       \
+#define R10_5_4_2_7_c__2 \
   "Abnormal cases                                                                                \
     Authentication failure (EMM cause #20 \"MAC failure\"):                                                             \
     Upon the first receipt of an AUTHENTICATION FAILURE message from the UE with EMM cause #20 \"MAC failure\", the     \
@@ -233,10 +233,10 @@ been completed the network shall proceed with the attach procedure after deletio
     obtain the IMSI from the UE. The network may then check that the GUTI originally used in the authentication         \
     challenge corresponded to the correct IMSI. Upon receipt of the IDENTITY REQUEST message from the                   \
     network, the UE shall send the IDENTITY RESPONSE message."
-#define R10_5_4_2_7_c__2_BRIEF                                                 \
+#define R10_5_4_2_7_c__2_BRIEF \
   "AUTHENTICATION FAILURE (EMM cause #20 \"MAC failure\")"
 
-#define R10_5_4_2_7_c__NOTE1                                                   \
+#define R10_5_4_2_7_c__NOTE1 \
   "Abnormal cases                                                                            \
     Upon receipt of an AUTHENTICATION FAILURE message from the UE with EMM cause #20 \"MAC failure\", the network may   \
     also terminate the authentication procedure (see subclause 5.4.2.5)."
@@ -280,7 +280,7 @@ then process the challenge             \ information as normal."*/
 // not genuine (i.e. authentication not accepted by the UE), the UE shall
 // proceed as described in item f.
 
-#define R10_5_4_2_7_d__1                                                       \
+#define R10_5_4_2_7_d__1 \
   "Abnormal cases                                                                                \
     Authentication failure (EMM cause #26 \"non-EPS authentication unacceptable\"):                                     \
     The UE shall send an AUTHENTICATION FAILURE message, with EMM cause #26 \"non-EPS authentication                    \
@@ -291,11 +291,11 @@ then process the challenge             \ information as normal."*/
     This is to allow the network to obtain the IMSI from the UE. The network may then check that the GUTI               \
     originally used in the authentication challenge corresponded to the correct IMSI. Upon receipt of the IDENTITY      \
     REQUEST message from the network, the UE shall send the IDENTITY RESPONSE message."
-#define R10_5_4_2_7_d__1_BRIEF                                                 \
-  "Authentication failure (EMM cause #26 \"non-EPS authentication "            \
+#define R10_5_4_2_7_d__1_BRIEF                                      \
+  "Authentication failure (EMM cause #26 \"non-EPS authentication " \
   "unacceptable\")"
 
-#define R10_5_4_2_7_d__NOTE2                                                   \
+#define R10_5_4_2_7_d__NOTE2 \
   "Abnormal cases                                                                            \
     Upon receipt of an AUTHENTICATION FAILURE message from the UE with EMM cause #26 \"non-                             \
     EPS authentication unacceptable\", the network may also terminate the authentication procedure (see                 \
@@ -322,14 +322,14 @@ subclause 5.4.2.5)."*/
    Furthermore, the UE shall stop any of the      \ retransmission timers that
    are running (e.g. T3410, T3417, T3421 or T3430)."*/
 
-#define R10_5_4_2_7_e__2                                                       \
+#define R10_5_4_2_7_e__2 \
   "Abnormal cases                                                                                \
     Upon the first receipt of an AUTHENTICATION FAILURE message from the UE with the EMM cause #21 \"synch failure\",   \
     the network shall use the returned AUTS parameter from the authentication failure parameter IE in the AUTHENTICATION\
     FAILURE message, to re-synchronise."
 #define R10_5_4_2_7_e__2_BRIEF "Re-synchronise with AUTS parameter"
 
-#define R10_5_4_2_7_e__3                                                       \
+#define R10_5_4_2_7_e__3 \
   "Abnormal cases                                                                                \
     The re-synchronisation procedure requires the MME to delete all unused                                              \
     authentication vectors for that IMSI and obtain new vectors from the HSS. When re-synchronisation is complete,      \
@@ -337,13 +337,13 @@ subclause 5.4.2.5)."*/
     message, the UE shall stop the timer T3420, if running."
 #define R10_5_4_2_7_e__3_BRIEF "Re-synchronisation, new vectors"
 
-#define R10_5_4_2_7_e__NOTE3                                                   \
+#define R10_5_4_2_7_e__NOTE3 \
   "Abnormal cases                                                                            \
     Upon receipt of two consecutive AUTHENTICATION FAILURE messages from the UE with EMM                                \
     cause #21 \"synch failure\", the network may terminate the authentication procedure by sending an                   \
     AUTHENTICATION REJECT message."
-#define R10_5_4_2_7_e__NOTE3_BRIEF                                             \
-  "Two consecutive AUTHENTICATION FAILURE messages (synch failure): "          \
+#define R10_5_4_2_7_e__NOTE3_BRIEF                                    \
+  "Two consecutive AUTHENTICATION FAILURE messages (synch failure): " \
   "AUTHENTICATION REJECT"
 
 // If the network is validated successfully (a new AUTHENTICATION REQUEST is
@@ -400,7 +400,7 @@ subclause 5.4.2.5)."*/
 // up to the UE implementation how to re-run the ongoing procedure that
 // triggered the authentication procedure.
 
-#define R10_5_4_2_7_j                                                          \
+#define R10_5_4_2_7_j \
   "Abnormal cases                                                                            \
     Lower layers indication of non-delivered NAS PDU due to handover                                             \
     If the AUTHENTICATION REQUEST message could not be delivered due to an intra MME handover and the            \
@@ -408,7 +408,7 @@ subclause 5.4.2.5)."*/
     shall retransmit the AUTHENTICATION REQUEST message. If a failure of handover procedure is reported by       \
     the lower layer and the S1 signalling connection exists, the MME shall retransmit the AUTHENTICATION         \
     REQUEST message."
-#define R10_5_4_2_7_j_BRIEF                                                    \
+#define R10_5_4_2_7_j_BRIEF \
   "Lower layers indication of non-delivered NAS PDU due to handover"
 
 // For items c, d, and e:
@@ -448,13 +448,13 @@ subclause 5.4.2.5)."*/
 // SECURITY MODE CONTROL
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define R10_5_4_3_2__1                                                         \
+#define R10_5_4_3_2__1 \
   "NAS security mode control initiation by the network                                             \
     The MME initiates the NAS security mode control procedure by sending a SECURITY MODE COMMAND message                \
     to the UE and starting timer T3460 (see example in figure 5.4.3.2.1)."
 #define R10_5_4_3_2__1_BRIEF "SMC initiation, start T3460"
 
-#define R10_5_4_3_2__2                                                         \
+#define R10_5_4_3_2__2 \
   "NAS security mode control initiation by the network                                             \
     The MME shall reset the downlink NAS COUNT counter and use it to integrity protect the initial SECURITY MODE        \
     COMMAND message if the security mode control procedure is initiated:                                                \
@@ -519,14 +519,14 @@ subclause 5.4.2.5)."*/
 // security context into use, the MME shall include the eKSI that indicates the
 // native EPS security context in the SECURITY MODE COMMAND message.
 
-#define R10_5_4_3_2__14                                                        \
+#define R10_5_4_3_2__14 \
   "NAS security mode control initiation by the network                                            \
     The MME shall include the replayed security capabilities of the UE (including the security capabilities with regard to\
     NAS, RRC and UP (user plane) ciphering as well as NAS, RRC integrity, and other possible target network security    \
     capabilities, i.e. UTRAN/GERAN if UE included them in the message to network), the replayed nonce UE if the UE      \
     included it in the message to the network, the selected NAS ciphering and integrity algorithms and the Key Set      \
     Identifier (eKSI)."
-#define R10_5_4_3_2__14_BRIEF                                                  \
+#define R10_5_4_3_2__14_BRIEF \
   "SMC initiation, include replayed security capabilities, eKSI, algos"
 
 // The MME shall include both the nonce MME and the nonce UE when creating a
@@ -546,12 +546,12 @@ subclause 5.4.2.5)."*/
 
 //------------------------------
 
-#define R10_5_4_3_4__1                                                         \
+#define R10_5_4_3_4__1 \
   "NAS security mode control completion by the network                                             \
     The MME shall, upon receipt of the SECURITY MODE COMPLETE message, stop timer T3460."
 #define R10_5_4_3_4__1_BRIEF "SMC completion, stop T3460, "
 
-#define R10_5_4_3_4__2                                                         \
+#define R10_5_4_3_4__2 \
   "NAS security mode control completion by the network                                             \
     From this time onward the MME shall integrity protect and encipher all signalling messages with the selected NAS    \
     integrity and ciphering algorithms."
@@ -566,14 +566,14 @@ subclause 5.4.2.5)."*/
 // that typically indicates one of the following cause values: #23: UE security
 // capabilities mismatch; #24: security mode rejected, unspecified.
 
-#define R10_5_4_3_5__2                                                         \
+#define R10_5_4_3_5__2 \
   "NAS security mode command not accepted by the UE                                                \
     Upon receipt of the SECURITY MODE REJECT message, the MME shall stop timer T3460. The MME shall also abort          \
     the ongoing procedure that triggered the initiation of the NAS security mode control procedure."
-#define R10_5_4_3_5__2_BRIEF                                                   \
+#define R10_5_4_3_5__2_BRIEF \
   "SECURITY MODE REJECT received, stop T3460, abort procedure"
 
-#define R10_5_4_3_5__3                                                         \
+#define R10_5_4_3_5__3 \
   "NAS security mode command not accepted by the UE                                                \
     Both the UE and the MME shall apply the EPS security context in use before the initiation of the security mode control\
     procedure, if any, to protect the SECURITY MODE REJECT message and any other subsequent messages according to       \
@@ -582,7 +582,7 @@ subclause 5.4.2.5)."*/
 
 //------------------------------
 
-#define R10_5_4_3_7_a                                                          \
+#define R10_5_4_3_7_a \
   "Abnormal cases on the network side                                                               \
     Lower layer failure before the SECURITY MODE COMPLETE or SECURITY MODE REJECT message is received                   \
     The network shall abort the procedure."
@@ -590,18 +590,18 @@ subclause 5.4.2.5)."*/
   "Lower layer failure before SECURITY MODE COMPLETE or SECURITY MODE REJECT " \
   "is received"
 
-#define R10_5_4_3_7_b__1                                                       \
+#define R10_5_4_3_7_b__1 \
   "Abnormal cases on the network side                                                            \
     Expiry of timer T3460                                                                                               \
     The network shall, on the first expiry of the timer T3460, retransmit the SECURITY MODE COMMAND                     \
     message and shall reset and start timer T3460. This retransmission is repeated four times, i.e."
 #define R10_5_4_3_7_b__1_BRIEF "SMC, Expiry of timer T3460"
 
-#define R10_5_4_3_7_b__2                                                       \
+#define R10_5_4_3_7_b__2 \
   "Abnormal cases on the network side                                                            \
     Expiry of timer T3460                                                                                               \
     on the fifth expiry of timer T3460, the procedure shall be aborted."
-#define R10_5_4_3_7_b__2_BRIEF                                                 \
+#define R10_5_4_3_7_b__2_BRIEF \
   "Expiry of timer T3460, procedure shall be aborted"
 
 // NOTE:
@@ -611,23 +611,23 @@ subclause 5.4.2.5)."*/
 // nonce UE , but includes the same values in the SECURITY MODE COMMAND message
 // (see the subclause 7.2.4.4 in 3GPP TS 33.401 [19]).
 
-#define R10_5_4_3_7_c                                                          \
+#define R10_5_4_3_7_c \
   "Abnormal cases on the network side                                                               \
     Collision between security mode control procedure and attach, service request, tracking area updating procedure     \
     or detach procedure not indicating switch off                                                                       \
     The network shall abort the security mode control procedure and proceed with the UE initiated procedure."
-#define R10_5_4_3_7_c_BRIEF                                                    \
-  "Collision between SMC procedure and attach, SR, TAU or detach not "         \
+#define R10_5_4_3_7_c_BRIEF                                            \
+  "Collision between SMC procedure and attach, SR, TAU or detach not " \
   "indicating switch off"
 
-#define R10_5_4_3_7_d                                                          \
+#define R10_5_4_3_7_d \
   "Abnormal cases on the network side                                                               \
     Collision between security mode control procedure and other EMM procedures than in item c                           \
     The network shall progress both procedures."
-#define R10_5_4_3_7_d_BRIEF                                                    \
+#define R10_5_4_3_7_d_BRIEF \
   "Collision between security mode control procedure and other EMM procedures"
 
-#define R10_5_4_3_7_e                                                          \
+#define R10_5_4_3_7_e \
   "Abnormal cases on the network side                                                               \
     Lower layers indication of non-delivered NAS PDU due to handover                                                    \
     If the SECURITY MODE COMMAND message could not be delivered due to an intra MME handover and the                    \
@@ -635,14 +635,14 @@ subclause 5.4.2.5)."*/
     shall retransmit the SECURITY MODE COMMAND message. If a failure of the handover procedure is reported              \
     by the lower layer and the S1 signalling connection exists, the MME shall retransmit the SECURITY MODE              \
     COMMAND message."
-#define R10_5_4_3_7_e_BRIEF                                                    \
+#define R10_5_4_3_7_e_BRIEF \
   "Lower layers indication of non-delivered NAS PDU due to handover"
 
 //-----------------------------------------------------------------------------------------------------------------------
 // IDENTIFICATION
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define R10_5_4_4_1                                                            \
+#define R10_5_4_4_1 \
   "General                                                                                            \
     The identification procedure is used by the network to request a particular UE to provide specific identification   \
     parameters, e.g. the International Mobile Subscriber Identity (IMSI) or the International Mobile Equipment Identity \
@@ -651,58 +651,58 @@ subclause 5.4.2.5)."*/
     specified in 3GPP TS 22.278 [1C]."
 #define R10_5_4_4_1_BRIEF "Identification procedure"
 
-#define R10_5_4_4_2                                                            \
+#define R10_5_4_4_2 \
   "Identification initiation by the network                                                           \
     The network initiates the identification procedure by sending an IDENTITY REQUEST message to the UE and starting    \
     the timer T3470 (see example in figure 5.4.4.2.1). The IDENTITY REQUEST message specifies the requested             \
     identification parameters in the Identity type information element."
 #define R10_5_4_4_2_BRIEF "Identification initiation by the network"
 
-#define R10_5_4_4_4                                                            \
+#define R10_5_4_4_4 \
   "Identification completion by the network                                                           \
     Upon receipt of the IDENTITY RESPONSE the network shall stop the timer T3470."
 #define R10_5_4_4_4_BRIEF "Identification completion by the network"
 
-#define R10_5_4_4_6_a                                                          \
+#define R10_5_4_4_6_a \
   "Abnormal cases on the network side                                                               \
     Lower layer failure                                                                                                 \
     Upon detection of a lower layer failure before the IDENTITY RESPONSE is received, the network shall abort           \
     any ongoing EMM procedure."
-#define R10_5_4_4_6_a_BRIEF                                                    \
+#define R10_5_4_4_6_a_BRIEF \
   "Lower layer failure detected, abort any EMM procedure"
 
-#define R10_5_4_4_6_b__1                                                       \
+#define R10_5_4_4_6_b__1 \
   "Abnormal cases on the network side                                                            \
     Expiry of timer T3470                                                                                               \
     The identification procedure is supervised by the network by the timer T3470. The network shall, on the first       \
     expiry of the timer T3470, retransmit the IDENTITY REQUEST message and reset and restart the timer T3470."
 #define R10_5_4_4_6_b__1_BRIEF "Expiry of timer T3470"
 
-#define R10_5_4_4_6_b__2                                                       \
+#define R10_5_4_4_6_b__2 \
   "Abnormal cases on the network side                                                            \
     Expiry of timer T3470                                                                                               \
     This retransmission is repeated four times, i.e. on the fifth expiry of timer T3470, the network shall abort the    \
     identification procedure and any ongoing EMM procedure."
 #define R10_5_4_4_6_b__2_BRIEF "Expiry of timer T3470"
 
-#define R10_5_4_4_6_c                                                          \
+#define R10_5_4_4_6_c \
   "Abnormal cases on the network side                                                               \
     Collision of an identification procedure with an attach procedure                                                   \
     If the network receives an ATTACH REQUEST message before the ongoing identification procedure has been              \
     completed and no attach procedure is pending on the network (i.e. no ATTACH ACCEPT/REJECT message has               \
     still to be sent as an answer to an ATTACH REQUEST message), the network shall proceed with the attach              \
     procedure."
-#define R10_5_4_4_6_c_BRIEF                                                    \
+#define R10_5_4_4_6_c_BRIEF \
   "Collision of an identification procedure with an attach procedure"
-#define R10_5_4_4_6_d                                                          \
+#define R10_5_4_4_6_d \
   "Abnormal cases on the network side                                                               \
     Collision of an identification procedure with an attach procedure when the identification procedure has been        \
     caused by an attach procedure"
-#define R10_5_4_4_6_d_BRIEF                                                    \
-  "Collision of an identification procedure caused by attach procedure with "  \
+#define R10_5_4_4_6_d_BRIEF                                                   \
+  "Collision of an identification procedure caused by attach procedure with " \
   "an attach procedure"
 
-#define R10_5_4_4_6_d__1                                                       \
+#define R10_5_4_4_6_d__1 \
   "Abnormal cases on the network side                                                            \
     Collision of an identification procedure with an attach procedure when the identification procedure has been        \
     caused by an attach procedure                                                                                       \
@@ -715,7 +715,7 @@ subclause 5.4.2.5)."*/
 #define R10_5_4_4_6_d__1_BRIEF                                                 \
   "Collision of an identification procedure with an attach procedure, attach " \
   "IEs changed, new attach go on"
-#define R10_5_4_4_6_d__2                                                       \
+#define R10_5_4_4_6_d__2 \
   "Abnormal cases on the network side                                                            \
     Collision of an identification procedure with an attach procedure when the identification procedure has been        \
     caused by an attach procedure                                                                                       \
@@ -732,7 +732,7 @@ subclause 5.4.2.5)."*/
 // ATTACH
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define R10_5_5_1__1                                                           \
+#define R10_5_5_1__1 \
   "Attach procedure - General                                                                        \
     The attach procedure is used to attach to an EPC for packet services in EPS.                                        \
     ...                                                                                                                 \
@@ -751,12 +751,12 @@ subclause 5.4.2.5)."*/
 
 //------------------------------
 
-#define R10_5_5_1_2_3__1                                                       \
+#define R10_5_5_1_2_3__1 \
   "Attach procedure - EMM common procedure initiation                                            \
     The network may initiate EMM common procedures, e.g. the identification, authentication and security mode control   \
     procedures during the attach procedure, depending on the information received in the ATTACH REQUEST message         \
     (e.g. IMSI, GUTI and KSI)."
-#define R10_5_5_1_2_3__1_BRIEF                                                 \
+#define R10_5_5_1_2_3__1_BRIEF \
   "EMM common procedure initiation during attach procedure"
 
 //#define R10_5_5_1_2_3__2 "Attach procedure - EMM common procedure initiation
@@ -776,7 +776,7 @@ subclause 5.4.2.5)."*/
 
 //------------------------------
 
-#define R10_5_5_1_2_4__1                                                       \
+#define R10_5_5_1_2_4__1 \
   "Attach accepted by the network                                                                \
     During an attach for emergency bearer services, if not restricted by local regulations, the MME shall not check for \
     mobility and access restrictions, regional restrictions, subscription restrictions, or perform CSG access control when\
@@ -784,7 +784,7 @@ subclause 5.4.2.5)."*/
     during an attach procedure for emergency bearer services."
 #define R10_5_5_1_2_4__1_BRIEF ""
 
-#define R10_5_5_1_2_4__2                                                       \
+#define R10_5_5_1_2_4__2 \
   "Attach accepted by the network                                                                \
     If the attach request is accepted by the network, the MME shall send an ATTACH ACCEPT message to the UE and         \
     start timer T3450. The MME shall send the ATTACH ACCEPT message together with an ACTIVATE DEFAULT EPS               \
@@ -793,15 +793,15 @@ subclause 5.4.2.5)."*/
     by invoking the dedicated EPS bearer context activation procedure (see subclause 6.4.2)."
 #define R10_5_5_1_2_4__2_BRIEF ""
 
-#define R10_5_5_1_2_4__3                                                       \
+#define R10_5_5_1_2_4__3 \
   "Attach accepted by the network                                                                \
     If the attach request is accepted by the network, the MME shall delete the stored UE radio capability information, if\
     any."
-#define R10_5_5_1_2_4__3_BRIEF                                                 \
-  "Attach accepted by the network, delete the stored UE radio capability "     \
+#define R10_5_5_1_2_4__3_BRIEF                                             \
+  "Attach accepted by the network, delete the stored UE radio capability " \
   "information."
 
-#define R10_5_5_1_2_4__4                                                       \
+#define R10_5_5_1_2_4__4 \
   "Attach accepted by the network                                                                \
     If the UE has included the UE network capability IE or the MS network capability IE or both in the ATTACH           \
     REQUEST message, the MME shall store all octets received from the UE, up to the maximum length defined for the      \
@@ -809,20 +809,20 @@ subclause 5.4.2.5)."*/
     NOTE:                                                                                                               \
       This information is forwarded to the new MME during inter-MME handover or to the new SGSN during                  \
       inter-system handover to A/Gb mode or Iu mode."
-#define R10_5_5_1_2_4__4_BRIEF                                                 \
-  "Attach accepted by the network, store UE network capability IE or the MS "  \
+#define R10_5_5_1_2_4__4_BRIEF                                                \
+  "Attach accepted by the network, store UE network capability IE or the MS " \
   "network capability IE or both."
 
-#define R10_5_5_1_2_4__5                                                       \
+#define R10_5_5_1_2_4__5 \
   "Attach accepted by the network                                                                \
     If the UE specific DRX parameter was included in the DRX Parameter IE in the ATTACH REQUEST message, the            \
     MME shall replace any stored UE specific DRX parameter with the received parameter and use it for the downlink      \
     transfer of signalling and user data."
-#define R10_5_5_1_2_4__5_BRIEF                                                 \
-  "Attach accepted by the network, use DRX parameter for the downlink "        \
+#define R10_5_5_1_2_4__5_BRIEF                                          \
+  "Attach accepted by the network, use DRX parameter for the downlink " \
   "transfer of signalling and user data"
 
-#define R10_5_5_1_2_4__6                                                       \
+#define R10_5_5_1_2_4__6 \
   "Attach accepted by the network                                                                \
     The MME shall assign and include the TAI list the UE is registered to in the ATTACH ACCEPT message. The UE,         \
     upon receiving an ATTACH ACCEPT message, shall delete its old TAI list and store the received TAI list."
@@ -836,7 +836,7 @@ subclause 5.4.2.5)."*/
 
 // Upon receiving the ATTACH ACCEPT message, the UE shall stop timer T3410.
 
-#define R10_5_5_1_2_4__9                                                       \
+#define R10_5_5_1_2_4__9 \
   "Attach accepted by the network                                                                \
     The GUTI reallocation may be part of the attach procedure. When the ATTACH REQUEST message includes the IMSI        \
     or IMEI, or the MME considers the GUTI provided by the UE is invalid, or the GUTI provided by the UE was assigned   \
@@ -845,7 +845,7 @@ subclause 5.4.2.5)."*/
     COMMON-PROCEDURE-INITIATED as described in subclause 5.4.1."
 #define R10_5_5_1_2_4__9_BRIEF ""
 
-#define R10_5_5_1_2_4__10                                                      \
+#define R10_5_5_1_2_4__10 \
   "Attach accepted by the network                                                               \
     For a shared network, the TAIs included in the TAI list can contain different PLMN identities. The MME indicates the\
     selected core network operator PLMN identity to the UE in the GUTI (see 3GPP TS 23.251 [8B])."
@@ -859,7 +859,7 @@ subclause 5.4.2.5)."*/
 // If A/Gb mode or Iu mode is supported in the UE, the UE shall set its TIN to
 // "GUTI" when receiving the ATTACH ACCEPT message.
 
-#define R10_5_5_1_2_4__13                                                      \
+#define R10_5_5_1_2_4__13 \
   "Attach accepted by the network                                                               \
     The MME may also include a list of equivalent PLMNs in the ATTACH ACCEPT message. Each entry in the list            \
     contains a PLMN code (MCC+MNC). The UE shall store the list as provided by the network, and if the attach           \
@@ -869,7 +869,7 @@ subclause 5.4.2.5)."*/
     ACCEPT message does not contain a list, then the UE shall delete the stored list."
 #define R10_5_5_1_2_4__13_BRIEF ""
 
-#define R10_5_5_1_2_4__14                                                      \
+#define R10_5_5_1_2_4__14 \
   "Attach accepted by the network                                                               \
     The network informs the UE about the support of specific features, such as IMS voice over PS session, location services\
     (EPC-LCS, CS-LCS) or emergency bearer services, in the EPS network feature support information element. In a UE     \
@@ -912,16 +912,16 @@ subclause 5.4.2.5)."*/
 // If the attach procedure was initiated in S101 mode, the lower layers are
 // informed about the successful completion of the procedure.
 
-#define R10_5_5_1_2_4__20                                                      \
+#define R10_5_5_1_2_4__20 \
   "Attach accepted by the network                                                               \
     Upon receiving an ATTACH COMPLETE message, the MME shall stop timer T3450, enter state EMM-REGISTERED               \
     and consider the GUTI sent in the ATTACH ACCEPT message as valid."
-#define R10_5_5_1_2_4__20_BRIEF                                                \
-  "Attach accepted by the network, ATTACH COMPLETE received, enter state "     \
+#define R10_5_5_1_2_4__20_BRIEF                                            \
+  "Attach accepted by the network, ATTACH COMPLETE received, enter state " \
   "EMM-REGISTERED"
 
 //------------------------------
-#define R10_5_5_1_2_7_a                                                        \
+#define R10_5_5_1_2_7_a \
   "Abnormal cases on the network side                                                             \
     a) Lower layer failure                                                                                              \
     If a lower layer failure occurs before the message ATTACH COMPLETE has been received from the UE, the               \
@@ -932,58 +932,58 @@ subclause 5.4.2.5)."*/
     If the old GUTI was allocated by an MME other than the current MME, the current MME does not need to retain         \
     the old GUTI. If the old GUTI is used by the UE in a subsequent attach message, the network may use the             \
     identification procedure to request the UE's IMSI.       "
-#define R10_5_5_1_2_7_a_BRIEF                                                  \
+#define R10_5_5_1_2_7_a_BRIEF \
   "Abnormal cases on the network side: Lower layer failure"
 
-#define R10_5_5_1_2_7_b__1                                                     \
+#define R10_5_5_1_2_7_b__1 \
   "Abnormal cases on the network side                                                          \
     b) Protocol error                                                                                                   \
     If the ATTACH REQUEST message is received with a protocol error, the network shall return an ATTACH                 \
     REJECT message with the following EMM cause value: invalid mandatory information       "
-#define R10_5_5_1_2_7_b__1_BRIEF                                               \
-  "Abnormal cases on the network side: Protocol error invalid mandatory "      \
+#define R10_5_5_1_2_7_b__1_BRIEF                                          \
+  "Abnormal cases on the network side: Protocol error invalid mandatory " \
   "information"
-#define R10_5_5_1_2_7_b__2                                                     \
+#define R10_5_5_1_2_7_b__2 \
   "Abnormal cases on the network side                                                          \
     b) Protocol error                                                                                                   \
     If the ATTACH REQUEST message is received with a protocol error, the network shall return an ATTACH                 \
     REJECT message with the following EMM cause value: information element non-existent or not implemented"
-#define R10_5_5_1_2_7_b__2_BRIEF                                               \
-  "Abnormal cases on the network side: Protocol error information element "    \
+#define R10_5_5_1_2_7_b__2_BRIEF                                            \
+  "Abnormal cases on the network side: Protocol error information element " \
   "non-existent or not implemented"
-#define R10_5_5_1_2_7_b__3                                                     \
+#define R10_5_5_1_2_7_b__3 \
   "Abnormal cases on the network side                                                          \
     b) Protocol error                                                                                                   \
     If the ATTACH REQUEST message is received with a protocol error, the network shall return an ATTACH                 \
     REJECT message with the following EMM cause value: conditional IE error"
-#define R10_5_5_1_2_7_b__3_BRIEF                                               \
+#define R10_5_5_1_2_7_b__3_BRIEF \
   "Abnormal cases on the network side: Protocol error conditional IE error"
-#define R10_5_5_1_2_7_b__4                                                     \
+#define R10_5_5_1_2_7_b__4 \
   "Abnormal cases on the network side                                                          \
     b) Protocol error                                                                                                   \
     If the ATTACH REQUEST message is received with a protocol error, the network shall return an ATTACH                 \
     REJECT message with the following EMM cause value: unspecified"
-#define R10_5_5_1_2_7_b__4_BRIEF                                               \
+#define R10_5_5_1_2_7_b__4_BRIEF \
   "Abnormal cases on the network side: protocol error, unspecified"
 
-#define R10_5_5_1_2_7_c__1                                                     \
+#define R10_5_5_1_2_7_c__1 \
   "Abnormal cases on the network side                                                          \
     c) T3450 time-out                                                                                                   \
     On the first expiry of the timer, the network shall retransmit the ATTACH ACCEPT message and shall reset and        \
     restart timer T3450.                                                                                                \
     This retransmission is repeated four times"
-#define R10_5_5_1_2_7_c__1_BRIEF                                               \
+#define R10_5_5_1_2_7_c__1_BRIEF \
   "Abnormal cases on the network side: T3450 time-out"
 
-#define R10_5_5_1_2_7_c__2                                                     \
+#define R10_5_5_1_2_7_c__2 \
   "Abnormal cases on the network side                                                          \
     c) T3450 time-out                                                                                                   \
     i.e. on the fifth expiry of timer T3450, the attach procedure shall be                                              \
     aborted and the MME enters state EMM-DEREGISTERED. "
-#define R10_5_5_1_2_7_c__2_BRIEF                                               \
+#define R10_5_5_1_2_7_c__2_BRIEF \
   "Abnormal cases on the network side: fifth expiry of timer T3450"
 
-#define R10_5_5_1_2_7_c__3                                                     \
+#define R10_5_5_1_2_7_c__3 \
   "Abnormal cases on the network side                                                          \
     c) T3450 time-out                                                                                                   \
     If a new GUTI was allocated in the ATTACH                                                                           \
@@ -994,7 +994,7 @@ subclause 5.4.2.5)."*/
     If the old GUTI is used by the UE in a subsequent attach message, the network acts as specified for case a above."
 #define R10_5_5_1_2_7_c__3_BRIEF ""
 
-#define R10_5_5_1_2_7_d__1                                                     \
+#define R10_5_5_1_2_7_d__1 \
   "Abnormal cases on the network side                                                          \
     ATTACH REQUEST received after the ATTACH ACCEPT message has been sent and before the ATTACH                         \
     COMPLETE message is received                                                                                        \
@@ -1002,25 +1002,25 @@ subclause 5.4.2.5)."*/
     received within the previous ATTACH REQUEST message, the previously initiated attach procedure shall                \
     be aborted if the ATTACH COMPLETE message has not been received and the new attach procedure shall                  \
     be progressed; "
-#define R10_5_5_1_2_7_d__1_BRIEF                                               \
-  "ATTACH REQUEST with changed IEs received after ATTACH ACCEPT sent and "     \
+#define R10_5_5_1_2_7_d__1_BRIEF                                           \
+  "ATTACH REQUEST with changed IEs received after ATTACH ACCEPT sent and " \
   "before ATTACH COMPLETE received"
 
-#define R10_5_5_1_2_7_d__2                                                     \
+#define R10_5_5_1_2_7_d__2 \
   "Abnormal cases on the network side                                                          \
     ATTACH REQUEST received after the ATTACH ACCEPT message has been sent and before the ATTACH                         \
     COMPLETE message is received                                                                                        \
     - if the information elements do not differ, then the ATTACH ACCEPT message shall be resent and the timer           \
     T3450 shall be restarted if an ATTACH COMPLETE message is expected. In that case, the retransmission                \
     counter related to T3450 is not incremented."
-#define R10_5_5_1_2_7_d__2_BRIEF                                               \
-  "ATTACH REQUEST with same IEs received, ATTACH ACCEPT message shall be "     \
+#define R10_5_5_1_2_7_d__2_BRIEF                                           \
+  "ATTACH REQUEST with same IEs received, ATTACH ACCEPT message shall be " \
   "resent"
-#define R10_5_5_1_2_7_d__2_a_BRIEF                                             \
-  "ATTACH REQUEST with same IEs received, T3450 shall be restarted if an "     \
+#define R10_5_5_1_2_7_d__2_a_BRIEF                                         \
+  "ATTACH REQUEST with same IEs received, T3450 shall be restarted if an " \
   "ATTACH COMPLETE message is expected"
 
-#define R10_5_5_1_2_7_e__1                                                     \
+#define R10_5_5_1_2_7_e__1 \
   "Abnormal cases on the network side                                                          \
     e) More than one ATTACH REQUEST received and no ATTACH ACCEPT or ATTACH REJECT message has                          \
     been sent                                                                                                           \
@@ -1029,17 +1029,17 @@ subclause 5.4.2.5)."*/
     be aborted and the new attach procedure shall be executed"
 #define R10_5_5_1_2_7_e__1_BRIEF ""
 
-#define R10_5_5_1_2_7_e__2                                                     \
+#define R10_5_5_1_2_7_e__2 \
   "Abnormal cases on the network side                                                          \
     e) More than one ATTACH REQUEST received and no ATTACH ACCEPT or ATTACH REJECT message has                          \
     been sent                                                                                                           \
     - if the information elements do not differ, then the network shall continue with the previous attach procedure     \
     and shall ignore the second ATTACH REQUEST message."
-#define R10_5_5_1_2_7_e__2_BRIEF                                               \
-  "Ignore the this duplicate ATTACH REQUEST message, continue with the "       \
+#define R10_5_5_1_2_7_e__2_BRIEF                                         \
+  "Ignore the this duplicate ATTACH REQUEST message, continue with the " \
   "previous attach procedure"
 
-#define R10_5_5_1_2_7_f                                                        \
+#define R10_5_5_1_2_7_f \
   "Abnormal cases on the network side                                                             \
     f) ATTACH REQUEST received in state EMM-REGISTERED                                                                  \
     If an ATTACH REQUEST message is received in state EMM-REGISTERED the network may initiate the                       \
@@ -1048,14 +1048,14 @@ subclause 5.4.2.5)."*/
     REQUEST is progressed."
 #define R10_5_5_1_2_7_f_BRIEF "ATTACH REQUEST received in state EMM-REGISTERED"
 
-#define R10_5_5_1_2_7_g                                                        \
+#define R10_5_5_1_2_7_g \
   "Abnormal cases on the network side                                                             \
     g) TRACKING AREA UPDATE REQUEST message received before ATTACH COMPLETE message.                                    \
     Timer T3450 shall be stopped. The allocated GUTI in the attach procedure shall be considered as valid and the       \
     tracking area updating procedure shall be rejected with the EMM cause #10 \"implicitly detached\" as described in   \
     subclause 5.5.3.2.5."
-#define R10_5_5_1_2_7_g_BRIEF                                                  \
-  "TRACKING AREA UPDATE REQUEST message received before ATTACH COMPLETE "      \
+#define R10_5_5_1_2_7_g_BRIEF                                             \
+  "TRACKING AREA UPDATE REQUEST message received before ATTACH COMPLETE " \
   "message"
 
 //-----------------------------------------------------------------------------------------------------------------------
@@ -1070,7 +1070,7 @@ subclause 5.4.2.5)."*/
 //    use the Old GUTI type IE to determine whether the mobile identity included
 //    in the Old GUTI IE is a native GUTI or a mapped GUTI."
 
-#define R10_5_5_3_2_3__2                                                       \
+#define R10_5_5_3_2_3__2 \
   "EMM common procedure initiation                                                               \
     During the tracking area updating procedure, the MME may initiate EMM common procedures, e.g. the EMM               \
     authentication and security mode control procedures."
@@ -1101,44 +1101,44 @@ subclause 5.4.2.5)."*/
 
 //------------------------------
 
-#define R10_5_5_3_2_4__1a                                                      \
+#define R10_5_5_3_2_4__1a \
   "Normal and periodic tracking area updating procedure accepted by the network                 \
     If the tracking area update request has been accepted by the network, the MME shall send a TRACKING AREA            \
     UPDATE ACCEPT message to the UE."
 #define R10_5_5_3_2_4__1a_BRIEF ""
 
-#define R10_5_5_3_2_4__1b                                                      \
+#define R10_5_5_3_2_4__1b \
   "Normal and periodic tracking area updating procedure accepted by the network                 \
     If the MME assigns a new GUTI for the UE, a GUTI shall be included in the                                           \
     TRACKING AREA UPDATE ACCEPT message. In this case, the MME shall start timer T3450 and enter state EMM-             \
     COMMON-PROCEDURE-INITIATED as described in subclause 5.4.1."
 #define R10_5_5_3_2_4__1b_BRIEF ""
 
-#define R10_5_5_3_2_4__1c                                                      \
+#define R10_5_5_3_2_4__1c \
   "Normal and periodic tracking area updating procedure accepted by the network                 \
     The MME may include a new TAI list for the UE in the TRACKING AREA UPDATE ACCEPT message."
 #define R10_5_5_3_2_4__1c_BRIEF ""
 
-#define R10_5_5_3_2_4__2                                                       \
+#define R10_5_5_3_2_4__2 \
   "Normal and periodic tracking area updating procedure accepted by the network                  \
     If the UE has included the UE network capability IE or the MS network capability IE or both in the TRACKING AREA    \
     UPDATE REQUEST message, the MME shall store all octets received from the UE, up to the maximum length defined       \
     for the respective information element."
 #define R10_5_5_3_2_4__2_BRIEF ""
 
-#define R10_5_5_3_2_4__NOTE1                                                   \
+#define R10_5_5_3_2_4__NOTE1 \
   "Normal and periodic tracking area updating procedure accepted by the network              \
     NOTE 1: This information is forwarded to the new MME during inter-MME handover or to the new SGSN during            \
     inter-system handover to A/Gb mode or Iu mode."
 #define R10_5_5_3_2_4__NOTE1_BRIEF ""
 
-#define R10_5_5_3_2_4__3                                                       \
+#define R10_5_5_3_2_4__3 \
   "Normal and periodic tracking area updating procedure accepted by the network                  \
     If a UE radio capability information update needed IE is included in the TRACKING AREA UPDATE REQUEST               \
     message, the MME shall delete the stored UE radio capability information, if any."
 #define R10_5_5_3_2_4__3_BRIEF ""
 
-#define R10_5_5_3_2_4__4                                                       \
+#define R10_5_5_3_2_4__4 \
   "Normal and periodic tracking area updating procedure accepted by the network                  \
     If the UE specific DRX parameter was included in the DRX Parameter IE in the TRACKING AREA UPDATE                   \
     REQUEST message, the network shall replace any stored UE specific DRX parameter with the received parameter and     \
@@ -1495,14 +1495,14 @@ subclause 5.4.2.5)."*/
 //    retransmit the TRACKING AREA UPDATE ACCEPT message or TRACKING AREA UPDATE
 //    REJECT message if the failure of handover procedure is reported by the
 //    lower layer and the S1 signalling connection exists.
-#define R10_9_9_3_7_1__1                                                       \
+#define R10_9_9_3_7_1__1 \
   "Detach type information element - Type of detach                    \
     All other values are interpreted as 'combined EPS/IMSI detach' in this version of the     \
     protocol."
-#define R10_9_9_3_7_1__1_BRIEF                                                 \
+#define R10_9_9_3_7_1__1_BRIEF \
   "Forced 'combined EPS/IMSI detach' to Type of detach"
 
-#define R10_9_9_3_11__1                                                        \
+#define R10_9_9_3_11__1 \
   "EPS attach type value                                                \
     All other values are unused and shall be interpreted as 'EPS attach', if received by the  \
     network."

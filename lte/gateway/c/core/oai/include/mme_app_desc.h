@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #include "mme_app_ue_context.h"
 

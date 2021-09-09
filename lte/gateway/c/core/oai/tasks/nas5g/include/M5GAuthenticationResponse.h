@@ -11,12 +11,12 @@
 
 #pragma once
 #include <sstream>
-#include "M5gNasMessage.h"
+#include "M5GAuthenticationResponseParameter.h"
 #include "M5GExtendedProtocolDiscriminator.h"
+#include "M5GMessageType.h"
 #include "M5GSecurityHeaderType.h"
 #include "M5GSpareHalfOctet.h"
-#include "M5GMessageType.h"
-#include "M5GAuthenticationResponseParameter.h"
+#include "M5gNasMessage.h"
 
 using namespace std;
 
@@ -33,10 +33,10 @@ class AuthenticationResponseMsg {
 
   AuthenticationResponseMsg();
   ~AuthenticationResponseMsg();
-  int DecodeAuthenticationResponseMsg(
-      AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationResponseMsg(
-      AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationResponseMsg(AuthenticationResponseMsg* auth_response,
+                                      uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationResponseMsg(AuthenticationResponseMsg* auth_response,
+                                      uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

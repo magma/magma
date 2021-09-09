@@ -10,8 +10,8 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 using namespace std;
 
 namespace magma5g {
@@ -165,31 +165,29 @@ class M5GSMobileIdentityMsg {
 
   M5GSMobileIdentityMsg();
   ~M5GSMobileIdentityMsg();
-  int EncodeM5GSMobileIdentityMsg(
-      M5GSMobileIdentityMsg* m5gs_mobile_identity, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeM5GSMobileIdentityMsg(
-      M5GSMobileIdentityMsg* m5gs_mobile_identity, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeGutiMobileIdentityMsg(
-      GutiM5GSMobileIdentity* guti, uint8_t* buffer, uint8_t ielen);
-  int DecodeImeiMobileIdentityMsg(
-      ImeiM5GSMobileIdentity* imei, uint8_t* buffer, uint8_t ielen);
-  int DecodeImsiMobileIdentityMsg(
-      ImsiM5GSMobileIdentity* imsi, uint8_t* buffer, uint8_t ielen);
-  int DecodeSuciMobileIdentityMsg(
-      SuciM5GSMobileIdentity* suci, uint8_t* buffer, uint8_t ielen);
-  int DecodeTmsiMobileIdentityMsg(
-      TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer, uint8_t ielen);
-  int EncodeGutiMobileIdentityMsg(
-      GutiM5GSMobileIdentity* guti, uint8_t* buffer);
-  int EncodeImeiMobileIdentityMsg(
-      ImeiM5GSMobileIdentity* imei, uint8_t* buffer);
-  int EncodeImsiMobileIdentityMsg(
-      ImsiM5GSMobileIdentity* imsi, uint8_t* buffer);
-  int EncodeSuciMobileIdentityMsg(
-      SuciM5GSMobileIdentity* suci, uint8_t* buffer);
-  int EncodeTmsiMobileIdentityMsg(
-      TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer);
+  int EncodeM5GSMobileIdentityMsg(M5GSMobileIdentityMsg* m5gs_mobile_identity,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeM5GSMobileIdentityMsg(M5GSMobileIdentityMsg* m5gs_mobile_identity,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeGutiMobileIdentityMsg(GutiM5GSMobileIdentity* guti, uint8_t* buffer,
+                                  uint8_t ielen);
+  int DecodeImeiMobileIdentityMsg(ImeiM5GSMobileIdentity* imei, uint8_t* buffer,
+                                  uint8_t ielen);
+  int DecodeImsiMobileIdentityMsg(ImsiM5GSMobileIdentity* imsi, uint8_t* buffer,
+                                  uint8_t ielen);
+  int DecodeSuciMobileIdentityMsg(SuciM5GSMobileIdentity* suci, uint8_t* buffer,
+                                  uint8_t ielen);
+  int DecodeTmsiMobileIdentityMsg(TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer,
+                                  uint8_t ielen);
+  int EncodeGutiMobileIdentityMsg(GutiM5GSMobileIdentity* guti,
+                                  uint8_t* buffer);
+  int EncodeImeiMobileIdentityMsg(ImeiM5GSMobileIdentity* imei,
+                                  uint8_t* buffer);
+  int EncodeImsiMobileIdentityMsg(ImsiM5GSMobileIdentity* imsi,
+                                  uint8_t* buffer);
+  int EncodeSuciMobileIdentityMsg(SuciM5GSMobileIdentity* suci,
+                                  uint8_t* buffer);
+  int EncodeTmsiMobileIdentityMsg(TmsiM5GSMobileIdentity* tmsi,
+                                  uint8_t* buffer);
 };
 }  // namespace magma5g

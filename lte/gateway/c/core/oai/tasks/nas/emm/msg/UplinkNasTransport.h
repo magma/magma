@@ -19,19 +19,19 @@
 #define FILE_UPLINK_NAS_TRANSPORT_SEEN
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "NasMessageContainer.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
+#include "NasMessageContainer.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define UPLINK_NAS_TRANSPORT_MINIMUM_LENGTH                                    \
+#define UPLINK_NAS_TRANSPORT_MINIMUM_LENGTH \
   (NAS_MESSAGE_CONTAINER_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define UPLINK_NAS_TRANSPORT_MAXIMUM_LENGTH                                    \
+#define UPLINK_NAS_TRANSPORT_MAXIMUM_LENGTH \
   (NAS_MESSAGE_CONTAINER_MAXIMUM_LENGTH)
 
 /*
@@ -49,12 +49,10 @@ typedef struct uplink_nas_transport_msg_tag {
   NasMessageContainer nasmessagecontainer;
 } uplink_nas_transport_msg;
 
-int decode_uplink_nas_transport(
-    uplink_nas_transport_msg* uplinknastransport, uint8_t* buffer,
-    uint32_t len);
+int decode_uplink_nas_transport(uplink_nas_transport_msg* uplinknastransport,
+                                uint8_t* buffer, uint32_t len);
 
-int encode_uplink_nas_transport(
-    uplink_nas_transport_msg* uplinknastransport, uint8_t* buffer,
-    uint32_t len);
+int encode_uplink_nas_transport(uplink_nas_transport_msg* uplinknastransport,
+                                uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_UPLINK_NAS_TRANSPORT_SEEN) */

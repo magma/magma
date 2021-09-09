@@ -27,18 +27,15 @@
 #define EPS_ATTACH_RESULT_EPS_IMSI 0b010
 typedef uint8_t eps_attach_result_t;
 
-int encode_eps_attach_result(
-    eps_attach_result_t* epsattachresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_eps_attach_result(eps_attach_result_t* epsattachresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 
 uint8_t encode_u8_eps_attach_result(eps_attach_result_t* epsattachresult);
 
-int decode_eps_attach_result(
-    eps_attach_result_t* epsattachresult, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_eps_attach_result(eps_attach_result_t* epsattachresult, uint8_t iei,
+                             uint8_t* buffer, uint32_t len);
 
-int decode_u8_eps_attach_result(
-    eps_attach_result_t* epsattachresult, uint8_t iei, uint8_t value,
-    uint32_t len);
+int decode_u8_eps_attach_result(eps_attach_result_t* epsattachresult,
+                                uint8_t iei, uint8_t value, uint32_t len);
 
 #endif /* EPS_ATTACH_RESULT_SEEN */

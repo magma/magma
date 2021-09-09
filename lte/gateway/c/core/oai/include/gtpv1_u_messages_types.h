@@ -36,8 +36,8 @@
 #ifndef FILE_GTPV1_U_MESSAGES_TYPES_SEEN
 #define FILE_GTPV1_U_MESSAGES_TYPES_SEEN
 
-#include "common_types.h"
 #include "3gpp_24.007.h"
+#include "common_types.h"
 
 typedef struct Gtpv1uCreateTunnelReq_s {
   teid_t context_teid;  ///< Tunnel Endpoint Identifier

@@ -31,9 +31,9 @@
 #ifndef MAGMACORE_GLOG_LOGGING_H
 #define MAGMACORE_GLOG_LOGGING_H
 
-#include <stdint.h>
-#include <stdbool.h>
 #include <linux/limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_FILE_NAME_LENGTH PATH_MAX
 

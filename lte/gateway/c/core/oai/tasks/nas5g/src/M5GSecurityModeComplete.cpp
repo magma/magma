@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GSecurityModeComplete.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,7 +20,7 @@ SecurityModeCompleteMsg::~SecurityModeCompleteMsg(){};
 // Decode SecurityModeComplete Message and its IEs
 int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(
     SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_COMPLETE_MINIMUM_LENGTH, len);

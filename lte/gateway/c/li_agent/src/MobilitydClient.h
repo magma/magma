@@ -12,14 +12,14 @@
  */
 #pragma once
 
-#include <grpc++/grpc++.h>
 #include <arpa/inet.h>
+#include <grpc++/grpc++.h>
 #include <memory>
 #include <string>
 
-#include "lte/protos/mobilityd.pb.h"
-#include "lte/protos/mobilityd.grpc.pb.h"
 #include "includes/GRPCReceiver.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
+#include "lte/protos/mobilityd.pb.h"
 
 using grpc::Status;
 

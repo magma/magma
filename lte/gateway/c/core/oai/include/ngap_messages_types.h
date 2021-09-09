@@ -13,17 +13,17 @@
 
 #pragma once
 
+#include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
+#include "3gpp_38.331.h"
 #include "3gpp_38.401.h"
 #include "3gpp_38.413.h"
-#include "3gpp_38.331.h"
-#include "3gpp_23.003.h"
-#include "TrackingAreaIdentity.h"
 #include "Ngap_Cause.h"
-#include "common_types.h"
-#include "n11_messages_types.h"  //pdu_res_set_change
 #include "Ngap_PagingDRX.h"
 #include "Ngap_PagingPriority.h"
+#include "TrackingAreaIdentity.h"
+#include "common_types.h"
+#include "n11_messages_types.h"  //pdu_res_set_change
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
@@ -49,47 +49,47 @@ typedef uint8_t
 typedef uint8_t qci_t;
 typedef uint32_t teid_t;
 
-#define NGAP_GNB_DEREGISTERED_IND(mSGpTR)                                      \
+#define NGAP_GNB_DEREGISTERED_IND(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_gNB_deregistered_ind
-#define NGAP_GNB_INITIATED_RESET_REQ(mSGpTR)                                   \
+#define NGAP_GNB_INITIATED_RESET_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_gnb_initiated_reset_req
-#define NGAP_GNB_INITIATED_RESET_ACK(mSGpTR)                                   \
+#define NGAP_GNB_INITIATED_RESET_ACK(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_gnb_initiated_reset_ack
-#define NGAP_UE_CONTEXT_RELEASE_REQ(mSGpTR)                                    \
+#define NGAP_UE_CONTEXT_RELEASE_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_req
-#define NGAP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR)                                \
+#define NGAP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_command
-#define NGAP_UE_CONTEXT_RELEASE_COMPLETE(mSGpTR)                               \
+#define NGAP_UE_CONTEXT_RELEASE_COMPLETE(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_complete
-#define NGAP_UE_CONTEXT_MODIFICATION_REQUEST(mSGpTR)                           \
+#define NGAP_UE_CONTEXT_MODIFICATION_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_request
-#define NGAP_UE_CONTEXT_MODIFICATION_RESPONSE(mSGpTR)                          \
+#define NGAP_UE_CONTEXT_MODIFICATION_RESPONSE(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_response
-#define NGAP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR)                           \
+#define NGAP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_failure
 
-#define NGAP_PDUSESSION_RESOURCE_SETUP_REQ(mSGpTR)                             \
+#define NGAP_PDUSESSION_RESOURCE_SETUP_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_pdusession_resource_setup_req
-#define NGAP_PDUSESSIONRESOURCE_SETUP_RSP(mSGpTR)                              \
+#define NGAP_PDUSESSIONRESOURCE_SETUP_RSP(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_setup_rsp
-#define NGAP_PDUSESSIONRESOURCE_REL_RSP(mSGpTR)                                \
+#define NGAP_PDUSESSIONRESOURCE_REL_RSP(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_rsp
-#define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR)                                \
+#define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_req
 
-#define NGAP_INITIAL_UE_MESSAGE(mSGpTR)                                        \
+#define NGAP_INITIAL_UE_MESSAGE(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_initial_ue_message
 #define NGAP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.ngap_nas_dl_data_req
-#define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR)                                 \
+#define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_req
-#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                                 \
+#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_rsp
 #define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
-#define NGAP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
+#define NGAP_PATH_SWITCH_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_path_switch_request
-#define NGAP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                                   \
+#define NGAP_PATH_SWITCH_REQUEST_ACK(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_ack
-#define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
+#define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR) \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_failure
 
 // NOT a ITTI message

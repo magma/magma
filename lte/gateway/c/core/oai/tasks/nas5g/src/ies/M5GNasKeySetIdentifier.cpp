@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
+#include "M5GNASKeySetIdentifier.h"
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GNASKeySetIdentifier.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -29,11 +29,11 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
   MLOG(MDEBUG) << "DecoseNASKeySetIdentifierMsg : ";
 
   // Checking IEI and pointer
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                       NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_DECODER((unsigned char) (*buffer & 0xf0), iei);
+    CHECK_IEI_DECODER((unsigned char)(*buffer & 0xf0), iei);
   }
 
   nas_key_set_identifier->tsc = (*(buffer + decoded) >> 7) & 0x1;
@@ -53,11 +53,11 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, nas_key_set_identifier->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, nas_key_set_identifier->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeNASKeySetIdentifierMsg: iei" << hex
                  << int(*buffer) << endl;

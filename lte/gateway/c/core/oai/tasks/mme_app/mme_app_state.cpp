@@ -16,8 +16,8 @@
  */
 
 #include "mme_app_state.h"
-#include "mme_app_state_manager.h"
 #include "mme_app_ip_imsi.h"
+#include "mme_app_state_manager.h"
 
 using magma::lte::MmeNasStateManager;
 
@@ -52,9 +52,7 @@ void put_mme_nas_state() {
  * Release the memory allocated for the MME NAS state, this does not clean the
  * state persisted in data store
  */
-void clear_mme_nas_state() {
-  MmeNasStateManager::getInstance().free_state();
-}
+void clear_mme_nas_state() { MmeNasStateManager::getInstance().free_state(); }
 
 hash_table_ts_t* get_mme_ue_state() {
   return MmeNasStateManager::getInstance().get_ue_state_ht();
@@ -68,8 +66,8 @@ void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64) {
           mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
       if (ue_context && ue_context->mm_state == UE_REGISTERED) {
         auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
-        MmeNasStateManager::getInstance().write_ue_state_to_db(
-            ue_context, imsi_str);
+        MmeNasStateManager::getInstance().write_ue_state_to_db(ue_context,
+                                                               imsi_str);
       }
     }
   }

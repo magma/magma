@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
+#include "M5GAuthenticationResult.h"
 #include <iostream>
 #include <sstream>
-#include "M5GAuthenticationResult.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -22,7 +22,7 @@ AuthenticationResultMsg::~AuthenticationResultMsg(){};
 // Decode Authentication Result Message and its IEs
 int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
     AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -78,7 +78,7 @@ int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
 // Encode Authentication Result Message and its IEs
 int AuthenticationResultMsg::EncodeAuthenticationResultMsg(
     AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

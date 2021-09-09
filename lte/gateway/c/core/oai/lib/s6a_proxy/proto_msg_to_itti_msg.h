@@ -19,8 +19,8 @@
 
 #include <gmp.h>
 
-#include "feg/protos/s6a_proxy.pb.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
+#include "feg/protos/s6a_proxy.pb.h"
 #include "s6a_messages_types.h"
 
 extern "C" {

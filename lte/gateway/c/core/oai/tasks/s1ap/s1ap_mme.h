@@ -33,7 +33,7 @@
 #include "s1ap_state.h"
 #include "s1ap_types.h"
 
-#define S1AP_ZMQ_LATENCY_TH                                                    \
+#define S1AP_ZMQ_LATENCY_TH \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages
 
 extern bool hss_associated;
@@ -68,9 +68,9 @@ enb_description_t* s1ap_new_enb(s1ap_state_t* state);
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-ue_description_t* s1ap_new_ue(
-    s1ap_state_t* state, const sctp_assoc_id_t sctp_assoc_id,
-    enb_ue_s1ap_id_t enb_ue_s1ap_id);
+ue_description_t* s1ap_new_ue(s1ap_state_t* state,
+                              const sctp_assoc_id_t sctp_assoc_id,
+                              enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove

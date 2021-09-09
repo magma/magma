@@ -20,11 +20,11 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define IDENTITY_RESPONSE_MINIMUM_LENGTH (MOBILE_IDENTITY_IE_MIN_LENGTH)
@@ -47,10 +47,10 @@ typedef struct identity_response_msg_tag {
   mobile_identity_t mobileidentity;
 } identity_response_msg;
 
-int decode_identity_response(
-    identity_response_msg* identityresponse, uint8_t* buffer, uint32_t len);
+int decode_identity_response(identity_response_msg* identityresponse,
+                             uint8_t* buffer, uint32_t len);
 
-int encode_identity_response(
-    identity_response_msg* identityresponse, uint8_t* buffer, uint32_t len);
+int encode_identity_response(identity_response_msg* identityresponse,
+                             uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_IDENTITY_RESPONSE_SEEN) */

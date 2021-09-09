@@ -38,9 +38,9 @@ typedef unsigned char cpUcs2;
 #error This compiler is not supported
 #endif
 
-#define isLegalUnicodeCodePoint(v)                                             \
-  ((((v) < 0xD800L) || ((v) > 0xDFFFL)) &&                                     \
-   (((unsigned long) (v)) <= 0x0010FFFFL) && (((v) | 0x1F0001) != 0x1FFFFFL))
+#define isLegalUnicodeCodePoint(v)         \
+  ((((v) < 0xD800L) || ((v) > 0xDFFFL)) && \
+   (((unsigned long)(v)) <= 0x0010FFFFL) && (((v) | 0x1F0001) != 0x1FFFFFL))
 
 struct utf8Iterator {
   unsigned char* data;
@@ -51,15 +51,15 @@ struct utf8Iterator {
 
 #define utf8IteratorNoMore(it) (!(it) || (it)->next >= (it)->slen)
 
-extern void utf8IteratorInit(
-    struct utf8Iterator* iter, unsigned char* data, int slen);
+extern void utf8IteratorInit(struct utf8Iterator* iter, unsigned char* data,
+                             int slen);
 extern void utf8IteratorUninit(struct utf8Iterator* iter);
-extern cpUcs4 utf8IteratorGetNextCodePoint(
-    struct utf8Iterator* iter, cpUcs4 errCh);
-extern cpUcs4 utf8IteratorGetCurrCodePoint(
-    struct utf8Iterator* iter, cpUcs4 errCh);
-extern int utf8ScanBackwardsForCodePoint(
-    unsigned char* msg, int len, int pos, cpUcs4* out);
+extern cpUcs4 utf8IteratorGetNextCodePoint(struct utf8Iterator* iter,
+                                           cpUcs4 errCh);
+extern cpUcs4 utf8IteratorGetCurrCodePoint(struct utf8Iterator* iter,
+                                           cpUcs4 errCh);
+extern int utf8ScanBackwardsForCodePoint(unsigned char* msg, int len, int pos,
+                                         cpUcs4* out);
 
 #ifdef __cplusplus
 }

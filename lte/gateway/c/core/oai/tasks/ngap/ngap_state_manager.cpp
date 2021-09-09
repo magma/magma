@@ -21,13 +21,13 @@
 
 #include "ngap_state_manager.h"
 #include "bstrlib.h"
-#include "log.h"
 #include "common_defs.h"
+#include "log.h"
 typedef unsigned int uint32_t;
 namespace {
-constexpr char NGAP_GNB_COLL[]             = "ngap_gNB_coll";
+constexpr char NGAP_GNB_COLL[] = "ngap_gNB_coll";
 constexpr char NGAP_AMF_ID2ASSOC_ID_COLL[] = "ngap_amf_id2assoc_id_coll";
-constexpr char NGAP_IMSI_MAP_TABLE_NAME[]  = "ngap_imsi_map";
+constexpr char NGAP_IMSI_MAP_TABLE_NAME[] = "ngap_imsi_map";
 }  // namespace
 
 using magma::lte::oai::Ngap_UeDescription;
@@ -36,23 +36,21 @@ namespace magma5g {
 
 NgapStateManager::NgapStateManager() : max_ues_(0), max_gnbs_(0) {}
 
-NgapStateManager::~NgapStateManager() {
-  free_state();
-}
+NgapStateManager::~NgapStateManager() { free_state(); }
 
 NgapStateManager& NgapStateManager::getInstance() {
   static NgapStateManager instance;
   return instance;
 }
 
-void NgapStateManager::init(
-    uint32_t max_ues, uint32_t max_gnbs, bool use_stateless) {
-  log_task              = LOG_NGAP;
-  table_key             = NGAP_STATE_TABLE;
-  task_name             = NGAP_TASK_NAME;
+void NgapStateManager::init(uint32_t max_ues, uint32_t max_gnbs,
+                            bool use_stateless) {
+  log_task = LOG_NGAP;
+  table_key = NGAP_STATE_TABLE;
+  task_name = NGAP_TASK_NAME;
   persist_state_enabled = false;
-  max_ues_              = max_ues;
-  max_gnbs_             = max_gnbs;
+  max_ues_ = max_ues;
+  max_gnbs_ = max_gnbs;
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_NGAP, "Failed to read state from redis");
@@ -64,19 +62,18 @@ void NgapStateManager::init(
 void NgapStateManager::create_state() {
   bstring ht_name;
 
-  state_cache_p = (ngap_state_t*) calloc(1, sizeof(ngap_state_t));
+  state_cache_p = (ngap_state_t*)calloc(1, sizeof(ngap_state_t));
 
   ht_name = bfromcstr(NGAP_GNB_COLL);
-  hashtable_ts_init(
-      &state_cache_p->gnbs, max_gnbs_, nullptr, free_wrapper, ht_name);
+  hashtable_ts_init(&state_cache_p->gnbs, max_gnbs_, nullptr, free_wrapper,
+                    ht_name);
 
   state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
   bdestroy(ht_name);
 
   ht_name = bfromcstr(NGAP_AMF_ID2ASSOC_ID_COLL);
-  hashtable_ts_init(
-      &state_cache_p->amfid2associd, max_ues_, nullptr, hash_free_int_func,
-      ht_name);
+  hashtable_ts_init(&state_cache_p->amfid2associd, max_ues_, nullptr,
+                    hash_free_int_func, ht_name);
   bdestroy(ht_name);
 
   state_cache_p->num_gnbs = 0;
@@ -104,9 +101,9 @@ void NgapStateManager::free_state() {
     OAILOG_DEBUG(LOG_NGAP, "No keys in the amf hashtable");
   } else {
     for (i = 0; i < keys->num_keys; i++) {
-      assoc_id = (sctp_assoc_id_t) keys->keys[i];
-      ht_rc    = hashtable_ts_get(
-          &state_cache_p->gnbs, (hash_key_t) assoc_id, (void**) &gnb);
+      assoc_id = (sctp_assoc_id_t)keys->keys[i];
+      ht_rc = hashtable_ts_get(&state_cache_p->gnbs, (hash_key_t)assoc_id,
+                               (void**)&gnb);
       AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
@@ -121,7 +118,7 @@ void NgapStateManager::free_state() {
   if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
   }
-  free_wrapper((void**) &state_cache_p);
+  free_wrapper((void**)&state_cache_p);
 
   clear_ngap_imsi_map();
 }
@@ -135,22 +132,22 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     Ngap_UeDescription ue_proto = Ngap_UeDescription();
     m5g_ue_description_t* ue_context =
-        (m5g_ue_description_t*) calloc(1, sizeof(m5g_ue_description_t));
+        (m5g_ue_description_t*)calloc(1, sizeof(m5g_ue_description_t));
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
     NgapStateConverter::proto_to_ue(ue_proto, ue_context);
 
-    hashtable_ts_insert(
-        state_ue_ht, ue_context->comp_ngap_id, (void*) ue_context);
+    hashtable_ts_insert(state_ue_ht, ue_context->comp_ngap_id,
+                        (void*)ue_context);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
   }
   return RETURNok;
 }
 
 void NgapStateManager::create_ngap_imsi_map() {
-  ngap_imsi_map_ = (ngap_imsi_map_t*) calloc(1, sizeof(ngap_imsi_map_t));
+  ngap_imsi_map_ = (ngap_imsi_map_t*)calloc(1, sizeof(ngap_imsi_map_t));
 
   ngap_imsi_map_->amf_ue_id_imsi_htbl =
       hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
@@ -169,7 +166,7 @@ void NgapStateManager::clear_ngap_imsi_map() {
   }
   hashtable_uint64_ts_destroy(ngap_imsi_map_->amf_ue_id_imsi_htbl);
 
-  free_wrapper((void**) &ngap_imsi_map_);
+  free_wrapper((void**)&ngap_imsi_map_);
 }
 
 ngap_imsi_map_t* NgapStateManager::get_ngap_imsi_map() {

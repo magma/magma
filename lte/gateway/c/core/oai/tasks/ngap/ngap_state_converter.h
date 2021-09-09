@@ -36,9 +36,9 @@ extern "C" {
 }
 #endif
 
-#include "state_converter.h"
 #include "lte/protos/oai/ngap_state.pb.h"
 #include "ngap_state.h"
+#include "state_converter.h"
 using namespace std;
 using namespace magma::lte;
 using namespace magma::lte::oai;
@@ -54,25 +54,25 @@ class NgapStateConverter : magma::lte::StateConverter {
   /**
    * Serializes ngap_imsi_map_t to NgapImsiMap proto
    */
-  static void ngap_imsi_map_to_proto(
-      const ngap_imsi_map_t* ngap_imsi_map, oai::NgapImsiMap* ngap_imsi_proto);
+  static void ngap_imsi_map_to_proto(const ngap_imsi_map_t* ngap_imsi_map,
+                                     oai::NgapImsiMap* ngap_imsi_proto);
 
   /**
    * Deserializes ngap_imsi_map_t from NgapImsiMap proto
    */
-  static void proto_to_ngap_imsi_map(
-      const oai::NgapImsiMap& ngap_imsi_proto, ngap_imsi_map_t* ngap_imsi_map);
+  static void proto_to_ngap_imsi_map(const oai::NgapImsiMap& ngap_imsi_proto,
+                                     ngap_imsi_map_t* ngap_imsi_map);
 
   static void gnb_to_proto(gnb_description_t* gnb, oai::GnbDescription* proto);
 
-  static void proto_to_gnb(
-      const oai::GnbDescription& proto, gnb_description_t* gnb);
+  static void proto_to_gnb(const oai::GnbDescription& proto,
+                           gnb_description_t* gnb);
 
-  static void ue_to_proto(
-      const m5g_ue_description_t* ue, oai::Ngap_UeDescription* proto);
+  static void ue_to_proto(const m5g_ue_description_t* ue,
+                          oai::Ngap_UeDescription* proto);
 
-  static void proto_to_ue(
-      const oai::Ngap_UeDescription& proto, m5g_ue_description_t* ue);
+  static void proto_to_ue(const oai::Ngap_UeDescription& proto,
+                          m5g_ue_description_t* ue);
 
  private:
   NgapStateConverter();

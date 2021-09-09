@@ -17,18 +17,18 @@
 
 #pragma once
 
-#include "state_manager.h"
+#include "common_defs.h"
 #include "spgw_state.h"
 #include "spgw_state_converter.h"
-#include "common_defs.h"
+#include "state_manager.h"
 
 namespace {
-constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
+constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
 constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
     "s11_bearer_context_information_htbl";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
-constexpr char SPGW_TASK_NAME[]        = "SPGW";
+constexpr char SPGW_TASK_NAME[] = "SPGW";
 }  // namespace
 
 namespace magma {
@@ -39,9 +39,9 @@ namespace lte {
  * that contains functions to maintain SGW and PGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SpgwStateManager : public StateManager<
-                             spgw_state_t, spgw_ue_context_t, oai::SpgwState,
-                             oai::SpgwUeContext, SpgwStateConverter> {
+class SpgwStateManager
+    : public StateManager<spgw_state_t, spgw_ue_context_t, oai::SpgwState,
+                          oai::SpgwUeContext, SpgwStateConverter> {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and

@@ -37,13 +37,12 @@ int amf_as_send(amf_as_t* msg);
 int amf_as_send_ng(const amf_as_t* msg);
 
 // For _AMFAS_DATA_REQ primitive
-uint16_t amf_as_data_req(
-    const amf_as_data_t* msg, m5g_dl_info_transfer_req_t* as_msg);
+uint16_t amf_as_data_req(const amf_as_data_t* msg,
+                         m5g_dl_info_transfer_req_t* as_msg);
 
 // For _AMFAS_ESTABLISH_CNF primitive
-uint16_t amf_as_establish_cnf(
-    const amf_as_establish_t* establish,
-    nas5g_establish_rsp_t* nas_establish_rsp);
+uint16_t amf_as_establish_cnf(const amf_as_establish_t* establish,
+                              nas5g_establish_rsp_t* nas_establish_rsp);
 
 enum nas_error_code_t {
   AS_SUCCESS = 1,          /* Success code, transaction is going on    */

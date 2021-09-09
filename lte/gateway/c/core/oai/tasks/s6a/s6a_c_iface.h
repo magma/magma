@@ -22,8 +22,8 @@
 extern "C" {
 #endif
 
-#include "s6a_messages_types.h"
 #include "mme_config.h"
+#include "s6a_messages_types.h"
 
 bool s6a_viface_open(const s6a_config_t* config);
 void s6a_viface_close(void);

@@ -27,8 +27,8 @@ extern "C" {
 }
 #endif
 
-#include "includes/ServiceConfigLoader.h"
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include "includes/ServiceConfigLoader.h"
 
 using google::protobuf::Message;
 
@@ -46,8 +46,8 @@ void RedisClient::init_db_connection() {
   magma::ServiceConfigLoader loader;
 
   auto config = loader.load_service_config("redis");
-  auto addr   = config["bind"].as<std::string>();
-  auto port   = config["port"].as<uint32_t>();
+  auto addr = config["bind"].as<std::string>();
+  auto port = config["port"].as<uint32_t>();
 
   // Make connection to db
   db_client_->connect(addr, port, nullptr);
@@ -55,8 +55,8 @@ void RedisClient::init_db_connection() {
   is_connected_ = true;
 }
 
-status_code_e RedisClient::write(
-    const std::string& key, const std::string& value) {
+status_code_e RedisClient::write(const std::string& key,
+                                 const std::string& value) {
   if (!is_connected()) {
     return RETURNerror;
   }
@@ -88,8 +88,9 @@ std::string RedisClient::read(const std::string& key) {
   return db_read_reply.as_string();
 }
 
-status_code_e RedisClient::write_proto_str(
-    const std::string& key, const std::string& proto_msg, uint64_t version) {
+status_code_e RedisClient::write_proto_str(const std::string& key,
+                                           const std::string& proto_msg,
+                                           uint64_t version) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   wrapper_proto.set_serialized_msg(proto_msg);
   wrapper_proto.set_version(version);
@@ -104,8 +105,8 @@ status_code_e RedisClient::write_proto_str(
   return RETURNok;
 }
 
-status_code_e RedisClient::read_proto(
-    const std::string& key, Message& proto_msg) {
+status_code_e RedisClient::read_proto(const std::string& key,
+                                      Message& proto_msg) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   if (read_redis_state(key, wrapper_proto) != RETURNok) {
     return RETURNerror;
@@ -157,7 +158,7 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
       throw std::runtime_error("Could not read from redis");
     }
     // First result is cursor, second result is pattern matched keys
-    auto response      = db_read_reply.as_array();
+    auto response = db_read_reply.as_array();
     auto returned_keys = response[1];
 
     for (const auto& reply : returned_keys.as_array()) {
@@ -171,8 +172,8 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
   return replies;
 }
 
-status_code_e RedisClient::read_redis_state(
-    const std::string& key, orc8r::RedisState& state_out) {
+status_code_e RedisClient::read_redis_state(const std::string& key,
+                                            orc8r::RedisState& state_out) {
   try {
     std::string str_value = read(key);
     if (deserialize(state_out, str_value) != RETURNok) {
@@ -184,16 +185,16 @@ status_code_e RedisClient::read_redis_state(
   }
 }
 
-status_code_e RedisClient::serialize(
-    const Message& proto_msg, std::string& str_to_serialize) {
+status_code_e RedisClient::serialize(const Message& proto_msg,
+                                     std::string& str_to_serialize) {
   if (!proto_msg.SerializeToString(&str_to_serialize)) {
     return RETURNerror;
   }
   return RETURNok;
 }
 
-status_code_e RedisClient::deserialize(
-    Message& proto_msg, const std::string& str_to_deserialize) {
+status_code_e RedisClient::deserialize(Message& proto_msg,
+                                       const std::string& str_to_deserialize) {
   if (!proto_msg.ParseFromString(str_to_deserialize)) {
     return RETURNerror;
   }

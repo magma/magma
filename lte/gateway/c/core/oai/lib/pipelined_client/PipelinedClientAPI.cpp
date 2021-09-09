@@ -18,11 +18,11 @@
 #include <cstring>
 #include <string>
 
-#include "conversions.h"
 #include "common_defs.h"
+#include "common_types.h"
+#include "conversions.h"
 #include "service303.h"
 #include "spgw_types.h"
-#include "common_types.h"
 
 #include "PipelinedServiceClient.h"
 
@@ -35,15 +35,16 @@ using magma::lte::CauseIE;
 using magma::lte::PipelinedServiceClient;
 using magma::lte::UESessionContextResponse;
 
-void handle_upf_classifier_rpc_call_done(
-    const grpc::Status& status, UESessionContextResponse response);
+void handle_upf_classifier_rpc_call_done(const grpc::Status& status,
+                                         UESessionContextResponse response);
 
-int upf_classifier_add_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    uint32_t i_tei, uint32_t o_tei, const char* imsi,
-    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl, const char* apn) {
+int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
+                              int vlan, struct in_addr enb, uint32_t i_tei,
+                              uint32_t o_tei, const char* imsi,
+                              struct ip_flow_dl* flow_dl,
+                              uint32_t flow_precedence_dl, const char* apn) {
   std::string imsi_str = std::string(imsi);
-  std::string apn_str  = std::string(apn);
+  std::string apn_str = std::string(apn);
 
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
@@ -72,9 +73,9 @@ int upf_classifier_add_tunnel(
   return RETURNok;
 }
 
-int upf_classifier_del_tunnel(
-    struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
-    uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl) {
+int upf_classifier_del_tunnel(struct in_addr enb, struct in_addr ue,
+                              struct in6_addr* ue_ipv6, uint32_t i_tei,
+                              uint32_t o_tei, struct ip_flow_dl* flow_dl) {
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
       PipelinedServiceClient::UpdateUEIPv4SessionSet(
@@ -100,9 +101,10 @@ int upf_classifier_del_tunnel(
 }
 
 // UE_SESSION_SUSPENDED_DATA_STATE -> DISCARDING
-int upf_classifier_discard_data_on_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-    struct ip_flow_dl* flow_dl) {
+int upf_classifier_discard_data_on_tunnel(struct in_addr ue,
+                                          struct in6_addr* ue_ipv6,
+                                          uint32_t i_tei,
+                                          struct ip_flow_dl* flow_dl) {
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
       PipelinedServiceClient::UpdateUEIPv4SessionSet(
@@ -128,9 +130,11 @@ int upf_classifier_discard_data_on_tunnel(
 }
 
 // No enb + ACTIVATE -> FORWARDING
-int upf_classifier_forward_data_on_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl) {
+int upf_classifier_forward_data_on_tunnel(struct in_addr ue,
+                                          struct in6_addr* ue_ipv6,
+                                          uint32_t i_tei,
+                                          struct ip_flow_dl* flow_dl,
+                                          uint32_t flow_precedence_dl) {
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
       PipelinedServiceClient::UpdateUEIPv4SessionSet(
@@ -169,18 +173,17 @@ int upf_classifier_delete_paging_rule(struct in_addr ue) {
   return RETURNok;
 }
 
-void handle_upf_classifier_rpc_call_done(
-    const grpc::Status& status, UESessionContextResponse response) {
+void handle_upf_classifier_rpc_call_done(const grpc::Status& status,
+                                         UESessionContextResponse response) {
   if (!status.ok()) {
-    OAILOG_ERROR(
-        LOG_UTIL, "Error Code=%d, Error Message=%s", status.error_code(),
-        status.error_message().c_str());
+    OAILOG_ERROR(LOG_UTIL, "Error Code=%d, Error Message=%s",
+                 status.error_code(), status.error_message().c_str());
   }
 
   if (response.cause_info().cause_ie() != CauseIE::REQUEST_ACCEPTED) {
     std::string ipv4_addr_str = "";
     std::string ipv6_addr_str = "";
-    uint32_t oper_type        = response.operation_type();
+    uint32_t oper_type = response.operation_type();
 
     ipv4_addr_str = response.ue_ipv4_address().address();
     ipv6_addr_str = response.ue_ipv6_address().address();

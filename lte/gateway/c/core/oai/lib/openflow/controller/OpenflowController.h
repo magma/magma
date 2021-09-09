@@ -17,9 +17,9 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <list>
 #include <memory>
+#include <unordered_map>
 
 #include <fluid/OFServer.hh>
 
@@ -33,15 +33,15 @@ namespace openflow {
 
 class Application {
  public:
-  virtual void event_callback(
-      const ControllerEvent& ev, const OpenflowMessenger& messenger) {}
+  virtual void event_callback(const ControllerEvent& ev,
+                              const OpenflowMessenger& messenger) {}
   virtual ~Application() {}
 };
 
 enum OF_MESSAGE_TYPES {
-  OFPT_ERROR               = 1,
+  OFPT_ERROR = 1,
   OFPT_FEATURES_REPLY_TYPE = 6,
-  OFPT_PACKET_IN_TYPE      = 10
+  OFPT_PACKET_IN_TYPE = 10
 };
 
 class OpenflowController : public fluid_base::OFServer {
@@ -49,16 +49,15 @@ class OpenflowController : public fluid_base::OFServer {
   static const uint8_t OF_13_VERSION = 4;
 
  public:
-  OpenflowController(
-      const char* address, const int port, const int n_workers, bool secure);
+  OpenflowController(const char* address, const int port, const int n_workers,
+                     bool secure);
 
   /*
    * Used to specify the specific class to send openflow messages, for instance
    * during testing
    */
-  OpenflowController(
-      const char* address, const int port, const int n_workers, bool secure,
-      std::shared_ptr<OpenflowMessenger> messenger);
+  OpenflowController(const char* address, const int port, const int n_workers,
+                     bool secure, std::shared_ptr<OpenflowMessenger> messenger);
 
   /**
    * Remove all table 0 flows on connection. Right now, all applications
@@ -70,15 +69,15 @@ class OpenflowController : public fluid_base::OFServer {
    * Callback for any messages like PACKET_IN. Parameters are set by super
    * class OFServer
    */
-  void message_callback(
-      fluid_base::OFConnection* ofconn, uint8_t type, void* data, size_t len);
+  void message_callback(fluid_base::OFConnection* ofconn, uint8_t type,
+                        void* data, size_t len);
 
   /**
    * Callback for any new/removed connections. Parameters are set by super
    * class OFServer
    */
-  void connection_callback(
-      fluid_base::OFConnection* ofconn, fluid_base::OFConnection::Event type);
+  void connection_callback(fluid_base::OFConnection* ofconn,
+                           fluid_base::OFConnection::Event type);
 
   /**
    * Register an application to get called when an event type happens. For
@@ -115,8 +114,8 @@ class OpenflowController : public fluid_base::OFServer {
    *             event is handled.
    *
    */
-  void inject_external_event(
-      std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) );
+  void inject_external_event(std::shared_ptr<ExternalEvent> ev,
+                             void* (*cb)(std::shared_ptr<void>));
   status_code_e is_controller_connected_to_switch(int conn_timeout);
 
   /**

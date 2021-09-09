@@ -19,9 +19,8 @@
 
 #include <bcc/proto.h>
 #include <linux/sched.h>
-#include <uapi/linux/ptrace.h>
 #include <net/sock.h>
-
+#include <uapi/linux/ptrace.h>
 
 struct key_t {
   // binary name (task->comm in the kernel)

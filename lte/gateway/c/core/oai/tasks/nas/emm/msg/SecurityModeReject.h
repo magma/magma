@@ -19,12 +19,12 @@
 #define FILE_SECURITY_MODE_REJECT_SEEN
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EmmCause.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "EmmCause.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define SECURITY_MODE_REJECT_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
@@ -47,12 +47,10 @@ typedef struct security_mode_reject_msg_tag {
   emm_cause_t emmcause;
 } security_mode_reject_msg;
 
-int decode_security_mode_reject(
-    security_mode_reject_msg* securitymodereject, uint8_t* buffer,
-    uint32_t len);
+int decode_security_mode_reject(security_mode_reject_msg* securitymodereject,
+                                uint8_t* buffer, uint32_t len);
 
-int encode_security_mode_reject(
-    security_mode_reject_msg* securitymodereject, uint8_t* buffer,
-    uint32_t len);
+int encode_security_mode_reject(security_mode_reject_msg* securitymodereject,
+                                uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_SECURITY_MODE_REJECT_SEEN) */

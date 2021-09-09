@@ -19,10 +19,10 @@
 #define SUPPORTED_CODEC_LIST_H_
 #include <stdint.h>
 
-#define SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION                       \
+#define SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION \
   2 /*Taking consideration of GERAN and UTRAN*/
 #define SUPPORTED_CODEC_LIST_MINIMUM_LENGTH 5
-#define SUPPORTED_CODEC_LIST_MAXIMUM_LENGTH                                    \
+#define SUPPORTED_CODEC_LIST_MAXIMUM_LENGTH \
   ((4 * SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION) + 1)
 #define SUPPORTED_CODED_LIST_IE 0x40
 
@@ -32,15 +32,13 @@ typedef struct SupportedCodecList_tag {
   uint16_t codecbitmap;
 } SupportedCodecList[SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION];
 
-int encode_supported_codec_list(
-    SupportedCodecList* supportedcodeclist, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_supported_codec_list(SupportedCodecList* supportedcodeclist,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
 
-int decode_supported_codec_list(
-    SupportedCodecList* supportedcodeclist, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_supported_codec_list(SupportedCodecList* supportedcodeclist,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
 
-void dump_supported_codec_list_xml(
-    SupportedCodecList* supportedcodeclist, uint8_t iei);
+void dump_supported_codec_list_xml(SupportedCodecList* supportedcodeclist,
+                                   uint8_t iei);
 
 #endif /* SUPPORTED CODEC LIST_H_ */

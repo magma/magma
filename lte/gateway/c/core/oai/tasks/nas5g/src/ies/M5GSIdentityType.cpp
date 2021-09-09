@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "M5GSIdentityType.h"
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;

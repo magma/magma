@@ -16,9 +16,9 @@
 #include <utility>
 #include <vector>
 
-#include "magma_logging.h"
 #include "MemoryStoreClient.h"
 #include "SessionState.h"
+#include "magma_logging.h"
 
 namespace magma {
 namespace lte {

@@ -15,19 +15,19 @@
  *      contact@openairinterface.org
  */
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
 #include <iostream>
+#include <thread>  // std::thread
 #include <utility>
 
-#include "lte/protos/mconfig/mconfigs.pb.h"
-#include "includes/MConfigLoader.h"
 #include "S6aClient.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "itti_msg_to_proto_msg.h"
-#include "feg/protos/s6a_proxy.pb.h"
-#include "mme_config.h"
 #include "common_defs.h"
 #include "common_utility_funs.h"
+#include "feg/protos/s6a_proxy.pb.h"
+#include "includes/MConfigLoader.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "itti_msg_to_proto_msg.h"
+#include "lte/protos/mconfig/mconfigs.pb.h"
+#include "mme_config.h"
 extern "C" {
 #include "log.h"
 }
@@ -58,13 +58,9 @@ static const bool cloud_subscriberdb_enabled =
 // and CONSTANT during the application's lifetime and can only be queried
 // (not changed)
 
-bool get_s6a_relay_enabled(void) {
-  return hss_relay_enabled;
-}
+bool get_s6a_relay_enabled(void) { return hss_relay_enabled; }
 
-bool get_cloud_subscriberdb_enabled(void) {
-  return cloud_subscriberdb_enabled;
-}
+bool get_cloud_subscriberdb_enabled(void) { return cloud_subscriberdb_enabled; }
 
 static bool read_hss_relay_enabled(void) {
   magma::mconfig::MME mconfig;
@@ -144,22 +140,22 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
   resp_loop_thread.detach();
 }
 
-void S6aClient::purge_ue(
-    const char* imsi, std::function<void(Status, PurgeUEAnswer)> callbk) {
+void S6aClient::purge_ue(const char* imsi,
+                         std::function<void(Status, PurgeUEAnswer)> callbk) {
   S6aClient& client = get_client_based_on_fed_mode(imsi);
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
-  auto resp = new AsyncLocalResponse<PurgeUEAnswer>(
-      std::move(callbk), RESPONSE_TIMEOUT);
+  auto resp = new AsyncLocalResponse<PurgeUEAnswer>(std::move(callbk),
+                                                    RESPONSE_TIMEOUT);
 
   // Create a response reader for the `PurgeUE` RPC call. This reader
   // stores the client context, the request to pass in, and the queue to add
   // the response to when done
   PurgeUERequest puRequest;
   puRequest.set_user_name(imsi);
-  auto resp_rdr = client.stub_->AsyncPurgeUE(
-      resp->get_context(), puRequest, &client.queue_);
+  auto resp_rdr = client.stub_->AsyncPurgeUE(resp->get_context(), puRequest,
+                                             &client.queue_);
 
   // Set the reader for the response. This executes the `PurgeUE`
   // response using the response reader. When it is done, the callback stored
@@ -200,14 +196,14 @@ void S6aClient::update_location_request(
       convert_itti_s6a_update_location_request_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
-  auto resp = new AsyncLocalResponse<UpdateLocationAnswer>(
-      std::move(callbk), RESPONSE_TIMEOUT);
+  auto resp = new AsyncLocalResponse<UpdateLocationAnswer>(std::move(callbk),
+                                                           RESPONSE_TIMEOUT);
 
   // Create a response reader for the `update_location_request` RPC call.
   // This reader stores the client context, the request to pass in, and
   // the queue to add the response to when done
-  auto resp_rdr = client.stub_->AsyncUpdateLocation(
-      resp->get_context(), proto_msg, &client.queue_);
+  auto resp_rdr = client.stub_->AsyncUpdateLocation(resp->get_context(),
+                                                    proto_msg, &client.queue_);
 
   // Set the reader for the response. This executes the `Location Update Req`
   // response using the response reader. When it is done, the callback stored

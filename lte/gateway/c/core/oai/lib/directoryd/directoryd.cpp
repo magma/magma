@@ -16,8 +16,8 @@
  */
 
 #include <grpcpp/impl/codegen/status.h>
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "GatewayDirectorydClient.h"
 #include "directoryd.h"

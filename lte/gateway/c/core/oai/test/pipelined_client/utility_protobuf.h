@@ -13,15 +13,15 @@
 
 #pragma once
 
-#include <thread>
-#include <gtest/gtest.h>
 #include <arpa/inet.h>
+#include <gtest/gtest.h>
 #include <stdio.h>
+#include <thread>
 
 #include "PipelinedServiceClient.h"
+#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
-#include "lte/protos/mobilityd.pb.h"
 #include "proto_converters.h"
 
 namespace magma {
@@ -39,10 +39,11 @@ class UpdateRequestV4 {
  public:
   UESessionSet update_request;
 
-  UpdateRequestV4(
-      uint32_t set_ue_state, const std::string enb_str = "192.168.60.141",
-      const std::string ue_str = "192.168.128.11", uint32_t incoming_teid = 100,
-      uint32_t outgoing_teid = 200, uint32_t out_vlan = 0)
+  UpdateRequestV4(uint32_t set_ue_state,
+                  const std::string enb_str = "192.168.60.141",
+                  const std::string ue_str = "192.168.128.11",
+                  uint32_t incoming_teid = 100, uint32_t outgoing_teid = 200,
+                  uint32_t out_vlan = 0)
       : enb_v4(enb_str),
         ue_v4(ue_str),
         in_teid(incoming_teid),
@@ -104,17 +105,15 @@ class UpdateRequestV4 {
     char req_enb_ip_str[INET_ADDRSTRLEN];
     char req_ue_ip_str[INET_ADDRSTRLEN];
 
-    inet_ntop(
-        AF_INET, request.enb_ip_address().address().c_str(), req_enb_ip_str,
-        INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, request.enb_ip_address().address().c_str(),
+              req_enb_ip_str, INET_ADDRSTRLEN);
 
     if (std::strcmp(req_enb_ip_str, enb_v4.c_str())) {
       return false;
     }
 
-    inet_ntop(
-        AF_INET, (request.ue_ipv4_address().address().c_str()), req_ue_ip_str,
-        INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, (request.ue_ipv4_address().address().c_str()),
+              req_ue_ip_str, INET_ADDRSTRLEN);
 
     if (std::strcmp(req_ue_ip_str, ue_v4.c_str())) {
       return false;
@@ -158,12 +157,12 @@ class FlowDLOps {
   }
 
   void set_flow_dl() {
-    flow_dl_.set_params   = set_params_;
+    flow_dl_.set_params = set_params_;
     flow_dl_.tcp_dst_port = tcp_dst_port_;
     flow_dl_.tcp_src_port = tcp_src_port_;
     flow_dl_.udp_dst_port = udp_dst_port_;
     flow_dl_.udp_src_port = udp_src_port_;
-    flow_dl_.ip_proto     = ip_proto_;
+    flow_dl_.ip_proto = ip_proto_;
     inet_pton(AF_INET, dst_v4_.c_str(), &(flow_dl_.dst_ip));
     inet_pton(AF_INET, src_v4_.c_str(), &(flow_dl_.src_ip));
   }
@@ -175,18 +174,16 @@ class FlowDLOps {
     char flow_dl_src_addr[INET_ADDRSTRLEN];
 
     dst_ip_addr = req_flow_dl.mutable_dest_ip();
-    inet_ntop(
-        AF_INET, (dst_ip_addr->address().c_str()), flow_dl_dst_addr,
-        INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, (dst_ip_addr->address().c_str()), flow_dl_dst_addr,
+              INET_ADDRSTRLEN);
 
     if (std::strcmp(flow_dl_dst_addr, dst_v4_.c_str())) {
       return false;
     }
 
     src_ip_addr = req_flow_dl.mutable_src_ip();
-    inet_ntop(
-        AF_INET, (src_ip_addr->address().c_str()), flow_dl_src_addr,
-        INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, (src_ip_addr->address().c_str()), flow_dl_src_addr,
+              INET_ADDRSTRLEN);
 
     if (std::strcmp(flow_dl_src_addr, src_v4_.c_str())) {
       return false;

@@ -43,7 +43,7 @@ void set_grpc_logging_level(bool enable) {
 std::string get_env_var(std::string const& key) {
   MLOG(MINFO) << "Checking env var " << key;
   char* val;
-  val                = getenv(key.c_str());
+  val = getenv(key.c_str());
   std::string retval = "";
   if (val != NULL) {
     retval = val;

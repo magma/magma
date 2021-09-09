@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstring>
-#include <cstdint>
 #include "M5GAuthenticationParameterRAND.h"
+#include <cstdint>
+#include <cstring>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -39,7 +39,7 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, RAND_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, rand->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, rand->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeAuthenticationParameterRANDMsg: iei" << hex
                  << int(*buffer) << endl;

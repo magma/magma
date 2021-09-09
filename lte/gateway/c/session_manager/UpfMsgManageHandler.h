@@ -18,11 +18,11 @@
 #include <functional>
 #include <memory>
 
-#include "SessionStateEnforcer.h"
+#include "MobilitydClient.h"
 #include "SessionID.h"
 #include "SessionReporter.h"
+#include "SessionStateEnforcer.h"
 #include "SessionStore.h"
-#include "MobilitydClient.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -68,10 +68,9 @@ class UpfMsgHandler {
  */
 class UpfMsgManageHandler : public UpfMsgHandler {
  public:
-  UpfMsgManageHandler(
-      std::shared_ptr<SessionStateEnforcer> enf,
-      std::shared_ptr<MobilitydClient> mobilityd_client,
-      SessionStore& session_store);
+  UpfMsgManageHandler(std::shared_ptr<SessionStateEnforcer> enf,
+                      std::shared_ptr<MobilitydClient> mobilityd_client,
+                      SessionStore& session_store);
 
   ~UpfMsgManageHandler() {}
   /**

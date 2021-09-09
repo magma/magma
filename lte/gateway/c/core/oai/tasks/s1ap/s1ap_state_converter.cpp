@@ -25,7 +25,7 @@ namespace magma {
 namespace lte {
 
 S1apStateConverter::~S1apStateConverter() = default;
-S1apStateConverter::S1apStateConverter()  = default;
+S1apStateConverter::S1apStateConverter() = default;
 
 void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   proto->Clear();
@@ -39,7 +39,7 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   mme_ue_s1ap_id_t mmeid;
   // Helper ptr so sctp_assoc_id can be casted from double ptr on
   // hashtable_ts_get
-  void* sctp_id_ptr  = nullptr;
+  void* sctp_id_ptr = nullptr;
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->mmeid2associd);
@@ -47,51 +47,50 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in mmeid2associd hashtable");
   } else {
     for (int i = 0; i < keys->num_keys; i++) {
-      mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
-      ht_rc = hashtable_ts_get(
-          &state->mmeid2associd, (hash_key_t) mmeid, (void**) &sctp_id_ptr);
+      mmeid = (mme_ue_s1ap_id_t)keys->keys[i];
+      ht_rc = hashtable_ts_get(&state->mmeid2associd, (hash_key_t)mmeid,
+                               (void**)&sctp_id_ptr);
       AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
       if (sctp_id_ptr) {
-        sctp_assoc_id_t sctp_assoc_id =
-            (sctp_assoc_id_t)(uintptr_t) sctp_id_ptr;
+        sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)sctp_id_ptr;
         (*mmeid2associd)[mmeid] = sctp_assoc_id;
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
 
-  keys                        = hashtable_ts_get_keys(&state->enbs);
+  keys = hashtable_ts_get_keys(&state->enbs);
   uint32_t expected_enb_count = 0;
   if (keys) {
     expected_enb_count = keys->num_keys;
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
   if (expected_enb_count != state->num_enbs) {
-    OAILOG_ERROR(
-        LOG_S1AP, "Updating num_eNBs from maintained to actual count %u->%u",
-        state->num_enbs, expected_enb_count);
+    OAILOG_ERROR(LOG_S1AP,
+                 "Updating num_eNBs from maintained to actual count %u->%u",
+                 state->num_enbs, expected_enb_count);
     state->num_enbs = expected_enb_count;
   }
   proto->set_num_enbs(state->num_enbs);
 }
 
-void S1apStateConverter::proto_to_state(
-    const S1apState& proto, s1ap_state_t* state) {
+void S1apStateConverter::proto_to_state(const S1apState& proto,
+                                        s1ap_state_t* state) {
   proto_to_hashtable_ts<EnbDescription, enb_description_t>(
       proto.enbs(), &state->enbs, proto_to_enb, LOG_S1AP);
 
   hashtable_rc_t ht_rc;
   auto mmeid2associd = proto.mmeid2associd();
   for (auto const& kv : mmeid2associd) {
-    mme_ue_s1ap_id_t mmeid  = (mme_ue_s1ap_id_t) kv.first;
-    sctp_assoc_id_t associd = (sctp_assoc_id_t) kv.second;
+    mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t)kv.first;
+    sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
 
-    ht_rc = hashtable_ts_insert(
-        &state->mmeid2associd, (hash_key_t) mmeid, (void*) (uintptr_t) associd);
+    ht_rc = hashtable_ts_insert(&state->mmeid2associd, (hash_key_t)mmeid,
+                                (void*)(uintptr_t)associd);
     AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
   }
 
-  state->num_enbs             = proto.num_enbs();
+  state->num_enbs = proto.num_enbs();
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->enbs);
   uint32_t expected_enb_count = 0;
   if (keys) {
@@ -99,15 +98,15 @@ void S1apStateConverter::proto_to_state(
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
   if (expected_enb_count != state->num_enbs) {
-    OAILOG_WARNING(
-        LOG_S1AP, "Updating num_eNBs from maintained to actual count %u->%u",
-        state->num_enbs, expected_enb_count);
+    OAILOG_WARNING(LOG_S1AP,
+                   "Updating num_eNBs from maintained to actual count %u->%u",
+                   state->num_enbs, expected_enb_count);
     state->num_enbs = expected_enb_count;
   }
 }
 
-void S1apStateConverter::enb_to_proto(
-    enb_description_t* enb, oai::EnbDescription* proto) {
+void S1apStateConverter::enb_to_proto(enb_description_t* enb,
+                                      oai::EnbDescription* proto) {
   proto->Clear();
 
   proto->set_enb_id(enb->enb_id);
@@ -124,53 +123,52 @@ void S1apStateConverter::enb_to_proto(
 
   // store ue_ids
   hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
-  supported_ta_list_to_proto(
-      &enb->supported_ta_list, proto->mutable_supported_ta_list());
+  supported_ta_list_to_proto(&enb->supported_ta_list,
+                             proto->mutable_supported_ta_list());
 }
 
-void S1apStateConverter::proto_to_enb(
-    const oai::EnbDescription& proto, enb_description_t* enb) {
+void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
+                                      enb_description_t* enb) {
   memset(enb, 0, sizeof(*enb));
 
-  enb->enb_id   = proto.enb_id();
-  enb->s1_state = (mme_s1_enb_state_s) proto.s1_state();
+  enb->enb_id = proto.enb_id();
+  enb->s1_state = (mme_s1_enb_state_s)proto.s1_state();
   strncpy(enb->enb_name, proto.enb_name().c_str(), sizeof(enb->enb_name));
   enb->default_paging_drx = proto.default_paging_drx();
-  enb->nb_ue_associated   = proto.nb_ue_associated();
-  enb->sctp_assoc_id      = proto.sctp_assoc_id();
-  enb->next_sctp_stream   = proto.next_sctp_stream();
-  enb->instreams          = proto.instreams();
-  enb->outstreams         = proto.outstreams();
-  strncpy(
-      enb->ran_cp_ipaddr, proto.ran_cp_ipaddr().c_str(),
-      sizeof(enb->ran_cp_ipaddr));
+  enb->nb_ue_associated = proto.nb_ue_associated();
+  enb->sctp_assoc_id = proto.sctp_assoc_id();
+  enb->next_sctp_stream = proto.next_sctp_stream();
+  enb->instreams = proto.instreams();
+  enb->outstreams = proto.outstreams();
+  strncpy(enb->ran_cp_ipaddr, proto.ran_cp_ipaddr().c_str(),
+          sizeof(enb->ran_cp_ipaddr));
   enb->ran_cp_ipaddr_sz = proto.ran_cp_ipaddr_sz();
 
   // load ues
   hashtable_rc_t ht_rc;
   auto ht_name = bfromcstr("s1ap_ue_coll");
 
-  hashtable_uint64_ts_init(
-      &enb->ue_id_coll, mme_config.max_ues, nullptr, ht_name);
+  hashtable_uint64_ts_init(&enb->ue_id_coll, mme_config.max_ues, nullptr,
+                           ht_name);
   bdestroy(ht_name);
 
   auto ue_ids = proto.ue_ids();
   for (auto const& kv : ue_ids) {
     mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
-    uint64_t comp_s1ap_id           = kv.second;
+    uint64_t comp_s1ap_id = kv.second;
 
     ht_rc = hashtable_uint64_ts_insert(
-        &enb->ue_id_coll, (hash_key_t) mme_ue_s1ap_id, comp_s1ap_id);
+        &enb->ue_id_coll, (hash_key_t)mme_ue_s1ap_id, comp_s1ap_id);
     if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(
-          LOG_S1AP, "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
+      OAILOG_DEBUG(LOG_S1AP,
+                   "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
     }
   }
-  proto_to_supported_ta_list(
-      &enb->supported_ta_list, proto.supported_ta_list());
+  proto_to_supported_ta_list(&enb->supported_ta_list,
+                             proto.supported_ta_list());
 }
-void S1apStateConverter::ue_to_proto(
-    const ue_description_t* ue, oai::UeDescription* proto) {
+void S1apStateConverter::ue_to_proto(const ue_description_t* ue,
+                                     oai::UeDescription* proto) {
   proto->Clear();
 
   proto->set_s1_ue_state(ue->s1_ue_state);
@@ -196,17 +194,17 @@ void S1apStateConverter::ue_to_proto(
   proto->mutable_s1ap_handover_state()->set_target_sctp_stream_send(
       ue->s1ap_handover_state.target_sctp_stream_send);
 }
-void S1apStateConverter::proto_to_ue(
-    const oai::UeDescription& proto, ue_description_t* ue) {
+void S1apStateConverter::proto_to_ue(const oai::UeDescription& proto,
+                                     ue_description_t* ue) {
   memset(ue, 0, sizeof(*ue));
 
-  ue->s1_ue_state                   = (s1_ue_state_s) proto.s1_ue_state();
-  ue->enb_ue_s1ap_id                = proto.enb_ue_s1ap_id();
-  ue->mme_ue_s1ap_id                = proto.mme_ue_s1ap_id();
-  ue->sctp_assoc_id                 = proto.sctp_assoc_id();
-  ue->sctp_stream_recv              = proto.sctp_stream_recv();
-  ue->sctp_stream_send              = proto.sctp_stream_send();
-  ue->s1ap_ue_context_rel_timer.id  = proto.s1ap_ue_context_rel_timer().id();
+  ue->s1_ue_state = (s1_ue_state_s)proto.s1_ue_state();
+  ue->enb_ue_s1ap_id = proto.enb_ue_s1ap_id();
+  ue->mme_ue_s1ap_id = proto.mme_ue_s1ap_id();
+  ue->sctp_assoc_id = proto.sctp_assoc_id();
+  ue->sctp_stream_recv = proto.sctp_stream_recv();
+  ue->sctp_stream_send = proto.sctp_stream_send();
+  ue->s1ap_ue_context_rel_timer.id = proto.s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
   ue->s1ap_handover_state.mme_ue_s1ap_id =
       proto.s1ap_handover_state().mme_ue_s1ap_id();
@@ -227,14 +225,13 @@ void S1apStateConverter::proto_to_ue(
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(
     const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto) {
-  hashtable_uint64_ts_to_proto(
-      s1ap_imsi_map->mme_ue_id_imsi_htbl,
-      s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
+  hashtable_uint64_ts_to_proto(s1ap_imsi_map->mme_ue_id_imsi_htbl,
+                               s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
 }
 void S1apStateConverter::proto_to_s1ap_imsi_map(
     const oai::S1apImsiMap& s1ap_imsi_proto, s1ap_imsi_map_t* s1ap_imsi_map) {
-  proto_to_hashtable_uint64_ts(
-      s1ap_imsi_proto.mme_ue_id_imsi_map(), s1ap_imsi_map->mme_ue_id_imsi_htbl);
+  proto_to_hashtable_uint64_ts(s1ap_imsi_proto.mme_ue_id_imsi_map(),
+                               s1ap_imsi_map->mme_ue_id_imsi_htbl);
 }
 
 void S1apStateConverter::supported_ta_list_to_proto(
@@ -245,8 +242,8 @@ void S1apStateConverter::supported_ta_list_to_proto(
     OAILOG_DEBUG(LOG_S1AP, "Writing Supported TAI list at index %d", idx);
     oai::SupportedTaiItems* supported_tai_item =
         supported_ta_list_proto->add_supported_tai_items();
-    supported_tai_item_to_proto(
-        &supported_ta_list->supported_tai_items[idx], supported_tai_item);
+    supported_tai_item_to_proto(&supported_ta_list->supported_tai_items[idx],
+                                supported_tai_item);
   }
 }
 
@@ -271,17 +268,17 @@ void S1apStateConverter::supported_tai_item_to_proto(
   char plmn_array[PLMN_BYTES] = {0};
   for (int idx = 0; idx < state_supported_tai_item->bplmnlist_count; idx++) {
     plmn_array[0] =
-        (char) (state_supported_tai_item->bplmns[idx].mcc_digit1 + ASCII_ZERO);
+        (char)(state_supported_tai_item->bplmns[idx].mcc_digit1 + ASCII_ZERO);
     plmn_array[1] =
-        (char) (state_supported_tai_item->bplmns[idx].mcc_digit2 + ASCII_ZERO);
+        (char)(state_supported_tai_item->bplmns[idx].mcc_digit2 + ASCII_ZERO);
     plmn_array[2] =
-        (char) (state_supported_tai_item->bplmns[idx].mcc_digit3 + ASCII_ZERO);
+        (char)(state_supported_tai_item->bplmns[idx].mcc_digit3 + ASCII_ZERO);
     plmn_array[3] =
-        (char) (state_supported_tai_item->bplmns[idx].mnc_digit1 + ASCII_ZERO);
+        (char)(state_supported_tai_item->bplmns[idx].mnc_digit1 + ASCII_ZERO);
     plmn_array[4] =
-        (char) (state_supported_tai_item->bplmns[idx].mnc_digit2 + ASCII_ZERO);
+        (char)(state_supported_tai_item->bplmns[idx].mnc_digit2 + ASCII_ZERO);
     plmn_array[5] =
-        (char) (state_supported_tai_item->bplmns[idx].mnc_digit3 + ASCII_ZERO);
+        (char)(state_supported_tai_item->bplmns[idx].mnc_digit3 + ASCII_ZERO);
     supported_tai_item_proto->add_bplmns(plmn_array);
   }
 }
@@ -294,17 +291,17 @@ void S1apStateConverter::proto_to_supported_tai_items(
       supported_tai_item_proto.bplmnlist_count();
   for (int idx = 0; idx < supported_tai_item_state->bplmnlist_count; idx++) {
     supported_tai_item_state->bplmns[idx].mcc_digit1 =
-        (int) (supported_tai_item_proto.bplmns(idx)[0]) - ASCII_ZERO;
+        (int)(supported_tai_item_proto.bplmns(idx)[0]) - ASCII_ZERO;
     supported_tai_item_state->bplmns[idx].mcc_digit2 =
-        (int) (supported_tai_item_proto.bplmns(idx)[1]) - ASCII_ZERO;
+        (int)(supported_tai_item_proto.bplmns(idx)[1]) - ASCII_ZERO;
     supported_tai_item_state->bplmns[idx].mcc_digit3 =
-        (int) (supported_tai_item_proto.bplmns(idx)[2]) - ASCII_ZERO;
+        (int)(supported_tai_item_proto.bplmns(idx)[2]) - ASCII_ZERO;
     supported_tai_item_state->bplmns[idx].mnc_digit1 =
-        (int) (supported_tai_item_proto.bplmns(idx)[3]) - ASCII_ZERO;
+        (int)(supported_tai_item_proto.bplmns(idx)[3]) - ASCII_ZERO;
     supported_tai_item_state->bplmns[idx].mnc_digit2 =
-        (int) (supported_tai_item_proto.bplmns(idx)[4]) - ASCII_ZERO;
+        (int)(supported_tai_item_proto.bplmns(idx)[4]) - ASCII_ZERO;
     supported_tai_item_state->bplmns[idx].mnc_digit3 =
-        (int) (supported_tai_item_proto.bplmns(idx)[5]) - ASCII_ZERO;
+        (int)(supported_tai_item_proto.bplmns(idx)[5]) - ASCII_ZERO;
   }
 }
 }  // namespace lte

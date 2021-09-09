@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "M5GMMCause.h"
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -20,13 +20,13 @@ M5GMMCauseMsg::M5GMMCauseMsg(){};
 M5GMMCauseMsg::~M5GMMCauseMsg(){};
 
 // Decode 5GMMCause IE
-int M5GMMCauseMsg::DecodeM5GMMCauseMsg(
-    M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int M5GMMCauseMsg::DecodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
 
   if (iei > 0) {
     m5gmm_cause->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char) iei, m5gmm_cause->iei);
+    CHECK_IEI_DECODER((unsigned char)iei, m5gmm_cause->iei);
     MLOG(MDEBUG) << "In DecodeM5GMMCauseMsg: iei = " << dec
                  << int(m5gmm_cause->iei) << endl;
     decoded++;
@@ -40,13 +40,13 @@ int M5GMMCauseMsg::DecodeM5GMMCauseMsg(
 };
 
 // Encode 5GMMCause IE
-int M5GMMCauseMsg::EncodeM5GMMCauseMsg(
-    M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int M5GMMCauseMsg::EncodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   if (iei > 0) {
     *(buffer + encoded) = m5gmm_cause->iei;
-    CHECK_IEI_ENCODER((unsigned char) iei, m5gmm_cause->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, m5gmm_cause->iei);
     MLOG(MDEBUG) << "In EncodeM5GMMCauseMsg: iei = " << hex
                  << int(*(buffer + encoded)) << endl;
     encoded++;

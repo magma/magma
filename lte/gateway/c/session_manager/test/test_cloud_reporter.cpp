@@ -18,10 +18,10 @@
 #include <memory>
 #include <thread>
 
+#include "SessionReporter.h"
+#include "SessiondMocks.h"
 #include "includes/MagmaService.h"
 #include "includes/ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "SessionReporter.h"
 
 using grpc::Status;
 using ::testing::_;
@@ -101,9 +101,8 @@ TEST_F(SessionReporterTest, test_single_call) {
   response.mutable_static_rules()->Add()->mutable_rule_id();
   EXPECT_CALL(*mock_cloud, CreateSession(_, _, _))
       .Times(1)
-      .WillOnce(testing::DoAll(
-          testing::SetArgPointee<2>(response),
-          testing::Return(grpc::Status::OK)));
+      .WillOnce(testing::DoAll(testing::SetArgPointee<2>(response),
+                               testing::Return(grpc::Status::OK)));
 
   std::promise<void> promise1;
   CreateSessionRequest request;
@@ -134,15 +133,13 @@ TEST_F(SessionReporterTest, test_multi_call) {
   CreateSessionResponse response;
   EXPECT_CALL(*mock_cloud, CreateSession(_, _, _))
       .Times(2)
-      .WillRepeatedly(testing::DoAll(
-          testing::SetArgPointee<2>(response),
-          testing::Return(grpc::Status::OK)));
+      .WillRepeatedly(testing::DoAll(testing::SetArgPointee<2>(response),
+                                     testing::Return(grpc::Status::OK)));
   UpdateSessionResponse update_response;
   EXPECT_CALL(*mock_cloud, UpdateSession(_, _, _))
       .Times(1)
-      .WillRepeatedly(testing::DoAll(
-          testing::SetArgPointee<2>(update_response),
-          testing::Return(grpc::Status::OK)));
+      .WillRepeatedly(testing::DoAll(testing::SetArgPointee<2>(update_response),
+                                     testing::Return(grpc::Status::OK)));
 
   std::promise<void> promise1, promise2, promise3;
 

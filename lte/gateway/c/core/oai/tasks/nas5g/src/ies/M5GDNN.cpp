@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-#include <sstream>
+#include "M5GDNN.h"
 #include <cstdint>
 #include <cstring>
-#include "M5GDNN.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -22,14 +22,14 @@ DNNMsg::DNNMsg(){};
 DNNMsg::~DNNMsg(){};
 
 // Decode DNN Message
-int DNNMsg::DecodeDNNMsg(
-    DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
+                         uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   /*** Will be supported POST MVC ***/
   if (iei > 0) {
-    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
+    CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
     IES_DECODE_U8(buffer, decoded, ielen);
   }
   CHECK_LENGTH_DECODER(len - decoded, ielen);
@@ -37,15 +37,15 @@ int DNNMsg::DecodeDNNMsg(
 };
 
 // Encode DNN Message
-int DNNMsg::EncodeDNNMsg(
-    DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
+                         uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DNN_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) dnn_message->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)dnn_message->iei);
     *buffer = iei;
     encoded++;
   }

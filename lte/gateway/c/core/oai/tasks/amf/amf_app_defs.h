@@ -13,10 +13,10 @@
 
 #pragma once
 #include <sstream>
-#include "amf_as_message.h"
-#include "ngap_messages_types.h"
-#include "n11_messages_types.h"
 #include "amf_app_ue_context_and_proc.h"
+#include "amf_as_message.h"
+#include "n11_messages_types.h"
+#include "ngap_messages_types.h"
 
 namespace magma5g {
 typedef struct amf_app_desc_s {
@@ -31,12 +31,11 @@ typedef struct amf_app_desc_s {
 uint64_t amf_app_handle_initial_ue_message(
     amf_app_desc_t* amf_app_desc_p,
     itti_ngap_initial_ue_message_t* conn_est_ind_pP);
-int amf_app_handle_nas_dl_req(
-    amf_ue_ngap_id_t ue_id, bstring nas_msg,
-    nas5g_error_code_t transaction_status);
-int amf_app_handle_uplink_nas_message(
-    amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
-    const tai_t originating_tai);
+int amf_app_handle_nas_dl_req(amf_ue_ngap_id_t ue_id, bstring nas_msg,
+                              nas5g_error_code_t transaction_status);
+int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
+                                      bstring msg, amf_ue_ngap_id_t ue_id,
+                                      const tai_t originating_tai);
 void amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp);
 int amf_app_handle_notification_received(

@@ -15,8 +15,8 @@
 #ifndef BSTRLIB_UNICODE_UTILITIES
 #define BSTRLIB_UNICODE_UTILITIES
 
-#include "utf8util.h"
 #include "bstrlib.h"
+#include "utf8util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,8 +28,8 @@ extern int buAppendBlkUcs4(bstring b, const cpUcs4* bu, int len, cpUcs4 errCh);
 /* For those unfortunate enough to be stuck supporting UTF16. */
 extern int buGetBlkUTF16(
     /* @out */ cpUcs2* ucs2, int len, cpUcs4 errCh, const_bstring bu, int pos);
-extern int buAppendBlkUTF16(
-    bstring bu, const cpUcs2* utf16, int len, cpUcs2* bom, cpUcs4 errCh);
+extern int buAppendBlkUTF16(bstring bu, const cpUcs2* utf16, int len,
+                            cpUcs2* bom, cpUcs4 errCh);
 
 #ifdef __cplusplus
 }

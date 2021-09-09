@@ -26,7 +26,7 @@
 #define FILE_UDP_MESSAGES_TYPES_SEEN
 
 #define UDP_INIT(mSGpTR) (mSGpTR)->ittiMsg.udp_init
-#define UDP_DATA_MAX_MSG_LEN                                                   \
+#define UDP_DATA_MAX_MSG_LEN \
   (4096) /**< Maximum supported gtpv2c packet length including header */
 
 typedef struct {

@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GSecurityModeReject.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,7 +20,7 @@ SecurityModeRejectMsg::~SecurityModeRejectMsg(){};
 // Decoding Security Mode Reject Message and its IEs
 int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
     SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_REJECT_MINIMUM_LENGTH, len);
@@ -66,7 +66,7 @@ int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
 // Encoding Security Mode Reject Message and its IEs
 int SecurityModeRejectMsg::EncodeSecurityModeRejectMsg(
     SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded   = 0;
+  uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, SECURITY_MODE_REJECT_MINIMUM_LENGTH, len);

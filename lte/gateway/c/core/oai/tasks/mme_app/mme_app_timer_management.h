@@ -14,16 +14,16 @@ limitations under the License.
 #define FILE_MME_UE_CONTEXT_H_SEEN
 // C includes --------------------------------------------------------------
 extern "C" {
-#include "intertask_interface.h"
 #include "esm_data.h"
+#include "intertask_interface.h"
 #include "mme_app_timer.h"
 }
 // C++ includes ------------------------------------------------------------
 #include <czmq.h>
-#include <map>
-#include <utility>
 #include <stddef.h>
 #include <stdint.h>
+#include <map>
+#include <utility>
 // Other includes ----------------------------------------------------------
 
 namespace magma {
@@ -45,9 +45,8 @@ class MmeUeContext {
   MmeUeContext(MmeUeContext const&) = delete;
   void operator=(MmeUeContext const&) = delete;
 
-  int StartTimer(
-      size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      const TimerArgType& arg);
+  int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                 const TimerArgType& arg);
   void StopTimer(int timer_id);
 
   bool GetTimerArg(const int timer_id, TimerArgType* arg) const;

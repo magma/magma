@@ -18,10 +18,10 @@
 extern "C" {
 #endif
 
+#include <ctype.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <string.h>
-#include <limits.h>
-#include <ctype.h>
 
 struct bStream;
 
@@ -69,11 +69,11 @@ extern int bconchar(bstring b0, char c);
 extern int bcatcstr(bstring b, const char* s);
 extern int bcatblk(bstring b, const void* s, int len);
 extern int binsert(bstring s1, int pos, const_bstring s2, unsigned char fill);
-extern int binsertblk(
-    bstring s1, int pos, const void* s2, int len, unsigned char fill);
+extern int binsertblk(bstring s1, int pos, const void* s2, int len,
+                      unsigned char fill);
 extern int binsertch(bstring s1, int pos, int len, unsigned char fill);
-extern int breplace(
-    bstring b1, int pos, int len, const_bstring b2, unsigned char fill);
+extern int breplace(bstring b1, int pos, int len, const_bstring b2,
+                    unsigned char fill);
 extern int bdelete(bstring s1, int pos, int len);
 extern int bsetstr(bstring b0, int pos, const_bstring b1, unsigned char fill);
 extern int btrunc(bstring b, int n);
@@ -103,10 +103,10 @@ extern int binchr(const_bstring b0, int pos, const_bstring b1);
 extern int binchrr(const_bstring b0, int pos, const_bstring b1);
 extern int bninchr(const_bstring b0, int pos, const_bstring b1);
 extern int bninchrr(const_bstring b0, int pos, const_bstring b1);
-extern int bfindreplace(
-    bstring b, const_bstring find, const_bstring repl, int pos);
-extern int bfindreplacecaseless(
-    bstring b, const_bstring find, const_bstring repl, int pos);
+extern int bfindreplace(bstring b, const_bstring find, const_bstring repl,
+                        int pos);
+extern int bfindreplacecaseless(bstring b, const_bstring find,
+                                const_bstring repl, int pos);
 
 /* List of string container functions */
 struct bstrList {
@@ -124,15 +124,12 @@ extern struct bstrList* bsplits(const_bstring str, const_bstring splitStr);
 extern struct bstrList* bsplitstr(const_bstring str, const_bstring splitStr);
 extern bstring bjoin(const struct bstrList* bl, const_bstring sep);
 extern bstring bjoinblk(const struct bstrList* bl, const void* s, int len);
-extern int bsplitcb(
-    const_bstring str, unsigned char splitChar, int pos,
-    int (*cb)(void* parm, int ofs, int len), void* parm);
-extern int bsplitscb(
-    const_bstring str, const_bstring splitStr, int pos,
-    int (*cb)(void* parm, int ofs, int len), void* parm);
-extern int bsplitstrcb(
-    const_bstring str, const_bstring splitStr, int pos,
-    int (*cb)(void* parm, int ofs, int len), void* parm);
+extern int bsplitcb(const_bstring str, unsigned char splitChar, int pos,
+                    int (*cb)(void* parm, int ofs, int len), void* parm);
+extern int bsplitscb(const_bstring str, const_bstring splitStr, int pos,
+                     int (*cb)(void* parm, int ofs, int len), void* parm);
+extern int bsplitstrcb(const_bstring str, const_bstring splitStr, int pos,
+                       int (*cb)(void* parm, int ofs, int len), void* parm);
 
 /* Miscellaneous functions */
 extern int bpattern(bstring b, int len);
@@ -148,27 +145,27 @@ extern int bformata(bstring b, const char* fmt, ...);
 extern int bassignformat(bstring b, const char* fmt, ...);
 extern int bvcformata(bstring b, int count, const char* fmt, va_list arglist);
 
-#define bvformata(ret, b, fmt, lastarg)                                        \
-  {                                                                            \
-    bstring bstrtmp_b       = (b);                                             \
-    const char* bstrtmp_fmt = (fmt);                                           \
-    int bstrtmp_r = BSTR_ERR, bstrtmp_sz = 16;                                 \
-    for (;;) {                                                                 \
-      va_list bstrtmp_arglist;                                                 \
-      va_start(bstrtmp_arglist, lastarg);                                      \
-      bstrtmp_r =                                                              \
-          bvcformata(bstrtmp_b, bstrtmp_sz, bstrtmp_fmt, bstrtmp_arglist);     \
-      va_end(bstrtmp_arglist);                                                 \
-      if (bstrtmp_r >= 0) { /* Everything went ok */                           \
-        bstrtmp_r = BSTR_OK;                                                   \
-        break;                                                                 \
-      } else if (-bstrtmp_r <= bstrtmp_sz) { /* A real error? */               \
-        bstrtmp_r = BSTR_ERR;                                                  \
-        break;                                                                 \
-      }                                                                        \
-      bstrtmp_sz = -bstrtmp_r; /* Doubled or target size */                    \
-    }                                                                          \
-    ret = bstrtmp_r;                                                           \
+#define bvformata(ret, b, fmt, lastarg)                                    \
+  {                                                                        \
+    bstring bstrtmp_b = (b);                                               \
+    const char* bstrtmp_fmt = (fmt);                                       \
+    int bstrtmp_r = BSTR_ERR, bstrtmp_sz = 16;                             \
+    for (;;) {                                                             \
+      va_list bstrtmp_arglist;                                             \
+      va_start(bstrtmp_arglist, lastarg);                                  \
+      bstrtmp_r =                                                          \
+          bvcformata(bstrtmp_b, bstrtmp_sz, bstrtmp_fmt, bstrtmp_arglist); \
+      va_end(bstrtmp_arglist);                                             \
+      if (bstrtmp_r >= 0) { /* Everything went ok */                       \
+        bstrtmp_r = BSTR_OK;                                               \
+        break;                                                             \
+      } else if (-bstrtmp_r <= bstrtmp_sz) { /* A real error? */           \
+        bstrtmp_r = BSTR_ERR;                                              \
+        break;                                                             \
+      }                                                                    \
+      bstrtmp_sz = -bstrtmp_r; /* Doubled or target size */                \
+    }                                                                      \
+    ret = bstrtmp_r;                                                       \
   }
 
 #endif
@@ -195,12 +192,12 @@ extern int bsreadlnsa(bstring r, struct bStream* s, const_bstring term);
 extern int bsreada(bstring b, struct bStream* s, int n);
 extern int bsunread(struct bStream* s, const_bstring b);
 extern int bspeek(bstring r, const struct bStream* s);
-extern int bssplitscb(
-    struct bStream* s, const_bstring splitStr,
-    int (*cb)(void* parm, int ofs, const_bstring entry), void* parm);
-extern int bssplitstrcb(
-    struct bStream* s, const_bstring splitStr,
-    int (*cb)(void* parm, int ofs, const_bstring entry), void* parm);
+extern int bssplitscb(struct bStream* s, const_bstring splitStr,
+                      int (*cb)(void* parm, int ofs, const_bstring entry),
+                      void* parm);
+extern int bssplitstrcb(struct bStream* s, const_bstring splitStr,
+                        int (*cb)(void* parm, int ofs, const_bstring entry),
+                        void* parm);
 extern int bseof(const struct bStream* s);
 
 struct tagbstring {
@@ -210,22 +207,22 @@ struct tagbstring {
 };
 
 /* Accessor macros */
-#define blengthe(b, e)                                                         \
-  (((b) == (void*) 0 || (b)->slen < 0) ? (int) (e) : ((b)->slen))
+#define blengthe(b, e) \
+  (((b) == (void*)0 || (b)->slen < 0) ? (int)(e) : ((b)->slen))
 #define blength(b) (blengthe((b), 0))
-#define bdataofse(b, o, e)                                                     \
-  (((b) == (void*) 0 || (b)->data == (void*) 0) ? (char*) (e) :                \
-                                                  ((char*) (b)->data) + (o))
-#define bdataofs(b, o) (bdataofse((b), (o), (void*) 0))
+#define bdataofse(b, o, e)                                 \
+  (((b) == (void*)0 || (b)->data == (void*)0) ? (char*)(e) \
+                                              : ((char*)(b)->data) + (o))
+#define bdataofs(b, o) (bdataofse((b), (o), (void*)0))
 #define bdatae(b, e) (bdataofse(b, 0, e))
 #define bdata(b) (bdataofs(b, 0))
-#define bchare(b, p, e)                                                        \
-  ((((unsigned) (p)) < (unsigned) blength(b)) ? ((b)->data[(p)]) : (e))
+#define bchare(b, p, e) \
+  ((((unsigned)(p)) < (unsigned)blength(b)) ? ((b)->data[(p)]) : (e))
 #define bchar(b, p) bchare((b), (p), '\0')
 
 /* Static constant string initialization macro */
-#define bsStaticMlen(q, m)                                                     \
-  { (m), (int) sizeof(q) - 1, (unsigned char*) ("" q "") }
+#define bsStaticMlen(q, m) \
+  { (m), (int)sizeof(q) - 1, (unsigned char*)("" q "") }
 #if defined(_MSC_VER)
 #define bsStatic(q) bsStaticMlen(q, -32)
 #endif
@@ -234,111 +231,111 @@ struct tagbstring {
 #endif
 
 /* Static constant block parameter pair */
-#define bsStaticBlkParms(q) ((void*) ("" q "")), ((int) sizeof(q) - 1)
+#define bsStaticBlkParms(q) ((void*)("" q "")), ((int)sizeof(q) - 1)
 
 #define bcatStatic(b, s) ((bcatblk)((b), bsStaticBlkParms(s)))
 #define bfromStatic(s) ((blk2bstr)(bsStaticBlkParms(s)))
 #define bassignStatic(b, s) ((bassignblk)((b), bsStaticBlkParms(s)))
-#define binsertStatic(b, p, s, f)                                              \
+#define binsertStatic(b, p, s, f) \
   ((binsertblk)((b), (p), bsStaticBlkParms(s), (f)))
 #define bjoinStatic(b, s) ((bjoinblk)((b), bsStaticBlkParms(s)))
 #define biseqStatic(b, s) ((biseqblk)((b), bsStaticBlkParms(s)))
 #define bisstemeqStatic(b, s) ((bisstemeqblk)((b), bsStaticBlkParms(s)))
 #define biseqcaselessStatic(b, s) ((biseqcaselessblk)((b), bsStaticBlkParms(s)))
-#define bisstemeqcaselessStatic(b, s)                                          \
+#define bisstemeqcaselessStatic(b, s) \
   ((bisstemeqcaselessblk)((b), bsStaticBlkParms(s)))
 
 /* Reference building macros */
 #define cstr2tbstr btfromcstr
-#define btfromcstr(t, s)                                                       \
-  {                                                                            \
-    (t).data = (unsigned char*) (s);                                           \
-    (t).slen = ((t).data) ? ((int) (strlen)((char*) (t).data)) : 0;            \
-    (t).mlen = -1;                                                             \
+#define btfromcstr(t, s)                                          \
+  {                                                               \
+    (t).data = (unsigned char*)(s);                               \
+    (t).slen = ((t).data) ? ((int)(strlen)((char*)(t).data)) : 0; \
+    (t).mlen = -1;                                                \
   }
-#define blk2tbstr(t, s, l)                                                     \
-  {                                                                            \
-    (t).data = (unsigned char*) (s);                                           \
-    (t).slen = l;                                                              \
-    (t).mlen = -1;                                                             \
+#define blk2tbstr(t, s, l)          \
+  {                                 \
+    (t).data = (unsigned char*)(s); \
+    (t).slen = l;                   \
+    (t).mlen = -1;                  \
   }
 #define btfromblk(t, s, l) blk2tbstr(t, s, l)
-#define bmid2tbstr(t, b, p, l)                                                 \
-  {                                                                            \
-    const_bstring bstrtmp_s = (b);                                             \
-    if (bstrtmp_s && bstrtmp_s->data && bstrtmp_s->slen >= 0) {                \
-      int bstrtmp_left = (p);                                                  \
-      int bstrtmp_len  = (l);                                                  \
-      if (bstrtmp_left < 0) {                                                  \
-        bstrtmp_len += bstrtmp_left;                                           \
-        bstrtmp_left = 0;                                                      \
-      }                                                                        \
-      if (bstrtmp_len > bstrtmp_s->slen - bstrtmp_left)                        \
-        bstrtmp_len = bstrtmp_s->slen - bstrtmp_left;                          \
-      if (bstrtmp_len <= 0) {                                                  \
-        (t).data = (unsigned char*) "";                                        \
-        (t).slen = 0;                                                          \
-      } else {                                                                 \
-        (t).data = bstrtmp_s->data + bstrtmp_left;                             \
-        (t).slen = bstrtmp_len;                                                \
-      }                                                                        \
-    } else {                                                                   \
-      (t).data = (unsigned char*) "";                                          \
-      (t).slen = 0;                                                            \
-    }                                                                          \
-    (t).mlen = -__LINE__;                                                      \
+#define bmid2tbstr(t, b, p, l)                                  \
+  {                                                             \
+    const_bstring bstrtmp_s = (b);                              \
+    if (bstrtmp_s && bstrtmp_s->data && bstrtmp_s->slen >= 0) { \
+      int bstrtmp_left = (p);                                   \
+      int bstrtmp_len = (l);                                    \
+      if (bstrtmp_left < 0) {                                   \
+        bstrtmp_len += bstrtmp_left;                            \
+        bstrtmp_left = 0;                                       \
+      }                                                         \
+      if (bstrtmp_len > bstrtmp_s->slen - bstrtmp_left)         \
+        bstrtmp_len = bstrtmp_s->slen - bstrtmp_left;           \
+      if (bstrtmp_len <= 0) {                                   \
+        (t).data = (unsigned char*)"";                          \
+        (t).slen = 0;                                           \
+      } else {                                                  \
+        (t).data = bstrtmp_s->data + bstrtmp_left;              \
+        (t).slen = bstrtmp_len;                                 \
+      }                                                         \
+    } else {                                                    \
+      (t).data = (unsigned char*)"";                            \
+      (t).slen = 0;                                             \
+    }                                                           \
+    (t).mlen = -__LINE__;                                       \
   }
-#define btfromblkltrimws(t, s, l)                                              \
-  {                                                                            \
-    int bstrtmp_idx = 0, bstrtmp_len = (l);                                    \
-    unsigned char* bstrtmp_s = (s);                                            \
-    if (bstrtmp_s && bstrtmp_len >= 0) {                                       \
-      for (; bstrtmp_idx < bstrtmp_len; bstrtmp_idx++) {                       \
-        if (!isspace(bstrtmp_s[bstrtmp_idx])) break;                           \
-      }                                                                        \
-    }                                                                          \
-    (t).data = bstrtmp_s + bstrtmp_idx;                                        \
-    (t).slen = bstrtmp_len - bstrtmp_idx;                                      \
-    (t).mlen = -__LINE__;                                                      \
+#define btfromblkltrimws(t, s, l)                        \
+  {                                                      \
+    int bstrtmp_idx = 0, bstrtmp_len = (l);              \
+    unsigned char* bstrtmp_s = (s);                      \
+    if (bstrtmp_s && bstrtmp_len >= 0) {                 \
+      for (; bstrtmp_idx < bstrtmp_len; bstrtmp_idx++) { \
+        if (!isspace(bstrtmp_s[bstrtmp_idx])) break;     \
+      }                                                  \
+    }                                                    \
+    (t).data = bstrtmp_s + bstrtmp_idx;                  \
+    (t).slen = bstrtmp_len - bstrtmp_idx;                \
+    (t).mlen = -__LINE__;                                \
   }
-#define btfromblkrtrimws(t, s, l)                                              \
-  {                                                                            \
-    int bstrtmp_len          = (l) -1;                                         \
-    unsigned char* bstrtmp_s = (s);                                            \
-    if (bstrtmp_s && bstrtmp_len >= 0) {                                       \
-      for (; bstrtmp_len >= 0; bstrtmp_len--) {                                \
-        if (!isspace(bstrtmp_s[bstrtmp_len])) break;                           \
-      }                                                                        \
-    }                                                                          \
-    (t).data = bstrtmp_s;                                                      \
-    (t).slen = bstrtmp_len + 1;                                                \
-    (t).mlen = -__LINE__;                                                      \
+#define btfromblkrtrimws(t, s, l)                    \
+  {                                                  \
+    int bstrtmp_len = (l)-1;                         \
+    unsigned char* bstrtmp_s = (s);                  \
+    if (bstrtmp_s && bstrtmp_len >= 0) {             \
+      for (; bstrtmp_len >= 0; bstrtmp_len--) {      \
+        if (!isspace(bstrtmp_s[bstrtmp_len])) break; \
+      }                                              \
+    }                                                \
+    (t).data = bstrtmp_s;                            \
+    (t).slen = bstrtmp_len + 1;                      \
+    (t).mlen = -__LINE__;                            \
   }
-#define btfromblktrimws(t, s, l)                                               \
-  {                                                                            \
-    int bstrtmp_idx = 0, bstrtmp_len = (l) -1;                                 \
-    unsigned char* bstrtmp_s = (s);                                            \
-    if (bstrtmp_s && bstrtmp_len >= 0) {                                       \
-      for (; bstrtmp_idx <= bstrtmp_len; bstrtmp_idx++) {                      \
-        if (!isspace(bstrtmp_s[bstrtmp_idx])) break;                           \
-      }                                                                        \
-      for (; bstrtmp_len >= bstrtmp_idx; bstrtmp_len--) {                      \
-        if (!isspace(bstrtmp_s[bstrtmp_len])) break;                           \
-      }                                                                        \
-    }                                                                          \
-    (t).data = bstrtmp_s + bstrtmp_idx;                                        \
-    (t).slen = bstrtmp_len + 1 - bstrtmp_idx;                                  \
-    (t).mlen = -__LINE__;                                                      \
+#define btfromblktrimws(t, s, l)                          \
+  {                                                       \
+    int bstrtmp_idx = 0, bstrtmp_len = (l)-1;             \
+    unsigned char* bstrtmp_s = (s);                       \
+    if (bstrtmp_s && bstrtmp_len >= 0) {                  \
+      for (; bstrtmp_idx <= bstrtmp_len; bstrtmp_idx++) { \
+        if (!isspace(bstrtmp_s[bstrtmp_idx])) break;      \
+      }                                                   \
+      for (; bstrtmp_len >= bstrtmp_idx; bstrtmp_len--) { \
+        if (!isspace(bstrtmp_s[bstrtmp_len])) break;      \
+      }                                                   \
+    }                                                     \
+    (t).data = bstrtmp_s + bstrtmp_idx;                   \
+    (t).slen = bstrtmp_len + 1 - bstrtmp_idx;             \
+    (t).mlen = -__LINE__;                                 \
   }
 
 /* Write protection macros */
-#define bwriteprotect(t)                                                       \
-  {                                                                            \
-    if ((t).mlen >= 0) (t).mlen = -1;                                          \
+#define bwriteprotect(t)              \
+  {                                   \
+    if ((t).mlen >= 0) (t).mlen = -1; \
   }
-#define bwriteallow(t)                                                         \
-  {                                                                            \
-    if ((t).mlen == -1) (t).mlen = (t).slen + ((t).slen == 0);                 \
+#define bwriteallow(t)                                         \
+  {                                                            \
+    if ((t).mlen == -1) (t).mlen = (t).slen + ((t).slen == 0); \
   }
 #define biswriteprotected(t) ((t).mlen <= 0)
 

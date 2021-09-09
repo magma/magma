@@ -20,11 +20,11 @@
 #include <thread>
 #include <utility>
 
-#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <google/protobuf/map.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 
-#include "orc8r/protos/common.pb.h"
 #include "includes/ServiceRegistrySingleton.h"
+#include "orc8r/protos/common.pb.h"
 
 namespace grpc {
 class Channel;
@@ -103,7 +103,7 @@ bool GatewayDirectoryServiceClient::DeleteRecord(
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
   GatewayDirectoryServiceClient& client = get_instance();
-  auto response_reader                  = client.stub_->AsyncDeleteRecord(
+  auto response_reader = client.stub_->AsyncDeleteRecord(
       local_response->get_context(), request, &client.queue_);
   local_response->set_response_reader(std::move(response_reader));
   return true;

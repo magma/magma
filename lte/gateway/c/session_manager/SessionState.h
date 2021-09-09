@@ -12,9 +12,9 @@
  */
 #pragma once
 
-#include <experimental/optional>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/spgw_service.grpc.pb.h>
+#include <experimental/optional>
 
 #include <functional>
 #include <memory>
@@ -36,12 +36,11 @@
 
 namespace magma {
 using std::experimental::optional;
-typedef std::unordered_map<
-    CreditKey, std::unique_ptr<ChargingGrant>, decltype(&ccHash),
-    decltype(&ccEqual)>
+typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
+                           decltype(&ccHash), decltype(&ccEqual)>
     CreditMap;
-typedef std::unordered_map<
-    CreditKey, SessionCredit::Summary, decltype(&ccHash), decltype(&ccEqual)>
+typedef std::unordered_map<CreditKey, SessionCredit::Summary, decltype(&ccHash),
+                           decltype(&ccEqual)>
     ChargingCreditSummaries;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 
@@ -132,12 +131,11 @@ class SessionState {
   magma::lte::Fsm_state_FsmState get_proto_fsm_state();
 
  public:
-  SessionState(
-      const std::string& session_id, const SessionConfig& cfg,
-      StaticRuleStore& rule_store, uint64_t pdp_start_time);
+  SessionState(const std::string& session_id, const SessionConfig& cfg,
+               StaticRuleStore& rule_store, uint64_t pdp_start_time);
 
-  SessionState(
-      const StoredSessionState& marshaled, StaticRuleStore& rule_store);
+  SessionState(const StoredSessionState& marshaled,
+               StaticRuleStore& rule_store);
 
   static std::unique_ptr<SessionState> unmarshal(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -145,16 +143,15 @@ class SessionState {
   StoredSessionState marshal();
 
   // 5G processing constructor without response contxt as set-interface msg
-  SessionState(
-      const std::string& imsi, const std::string& session_ctx_id,
-      const SessionConfig& cfg, StaticRuleStore& rule_store);
+  SessionState(const std::string& imsi, const std::string& session_ctx_id,
+               const SessionConfig& cfg, StaticRuleStore& rule_store);
 
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
 
   /* method to set update the session current version */
-  void set_current_version(
-      uint32_t new_session_version, SessionStateUpdateCriteria* session_uc);
+  void set_current_version(uint32_t new_session_version,
+                           SessionStateUpdateCriteria* session_uc);
 
   /* method to add new PDR rules to session */
   void insert_pdr(SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc);
@@ -189,17 +186,17 @@ class SessionState {
    * NOTE: This function has undefined behavior if attempting to go backwards
    *       in time.
    */
-  void sync_rules_to_time(
-      std::time_t current_time, SessionStateUpdateCriteria* session_uc);
+  void sync_rules_to_time(std::time_t current_time,
+                          SessionStateUpdateCriteria* session_uc);
 
   /**
    * add_rule_usage adds used TX/RX bytes to a particular rule
    * TODO instead of passing rule/version/stats pass the full rulerecord
    */
-  void add_rule_usage(
-      const std::string& rule_id, uint64_t version, uint64_t used_tx,
-      uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
-      SessionStateUpdateCriteria* session_uc);
+  void add_rule_usage(const std::string& rule_id, uint64_t version,
+                      uint64_t used_tx, uint64_t used_rx, uint64_t dropped_tx,
+                      uint64_t dropped_rx,
+                      SessionStateUpdateCriteria* session_uc);
 
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
@@ -208,10 +205,9 @@ class SessionState {
    * @param update_request (out) - request to add new updates to
    * @param actions (out) - actions to take on services
    */
-  void get_updates(
-      UpdateSessionRequest* update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria* session_uc);
+  void get_updates(UpdateSessionRequest* update_request_out,
+                   std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+                   SessionStateUpdateCriteria* session_uc);
 
   bool is_terminating();
 
@@ -223,9 +219,8 @@ class SessionState {
    */
   bool can_complete_termination(SessionStateUpdateCriteria* session_uc);
 
-  void handle_update_failure(
-      const UpdateRequests& failed_requests,
-      SessionStateUpdateCriteria* session_uc);
+  void handle_update_failure(const UpdateRequests& failed_requests,
+                             SessionStateUpdateCriteria* session_uc);
 
   /**
    * Receive the credit grant if the credit update was successful
@@ -236,18 +231,16 @@ class SessionState {
    *         the credit response. This requires that the credit update was
    *         a success.
    */
-  bool receive_charging_credit(
-      const CreditUpdateResponse& update,
-      SessionStateUpdateCriteria* session_uc);
+  bool receive_charging_credit(const CreditUpdateResponse& update,
+                               SessionStateUpdateCriteria* session_uc);
 
   uint64_t get_charging_credit(const CreditKey& key, Bucket bucket) const;
 
-  bool set_credit_reporting(
-      const CreditKey& key, bool reporting,
-      SessionStateUpdateCriteria* session_uc);
+  bool set_credit_reporting(const CreditKey& key, bool reporting,
+                            SessionStateUpdateCriteria* session_uc);
 
-  ReAuthResult reauth_key(
-      const CreditKey& charging_key, SessionStateUpdateCriteria* session_uc);
+  ReAuthResult reauth_key(const CreditKey& charging_key,
+                          SessionStateUpdateCriteria* session_uc);
 
   ReAuthResult reauth_all(SessionStateUpdateCriteria* session_uc);
 
@@ -275,8 +268,8 @@ class SessionState {
 
   uint32_t get_upf_local_teid() const;
 
-  void set_upf_teid_endpoint(
-      const std::string ip_addr, uint32_t teid, SessionStateUpdateCriteria* uc);
+  void set_upf_teid_endpoint(const std::string ip_addr, uint32_t teid,
+                             SessionStateUpdateCriteria* uc);
 
   bool is_5g_session() const;
 
@@ -291,12 +284,11 @@ class SessionState {
    */
   SessionState::SessionInfo get_session_info_for_setup();
 
-  void set_tgpp_context(
-      const magma::lte::TgppContext& tgpp_context,
-      SessionStateUpdateCriteria* session_uc);
+  void set_tgpp_context(const magma::lte::TgppContext& tgpp_context,
+                        SessionStateUpdateCriteria* session_uc);
 
-  void set_config(
-      const SessionConfig& config, SessionStateUpdateCriteria* session_uc);
+  void set_config(const SessionConfig& config,
+                  SessionStateUpdateCriteria* session_uc);
 
   SessionConfig get_config() const { return config_; }
 
@@ -321,9 +313,8 @@ class SessionState {
   SessionTerminateRequest make_termination_request(
       SessionStateUpdateCriteria* session_uc);
 
-  void set_create_session_response(
-      const CreateSessionResponse response,
-      SessionStateUpdateCriteria* session_uc);
+  void set_create_session_response(const CreateSessionResponse response,
+                                   SessionStateUpdateCriteria* session_uc);
 
   CreateSessionResponse get_create_session_response();
 
@@ -368,9 +359,9 @@ class SessionState {
    * @param session_uc optional output parameter
    * @return RuleToProcess
    */
-  RuleToProcess insert_dynamic_rule(
-      const PolicyRule& rule, const RuleLifetime& lifetime,
-      SessionStateUpdateCriteria* session_uc);
+  RuleToProcess insert_dynamic_rule(const PolicyRule& rule,
+                                    const RuleLifetime& lifetime,
+                                    SessionStateUpdateCriteria* session_uc);
 
   /**
    * @brief Insert a static rule into active_static_rules_. Increment the
@@ -381,9 +372,9 @@ class SessionState {
    * @param session_uc optional output parameter
    * @return RuleToProcess
    */
-  RuleToProcess activate_static_rule(
-      const std::string& rule_id, const RuleLifetime& lifetime,
-      SessionStateUpdateCriteria* session_uc);
+  RuleToProcess activate_static_rule(const std::string& rule_id,
+                                     const RuleLifetime& lifetime,
+                                     SessionStateUpdateCriteria* session_uc);
   /**
    * @brief Insert a PolicyRule into gy_dynamic_rules_
    *
@@ -392,9 +383,9 @@ class SessionState {
    * @param session_uc optional output parameter
    * @return RuleToProcess
    */
-  RuleToProcess insert_gy_rule(
-      const PolicyRule& rule, const RuleLifetime& lifetime,
-      SessionStateUpdateCriteria* session_uc);
+  RuleToProcess insert_gy_rule(const PolicyRule& rule,
+                               const RuleLifetime& lifetime,
+                               SessionStateUpdateCriteria* session_uc);
 
   /**
    * Remove a currently active dynamic rule to mark it as deactivated.
@@ -411,9 +402,9 @@ class SessionState {
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria* session_uc);
 
-  bool remove_scheduled_dynamic_rule(
-      const std::string& rule_id, PolicyRule* rule_out,
-      SessionStateUpdateCriteria* session_uc);
+  bool remove_scheduled_dynamic_rule(const std::string& rule_id,
+                                     PolicyRule* rule_out,
+                                     SessionStateUpdateCriteria* session_uc);
 
   /**
    * @brief Remove a Gy rule from SessionState and increment the corresponding
@@ -455,22 +446,21 @@ class SessionState {
   /**
    * Schedule a dynamic rule for activation in the future.
    */
-  void schedule_dynamic_rule(
-      const PolicyRule& rule, const RuleLifetime& lifetime,
-      SessionStateUpdateCriteria* session_uc);
+  void schedule_dynamic_rule(const PolicyRule& rule,
+                             const RuleLifetime& lifetime,
+                             SessionStateUpdateCriteria* session_uc);
 
   bool is_static_rule_scheduled(const std::string& rule_id);
 
   /**
    * Schedule a static rule for activation in the future.
    */
-  void schedule_static_rule(
-      const std::string& rule_id, const RuleLifetime& lifetime,
-      SessionStateUpdateCriteria* session_uc);
+  void schedule_static_rule(const std::string& rule_id,
+                            const RuleLifetime& lifetime,
+                            SessionStateUpdateCriteria* session_uc);
 
-  void set_suspend_credit(
-      const CreditKey& charging_key, bool new_suspended,
-      SessionStateUpdateCriteria* session_uc);
+  void set_suspend_credit(const CreditKey& charging_key, bool new_suspended,
+                          SessionStateUpdateCriteria* session_uc);
 
   bool is_credit_suspended(const CreditKey& charging_key);
 
@@ -484,20 +474,20 @@ class SessionState {
 
   bool is_active();
 
-  void set_fsm_state(
-      SessionFsmState new_state, SessionStateUpdateCriteria* session_uc);
+  void set_fsm_state(SessionFsmState new_state,
+                     SessionStateUpdateCriteria* session_uc);
 
-  StaticRuleInstall get_static_rule_install(
-      const std::string& rule_id, const RuleLifetime& lifetime);
+  StaticRuleInstall get_static_rule_install(const std::string& rule_id,
+                                            const RuleLifetime& lifetime);
 
-  DynamicRuleInstall get_dynamic_rule_install(
-      const std::string& rule_id, const RuleLifetime& lifetime);
+  DynamicRuleInstall get_dynamic_rule_install(const std::string& rule_id,
+                                              const RuleLifetime& lifetime);
 
   SessionFsmState get_state() const;
 
-  void get_rules_per_credit_key(
-      const CreditKey& charging_key, RulesToProcess* to_process,
-      SessionStateUpdateCriteria* session_uc);
+  void get_rules_per_credit_key(const CreditKey& charging_key,
+                                RulesToProcess* to_process,
+                                SessionStateUpdateCriteria* session_uc);
 
   /**
    * Remove all active/scheduled static/dynamic rules and reflect the change in
@@ -511,22 +501,21 @@ class SessionState {
   void set_teids(Teids teids);
 
   // Event Triggers
-  void add_new_event_trigger(
-      magma::lte::EventTrigger trigger, SessionStateUpdateCriteria* session_uc);
+  void add_new_event_trigger(magma::lte::EventTrigger trigger,
+                             SessionStateUpdateCriteria* session_uc);
 
-  void mark_event_trigger_as_triggered(
-      magma::lte::EventTrigger trigger, SessionStateUpdateCriteria* session_uc);
+  void mark_event_trigger_as_triggered(magma::lte::EventTrigger trigger,
+                                       SessionStateUpdateCriteria* session_uc);
 
-  void set_event_trigger(
-      magma::lte::EventTrigger trigger, const EventTriggerState value,
-      SessionStateUpdateCriteria* session_uc);
+  void set_event_trigger(magma::lte::EventTrigger trigger,
+                         const EventTriggerState value,
+                         SessionStateUpdateCriteria* session_uc);
 
-  void remove_event_trigger(
-      magma::lte::EventTrigger trigger, SessionStateUpdateCriteria* session_uc);
+  void remove_event_trigger(magma::lte::EventTrigger trigger,
+                            SessionStateUpdateCriteria* session_uc);
 
-  void set_revalidation_time(
-      const google::protobuf::Timestamp& time,
-      SessionStateUpdateCriteria* session_uc);
+  void set_revalidation_time(const google::protobuf::Timestamp& time,
+                             SessionStateUpdateCriteria* session_uc);
 
   google::protobuf::Timestamp get_revalidation_time() {
     return revalidation_time_;
@@ -542,27 +531,23 @@ class SessionState {
       SessionStateUpdateCriteria* session_uc);
 
   // Monitors
-  bool receive_monitor(
-      const UsageMonitoringUpdateResponse& update,
-      SessionStateUpdateCriteria* session_uc);
+  bool receive_monitor(const UsageMonitoringUpdateResponse& update,
+                       SessionStateUpdateCriteria* session_uc);
 
   uint64_t get_monitor(const std::string& key, Bucket bucket) const;
 
-  bool set_monitor_reporting(
-      const std::string& key, bool reporting,
-      SessionStateUpdateCriteria* session_uc);
+  bool set_monitor_reporting(const std::string& key, bool reporting,
+                             SessionStateUpdateCriteria* session_uc);
 
-  bool add_to_monitor(
-      const std::string& key, uint64_t used_tx, uint64_t used_rx,
-      SessionStateUpdateCriteria* session_uc);
+  bool add_to_monitor(const std::string& key, uint64_t used_tx,
+                      uint64_t used_rx, SessionStateUpdateCriteria* session_uc);
 
   // TODO(@themarwhal) clean up this function as it is used for testing only
-  void set_monitor(
-      const std::string& key, Monitor monitor,
-      SessionStateUpdateCriteria* session_uc);
+  void set_monitor(const std::string& key, Monitor monitor,
+                   SessionStateUpdateCriteria* session_uc);
 
-  void set_session_level_key(
-      const std::string new_key, SessionStateUpdateCriteria* session_uc);
+  void set_session_level_key(const std::string new_key,
+                             SessionStateUpdateCriteria* session_uc);
 
   std::string& get_session_level_key() { return session_level_key_; }
 
@@ -612,19 +597,18 @@ class SessionState {
    * @param pending_bearer_setup all rules that need dedicated bearer creation
    * before activating
    */
-  void apply_session_rule_set(
-      const RuleSetToApply& rule_set, RulesToProcess* pending_activation,
-      RulesToProcess* pending_deactivation,
-      RulesToProcess* pending_bearer_setup,
-      SessionStateUpdateCriteria* session_uc);
+  void apply_session_rule_set(const RuleSetToApply& rule_set,
+                              RulesToProcess* pending_activation,
+                              RulesToProcess* pending_deactivation,
+                              RulesToProcess* pending_bearer_setup,
+                              SessionStateUpdateCriteria* session_uc);
 
   /**
    * Add the association of policy -> bearerID into bearer_id_by_policy_
    * This assumes the bearerID is not 0
    */
-  void bind_policy_to_bearer(
-      const PolicyBearerBindingRequest& request,
-      SessionStateUpdateCriteria* session_uc);
+  void bind_policy_to_bearer(const PolicyBearerBindingRequest& request,
+                             SessionStateUpdateCriteria* session_uc);
 
   /**
    * Returns true if all the credits are suspended
@@ -732,8 +716,8 @@ class SessionState {
    * @param rule_id
    * @param session_uc optional output parameter
    */
-  void increment_rule_stats(
-      const std::string& rule_id, SessionStateUpdateCriteria* session_uc);
+  void increment_rule_stats(const std::string& rule_id,
+                            SessionStateUpdateCriteria* session_uc);
 
  private:
   std::string imsi_;
@@ -828,9 +812,9 @@ class SessionState {
       const CreditKey& key, std::unique_ptr<ChargingGrant>& grant,
       SessionStateUpdateCriteria* session_uc);
 
-  void fill_service_action_for_activate(
-      std::unique_ptr<ServiceAction>& action, const CreditKey& key,
-      SessionStateUpdateCriteria* session_uc);
+  void fill_service_action_for_activate(std::unique_ptr<ServiceAction>& action,
+                                        const CreditKey& key,
+                                        SessionStateUpdateCriteria* session_uc);
 
   void fill_service_action_for_restrict(
       std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
@@ -842,9 +826,9 @@ class SessionState {
       std::unique_ptr<ChargingGrant>& grant, PolicyRule redirect_rule,
       SessionStateUpdateCriteria* session_uc);
 
-  void fill_service_action_with_context(
-      std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
-      const CreditKey& key);
+  void fill_service_action_with_context(std::unique_ptr<ServiceAction>& action,
+                                        ServiceActionType action_type,
+                                        const CreditKey& key);
 
   void apply_charging_credit_update(
       const CreditKey& key, const SessionCreditUpdateCriteria& credit_uc);
@@ -858,9 +842,8 @@ class SessionState {
    *         the credit response. This requires that the credit update was
    *         a success.
    */
-  bool init_charging_credit(
-      const CreditUpdateResponse& update,
-      SessionStateUpdateCriteria* session_uc);
+  bool init_charging_credit(const CreditUpdateResponse& update,
+                            SessionStateUpdateCriteria* session_uc);
 
   /**
    * Return true if any credit unit is valid and has non-zero volume
@@ -873,9 +856,8 @@ class SessionState {
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
    */
-  void get_monitor_updates(
-      UpdateSessionRequest* update_request_out,
-      SessionStateUpdateCriteria* session_uc);
+  void get_monitor_updates(UpdateSessionRequest* update_request_out,
+                           SessionStateUpdateCriteria* session_uc);
 
   /**
    * Apply SessionCreditUpdateCriteria, a per-credit diff of an update, into
@@ -883,8 +865,8 @@ class SessionState {
    * @param key : monitoring key for the update
    * @param credit_uc : the diff that needs to be applied
    */
-  void apply_monitor_updates(
-      const std::string& key, const SessionCreditUpdateCriteria& credit_uc);
+  void apply_monitor_updates(const std::string& key,
+                             const SessionCreditUpdateCriteria& credit_uc);
 
   void add_common_fields_to_usage_monitor_update(
       UsageMonitoringUpdateRequest* req);
@@ -899,22 +881,19 @@ class SessionState {
 
   CreditUsageUpdate make_credit_usage_update_req(CreditUsage& usage) const;
 
-  bool init_new_monitor(
-      const UsageMonitoringUpdateResponse& update,
-      SessionStateUpdateCriteria* session_uc);
+  bool init_new_monitor(const UsageMonitoringUpdateResponse& update,
+                        SessionStateUpdateCriteria* session_uc);
 
-  void update_session_level_key(
-      const UsageMonitoringUpdateResponse& update,
-      SessionStateUpdateCriteria* session_uc);
+  void update_session_level_key(const UsageMonitoringUpdateResponse& update,
+                                SessionStateUpdateCriteria* session_uc);
 
   SessionCreditUpdateCriteria* get_monitor_uc(
       const std::string& key, SessionStateUpdateCriteria* session_uc);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
-  void get_event_trigger_updates(
-      UpdateSessionRequest* update_request_out,
-      SessionStateUpdateCriteria* session_uc);
+  void get_event_trigger_updates(UpdateSessionRequest* update_request_out,
+                                 SessionStateUpdateCriteria* session_uc);
 
   /** apply static_rules which is the desired state for the session's rules **/
   void apply_session_static_rule_set(
@@ -937,9 +916,9 @@ class SessionState {
    * @param rule_id
    * @param update
    */
-  void update_bearer_creation_req(
-      const PolicyType policy_type, const std::string& rule_id,
-      BearerUpdate* update);
+  void update_bearer_creation_req(const PolicyType policy_type,
+                                  const std::string& rule_id,
+                                  BearerUpdate* update);
 
   /**
    * Check if a bearer has to be deleted for the given policy. If a deletion is
@@ -949,9 +928,10 @@ class SessionState {
    * @param update
    * @param session_uc output parameter
    */
-  void update_bearer_deletion_req(
-      const PolicyType policy_type, const std::string& rule_id,
-      BearerUpdate* update, SessionStateUpdateCriteria* session_uc);
+  void update_bearer_deletion_req(const PolicyType policy_type,
+                                  const std::string& rule_id,
+                                  BearerUpdate* update,
+                                  SessionStateUpdateCriteria* session_uc);
 
   /**
    * Set bearer_id_by_policy_ to the input
@@ -965,9 +945,8 @@ class SessionState {
    * @param rule_id
    * @return true if the policy definition includes a QoS field
    */
-  bool policy_has_qos(
-      const PolicyType policy_type, const std::string& rule_id,
-      PolicyRule* rule_out);
+  bool policy_has_qos(const PolicyType policy_type, const std::string& rule_id,
+                      PolicyRule* rule_out);
 
   /**
    * Set data usage values for session
@@ -975,8 +954,8 @@ class SessionState {
    * @param bytes_tx
    * @param bytes_rx
    */
-  void set_data_metrics(
-      const char* gauge_name, uint64_t bytes_tx, uint64_t bytes_rx) const;
+  void set_data_metrics(const char* gauge_name, uint64_t bytes_tx,
+                        uint64_t bytes_rx) const;
 
   /**
    * Increment data usage values for session
@@ -984,16 +963,17 @@ class SessionState {
    * @param delta_tx
    * @param delta_rx
    */
-  void increment_data_metrics(
-      const char* counter_name, uint64_t delta_tx, uint64_t delta_rx) const;
+  void increment_data_metrics(const char* counter_name, uint64_t delta_tx,
+                              uint64_t delta_rx) const;
 
   /**
    * Computes delta from previous rule report
    */
-  optional<RuleStats> get_rule_delta(
-      const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
-      uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
-      SessionStateUpdateCriteria* session_uc);
+  optional<RuleStats> get_rule_delta(const std::string& rule_id,
+                                     uint64_t rule_version, uint64_t used_tx,
+                                     uint64_t used_rx, uint64_t dropped_tx,
+                                     uint64_t dropped_rx,
+                                     SessionStateUpdateCriteria* session_uc);
 
   /**
    * @brief Given a policy (to_process) append to either pending_activation or
@@ -1006,9 +986,10 @@ class SessionState {
    * @param pending_activation output parameter
    * @param pending_bearer_setup output parameter
    */
-  void classify_policy_activation(
-      const RuleToProcess& to_process, const PolicyType p_type,
-      RulesToProcess* pending_activation, RulesToProcess* pending_bearer_setup);
+  void classify_policy_activation(const RuleToProcess& to_process,
+                                  const PolicyType p_type,
+                                  RulesToProcess* pending_activation,
+                                  RulesToProcess* pending_bearer_setup);
 };
 
 }  // namespace magma

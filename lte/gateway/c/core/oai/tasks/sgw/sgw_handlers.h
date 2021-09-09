@@ -28,10 +28,10 @@
 #include "common_defs.h"
 #include "common_types.h"
 #include "gtpv1_u_messages_types.h"
+#include "intertask_interface.h"
 #include "ip_forward_messages_types.h"
 #include "s11_messages_types.h"
 #include "spgw_state.h"
-#include "intertask_interface.h"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 

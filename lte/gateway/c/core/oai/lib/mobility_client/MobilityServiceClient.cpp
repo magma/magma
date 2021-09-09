@@ -29,11 +29,11 @@
 #include <thread>
 #include <utility>
 
+#include "includes/ServiceRegistrySingleton.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "orc8r/protos/common.pb.h"
-#include "includes/ServiceRegistrySingleton.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;
@@ -90,11 +90,11 @@ void MobilityServiceClient::AllocateIPv4v6AddressAsync(
   AllocateIPAddressRPC(request, callback);
 }
 
-void MobilityServiceClient::ReleaseIPv4Address(
-    const std::string& imsi, const std::string& apn,
-    const struct in_addr& addr) {
+void MobilityServiceClient::ReleaseIPv4Address(const std::string& imsi,
+                                               const std::string& apn,
+                                               const struct in_addr& addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
-  SubscriberID* sid        = request.mutable_sid();
+  SubscriberID* sid = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
 
@@ -113,11 +113,11 @@ void MobilityServiceClient::ReleaseIPv4Address(
   });
 }
 
-void MobilityServiceClient::ReleaseIPv6Address(
-    const std::string& imsi, const std::string& apn,
-    const struct in6_addr& addr) {
+void MobilityServiceClient::ReleaseIPv6Address(const std::string& imsi,
+                                               const std::string& apn,
+                                               const struct in6_addr& addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
-  SubscriberID* sid        = request.mutable_sid();
+  SubscriberID* sid = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
 
@@ -139,7 +139,7 @@ void MobilityServiceClient::ReleaseIPv4v6Address(
     const std::string& imsi, const std::string& apn,
     const struct in_addr& ipv4_addr, const struct in6_addr& ipv6_addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
-  SubscriberID* sid        = request.mutable_sid();
+  SubscriberID* sid = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
 
@@ -172,10 +172,11 @@ void MobilityServiceClient::ReleaseIPv4v6Address(
 
 // More than one IP can be assigned due to multiple PDNs (one per PDN)
 // Get PDN specific IP address
-int MobilityServiceClient::GetIPv4AddressForSubscriber(
-    const std::string& imsi, const std::string& apn, struct in_addr* addr) {
+int MobilityServiceClient::GetIPv4AddressForSubscriber(const std::string& imsi,
+                                                       const std::string& apn,
+                                                       struct in_addr* addr) {
   IPLookupRequest request = IPLookupRequest();
-  SubscriberID* sid       = request.mutable_sid();
+  SubscriberID* sid = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
 
@@ -196,8 +197,9 @@ int MobilityServiceClient::GetIPv4AddressForSubscriber(
   return 0;
 }
 
-int MobilityServiceClient::GetAssignedIPv4Block(
-    int index, struct in_addr* netaddr, uint32_t* netmask) {
+int MobilityServiceClient::GetAssignedIPv4Block(int index,
+                                                struct in_addr* netaddr,
+                                                uint32_t* netmask) {
   ClientContext context;
   Void request;
   ListAddedIPBlocksResponse response;
@@ -212,16 +214,15 @@ int MobilityServiceClient::GetAssignedIPv4Block(
     return status.error_code();
   }
 
-  memcpy(
-      netaddr,
-      response.mutable_ip_block_list(index)->mutable_net_address()->c_str(),
-      sizeof(in_addr));
+  memcpy(netaddr,
+         response.mutable_ip_block_list(index)->mutable_net_address()->c_str(),
+         sizeof(in_addr));
   *netmask = response.mutable_ip_block_list(index)->prefix_len();
   return 0;
 }
 
-int MobilityServiceClient::GetSubscriberIDFromIPv4(
-    const struct in_addr& addr, std::string* imsi) {
+int MobilityServiceClient::GetSubscriberIDFromIPv4(const struct in_addr& addr,
+                                                   std::string* imsi) {
   IPAddress ip_addr = IPAddress();
   ip_addr.set_version(IPAddress::IPV4);
   ip_addr.set_address(&addr, sizeof(struct in_addr));

@@ -13,10 +13,10 @@
 
 #include <utility>
 
-#include "magma_logging.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
+#include "magma_logging.h"
 
 namespace magma {
 namespace lte {
@@ -57,10 +57,10 @@ void SessionStore::set_and_save_reporting_flag(
 
   for (const CreditUsageUpdate& credit_update :
        update_session_request.updates()) {
-    const std::string imsi       = credit_update.common_context().sid().id();
+    const std::string imsi = credit_update.common_context().sid().id();
     const std::string session_id = credit_update.session_id();
-    const CreditKey& ckey        = credit_update.usage().charging_key();
-    const std::string mkey       = credit_update.usage().monitoring_key();
+    const CreditKey& ckey = credit_update.usage().charging_key();
+    const std::string mkey = credit_update.usage().monitoring_key();
 
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = find_session(session_map, criteria);
@@ -70,7 +70,7 @@ void SessionStore::set_and_save_reporting_flag(
       continue;
     }
 
-    auto& session   = **session_it;
+    auto& session = **session_it;
     auto& credit_uc = session_uc[imsi][session_id];
 
     if (!session->set_credit_reporting(ckey, value, &credit_uc)) {
@@ -83,9 +83,9 @@ void SessionStore::set_and_save_reporting_flag(
 
   for (const UsageMonitoringUpdateRequest& monitor_update :
        update_session_request.usage_monitors()) {
-    const std::string imsi       = monitor_update.sid();
+    const std::string imsi = monitor_update.sid();
     const std::string session_id = monitor_update.session_id();
-    const auto mkey              = monitor_update.update().monitoring_key();
+    const auto mkey = monitor_update.update().monitoring_key();
 
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = find_session(session_map, criteria);
@@ -94,7 +94,7 @@ void SessionStore::set_and_save_reporting_flag(
                    << " not found when setting set_and_save_reporting_flag";
       continue;
     }
-    auto& session   = **session_it;
+    auto& session = **session_it;
     auto& credit_uc = session_uc[imsi][session_id];
 
     if (!session->set_monitor_reporting(mkey, value, &credit_uc)) {
@@ -120,9 +120,9 @@ void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
   MLOG(MDEBUG) << "Syncing request numbers into existing sessions";
   for (auto& it : session_map) {
     auto imsi = it.first;
-    auto it2  = it.second.begin();
+    auto it2 = it.second.begin();
     while (it2 != it.second.end()) {
-      auto updates    = update_criteria.find(it.first)->second;
+      auto updates = update_criteria.find(it.first)->second;
       auto session_id = (*it2)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         (*it2)->increment_request_number(
@@ -136,7 +136,7 @@ void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
 }
 
 SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
-  auto session_map   = store_client_->read_sessions(req);
+  auto session_map = store_client_->read_sessions(req);
   auto session_map_2 = store_client_->read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
   for (const std::string& imsi : req) {
@@ -148,9 +148,9 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
   return session_map;
 }
 
-bool SessionStore::create_sessions(
-    const std::string& subscriber_id, SessionVector sessions) {
-  auto session_map           = SessionMap{};
+bool SessionStore::create_sessions(const std::string& subscriber_id,
+                                   SessionVector sessions) {
+  auto session_map = SessionMap{};
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
   return true;
@@ -166,9 +166,9 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
   // Now attempt to modify the state
   for (auto& it : session_map) {
     auto imsi = it.first;
-    auto it2  = it.second.begin();
+    auto it2 = it.second.begin();
     while (it2 != it.second.end()) {
-      auto updates    = update_criteria.find(it.first)->second;
+      auto updates = update_criteria.find(it.first)->second;
       auto session_id = (*it2)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         auto update = updates[session_id];
@@ -203,7 +203,7 @@ void SessionStore::initialize_metering_counter() {
     const std::string imsi = sessions_by_imsi.first;
     for (auto& session : sessions_by_imsi.second) {
       const std::string session_id = session->get_session_id();
-      auto total_usage             = session->get_total_credit_usage();
+      auto total_usage = session->get_total_credit_usage();
       MLOG(MDEBUG) << "Initializing metering metrics on startup for "
                    << session_id
                    << ", monitoring: {tx=" << total_usage.monitoring_tx

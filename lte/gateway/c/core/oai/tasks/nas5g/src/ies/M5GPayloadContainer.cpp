@@ -9,11 +9,11 @@
    limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
+#include "M5GPayloadContainer.h"
 #include <cstdint>
 #include <cstring>
-#include "M5GPayloadContainer.h"
+#include <iostream>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -24,7 +24,7 @@ PayloadContainerMsg::~PayloadContainerMsg(){};
 int PayloadContainerMsg::DecodePayloadContainerMsg(
     PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int decoded    = 0;
+  int decoded = 0;
   uint32_t ielen = 0;
   IES_DECODE_U16(buffer, decoded, ielen);
   payload_container->len = ielen;
@@ -43,10 +43,10 @@ int PayloadContainerMsg::DecodePayloadContainerMsg(
 int PayloadContainerMsg::EncodePayloadContainerMsg(
     PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int encoded    = 0;
+  int encoded = 0;
   uint32_t ielen = 0;
-  int tmp        = 0;
-  ielen          = payload_container->len;
+  int tmp = 0;
+  ielen = payload_container->len;
   IES_ENCODE_U16(buffer, encoded, ielen);
   MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << hex << int(ielen)
                << endl;

@@ -25,17 +25,17 @@ namespace sctpd {
 const int DESC_SD = 3;
 
 const int ASSOC_1_ASSOC_ID = 1;
-const int ASSOC_1_SD       = 4;
+const int ASSOC_1_SD = 4;
 const int ASSOC_2_ASSOC_ID = 2;
-const int ASSOC_2_SD       = 5;
+const int ASSOC_2_SD = 5;
 
 class SctpdDescTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     assoc_1.assoc_id = ASSOC_1_ASSOC_ID;
-    assoc_1.sd       = ASSOC_1_SD;
+    assoc_1.sd = ASSOC_1_SD;
     assoc_2.assoc_id = ASSOC_2_ASSOC_ID;
-    assoc_2.sd       = ASSOC_2_SD;
+    assoc_2.sd = ASSOC_2_SD;
   }
 
   void check_assoc(int assoc_id, int sd, const SctpAssoc& assoc) {
@@ -71,7 +71,7 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
   bool found_2 = false;
   for (auto kv : desc) {
     auto assoc_id = kv.first;
-    auto assoc    = kv.second;
+    auto assoc = kv.second;
 
     EXPECT_EQ(assoc_id, assoc.assoc_id);
     if (assoc_id == ASSOC_1_ASSOC_ID) {
@@ -105,6 +105,6 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
+  FLAGS_v = 10;
   return RUN_ALL_TESTS();
 }

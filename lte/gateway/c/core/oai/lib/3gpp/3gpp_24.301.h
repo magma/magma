@@ -31,8 +31,8 @@
 #ifndef FILE_3GPP_24_301_SEEN
 #define FILE_3GPP_24_301_SEEN
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 //==============================================================================
 // 9 General message format and information elements coding
@@ -93,18 +93,18 @@
 #define UPLINK_GENERIC_NAS_TRANSPORT 0b01101001   /* 101 = 0x69 */
 
 // Table 9.8.2: Message types for EPS session management
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST                            \
-  0b11000001                                                  /* 193 = 0xc1    \
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST                         \
+  0b11000001                                                  /* 193 = 0xc1 \
                                                                */
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT 0b11000010 /* 194 = 0xc2 */
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT 0b11000011 /* 195 = 0xc3 */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST                          \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST \
   0b11000101 /* 197 = 0xc5 */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT                           \
-  0b11000110 /* 198 = 0xc6                                                     \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT \
+  0b11000110 /* 198 = 0xc6                           \
               */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT                           \
-  0b11000111                                             /* 199 = 0xc7         \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT                   \
+  0b11000111                                             /* 199 = 0xc7 \
                                                           */
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST 0b11001001     /* 201 = 0xc9 */
 #define MODIFY_EPS_BEARER_CONTEXT_ACCEPT 0b11001010      /* 202 = 0xca */

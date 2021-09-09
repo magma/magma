@@ -27,9 +27,7 @@ namespace lte {
 
 SpgwStateManager::SpgwStateManager() : config_(nullptr) {}
 
-SpgwStateManager::~SpgwStateManager() {
-  free_state();
-}
+SpgwStateManager::~SpgwStateManager() { free_state(); }
 
 SpgwStateManager& SpgwStateManager::getInstance() {
   static SpgwStateManager instance;
@@ -37,12 +35,12 @@ SpgwStateManager& SpgwStateManager::getInstance() {
 }
 
 void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
-  log_task              = LOG_SPGW_APP;
-  task_name             = SPGW_TASK_NAME;
-  table_key             = SPGW_STATE_TABLE_NAME;
+  log_task = LOG_SPGW_APP;
+  task_name = SPGW_TASK_NAME;
+  table_key = SPGW_STATE_TABLE_NAME;
   persist_state_enabled = persist_state;
-  config_               = config;
-  redis_client          = std::make_unique<RedisClient>(persist_state);
+  config_ = config;
+  redis_client = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from redis");
@@ -52,16 +50,16 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
 
 void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
-  state_cache_p = (spgw_state_t*) calloc(1, sizeof(spgw_state_t));
+  state_cache_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
 
-  bstring b      = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_teid_ht_ = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) spgw_free_s11_bearer_context_information, b);
+      (void (*)(void**))spgw_free_s11_bearer_context_information, b);
 
-  state_ue_ht = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) sgw_free_ue_context, nullptr);
+  state_ue_ht =
+      hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+                          (void (*)(void**))sgw_free_ue_context, nullptr);
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
@@ -105,7 +103,7 @@ void SpgwStateManager::free_state() {
   if (state_cache_p->predefined_pcc_rules) {
     hashtable_ts_destroy(state_cache_p->predefined_pcc_rules);
   }
-  free_wrapper((void**) &state_cache_p);
+  free_wrapper((void**)&state_cache_p);
 }
 
 status_code_e SpgwStateManager::read_ue_state_from_db() {
@@ -120,7 +118,7 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
     spgw_ue_context_t* ue_context_p =
-        (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
+        (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;

@@ -28,17 +28,17 @@
 #define IDENTITY_TYPE_2_TMSI 0b100
 typedef uint8_t IdentityType2;
 
-int encode_identity_type_2(
-    IdentityType2* identitytype2, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
 void dump_identity_type_2_xml(IdentityType2* identitytype2, uint8_t iei);
 
 uint8_t encode_u8_identity_type_2(IdentityType2* identitytype2);
 
-int decode_identity_type_2(
-    IdentityType2* identitytype2, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 
-int decode_u8_identity_type_2(
-    IdentityType2* identitytype2, uint8_t iei, uint8_t value, uint32_t len);
+int decode_u8_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
+                              uint8_t value, uint32_t len);
 
 #endif /* IDENTITY TYPE 2_H_ */

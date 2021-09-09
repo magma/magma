@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "M5GPDUSessionIdentity.h"
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
 
@@ -45,7 +45,7 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
 
   // Checking IEI and pointer
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, PDU_SESSION_IDENTITY);
+    CHECK_IEI_ENCODER((unsigned char)iei, PDU_SESSION_IDENTITY);
     *buffer = iei;
     encoded++;
   }

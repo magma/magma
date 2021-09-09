@@ -9,8 +9,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 using namespace std;
 namespace magma5g {
 class TAIListMsg {
@@ -28,9 +28,9 @@ class TAIListMsg {
   uint8_t tac[3];
   TAIListMsg();
   ~TAIListMsg();
-  int EncodeTAIListMsg(
-      TAIListMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeTAIListMsg(
-      TAIListMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeTAIListMsg(TAIListMsg* nssai, uint8_t iei, uint8_t* buffer,
+                       uint32_t len);
+  int DecodeTAIListMsg(TAIListMsg* nssai, uint8_t iei, uint8_t* buffer,
+                       uint32_t len);
 };
 }  // namespace magma5g

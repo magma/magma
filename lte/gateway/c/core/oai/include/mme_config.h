@@ -37,20 +37,20 @@
 #ifndef FILE_MME_CONFIG_SEEN
 #define FILE_MME_CONFIG_SEEN
 
+#include <arpa/inet.h>
 #include <pthread.h>
 #include <stdint.h>
-#include <arpa/inet.h>
 #include <stdlib.h>
-#include "mme_default_values.h"
-#include "common_types.h"
-#include "amf_config.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
-#include "log.h"
-#include "service303.h"
+#include "amf_config.h"
+#include "common_types.h"
 #include "hashtable.h"
-#include "obj_hashtable.h"
 #include "includes/SentryWrapper.h"
+#include "log.h"
+#include "mme_default_values.h"
+#include "obj_hashtable.h"
+#include "service303.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -89,18 +89,18 @@
 #define MME_CONFIG_STRING_CSFB_CONFIG "CSFB"
 #define MME_CONFIG_STRING_NON_EPS_SERVICE_CONTROL "NON_EPS_SERVICE_CONTROL"
 
-#define MME_CONFIG_STRING_EMERGENCY_ATTACH_SUPPORTED                           \
+#define MME_CONFIG_STRING_EMERGENCY_ATTACH_SUPPORTED \
   "EMERGENCY_ATTACH_SUPPORTED"
-#define MME_CONFIG_STRING_UNAUTHENTICATED_IMSI_SUPPORTED                       \
+#define MME_CONFIG_STRING_UNAUTHENTICATED_IMSI_SUPPORTED \
   "UNAUTHENTICATED_IMSI_SUPPORTED"
 
-#define EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1            \
+#define EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1 \
   "EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1"
-#define EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE       \
+#define EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE \
   "EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE"
-#define EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC                  \
+#define EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC \
   "EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC"
-#define EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST                   \
+#define EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST \
   "EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST"
 
 #define MME_CONFIG_STRING_INTERTASK_INTERFACE_CONFIG "INTERTASK_INTERFACE"
@@ -139,22 +139,22 @@
 #define MME_CONFIG_STRING_SNR "SNR"
 
 #define MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
-#define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME                            \
+#define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME \
   "MME_INTERFACE_NAME_FOR_S1_MME"
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME "MME_IPV4_ADDRESS_FOR_S1_MME"
-#define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S11_MME                           \
+#define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S11_MME \
   "MME_INTERFACE_NAME_FOR_S11_MME"
-#define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME                             \
+#define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME \
   "MME_IPV4_ADDRESS_FOR_S11_MME"
 #define MME_CONFIG_STRING_MME_PORT_FOR_S11 "MME_PORT_FOR_S11_MME"
-#define MME_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11                           \
+#define MME_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11 \
   "SGW_INTERFACE_NAME_FOR_S11"
 #define MME_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11 "SGW_IPV4_ADDRESS_FOR_S11"
 
 #define MME_CONFIG_STRING_NAS_CONFIG "NAS"
-#define MME_CONFIG_STRING_NAS_SUPPORTED_INTEGRITY_ALGORITHM_LIST               \
+#define MME_CONFIG_STRING_NAS_SUPPORTED_INTEGRITY_ALGORITHM_LIST \
   "ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST"
-#define MME_CONFIG_STRING_NAS_SUPPORTED_CIPHERING_ALGORITHM_LIST               \
+#define MME_CONFIG_STRING_NAS_SUPPORTED_CIPHERING_ALGORITHM_LIST \
   "ORDERED_SUPPORTED_CIPHERING_ALGORITHM_LIST"
 
 #define MME_CONFIG_STRING_NAS_T3402_TIMER "T3402"
@@ -169,15 +169,15 @@
 #define MME_CONFIG_STRING_NAS_T3495_TIMER "T3495"
 #define MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU "FORCE_REJECT_TAU"
 #define MME_CONFIG_STRING_NAS_FORCE_REJECT_SR "FORCE_REJECT_SR"
-#define MME_CONFIG_STRING_NAS_DISABLE_ESM_INFORMATION_PROCEDURE                \
+#define MME_CONFIG_STRING_NAS_DISABLE_ESM_INFORMATION_PROCEDURE \
   "DISABLE_ESM_INFORMATION_PROCEDURE"
-#define MME_CONFIG_STRING_NAS_FORCE_PUSH_DEDICATED_BEARER                      \
+#define MME_CONFIG_STRING_NAS_FORCE_PUSH_DEDICATED_BEARER \
   "FORCE_PUSH_DEDICATED_BEARER"
 #define MME_CONFIG_STRING_NAS_ENABLE_APN_CORRECTION "ENABLE_APN_CORRECTION"
 #define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST "APN_CORRECTION_MAP_LIST"
-#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX                   \
+#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX \
   "APN_CORRECTION_MAP_IMSI_PREFIX"
-#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE                  \
+#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE \
   "APN_CORRECTION_MAP_APN_OVERRIDE"
 
 #define MME_CONFIG_STRING_SGW_CONFIG "S-GW"
@@ -207,11 +207,11 @@
 // HA
 #define MME_CONFIG_STRING_USE_HA "USE_HA"
 // Cloud Instances may utilize this to reach RAN behind NAT
-#define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
+#define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION \
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
 // Congestion Control
-#define MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED                           \
+#define MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED \
   "CONGESTION_CONTROL_ENABLED"
 #define MME_CONFIG_STRING_S1AP_ZMQ_TH "S1AP_ZMQ_TH"
 #define MME_CONFIG_STRING_MME_APP_ZMQ_CONGEST_TH "MME_APP_ZMQ_CONGEST_TH"
@@ -446,9 +446,9 @@ typedef struct mme_config_s {
 
 extern mme_config_t mme_config;
 
-int mme_config_find_mnc_length(
-    const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,
-    const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);
+int mme_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,
+                               const char mcc_digit3P, const char mnc_digit1P,
+                               const char mnc_digit2P, const char mnc_digit3P);
 
 void mme_config_init(mme_config_t*);
 int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
@@ -457,11 +457,11 @@ void mme_config_display(mme_config_t*);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
 
-#define mme_config_read_lock(mMEcONFIG)                                        \
+#define mme_config_read_lock(mMEcONFIG) \
   pthread_rwlock_rdlock(&(mMEcONFIG)->rw_lock)
-#define mme_config_write_lock(mMEcONFIG)                                       \
+#define mme_config_write_lock(mMEcONFIG) \
   pthread_rwlock_wrlock(&(mMEcONFIG)->rw_lock)
-#define mme_config_unlock(mMEcONFIG)                                           \
+#define mme_config_unlock(mMEcONFIG) \
   pthread_rwlock_unlock(&(mMEcONFIG)->rw_lock)
 
 #endif /* FILE_MME_CONFIG_SEEN */

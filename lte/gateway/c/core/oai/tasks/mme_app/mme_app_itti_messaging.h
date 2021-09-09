@@ -27,23 +27,23 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include "log.h"
-#include "timer.h"
-#include "mme_config.h"
 #include "3gpp_36.401.h"
 #include "common_types.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "mme_app_desc.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_procedures.h"
-#include "s1ap_messages_types.h"
+#include "log.h"
 #include "mme_app_defs.h"
+#include "mme_app_desc.h"
+#include "mme_app_procedures.h"
 #include "mme_app_timer.h"
+#include "mme_app_ue_context.h"
+#include "mme_config.h"
+#include "s1ap_messages_types.h"
+#include "timer.h"
 
-void mme_app_itti_ue_context_release(
-    struct ue_mm_context_s* ue_context_p, enum s1cause cause);
+void mme_app_itti_ue_context_release(struct ue_mm_context_s* ue_context_p,
+                                     enum s1cause cause);
 int mme_app_notify_s1ap_ue_context_released(const mme_ue_s1ap_id_t ue_idP);
 status_code_e mme_app_send_s11_release_access_bearers_req(
     struct ue_mm_context_s* const ue_mm_context, const pdn_cid_t pdn_index);
@@ -55,11 +55,10 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
     struct ue_mm_context_s* ue_context_p) {
   MessageDef* message_p;
 
-  message_p = itti_alloc_new_message(
-      TASK_MME_APP, S1AP_UE_CONTEXT_MODIFICATION_REQUEST);
-  memset(
-      (void*) &message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
-      sizeof(itti_s1ap_ue_context_mod_req_t));
+  message_p = itti_alloc_new_message(TASK_MME_APP,
+                                     S1AP_UE_CONTEXT_MODIFICATION_REQUEST);
+  memset((void*)&message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
+         sizeof(itti_s1ap_ue_context_mod_req_t));
   S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id =
       ue_context_p->mme_ue_s1ap_id;
   S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).enb_ue_s1ap_id =
@@ -84,11 +83,10 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
           CSFB_REQUIRED;
     }
   }
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Sent S1AP_UE_CONTEXT_MODIFICATION_REQUEST "
-      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id);
+  OAILOG_INFO(LOG_MME_APP,
+              "Sent S1AP_UE_CONTEXT_MODIFICATION_REQUEST "
+              "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+              S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   /* Start timer to wait for UE Context Modification from eNB
@@ -126,9 +124,9 @@ void nas_itti_sgsap_uplink_unitdata(
     MobileStationClassmark2* mobilestationclassmark2, tai_t* tai, ecgi_t* ecgi,
     bool sms_orc8r_enabled);
 
-void mme_app_itti_sgsap_tmsi_reallocation_comp(
-    const char* imsi, const unsigned int imsi_len);
+void mme_app_itti_sgsap_tmsi_reallocation_comp(const char* imsi,
+                                               const unsigned int imsi_len);
 
-void mme_app_itti_sgsap_ue_activity_ind(
-    const char* imsi, const unsigned int imsi_len);
+void mme_app_itti_sgsap_ue_activity_ind(const char* imsi,
+                                        const unsigned int imsi_len);
 #endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

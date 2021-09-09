@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include <sstream>
 #include "M5GDLNASTransport.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -22,12 +22,12 @@ DLNASTransportMsg::~DLNASTransportMsg(){};
 // Decode DLNASTransport Message and its IEs
 int DLNASTransportMsg::DecodeDLNASTransportMsg(
     DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Checking Pointer
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH,
+                                       len);
 
   MLOG(MDEBUG) << "DecodeDLNASTransportMsg : \n";
   if ((decoded_result =
@@ -99,8 +99,8 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
 
   // Check if we got a NDLL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH,
+                                       len);
 
   if ((encoded_result =
            dl_nas_transport->extended_protocol_discriminator

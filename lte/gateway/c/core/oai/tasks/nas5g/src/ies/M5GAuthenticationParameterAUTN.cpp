@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstring>
-#include <cstdint>
 #include "M5GAuthenticationParameterAUTN.h"
+#include <cstdint>
+#include <cstring>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -40,14 +40,14 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTN_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, autn->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, autn->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << hex
                  << int(*buffer);
     encoded++;
   }
 
-  lenPtr = (uint8_t*) (buffer + encoded);
+  lenPtr = (uint8_t*)(buffer + encoded);
   encoded++;
   memcpy(buffer + encoded, autn->AUTN, AUTN_MAX_LEN);
   BUFFER_PRINT_LOG(buffer + encoded, AUTN_MAX_LEN);

@@ -19,11 +19,11 @@
 
 #ifndef FILE_S1AP_MME_ENCODER_SEEN
 #define FILE_S1AP_MME_ENCODER_SEEN
-#include "common_defs.h"
 #include "S1ap_S1AP-PDU.h"
+#include "common_defs.h"
 
-status_code_e s1ap_mme_encode_pdu(
-    S1ap_S1AP_PDU_t* message, uint8_t** buffer, uint32_t* len)
+status_code_e s1ap_mme_encode_pdu(S1ap_S1AP_PDU_t* message, uint8_t** buffer,
+                                  uint32_t* len)
     __attribute__((warn_unused_result));
 
 #endif /* FILE_S1AP_MME_ENCODER_SEEN */

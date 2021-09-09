@@ -19,19 +19,19 @@
 #define PDN_DISCONNECT_REQUEST_H_
 #include <stdint.h>
 
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "LinkedEpsBearerIdentity.h"
+#include "MessageType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define PDN_DISCONNECT_REQUEST_MINIMUM_LENGTH                                  \
+#define PDN_DISCONNECT_REQUEST_MINIMUM_LENGTH \
   (LINKED_EPS_BEARER_IDENTITY_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define PDN_DISCONNECT_REQUEST_MAXIMUM_LENGTH                                  \
-  (LINKED_EPS_BEARER_IDENTITY_MAXIMUM_LENGTH +                                 \
+#define PDN_DISCONNECT_REQUEST_MAXIMUM_LENGTH  \
+  (LINKED_EPS_BEARER_IDENTITY_MAXIMUM_LENGTH + \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

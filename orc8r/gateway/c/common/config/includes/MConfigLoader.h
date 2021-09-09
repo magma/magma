@@ -36,13 +36,13 @@ class MConfigLoader {
    *          failed, the service configuration is missing, or the message
    *          passed is not the right type
    */
-  bool load_service_mconfig(
-      const std::string& service_name, google::protobuf::Message* message);
+  bool load_service_mconfig(const std::string& service_name,
+                            google::protobuf::Message* message);
 
  private:
   static constexpr const char* DYNAMIC_MCONFIG_PATH =
       "/var/opt/magma/configs/gateway.mconfig";
-  static constexpr const char* CONFIG_DIR        = "/etc/magma";
+  static constexpr const char* CONFIG_DIR = "/etc/magma";
   static constexpr const char* MCONFIG_FILE_NAME = "gateway.mconfig";
 
  private:

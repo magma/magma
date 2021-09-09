@@ -11,14 +11,14 @@
 
 #pragma once
 #include <sstream>
-#include "M5GPDUSessionEstablishmentRequest.h"
 #include "M5GPDUSessionEstablishmentAccept.h"
 #include "M5GPDUSessionEstablishmentReject.h"
-#include "M5GPDUSessionReleaseRequest.h"
-#include "M5GPDUSessionReleaseReject.h"
-#include "M5GPDUSessionReleaseCommand.h"
-#include "M5GPDUSessionModificationRequest.h"
+#include "M5GPDUSessionEstablishmentRequest.h"
 #include "M5GPDUSessionModificationReject.h"
+#include "M5GPDUSessionModificationRequest.h"
+#include "M5GPDUSessionReleaseCommand.h"
+#include "M5GPDUSessionReleaseReject.h"
+#include "M5GPDUSessionReleaseRequest.h"
 
 using namespace std;
 namespace magma5g {

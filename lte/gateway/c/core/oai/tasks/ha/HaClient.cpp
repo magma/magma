@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
 #include <iostream>
+#include <thread>  // std::thread
 #include <utility>
 
 #include "HaClient.h"

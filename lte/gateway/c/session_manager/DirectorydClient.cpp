@@ -15,8 +15,8 @@
 #include <utility>
 
 #include "DirectorydClient.h"
-#include "magma_logging.h"
 #include "includes/ServiceRegistrySingleton.h"
+#include "magma_logging.h"
 
 using grpc::Status;
 

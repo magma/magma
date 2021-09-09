@@ -74,8 +74,8 @@ void convert_proto_msg_to_itti_sgsap_location_update_reject(
 void convert_proto_msg_to_itti_sgsap_paging_request(
     const PagingRequest* msg, itti_sgsap_paging_request_t* itti_msg);
 
-void convert_proto_msg_to_itti_sgsap_status_t(
-    const Status* msg, itti_sgsap_status_t* itti_msg);
+void convert_proto_msg_to_itti_sgsap_status_t(const Status* msg,
+                                              itti_sgsap_status_t* itti_msg);
 
 void convert_proto_msg_to_itti_sgsap_vlr_reset_indication(
     const ResetIndication* msg, itti_sgsap_vlr_reset_indication_t* itti_msg);

@@ -16,10 +16,10 @@ limitations under the License.
 #include "HaServiceImpl.h"
 #include "lte/protos/ha_service.pb.h"
 extern "C" {
-#include "log.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "log.h"
 }
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
@@ -48,7 +48,7 @@ grpc::Status HaServiceImpl::StartAgwOffload(
 
   AGW_OFFLOAD_REQ(message_p).eNB_id = request->enb_id();
   AGW_OFFLOAD_REQ(message_p).enb_offload_type =
-      (offload_type_t) request->enb_offload_type();
+      (offload_type_t)request->enb_offload_type();
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_HA, message_p);
   return grpc::Status::OK;

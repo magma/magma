@@ -12,13 +12,13 @@
  */
 #pragma once
 
+#include <lte/protos/mobilityd.grpc.pb.h>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
-#include <memory>
-#include <lte/protos/mobilityd.grpc.pb.h>
+#include "SessionState.h"
 #include "Types.h"
 #include "includes/GRPCReceiver.h"
-#include "SessionState.h"
 
 using grpc::Status;
 

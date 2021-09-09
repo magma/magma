@@ -16,12 +16,12 @@ limitations under the License.
 #include <gmp.h>
 #include <grpc++/grpc++.h>
 #include <stdint.h>
-#include <string>
 #include <functional>
 #include <memory>
+#include <string>
 
-#include "includes/GRPCReceiver.h"
 #include "feg/protos/s8_proxy.grpc.pb.h"
+#include "includes/GRPCReceiver.h"
 
 extern "C" {
 #include "intertask_interface.h"

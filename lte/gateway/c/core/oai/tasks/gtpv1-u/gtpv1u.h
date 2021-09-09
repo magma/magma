@@ -131,33 +131,31 @@ struct ip_flow_dl {
  *        @i_tei: RX GTP Tunnel ID
  */
 struct gtp_tunnel_ops {
-  int (*init)(
-      struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0, int* fd1u,
-      bool persist_state);
+  int (*init)(struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0,
+              int* fd1u, bool persist_state);
   int (*uninit)(void);
   int (*reset)(void);
-  int (*add_tunnel)(
-      struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-      uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-      uint32_t flow_precedence_dl, char* apn);
-  int (*del_tunnel)(
-      struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
-      uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl);
-  int (*add_s8_tunnel)(
-      struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-      struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
-      uint32_t pgw_o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-      uint32_t flow_precedence_dl);
-  int (*del_s8_tunnel)(
-      struct in_addr enb, struct in_addr pgw, struct in_addr ue,
-      struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
-      struct ip_flow_dl* flow_dl);
-  int (*discard_data_on_tunnel)(
-      struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-      struct ip_flow_dl* flow_dl);
-  int (*forward_data_on_tunnel)(
-      struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
-      struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl);
+  int (*add_tunnel)(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
+                    struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+                    Imsi_t imsi, struct ip_flow_dl* flow_dl,
+                    uint32_t flow_precedence_dl, char* apn);
+  int (*del_tunnel)(struct in_addr enb, struct in_addr ue,
+                    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
+                    struct ip_flow_dl* flow_dl);
+  int (*add_s8_tunnel)(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
+                       struct in_addr enb, struct in_addr pgw, uint32_t i_tei,
+                       uint32_t o_tei, uint32_t pgw_i_tei, uint32_t pgw_o_tei,
+                       Imsi_t imsi, struct ip_flow_dl* flow_dl,
+                       uint32_t flow_precedence_dl);
+  int (*del_s8_tunnel)(struct in_addr enb, struct in_addr pgw,
+                       struct in_addr ue, struct in6_addr* ue_ipv6,
+                       uint32_t i_tei, uint32_t o_tei,
+                       struct ip_flow_dl* flow_dl);
+  int (*discard_data_on_tunnel)(struct in_addr ue, struct in6_addr* ue_ipv6,
+                                uint32_t i_tei, struct ip_flow_dl* flow_dl);
+  int (*forward_data_on_tunnel)(struct in_addr ue, struct in6_addr* ue_ipv6,
+                                uint32_t i_tei, struct ip_flow_dl* flow_dl,
+                                uint32_t flow_precedence_dl);
   int (*add_paging_rule)(struct in_addr ue);
   int (*delete_paging_rule)(struct in_addr ue);
   int (*send_end_marker)(struct in_addr enbode, uint32_t i_tei);
@@ -170,19 +168,19 @@ const struct gtp_tunnel_ops* gtp_tunnel_ops_init_openflow(void);
 const struct gtp_tunnel_ops* gtp_tunnel_ops_init_libgtpnl(void);
 #endif
 
-int gtpv1u_add_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl, char* apn);
+int gtpv1u_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
+                      struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+                      Imsi_t imsi, struct ip_flow_dl* flow_dl,
+                      uint32_t flow_precedence_dl, char* apn);
 
-int gtpv1u_add_s8_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
-    uint32_t pgw_o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl);
+int gtpv1u_add_s8_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
+                         struct in_addr enb, struct in_addr pgw, uint32_t i_tei,
+                         uint32_t o_tei, uint32_t pgw_i_tei, uint32_t pgw_o_tei,
+                         Imsi_t imsi, struct ip_flow_dl* flow_dl,
+                         uint32_t flow_precedence_dl);
 
-int gtpv1u_del_s8_tunnel(
-    struct in_addr enb, struct in_addr pgw, struct in_addr ue,
-    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
-    struct ip_flow_dl* flow_dl);
+int gtpv1u_del_s8_tunnel(struct in_addr enb, struct in_addr pgw,
+                         struct in_addr ue, struct in6_addr* ue_ipv6,
+                         uint32_t i_tei, uint32_t o_tei,
+                         struct ip_flow_dl* flow_dl);
 #endif /* FILE_GTPV1_U_SEEN */

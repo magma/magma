@@ -17,10 +17,10 @@
 
 #include "EventClientAPI.h"
 
-#include <iostream>
-#include <thread>
 #include <grpcpp/support/status.h>
 #include <orc8r/protos/common.pb.h>
+#include <iostream>
+#include <thread>
 
 #include "includes/EventdClient.h"
 

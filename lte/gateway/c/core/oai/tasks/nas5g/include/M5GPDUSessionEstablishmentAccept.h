@@ -11,18 +11,18 @@
 
 #pragma once
 #include <sstream>
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GPDUSessionIdentity.h"
-#include "M5GPTI.h"
-#include "M5GMessageType.h"
-#include "M5GIntegrityProtMaxDataRate.h"
-#include "M5GPDUSessionType.h"
-#include "M5GSSCMode.h"
-#include "M5GQOSRules.h"
-#include "M5GSessionAMBR.h"
-#include "M5GPDUAddress.h"
 #include "M5GDNN.h"
+#include "M5GExtendedProtocolDiscriminator.h"
+#include "M5GIntegrityProtMaxDataRate.h"
+#include "M5GMessageType.h"
+#include "M5GPDUAddress.h"
+#include "M5GPDUSessionIdentity.h"
+#include "M5GPDUSessionType.h"
+#include "M5GPTI.h"
 #include "M5GProtocolConfigurationOptions.h"
+#include "M5GQOSRules.h"
+#include "M5GSSCMode.h"
+#include "M5GSessionAMBR.h"
 
 namespace magma5g {
 // PDUSessionEstablishmentAccept Message Class

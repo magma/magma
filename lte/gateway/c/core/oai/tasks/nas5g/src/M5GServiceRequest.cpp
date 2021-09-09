@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
+#include "M5GServiceRequest.h"
 #include <iostream>
 #include <sstream>
-#include "M5GServiceRequest.h"
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
 
@@ -21,15 +21,15 @@ ServiceRequestMsg::ServiceRequestMsg(){};
 ServiceRequestMsg::~ServiceRequestMsg(){};
 
 // Decode ServiceRequest Messsage
-int ServiceRequestMsg::DecodeServiceRequestMsg(
-    ServiceRequestMsg* svc_req, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,
+                                               uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
   // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, SERVICE_REQUEST_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, SERVICE_REQUEST_MINIMUM_LENGTH,
+                                       len);
 
   if ((decoded_result = svc_req->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
@@ -111,8 +111,8 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(
 };
 
 // Encode ServiceRequest Messsage
-int ServiceRequestMsg::EncodeServiceRequestMsg(
-    ServiceRequestMsg* svc_req, uint8_t* buffer, uint32_t len) {
+int ServiceRequestMsg::EncodeServiceRequestMsg(ServiceRequestMsg* svc_req,
+                                               uint8_t* buffer, uint32_t len) {
   /*** Not Implemented, will be supported POST MVC ***/
   return 0;
 };

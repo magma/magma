@@ -28,10 +28,10 @@ class MMEConfigTest : public ::testing::Test {
 
 // Test partial list with 1 TAI
 TEST_F(MMEConfigTest, TestOneTai) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 1;
-  uint8_t itr                   = 0;
-  uint16_t tac                  = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 1;
+  uint8_t itr = 0;
+  uint16_t tac = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -40,16 +40,15 @@ TEST_F(MMEConfigTest, TestOneTai) {
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
-  config_pP.served_tai.plmn_mcc[itr]     = 1;
-  config_pP.served_tai.plmn_mnc[itr]     = 1;
+  config_pP.served_tai.plmn_mcc[itr] = 1;
+  config_pP.served_tai.plmn_mnc[itr] = 1;
   config_pP.served_tai.plmn_mnc_len[itr] = 2;
-  config_pP.served_tai.tac[itr]          = 1;
+  config_pP.served_tai.tac[itr] = 1;
   create_partial_lists(&config_pP);
   EXPECT_FALSE(config_pP.partial_list == nullptr);
   // Check if consecutive tacs partial list is created
-  ASSERT_EQ(
-      config_pP.partial_list->list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list->list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
   ASSERT_EQ(config_pP.num_par_lists, 1);
   ASSERT_EQ(config_pP.partial_list->nb_elem, config_pP.served_tai.nb_tai);
 
@@ -74,10 +73,10 @@ TEST_F(MMEConfigTest, TestOneTai) {
 
 // Test 1 partial list with Consecutive Tacs
 TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 16;
-  uint8_t itr                   = 0;
-  uint16_t tac                  = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 16;
+  uint8_t itr = 0;
+  uint16_t tac = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -87,8 +86,8 @@ TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
   }
   // Sorted consecutive TACs
@@ -98,9 +97,8 @@ TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
   // Check if consecutive tacs partial list is created
   create_partial_lists(&config_pP);
   EXPECT_FALSE(config_pP.partial_list == nullptr);
-  ASSERT_EQ(
-      config_pP.partial_list->list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list->list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
   ASSERT_EQ(config_pP.num_par_lists, 1);
   ASSERT_EQ(config_pP.partial_list->nb_elem, config_pP.served_tai.nb_tai);
 
@@ -128,9 +126,9 @@ TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
 
 // Test 2 partial lists with Consecutive Tacs
 TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 20;
-  uint8_t itr                   = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 20;
+  uint8_t itr = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -140,8 +138,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
   }
   itr = 0;
@@ -157,9 +155,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
   ASSERT_EQ(config_pP.partial_list[1].nb_elem, 4);
 
   for (itr = 0; itr < config_pP.num_par_lists; itr++) {
-    ASSERT_EQ(
-        config_pP.partial_list[itr].list_type,
-        TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
+    ASSERT_EQ(config_pP.partial_list[itr].list_type,
+              TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
     EXPECT_FALSE(config_pP.partial_list[itr].plmn == nullptr);
     EXPECT_FALSE(config_pP.partial_list[itr].tac == nullptr);
     ASSERT_EQ(config_pP.partial_list[itr].plmn[0].mcc_digit1, 0);
@@ -172,9 +169,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
   itr = 0;
   for (uint8_t idx = 0; idx < config_pP.num_par_lists; idx++) {
     for (uint8_t idx2 = 0; idx2 < config_pP.partial_list[idx].nb_elem; idx2++) {
-      ASSERT_EQ(
-          config_pP.partial_list[idx].tac[idx2],
-          config_pP.served_tai.tac[itr++]);
+      ASSERT_EQ(config_pP.partial_list[idx].tac[idx2],
+                config_pP.served_tai.tac[itr++]);
     }
   }
   free(config_pP.served_tai.plmn_mcc);
@@ -190,10 +186,10 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
 
 // Test 1 partial list with Non-consecutive Tacs
 TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 16;
-  uint8_t itr                   = 0;
-  uint16_t tac                  = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 16;
+  uint8_t itr = 0;
+  uint16_t tac = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -203,8 +199,8 @@ TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
   }
   // Sorted non-consecutive TACs
@@ -214,9 +210,8 @@ TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
   // Check if non-consecutive tacs partial list is created
   create_partial_lists(&config_pP);
   EXPECT_FALSE(config_pP.partial_list == nullptr);
-  ASSERT_EQ(
-      config_pP.partial_list->list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list->list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
   ASSERT_EQ(config_pP.num_par_lists, 1);
   ASSERT_EQ(config_pP.partial_list->nb_elem, config_pP.served_tai.nb_tai);
 
@@ -244,9 +239,9 @@ TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
 
 // Test 2 partial lists with Non-consecutive Tacs
 TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 20;
-  uint8_t itr                   = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 20;
+  uint8_t itr = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -256,8 +251,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
   }
   itr = 0;
@@ -273,9 +268,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
   ASSERT_EQ(config_pP.partial_list[1].nb_elem, 4);
 
   for (itr = 0; itr < config_pP.num_par_lists; itr++) {
-    ASSERT_EQ(
-        config_pP.partial_list[itr].list_type,
-        TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
+    ASSERT_EQ(config_pP.partial_list[itr].list_type,
+              TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
     EXPECT_FALSE(config_pP.partial_list[itr].plmn == nullptr);
     EXPECT_FALSE(config_pP.partial_list[itr].tac == nullptr);
     ASSERT_EQ(config_pP.partial_list[itr].plmn[0].mcc_digit1, 0);
@@ -288,9 +282,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
   itr = 0;
   for (uint8_t idx = 0; idx < config_pP.num_par_lists; idx++) {
     for (uint8_t idx2 = 0; idx2 < config_pP.partial_list[idx].nb_elem; idx2++) {
-      ASSERT_EQ(
-          config_pP.partial_list[idx].tac[idx2],
-          config_pP.served_tai.tac[itr++]);
+      ASSERT_EQ(config_pP.partial_list[idx].tac[idx2],
+                config_pP.served_tai.tac[itr++]);
     }
   }
 
@@ -307,9 +300,9 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
 
 // Test 2 partial lists with 1-Consecutive tacs and 1-Non-consecutive Tacs
 TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 24;
-  uint8_t itr                   = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 24;
+  uint8_t itr = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -319,8 +312,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
   }
   // Sorted consecutive TACs
@@ -345,12 +338,10 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
   ASSERT_EQ(config_pP.num_par_lists, 2);
   ASSERT_EQ(config_pP.partial_list[0].nb_elem, 16);
   ASSERT_EQ(config_pP.partial_list[1].nb_elem, 8);
-  ASSERT_EQ(
-      config_pP.partial_list[0].list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
-  ASSERT_EQ(
-      config_pP.partial_list[1].list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list[0].list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list[1].list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
 
   for (itr = 0; itr < config_pP.num_par_lists; itr++) {
     EXPECT_FALSE(config_pP.partial_list[itr].plmn == nullptr);
@@ -365,9 +356,8 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
   uint8_t idx2 = 0;
   for (itr = 0; itr < config_pP.num_par_lists; itr++) {
     for (uint8_t idx = 0; idx < config_pP.partial_list[itr].nb_elem; idx++) {
-      ASSERT_EQ(
-          config_pP.partial_list[itr].tac[idx],
-          config_pP.served_tai.tac[idx2++]);
+      ASSERT_EQ(config_pP.partial_list[itr].tac[idx],
+                config_pP.served_tai.tac[idx2++]);
     }
   }
   free(config_pP.served_tai.plmn_mcc);
@@ -383,10 +373,10 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
 
 // Test 1 partial list with many plmns
 TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 6;
-  uint8_t itr                   = 0;
-  uint16_t tac                  = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 6;
+  uint8_t itr = 0;
+  uint16_t tac = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -396,17 +386,16 @@ TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
   config_pP.served_tai.tac = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   for (itr = 0; itr < config_pP.served_tai.nb_tai; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = itr + 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = itr + 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
-    config_pP.served_tai.tac[itr]          = itr + 1;
+    config_pP.served_tai.tac[itr] = itr + 1;
   }
   create_partial_lists(&config_pP);
   EXPECT_FALSE(config_pP.partial_list == nullptr);
   // Check if partial list with many plmns is created
-  ASSERT_EQ(
-      config_pP.partial_list->list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS);
+  ASSERT_EQ(config_pP.partial_list->list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS);
   ASSERT_EQ(config_pP.num_par_lists, 1);
   ASSERT_EQ(config_pP.partial_list->nb_elem, config_pP.served_tai.nb_tai);
 
@@ -433,9 +422,9 @@ TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
 
 // Test 3 partial lists, 1-consecutive tacs, 1-non consecutive tacs,1-many plmns
 TEST_F(MMEConfigTest, TestMixedParTaiLists) {
-  mme_config_t config_pP        = {0};
-  config_pP.served_tai.nb_tai   = 35;
-  uint8_t itr                   = 0;
+  mme_config_t config_pP = {0};
+  config_pP.served_tai.nb_tai = 35;
+  uint8_t itr = 0;
   config_pP.served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   config_pP.served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
@@ -446,8 +435,8 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
       calloc(config_pP.served_tai.nb_tai, sizeof(uint16_t)));
   // Fill the same PLMN for consecutive and non-consecutive tacs (16+16)
   for (itr = 0; itr < 32; itr++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
   }
   // First 16 sorted consecutive TACs
@@ -460,10 +449,10 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
   }
   // Next 3 many plmns with tacs
   for (uint8_t idx = 0; itr < 35; itr++, idx++) {
-    config_pP.served_tai.plmn_mcc[itr]     = 1;
-    config_pP.served_tai.plmn_mnc[itr]     = idx + 1;
+    config_pP.served_tai.plmn_mcc[itr] = 1;
+    config_pP.served_tai.plmn_mnc[itr] = idx + 1;
     config_pP.served_tai.plmn_mnc_len[itr] = 2;
-    config_pP.served_tai.tac[itr]          = idx + 1;
+    config_pP.served_tai.tac[itr] = idx + 1;
   }
 
   // Check if 3 partial lists are created
@@ -474,15 +463,12 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
   ASSERT_EQ(config_pP.partial_list[1].nb_elem, 16);
   ASSERT_EQ(config_pP.partial_list[2].nb_elem, 3);
 
-  ASSERT_EQ(
-      config_pP.partial_list[0].list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
-  ASSERT_EQ(
-      config_pP.partial_list[1].list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
-  ASSERT_EQ(
-      config_pP.partial_list[2].list_type,
-      TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS);
+  ASSERT_EQ(config_pP.partial_list[0].list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list[1].list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS);
+  ASSERT_EQ(config_pP.partial_list[2].list_type,
+            TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS);
   // Verify plmn for consecutive and non-consecutive tacs
   for (itr = 0; itr < config_pP.num_par_lists - 1; itr++) {
     EXPECT_FALSE(config_pP.partial_list[itr].plmn == nullptr);
@@ -509,9 +495,8 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
   for (itr = 0; itr < config_pP.num_par_lists; itr++) {
     EXPECT_FALSE(config_pP.partial_list[itr].tac == nullptr);
     for (uint8_t idx = 0; idx < config_pP.partial_list[itr].nb_elem; idx++) {
-      ASSERT_EQ(
-          config_pP.partial_list[itr].tac[idx],
-          config_pP.served_tai.tac[idx2++]);
+      ASSERT_EQ(config_pP.partial_list[itr].tac[idx],
+                config_pP.served_tai.tac[idx2++]);
     }
   }
   free(config_pP.served_tai.plmn_mcc);

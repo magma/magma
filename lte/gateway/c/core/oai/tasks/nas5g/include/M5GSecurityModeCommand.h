@@ -12,13 +12,13 @@
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GSecurityHeaderType.h"
-#include "M5GMessageType.h"
-#include "M5GNASSecurityAlgorithms.h"
-#include "M5GNASKeySetIdentifier.h"
-#include "M5GUESecurityCapability.h"
 #include "M5GIMEISVRequest.h"
+#include "M5GMessageType.h"
+#include "M5GNASKeySetIdentifier.h"
+#include "M5GNASSecurityAlgorithms.h"
+#include "M5GSecurityHeaderType.h"
+#include "M5GSpareHalfOctet.h"
+#include "M5GUESecurityCapability.h"
 
 using namespace std;
 namespace magma5g {
@@ -37,10 +37,10 @@ class SecurityModeCommandMsg {
 
   SecurityModeCommandMsg();
   ~SecurityModeCommandMsg();
-  int DecodeSecurityModeCommandMsg(
-      SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len);
-  int EncodeSecurityModeCommandMsg(
-      SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len);
+  int DecodeSecurityModeCommandMsg(SecurityModeCommandMsg* sec_mode_command,
+                                   uint8_t* buffer, uint32_t len);
+  int EncodeSecurityModeCommandMsg(SecurityModeCommandMsg* sec_mode_command,
+                                   uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

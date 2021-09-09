@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include "M5GAuthenticationFailure.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 namespace magma5g {
@@ -20,7 +20,7 @@ AuthenticationFailureMsg::~AuthenticationFailureMsg(){};
 // Decoding Authentication Failure Message and its IEs
 int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
     AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len) {
-  uint32_t decoded   = 0;
+  uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_FAILURE_MINIMUM_LENGTH, len);
@@ -83,7 +83,7 @@ int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
 // Encoding Authentication Failure Message and its IEs
 int AuthenticationFailureMsg::EncodeAuthenticationFailureMsg(
     AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len) {
-  uint32_t encoded  = 0;
+  uint32_t encoded = 0;
   int encodedresult = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_FAILURE_MINIMUM_LENGTH, len);

@@ -14,8 +14,8 @@
 #include <chrono>
 
 #include "Utilities.h"
-#include "includes/MagmaService.h"
 #include "includes/MConfigLoader.h"
+#include "includes/MagmaService.h"
 #include "magma_logging_init.h"
 
 namespace magma {

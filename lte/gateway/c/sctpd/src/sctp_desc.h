@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <map>
 #include <memory>
-#include <stdint.h>
 
 #include "sctp_assoc.h"
 

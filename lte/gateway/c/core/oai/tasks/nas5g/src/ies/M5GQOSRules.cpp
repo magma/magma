@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
+#include "M5GQOSRules.h"
 #include <cstdint>
 #include <cstring>
-#include "M5GQOSRules.h"
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -25,24 +25,24 @@ QOSRulesMsg::QOSRulesMsg(){};
 QOSRulesMsg::~QOSRulesMsg(){};
 
 // Decode QOSRules IE
-int QOSRulesMsg::DecodeQOSRulesMsg(
-    QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
+                                   uint8_t* buffer, uint32_t len) {
   // Not yet Implemented, will be suppported POST MVC
   return (0);
 };
 
 // Encode QOSRules IE
-int QOSRulesMsg::EncodeQOSRulesMsg(
-    QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
+                                   uint8_t* buffer, uint32_t len) {
   uint16_t encoded = 0;
-  uint8_t i        = 0;
-  uint8_t j        = 0;
+  uint8_t i = 0;
+  uint8_t j = 0;
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, QOSRULE_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, qos_rules->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, qos_rules->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeQOSRulesMsg: iei" << hex << int(*buffer);
     encoded++;
@@ -79,13 +79,11 @@ int QOSRulesMsg::EncodeQOSRulesMsg(
           qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
       MLOG(MDEBUG) << "len: " << hex << int(*(buffer + encoded));
       encoded++;
-      memcpy(
-          buffer + encoded,
-          qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
-          qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
-      BUFFER_PRINT_LOG(
-          buffer + encoded,
-          qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
+      memcpy(buffer + encoded,
+             qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].contents,
+             qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
+      BUFFER_PRINT_LOG(buffer + encoded,
+                       qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
     }
 

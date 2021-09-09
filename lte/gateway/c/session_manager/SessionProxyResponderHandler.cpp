@@ -16,9 +16,9 @@
 
 #include "EnumToString.h"
 #include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "includes/SentryWrapper.h"
 #include "SessionProxyResponderHandler.h"
+#include "includes/SentryWrapper.h"
+#include "magma_logging.h"
 
 using grpc::Status;
 
@@ -56,10 +56,10 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
     } else {
       // Todo If update fails, we should rollback changes from the request
       MLOG(MERROR) << "Failed to update Gy (Charging) ReAuthRequest changes...";
-      auto status = Status(
-          grpc::ABORTED,
-          "ChargingReAuth no longer valid due to another update that "
-          "updated the session first.");
+      auto status =
+          Status(grpc::ABORTED,
+                 "ChargingReAuth no longer valid due to another update that "
+                 "updated the session first.");
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
     }
     response_callback(status, ans);
@@ -95,10 +95,10 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
     } else {
       // Todo If update fails, we should rollback changes from the request
       MLOG(MERROR) << "Failed to update Gx (Policy) ReAuthRequest changes...";
-      auto status = Status(
-          grpc::ABORTED,
-          "PolicyReAuth no longer valid due to another update that "
-          "updated the session first.");
+      auto status =
+          Status(grpc::ABORTED,
+                 "PolicyReAuth no longer valid due to another update that "
+                 "updated the session first.");
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
       response_callback(status, ans);
     }

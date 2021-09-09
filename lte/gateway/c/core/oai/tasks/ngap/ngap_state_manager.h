@@ -33,14 +33,14 @@ extern "C" {
 #endif
 
 #include "common_defs.h"
-#include "state_manager.h"
 #include "ngap_state_converter.h"
+#include "state_manager.h"
 using namespace magma::lte;
 using namespace magma::lte::oai;
 
 namespace magma5g {
 constexpr char NGAP_STATE_TABLE[] = "ngap_state";
-constexpr char NGAP_TASK_NAME[]   = "NGAP";
+constexpr char NGAP_TASK_NAME[] = "NGAP";
 }  // namespace magma5g
 
 namespace magma5g {
@@ -50,9 +50,9 @@ namespace magma5g {
  * to maintain NGAP task state, allocating and freeing related state structs.
  */
 class NgapStateManager
-    : public StateManager<
-          ngap_state_t, m5g_ue_description_t, oai::NgapState,
-          magma::lte::oai::Ngap_UeDescription, NgapStateConverter> {
+    : public StateManager<ngap_state_t, m5g_ue_description_t, oai::NgapState,
+                          magma::lte::oai::Ngap_UeDescription,
+                          NgapStateConverter> {
  public:
   /**
    * Returns an instance of NGapStateManager, guaranteed to be thread safe and

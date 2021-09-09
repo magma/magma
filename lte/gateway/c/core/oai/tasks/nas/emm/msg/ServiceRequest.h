@@ -20,20 +20,20 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "KsiAndSequenceNumber.h"
-#include "ShortMac.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "KsiAndSequenceNumber.h"
+#include "MessageType.h"
+#include "SecurityHeaderType.h"
+#include "ShortMac.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define SERVICE_REQUEST_MINIMUM_LENGTH                                         \
+#define SERVICE_REQUEST_MINIMUM_LENGTH \
   (KSI_AND_SEQUENCE_NUMBER_MINIMUM_LENGTH + SHORT_MAC_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define SERVICE_REQUEST_MAXIMUM_LENGTH                                         \
+#define SERVICE_REQUEST_MAXIMUM_LENGTH \
   (KSI_AND_SEQUENCE_NUMBER_MAXIMUM_LENGTH + SHORT_MAC_MAXIMUM_LENGTH)
 
 /*
@@ -53,10 +53,10 @@ typedef struct service_request_msg_tag {
   short_mac_t messageauthenticationcode;
 } service_request_msg;
 
-int decode_service_request(
-    service_request_msg* servicerequest, uint8_t* buffer, uint32_t len);
+int decode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
+                           uint32_t len);
 
-int encode_service_request(
-    service_request_msg* servicerequest, uint8_t* buffer, uint32_t len);
+int encode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
+                           uint32_t len);
 
 #endif /* ! defined(FILE_SERVICE_REQUEST_SEEN) */

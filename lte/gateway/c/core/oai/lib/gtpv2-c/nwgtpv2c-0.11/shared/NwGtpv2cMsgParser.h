@@ -32,9 +32,9 @@
  *----------------------------------------------------------------------------*/
 
 #include <string.h>
-#include "NwTypes.h"
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"
+#include "NwTypes.h"
 
 #ifndef __NW_GTPV2C_MSG_PARSER_H__
 #define __NW_GTPV2C_MSG_PARSER_H__
@@ -48,9 +48,9 @@ typedef struct nw_gtpv2c_msg_parser_s {
   uint16_t msgType;
   uint16_t mandatoryIeCount;
   nw_gtpv2c_stack_handle_t hStack;
-  nw_rc_t (*ieReadCallback)(
-      uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
-      void* ieReadCallbackArg);
+  nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
+                            uint8_t ieInstance, uint8_t* ieValue,
+                            void* ieReadCallbackArg);
   void* ieReadCallbackArg;
 
   struct {
@@ -58,9 +58,9 @@ typedef struct nw_gtpv2c_msg_parser_s {
     bool firstInstanceOccurred; /**< If we have multiple bearer contexts, check
                                    this flag to increment the mandatory IE
                                    count. */
-    nw_rc_t (*ieReadCallback)(
-        uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
-        void* ieReadCallbackArg);
+    nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
+                              uint8_t ieInstance, uint8_t* ieValue,
+                              void* ieReadCallbackArg);
     void* ieReadCallbackArg;
   } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM];
 
@@ -81,9 +81,9 @@ extern "C" {
 
 nw_rc_t nwGtpv2cMsgParserNew(
     NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle, NW_IN uint8_t msgType,
-    NW_IN nw_rc_t (*ieReadCallback)(
-        uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
-        void* ieReadCallbackArg),
+    NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
+                                    uint8_t ieInstance, uint8_t* ieValue,
+                                    void* ieReadCallbackArg),
     NW_IN void* ieReadCallbackArg, NW_IN nw_gtpv2c_msg_parser_t** pthiz);
 
 /**
@@ -93,23 +93,22 @@ nw_rc_t nwGtpv2cMsgParserNew(
  * @param[in] thiz : Message parser handle.
  */
 
-nw_rc_t nwGtpv2cMsgParserDelete(
-    NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-    NW_IN nw_gtpv2c_msg_parser_t* thiz);
+nw_rc_t nwGtpv2cMsgParserDelete(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
+                                NW_IN nw_gtpv2c_msg_parser_t* thiz);
 
 nw_rc_t nwGtpv2cMsgParserUpdateIe(
     NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN uint8_t ieType,
     NW_IN uint8_t ieInstance, NW_IN uint8_t iePresence,
-    NW_IN nw_rc_t (*ieReadCallback)(
-        uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
-        void* ieReadCallbackArg),
+    NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
+                                    uint8_t ieInstance, uint8_t* ieValue,
+                                    void* ieReadCallbackArg),
     NW_IN void* ieReadCallbackArg);
 
 nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallback(
     NW_IN nw_gtpv2c_msg_parser_t* thiz,
-    NW_IN nw_rc_t (*ieReadCallback)(
-        uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
-        void* ieReadCallbackArg));
+    NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
+                                    uint8_t ieInstance, uint8_t* ieValue,
+                                    void* ieReadCallbackArg));
 
 nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallbackArg(
     NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN void* ieReadCallbackArg);
@@ -117,15 +116,16 @@ nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallbackArg(
 nw_rc_t nwGtpv2cMsgParserAddIe(
     NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN uint8_t ieType,
     NW_IN uint8_t ieInstance, NW_IN uint8_t iePresence,
-    NW_IN nw_rc_t (*ieReadCallback)(
-        uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
-        void* ieReadCallbackArg),
+    NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
+                                    uint8_t ieInstance, uint8_t* ieValue,
+                                    void* ieReadCallbackArg),
     NW_IN void* ieReadCallbackArg);
 
-nw_rc_t nwGtpv2cMsgParserRun(
-    NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN nw_gtpv2c_msg_handle_t hMsg,
-    NW_OUT uint8_t* pOffendingIeType, NW_OUT uint8_t* pOffendingIeInstance,
-    NW_OUT uint16_t* pOffendingIeLength);
+nw_rc_t nwGtpv2cMsgParserRun(NW_IN nw_gtpv2c_msg_parser_t* thiz,
+                             NW_IN nw_gtpv2c_msg_handle_t hMsg,
+                             NW_OUT uint8_t* pOffendingIeType,
+                             NW_OUT uint8_t* pOffendingIeInstance,
+                             NW_OUT uint16_t* pOffendingIeLength);
 
 #ifdef __cplusplus
 }

@@ -13,21 +13,21 @@
 
 #pragma once
 #include <sstream>
-#include "securityDef.h"
-#include "common_types.h"
 #include "3gpp_24.008.h"
+#include "SmfMessage.h"
 #include "TrackingAreaIdentity.h"
 #include "amf_config.h"
-#include "SmfMessage.h"
+#include "common_types.h"
+#include "securityDef.h"
 
 #define NAS_MESSAGE_SECURITY_HEADER_SIZE 7
 typedef uint8_t amf_cause_t;
 namespace magma5g {
-#define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*) 0)->MeMBeR)
-#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                                 \
-  ({                                                                           \
-    const typeof(((TyPe*) 0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD);             \
-    (TyPe*) ((char*) __MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));                  \
+#define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*)0)->MeMBeR)
+#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                    \
+  ({                                                              \
+    const typeof(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
+    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));       \
   })
 //------------------------------------------------------------------------------
 // Causes related to invalid messages
@@ -89,19 +89,21 @@ typedef struct amf_smf_s {
 } amf_smf_t;
 
 // Routines for communication from AMF to SMF on PDU sessions
-int amf_smf_handle_pdu_establishment_request(
-    SmfMsg* msg, amf_smf_t* amf_smf_msg);
+int amf_smf_handle_pdu_establishment_request(SmfMsg* msg,
+                                             amf_smf_t* amf_smf_msg);
 int amf_smf_handle_pdu_release_request(SmfMsg* msg, amf_smf_t* amf_smf_msg);
-int amf_smf_create_pdu_session(
-    amf_smf_establish_t* message, char* imsi, uint32_t version);
+int amf_smf_create_pdu_session(amf_smf_establish_t* message, char* imsi,
+                               uint32_t version);
 
-int amf_smf_create_ipv4_session_grpc_req(
-    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
-    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr);
+int amf_smf_create_ipv4_session_grpc_req(char* imsi, uint8_t* apn,
+                                         uint32_t pdu_session_id,
+                                         uint32_t pdu_session_type,
+                                         uint32_t gnb_gtp_teid, uint8_t pti,
+                                         uint8_t* gnb_gtp_teid_ip_addr,
+                                         char* ipv4_addr);
 
-int create_session_grpc_req_on_gnb_setup_rsp(
-    amf_smf_establish_t* message, char* imsi, uint32_t version);
+int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
+                                             char* imsi, uint32_t version);
 int create_session_grpc_req(amf_smf_establish_t* message, char* imsi);
 int release_session_gprc_req(amf_smf_release_t* message, char* imsi);
 }  // namespace magma5g

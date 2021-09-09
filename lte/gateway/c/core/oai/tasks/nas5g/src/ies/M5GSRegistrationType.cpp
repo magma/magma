@@ -9,12 +9,12 @@
    limitations under the License.
 */
 
+#include "M5GSRegistrationType.h"
+#include <bitset>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "M5GSRegistrationType.h"
 #include "M5GCommonDefs.h"
-#include <bitset>
 
 using namespace std;
 namespace magma5g {
@@ -32,7 +32,7 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
   }
 
-  m5gs_reg_type->FOR      = (*(buffer + decoded) >> 3) & 0x1;
+  m5gs_reg_type->FOR = (*(buffer + decoded) >> 3) & 0x1;
   m5gs_reg_type->type_val = *(buffer + decoded) & 0x7;
   MLOG(MDEBUG) << " FOR = 0x" << hex << int(m5gs_reg_type->FOR);
   MLOG(MDEBUG) << " type_val = 0x" << hex << int(m5gs_reg_type->type_val);

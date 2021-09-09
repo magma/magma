@@ -39,10 +39,10 @@ struct CreditKey {
 
   CreditKey* set(const PolicyRule* rule) {
     if (rule != nullptr) {
-      rating_group       = rule->rating_group();
-      service_identifier = rule->has_service_identifier() ?
-                               rule->service_identifier().value() :
-                               0;
+      rating_group = rule->rating_group();
+      service_identifier = rule->has_service_identifier()
+                               ? rule->service_identifier().value()
+                               : 0;
     }
     return this;
   }
@@ -58,10 +58,10 @@ struct CreditKey {
   }
   CreditKey* set(const CreditUsage* usage) {
     if (usage != nullptr) {
-      rating_group       = usage->charging_key();
-      service_identifier = usage->has_service_identifier() ?
-                               usage->service_identifier().value() :
-                               0;
+      rating_group = usage->charging_key();
+      service_identifier = usage->has_service_identifier()
+                               ? usage->service_identifier().value()
+                               : 0;
     }
     return this;
   }
@@ -77,19 +77,19 @@ struct CreditKey {
   }
   CreditKey* set(const CreditUpdateResponse* update) {
     if (update != nullptr) {
-      rating_group       = update->charging_key();
-      service_identifier = update->has_service_identifier() ?
-                               update->service_identifier().value() :
-                               0;
+      rating_group = update->charging_key();
+      service_identifier = update->has_service_identifier()
+                               ? update->service_identifier().value()
+                               : 0;
     }
     return this;
   }
   CreditKey* set(const ChargingReAuthRequest* reath) {
     if (reath != nullptr) {
-      rating_group       = reath->charging_key();
-      service_identifier = reath->has_service_identifier() ?
-                               reath->service_identifier().value() :
-                               0;
+      rating_group = reath->charging_key();
+      service_identifier = reath->has_service_identifier()
+                               ? reath->service_identifier().value()
+                               : 0;
     }
     return this;
   }

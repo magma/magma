@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "M5GAuthenticationFailureIE.h"
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -24,11 +24,11 @@ int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
     M5GAuthenticationFailureIE* m5g_auth_failure_ie, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
-  uint8_t ielen   = 0;
+  uint8_t ielen = 0;
 
   if (iei > 0) {
     m5g_auth_failure_ie->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char) iei, m5g_auth_failure_ie->iei);
+    CHECK_IEI_DECODER((unsigned char)iei, m5g_auth_failure_ie->iei);
     MLOG(MDEBUG) << "In DecodeM5GAuthenticationFailureIE: iei = " << dec
                  << int(m5g_auth_failure_ie->iei) << endl;
     decoded++;

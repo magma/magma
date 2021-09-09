@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "StatsPoller.h"
 #include <stdint.h>
 #include <atomic>
 #include <memory>
-#include "StatsPoller.h"
 #define COOKIE 0
 #define COOKIE_MASK 0
 

@@ -42,9 +42,9 @@ typedef struct {
 } service303_data_t;
 
 typedef enum application_health_e {
-  APP_UNKNOWN   = 0,
+  APP_UNKNOWN = 0,
   APP_UNHEALTHY = 1,
-  APP_HEALTHY   = 2,
+  APP_HEALTHY = 2,
 } application_health_t;
 
 int service303_init(service303_data_t* service303_data);

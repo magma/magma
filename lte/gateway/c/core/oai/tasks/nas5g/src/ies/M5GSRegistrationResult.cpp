@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
+#include "M5GSRegistrationResult.h"
 #include <bitset>
 #include <cstdint>
-#include "M5GSRegistrationResult.h"
+#include <iostream>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -48,7 +48,7 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   }
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) m5gs_reg_result->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)m5gs_reg_result->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeM5GSRegistrationResultMsg___: iei  = " << hex
                  << int(*buffer);

@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <string.h>
-#include <cstring>
-#include <cstdint>
 #include "M5GAuthenticationResponseParameter.h"
+#include <string.h>
+#include <cstdint>
+#include <cstring>
+#include <sstream>
 #include "M5GCommonDefs.h"
 
 using namespace std;
@@ -40,11 +40,11 @@ int AuthenticationResponseParameterMsg::
   MLOG(MDEBUG) << " Length : " << dec << int(response_parameter->length);
   decoded++;
   response_parameter->response_parameter[0] = 0;
-  for (int i = 0; i < (int) (response_parameter->length); i++) {
+  for (int i = 0; i < (int)(response_parameter->length); i++) {
     response_parameter->response_parameter[i] = *(buffer + decoded);
     decoded++;
   }
-  for (int i = 0; i < (int) (response_parameter->length); i++) {
+  for (int i = 0; i < (int)(response_parameter->length); i++) {
     MLOG(MDEBUG) << " RES : " << hex
                  << int(response_parameter->response_parameter[i]);
   }
@@ -63,7 +63,7 @@ int AuthenticationResponseParameterMsg::
       buffer, AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, response_parameter->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, response_parameter->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" << hex
                  << int(*buffer) << endl;
@@ -72,13 +72,12 @@ int AuthenticationResponseParameterMsg::
     return 0;
   }
 
-  lenPtr = (uint16_t*) (buffer + encoded);
+  lenPtr = (uint16_t*)(buffer + encoded);
   encoded++;
-  std::copy(
-      response_parameter->response_parameter.begin(),
-      response_parameter->response_parameter.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(
-      buffer + encoded, response_parameter->response_parameter.length());
+  std::copy(response_parameter->response_parameter.begin(),
+            response_parameter->response_parameter.end(), buffer + encoded);
+  BUFFER_PRINT_LOG(buffer + encoded,
+                   response_parameter->response_parameter.length());
   encoded = encoded + response_parameter->response_parameter.length();
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 #endif

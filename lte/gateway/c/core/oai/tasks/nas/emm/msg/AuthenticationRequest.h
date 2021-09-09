@@ -20,23 +20,23 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "NasKeySetIdentifier.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
+#include "NasKeySetIdentifier.h"
+#include "SecurityHeaderType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define AUTHENTICATION_REQUEST_MINIMUM_LENGTH                                  \
-  (NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH +                                     \
-   AUTHENTICATION_PARAMETER_RAND_IE_MIN_LENGTH - 1 +                           \
+#define AUTHENTICATION_REQUEST_MINIMUM_LENGTH        \
+  (NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH +           \
+   AUTHENTICATION_PARAMETER_RAND_IE_MIN_LENGTH - 1 + \
    AUTHENTICATION_PARAMETER_AUTN_IE_MIN_LENGTH - 2)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define AUTHENTICATION_REQUEST_MAXIMUM_LENGTH                                  \
-  (NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +                                     \
-   AUTHENTICATION_PARAMETER_RAND_IE_MAX_LENGTH +                               \
+#define AUTHENTICATION_REQUEST_MAXIMUM_LENGTH    \
+  (NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +       \
+   AUTHENTICATION_PARAMETER_RAND_IE_MAX_LENGTH + \
    AUTHENTICATION_PARAMETER_AUTN_IE_MAX_LENGTH)
 
 /*

@@ -22,8 +22,8 @@
 #include <functional>
 #include <memory>
 
-#include "lte/protos/session_manager.grpc.pb.h"
 #include "includes/GRPCReceiver.h"
+#include "lte/protos/session_manager.grpc.pb.h"
 
 namespace grpc {
 class Status;

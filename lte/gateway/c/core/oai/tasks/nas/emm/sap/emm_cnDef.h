@@ -38,9 +38,9 @@ Description
 
 #include "intertask_interface_types.h"
 
-#include "nas/as_message.h"
-#include "common_ies.h"
 #include "LocationAreaIdentification.h"
+#include "common_ies.h"
+#include "nas/as_message.h"
 
 typedef enum emmcn_primitive_s {
   _EMMCN_START = 400,
@@ -62,12 +62,12 @@ typedef enum emmcn_primitive_s {
 } emm_cn_primitive_t;
 
 typedef enum pdn_conn_rsp_cause_e {
-  CAUSE_OK                             = 16,
-  CAUSE_CONTEXT_NOT_FOUND              = 64,
-  CAUSE_INVALID_MESSAGE_FORMAT         = 65,
-  CAUSE_SERVICE_NOT_SUPPORTED          = 68,
-  CAUSE_SYSTEM_FAILURE                 = 72,
-  CAUSE_NO_RESOURCES_AVAILABLE         = 73,
+  CAUSE_OK = 16,
+  CAUSE_CONTEXT_NOT_FOUND = 64,
+  CAUSE_INVALID_MESSAGE_FORMAT = 65,
+  CAUSE_SERVICE_NOT_SUPPORTED = 68,
+  CAUSE_SYSTEM_FAILURE = 72,
+  CAUSE_NO_RESOURCES_AVAILABLE = 73,
   CAUSE_ALL_DYNAMIC_ADDRESSES_OCCUPIED = 84
 } pdn_conn_rsp_cause_t;
 

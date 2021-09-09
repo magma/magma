@@ -8,10 +8,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include <sstream>
-#include <cstdint>
-#include <string.h>
 #include "M5GNSSAI.h"
+#include <string.h>
+#include <cstdint>
+#include <sstream>
 #include "M5GCommonDefs.h"
 using namespace std;
 namespace magma5g {
@@ -19,10 +19,10 @@ NSSAIMsg::NSSAIMsg(){};
 
 NSSAIMsg::~NSSAIMsg(){};
 
-int NSSAIMsg::EncodeNSSAIMsg(
-    NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int NSSAIMsg::EncodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
+                             uint32_t len) {
   uint8_t encoded = 0;
-  int i           = 0;
+  int i = 0;
 
   /*
    * Checking IEI and pointer
@@ -30,7 +30,7 @@ int NSSAIMsg::EncodeNSSAIMsg(
   /*CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, NSSAI_MIN_LENGTH, len);*/
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) NSSAI->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI->iei);
     *buffer = iei;
     encoded++;
   }
@@ -48,8 +48,8 @@ int NSSAIMsg::EncodeNSSAIMsg(
   return (encoded);
 };
 
-int NSSAIMsg::DecodeNSSAIMsg(
-    NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int NSSAIMsg::DecodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
+                             uint32_t len) {
   // will be implemented post MVC
   return (0);
 };

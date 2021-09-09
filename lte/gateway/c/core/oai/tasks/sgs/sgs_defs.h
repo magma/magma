@@ -24,14 +24,14 @@
 
 #ifndef FILE_SGS_SEEN
 #define FILE_SGS_SEEN
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include "bstrlib.h"
-#include "hashtable.h"
-#include "queue.h"
-#include "nas/commonDef.h"
 #include "common_defs.h"
 #include "common_types.h"
+#include "hashtable.h"
+#include "nas/commonDef.h"
+#include "queue.h"
 
 status_code_e sgs_init(const mme_config_t* mme_config);
 

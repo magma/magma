@@ -34,8 +34,8 @@ Description Implements TCP socket handlers
 #ifndef FILE_SOCKET_SEEN
 #define FILE_SOCKET_SEEN
 
-#include "common_defs.h"
 #include <sys/types.h>
+#include "common_defs.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

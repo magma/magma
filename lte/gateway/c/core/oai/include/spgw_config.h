@@ -25,10 +25,10 @@
 #ifndef FILE_SPGW_CONFIG_SEEN
 #define FILE_SPGW_CONFIG_SEEN
 
-#include "sgw_config.h"
+#include "bstrlib.h"
 #include "pgw_config.h"
 #include "service303.h"
-#include "bstrlib.h"
+#include "sgw_config.h"
 
 #define MAGMA_CONFIG_STRING "MAGMA"
 #define SPGW_CONFIG_STRING_SERVICE303_CONFIG "SERVICE303"

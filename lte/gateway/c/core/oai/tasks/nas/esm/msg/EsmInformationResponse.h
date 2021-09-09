@@ -20,17 +20,17 @@
 
 #include <stdint.h>
 
-#include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "MessageType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ESM_INFORMATION_RESPONSE_MAXIMUM_LENGTH                                \
-  (ACCESS_POINT_NAME_MAXIMUM_LENGTH +                                          \
+#define ESM_INFORMATION_RESPONSE_MAXIMUM_LENGTH \
+  (ACCESS_POINT_NAME_MAXIMUM_LENGTH +           \
    PROTOCOL_CONFIGURATION_OPTIONS_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

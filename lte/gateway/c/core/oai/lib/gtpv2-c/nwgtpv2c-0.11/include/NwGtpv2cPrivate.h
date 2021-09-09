@@ -37,16 +37,16 @@
 #include <sys/time.h>
 
 #include "assertions.h"
-#include "tree.h"
 #include "queue.h"
+#include "tree.h"
 
-#include "NwTypes.h"
 #include "NwError.h"
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"
 #include "NwGtpv2cMsg.h"
 #include "NwGtpv2cMsgIeParseInfo.h"
 #include "NwGtpv2cTunnel.h"
+#include "NwTypes.h"
 
 /**
  * @file NwGtpv2cPrivate.h
@@ -58,32 +58,31 @@
 extern "C" {
 #endif
 
-#define NW_GTPV2C_MALLOC(_stack, _size, _mem, _type)                           \
-  do {                                                                         \
-    if (((nw_gtpv2c_stack_t*) (_stack))->memMgr.memAlloc &&                    \
-        ((nw_gtpv2c_stack_t*) (_stack))->memMgr.memFree) {                     \
-      _mem = (_type)((nw_gtpv2c_stack_t*) (_stack))                            \
-                 ->memMgr.memAlloc(                                            \
-                     ((nw_gtpv2c_stack_t*) (_stack))->memMgr.hMemMgr, _size,   \
-                     __FILE__, __LINE__);                                      \
-      Fatal("Do not use this Mem manager");                                    \
-    } else {                                                                   \
-      _mem = (_type) malloc(_size);                                            \
-    }                                                                          \
+#define NW_GTPV2C_MALLOC(_stack, _size, _mem, _type)                        \
+  do {                                                                      \
+    if (((nw_gtpv2c_stack_t*)(_stack))->memMgr.memAlloc &&                  \
+        ((nw_gtpv2c_stack_t*)(_stack))->memMgr.memFree) {                   \
+      _mem = (_type)((nw_gtpv2c_stack_t*)(_stack))                          \
+                 ->memMgr.memAlloc(                                         \
+                     ((nw_gtpv2c_stack_t*)(_stack))->memMgr.hMemMgr, _size, \
+                     __FILE__, __LINE__);                                   \
+      Fatal("Do not use this Mem manager");                                 \
+    } else {                                                                \
+      _mem = (_type)malloc(_size);                                          \
+    }                                                                       \
   } while (0)
 
-#define NW_GTPV2C_FREE(_stack, _mem)                                           \
-  do {                                                                         \
-    if (((nw_gtpv2c_stack_t*) (_stack))->memMgr.memAlloc &&                    \
-        ((nw_gtpv2c_stack_t*) (_stack))->memMgr.memFree) {                     \
-      ((nw_gtpv2c_stack_t*) (_stack))                                          \
-          ->memMgr.memFree(                                                    \
-              ((nw_gtpv2c_stack_t*) (_stack))->memMgr.hMemMgr, _mem, __FILE__, \
-              __LINE__);                                                       \
-      Fatal("Do not use this Mem manager");                                    \
-    } else {                                                                   \
-      free((void*) _mem);                                                      \
-    }                                                                          \
+#define NW_GTPV2C_FREE(_stack, _mem)                                       \
+  do {                                                                     \
+    if (((nw_gtpv2c_stack_t*)(_stack))->memMgr.memAlloc &&                 \
+        ((nw_gtpv2c_stack_t*)(_stack))->memMgr.memFree) {                  \
+      ((nw_gtpv2c_stack_t*)(_stack))                                       \
+          ->memMgr.memFree(((nw_gtpv2c_stack_t*)(_stack))->memMgr.hMemMgr, \
+                           _mem, __FILE__, __LINE__);                      \
+      Fatal("Do not use this Mem manager");                                \
+    } else {                                                               \
+      free((void*)_mem);                                                   \
+    }                                                                      \
   } while (0)
 
 /*--------------------------------------------------------------------------*
@@ -143,7 +142,7 @@ typedef struct nw_gtpv2c_timeout_info_s {
  * GTPv2c Message Container Definition
  *--------------------------------------------------------------------------*/
 
-#define NW_GTPV2C_MAX_MSG_LEN                                                  \
+#define NW_GTPV2C_MAX_MSG_LEN \
   (4096) /**< Maximum supported gtpv2c packet length including header */
 
 /**
@@ -219,34 +218,31 @@ typedef struct NwGtpv2cPathS {
   RB_ENTRY(NwGtpv2cPathS) pathMapRbtNode;
 } NwGtpv2cPathT;
 
-RB_PROTOTYPE(
-    NwGtpv2cTunnelMap, nw_gtpv2c_tunnel_s, tunnelMapRbtNode,
-    nwGtpv2cCompareTunnel)
-RB_PROTOTYPE(
-    NwGtpv2cOutstandingTxSeqNumTrxnMap, nw_gtpv2c_trxn_s,
-    outstandingTxSeqNumMapRbtNode, nwGtpv2cCompareSeqNum)
-RB_PROTOTYPE(
-    NwGtpv2cOutstandingRxSeqNumTrxnMap, nw_gtpv2c_trxn_s,
-    outstandingRxSeqNumMapRbtNode, nwGtpv2cCompareSeqNum)
-RB_PROTOTYPE(
-    NwGtpv2cActiveTimerList, nw_gtpv2c_timeout_info_s, activeTimerListRbtNode,
-    nwGtpv2cCompareOutstandingTxRexmitTime)
+RB_PROTOTYPE(NwGtpv2cTunnelMap, nw_gtpv2c_tunnel_s, tunnelMapRbtNode,
+             nwGtpv2cCompareTunnel)
+RB_PROTOTYPE(NwGtpv2cOutstandingTxSeqNumTrxnMap, nw_gtpv2c_trxn_s,
+             outstandingTxSeqNumMapRbtNode, nwGtpv2cCompareSeqNum)
+RB_PROTOTYPE(NwGtpv2cOutstandingRxSeqNumTrxnMap, nw_gtpv2c_trxn_s,
+             outstandingRxSeqNumMapRbtNode, nwGtpv2cCompareSeqNum)
+RB_PROTOTYPE(NwGtpv2cActiveTimerList, nw_gtpv2c_timeout_info_s,
+             activeTimerListRbtNode, nwGtpv2cCompareOutstandingTxRexmitTime)
 
 /**
  * Start Timer with ULP Timer Manager
  */
 
-nw_rc_t nwGtpv2cStartTimer(
-    nw_gtpv2c_stack_t* thiz, uint32_t timeoutSec, uint32_t timeoutUsec,
-    uint32_t tmrType, nw_rc_t (*timeoutCallbackFunc)(void*),
-    void* timeoutCallbackArg, nw_gtpv2c_timer_handle_t* phTimer);
+nw_rc_t nwGtpv2cStartTimer(nw_gtpv2c_stack_t* thiz, uint32_t timeoutSec,
+                           uint32_t timeoutUsec, uint32_t tmrType,
+                           nw_rc_t (*timeoutCallbackFunc)(void*),
+                           void* timeoutCallbackArg,
+                           nw_gtpv2c_timer_handle_t* phTimer);
 
 /**
  * Stop Timer with ULP Timer Manager
  */
 
-nw_rc_t nwGtpv2cStopTimer(
-    nw_gtpv2c_stack_t* thiz, nw_gtpv2c_timer_handle_t hTimer);
+nw_rc_t nwGtpv2cStopTimer(nw_gtpv2c_stack_t* thiz,
+                          nw_gtpv2c_timer_handle_t hTimer);
 
 #ifdef __cplusplus
 }

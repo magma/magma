@@ -19,9 +19,9 @@
 #include "3gpp_38.413.h"
 
 #include <grpc++/grpc++.h>
+#include "includes/GRPCReceiver.h"
 #include "lte/protos/subscriberauth.grpc.pb.h"
 #include "lte/protos/subscriberauth.pb.h"
-#include "includes/GRPCReceiver.h"
 
 using grpc::Status;
 using magma::GRPCReceiver;
@@ -36,14 +36,14 @@ M5GAuthenticationInformationRequest create_subs_auth_request(
 class M5GAuthenticationServiceClient {
  public:
   virtual ~M5GAuthenticationServiceClient() {}
-  virtual bool get_subs_auth_info(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      amf_ue_ngap_id_t ue_id) = 0;
+  virtual bool get_subs_auth_info(const std::string& imsi, uint8_t imsi_length,
+                                  const char* snni, amf_ue_ngap_id_t ue_id) = 0;
 
-  virtual bool get_subs_auth_info_resync(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      const void* resync_info, uint8_t resync_info_len,
-      amf_ue_ngap_id_t ue_id) = 0;
+  virtual bool get_subs_auth_info_resync(const std::string& imsi,
+                                         uint8_t imsi_length, const char* snni,
+                                         const void* resync_info,
+                                         uint8_t resync_info_len,
+                                         amf_ue_ngap_id_t ue_id) = 0;
 };
 
 /**
@@ -54,13 +54,13 @@ class AsyncM5GAuthenticationServiceClient
     : public GRPCReceiver,
       public M5GAuthenticationServiceClient {
  public:
-  bool get_subs_auth_info(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      amf_ue_ngap_id_t ue_id);
+  bool get_subs_auth_info(const std::string& imsi, uint8_t imsi_length,
+                          const char* snni, amf_ue_ngap_id_t ue_id);
 
-  bool get_subs_auth_info_resync(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id);
+  bool get_subs_auth_info_resync(const std::string& imsi, uint8_t imsi_length,
+                                 const char* snni, const void* resync_info,
+                                 uint8_t resync_info_len,
+                                 amf_ue_ngap_id_t ue_id);
 
   static AsyncM5GAuthenticationServiceClient& getInstance();
 
@@ -75,7 +75,7 @@ class AsyncM5GAuthenticationServiceClient
 
   void GetSubscriberAuthInfoRPC(
       M5GAuthenticationInformationRequest& request,
-      const std::function<
-          void(grpc::Status, M5GAuthenticationInformationAnswer)>& callback);
+      const std::function<void(grpc::Status,
+                               M5GAuthenticationInformationAnswer)>& callback);
 };
 }  // namespace magma5g

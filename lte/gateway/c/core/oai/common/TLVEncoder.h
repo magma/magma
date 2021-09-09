@@ -30,16 +30,16 @@
 #include "common_defs.h"
 #include "log.h"
 
-#define IES_ENCODE_U8(buffer, encoded, value)                                  \
+#define IES_ENCODE_U8(buffer, encoded, value) \
   ENCODE_U8(buffer + encoded, value, encoded)
 
-#define IES_ENCODE_U16(buffer, encoded, value)                                 \
+#define IES_ENCODE_U16(buffer, encoded, value) \
   ENCODE_U16(buffer + encoded, value, encoded)
 
-#define IES_ENCODE_U24(buffer, encoded, value)                                 \
+#define IES_ENCODE_U24(buffer, encoded, value) \
   ENCODE_U24(buffer + encoded, value, encoded)
 
-#define IES_ENCODE_U32(buffer, encoded, value)                                 \
+#define IES_ENCODE_U32(buffer, encoded, value) \
   ENCODE_U32(buffer + encoded, value, encoded)
 
 /* Defines error code limit below which message should be sent because
@@ -48,8 +48,8 @@
 
 extern int errorCodeEncoder;
 
-int encode_bstring(
-    const_bstring const str, uint8_t* const buffer, const uint32_t buflen);
+int encode_bstring(const_bstring const str, uint8_t* const buffer,
+                   const uint32_t buflen);
 
 void tlv_encode_perror(void);
 
@@ -60,18 +60,17 @@ void tlv_encode_perror(void);
     return TLV_BUFFER_NULL;                                                    \
   }                                                                            \
   if (lENGTH < mINIMUMlENGTH) {                                                \
-    OAI_FPRINTF_ERR(                                                           \
-        "(%s:%d) Expecting at least %d bytes, got %d\n", __FILE__, __LINE__,   \
-        mINIMUMlENGTH, lENGTH);                                                \
+    OAI_FPRINTF_ERR("(%s:%d) Expecting at least %d bytes, got %d\n", __FILE__, \
+                    __LINE__, mINIMUMlENGTH, lENGTH);                          \
     errorCodeEncoder = TLV_BUFFER_TOO_SHORT;                                   \
     return TLV_BUFFER_TOO_SHORT;                                               \
   }
 
-#define CHECK_PDU_POINTER_ENCODER(bUFFER)                                      \
-  if (bUFFER == NULL) {                                                        \
-    OAI_FPRINTF_ERR("Got NULL pointer for the payload\n");                     \
-    errorCodeEncoder = TLV_BUFFER_NULL;                                        \
-    return TLV_BUFFER_NULL;                                                    \
+#define CHECK_PDU_POINTER_ENCODER(bUFFER)                  \
+  if (bUFFER == NULL) {                                    \
+    OAI_FPRINTF_ERR("Got NULL pointer for the payload\n"); \
+    errorCodeEncoder = TLV_BUFFER_NULL;                    \
+    return TLV_BUFFER_NULL;                                \
   }
 
 #endif /* define (FILE_TLV_ENCODER_SEEN) */

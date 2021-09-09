@@ -26,8 +26,8 @@ extern "C" {
 #include "hashtable.h"
 
 #include "gtpv1u_types.h"
-#include "spgw_types.h"
 #include "spgw_config.h"
+#include "spgw_types.h"
 
 // Initializes SGW state struct when task process starts.
 int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);

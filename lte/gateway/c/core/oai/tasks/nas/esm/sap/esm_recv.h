@@ -36,23 +36,23 @@ Description Defines functions executed at the ESM Service Access
 #ifndef __ESM_RECV_H__
 #define __ESM_RECV_H__
 
-#include "EsmStatus.h"
-#include "emm_data.h"
-#include "PdnConnectivityRequest.h"
-#include "PdnDisconnectRequest.h"
-#include "BearerResourceAllocationRequest.h"
-#include "BearerResourceModificationRequest.h"
-#include "ActivateDefaultEpsBearerContextAccept.h"
-#include "ActivateDefaultEpsBearerContextReject.h"
+#include "3gpp_24.007.h"
 #include "ActivateDedicatedEpsBearerContextAccept.h"
 #include "ActivateDedicatedEpsBearerContextReject.h"
+#include "ActivateDefaultEpsBearerContextAccept.h"
+#include "ActivateDefaultEpsBearerContextReject.h"
+#include "BearerResourceAllocationRequest.h"
+#include "BearerResourceModificationRequest.h"
+#include "DeactivateEpsBearerContextAccept.h"
+#include "EsmCause.h"
+#include "EsmInformationResponse.h"
+#include "EsmStatus.h"
 #include "ModifyEpsBearerContextAccept.h"
 #include "ModifyEpsBearerContextReject.h"
-#include "DeactivateEpsBearerContextAccept.h"
-#include "EsmInformationResponse.h"
-#include "3gpp_24.007.h"
-#include "EsmCause.h"
+#include "PdnConnectivityRequest.h"
+#include "PdnDisconnectRequest.h"
 #include "common_types.h"
+#include "emm_data.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -76,9 +76,8 @@ Description Defines functions executed at the ESM Service Access
  * --------------------------------------------------------------------------
  */
 
-esm_cause_t esm_recv_status(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const esm_status_msg* msg);
+esm_cause_t esm_recv_status(emm_context_t* emm_context, proc_tid_t pti,
+                            ebi_t ebi, const esm_status_msg* msg);
 
 /*
  * --------------------------------------------------------------------------

@@ -20,21 +20,21 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EpsAttachType.h"
-#include "NasKeySetIdentifier.h"
-#include "EpsMobileIdentity.h"
-#include "UeNetworkCapability.h"
-#include "EsmMessageContainer.h"
-#include "TrackingAreaIdentity.h"
-#include "AdditionalUpdateType.h"
-#include "GutiType.h"
-#include "UeAdditionalSecurityCapability.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_24.301.h"
+#include "AdditionalUpdateType.h"
+#include "EpsAttachType.h"
+#include "EpsMobileIdentity.h"
+#include "EsmMessageContainer.h"
+#include "GutiType.h"
+#include "MessageType.h"
+#include "NasKeySetIdentifier.h"
+#include "SecurityHeaderType.h"
+#include "TrackingAreaIdentity.h"
+#include "UeAdditionalSecurityCapability.h"
+#include "UeNetworkCapability.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_REQUEST_MINIMUM_LENGTH                                          \
@@ -73,17 +73,17 @@
 #define ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT (1 << 9)
 #define ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT (1 << 10)
 #define ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT (1 << 11)
-#define ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT    \
+#define ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT \
   (1 << 12)
 #define ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT (1 << 13)
 #define ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT (1 << 14)
 #define ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT (1 << 15)
 
 typedef enum attach_request_iei_tag {
-  ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI         = GMM_PTMSI_SIGNATURE_IEI,
-  ATTACH_REQUEST_ADDITIONAL_GUTI_IEI             = 0x50, /* 0x50 = 80  */
+  ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI = GMM_PTMSI_SIGNATURE_IEI,
+  ATTACH_REQUEST_ADDITIONAL_GUTI_IEI = 0x50,             /* 0x50 = 80  */
   ATTACH_REQUEST_LAST_VISITED_REGISTERED_TAI_IEI = 0x52, /* 0x52 = 82  */
-  ATTACH_REQUEST_DRX_PARAMETER_IEI               = GMM_DRX_PARAMETER_IEI,
+  ATTACH_REQUEST_DRX_PARAMETER_IEI = GMM_DRX_PARAMETER_IEI,
   ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI =
       C_MS_NETWORK_FEATURE_SUPPORT_IEI,
   ATTACH_REQUEST_MS_NETWORK_CAPABILITY_IEI = GMM_MS_NETWORK_CAPABILITY_IEI,
@@ -94,15 +94,15 @@ typedef enum attach_request_iei_tag {
       C_MOBILE_STATION_CLASSMARK_2_IEI,
   ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_3_IEI =
       C_MOBILE_STATION_CLASSMARK_3_IEI,
-  ATTACH_REQUEST_SUPPORTED_CODECS_IEI       = CC_SUPPORTED_CODEC_LIST_IE,
+  ATTACH_REQUEST_SUPPORTED_CODECS_IEI = CC_SUPPORTED_CODEC_LIST_IE,
   ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_IEI = 0xF0, /* 0xF0 = 240 */
-  ATTACH_REQUEST_OLD_GUTI_TYPE_IEI          = 0xE0, /* 0xE0 = 224 */
+  ATTACH_REQUEST_OLD_GUTI_TYPE_IEI = 0xE0,          /* 0xE0 = 224 */
   ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI =
       GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI,
   ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI = 0x10,
-  ATTACH_REQUEST_DEVICE_PROPERTIES_IEI                     = 0xD0,
-  ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI            = 0xD1,
-  ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI     = 0x6F
+  ATTACH_REQUEST_DEVICE_PROPERTIES_IEI = 0xD0,
+  ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI = 0xD1,
+  ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI = 0x6F
 } attach_request_iei;
 
 /*
@@ -143,10 +143,10 @@ typedef struct attach_request_msg_tag {
   ue_additional_security_capability_t ueadditionalsecuritycapability;
 } attach_request_msg;
 
-int decode_attach_request(
-    attach_request_msg* attachrequest, uint8_t* buffer, uint32_t len);
+int decode_attach_request(attach_request_msg* attachrequest, uint8_t* buffer,
+                          uint32_t len);
 
-int encode_attach_request(
-    attach_request_msg* attachrequest, uint8_t* buffer, uint32_t len);
+int encode_attach_request(attach_request_msg* attachrequest, uint8_t* buffer,
+                          uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_REQUEST_SEEN) */

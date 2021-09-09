@@ -24,12 +24,12 @@
 
 typedef uint8_t TimeZone;
 
-int encode_time_zone(
-    TimeZone* timezone, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_time_zone(TimeZone* timezone, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 
 void dump_time_zone_xml(TimeZone* timezone, uint8_t iei);
 
-int decode_time_zone(
-    TimeZone* timezone, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_time_zone(TimeZone* timezone, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 
 #endif /* TIME ZONE_H_ */

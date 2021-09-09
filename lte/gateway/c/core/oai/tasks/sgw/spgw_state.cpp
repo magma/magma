@@ -17,8 +17,8 @@
 
 #include "spgw_state.h"
 
-#include <cstdlib>
 #include <conversions.h>
+#include <cstdlib>
 
 extern "C" {
 #include "assertions.h"
@@ -42,9 +42,8 @@ spgw_state_t* get_spgw_state(bool read_from_db) {
 }
 
 hash_table_ts_t* get_spgw_ue_state() {
-  OAILOG_DEBUG(
-      LOG_SPGW_APP, "get_spgw_ue_state called by thread id %lu",
-      pthread_self());
+  OAILOG_DEBUG(LOG_SPGW_APP, "get_spgw_ue_state called by thread id %lu",
+               pthread_self());
   return SpgwStateManager::getInstance().get_ue_state_ht();
 }
 
@@ -56,24 +55,20 @@ int read_spgw_ue_state_db() {
   return SpgwStateManager::getInstance().read_ue_state_from_db();
 }
 
-void spgw_state_exit() {
-  SpgwStateManager::getInstance().free_state();
-}
+void spgw_state_exit() { SpgwStateManager::getInstance().free_state(); }
 
-void put_spgw_state() {
-  SpgwStateManager::getInstance().write_state_to_db();
-}
+void put_spgw_state() { SpgwStateManager::getInstance().write_state_to_db(); }
 
 void put_spgw_ue_state(imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
     spgw_ue_context_t* ue_context_p = nullptr;
-    hash_table_ts_t* spgw_ue_state  = get_spgw_ue_state();
-    hashtable_ts_get(
-        spgw_ue_state, (const hash_key_t) imsi64, (void**) &ue_context_p);
+    hash_table_ts_t* spgw_ue_state = get_spgw_ue_state();
+    hashtable_ts_get(spgw_ue_state, (const hash_key_t)imsi64,
+                     (void**)&ue_context_p);
     if (ue_context_p) {
       auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);
-      SpgwStateManager::getInstance().write_ue_state_to_db(
-          ue_context_p, imsi_str);
+      SpgwStateManager::getInstance().write_ue_state_to_db(ue_context_p,
+                                                           imsi_str);
     }
   }
 }
@@ -97,14 +92,14 @@ void spgw_free_s11_bearer_context_information(
           (*context_p)->pgw_eps_bearer_context_information.apns);
     }
 
-    free_wrapper((void**) context_p);
+    free_wrapper((void**)context_p);
   }
 }
 
 void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
   if (pdn_connection_p) {
     if (pdn_connection_p->apn_in_use) {
-      free_wrapper((void**) &pdn_connection_p->apn_in_use);
+      free_wrapper((void**)&pdn_connection_p->apn_in_use);
     }
 
     for (auto& ebix : pdn_connection_p->sgw_eps_bearers_array) {
@@ -115,13 +110,13 @@ void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
 
 void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
   if (*sgw_eps_bearer_ctxt) {
-    free_wrapper((void**) sgw_eps_bearer_ctxt);
+    free_wrapper((void**)sgw_eps_bearer_ctxt);
   }
 }
 
 void pgw_free_pcc_rule(void** rule) {
   if (rule) {
-    auto* pcc_rule = (pcc_rule_t*) *rule;
+    auto* pcc_rule = (pcc_rule_t*)*rule;
     if (pcc_rule) {
       if (pcc_rule->name) {
         bdestroy_wrapper(&pcc_rule->name);
@@ -138,9 +133,9 @@ void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
       LIST_REMOVE(p1, entries);
-      free_wrapper((void**) &p1);
+      free_wrapper((void**)&p1);
       p1 = p2;
     }
-    free_wrapper((void**) ue_context_p);
+    free_wrapper((void**)ue_context_p);
   }
 }

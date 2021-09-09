@@ -21,8 +21,8 @@
 #pragma once
 
 #include "bstrlib.h"
-#include "ngap_common.h"
 #include "intertask_interface_types.h"
+#include "ngap_common.h"
 
 int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw)
     __attribute__((warn_unused_result));

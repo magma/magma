@@ -19,9 +19,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
 #include "amf_as.h"
 #include "amf_sap.h"
+#include "common_defs.h"
 
 namespace magma5g {
 
@@ -34,36 +34,34 @@ namespace magma5g {
 **                                                                        **
 ***************************************************************************/
 int amf_sap_send(amf_sap_t* msg) {
-  int rc                    = RETURNerror;
+  int rc = RETURNerror;
   amf_primitive_t primitive = msg->primitive;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   /*
    * Check the AMF-SAP primitive
    */
-  if ((primitive > (amf_primitive_t) AMFREG_PRIMITIVE_MIN) &&
-      (primitive < (amf_primitive_t) AMFREG_PRIMITIVE_MAX)) {
+  if ((primitive > (amf_primitive_t)AMFREG_PRIMITIVE_MIN) &&
+      (primitive < (amf_primitive_t)AMFREG_PRIMITIVE_MAX)) {
     /*
      * Forward to the AMFREG-SAP
      * will handle for state update
      */
     msg->u.amf_reg.primitive = primitive;
-    rc                       = amf_reg_send(msg);
-  } else if (
-      (primitive > (amf_primitive_t) AMFAS_PRIMITIVE_MIN) &&
-      (primitive < (amf_primitive_t) AMFAS_PRIMITIVE_MAX)) {
+    rc = amf_reg_send(msg);
+  } else if ((primitive > (amf_primitive_t)AMFAS_PRIMITIVE_MIN) &&
+             (primitive < (amf_primitive_t)AMFAS_PRIMITIVE_MAX)) {
     /*
      * Forward to the AMFAS-SAP
      */
-    msg->u.amf_as.primitive = (amf_as_primitive_t) primitive;
-    rc                      = amf_as_send(&msg->u.amf_as);
-  } else if (
-      (primitive > (amf_primitive_t) AMFCN_PRIMITIVE_MIN) &&
-      (primitive < (amf_primitive_t) AMFCN_PRIMITIVE_MAX)) {
+    msg->u.amf_as.primitive = (amf_as_primitive_t)primitive;
+    rc = amf_as_send(&msg->u.amf_as);
+  } else if ((primitive > (amf_primitive_t)AMFCN_PRIMITIVE_MIN) &&
+             (primitive < (amf_primitive_t)AMFCN_PRIMITIVE_MAX)) {
     /*
      * Forward to the AMFAS-SAP
      */
-    msg->u.amf_cn.primitive = (amf_cn_primitive_t) primitive;
-    rc                      = amf_cn_send(&msg->u.amf_cn);
+    msg->u.amf_cn.primitive = (amf_cn_primitive_t)primitive;
+    rc = amf_cn_send(&msg->u.amf_cn);
   } else {
     OAILOG_ERROR(LOG_NAS_AMF, "Wrong primitive type received\n");
   }
@@ -89,11 +87,11 @@ int amf_sap_send(amf_sap_t* msg) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void amf_as_data_t::amf_as_set_security_data(
-    amf_as_security_data_t* data, const void* args, bool is_new,
-    bool is_ciphered) {
+void amf_as_data_t::amf_as_set_security_data(amf_as_security_data_t* data,
+                                             const void* args, bool is_new,
+                                             bool is_ciphered) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  const amf_security_context_t* context = (amf_security_context_t*) (args);
+  const amf_security_context_t* context = (amf_security_context_t*)(args);
   memset(data, 0, sizeof(amf_as_security_data_t));
   if (context && ((context->sc_type == SECURITY_CTX_TYPE_FULL_NATIVE) ||
                   (context->sc_type == SECURITY_CTX_TYPE_MAPPED))) {
@@ -108,11 +106,11 @@ void amf_as_data_t::amf_as_set_security_data(
         LOG_NAS_AMF,
         "5GCN security context exists is new %u KSI %u SQN %u count %u\n",
         is_new, context->eksi, context->ul_count.seq_num,
-        *(uint32_t*) (&context->ul_count));
+        *(uint32_t*)(&context->ul_count));
     data->is_new = is_new;
-    data->ksi    = context->eksi;
-    data->sqn    = context->dl_count.seq_num;
-    data->count  = 0x00000000 |
+    data->ksi = context->eksi;
+    data->sqn = context->dl_count.seq_num;
+    data->count = 0x00000000 |
                   ((context->dl_count.overflow & 0x0000FFFF) << 8) |
                   (context->dl_count.seq_num & 0x000000FF);
     /*

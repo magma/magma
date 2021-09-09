@@ -33,11 +33,11 @@
 
 #include <stdbool.h>
 
-#include "common_ies.h"
-#include "common_types.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "TrackingAreaIdentity.h"
+#include "common_ies.h"
+#include "common_types.h"
 
 // value field length of IEs (IEI and length indicator are excluded)
 #define IE_LENGTH_EPS_LOCATION_UPDATE_TYPE 1
@@ -59,8 +59,8 @@ void tmsi_status_to_bytes(const bool* tmsi_status, char* byte_arr);
 void tai_to_bytes(const tai_t* tai, char* byte_arr);
 void lai_to_bytes(const lai_t* lai, char* byte_arr);
 void ecgi_to_bytes(const ecgi_t* ecgi, char* byte_arr);
-void mobile_station_classmark2_to_bytes(
-    const MobileStationClassmark2_t* mscm2, char* byte_arr);
+void mobile_station_classmark2_to_bytes(const MobileStationClassmark2_t* mscm2,
+                                        char* byte_arr);
 void plmn_to_bytes(const plmn_t* plmn, char* byte_arr);
 
 #endif /* FILE_IE_TO_BYTES_SEEN */

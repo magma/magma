@@ -31,26 +31,26 @@
 #ifndef FILE_MESSAGES_TYPES_SEEN
 #define FILE_MESSAGES_TYPES_SEEN
 
-#include "intertask_messages_types.h"
-#include "timer_messages_types.h"
 #include <inttypes.h>
-#include "security_types.h"
+#include "amf_app_messages_types.h"
+#include "async_system_messages_types.h"
 #include "gtpv1_u_messages_types.h"
+#include "gx_messages_types.h"
+#include "ha_messages_types.h"
+#include "intertask_messages_types.h"
 #include "ip_forward_messages_types.h"
+#include "mme_app_messages_types.h"
+#include "n11_messages_types.h"
+#include "ngap_messages_types.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
-#include "ngap_messages_types.h"
 #include "s6a_messages_types.h"
+#include "s8_messages_types.h"
 #include "sctp_messages_types.h"
-#include "gx_messages_types.h"
-#include "mme_app_messages_types.h"
-#include "amf_app_messages_types.h"
+#include "security_types.h"
 #include "service303_messages_types.h"
 #include "sgs_messages_types.h"
-#include "async_system_messages_types.h"
+#include "timer_messages_types.h"
 #include "udp_messages_types.h"
-#include "ha_messages_types.h"
-#include "n11_messages_types.h"
-#include "s8_messages_types.h"
 
 #endif /* FILE_MESSAGES_TYPES_SEEN */

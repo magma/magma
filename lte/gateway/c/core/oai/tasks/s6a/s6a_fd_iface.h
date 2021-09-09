@@ -22,9 +22,9 @@
 extern "C" {
 #endif
 
-#include "s6a_defs.h"
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
+#include "s6a_defs.h"
 #ifdef __cplusplus
 }
 #endif

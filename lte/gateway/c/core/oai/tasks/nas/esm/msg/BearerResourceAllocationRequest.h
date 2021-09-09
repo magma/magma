@@ -20,23 +20,23 @@
 
 #include <stdint.h>
 
-#include "MessageType.h"
-#include "LinkedEpsBearerIdentity.h"
-#include "TrafficFlowAggregateDescription.h"
-#include "EpsQualityOfService.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "EpsQualityOfService.h"
+#include "LinkedEpsBearerIdentity.h"
+#include "MessageType.h"
+#include "TrafficFlowAggregateDescription.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define BEARER_RESOURCE_ALLOCATION_REQUEST_MINIMUM_LENGTH                      \
-  (TRAFFIC_FLOW_AGGREGATE_DESCRIPTION_MINIMUM_LENGTH +                         \
+#define BEARER_RESOURCE_ALLOCATION_REQUEST_MINIMUM_LENGTH \
+  (TRAFFIC_FLOW_AGGREGATE_DESCRIPTION_MINIMUM_LENGTH +    \
    EPS_QUALITY_OF_SERVICE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define BEARER_RESOURCE_ALLOCATION_REQUEST_MAXIMUM_LENGTH                      \
-  (TRAFFIC_FLOW_AGGREGATE_DESCRIPTION_MAXIMUM_LENGTH +                         \
-   EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH +                                     \
+#define BEARER_RESOURCE_ALLOCATION_REQUEST_MAXIMUM_LENGTH \
+  (TRAFFIC_FLOW_AGGREGATE_DESCRIPTION_MAXIMUM_LENGTH +    \
+   EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH +                \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding

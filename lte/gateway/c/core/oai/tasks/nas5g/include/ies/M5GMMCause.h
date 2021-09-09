@@ -10,8 +10,8 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {
@@ -28,9 +28,9 @@ class M5GMMCauseMsg {
 
   M5GMMCauseMsg();
   ~M5GMMCauseMsg();
-  int EncodeM5GMMCauseMsg(
-      M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeM5GMMCauseMsg(
-      M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
+  int DecodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
+                          uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

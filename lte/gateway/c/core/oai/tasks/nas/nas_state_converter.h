@@ -56,33 +56,30 @@ class NasStateConverter : StateConverter {
    * for EMM procedures in EMM context is dynamically allocated by NAS task and
    * NasStateConvertor, and freed by MmeNasStateManager
    */
-  static void emm_context_to_proto(
-      const emm_context_t* state_emm_context,
-      oai::EmmContext* emm_context_proto);
+  static void emm_context_to_proto(const emm_context_t* state_emm_context,
+                                   oai::EmmContext* emm_context_proto);
 
   /**
    * Deserialize oai::EmmContext proto message to struct emm_context_t, the
    * memory for EMM procedures in EMM context is allocated by NasStateConvertor,
    * and freed by MmeNasStateManager
    */
-  static void proto_to_emm_context(
-      const oai::EmmContext& emm_context_proto,
-      emm_context_t* state_emm_context);
+  static void proto_to_emm_context(const oai::EmmContext& emm_context_proto,
+                                   emm_context_t* state_emm_context);
 
-  template<typename NodeType>
-  static void identity_tuple_to_proto(
-      const NodeType* state_identity, oai::IdentityTuple* identity_proto,
-      int size) {
+  template <typename NodeType>
+  static void identity_tuple_to_proto(const NodeType* state_identity,
+                                      oai::IdentityTuple* identity_proto,
+                                      int size) {
     identity_proto->set_value(state_identity->u.value, size);
     identity_proto->set_num_digits(state_identity->length);
   }
 
-  template<typename NodeType>
-  static void proto_to_identity_tuple(
-      const oai::IdentityTuple& identity_proto, NodeType* state_identity,
-      int size) {
-    memcpy(
-        (void*) &state_identity->u.value, identity_proto.value().data(), size);
+  template <typename NodeType>
+  static void proto_to_identity_tuple(const oai::IdentityTuple& identity_proto,
+                                      NodeType* state_identity, int size) {
+    memcpy((void*)&state_identity->u.value, identity_proto.value().data(),
+           size);
     state_identity->length = identity_proto.num_digits();
   }
 
@@ -91,11 +88,11 @@ class NasStateConverter : StateConverter {
 
   static void proto_to_ecgi(const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi);
 
-  static void tai_list_to_proto(
-      const tai_list_t* state_tai_list, oai::TaiList* tai_list_proto);
+  static void tai_list_to_proto(const tai_list_t* state_tai_list,
+                                oai::TaiList* tai_list_proto);
 
-  static void proto_to_tai_list(
-      const oai::TaiList& tai_list_proto, tai_list_t* state_tai_list);
+  static void proto_to_tai_list(const oai::TaiList& tai_list_proto,
+                                tai_list_t* state_tai_list);
 
   static void tai_to_proto(const tai_t* state_tai, oai::Tai* tai_proto);
 
@@ -178,11 +175,11 @@ class NasStateConverter : StateConverter {
 
   static void proto_to_ambr(const oai::Ambr& ambr_proto, ambr_t* state_ambr);
 
-  static void bearer_qos_to_proto(
-      const bearer_qos_t& state_bearer_qos, oai::BearerQos* bearer_qos_proto);
+  static void bearer_qos_to_proto(const bearer_qos_t& state_bearer_qos,
+                                  oai::BearerQos* bearer_qos_proto);
 
-  static void proto_to_bearer_qos(
-      const oai::BearerQos& bearer_qos_proto, bearer_qos_t* state_bearer_qos);
+  static void proto_to_bearer_qos(const oai::BearerQos& bearer_qos_proto,
+                                  bearer_qos_t* state_bearer_qos);
 
   static void pco_protocol_or_container_id_to_proto(
       const protocol_configuration_options_t&
@@ -194,21 +191,18 @@ class NasStateConverter : StateConverter {
           protocol_configuration_options_proto,
       protocol_configuration_options_t* state_protocol_configuration_options);
 
-  static void esm_proc_data_to_proto(
-      const esm_proc_data_t* state_esm_proc_data,
-      oai::EsmProcData* esm_proc_data_proto);
+  static void esm_proc_data_to_proto(const esm_proc_data_t* state_esm_proc_data,
+                                     oai::EsmProcData* esm_proc_data_proto);
 
   static void proto_to_esm_proc_data(
       const oai::EsmProcData& esm_proc_data_proto,
       esm_proc_data_t* state_esm_proc_data);
 
-  static void esm_context_to_proto(
-      const esm_context_t* state_esm_context,
-      oai::EsmContext* esm_context_proto);
+  static void esm_context_to_proto(const esm_context_t* state_esm_context,
+                                   oai::EsmContext* esm_context_proto);
 
-  static void proto_to_esm_context(
-      const oai::EsmContext& esm_context_proto,
-      esm_context_t* state_esm_context);
+  static void proto_to_esm_context(const oai::EsmContext& esm_context_proto,
+                                   esm_context_t* state_esm_context);
 
   static void nas_message_decode_status_to_proto(
       const nas_message_decode_status_t* state_nas_message_decode_status,
@@ -282,19 +276,18 @@ class NasStateConverter : StateConverter {
       const oai::NasProcMessSign& nas_proc_mess_sign_proto,
       nas_proc_mess_sign_t* state_nas_proc_mess_sign);
 
-  static void nas_base_proc_to_proto(
-      const nas_base_proc_t* base_proc_p, oai::NasBaseProc* base_proc_proto);
+  static void nas_base_proc_to_proto(const nas_base_proc_t* base_proc_p,
+                                     oai::NasBaseProc* base_proc_proto);
 
   static void proto_to_nas_base_proc(
       const oai::NasBaseProc& nas_base_proc_proto,
       nas_base_proc_t* state_nas_base_proc);
 
-  static void emm_proc_to_proto(
-      const nas_emm_proc_t* emm_proc_p, oai::NasEmmProc* emm_proc_proto);
+  static void emm_proc_to_proto(const nas_emm_proc_t* emm_proc_p,
+                                oai::NasEmmProc* emm_proc_proto);
 
-  static void proto_to_nas_emm_proc(
-      const oai::NasEmmProc& nas_emm_proc_proto,
-      nas_emm_proc_t* state_nas_emm_proc);
+  static void proto_to_nas_emm_proc(const oai::NasEmmProc& nas_emm_proc_proto,
+                                    nas_emm_proc_t* state_nas_emm_proc);
 
   static void emm_specific_proc_to_proto(
       const nas_emm_specific_proc_t* state_emm_specific_proc,
@@ -336,8 +329,8 @@ class NasStateConverter : StateConverter {
       const emm_procedures_t* state_emm_procedures,
       oai::EmmProcedures* emm_procedures_proto);
 
-  static void insert_proc_into_cn_procs(
-      emm_procedures_t* state_emm_procedures, nas_cn_proc_t* cn_proc);
+  static void insert_proc_into_cn_procs(emm_procedures_t* state_emm_procedures,
+                                        nas_cn_proc_t* cn_proc);
 
   static void proto_to_nas_cn_proc(
       const oai::EmmProcedures& emm_procedures_proto,
@@ -363,9 +356,8 @@ class NasStateConverter : StateConverter {
       const auth_vector_t* state_auth_vector_array, int num_vectors,
       oai::EmmContext* emm_context_proto);
 
-  static int proto_to_auth_vectors(
-      const oai::EmmContext& emm_context_proto,
-      auth_vector_t* state_auth_vector);
+  static int proto_to_auth_vectors(const oai::EmmContext& emm_context_proto,
+                                   auth_vector_t* state_auth_vector);
 
   static void emm_security_context_to_proto(
       const emm_security_context_t* state_emm_security_context,

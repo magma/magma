@@ -24,12 +24,12 @@ extern "C" {
 }
 #endif
 
-#include "conversions.h"
-#include "common_defs.h"
-#include "service303.h"
-#include "common_types.h"
-#include "MobilityServiceClient.h"
 #include "M5GMobilityServiceClient.h"
+#include "MobilityServiceClient.h"
+#include "common_defs.h"
+#include "common_types.h"
+#include "conversions.h"
+#include "service303.h"
 
 using grpc::Status;
 using magma::lte::AllocateIPAddressResponse;
@@ -49,24 +49,22 @@ static void handle_allocate_ipv4_address_status(
 
   itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-  memset(
-      amf_ip_allocation_response_p, 0,
-      sizeof(itti_amf_ip_allocation_response_t));
+  memset(amf_ip_allocation_response_p, 0,
+         sizeof(itti_amf_ip_allocation_response_t));
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
-  amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
-  amf_ip_allocation_response_p->pdu_session_id   = pdu_session_id;
-  amf_ip_allocation_response_p->pti              = pti;
+  amf_ip_allocation_response_p->imsi_length = IMSI_BCD_DIGITS_MAX;
+  amf_ip_allocation_response_p->pdu_session_id = pdu_session_id;
+  amf_ip_allocation_response_p->pti = pti;
   amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
   amf_ip_allocation_response_p->paa.ipv4_address = in_ip4_addr;
-  amf_ip_allocation_response_p->paa.pdn_type     = IPv4;
-  amf_ip_allocation_response_p->paa.vlan         = vlan;
+  amf_ip_allocation_response_p->paa.pdn_type = IPv4;
+  amf_ip_allocation_response_p->paa.vlan = vlan;
 
   amf_ip_allocation_response_p->gnb_gtp_teid = gnb_gtp_teid;
 
-  memcpy(
-      amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
-      4);
+  memcpy(amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr,
+         gnb_gtp_teid_ip_addr, 4);
 
   memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
 
@@ -86,7 +84,7 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
     uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
     uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   auto subscriber_id_str = std::string(subscriber_id);
-  auto apn_str           = std::string(apn);
+  auto apn_str = std::string(apn);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id_str, apn,
       [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
@@ -111,8 +109,8 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
 
 int AsyncM5GMobilityServiceClient::release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr) {
-  MobilityServiceClient::getInstance().ReleaseIPv4Address(
-      subscriber_id, apn, *addr);
+  MobilityServiceClient::getInstance().ReleaseIPv4Address(subscriber_id, apn,
+                                                          *addr);
   return RETURNok;
 }
 

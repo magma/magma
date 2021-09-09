@@ -10,8 +10,8 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 using namespace std;
 namespace magma5g {
@@ -29,9 +29,9 @@ class ServiceTypeMsg {
 
   ServiceTypeMsg();
   ~ServiceTypeMsg();
-  int EncodeServiceTypeMsg(
-      ServiceTypeMsg* service_type, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeServiceTypeMsg(
-      ServiceTypeMsg* service_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeServiceTypeMsg(ServiceTypeMsg* service_type, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
+  int DecodeServiceTypeMsg(ServiceTypeMsg* service_type, uint8_t iei,
+                           uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

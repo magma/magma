@@ -26,7 +26,7 @@ extern "C" {
 
 typedef uint32_t amf_ue_ngap_id_t;
 #define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH) \
   LENGTH += QUADLET - (LENGTH % QUADLET)
 
 namespace magma5g {
@@ -41,10 +41,10 @@ nas_amf_smc_proc_t smc_data;
 **                                                                        **
 ***************************************************************************/
 
-void amf_ctx_set_valid_imsi(
-    amf_context_t* ctxt, imsi_t* imsi, const imsi64_t imsi64) {
-  ctxt->imsi                     = *imsi;
-  ctxt->imsi64                   = imsi64;
+void amf_ctx_set_valid_imsi(amf_context_t* ctxt, imsi_t* imsi,
+                            const imsi64_t imsi64) {
+  ctxt->imsi = *imsi;
+  ctxt->imsi64 = imsi64;
   ctxt->is_initial_identity_imsi = true;
 }
 
@@ -56,10 +56,10 @@ void amf_ctx_set_valid_imsi(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(
-    amf_context_t* ctxt, ksi_t eksi) {
+void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(amf_context_t* ctxt,
+                                                   ksi_t eksi) {
   ctxt->_security.eksi = eksi;
-  ctxt->ksi            = eksi;
+  ctxt->ksi = eksi;
 
   OAILOG_TRACE(
       LOG_NAS_AMF,
@@ -76,8 +76,8 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void nas_amf_smc_proc_t::amf_ctx_set_security_type(
-    amf_context_t* ctxt, amf_sc_type_t sc_type) {
+void nas_amf_smc_proc_t::amf_ctx_set_security_type(amf_context_t* ctxt,
+                                                   amf_sc_type_t sc_type) {
   ctxt->_security.sc_type = sc_type;
   OAILOG_TRACE(
       LOG_NAS_AMF,

@@ -16,26 +16,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "service303_message_utils.h"
 #include "amf_as_message.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_free_defined_msg.h"
+#include "log.h"
+#include "service303_message_utils.h"
 #ifdef __cplusplus
 }
 #endif
-#include "amf_app_messages_types.h"
-#include "amf_config.h"
-#include "amf_fsm.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_data.h"
 #include "amf_app_defs.h"
-#include "amf_authentication.h"
-#include "ngap_messages_types.h"
+#include "amf_app_messages_types.h"
 #include "amf_app_state_manager.h"
+#include "amf_app_ue_context_and_proc.h"
+#include "amf_authentication.h"
+#include "amf_config.h"
+#include "amf_data.h"
+#include "amf_fsm.h"
 #include "amf_smfDefs.h"
 #include "common_defs.h"
+#include "ngap_messages_types.h"
 
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -56,12 +56,12 @@ void amf_app_exit(void);
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
-      ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
-      ITTI_MSG_NAME(received_message_p));
+  OAILOG_INFO(LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
+              ITTI_MSG_ORIGIN_NAME(received_message_p),
+              ITTI_MSG_ID(received_message_p),
+              ITTI_MSG_NAME(received_message_p));
 
   switch (ITTI_MSG_ID(received_message_p)) {
     /* Handle Initial UE message from NGAP */
@@ -156,8 +156,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 void* amf_app_thread(void* args) {
   itti_mark_task_ready(TASK_AMF_APP);
   const task_id_t tasks[] = {TASK_NGAP, TASK_SERVICE303};
-  init_task_context(
-      TASK_AMF_APP, tasks, 2, handle_message, &amf_app_task_zmq_ctx);
+  init_task_context(TASK_AMF_APP, tasks, 2, handle_message,
+                    &amf_app_task_zmq_ctx);
   // Service started, but not healthy yet
   send_app_health_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP, false);
   zloop_start(amf_app_task_zmq_ctx.event_loop);
@@ -212,13 +212,12 @@ void amf_app_exit(void) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-status_code_e amf_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
-      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
-      ITTI_MSG_NAME(message));
+status_code_e amf_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+                                   task_id_t destination_task_id,
+                                   MessageDef* message) {
+  OAILOG_INFO(LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
+              itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
+              ITTI_MSG_NAME(message));
 
   return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }

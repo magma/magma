@@ -37,8 +37,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "intertask_interface_types.h"
 #include "intertask_interface.h"
+#include "intertask_interface_types.h"
 
 #define SIGTIMER SIGRTMIN
 
@@ -49,9 +49,9 @@ typedef enum timer_type_s {
 } timer_type_t;
 
 typedef enum {
-  TIMER_OK        = 0,
+  TIMER_OK = 0,
   TIMER_NOT_FOUND = -1,
-  TIMER_ERR       = -2,
+  TIMER_ERR = -2,
 } timer_result_t;
 
 int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx);
@@ -67,10 +67,9 @@ int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx);
  *  \param timer_id     unique timer identifier
  *  @returns -1 on failure, 0 otherwise
  **/
-int timer_setup(
-    uint32_t interval_sec, uint32_t interval_us, task_id_t task_id,
-    int32_t instance, timer_type_t type, void* timer_arg, size_t arg_size,
-    long* timer_id);
+int timer_setup(uint32_t interval_sec, uint32_t interval_us, task_id_t task_id,
+                int32_t instance, timer_type_t type, void* timer_arg,
+                size_t arg_size, long* timer_id);
 
 int timer_handle_expired(long timer_id);
 

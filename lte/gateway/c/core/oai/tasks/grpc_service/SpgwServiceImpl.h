@@ -19,12 +19,12 @@
 #include <grpc++/grpc++.h>
 #include <grpcpp/impl/codegen/status.h>
 
-#include "lte/protos/spgw_service.grpc.pb.h"
 #include "lte/protos/policydb.pb.h"
+#include "lte/protos/spgw_service.grpc.pb.h"
 
 extern "C" {
-#include "spgw_service_handler.h"
 #include "log.h"
+#include "spgw_service_handler.h"
 }
 
 namespace grpc {
@@ -62,9 +62,9 @@ class SpgwServiceImpl final : public SpgwService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status CreateBearer(
-      ServerContext* context, const CreateBearerRequest* request,
-      CreateBearerResult* response) override;
+  grpc::Status CreateBearer(ServerContext* context,
+                            const CreateBearerRequest* request,
+                            CreateBearerResult* response) override;
 
   /*
        * DeleteBearerRequest.
@@ -75,9 +75,9 @@ class SpgwServiceImpl final : public SpgwService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status DeleteBearer(
-      ServerContext* context, const DeleteBearerRequest* request,
-      DeleteBearerResult* response) override;
+  grpc::Status DeleteBearer(ServerContext* context,
+                            const DeleteBearerRequest* request,
+                            DeleteBearerResult* response) override;
 
  private:
   /*
@@ -86,8 +86,8 @@ class SpgwServiceImpl final : public SpgwService::Service {
    * @param flow_match_rule: pf_content is filled based on flow match rule
    * @return bool: Return true if sueccessful, false if not
    */
-  bool fillUpPacketFilterContents(
-      packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule);
+  bool fillUpPacketFilterContents(packet_filter_contents_t* pf_content,
+                                  const FlowMatch* flow_match_rule);
 
   /*
    * Fill up the ipv4 remote address field in packet filter
@@ -95,8 +95,8 @@ class SpgwServiceImpl final : public SpgwService::Service {
    * @param ipv4addr: IPv4 address in string form (e.g, "172.12.0.1")
    * @return bool: Return true if successful, false if not
    */
-  bool fillIpv4(
-      packet_filter_contents_t* pf_content, const std::string ipv4addr);
+  bool fillIpv4(packet_filter_contents_t* pf_content,
+                const std::string ipv4addr);
 
   /*
    * Fill up the ipv6 remote address field in packet filter
@@ -104,8 +104,8 @@ class SpgwServiceImpl final : public SpgwService::Service {
    * @param ipv6addr: IPv6 address in string form (e.g, "x:x:x:x::x")
    * @return bool: Return true if successful, false if not
    */
-  bool fillIpv6(
-      packet_filter_contents_t* pf_content, const std::string ipv6addr);
+  bool fillIpv6(packet_filter_contents_t* pf_content,
+                const std::string ipv6addr);
 };
 
 }  // namespace magma

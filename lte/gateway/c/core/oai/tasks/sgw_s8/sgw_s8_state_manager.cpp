@@ -16,18 +16,16 @@ extern "C" {
 #include "backtrace.h"
 }
 
+#include "common_defs.h"
 #include "sgw_context_manager.h"
 #include "sgw_s8_state_manager.h"
-#include "common_defs.h"
 
 namespace magma {
 namespace lte {
 
 SgwStateManager::SgwStateManager() : config_(nullptr) {}
 
-SgwStateManager::~SgwStateManager() {
-  free_state();
-}
+SgwStateManager::~SgwStateManager() { free_state(); }
 
 SgwStateManager& SgwStateManager::getInstance() {
   static SgwStateManager instance;
@@ -35,11 +33,11 @@ SgwStateManager& SgwStateManager::getInstance() {
 }
 
 void SgwStateManager::init(bool persist_state, const sgw_config_t* config) {
-  log_task              = LOG_SGW_S8;
-  task_name             = SGW_TASK_NAME;
-  table_key             = SGW_STATE_TABLE_NAME;
+  log_task = LOG_SGW_S8;
+  task_name = SGW_TASK_NAME;
+  table_key = SGW_STATE_TABLE_NAME;
   persist_state_enabled = persist_state;
-  config_               = config;
+  config_ = config;
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_SGW_S8, "Failed to read state from redis");
@@ -48,10 +46,10 @@ void SgwStateManager::init(bool persist_state, const sgw_config_t* config) {
 }
 
 void SgwStateManager::create_state() {
-  state_cache_p = (sgw_state_t*) calloc(1, sizeof(sgw_state_t));
+  state_cache_p = (sgw_state_t*)calloc(1, sizeof(sgw_state_t));
   if (!state_cache_p) {
-    OAILOG_CRITICAL(
-        LOG_SGW_S8, "Failed to allocate memory for sgw_state_t structure \n ");
+    OAILOG_CRITICAL(LOG_SGW_S8,
+                    "Failed to allocate memory for sgw_state_t structure \n ");
     return;
   }
 
@@ -62,10 +60,10 @@ void SgwStateManager::create_state() {
   // invoked, so as to remove any contexts allocated within sgw_bearer context
   state_ue_ht = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) sgw_free_s11_bearer_context_information, b);
+      (void (*)(void**))sgw_free_s11_bearer_context_information, b);
   if (!state_ue_ht) {
-    OAILOG_CRITICAL(
-        LOG_SGW_S8, "Failed to create state_ue_ht for SGW_S8 task \n");
+    OAILOG_CRITICAL(LOG_SGW_S8,
+                    "Failed to create state_ue_ht for SGW_S8 task \n");
     return;
   }
 
@@ -74,16 +72,16 @@ void SgwStateManager::create_state() {
 
   state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
-  state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) sgw_free_ue_context, nullptr);
+  state_cache_p->imsi_ue_context_htbl =
+      hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+                          (void (*)(void**))sgw_free_ue_context, nullptr);
   if (!(state_cache_p->imsi_ue_context_htbl)) {
-    OAILOG_CRITICAL(
-        LOG_SGW_S8, "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
+    OAILOG_CRITICAL(LOG_SGW_S8,
+                    "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
     return;
   }
 
-  state_cache_p->s1u_teid   = INITIAL_SGW_S8_S1U_TEID;
+  state_cache_p->s1u_teid = INITIAL_SGW_S8_S1U_TEID;
   state_cache_p->s5s8u_teid = 0;
   bdestroy_wrapper(&b);
 }
@@ -105,7 +103,7 @@ void SgwStateManager::free_state() {
 
   hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
 
-  free_wrapper((void**) &state_cache_p);
+  free_wrapper((void**)&state_cache_p);
 }
 
 status_code_e SgwStateManager::read_ue_state_from_db() {

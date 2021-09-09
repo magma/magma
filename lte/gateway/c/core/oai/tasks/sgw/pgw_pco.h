@@ -26,8 +26,8 @@
 
 #include <stdint.h>
 
-#include "common_defs.h"
 #include "3gpp_24.008.h"
+#include "common_defs.h"
 
 /**
  * protocol_configuration_options_ids_t

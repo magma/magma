@@ -15,15 +15,15 @@
  *      contact@openairinterface.org
  */
 
-#include <thread>
-#include <mutex>
+#include "OpenflowController.h"
 #include <chrono>
 #include <condition_variable>
-#include "OpenflowController.h"
+#include <mutex>
+#include <thread>
 #include "ControllerMain.h"
 extern "C" {
-#include "log.h"
 #include "common_defs.h"
+#include "log.h"
 }
 
 using namespace fluid_base;
@@ -37,24 +37,23 @@ namespace openflow {
 OpenflowController::OpenflowController(
     const char* address, const int port, const int n_workers, bool secure,
     std::shared_ptr<OpenflowMessenger> messenger)
-    : OFServer(
-          address, port, n_workers, secure,
-          OFServerSettings()
-              .supported_version(OF_13_VERSION)  // OF 1.3
-              .use_hello_elements(true)          // bitmask version negotiation
-              .keep_data_ownership(false)),
+    : OFServer(address, port, n_workers, secure,
+               OFServerSettings()
+                   .supported_version(OF_13_VERSION)  // OF 1.3
+                   .use_hello_elements(true)  // bitmask version negotiation
+                   .keep_data_ownership(false)),
       running_(true),
       latest_ofconn_(nullptr),
       messenger_(messenger) {}
 
-OpenflowController::OpenflowController(
-    const char* address, const int port, const int n_workers, bool secure)
+OpenflowController::OpenflowController(const char* address, const int port,
+                                       const int n_workers, bool secure)
     : OpenflowController(
           address, port, n_workers, secure,
           std::shared_ptr<DefaultMessenger>(new DefaultMessenger())) {}
 
-void OpenflowController::register_for_event(
-    Application* app, ControllerEventType event_type) {
+void OpenflowController::register_for_event(Application* app,
+                                            ControllerEventType event_type) {
   event_listeners[event_type].push_back(app);
 }
 
@@ -66,8 +65,8 @@ void OpenflowController::stop() {
   OFServer::stop();
 }
 
-void OpenflowController::message_callback(
-    OFConnection* ofconn, uint8_t type, void* data, size_t len) {
+void OpenflowController::message_callback(OFConnection* ofconn, uint8_t type,
+                                          void* data, size_t len) {
   if (type == OFPT_PACKET_IN_TYPE) {
     OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller got packet-in message\n");
     dispatch_event(PacketInEvent(ofconn, *this, data, len));
@@ -89,8 +88,8 @@ void OpenflowController::message_callback(
     OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller unknown callback %d\n", type);
   }
 }
-void OpenflowController::connection_callback(
-    OFConnection* ofconn, OFConnection::Event type) {
+void OpenflowController::connection_callback(OFConnection* ofconn,
+                                             OFConnection::Event type) {
   if (type == OFConnection::EVENT_CLOSED || type == OFConnection::EVENT_DEAD) {
     OAILOG_ERROR(LOG_GTPV1U, "Openflow controller lost connection to switch\n");
     dispatch_event(SwitchDownEvent(ofconn));
@@ -105,12 +104,12 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
   }
   std::vector<Application*> listeners = event_listeners[ev.get_type()];
   for (auto it = listeners.begin(); it != listeners.end(); it++) {
-    ((Application*) (*it))->event_callback(ev, *messenger_);
+    ((Application*)(*it))->event_callback(ev, *messenger_);
   }
 }
 
 void OpenflowController::inject_external_event(
-    std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
+    std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>)) {
   if (latest_ofconn_ == NULL) {
 #define CONNECTION_EVENT_WAIT_TIME 5
     if (is_controller_connected_to_switch(CONNECTION_EVENT_WAIT_TIME) ==

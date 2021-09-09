@@ -9,19 +9,19 @@
  * limitations under the License.
  * */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-#include "M5GGprsTimer3.h"
 #include "M5GCommonDefs.h"
+#include "M5GGprsTimer3.h"
 
 namespace magma5g {
 GPRSTimer3Msg::GPRSTimer3Msg(){};
 GPRSTimer3Msg::~GPRSTimer3Msg(){};
 
-int GPRSTimer3Msg::DecodeGPRSTimer3Msg(
-    GPRSTimer3Msg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -29,14 +29,14 @@ int GPRSTimer3Msg::DecodeGPRSTimer3Msg(
     decoded++;
   }
 
-  gprstimer->unit       = (*(buffer + decoded) >> 5) & 0x7;
+  gprstimer->unit = (*(buffer + decoded) >> 5) & 0x7;
   gprstimer->timervalue = *(buffer + decoded) & 0x1f;
   decoded++;
   return decoded;
 };
 
-int GPRSTimer3Msg::EncodeGPRSTimer3Msg(
-    GPRSTimer3Msg* gprstimer, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int GPRSTimer3Msg::EncodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
+                                       uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*

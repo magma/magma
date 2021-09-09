@@ -11,8 +11,8 @@
  * @brief This file contains example of a minimalistic log manager entity.
  */
 
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include "NwEvt.h"
 #include "NwLog.h"
 
@@ -23,13 +23,13 @@
 #ifndef __NW_MINI_LOG_MGR_H__
 #define __NW_MINI_LOG_MGR_H__
 
-#define NW_LOG(_logLevel, ...)                                                 \
-  do {                                                                         \
-    if ((nwMiniLogMgrGetInstance())->logLevel >= _logLevel) {                  \
-      char _logStr[1024];                                                      \
-      snprintf(_logStr, 1024, __VA_ARGS__);                                    \
-      printf("%s \n", _logStr);                                                \
-    }                                                                          \
+#define NW_LOG(_logLevel, ...)                                \
+  do {                                                        \
+    if ((nwMiniLogMgrGetInstance())->logLevel >= _logLevel) { \
+      char _logStr[1024];                                     \
+      snprintf(_logStr, 1024, __VA_ARGS__);                   \
+      printf("%s \n", _logStr);                               \
+    }                                                         \
   } while (0)
 
 /**
@@ -74,9 +74,9 @@ nw_rc_t nwMiniLogMgrSetLogLevel(NwMiniLogMgrT* thiz, uint32_t logLevel);
  * @param line : Line Number
  * @param logStr : Log string
  */
-nw_rc_t nwMiniLogMgrLogRequest(
-    nw_gtpv2c_LogMgrHandleT logMgrHandle, uint32_t logLevel, NwCharT* file,
-    uint32_t line, NwCharT* logStr);
+nw_rc_t nwMiniLogMgrLogRequest(nw_gtpv2c_LogMgrHandleT logMgrHandle,
+                               uint32_t logLevel, NwCharT* file, uint32_t line,
+                               NwCharT* logStr);
 
 #ifdef __cplusplus
 }

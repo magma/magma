@@ -25,12 +25,10 @@
 
 typedef uint8_t security_header_type_t;
 
-int encode_security_header_type(
-    security_header_type_t* securityheadertype, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_security_header_type(security_header_type_t* securityheadertype,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
 
-int decode_security_header_type(
-    security_header_type_t* securityheadertype, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_security_header_type(security_header_type_t* securityheadertype,
+                                uint8_t iei, uint8_t* buffer, uint32_t len);
 
 #endif /* SECURITY HEADER TYPE_SEEN */

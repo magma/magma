@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include "gtpv1u.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
-#include "gtpv1u.h"
 
 namespace magma {
 namespace lte {
@@ -32,9 +32,10 @@ namespace lte {
  * @return UESessionSet
  */
 
-UESessionSet create_update_request_ipv4(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, int vlan, uint32_t ue_state);
+UESessionSet create_update_request_ipv4(struct in_addr& enb_ipv4_addr,
+                                        const struct in_addr& ue_ipv4_addr,
+                                        uint32_t in_teid, uint32_t out_teid,
+                                        int vlan, uint32_t ue_state);
 
 /**
  * @brief
@@ -86,9 +87,10 @@ UESessionSet create_add_update_request_ipv4_flow_dl(
  * @param ue_state
  * @return UESessionSet
  */
-UESessionSet create_del_update_request_ipv4(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, uint32_t ue_state);
+UESessionSet create_del_update_request_ipv4(struct in_addr& enb_ipv4_addr,
+                                            const struct in_addr& ue_ipv4_addr,
+                                            uint32_t in_teid, uint32_t out_teid,
+                                            uint32_t ue_state);
 
 /**
  * @brief

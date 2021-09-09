@@ -18,8 +18,8 @@
 #ifndef FILE_MME_APP_EDNS_EMULATION_SEEN
 #define FILE_MME_APP_EDNS_EMULATION_SEEN
 
-#include "common_defs.h"
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "mme_config.h"
 
 struct in_addr;

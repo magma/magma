@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
+#include "M5GProtocolConfigurationOptions.h"
 #include <cstdint>
 #include <cstring>
-#include "M5GProtocolConfigurationOptions.h"
+#include <iostream>
+#include <sstream>
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
 
@@ -22,9 +22,8 @@ namespace magma5g {
 ProtocolConfigurationOptions::ProtocolConfigurationOptions() {}
 ProtocolConfigurationOptions::~ProtocolConfigurationOptions() {}
 
-int decode_bstring(
-    bstring* bstr, const uint16_t pdulen, const uint8_t* const buffer,
-    const uint32_t buflen) {
+int decode_bstring(bstring* bstr, const uint16_t pdulen,
+                   const uint8_t* const buffer, const uint32_t buflen) {
   if (buflen < pdulen) {
     return TLV_BUFFER_TOO_SHORT;
   }
@@ -37,12 +36,12 @@ int decode_bstring(
   }
 }
 
-int encode_bstring(
-    const_bstring const str, uint8_t* const buffer, const uint32_t buflen) {
+int encode_bstring(const_bstring const str, uint8_t* const buffer,
+                   const uint32_t buflen) {
   if (str) {
     if (blength(str) > 0) {
       CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, blength(str), buflen);
-      memcpy((void*) buffer, (void*) str->data, blength(str));
+      memcpy((void*)buffer, (void*)str->data, blength(str));
       return blength(str);
     } else {
       return 0;
@@ -55,7 +54,7 @@ int encode_bstring(
 int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
     protocol_configuration_options_t* pco, const uint8_t* const buffer,
     const uint32_t len) {
-  int decoded       = 0;
+  int decoded = 0;
   int decode_result = 0;
 
   if (((*(buffer + decoded) >> 7) & 0x1) != 1) {
@@ -73,16 +72,15 @@ int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
   decoded++;
   pco->num_protocol_or_container_id = 0;
 
-  while (3 <= ((int32_t) len - (int32_t) decoded)) {
+  while (3 <= ((int32_t)len - (int32_t)decoded)) {
     DECODE_U16(
         buffer + decoded,
         pco->protocol_or_container_ids[pco->num_protocol_or_container_id].id,
         decoded);
-    DECODE_U8(
-        buffer + decoded,
-        pco->protocol_or_container_ids[pco->num_protocol_or_container_id]
-            .length,
-        decoded);
+    DECODE_U8(buffer + decoded,
+              pco->protocol_or_container_ids[pco->num_protocol_or_container_id]
+                  .length,
+              decoded);
 
     if (0 < pco->protocol_or_container_ids[pco->num_protocol_or_container_id]
                 .length) {
@@ -111,8 +109,8 @@ int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
 int ProtocolConfigurationOptions::DecodeProtocolConfigurationOptions(
     ProtocolConfigurationOptions* protocolconfigurationoptions, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
-  int decoded2  = 0;
+  int decoded = 0;
+  int decoded2 = 0;
   uint8_t ielen = 0;
 
   if (iei) {
@@ -133,17 +131,16 @@ int ProtocolConfigurationOptions::m5g_encode_protocol_configuration_options(
     const protocol_configuration_options_t* const pco, uint8_t* buffer,
     const uint32_t len) {
   uint8_t num_protocol_or_container_id = 0;
-  uint32_t encoded                     = 0;
-  int encode_result                    = 0;
+  uint32_t encoded = 0;
+  int encode_result = 0;
 
   *(buffer + encoded) = 0x00 | (1 << 7) | (pco->configuration_protocol & 0x7);
   encoded++;
 
   while (num_protocol_or_container_id < pco->num_protocol_or_container_id) {
-    ENCODE_U16(
-        buffer + encoded,
-        pco->protocol_or_container_ids[num_protocol_or_container_id].id,
-        encoded);
+    ENCODE_U16(buffer + encoded,
+               pco->protocol_or_container_ids[num_protocol_or_container_id].id,
+               encoded);
 
     *(buffer + encoded) =
         pco->protocol_or_container_ids[num_protocol_or_container_id].length;
@@ -165,7 +162,7 @@ int ProtocolConfigurationOptions::m5g_encode_protocol_configuration_options(
 int ProtocolConfigurationOptions::EncodeProtocolConfigurationOptions(
     ProtocolConfigurationOptions* protocolconfigurationoptions, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr  = NULL;
+  uint8_t* lenPtr = NULL;
   uint16_t pco_len = 0;
   uint32_t encoded = 0;
 
