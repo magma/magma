@@ -23,6 +23,7 @@ class TestAttachNwInitiatedDetachFail(unittest.TestCase):
     """
     S1AP Integration test for Failed Network Initiated Detach
     """
+
     def setUp(self):
         """Initialize s1ap wrapper and spgw utility
         """
