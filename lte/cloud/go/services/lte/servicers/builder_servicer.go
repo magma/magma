@@ -416,7 +416,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 				enbMconfig.B2Threshold1Rsrp = hoAlgorithmConfig.B2Threshold1Rsrp
 				enbMconfig.B2Threshold2Rsrp = int32(hoAlgorithmConfig.B2Threshold2Rsrp)
 				enbMconfig.B2GeranIratThreshold = uint32(hoAlgorithmConfig.B2GeranIratThreshold)
-				enbMconfig.QrxlevminSib1 = oAlgorithmConfig.QrxlevminSib1
+				enbMconfig.QrxlevminSib1 = hoAlgorithmConfig.QrxlevminSib1
 				enbMconfig.Qrxlevminoffset = uint32(hoAlgorithmConfig.Qrxlevminoffset)
 				enbMconfig.SIntrasearch = uint32(hoAlgorithmConfig.SIntrasearch)
 				enbMconfig.SNonintrasearch = uint32(hoAlgorithmConfig.SNonintrasearch)
