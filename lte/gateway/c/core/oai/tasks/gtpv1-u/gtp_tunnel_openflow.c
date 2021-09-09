@@ -156,6 +156,7 @@ static uint32_t create_gtp_port(
     struct in_addr enb_addr, char port_name[], bool is_pgw) {
   char gtp_port_create[512];
   char* gtp_echo;
+  char* gtp_csum;
   char* l3_tunnel;
   int rc;
 
@@ -165,6 +166,12 @@ static uint32_t create_gtp_port(
     gtp_echo = "false";
   }
 
+  if (spgw_config.sgw_config.ovs_config.gtp_csum) {
+    gtp_csum = "true";
+  } else {
+    gtp_csum = "false";
+  }
+
   if (is_pgw && spgw_config.sgw_config.agw_l3_tunnel) {
     l3_tunnel = "true";
   } else {
@@ -172,8 +179,8 @@ static uint32_t create_gtp_port(
   }
   rc = snprintf(
       gtp_port_create, sizeof(gtp_port_create),
-      "sudo /usr/local/bin/magma-create-gtp-port.sh %s %s %s %s", port_name,
-      inet_ntoa(enb_addr), gtp_echo, l3_tunnel);
+      "sudo /usr/local/bin/magma-create-gtp-port.sh %s %s %s %s %s", port_name,
+      inet_ntoa(enb_addr), gtp_echo, gtp_csum, l3_tunnel);
   if (rc < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "gtp-port create: format error %d", rc);
     return rc;
