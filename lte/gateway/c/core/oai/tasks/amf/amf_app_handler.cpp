@@ -662,7 +662,7 @@ void amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
-      ue_context->mm_state == REGISTERED_CONNECTED;
+      ue_context->mm_state = REGISTERED_CONNECTED;
     }
   } else {
     OAILOG_DEBUG(
@@ -1215,9 +1215,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         LOG_AMF_APP,
         "T3513: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 // Doing Paging Request handling received from SMF in AMF CORE
