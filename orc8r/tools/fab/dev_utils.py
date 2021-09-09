@@ -11,11 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 from typing import Any, Dict
 
 import jsonpickle
 import requests
-from fabric.api import hide, run
+from fabric.api import hide, run, settings
+from fabric.context_managers import cd
+from fabric.operations import sudo
 from tools.fab import types, vagrant
 
 
@@ -87,6 +90,7 @@ def construct_magmad_gateway_payload(
             autoupgrade_poll_interval=60,
             checkin_interval=60,
             checkin_timeout=30,
+            dynamic_services=[],
         ),
     )
 
@@ -190,6 +194,58 @@ def get_hardware_id_from_vagrant(vm_name: str) -> str:
         vagrant.setup_env_vagrant(vm_name)
         hardware_id = run('cat /etc/snowflake')
     return str(hardware_id)
+
+
+def get_hardware_id_from_docker_on_vagrant(vm_name: str) -> str:
+    """
+    Get the magmad hardware ID from magma running on docker from Vagrant
+
+    Args:
+        vm_name: Name of the vagrant machine to use
+
+    Returns:
+        Hardware snowflake from the VM
+    """
+    with hide('output', 'running', 'warnings'), \
+            cd('/home/vagrant/magma/feg/gateway/docker/'):
+        vagrant.setup_env_vagrant(vm_name)
+        hardware_id = run('docker-compose exec magmad bash -c "cat /etc/snowflake"')
+    return str(hardware_id)
+
+
+def delete_agw_certs(vm_name: str):
+    """
+    Delete certificates and gw_challenge from AGW
+
+    Args:
+        vm_name: Name of the vagrant machine to use
+    """
+    _delete_certs(vm_name, '/var/opt/magma/certs')
+
+
+def delete_feg_certs(vm_name: str):
+    """
+    Get the magmad hardware ID from magma running on docker from Vagrant
+
+    Args:
+        vm_name: Name of the vagrant machine to use
+    """
+    _delete_certs(vm_name, '/var/lib/docker/volumes/feg_gwcerts/_data/')
+
+
+def _delete_certs(vm_name: str, location: str):
+    """
+    Delete certificates and gw_challenge from a gateway
+
+    Args:
+        vm_name: Name of the vagrant machine to use
+        location: location of the certs
+    """
+    with settings(warn_only=True), hide('output', 'running', 'warnings'), \
+            cd(location):
+        vagrant.setup_env_vagrant(vm_name)
+        sudo('rm gateway.*')
+        sudo('rm gw_challenge.key')
 
 
 def is_hw_id_registered(
@@ -303,7 +359,35 @@ def cloud_post(
         cert=admin_cert,
     )
     if resp.status_code not in [200, 201, 204]:
+        parsed = json.loads(jsonpickle.pickler.encode(data))
         raise Exception(
-            'Received a %d response: %s' %
-            (resp.status_code, resp.text),
+            'Post Request failed: \n%s\n%s \nReceived a %d response: %s\nFAILED!' %
+            (resp.url, json.dumps(parsed, indent=4, sort_keys=False), resp.status_code, resp.text),
+        )
+
+
+def cloud_delete(
+        resource: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> Any:
+    """
+    Send a delete request to an API URI
+
+    Args:
+        resource: URI to request
+        admin_cert: API client certificate
+
+    Returns:
+        JSON-encoded response content
+    """
+    if resource.startswith("/"):
+        resource = resource[1:]
+    resp = requests.delete(PORTAL_URL + resource, verify=False, cert=admin_cert)
+    if resp.status_code not in [200, 201, 204]:
+        raise Exception(
+            'Delete Request failed: \n%s \nReceived a %d response: %s\nFAILED!' %
+            (resp.url, resp.status_code, resp.text),
         )

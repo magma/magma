@@ -20,6 +20,7 @@ sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils  # NOQA
 import tools.fab.types as types
 
+SNOWFLAKE_FEG_FILE = '../../.cache/feg/snowflake'
 NETWORK_ID = 'feg_test'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -28,6 +29,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def register_feg():
     _register_federation_network()
     _register_feg()
+
+
+def deregister_feg_gw(vm_name='feg'):
+    dev_utils.delete_feg_certs(vm_name)
+    _deregister_feg_gw(vm_name)
 
 
 class RadiusConfig:
@@ -219,7 +225,7 @@ class HssConfigs:
 class S6aConfigs:
     def __init__(
         self,
-        plmn_ids: List[str] = None,
+        plmn_ids: List[str] = [],
         server: DiamServerConfig = DiamServerConfig(),
     ):
         if plmn_ids is None:
@@ -335,11 +341,13 @@ def _register_federation_network(payload: FederationNetwork = FederationNetwork(
 
 
 def _register_feg():
-    with lcd('docker'), hide('output', 'running', 'warnings'):
-        hw_id = local(
-            'docker-compose exec magmad bash -c "cat /etc/snowflake"',
-            capture=True,
-        )
+
+    with open(SNOWFLAKE_FEG_FILE) as f:
+        hw_id = f.read().rstrip('\n')
+    if not hw_id:
+        print(f'Could not open test feg snowflake {SNOWFLAKE_FEG_FILE}')
+        hw_id = dev_utils.get_hardware_id_from_docker_on_vagrant(vm_name='feg')
+
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         NETWORK_ID, hw_id,
     )
@@ -353,12 +361,71 @@ def _register_feg():
     gw_id = dev_utils.get_next_available_gateway_id(NETWORK_ID)
     md_gw = dev_utils.construct_magmad_gateway_payload(gw_id, hw_id)
     gw_payload = FederationGateway(
-        id=md_gw.id, name=md_gw.name, description=md_gw.description,
+        id=md_gw.id,
+        name=md_gw.name,
+        description=md_gw.description,
         device=md_gw.device,
-        magmad=md_gw.magmad, tier=md_gw.tier,
+        magmad=md_gw.magmad,
+        tier=md_gw.tier,
+        federation=FederationNetworkConfigs(
+            hss=HssConfigs(
+                server=HssServer(
+                    local_address='localhost:3767',
+                    address='localhost:3768',
+                ),
+            ),
+            s6a=S6aConfigs(
+                plmn_ids=[],
+                server=DiamServerConfig(
+                    local_address='localhost:3767',
+                    address='localhost:3768',
+                ),
+            ),
+            gx=GxConfig(
+                servers=[
+                    DiamServerConfig(
+                        address='localhost:3868',
+                    ),
+                ],
+            ),
+            gy=GyConfig(
+                servers=[
+                    DiamServerConfig(
+                        address='localhost:3968',
+                    ),
+                ],
+            ),
+        ),
+
     )
     dev_utils.cloud_post(f'feg/{NETWORK_ID}/gateways', gw_payload)
     print()
     print(f'=====================================')
     print(f'Feg {gw_id} successfully provisioned!')
     print(f'=====================================')
+
+
+def _deregister_feg_gw(vm_name: str):
+    with open(SNOWFLAKE_FEG_FILE) as f:
+        hw_id = f.read().rstrip('\n')
+    if not hw_id:
+        print(f'Could not open test feg snowflake {SNOWFLAKE_FEG_FILE}')
+        hw_id = dev_utils.get_hardware_id_from_docker_on_vagrant(vm_name=vm_name)
+
+    already_registered, registered_as = dev_utils.is_hw_id_registered(
+        NETWORK_ID, hw_id,
+    )
+
+    if not already_registered:
+        print()
+        print(f'===========================================')
+        print(f'VM is not registered')
+        print(f'===========================================')
+        return
+
+    dev_utils.cloud_delete(f'feg/{NETWORK_ID}/gateways/{registered_as}')
+    print()
+    print(f'=========================================')
+    print(f'Feg Gateway {registered_as} successfully removed!')
+    print(f'(restart docker FEG on {vm_name} vm)')
+    print(f'=========================================')
