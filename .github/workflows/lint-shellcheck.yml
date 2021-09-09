@@ -1,7 +1,7 @@
-name: reviewdog
+name: lint-shellcheck
 on: [pull_request]
 jobs:
-  shellcheck:
+  lint-shellcheck:
     name: runner / shellcheck
     runs-on: ubuntu-latest
     steps:

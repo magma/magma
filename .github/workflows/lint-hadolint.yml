@@ -1,8 +1,8 @@
 ---
-name: Dockerfile Linting
+name: lint-hadolint
 on: [pull_request]  # yamllint disable-line rule:truthy
 jobs:
-  hadolint:
+  lint-hadolint:
     name: Dockerfile Lint
     runs-on: ubuntu-latest
     steps:

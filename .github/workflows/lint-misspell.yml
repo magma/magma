@@ -1,8 +1,8 @@
 ---
-name: reviewdog
+name: lint-misspell
 on: [pull_request]  # yamllint disable-line rule:truthy
 jobs:
-  misspell:
+  lint-misspell:
     name: runner / misspell
     runs-on: ubuntu-latest
     steps:

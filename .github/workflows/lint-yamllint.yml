@@ -1,5 +1,5 @@
 ---
-name: YAML linting by Reviewdog
+name: lint-yamllint
 on:  # yamllint disable-line rule:truthy
   pull_request:
     types:
@@ -8,7 +8,7 @@ on:  # yamllint disable-line rule:truthy
       - synchronize
 
 jobs:
-  yamllint:
+  lint-yamllint:
     name: runner / yamllint
     runs-on: ubuntu-latest
     steps:

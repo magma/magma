@@ -1,7 +1,7 @@
-name: Python linting by Reviewdog
+name: lint-wemake-python-styleguide
 on: [pull_request]
 jobs:
-  wemake-python-styleguide:
+  lint-wemake-python-styleguide:
     name: runner / wemake-python-styleguide
     runs-on: ubuntu-latest
     steps:

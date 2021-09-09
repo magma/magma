@@ -1,5 +1,5 @@
 ---
-name: Reviewdog
+name: lint-cpplint
 on:  # yamllint disable-line rule:truthy
   pull_request:
     types:
@@ -25,7 +25,7 @@ on:  # yamllint disable-line rule:truthy
 ##
 
 jobs:
-  cpplint:
+  lint-cpplint:
     runs-on: ubuntu-latest
     steps:
       -
