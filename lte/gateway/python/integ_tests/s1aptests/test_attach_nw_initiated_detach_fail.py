@@ -20,13 +20,20 @@ from integ_tests.s1aptests.s1ap_utils import MagmadUtil, SpgwUtil
 
 
 class TestAttachNwInitiatedDetachFail(unittest.TestCase):
+    """
+    S1AP Integration test for Failed Network Initiated Detach
+    """
     def setUp(self):
+        """Initialize s1ap wrapper and spgw utility
+        """
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Clean up utilities and sctp connection
+        """
         self._s1ap_wrapper.cleanup()
 
     def test_attach_nw_initiated_detach_fail(self):
@@ -80,6 +87,7 @@ class TestAttachNwInitiatedDetachFail(unittest.TestCase):
             print("**************** Received NW initiated Detach Req")
 
         time.sleep(6)
+
 
 if __name__ == "__main__":
     unittest.main()

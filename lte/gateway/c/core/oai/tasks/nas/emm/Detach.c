@@ -44,6 +44,7 @@
 #include "nas_procedures.h"
 #include "mme_app_defs.h"
 #include "mme_app_timer.h"
+#include "mme_app_statistics.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
