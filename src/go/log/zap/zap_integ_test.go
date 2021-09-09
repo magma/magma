@@ -14,7 +14,7 @@ package zap_test
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -22,7 +22,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	uber_zap "go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/magma/magma/internal/testutil"
 	"github.com/magma/magma/log"
 	"github.com/magma/magma/log/zap"
 )
@@ -39,36 +41,72 @@ func (f *frozenZapClock) NewTicker(duration time.Duration) *time.Ticker {
 	panic("implement me")
 }
 
-func mustTempDir() string {
-	td, err := ioutil.TempDir("", "")
+func newLogFileURL(path string) string {
+	if runtime.GOOS == "windows" {
+		return "winfile:///" + path
+	}
+	return path
+}
+
+func newTestLogger(now time.Time, path string) (log.Logger, func()) {
+	ec := uber_zap.NewDevelopmentEncoderConfig()
+	enc := zapcore.NewConsoleEncoder(ec)
+	ws, done, err := uber_zap.Open(path)
 	if err != nil {
 		panic(err)
 	}
-	return td
+	l := zap.New(
+		enc,
+		ws,
+		log.DebugLevel,
+		uber_zap.AddCaller(),
+		uber_zap.WithClock(&frozenZapClock{now: now}))
+	return l, done
 }
 
-func checkedRemoveAll(t *testing.T, path string) {
-	if t.Failed() {
-		return
+type logLine struct {
+	level   string
+	name    string
+	line    int
+	message string
+	fields  string
+}
+
+func expectedLogOutput(t time.Time, lls []logLine) string {
+	var lines []string
+	ts := t.Format("2006-01-02T15:04:05.000Z0700")
+	for _, ll := range lls {
+		lineParts := []string{ts, ll.level}
+		if ll.name != "" {
+			lineParts = append(lineParts, ll.name)
+		}
+		lineParts = append(
+			lineParts,
+			fmt.Sprintf("zap/zap_integ_test.go:%d", ll.line),
+			ll.message)
+		if ll.fields != "" {
+			lineParts = append(lineParts, ll.fields)
+		}
+		lines = append(lines, strings.Join(lineParts, "\t"))
 	}
-	if err := os.RemoveAll(path); err != nil {
-		panic(err)
-	}
+	return strings.Join(lines, "\n") + "\n"
 }
 
 func TestNewLogger(t *testing.T) {
 	t.Parallel()
 
-	td := mustTempDir()
-	defer checkedRemoveAll(t, td)
-	logPath := td + "/logs"
-	t.Log(logPath)
+	td, tdDone := testutil.MustTempDir()
+	defer tdDone(t)
 
-	c := uber_zap.NewDevelopmentConfig()
-	c.DisableStacktrace = true
-	c.OutputPaths = []string{logPath}
 	now := time.Now()
-	l := zap.NewLogger(c, uber_zap.WithClock(&frozenZapClock{now: now}))
+	t.Log(now)
+
+	logPath := filepath.Join(td, "/logs")
+	logURL := newLogFileURL(logPath)
+	t.Log(logURL)
+
+	l, logDone := newTestLogger(now, logURL)
+	defer logDone()
 
 	_, _, line, _ := runtime.Caller(0)
 	l.Debug().Printf("%s world", log.DebugLevel)
@@ -82,33 +120,33 @@ func TestNewLogger(t *testing.T) {
 	}
 	logs := string(bs)
 
-	ts := now.Format("2006-01-02T15:04:05.000Z0700")
-	expectedLogLines := []string{
-		fmt.Sprintf("%s\tDEBUG\tzap/zap_integ_test.go:%d\tDEBUG world", ts, line+1),
-		fmt.Sprintf("%s\tINFO\tzap/zap_integ_test.go:%d\tINFO world", ts, line+2),
-		fmt.Sprintf("%s\tWARN\tzap/zap_integ_test.go:%d\tWARN world", ts, line+3),
-		fmt.Sprintf("%s\tERROR\tzap/zap_integ_test.go:%d\tERROR world", ts, line+4),
-	}
 	assert.Equal(
 		t,
-		strings.Join(expectedLogLines, "\n")+"\n",
+		expectedLogOutput(now,
+			[]logLine{
+				{level: "DEBUG", line: line + 1, message: "DEBUG world"},
+				{level: "INFO", line: line + 2, message: "INFO world"},
+				{level: "WARN", line: line + 3, message: "WARN world"},
+				{level: "ERROR", line: line + 4, message: "ERROR world"},
+			}),
 		logs)
 }
 
 func TestLogger_Named(t *testing.T) {
 	t.Parallel()
 
-	td := mustTempDir()
-	defer checkedRemoveAll(t, td)
-	logPath := td + "/logs"
-	t.Log(logPath)
+	td, tdDone := testutil.MustTempDir()
+	defer tdDone(t)
 
-	c := uber_zap.NewDevelopmentConfig()
-	c.DisableStacktrace = true
-	c.OutputPaths = []string{logPath}
-	c.EncoderConfig.TimeKey = ""
-	c.EncoderConfig.CallerKey = ""
-	l := zap.NewLogger(c)
+	now := time.Now()
+	t.Log(now)
+
+	logPath := filepath.Join(td, "/logs")
+	logURL := newLogFileURL(logPath)
+	t.Log(logURL)
+
+	l, logDone := newTestLogger(now, logURL)
+	defer logDone()
 
 	l.SetLevel(log.ErrorLevel)
 	fooLog := l.Named("foo")
@@ -120,6 +158,7 @@ func TestLogger_Named(t *testing.T) {
 	assert.Equal(t, fooLog.Level(), log.InfoLevel)
 	assert.Equal(t, foobarLog.Level(), log.WarnLevel)
 
+	_, _, line, _ := runtime.Caller(0)
 	l.Warning().Print("should not print")
 	l.Error().Print("should print")
 	fooLog.Debug().Print("should not print")
@@ -128,6 +167,7 @@ func TestLogger_Named(t *testing.T) {
 	foobarLog.Warning().Print("should print")
 
 	fooLog.SetLevel(log.DebugLevel)
+	_, _, line2, _ := runtime.Caller(0)
 	fooLog.Debug().Print("now should print")
 	assert.Equal(t, fooLog.Level(), log.DebugLevel)
 
@@ -137,35 +177,39 @@ func TestLogger_Named(t *testing.T) {
 	}
 	logs := string(bs)
 
-	expectedLogLines := []string{
-		"ERROR\tshould print",
-		"INFO\tfoo\tshould print",
-		"WARN\tfoo.bar\tshould print",
-		"DEBUG\tfoo\tnow should print",
-	}
 	assert.Equal(
 		t,
-		strings.Join(expectedLogLines, "\n")+"\n",
+		expectedLogOutput(now,
+			[]logLine{
+				{level: "ERROR", line: line + 2, message: "should print"},
+				{level: "INFO", name: "foo", line: line + 4, message: "should print"},
+				{level: "WARN", name: "foo.bar", line: line + 6, message: "should print"},
+				{level: "DEBUG", name: "foo", line: line2 + 1, message: "now should print"},
+			}),
 		logs)
 }
 
 func TestLogger_With(t *testing.T) {
 	t.Parallel()
 
-	td := mustTempDir()
-	defer checkedRemoveAll(t, td)
-	logPath := td + "/logs"
-	t.Log(logPath)
+	td, tdDone := testutil.MustTempDir()
+	defer tdDone(t)
 
-	c := uber_zap.NewDevelopmentConfig()
-	c.DisableStacktrace = true
-	c.OutputPaths = []string{logPath}
-	c.EncoderConfig.TimeKey = ""
-	c.EncoderConfig.CallerKey = ""
-	l := zap.NewLogger(c).Named("chat")
+	now := time.Now()
+	t.Log(now)
+
+	logPath := filepath.Join(td, "/logs")
+	logURL := newLogFileURL(logPath)
+	t.Log(logURL)
+
+	l, logDone := newTestLogger(now, logURL)
+	defer logDone()
+
+	l = l.Named("chat")
 	john := l.With("name", "John Smith")
 	jane := l.With("name", "Jane Doe")
 
+	_, _, line, _ := runtime.Caller(0)
 	john.Info().Print("how are you?")
 	jane.Info().Print("doing great")
 
@@ -175,12 +219,12 @@ func TestLogger_With(t *testing.T) {
 	}
 	logs := string(bs)
 
-	expectedLogLines := []string{
-		"INFO\tchat\thow are you?\t{\"name\": \"John Smith\"}",
-		"INFO\tchat\tdoing great\t{\"name\": \"Jane Doe\"}",
-	}
 	assert.Equal(
 		t,
-		strings.Join(expectedLogLines, "\n")+"\n",
+		expectedLogOutput(now,
+			[]logLine{
+				{level: "INFO", name: "chat", line: line + 1, message: "how are you?", fields: "{\"name\": \"John Smith\"}"},
+				{level: "INFO", name: "chat", line: line + 2, message: "doing great", fields: "{\"name\": \"Jane Doe\"}"},
+			}),
 		logs)
 }

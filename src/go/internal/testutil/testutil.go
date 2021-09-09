@@ -9,15 +9,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
-
-import (
-	"github.com/magma/magma/accessd/server"
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/log/zap"
-)
-
-func main() {
-	lm := log.NewManager(zap.NewLogger())
-	server.Start(lm.LoggerFor("server"))
-}
+// Package testutil contains helper functions for writing tests.
+//
+// Patterned after google.golang.org/cloud/internal/testutil.
+package testutil

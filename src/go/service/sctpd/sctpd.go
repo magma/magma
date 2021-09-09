@@ -9,15 +9,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
-
-import (
-	"github.com/magma/magma/accessd/server"
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/log/zap"
-)
-
-func main() {
-	lm := log.NewManager(zap.NewLogger())
-	server.Start(lm.LoggerFor("server"))
-}
+// Package sctpd contains implementations of magma.sctpd.SctpdDownlink and
+// magma.sctpd.SctpdUplink.
+package sctpd

@@ -9,15 +9,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package testutil
 
 import (
-	"github.com/magma/magma/accessd/server"
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/log/zap"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
-func main() {
-	lm := log.NewManager(zap.NewLogger())
-	server.Start(lm.LoggerFor("server"))
+// MustTempDir returns a randomly generated temp dir from ioutil.TempDir and
+// a cleanup function. If the test failed, the temp dir is not cleaned up to
+// aid in debugging. Any encountered err results in a panic.
+func MustTempDir() (string, func(*testing.T)) {
+	td, err := ioutil.TempDir("", "")
+	if err != nil {
+		panic(err)
+	}
+	return td, func(t *testing.T) {
+		if t.Failed() {
+			return
+		}
+		if err := os.RemoveAll(td); err != nil {
+			panic(err)
+		}
+	}
 }

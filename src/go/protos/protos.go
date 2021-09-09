@@ -16,3 +16,5 @@ package protos
 
 //go:generate protoc --go_out=. --go_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../lte/protos sctpd.proto
 //go:generate protoc --go-grpc_out=. --go-grpc_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../lte/protos sctpd.proto
+
+//go:generate go run github.com/golang/mock/mockgen -source magma/sctpd/sctpd_grpc.pb.go -destination magma/sctpd/mock_sctpd/mock_sctpd_grpc.pb.go
