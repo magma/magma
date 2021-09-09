@@ -71,8 +71,8 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
-        PowerControl power_control = 11;
-        bool x2_enable_disable = 12;
+        PowerControl power_control = 34;
+        bool x2_enable_disable = 112;
         message PowerControl {
           int32 reference_signal_power = 1;
           uint32 power_class = 2;

@@ -320,8 +320,7 @@ def _set_algorithm_x2_enable_disable(
     Set the following parameters:
      - x2_enable_disable
     """
-    if x2_enable_disable is not None:
-        cfg.set_parameter(ParameterName.X2_ENABLE_DISABLE, x2_enable_disable)
+    cfg.set_parameter(ParameterName.X2_ENABLE_DISABLE, x2_enable_disable)
 
 def _set_cell_id(
         cfg: EnodebConfiguration,

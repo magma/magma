@@ -2311,10 +2311,24 @@ definitions:
         type: integer
         format: int32
         example: 0
+        enum:
+          - -600
+          - -477
+          - -300
+          - -177
+          - 0
+          - 100
+          - 200
+          - 300
       pb:
         type: integer
         format: uint32
         example: 0
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
       power_class:
         type: integer
         format: uint32

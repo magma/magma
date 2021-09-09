@@ -233,11 +233,11 @@ type OptConfig = {
   subframeAssignment: string,
   pci: string,
   tac: string,
-  x2_enable_disable: boolean,
   reference_signal_power: string,
   power_class: string,
   pa: string,
   pb: string,
+  x2_enable_disable: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -284,7 +284,7 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
-    x2_enable_disable: config.x2_enable_disable ?? false,
+    x2_enable_disable: String(config.x2_enable_disable ?? ''),
     reference_signal_power: String(
       config.power_control?.reference_signal_power ?? '',
     ),
@@ -483,19 +483,6 @@ export function RanEdit(props: Props) {
                   onChange={({target}) => handleOptChange('tac', target.value)}
                 />
               </AltFormField>
-              <AltFormField label={'X2 Enable/Disable'}>
-                <FormControl variant={'outlined'}>
-                  <Select
-                    value={config.x2_enable_disable ? 1 : 0}
-                    onChange={({target}) =>
-                      handleEnbChange('x2_enable_disable', target.value === 1)
-                    }
-                    input={<OutlinedInput id="x2_enable_disable" />}>
-                    <MenuItem value={0}>Disabled</MenuItem>
-                    <MenuItem value={1}>Enabled</MenuItem>
-                  </Select>
-                </FormControl>
-              </AltFormField>
 
               <AltFormField label={'Reference Signal Power'}>
                 <OutlinedInput
@@ -537,7 +524,19 @@ export function RanEdit(props: Props) {
                   onChange={({target}) => handleOptChange('pb', target.value)}
                 />
               </AltFormField>
-
+              <AltFormField label={'X2 Enable'}>
+                <FormControl variant={'outlined'}>
+                  <Select
+                    value={config.x2_enable_disable ? 1 : 0}
+                    onChange={({target}) =>
+                      handleEnbChange('x2_enable_disable', target.value === 1)
+                    }
+                    input={<OutlinedInput id="x2_enable_disable" />}>
+                    <MenuItem value={0}>Disabled</MenuItem>
+                    <MenuItem value={1}>Enabled</MenuItem>
+                  </Select>
+                </FormControl>
+              </AltFormField>
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
                   <Select
@@ -696,8 +695,8 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     power_control: {
       reference_signal_power: null,
       power_class: null,
-      pa: null,
       pb: null,
+      pa: null,
     },
   };
 
@@ -740,23 +739,25 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     }
     response['tac'] = parseInt(optConfig.tac);
   }
-
   if (optConfig.reference_signal_power !== '') {
-    response.power_control.reference_signal_power = parseInt(
+    response.radioConfiguration.powerControlParameters.reference_signal_power = parseInt(
       optConfig.reference_signal_power,
     );
   }
   if (optConfig.power_class !== '') {
-    response.power_control.power_class = parseInt(optConfig.power_class);
+    response.radioConfiguration.powerControlParameters.power_class = parseInt(
+      optConfig.power_class,
+    );
   }
   if (optConfig.pa !== '') {
-    response.power_control.pa = parseInt(optConfig.pa);
+    response.radioConfiguration.powerControlParameters.pa = parseInt(
+      optConfig.pa,
+    );
   }
   if (optConfig.pb !== '') {
-    response.power_control.pb = parseInt(
+    response.radioConfiguration.powerControlParameters.pb = parseInt(
       optConfig.pb,
     );
   }
-
   return response;
 }
