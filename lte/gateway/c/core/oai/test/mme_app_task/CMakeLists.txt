@@ -28,6 +28,7 @@ set(MME_APP_EMM_DECODE_SRC
     )
 set(NAS_EXTENDED_APN_AMBR
     test_ExtendedApnAggregateMaximumBitRate.cpp
+    )
 set(MME_APP_CONFIG_SRC
     test_mme_app_config_partial_tai_list.cpp
     )
