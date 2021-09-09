@@ -935,10 +935,10 @@ void amf_app_handle_resource_setup_response(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
         sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
 
-    smf_ctx->gtp_tunnel_id.gnb_gtp_teid =
-        *session_seup_resp.pduSessionResource_setup_list.item[0]
-             .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID;
-
+    smf_ctx->gtp_tunnel_id
+        .gnb_gtp_teid = htonl(*(reinterpret_cast<unsigned int*>(
+        session_seup_resp.pduSessionResource_setup_list.item[0]
+            .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID)));
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
         &session_seup_resp.pduSessionResource_setup_list.item[0]
@@ -1336,9 +1336,10 @@ void amf_app_handle_initial_context_setup_rsp(
         // gnb tunnel info
 
         smf_context->gtp_tunnel_id.gnb_gtp_teid =
-            *pdu_list->item[index]
-                 .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID;
-
+            htonl(*(reinterpret_cast<unsigned int*>(
+                pdu_list->item[index]
+                    .PDU_Session_Resource_Setup_Response_Transfer.tunnel
+                    .gTP_TEID)));
         memcpy(
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
             pdu_list->item[index]
