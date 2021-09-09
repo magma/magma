@@ -49,6 +49,8 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'x2_enable_disable',
+        'power_control',
     ],
 )
 
@@ -102,6 +104,8 @@ def build_desired_config(
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
     _set_cell_id(cfg_desired, enb_config.cell_id)
+    _set_power_control_config(cfg_desired, enb_config.power_control)
+    _set_algorithm_x2_enable_disable(cfg_desired, enb_config.x2_enable_disable)
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
@@ -187,6 +191,8 @@ def _get_enb_config(
     device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
+    power_control_config = None
+    x2_enable_disable = None
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
         enb_serial = \
@@ -199,6 +205,9 @@ def _get_enb_config(
             tac = enb_config.tac
             bandwidth_mhz = enb_config.bandwidth_mhz
             cell_id = enb_config.cell_id
+            x2_enable_disable = enb_config.x2_enable_disable
+            if enb_config.power_control:
+                power_control_config = enb_config.power_control
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None
@@ -246,6 +255,8 @@ def _get_enb_config(
         allow_enodeb_transmit=allow_enodeb_transmit,
         mme_address=None,
         mme_port=None,
+        power_control=power_control_config,
+        x2_enable_disable=x2_enable_disable,
     )
     return single_enodeb_config
 
@@ -262,6 +273,26 @@ def _set_pci(
         raise ConfigurationError('Invalid PCI (%d)' % pci)
     cfg.set_parameter(ParameterName.PCI, pci)
 
+def _set_power_control_config(
+    cfg: EnodebConfiguration,
+    power_control_config: Any,
+) -> None:
+    """
+    Set the following pararmeters:
+     - reference_signal_power
+     - power_class
+     - pa
+     - pb
+    """
+    if power_control_config:
+        if power_control_config.reference_signal_power:
+            cfg.set_parameter(ParameterName.REFERENCE_SIGNAL_POWER, power_control_config.reference_signal_power)
+        if power_control_config.power_class:
+            cfg.set_parameter(ParameterName.POWER_CLASS, power_control_config.power_class)
+        if power_control_config.pa:
+            cfg.set_parameter(ParameterName.PA, power_control_config.pa)
+        if power_control_config.pb:
+            cfg.set_parameter(ParameterName.PB, power_control_config.pb)
 
 def _set_bandwidth(
     cfg: EnodebConfiguration,
@@ -279,6 +310,15 @@ def _set_bandwidth(
         bandwidth_mhz,
     )
 
+def _set_algorithm_x2_enable_disable(
+    cfg: EnodebConfiguration,
+    x2_enable_disable: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - x2_enable_disable
+    """
+    cfg.set_parameter(ParameterName.X2_ENABLE_DISABLE, x2_enable_disable)
 
 def _set_cell_id(
     cfg: EnodebConfiguration,

@@ -8058,6 +8058,8 @@ definitions:
         maximum: 503
         minimum: 0
         type: integer
+      power_control:
+        $ref: '#/definitions/power_control'
       special_subframe_pattern:
         example: 7
         format: uint32
@@ -8076,6 +8078,10 @@ definitions:
         type: integer
       transmit_enabled:
         example: true
+        type: boolean
+      x2_enable_disable:
+        default: false
+        example: false
         type: boolean
     required:
     - cell_id
@@ -10914,6 +10920,40 @@ definitions:
     required:
     - flow_list
     - priority
+    type: object
+  power_control:
+    description: Config power control for enodeB.
+    properties:
+      pa:
+        enum:
+        - -600
+        - -477
+        - -300
+        - -177
+        - 0
+        - 100
+        - 200
+        - 300
+        example: 0
+        format: int32
+        type: integer
+      pb:
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 0
+        format: uint32
+        type: integer
+      power_class:
+        example: 20
+        format: uint32
+        type: integer
+      reference_signal_power:
+        example: 30
+        format: int32
+        type: integer
     type: object
   prom_alert_config:
     properties:

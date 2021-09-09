@@ -233,6 +233,11 @@ type OptConfig = {
   subframeAssignment: string,
   pci: string,
   tac: string,
+  reference_signal_power: string,
+  power_class: string,
+  pa: string,
+  pb: string,
+  x2_enable_disable: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -279,6 +284,13 @@ export function RanEdit(props: Props) {
     subframeAssignment: String(config.subframe_assignment ?? ''),
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
+    x2_enable_disable: String(config.x2_enable_disable ?? ''),
+    reference_signal_power: String(
+      config.power_control?.reference_signal_power ?? '',
+    ),
+    power_class: String(config.power_control?.power_class ?? ''),
+    pa: String(config.power_control?.pa ?? ''),
+    pb: String(config.power_control?.pb ?? ''),
   });
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -472,6 +484,59 @@ export function RanEdit(props: Props) {
                 />
               </AltFormField>
 
+              <AltFormField label={'Reference Signal Power'}>
+                <OutlinedInput
+                  data-testid="reference_signal_power"
+                  placeholder="Enter Reference Signal Power"
+                  fullWidth={true}
+                  value={optConfig.reference_signal_power}
+                  onChange={({target}) =>
+                    handleOptChange('reference_signal_power', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'Power Class'}>
+                <OutlinedInput
+                  data-testid="power_class"
+                  placeholder="Enter Power Class"
+                  fullWidth={true}
+                  value={optConfig.power_class}
+                  onChange={({target}) =>
+                    handleOptChange('power_class', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'PA'}>
+                <OutlinedInput
+                  data-testid="pa"
+                  placeholder="Enter PA"
+                  fullWidth={true}
+                  value={optConfig.pa}
+                  onChange={({target}) => handleOptChange('pa', target.value)}
+                />
+              </AltFormField>
+              <AltFormField label={'PB'}>
+                <OutlinedInput
+                  data-testid="pb"
+                  placeholder="Enter PB"
+                  fullWidth={true}
+                  value={optConfig.pb}
+                  onChange={({target}) => handleOptChange('pb', target.value)}
+                />
+              </AltFormField>
+              <AltFormField label={'X2 Enable'}>
+                <FormControl variant={'outlined'}>
+                  <Select
+                    value={config.x2_enable_disable ? 1 : 0}
+                    onChange={({target}) =>
+                      handleEnbChange('x2_enable_disable', target.value === 1)
+                    }
+                    input={<OutlinedInput id="x2_enable_disable" />}>
+                    <MenuItem value={0}>Disabled</MenuItem>
+                    <MenuItem value={1}>Enabled</MenuItem>
+                  </Select>
+                </FormControl>
+              </AltFormField>
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
                   <Select
@@ -624,7 +689,16 @@ function isNumberInRange(value: string | number, lower: number, upper: number) {
 }
 
 function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
-  const response = {...config, bandwidth_mhz: optConfig.bandwidthMhz};
+  const response = {
+    ...config,
+    bandwidth_mhz: optConfig.bandwidthMhz,
+    power_control: {
+      reference_signal_power: null,
+      power_class: null,
+      pb: null,
+      pa: null,
+    },
+  };
 
   if (!isNumberInRange(config.cell_id, 0, Math.pow(2, 28) - 1)) {
     throw Error('Invalid Configuration Cell ID. Valid range 0 - (2^28) - 1');
@@ -665,6 +739,25 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     }
     response['tac'] = parseInt(optConfig.tac);
   }
-
+  if (optConfig.reference_signal_power !== '') {
+    response.radioConfiguration.powerControlParameters.reference_signal_power = parseInt(
+      optConfig.reference_signal_power,
+    );
+  }
+  if (optConfig.power_class !== '') {
+    response.radioConfiguration.powerControlParameters.power_class = parseInt(
+      optConfig.power_class,
+    );
+  }
+  if (optConfig.pa !== '') {
+    response.radioConfiguration.powerControlParameters.pa = parseInt(
+      optConfig.pa,
+    );
+  }
+  if (optConfig.pb !== '') {
+    response.radioConfiguration.powerControlParameters.pb = parseInt(
+      optConfig.pb,
+    );
+  }
   return response;
 }

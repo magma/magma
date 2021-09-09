@@ -2281,6 +2281,10 @@ definitions:
         format: uint32
         maximum: 268435455
         example: 138777000
+      x2_enable_disable:
+        type: boolean
+        example: false
+        default: false
       device_class:
         type: string
         example: 'Baicells ID TDD/FDD'
@@ -2291,6 +2295,43 @@ definitions:
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
+      power_control:
+        $ref: '#/definitions/power_control'
+
+  power_control:
+    description: Config power control for enodeB.
+    type: object
+    properties:
+      reference_signal_power:
+        type: integer
+        format: int32
+        example: 30
+      pa:
+        type: integer
+        format: int32
+        example: 0
+        enum:
+          - -600
+          - -477
+          - -300
+          - -177
+          - 0
+          - 100
+          - 200
+          - 300
+      pb:
+        type: integer
+        format: uint32
+        example: 0
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+      power_class:
+        type: integer
+        format: uint32
+        example: 20
 
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.
