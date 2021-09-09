@@ -355,10 +355,12 @@ export type enodeb_configuration = {
     device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
     earfcndl ? : number,
     pci ? : number,
+    power_control ? : power_control,
     special_subframe_pattern ? : number,
     subframe_assignment ? : number,
     tac ? : number,
     transmit_enabled: boolean,
+    x2_enable_disable ? : boolean,
 };
 export type enodeb_serials = Array < string >
 ;
@@ -1208,6 +1210,12 @@ export type policy_rule_config = {
     redirect ? : redirect_information,
     service_identifier ? : number,
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
+};
+export type power_control = {
+    pa ? : -600 | -477 | -300 | -177 | 0 | 100 | 200 | 300,
+    pb ? : 0 | 1 | 2 | 3,
+    power_class ? : number,
+    reference_signal_power ? : number,
 };
 export type prom_alert_config = {
     alert: string,

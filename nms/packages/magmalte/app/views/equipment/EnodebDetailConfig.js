@@ -236,6 +236,43 @@ function EnodebManagedRanConfig({
     ],
     [
       {
+        category: 'X2 Enable',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.x2_enable_disable ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Reference Signal Power',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.power_control
+            ?.reference_signal_power ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Power Class',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.power_control
+            ?.power_class ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'PA',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.power_control?.pa ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'PB',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.power_control?.pb ?? '-',
+      },
+    ],
+    [
+      {
         category: 'Transmit',
         value: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled
           ? 'Enabled'
