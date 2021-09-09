@@ -204,7 +204,7 @@ if (CLANG_FORMAT)
   add_custom_target(
           clang-format
           COMMAND ${CLANG_FORMAT}
-          -style=file
+          -style=google
           -i
           ${ALL_CXX_SOURCE_FILES}
   )

@@ -136,11 +136,11 @@ endef
 
 format_common:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
+	clang-format --style=google -i {} \;
 
 format_%: ## Format service in magma/lte/gateway/c/
 	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
+	clang-format --style=google -i {} \;
 
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
