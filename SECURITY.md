@@ -48,7 +48,7 @@ When the issue is resolved, they will contact the Magma release team and Magma C
 
 For more information on security advisories, see [the GitHub documentation](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/managing-security-vulnerabilities-in-your-project).
 
-## Security Vulnerabiltiy Team Members
+## Security Vulnerability Team Members
 
 The Security Vulneratily team members shall include the members of the TSC and other current Codeowners of the Magma Project as approved by the TSC.
 
