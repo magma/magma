@@ -41,6 +41,9 @@ type EnodebConfiguration struct {
 	// Minimum: > 0
 	Pci uint32 `json:"pci,omitempty"`
 
+	// power control
+	PowerControl *PowerControl `json:"power_control,omitempty"`
+
 	// special subframe pattern
 	// Maximum: 9
 	SpecialSubframePattern uint32 `json:"special_subframe_pattern,omitempty"`
@@ -57,6 +60,9 @@ type EnodebConfiguration struct {
 	// transmit enabled
 	// Required: true
 	TransmitEnabled *bool `json:"transmit_enabled"`
+
+	// x2 enable disable
+	X2EnableDisable *bool `json:"x2_enable_disable,omitempty"`
 }
 
 // Validate validates this enodeb configuration
@@ -76,6 +82,10 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validatePci(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePowerControl(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -215,6 +225,24 @@ func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
 
 	if err := validate.MaximumInt("pci", "body", int64(m.Pci), 503, false); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validatePowerControl(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.PowerControl) { // not required
+		return nil
+	}
+
+	if m.PowerControl != nil {
+		if err := m.PowerControl.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("power_control")
+			}
+			return err
+		}
 	}
 
 	return nil
