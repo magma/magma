@@ -49,7 +49,7 @@
     Name     forward
     Tag      docker.log
     Listen   0.0.0.0
-    port     24224
+    port     24221
 
 # Input from the EventD service
 [INPUT]
