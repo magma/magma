@@ -68,9 +68,8 @@ bool get_cloud_subscriberdb_enabled(void) {
 
 static bool read_hss_relay_enabled(void) {
   magma::mconfig::MME mconfig;
-  magma::MConfigLoader loader;
 
-  if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {
     std::cout << "[INFO] Unable to load mconfig for mme, S6a relay is disabled"
               << std::endl;
     return false;  // default is - relay disabled
@@ -83,9 +82,8 @@ static bool read_hss_relay_enabled(void) {
 
 static bool read_mme_cloud_subscriberdb_enabled(void) {
   magma::mconfig::MME mconfig;
-  magma::MConfigLoader loader;
 
-  if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {
     std::cout << "[INFO] Unable to load mconfig for mme, cloud subscriberdb is "
                  "disabled"
               << std::endl;
