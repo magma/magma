@@ -124,6 +124,7 @@ func (s *s6aProxy) AuthenticationInformationImpl(
 
 	// check if PLMN list exists, and if IMSI belongs to any of that PLMN
 	if !plmn_filter.CheckImsiOnPlmnIdListIfAny(req.UserName, s.config.PlmnIds) {
+		glog.V(2).Infof("Subscriber %s does not belong to any defined PLMN", req.UserName)
 		return &protos.AuthenticationInformationAnswer{
 			ErrorCode:     protos.ErrorCode_AUTHENTICATION_REJECTED,
 			EutranVectors: nil,

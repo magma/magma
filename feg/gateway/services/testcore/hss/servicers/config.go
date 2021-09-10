@@ -110,6 +110,7 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 	hsscfg, err := config.GetServiceConfig("", hssServiceName)
 	if err != nil {
+		glog.V(2).Info("Service config not found")
 		return nil, err
 	}
 	subscribers, ok := hsscfg.RawMap["subscribers"]
@@ -120,14 +121,20 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 	if !ok {
 		return nil, fmt.Errorf("Unable to convert %T to map %v", subscribers, rawMap)
 	}
+	if len(rawMap) > 0 {
+		glog.Infof("Adding %d subscriber from hss.yml", len(rawMap))
+		glog.V(2).Infof("-> rawMap: %+v", rawMap)
+	}
 	var subscriberData []*protos.SubscriberData
 	for k, v := range rawMap {
 		imsi, ok := k.(string)
 		if !ok {
+			glog.Errorf("IMSI field is not a string: %+v. Make sure you use \"IMSI\" in hss.yml ", k)
 			continue
 		}
 		rawMap, ok := v.(map[interface{}]interface{})
 		if !ok {
+			glog.Errorf("hss.yml value is not a map: %+v", v)
 			continue
 		}
 		configMap := &config.ConfigMap{RawMap: rawMap}
@@ -135,7 +142,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		// If auth_key is incorrect, skip subscriber
 		authKey, err := configMap.GetString("auth_key")
 		if err != nil {
-			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
+			glog.Errorf("Could not add subscriber due to bad or missing auth_key: %s", err)
 			continue
 		}
 		authKeyBytes, err := hex.DecodeString(authKey)
@@ -147,12 +154,15 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		if err != nil {
 			non3gppEnabled = true
 		}
-		subscriberData = append(subscriberData, createSubscriber(imsi, authKeyBytes, non3gppEnabled))
+		lteAuthNextSeq, _ := configMap.GetInt("lte_auth_next_seq")
+
+		glog.V(2).Infof("Creating subscriber %s", imsi)
+		subscriberData = append(subscriberData, createSubscriber(imsi, authKeyBytes, non3gppEnabled, lteAuthNextSeq))
 	}
 	return subscriberData, err
 }
 
-func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool) *protos.SubscriberData {
+func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool, lteAuthNextSeq int) *protos.SubscriberData {
 	var non3gppProfile *protos.Non3GPPUserProfile
 	if non3gppEnabled {
 		non3gppProfile = &protos.Non3GPPUserProfile{
@@ -179,6 +189,7 @@ func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool) *protos.
 		},
 		State: &protos.SubscriberState{
 			TgppAaaServerRegistered: false,
+			LteAuthNextSeq:          uint64(lteAuthNextSeq),
 		},
 		Non_3Gpp: non3gppProfile,
 	}
