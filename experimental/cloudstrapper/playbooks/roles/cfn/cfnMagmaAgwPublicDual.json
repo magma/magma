@@ -86,6 +86,10 @@
                 {
                   "NetworkInterfaceId": {"Ref": "NicS1"},
                   "DeviceIndex": "1"
+                },
+                {
+                  "AssociatePublicIpAddress": "true",
+                  "DeviceIndex": "2"
                 }
               ],
           "Tags": [
