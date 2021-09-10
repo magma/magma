@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package magma.dp;
 
+option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode";
+
 enum GrantState {
   Idle = 0;
   Granted = 1;
