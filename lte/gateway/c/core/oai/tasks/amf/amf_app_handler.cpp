@@ -1206,6 +1206,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
     OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    if (rc != RETURNok)
+      OAILOG_ERROR(LOG_AMF_APP, "Could not send msg to task\n");
     //    amf_paging_request(paging_ctx);
   } else {
     /*
@@ -1216,7 +1218,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         "T3513: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 // Doing Paging Request handling received from SMF in AMF CORE
