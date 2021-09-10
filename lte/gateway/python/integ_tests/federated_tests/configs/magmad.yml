@@ -1,0 +1,97 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+log_level: INFO
+
+print_grpc_payload: false
+
+# List of services for magmad to control
+magma_services:
+  - control_proxy
+  - redis
+  - session_proxy
+  - s8_proxy
+  - s6a_proxy
+  - csfb
+  - feg_hello
+  - health
+  - swx_proxy
+  - eap_aka
+  - eap_sim
+  - aaa_server
+
+# List of services that don't provide service303 interface
+non_service303_services:
+  - control_proxy
+  - redis
+  - td-agent-bit
+
+# List of all possible dynamic services (enabled from gateway.mconfig)
+registered_dynamic_services:
+  - td-agent-bit
+
+# Init system to use to control services
+# Supported systems include: [systemd, runit, docker]
+init_system: docker
+
+# bootstrap_manager config
+bootstrap_config:
+  # location of the challenge key
+  challenge_key: /var/opt/magma/certs/gw_challenge.key
+
+# Flags indicating the magmad features to be enabled
+enable_config_streamer: True
+enable_upgrade_manager: True
+enable_network_monitor: False
+enable_sync_rpc: True
+
+upgrader_factory:
+  module: magma.magmad.upgrade.docker_upgrader
+  class: DockerUpgraderFactory
+  gateway_module: feg
+  use_proxy: False
+
+mconfig_modules:
+  - orc8r.protos.mconfig.mconfigs_pb2
+  - lte.protos.mconfig.mconfigs_pb2
+  - feg.protos.mconfig.mconfigs_pb2
+
+metricsd:
+  log_level: INFO
+  collect_interval: 60 # How frequently to collect metrics samples in seconds
+  sync_interval: 60 # How frequently to sync to cloud in seconds
+  grpc_timeout: 10 # Timeout in seconds
+  max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
+  # List of services for metricsd to poll
+  services:
+    - magmad
+    - session_proxy
+    - s6a_proxy
+    - swx_proxy
+    - eap_aka
+    - eap_sim
+    - aaa_server
+    - csfb
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: fab
+      command: "fab {}"
+      allow_params: True
+    - name: echo
+      command: "echo {}"
+      allow_params: True
