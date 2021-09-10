@@ -1442,7 +1442,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             ansible-playbook $WORK_DIR/agw-provision.yaml -e "dirLocalInventory=$VARS_DIR"  -e "idSite=TestCluster" -e "idGw=awstest" --skip-tags cleanupBridge,cleanupNet
-            ansible-playbook $WORK_DIR/agw-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=$VARS_DIR" -e "agw=tag_Name_TestCluster" -u ubuntu
+            ansible-playbook $WORK_DIR/agw-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=$VARS_DIR" -e "agw=tag_Name_awstest" -u ubuntu
       - run:
           name: Clean AWS resources
           when: always
