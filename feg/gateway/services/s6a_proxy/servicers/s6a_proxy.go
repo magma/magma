@@ -20,18 +20,18 @@ import (
 	"fmt"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/plmn_filter"
-	"magma/feg/gateway/services/s6a_proxy/metrics"
-	orcprotos "magma/orc8r/lib/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
+	"magma/feg/gateway/services/s6a_proxy/metrics"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // Flag definitions

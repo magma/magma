@@ -71,7 +71,7 @@ func GetChallengeKey() (privKey interface{}, err error) {
 				"Bootstrapper Failed to read recently created key from (%s) error: %v", challengeKeyFile, err)
 			return
 		}
-		glog.Infof("successfuly created new challenge key file: %s", challengeKeyFile)
+		glog.Infof("successfully created new challenge key file: %s", challengeKeyFile)
 	}
 	return
 }

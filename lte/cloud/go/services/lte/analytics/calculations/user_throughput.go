@@ -15,6 +15,7 @@ package calculations
 
 import (
 	"fmt"
+
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"

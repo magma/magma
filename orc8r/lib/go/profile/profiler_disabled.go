@@ -1,3 +1,4 @@
+//go:build !with_profiler
 // +build !with_profiler
 
 /*

@@ -2,9 +2,10 @@ package calculations
 
 import (
 	"context"
+	"time"
+
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
-	"time"
 
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
