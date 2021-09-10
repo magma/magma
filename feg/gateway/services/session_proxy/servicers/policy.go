@@ -190,23 +190,30 @@ func (srv *CentralSessionController) sendGxUpdateRequestsToConnections(
 	requests []*gx.CreditControlRequest,
 	done chan interface{},
 ) {
-	sendErrors := []error{}
-	for _, request := range requests {
-		err := srv.policyClient.SendCreditControlRequest(srv.cfg.PCRFConfig, done, request)
-		if err != nil {
-			sendErrors = append(sendErrors, err)
-			metrics.PcrfCcrUpdateSendFailures.Inc()
-		} else {
-			metrics.PcrfCcrUpdateRequests.Inc()
-		}
-	}
-	if len(sendErrors) > 0 {
-		go func() {
-			for _, err := range sendErrors {
-				done <- err
+	go func() {
+		sendErrors := []error{}
+		for _, request := range requests {
+			err := srv.policyClient.SendCreditControlRequest(srv.cfg.PCRFConfig, done, request)
+			if err != nil {
+				sendErrors = append(sendErrors, err)
+				metrics.PcrfCcrUpdateSendFailures.Inc()
+			} else {
+				metrics.PcrfCcrUpdateRequests.Inc()
 			}
-		}()
-	}
+			if len(requests) > 1 {
+				// Only wait in case there are more than 1 request
+				glog.V(2).Info("Waiting 2 seconds to send next Gx request")
+				time.Sleep(2 * time.Second)
+			}
+		}
+		if len(sendErrors) > 0 {
+			go func() {
+				for _, err := range sendErrors {
+					done <- err
+				}
+			}()
+		}
+	}()
 }
 
 // waitForGxResponses waits for CreditControlAnswers on the done channel. It stops
