@@ -44,14 +44,26 @@ using ::testing::Return;
 class MockS1apHandler {
  public:
   MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
+  MOCK_METHOD0(s1ap_handle_conn_est_cnf, void());
+};
+
+class MockS6aHandler {
+ public:
+  MOCK_METHOD0(s6a_viface_authentication_info_req, void());
+  MOCK_METHOD0(s6a_viface_update_location_req, void());
+};
+
+class MockSpgwHandler {
+ public:
+  MOCK_METHOD0(sgw_handle_s11_create_session_request, void());
 };
 
 void start_mock_ha_task();
 void start_mock_s1ap_task(std::shared_ptr<MockS1apHandler>);
-void start_mock_s6a_task();
+void start_mock_s6a_task(std::shared_ptr<MockS6aHandler>);
 void start_mock_s11_task();
 void start_mock_service303_task();
 void start_mock_sgs_task();
 void start_mock_sgw_s8_task();
 void start_mock_sms_orc8r_task();
-void start_mock_spgw_task();
+void start_mock_spgw_task(std::shared_ptr<MockSpgwHandler>);

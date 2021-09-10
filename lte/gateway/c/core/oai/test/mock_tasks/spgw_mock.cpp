@@ -13,6 +13,7 @@
 #include "mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_spgw;
+static std::shared_ptr<MockSpgwHandler> spgw_handler_;
 
 void stop_mock_spgw_task();
 
@@ -21,12 +22,19 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
+      spgw_handler_.reset();
       itti_free_msg_content(received_message_p);
       free(received_message_p);
       stop_mock_spgw_task();
     } break;
 
-    default: { } break; }
+    case S11_CREATE_SESSION_REQUEST: {
+      spgw_handler_->sgw_handle_s11_create_session_request();
+    } break;
+
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -38,7 +46,8 @@ void stop_mock_spgw_task() {
   pthread_exit(NULL);
 }
 
-void start_mock_spgw_task() {
+void start_mock_spgw_task(std::shared_ptr<MockSpgwHandler> spgw_handler) {
+  spgw_handler_                  = spgw_handler;
   init_task_context(
       TASK_SPGW_APP, nullptr, 0, handle_message, &task_zmq_ctx_spgw);
 

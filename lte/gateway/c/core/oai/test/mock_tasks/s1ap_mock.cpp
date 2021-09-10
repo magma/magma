@@ -53,6 +53,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
+      s1ap_handler_->s1ap_handle_conn_est_cnf();
     } break;
 
     case MME_APP_S1AP_MME_UE_ID_NOTIFICATION: {
