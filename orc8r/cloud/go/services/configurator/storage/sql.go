@@ -394,9 +394,9 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityCountResult, error) {
+func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter EntityLoadFilter) (EntityCountResult, error) {
 	ret := EntityCountResult{Count: 0}
-	count, err := store.countEntities(networkID, filter, loadCriteria)
+	count, err := store.countEntities(networkID, filter)
 	if err != nil {
 		return ret, err
 	}

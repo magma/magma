@@ -59,6 +59,7 @@ extern "C" {
 #include "M5GDeRegistrationAcceptUEInit.h"
 #include "M5GULNASTransport.h"
 #include "M5GDLNASTransport.h"
+#include "M5GServiceReject.h"
 
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
@@ -96,7 +97,7 @@ struct amf_procedures_t;
 #define N1_SM_INFO 0x1
 #define AMBR_LEN 6
 #define PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN 30
-#define PDU_ESTAB_ACCPET_NAS_PDU_LEN 39
+#define PDU_ESTAB_ACCEPT_NAS_PDU_LEN 41
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
 #define PDU_ADDR_TYPE 0X1
@@ -233,7 +234,7 @@ typedef struct teid_upf_gnb_s {
   uint8_t upf_gtp_teid_ip_addr[16];
   uint8_t upf_gtp_teid[4];
   uint8_t gnb_gtp_teid_ip_addr[16];
-  uint8_t gnb_gtp_teid[4];
+  uint32_t gnb_gtp_teid;
 } teid_upf_gnb_t;
 
 // Data get communicated with SMF and stored for reference
@@ -263,6 +264,7 @@ typedef struct smf_context_s {
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
+  protocol_configuration_options_t pco;
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;
@@ -454,6 +456,7 @@ union mobility_msg_u {
   RegistrationRejectMsg registrationrejectmsg;
   ServiceRequestMsg service_request;
   ServiceAcceptMsg service_accept;
+  ServiceRejectMsg service_reject;
   IdentityRequestMsg identityrequestmsg;
   IdentityResponseMsg identityresponsemsg;
   AuthenticationRequestMsg authenticationrequestmsg;
@@ -843,5 +846,5 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
-
+void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 }  // namespace magma5g

@@ -44,6 +44,7 @@
 #include "nas_procedures.h"
 #include "nas_proc.h"
 #include "includes/MetricsHelpers.h"
+#include "mme_app_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -258,7 +259,7 @@ status_code_e emm_proc_identification_complete(
 
       if (imsi) {
         imsi64_t imsi64 = imsi_to_imsi64(imsi);
-        // If context already exists for this IMSI ,perform implicit detach
+        // If context already exists for this IMSI, perform implicit detach
         mme_app_desc_t* mme_app_desc_p      = get_mme_nas_state(false);
         ue_mm_context_t* old_imsi_ue_mm_ctx = mme_ue_context_exists_imsi(
             &mme_app_desc_p->mme_ue_contexts, imsi64);
@@ -283,8 +284,9 @@ status_code_e emm_proc_identification_complete(
               &old_imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
               attach_proc->ies, true);
           emm_ctx->emm_context_state = NEW_EMM_CONTEXT_CREATED;
-          nas_proc_implicit_detach_ue_ind(old_imsi_ue_mm_ctx->mme_ue_s1ap_id);
-          notify = false;
+          rc                         = nas_proc_implicit_detach_ue_ind(
+              old_imsi_ue_mm_ctx->mme_ue_s1ap_id);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
         }
         int emm_cause = check_plmn_restriction(*imsi);
         if (emm_cause != EMM_CAUSE_SUCCESS) {
@@ -385,7 +387,7 @@ status_code_e mme_app_handle_identification_t3470_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

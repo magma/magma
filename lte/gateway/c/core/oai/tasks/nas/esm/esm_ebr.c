@@ -29,6 +29,7 @@
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
 #include "mme_api.h"
+#include "mme_app_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -194,8 +195,7 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
     // stop the timer if it's running
     if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
-      ebr_ctx->timer.id =
-          nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+      nas_timer_stop(&(ebr_ctx->timer));
     } else {  // Timer has expired, release the args
       esm_ebr_timer_data = ebr_ctx->args;
     }
@@ -247,7 +247,7 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
  ***************************************************************************/
 status_code_e esm_ebr_start_timer(
     emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
-    uint32_t sec, nas_timer_callback_t cb) {
+    uint32_t sec, time_out_t cb) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
@@ -281,22 +281,22 @@ status_code_e esm_ebr_start_timer(
   ebr_ctx = &bearer_context->esm_ebr_context;
 
   esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
+  ebr_ctx->timer.sec                       = sec;
+  timer_arg_t timer_args;
+  timer_args.ue_id = ue_mm_context->mme_ue_s1ap_id;
+  timer_args.ebi   = ebi;
+
   if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
-    /*
-     * Re-start the retransmission timer
-     */
-    ebr_ctx->timer.id =
-        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
-    ebr_ctx->timer.id =
-        nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
+    // Re-start the retransmission timer
+    nas_timer_stop(&(ebr_ctx->timer));
+    nas_timer_start(&(ebr_ctx->timer), cb, &timer_args);
   } else {
     /*
      * If timer-id is set to NAS_TIMER_INACTIVE_ID and has non-null
      * timer argument, indicates that timer details are read from Redis DB
      */
     if (ebr_ctx->args) {
-      ebr_ctx->timer.id = nas_timer_start(sec, 0 /* usec */, cb, ebr_ctx->args);
-      ebr_ctx->timer.sec = sec;
+      nas_timer_start(&(ebr_ctx->timer), cb, &timer_args);
       esm_ebr_timer_data = ebr_ctx->args;
     } else {
       esm_ebr_timer_data =
@@ -313,13 +313,10 @@ status_code_e esm_ebr_start_timer(
         // Set the ESM message to be re-transmited
         esm_ebr_timer_data->msg = bstrcpy(msg);
 
-        /* Setup the retransmission timer to expire at the given
-         *  time interval
-         */
-        ebr_ctx->timer.id =
-            nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
-        ebr_ctx->timer.sec = sec;
-        ebr_ctx->args      = esm_ebr_timer_data;
+        // Setup the retransmission timer to expire at the given
+        // time interval
+        nas_timer_start(&(ebr_ctx->timer), cb, &timer_args);
+        ebr_ctx->args = esm_ebr_timer_data;
       }
     }
   }
@@ -392,8 +389,7 @@ status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
         "ESM-FSM   - Stop retransmission timer %ld " MME_UE_S1AP_ID_FMT "\n",
         ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-    ebr_ctx->timer.id =
-        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+    nas_timer_stop(&(ebr_ctx->timer));
     /*
      * Release the retransmisison timer parameters
      */

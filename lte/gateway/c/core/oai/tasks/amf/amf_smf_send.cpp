@@ -21,6 +21,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "include/amf_session_manager_pco.h"
 #include "amf_recv.h"
 #include "M5gNasMessage.h"
 #include "common_defs.h"
@@ -166,9 +167,7 @@ void set_amf_smf_context(
   memset(
       smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
       sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
-  memset(
-      smf_ctx->gtp_tunnel_id.gnb_gtp_teid, '\0',
-      sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid));
+  smf_ctx->gtp_tunnel_id.gnb_gtp_teid = 0x0;
 }
 
 /***************************************************************************
@@ -267,6 +266,7 @@ int pdu_session_resource_release_complete(
   OAILOG_DEBUG(
       LOG_AMF_APP, "clear saved context associated with the PDU session\n");
   clear_amf_smf_context(smf_ctx);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 static int pdu_session_resource_release_t3592_handler(
@@ -312,7 +312,7 @@ static int pdu_session_resource_release_t3592_handler(
   }
 
   OAILOG_WARNING(
-      LOG_AMF_APP, "T3592: timer id: %d expired for pdu_session_id: %d\n",
+      LOG_AMF_APP, "T3592: timer id: %ld expired for pdu_session_id: %d\n",
       smf_ctx->T3592.id, pdu_session_id);
 
   smf_ctx->retransmission_count += 1;
@@ -353,6 +353,8 @@ int amf_smf_send(
   amf_smf_t amf_smf_msg  = {};
   smf_context_t* smf_ctx = NULL;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  protocol_configuration_options_t* msg_pco;
+
   if (amf_cause != AMF_CAUSE_SUCCESS) {
     rc = amf_send_pdusession_reject(
         &reject_req, msg->payload_container.smf_msg.header.pdu_session_id,
@@ -383,11 +385,23 @@ int amf_smf_send(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
+  amf_smf_msg.pdu_session_id =
+      msg->payload_container.smf_msg.header.pdu_session_id;
   // Process the decoded NAS message
   switch (msg->payload_container.smf_msg.header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST: {
       amf_cause = amf_smf_handle_pdu_establishment_request(
           &(msg->payload_container.smf_msg), &amf_smf_msg);
+
+      OAILOG_INFO(LOG_AMF_APP, "Copy the contents from message to context \n");
+      msg_pco = &(msg->payload_container.smf_msg.msg.pdu_session_estab_request
+                      .protocolconfigurationoptions.pco);
+
+      /* Copy the pco contents from Message to smf_context */
+      sm_copy_protocol_configuration_options(&(smf_ctx->pco), msg_pco);
+
+      /* Free the memory from Message Structure */
+      sm_free_protocol_configuration_options(&msg_pco);
 
       if (amf_cause != SMF_CAUSE_SUCCESS) {
         rc = amf_send_pdusession_reject(
@@ -402,19 +416,20 @@ int amf_smf_send(
       memset(
           amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr, '\0',
           sizeof(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr));
-      memset(
-          amf_smf_msg.u.establish.gnb_gtp_teid, '\0',
-          sizeof(amf_smf_msg.u.establish.gnb_gtp_teid));
+
+      amf_smf_msg.u.establish.gnb_gtp_teid = 0x0;
       memcpy(
           amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr,
           smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
-      memcpy(
-          amf_smf_msg.u.establish.gnb_gtp_teid,
-          smf_ctx->gtp_tunnel_id.gnb_gtp_teid, GNB_TEID_LEN);
+
+      amf_smf_msg.u.establish.gnb_gtp_teid =
+          smf_ctx->gtp_tunnel_id.gnb_gtp_teid;
 
       // Initialize default APN
       memcpy(smf_ctx->apn, "internet", strlen("internet") + 1);
 
+      smf_ctx->smf_proc_data.pti.pti =
+          msg->payload_container.smf_msg.msg.pdu_session_estab_request.pti.pti;
       // send request to SMF over grpc
       /*
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
@@ -427,12 +442,14 @@ int amf_smf_send(
           SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
+      smf_ctx->smf_proc_data.pti.pti = msg->payload_container.smf_msg.msg
+                                           .pdu_session_release_request.pti.pti;
       smf_ctx->retransmission_count = 0;
       if (RETURNok ==
           pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {
         OAILOG_INFO(
             LOG_AMF_APP,
-            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %d "
+            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
             "Started\n",
             smf_ctx->T3592.id);
       }
@@ -443,7 +460,7 @@ int amf_smf_send(
         OAILOG_INFO(
             LOG_AMF_APP,
             "T3592: after stop PDU_SESSION_RELEASE_REQUEST timer T3592 with id "
-            "= %d\n",
+            "= %ld\n",
             smf_ctx->T3592.id);
         smf_ctx->T3592.id = NAS5G_TIMER_INACTIVE_ID;
       }

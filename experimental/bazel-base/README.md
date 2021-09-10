@@ -26,11 +26,11 @@ Once insider the container, bazel can be run like this,
 
 ```bash
 # To build all targets
-bazel build ...
+bazel build --config=docker ...
 # To build a specific target (Ex: session_manager.proto)
-bazel build lte/protos:session_manager_cpp_proto
+bazel build --config=docker lte/protos:session_manager_cpp_proto
 # To run all tests
-bazel test ...
+bazel test --config=docker ...
 ```
 
 ## Format bazel files

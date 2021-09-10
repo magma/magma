@@ -690,7 +690,7 @@ func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityL
 }
 
 // CountEntitiesOfType provides total count of entities of this type
-func CountEntitiesOfType(networkID string, entityType string, criteria EntityLoadCriteria, serdes serde.Registry) (uint64, error) {
+func CountEntitiesOfType(networkID string, entityType string) (uint64, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return 0, err
@@ -702,7 +702,6 @@ func CountEntitiesOfType(networkID string, entityType string, criteria EntityLoa
 			Filter: &storage.EntityLoadFilter{
 				TypeFilter: &wrappers.StringValue{Value: entityType},
 			},
-			Criteria: criteria.toProto(),
 		},
 	)
 	if err != nil {

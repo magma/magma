@@ -36,7 +36,7 @@ hide_title: true
     fab dev package:vcs=git
     ```
 
-    The `dev` flag will compile all C++ services with `Debug` compiler flags and enable ASAN. This is recommended for testing only as it will impact performance.
+    The `dev` flag will compile all C++ services with `Debug` compiler flags and enable ASAN. This is recommended for testing only as it will impact performance. In contrast, the production package has C++ services built with `RelWithDebInfo` compiler flags.
 
 4. **Locate the packages**. Once the above command finished. You need to enter the VM to verify the deb packages are there.
 

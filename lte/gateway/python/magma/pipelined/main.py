@@ -29,7 +29,11 @@ from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.he import PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
-from magma.pipelined.datapath_setup import setup_masquerade_rule, tune_datapath
+from magma.pipelined.datapath_setup import (
+    setup_masquerade_rule,
+    setup_sgi_tunnel,
+    tune_datapath,
+)
 from magma.pipelined.gtp_stats_collector import (
     MIN_OVSDB_DUMP_POLLING_INTERVAL,
     GTPStatsCollector,
@@ -120,6 +124,7 @@ def main():
     service.config['he_enabled'] = he_enabled
 
     # tune datapath according to config
+    setup_sgi_tunnel(service.config, service.loop)
     tune_datapath(service.config)
     setup_masquerade_rule(service.config, service.loop)
 

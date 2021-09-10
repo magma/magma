@@ -127,8 +127,7 @@
   },
   "state": {
    "@type": "type.googleapis.com/magma.mconfig.State",
-   "logLevel": "INFO",
-   "sync_interval": 60
+   "logLevel": "INFO"
   },
   "session_proxy": {
    "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",

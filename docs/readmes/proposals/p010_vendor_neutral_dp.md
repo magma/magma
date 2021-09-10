@@ -7,29 +7,30 @@ hide_title: true
 - [Proposal: Vendor Neutral CBSD Domain Proxy](#proposal-vendor-neutral-cbsd-domain-proxy)
 - [Abstract](#abstract)
 - [Background](#background)
-    - [References](#references)
+  - [References](#references)
 - [Proposal](#proposal)
-    - [Vendor Neutral Domain Proxy HLD](#vendor-neutral-domain-proxy-hld)
-    - [SAS Client Interface Requirements](#sas-client-interface-requirements)
-    - [CBSD Proxy Interface Requirements](#cbsd-proxy-interface-requirements)
-    - [Aggregation and Proxy Management Requirements](#aggregation-and-proxy-management-requirements)
-    - [User Interface Requirements](#user-interface-requirements)
-    - [Deployment Architecture Requirements](#deployment-architecture-requirements)
+  - [Vendor Neutral Domain Proxy HLD](#vendor-neutral-domain-proxy-hld)
+  - [SAS Client Interface Requirements](#sas-client-interface-requirements)
+  - [CBSD Proxy Interface Requirements](#cbsd-proxy-interface-requirements)
+  - [Aggregation and Proxy Management Requirements](#aggregation-and-proxy-management-requirements)
+  - [User Interface Requirements](#user-interface-requirements)
+  - [Deployment Architecture Requirements](#deployment-architecture-requirements)
 - [Rationale](#rationale)
 - [Compatibility](#compatibility)
 - [Observability and Debug](#observability-and-debug)
 - [Implementation](#implementation)
-    - [DP Microservices](#dp-microservices)
-    - [Component Interactions](#component-interactions)
-    - [Solution scaling](#solution-scaling)
-    - [Batching of messages](#batching-of-messages)
-    - [Architectural Discussion](#architectural-discussion)
-        - [Relational database](#relational-database)
-        - [Queuing mechanisms](#queuing-mechanisms)
-        - [Message Queue Pros/Cons](#message-queue-proscons)
-    - [Resource requirements and estimates](#resource-requirements-and-estimates)
-    - [System Architecture](#system-architecture)
-    - [Schedule and Milestones](#schedule-and-milestones)
+  - [DP Microservices](#dp-microservices)
+  - [Component Interactions](#component-interactions)
+  - [Solution scaling](#solution-scaling)
+  - [Batching of messages](#batching-of-messages)
+  - [Architectural Discussion](#architectural-discussion)
+    - [Relational database](#relational-database)
+    - [Queuing mechanisms](#queuing-mechanisms)
+    - [Message Queue Pros/Cons](#message-queue-proscons)
+  - [Integration with Magma](#integration-with-magma)
+  - [Resource requirements and estimates](#resource-requirements-and-estimates)
+  - [System Architecture](#system-architecture)
+  - [Schedule and Milestones](#schedule-and-milestones)
 - [Q/A Feedback](#qa-feedback)
 
 ---
@@ -72,8 +73,11 @@ The interface between a DP and the CBSD is not standardized and can be based on
 multiple protocols including the WInnForum defined SAS to
 CBSD/DP REST API, TR-069, SNMP, or NETCONF.
 
-This solution will include support for DP to CBSD interface based on the standard
-WInnForum SAS to CBSD/DP signaling protocol.
+This solution will include support for:
+*  DP to CBSD interface based on the standard WInnForum SAS to CBSD/DP signaling protocol
+*  TR-069 CBSD interface by utilising Magma's AGW ACS (enodebd)
+   Note: The enodebd extension and Magma support for CBRS is covered in P019 proposal, [HERE](p019_enodeb_cbrs_support.md).
+  
 
 Support for additional DP to CBSD interface protocols is not in scope
 but the design should take into consideration the ability to easily extend DP
@@ -518,19 +522,15 @@ Domain Proxy will consist of a number of components in a microservice architectu
 
 - **Protocol Controller (PC)**
 
-  Protocol Controller is responsible for receiving the initial traffic
-  from individual CBSDs (radios), translating the requests
+  Protocol Controller is responsible for receiving the ingest traffic
+  from CBSDs (radios) or other systems (like proprietary DPs, ACS servers), translating the requests
   into a common API protocol and forwarding them to the Radio Controller.
 
-  One PC will implement support for one interface from CBSD side.
+  One PC will implement support for one ingest interface.
+  The initial plan is to provide a PC that supports CBRS-SAS protocol (for eNBs or custom Domain Proxies support) and a PC that allows interaction with Magma's AGW ACS (enodebd)
 
-  Initially this means only Domain Proxy protocol, but the idea behind
-  Protocol Controllers is for them to be written in such a manner that
-  having one of them in place, it should be straightforward to add
-  another one (it can be achieved by having a ProtocolController abstract class
-  to provide structure for particular PC implementations).
-
-  To scale the system better we are decoupling PC (responsible for protocol)
+  Protocol Controllers are ingestion abstractions which receive a specific incoming data format related to CBRS eBNs.
+  To scale the system better we are decoupling PC (responsible for ingest protocol)
   from Radio controller (responsible for the business domain).
   Additional benefit is maintaining all of the protocol customizations
   and tricks at the PC level and making the PC layer scalable
@@ -545,9 +545,17 @@ Domain Proxy will consist of a number of components in a microservice architectu
 - **Configuration controller (CC)**
 
   CC is used process requests and communicate with the SAS server
-  using SAS protocol.
+  using CBSD-SAS protocol.
   This component issues a request to SAS and updates the request state
   after receiving a reply within the Database.
+
+- **Active Mode Controller**
+  
+  Active mode controller is responsible for adding "Active Mode" functionality on top of other DP services.
+
+  It will function as a CBSD-SAS request simulator. When enabled, it will generate SAS-related requests on behalf of a eNB towards SAS for registering and obtaining a grant.
+
+  Enabling active mode functionality can be done globally (per DP deployment) and per individual eNBs.
 
 - **Database**
 
@@ -558,20 +566,20 @@ Domain Proxy will consist of a number of components in a microservice architectu
 ## Component Interactions
 
 - **API Gateway**
-  API gateway will receive incoming requests from CBSDs.
+  API gateway will receive incoming requests from data sources (like CBSDs, other DPs, AGWs endoebd, etc).
   Depending on the incoming protocol it will route the traffic to appropriate
-  k8s protocol controller handling that protocol via a k8s service (which will act as a load balancer).
+  Protocol Controller handling that protocol via a k8s service (which will act as a load balancer).
 
 - **Protocol Controller**
 
-  PC will pass the requests it receives from CBSDs to the RC over gRPC.
+  PC will interpret the requests and interact with Radio Controller over gRPC.
 
   PC will check for the request response with RC via gRPC
-  and send the response back to CBSD.
+  and send the response back to the source system using respective protocol.
 
 - **Radio Controller**
 
-  RC receives requests from the PC over HTTPs and puts them in
+  RC receives requests from the PC via gRPC and puts them in
   the DB.
 
   RC accepts incoming request response check requests from PC.
@@ -583,17 +591,26 @@ Domain Proxy will consist of a number of components in a microservice architectu
   After receiving the response from SAS, it updates the DB state
   for the requests processed.
 
+- **Active Mode Controller**
+
+  Active mode controller will calculate the state of CBSDs in the database and based on a desired configuration it will issue new requests on behalf of a CBSD via gRPC calls towards RC (therefore simulating the behavior of a CBSD-SAS protocol controller)
+
 - **Database**
 
   Handles DB queries coming from RC and CC.
+
+- **enodebd**
+
+  Part of Access Gateway, the Auto Configuration Server that handles TR069 devices.
+  enodebd shall be extended to support calls to DP service within the Orchestrator via service catalogue and known DP API. The details regarding the implementation are not covered in this document.
 
 ## Solution scaling
 
 The Domain Proxy will be split into separate services in separate containers.
 
-Every service will work in HA mode to provide service even in failover scenarios.
+Every service will work in HA mode to provide service availability even in failover scenarios.
 
-All DP components will be stateless Python based services
+All DP components will be stateless services
 which do not need synchronization between them
 so it is not vital to create sync mechanisms.
 Applications will take over processing of data
@@ -619,20 +636,6 @@ In large infrastructures it may reduce the cost of SAS usage
 and limit the chance of running out of requests per given time
 (for Google SAS server it is 50,000 requests per day and 10 queries per second).
 
-Keeping the state is not necessary on the early stage of the project
-when Domain Proxy supports only Passive Mode
-where requests only pass through the DP.
-However, on Active Mode it is necessary to keep the CBSDs objects in the database
-as components such as UI monitor registered CBSDs in the Domain Proxy
-and allow to edit attributes of the CBSDs.
-Using stateless solutions would require to send requests to the SAS server
-or CBSDs itself which is not a good design
-considering that it may generate additional costs and add additional traffic
-between Domain Proxy and other components.
-Active Mode with state in the database allows to add additional attributes
-not recognized by SAS or CBSD, but useful for the Domain Proxy usage
-(labels or additional descriptions for UI purposes such as sorting by groups of CBSDs).
-
 ## Architectural Discussion
 
 ### Relational database
@@ -642,9 +645,12 @@ well defined information about CBSD we suggest to reuse an already existing MySQ
 from the Magma Orchestrator component (with a new schema).
 At the very beginning the database usage would be limited to:
 
-- storing records for CBSDs (registration parameters, SAS `cbsd_id`, name, configuration, name, location, etc.)
+- storing records for CBSDs (registration parameters, SAS `cbsd_id`, name, configuration, location, etc.)
+- storing CBSD data
 - storing grants
-- storing all incoming CBSD requests and SAS responses
+- storing Spectrum Inquiry data (as spectrum channels)
+- storing all requests and SAS responses
+- storing active mode configuration per CBSD
 - user administration & access rights within DP system
 
 We do not intend to use the Database to store the state changes.
@@ -701,6 +707,23 @@ of development and DB transaction load is negligible. As a result, DP will
 fully realize the DB for state persistence and data exchange, "queueing"
 and batching.
 
+## Integration with Magma
+
+Domain proxy was was initially developed as a separate repository to Magma's codebase. [Existing DP code](https://github.com/magma/domain-proxy) will be moved to Magma repository as a new  `dp/` module in magma's top directory:
+-  `dp/cloud` will contain the existing services.
+-  `dp/gateway` will be empty, as TR069 support will be done as part of enodebd (lte module gateway service)
+-  `dp/protos` will contain protobuf definition for the module and all its services.
+   
+As part of Magma integration, the plan is to utilize Magma's AGW ACS server (enodebd) to handle CBRS eNBs via TR-069 protocol ([see p019 proposal](p019_enodeb_cbrs_support.md) for details))
+Enodebd will be extened to make gRPC calls towards the Orchestrator (via new DP service definition in the service catalogue) on specific situations for CBRS enabled eNBs.
+DP will contain a Protocol Controller responsible for handling those enodebd calls and handle/respond accordingly.
+
+An example data flow between CBRS eNB, enodebd and DP may look as follows:
+
+<img src="media/p010_vendor_neutral_dp_image5.png"/>
+
+As part of initial CBRS eNB support, a new data model and state will be created for Baicells Nova 436Q.
+
 ## Resource requirements and estimates
 
 All requirements and estimates here are a subject to change as development
@@ -735,11 +758,11 @@ we estimate the following Database traffic:
 Based on the analysis and Community discussions, the resulting architecture
 of the DP is as follows:
 
-<img src="media/p010_vendor_neutral_dp_image3.png" style="width:5.21875in;height:2.09375in" />
+<img src="media/p010_vendor_neutral_dp_image3.png"/>
 
-Assuming the architecture, and example data flow for a Registration Request is as follows:
+Assuming the architecture, and example data flow for a Registration Request from a CBSD-SAS protocol source is as follows:
 
-<img src="media/p010_vendor_neutral_dp_image4.png" style="width:5.21875in;height:2.09375in" />
+<img src="media/p010_vendor_neutral_dp_image4.png"/>
 
 ## Schedule and Milestones
 
