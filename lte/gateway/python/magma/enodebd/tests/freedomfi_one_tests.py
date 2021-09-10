@@ -595,7 +595,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('sas_location', 'indoor'),
             call.set_parameter('sas_height_type', 'AMSL'),
         ]
-        self.assertEqual(cfg_desired.mock_calls, expected)
+        self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
 
         # Check without sas config
         service_cfg = {
@@ -627,7 +627,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('contiguous_cc', 0),
             call.set_parameter('web_ui_enable', False),
         ]
-        self.assertEqual(cfg_desired.mock_calls, expected)
+        self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
 
         service_cfg['web_ui_enable_list'] = ["2006CW5000023"]
 
@@ -651,7 +651,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             EnodebConfigBuilder.get_mconfig(),
             service_cfg, cfg_desired,
         )
-        self.assertEqual(cfg_desired.mock_calls, expected)
+        self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
 
     @patch('magma.configuration.service_configs.CONFIG_DIR', SRC_CONFIG_DIR)
     def test_service_cfg_parsing(self):
