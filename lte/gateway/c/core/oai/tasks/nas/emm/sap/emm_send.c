@@ -1393,8 +1393,8 @@ status_code_e emm_send_authentication_request(
   OAILOG_INFO(
       LOG_NAS_EMM,
       "EMMAS-SAP - Send Authentication Request message for ue_id "
-      "= " MME_UE_S1AP_ID_FMT "\n",
-      msg->ue_id);
+      "= " MME_UE_S1AP_ID_FMT " ksi %d\n",
+      msg->ue_id, msg->ksi);
   /*
    * Mandatory - Message type
    */

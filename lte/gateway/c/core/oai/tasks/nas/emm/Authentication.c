@@ -191,8 +191,8 @@ status_code_e emm_proc_authentication_ksi(
               emm_specific_proc->type, ue_id);
         }
       }
-      // Set the RAND value
       auth_proc->ksi = ksi;
+      // Set the RAND value
       if (rand) {
         memcpy(auth_proc->rand, rand, AUTH_RAND_SIZE);
       }
@@ -222,6 +222,10 @@ status_code_e emm_proc_authentication_ksi(
       auth_proc->emm_com_proc.emm_proc.base_proc.time_out =
           mme_app_handle_auth_t3460_expiry;
     }
+    OAILOG_INFO_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
+        "ATTACH - Authentication proc ksi %d parent proc %p\n",
+        auth_proc->ksi, ((nas_base_proc_t*) auth_proc)->parent);
 
     /*
      * Send authentication request message to the UE
@@ -263,6 +267,25 @@ status_code_e emm_proc_authentication(
     if (emm_specific_proc) {
       if (EMM_SPEC_PROC_TYPE_ATTACH == emm_specific_proc->type) {
         auth_proc->is_cause_is_attach = true;
+       // if UE re-attach with a previous security context, then we have
+       // to provide a new one
+       // with ksi incremented by one from the UE ksi.
+       // 3GPP spec 3GPP TS 24.301 :
+       // 5.4.2.2 Authentication initiation by the network
+       // If an eKSI is contained in an initial NAS message during an EMM 
+       // procedure, the network SHALL include a different eKSI value in 
+       // the AUTHENTICATION REQUEST message when it initiates an 
+       // authentication procedure.
+       nas_emm_attach_proc_t * attach_proc = (nas_emm_attach_proc_t*)emm_specific_proc;
+       if ((attach_proc->ies->ksi < KSI_NO_KEY_AVAILABLE) &&
+           (!IS_EMM_CTXT_VALID_AUTH_VECTOR(
+             emm_context, (attach_proc->ies->ksi % MAX_EPS_AUTH_VECTORS)))) {
+         auth_proc->ksi = attach_proc->ksi;
+         emm_context->_security.eksi = attach_proc->ies->ksi;
+         OAILOG_INFO_UE(
+               LOG_NAS_EMM, emm_context->_imsi64,
+               "ATTACH - Authentication set proc ksi to %d \n", auth_proc->ksi);
+       }
       } else if (EMM_SPEC_PROC_TYPE_TAU == emm_specific_proc->type) {
         auth_proc->is_cause_is_attach = false;
       }
@@ -309,7 +332,13 @@ status_code_e emm_proc_authentication(
           break;
         }
       }
-      // eksi should always be 0
+      auth_proc->ksi = eksi;
+      OAILOG_INFO_UE(
+          LOG_NAS_EMM, emm_context->_imsi64,
+          "ATTACH - Authentication update proc ksi to %d\n",
+          auth_proc->ksi);
+      // eksi should not always be 0, seems reals UEs accept this, but 
+      // not all RAN emulators.
       if (!IS_EMM_CTXT_VALID_AUTH_VECTOR(
               emm_context, (eksi % MAX_EPS_AUTH_VECTORS))) {
         run_auth_info_proc = true;
@@ -419,6 +448,7 @@ static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx) {
     if (emm_ctx->_security.eksi < KSI_NO_KEY_AVAILABLE) {
       REQUIREMENT_3GPP_24_301(R10_5_4_2_4__2);
       eksi = (emm_ctx->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC  - New eksi %u:\n", eksi);
     }
 
     /*
@@ -974,6 +1004,13 @@ status_code_e emm_proc_authentication_complete(
         "EMM-PROC  - Successful authentication of the UE RESP XRES == XRES UE "
         "CONTEXT\n");
 
+    if (auth_proc->is_cause_is_attach) {
+      nas_emm_attach_proc_t* attach_proc =
+            get_nas_specific_procedure_attach(emm_ctx);
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC  - Force base proc Attach ksi %u:\n", auth_proc->ksi);
+      // attach proc IE ksi remains unchanged.
+      attach_proc->ksi = auth_proc->ksi;
+    }
     /*
      * Notify EMM that the authentication procedure successfully completed
      */
