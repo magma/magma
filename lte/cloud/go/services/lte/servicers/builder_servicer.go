@@ -60,13 +60,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
-		glog.V(4).Infof("LTE mconfig not build for %s: Network cast failed", request.GatewayId)
+		glog.V(4).Infof("LTE mconfig not build (conversion error Network cast failed) '%v' for gateway: %s", err, request.GatewayId)
 		return nil, err
 	}
-
 	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
-		glog.V(4).Infof("LTE mconfig not build for %s: EntityGraph cast failed", request.GatewayId)
+		glog.V(4).Infof("LTE mconfig not build (conversion error EntityGraph cast failed) '%v' for gateway: %s", err, request.GatewayId)
 		return nil, err
 	}
 	// Only build mconfig if cellular network and gateway configs exist
