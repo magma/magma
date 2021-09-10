@@ -38,6 +38,12 @@ DEFAULT_DNS_IP_SECONDARY_ADDR = "8.8.4.4"
 DEFAULT_DNS_IPV6_ADDR = "2001:4860:4860:0:0:0:0:8888"
 DEFAULT_P_CSCF_IPV4_ADDR = "172.27.23.150"
 DEFAULT_P_CSCF_IPV6_ADDR = "2a12:577:9941:f99c:0002:0001:c731:f114"
+DEFAULT_NGAP_S_NSSAI_SST = "1"
+DEFAULT_NGAP_S_NSSAI_SD = "0xffffff"
+DEFAULT_NGAP_AMF_NAME = "AMF_1"
+DEFAULT_NGAP_AMF_REGION_ID = "1"
+DEFAULT_NGAP_SET_ID = "1"
+DEFAULT_NGAP_AMF_POINTER = "1"
 
 
 def _get_iface_ip(service, iface_config):
@@ -251,6 +257,102 @@ def _get_converged_core_config(service_mconfig: object) -> bool:
     return False
 
 
+def _get_default_slice_service_type_config(service_mconfig: object) -> str:
+    """
+    Retrieves default_slice_service_type config value,If it does not exist
+    it defaults to 1.
+    Args:
+        service_mconfig:
+
+    Returns: slice service type value
+    """
+
+    if service_mconfig.default_slice_service_type is not None:
+        return service_mconfig.default_slice_service_type
+
+    return DEFAULT_NGAP_S_NSSAI_SST
+
+
+def _get_default_slice_differentiator_type_config(service_mconfig: object) -> str:
+    """
+    Retrieves default_slice_differentiator config value,If it does not exist
+    it defaults to 0xffffff.
+    Args:
+        service_mconfig:
+
+    Returns: slice differentiator config value
+    """
+
+    if service_mconfig.default_slice_differentiator is not None:
+        return service_mconfig.default_slice_differentiator
+
+    return DEFAULT_NGAP_S_NSSAI_SD
+
+
+def _get_amf_name_config(service_mconfig: object) -> str:
+    """
+    Retrieves amf_name config value,If it does not exist
+    it defaults to Default Name AMF_1.
+    Args:
+        service_mconfig:
+
+    Returns: amf name string
+    """
+
+    if service_mconfig.amf_name is not None:
+        return service_mconfig.amf_name
+
+    return DEFAULT_NGAP_AMF_NAME
+
+
+def _get_amf_region_id(service_mconfig: object) -> str:
+    """
+    Retrieves amf_region_id config value,If it does not exist
+    it defaults to Default value of 1
+    Args:
+        service_mconfig:
+
+    Returns: amf region id
+    """
+
+    if service_mconfig.amf_region_id is not None:
+        return service_mconfig.amf_region_id
+
+    return DEFAULT_NGAP_AMF_REGION_ID
+
+
+def _get_amf_set_id(service_mconfig: object) -> str:
+    """
+    Retrieves amf_set_id config value,If it does not exist
+    it defaults to Default String 1
+    Args:
+        service_mconfig:
+
+    Returns: amf set id
+    """
+
+    if service_mconfig.amf_set_id is not None:
+        return service_mconfig.amf_set_id
+
+    return DEFAULT_NGAP_SET_ID
+
+
+def _get_amf_pointer(service_mconfig: object) -> str:
+    """
+    Retrieves amf_pointer config value,If it does not exist
+    it defaults to Default String 1
+    Args:
+        service_mconfig:
+
+    Returns: amf pointer value
+    """
+
+    if service_mconfig.amf_pointer is not None:
+        return service_mconfig.amf_pointer
+
+    return DEFAULT_NGAP_AMF_POINTER
+
+
 def _get_context():
     """
     Create the context which has the interface IP and the OAI log level to use.
@@ -297,6 +399,16 @@ def _get_context():
         "service_area_map": _get_service_area_maps(mme_service_config),
         "sentry_config": mme_service_config.sentry_config,
         "enable_converged_core": _get_converged_core_config(mme_service_config),
+        "default_slice_service_type": _get_default_slice_service_type_config(
+            mme_service_config,
+        ),
+        "default_slice_differentiator": _get_default_slice_differentiator_type_config(
+            mme_service_config,
+        ),
+        "amf_name": _get_amf_name_config(mme_service_config),
+        "amf_region_id": _get_amf_region_id(mme_service_config),
+        "amf_set_id": _get_amf_set_id(mme_service_config),
+        "amf_pointer": _get_amf_pointer(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(

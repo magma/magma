@@ -27,13 +27,19 @@
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
 #define MAX_APN_CORRECTION_MAP_LIST 10
+#define NGAP_S_NSSAI_ST_DEFAULT_VALUE 1
+#define NGAP_S_NSSAI_SD_INVALID_VALUE 0xffffff
 
 #define NGAP_CONFIG_STRING_NGAP_CONFIG "NGAP"
 #define NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
 #define NGAP_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                        \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
-
-extern char buf_plmn[3];
+#define NGAP_CONFIG_PLMN_SUPPORT_MCC "mcc"
+#define NGAP_CONFIG_PLMN_SUPPORT_MNC "mnc"
+#define NGAP_CONFIG_PLMN_SUPPORT_SST "DEFAULT_SLICE_SERVICE_TYPE"
+#define NGAP_CONFIG_PLMN_SUPPORT_SD "DEFAULT_SLICE_DIFFERENTIATOR"
+#define NGAP_CONFIG_AMF_PLMN_SUPPORT_LIST "PLMN_SUPPORT_LIST"
+#define NGAP_CONFIG_AMF_NAME "AMF_NAME"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];
@@ -119,6 +125,20 @@ typedef struct guamfi_config_s {
                                         interface within the AMF*/
 } guamfi_config_t;
 
+typedef struct amf_uint24_s {
+  uint32_t v : 24;
+} __attribute__((packed)) amf_uint24_t;
+
+typedef struct amf_s_nssai_s {
+  uint8_t sst;
+  amf_uint24_t sd;
+} __attribute__((packed)) amf_s_nssai_t;
+
+typedef struct plmn_support_s {
+  plmn_t plmn;
+  amf_s_nssai_t s_nssai;
+} plmn_support_t;
+
 typedef struct amf_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -135,6 +155,12 @@ typedef struct amf_config_s {
   bstring ip_capability;
   uint8_t unauthenticated_imsi_supported;
   guamfi_config_t guamfi;
+
+#define MIN_PLMN_SUPPORT 1
+#define MAX_PLMN_SUPPORT 5
+  uint8_t plmn_support_count;
+  plmn_support_t plmn_support[MAX_PLMN_SUPPORT];
+
   m5g_served_tai_t served_tai;
   service303_data_t service303_config;
   ngap_config_t ngap_config;
@@ -147,6 +173,7 @@ typedef struct amf_config_s {
     struct in_addr default_dns;
     struct in_addr default_dns_sec;
   } ipv4;
+  bstring amf_name;
 } amf_config_t;
 
 int amf_app_init(amf_config_t*);

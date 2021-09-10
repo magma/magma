@@ -356,6 +356,24 @@ message MME {
     SentryConfig sentry_config = 45;
 
     bool enable_converged_core = 46;
+
+    // AMF Slice Service Type (SST)
+    string default_slice_service_type = 47;
+
+    // AMF Slice Descriptor (SD)
+    string default_slice_differentiator = 48;
+
+    // AMF Name
+    string amf_name = 50;
+
+    // AMF Region ID
+    string amf_region_id = 51;
+
+    // AMF Set ID
+    string amf_set_id = 52;
+
+    // AMF pointer
+    string amf_pointer = 53;
 }
 
 message FederatedModeMap {
