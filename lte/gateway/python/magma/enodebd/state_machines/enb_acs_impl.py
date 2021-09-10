@@ -57,8 +57,9 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     def __init__(
             self,
             service: MagmaService,
+            use_param_key: bool,
     ) -> None:
-        super().__init__()
+        super().__init__(use_param_key=use_param_key)
         self.state = None
         self.timeout_handler = None
         self.mme_timeout_handler = None

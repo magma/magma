@@ -28,6 +28,7 @@ class EnodebDeviceName():
     BAICELLS_QAFB = 'Baicells QAFB'
     BAICELLS_RTS = 'Baicells RTS'
     CAVIUM = 'Cavium'
+    FREEDOMFI_ONE = 'FREEDOMFI ONE'
 
 
 def get_device_name(
@@ -75,6 +76,8 @@ def get_device_name(
             )
     elif device_oui in {'000FB7', '744D28'}:
         return EnodebDeviceName.CAVIUM
+    elif device_oui == '000E8F':
+        return EnodebDeviceName.FREEDOMFI_ONE
     else:
         raise UnrecognizedEnodebError("Device %s unsupported" % device_oui)
 

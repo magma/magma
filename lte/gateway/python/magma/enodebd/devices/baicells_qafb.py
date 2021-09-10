@@ -65,7 +65,7 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
             service: MagmaService,
     ) -> None:
         self._state_map = {}
-        super().__init__(service)
+        super().__init__(service=service, use_param_key=False)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
