@@ -22,7 +22,7 @@ export default function getCwfAlerts(
   return {
     'Certificate Expiring Soon': {
       alert: 'Certificate Expiring Soon',
-      expr: `cert_expires_in_hours > 720`,
+      expr: `cert_expires_in_hours < 720`,
       labels: {severity: 'major'},
       annotations: {
         description: `Alerts when certificate necessary for Orc8r function is expiring soon`,
