@@ -244,54 +244,84 @@ class StatusParameters(object):
                 "Radio with serial number %s doesn't have IP address "
                 "on WAN", serial_num,
             )
-            device_cfg.set_parameter(param_name=ParameterName.RF_TX_STATUS,
-                                     value=False)
-            device_cfg.set_parameter(param_name=ParameterName.GPS_STATUS,
-                                     value=False)
-            device_cfg.set_parameter(param_name=ParameterName.PTP_STATUS,
-                                     value=False)
-            device_cfg.set_parameter(param_name=ParameterName.MME_STATUS,
-                                     value=False)
-            device_cfg.set_parameter(param_name=ParameterName.OP_STATE,
-                                     value=False)
+            device_cfg.set_parameter(
+                param_name=ParameterName.RF_TX_STATUS,
+                value=False,
+            )
+            device_cfg.set_parameter(
+                param_name=ParameterName.GPS_STATUS,
+                value=False,
+            )
+            device_cfg.set_parameter(
+                param_name=ParameterName.PTP_STATUS,
+                value=False,
+            )
+            device_cfg.set_parameter(
+                param_name=ParameterName.MME_STATUS,
+                value=False,
+            )
+            device_cfg.set_parameter(
+                param_name=ParameterName.OP_STATE,
+                value=False,
+            )
             return
 
         if name_to_val[cls.SAS_STATUS].upper() == success_str:
-            device_cfg.set_parameter(param_name=ParameterName.RF_TX_STATUS,
-                                     value=True)
+            device_cfg.set_parameter(
+                param_name=ParameterName.RF_TX_STATUS,
+                value=True,
+            )
         else:
             # No sas grant so not transmitting. There is no explicit node for Tx
             # in FreedomFiOne
-            device_cfg.set_parameter(param_name=ParameterName.RF_TX_STATUS,
-                                     value=False)
+            device_cfg.set_parameter(
+                param_name=ParameterName.RF_TX_STATUS,
+                value=False,
+            )
 
         if name_to_val[cls.GPS_SCAN_STATUS].upper() == success_str:
-            device_cfg.set_parameter(param_name=ParameterName.GPS_STATUS,
-                                     value=True)
+            device_cfg.set_parameter(
+                param_name=ParameterName.GPS_STATUS,
+                value=True,
+            )
             # Time comes through GPS so can only be insync with GPS is
             # in sync, we use PTP_STATUS field to overload timer is in Sync.
             if name_to_val[cls.SYNC_STATUS].upper() == insync_str:
-                device_cfg.set_parameter(param_name=ParameterName.PTP_STATUS,
-                                         value=True)
+                device_cfg.set_parameter(
+                    param_name=ParameterName.PTP_STATUS,
+                    value=True,
+                )
         else:
-            device_cfg.set_parameter(param_name=ParameterName.GPS_STATUS,
-                                     value=False)
-            device_cfg.set_parameter(param_name=ParameterName.PTP_STATUS,
-                                     value=False)
+            device_cfg.set_parameter(
+                param_name=ParameterName.GPS_STATUS,
+                value=False,
+            )
+            device_cfg.set_parameter(
+                param_name=ParameterName.PTP_STATUS,
+                value=False,
+            )
 
         if name_to_val[cls.DEFAULT_GW].upper() == success_str:
-            device_cfg.set_parameter(param_name=ParameterName.MME_STATUS,
-                                     value=True)
+            device_cfg.set_parameter(
+                param_name=ParameterName.MME_STATUS,
+                value=True,
+            )
         else:
-            device_cfg.set_parameter(param_name=ParameterName.MME_STATUS,
-                                     value=False)
+            device_cfg.set_parameter(
+                param_name=ParameterName.MME_STATUS,
+                value=False,
+            )
 
         if name_to_val[cls.ENB_STATUS].upper() == success_str:
-            device_cfg.set_parameter(param_name=ParameterName.OP_STATE,
-                                     value=True)
+            device_cfg.set_parameter(
+                param_name=ParameterName.OP_STATE,
+                value=True,
+            )
         else:
-            device_cfg.set_parameter(param_name=ParameterName.OP_STATE,
-                                     value=False)
+            device_cfg.set_parameter(
+                param_name=ParameterName.OP_STATE,
+                value=False,
+            )
 
         pass_through_params = [ParameterName.GPS_LAT, ParameterName.GPS_LONG]
         for name in pass_through_params:
@@ -399,7 +429,7 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
                     when_add='add_objs',
                     when_set='set_params',
                     when_skip='end_session',
-            ),
+                ),
 
             'delete_objs': DeleteObjectsState(
                 self, when_add='add_objs',
@@ -996,16 +1026,20 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                     self.acs.device_cfg,
                 ),
         ) > 0:
-            return AcsReadMsgResult(msg_handled=True,
-                                    next_state=self.rm_obj_transition)
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.rm_obj_transition,
+            )
         elif len(
                 get_all_objects_to_add(
                     self.acs.desired_cfg,
                     self.acs.device_cfg,
                 ),
         ) > 0:
-            return AcsReadMsgResult(msg_handled=True,
-                                    next_state=self.add_obj_transition)
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.add_obj_transition,
+            )
         elif len(
                 get_all_param_values_to_set(
                     self.acs.desired_cfg,
@@ -1013,8 +1047,10 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                     self.acs.data_model,
                 ),
         ) > 0:
-            return AcsReadMsgResult(msg_handled=True,
-                                    next_state=self.set_params_transition)
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.set_params_transition,
+            )
         return AcsReadMsgResult(msg_handled=True, next_state=self.skip_transition)
 
     def state_description(self) -> str:
