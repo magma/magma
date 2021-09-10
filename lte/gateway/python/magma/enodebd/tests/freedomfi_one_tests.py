@@ -629,7 +629,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         ]
         self.assertEqual(cfg_desired.mock_calls, expected)
 
-        service_cfg['web_ui_enable'] = ["2006CW5000023"]
+        service_cfg['web_ui_enable_list'] = ["2006CW5000023"]
 
         expected = [
             call.delete_parameter('EARFCNDL'),
@@ -659,7 +659,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         service = MagmaService('enodebd', mconfigs_pb2.EnodebD())
         service_cfg = service.config
         service_cfg_1 = self._get_service_config()
-        service_cfg_1['web_ui_enable'] = []
+        service_cfg_1['web_ui_enable_list'] = []
         service_cfg_1[FreedomFiOneConfigurationInitializer.SAS_KEY][
             SASParameters.SAS_UID
         ] = "INVALID_ID"

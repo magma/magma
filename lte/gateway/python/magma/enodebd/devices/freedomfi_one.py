@@ -713,6 +713,7 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
     Class to add the sas related parameters to the desired config.
     """
     SAS_KEY = 'sas'
+    WEB_UI_ENABLE_LIST_KEY = 'web_ui_enable_list'
 
     def __init__(self, acs: EnodebAcsStateMachine):
         super().__init__()
@@ -737,8 +738,8 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
         # Bump up the parameter key version
         self.acs.parameter_version_inc()
 
-        if FreedomFiOneMiscParameters.WEB_UI_ENABLE in service_cfg:
-            serial_nos = service_cfg[FreedomFiOneMiscParameters.WEB_UI_ENABLE]
+        if self.WEB_UI_ENABLE_LIST_KEY in service_cfg:
+            serial_nos = service_cfg.get(self.WEB_UI_ENABLE_LIST_KEY)
             if self.acs.device_cfg.has_parameter(
                     ParameterName.SERIAL_NUMBER,
             ):

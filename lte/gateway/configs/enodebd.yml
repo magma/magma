@@ -42,7 +42,7 @@ reboot_enodeb_on_mme_disconnected: True
 
 # Enable webui for debugging for a list of eNB serial numbers.
 # Not supported on all enodeb models
-web_ui_enable: []
+web_ui_enable_list: []
 
 # Network interface to terminate S1
 s1_interface: eth1
