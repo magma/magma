@@ -93,7 +93,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_s1ap_task();
     } break;
 
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -106,9 +108,7 @@ void stop_mock_s1ap_task() {
 }
 
 void start_mock_s1ap_task(std::shared_ptr<MockS1apHandler> s1ap_handler) {
-  s1ap_handler_                  = s1ap_handler;
-  task_id_t task_id_list_main[1] = {TASK_MAIN};
-  init_task_context(
-      TASK_S1AP, task_id_list_main, 1, handle_message, &task_zmq_ctx_s1ap);
+  s1ap_handler_ = s1ap_handler;
+  init_task_context(TASK_S1AP, nullptr, 0, handle_message, &task_zmq_ctx_s1ap);
   zloop_start(task_zmq_ctx_s1ap.event_loop);
 }

@@ -66,8 +66,8 @@
 
 #define MMEC (0)
 #define MMEGID (0)
-#define PLMN_MCC (1) // mcc = 001
-#define PLMN_MNC (1) // mnc = 01
+#define PLMN_MCC (1) // maps to mcc = "001"
+#define PLMN_MNC (1) // maps to mnc = "01"
 #define PLMN_MNC_LEN (2)
 #define PLMN_TAC (1)
 

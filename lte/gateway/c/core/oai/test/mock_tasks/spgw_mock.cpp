@@ -47,9 +47,8 @@ void stop_mock_spgw_task() {
 }
 
 void start_mock_spgw_task(std::shared_ptr<MockSpgwHandler> spgw_handler) {
-  spgw_handler_                  = spgw_handler;
+  spgw_handler_ = spgw_handler;
   init_task_context(
       TASK_SPGW_APP, nullptr, 0, handle_message, &task_zmq_ctx_spgw);
-
   zloop_start(task_zmq_ctx_spgw.event_loop);
 }

@@ -43,11 +43,25 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   free(received_message_p);
   return 0;
 }
+static void send_mme_app_uplink_data_ind(
+    uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
+  ITTI_MSG_LASTHOP_LATENCY(message_p)     = 0;
+  MME_APP_UL_DATA_IND(message_p).ue_id    = 1;
+  MME_APP_UL_DATA_IND(message_p).nas_msg  = blk2bstr(nas_msg, nas_msg_length);
+  MME_APP_UL_DATA_IND(message_p).tai.plmn = plmn;
+  MME_APP_UL_DATA_IND(message_p).tai.tac  = 1;
+  MME_APP_UL_DATA_IND(message_p).cgi.plmn = plmn;
+  MME_APP_UL_DATA_IND(message_p).cgi.cell_identity = {0, 0, 0};
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
 
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     s1ap_handler = std::make_shared<MockS1apHandler>();
-    s6a_handler = std::make_shared<MockS6aHandler>();
+    s6a_handler  = std::make_shared<MockS6aHandler>();
     spgw_handler = std::make_shared<MockSpgwHandler>();
 
     itti_init(
@@ -127,7 +141,7 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
+TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   MessageDef* message_p = NULL;
   std::string imsi      = "001010000000001";
   plmn_t plmn           = {
@@ -138,12 +152,12 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
       .mnc_digit2 = 1,
       .mnc_digit1 = 0};
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(2);
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
-  
+
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
 
@@ -197,36 +211,18 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
 
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
   uint8_t nas_msg2[] = {0x07, 0x53, 0x10, 0x66, 0xff, 0x47, 0x2d,
                         0xd4, 0x93, 0xf1, 0x5a, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0x00, 0x00, 0x00};
   nas_msg_length     = 19;
-
-  ITTI_MSG_LASTHOP_LATENCY(message_p)     = 0;
-  MME_APP_UL_DATA_IND(message_p).ue_id    = 1;
-  MME_APP_UL_DATA_IND(message_p).nas_msg  = blk2bstr(nas_msg2, nas_msg_length);
-  MME_APP_UL_DATA_IND(message_p).tai.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).tai.tac  = 1;
-  MME_APP_UL_DATA_IND(message_p).cgi.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).cgi.cell_identity = {0, 0, 0};
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
-
+  send_mme_app_uplink_data_ind(&nas_msg2[0], nas_msg_length, plmn);
+  
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
   uint8_t nas_msg3[] = {0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07,
                         0x5e, 0x23, 0x09, 0x33, 0x08, 0x45, 0x86,
                         0x34, 0x12, 0x31, 0x71, 0xf2};
-  // 0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00,
-  nas_msg_length                          = 19;
-  ITTI_MSG_LASTHOP_LATENCY(message_p)     = 0;
-  MME_APP_UL_DATA_IND(message_p).ue_id    = 1;
-  MME_APP_UL_DATA_IND(message_p).nas_msg  = blk2bstr(nas_msg3, nas_msg_length);
-  MME_APP_UL_DATA_IND(message_p).tai.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).tai.tac  = 1;
-  MME_APP_UL_DATA_IND(message_p).cgi.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).cgi.cell_identity = {0, 0, 0};
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  nas_msg_length     = 19;
+  send_mme_app_uplink_data_ind(&nas_msg3[0], nas_msg_length, plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
@@ -262,9 +258,9 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
   itti_s11_create_session_response_t* create_session_response_p =
       &message_p->ittiMsg.s11_create_session_response;
-  create_session_response_p->teid              = 1;
-  create_session_response_p->cause.cause_value = REQUEST_ACCEPTED;
-  create_session_response_p->paa.pdn_type = IPv4;
+  create_session_response_p->teid                    = 1;
+  create_session_response_p->cause.cause_value       = REQUEST_ACCEPTED;
+  create_session_response_p->paa.pdn_type            = IPv4;
   create_session_response_p->paa.ipv4_address.s_addr = 1000;
   create_session_response_p->bearer_contexts_created.bearer_contexts[0]
       .cause.cause_value = REQUEST_ACCEPTED;
@@ -277,7 +273,7 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
   create_session_response_p->bearer_contexts_created.bearer_contexts[0]
       .s1u_sgw_fteid.ipv4_address.s_addr = 100;
   create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .eps_bearer_id = 5;
+      .eps_bearer_id                                                    = 5;
   create_session_response_p->bearer_contexts_created.num_bearer_context = 1;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
 
@@ -310,8 +306,12 @@ TEST_F(MmeAppProcedureTest, TestInitialAttachEpsOnly) {
       (uint8_t*) malloc(ue_cap_ind_p->radio_capabilities_length);
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
 
-  // Constructing Attach Complete
-
+  // Constructing  and sending Attach Complete to mme_app
+  // mimicing S1AP
+  uint8_t nas_msg4[] = {0x27, 0xb6, 0x28, 0x5a, 0x49, 0x01, 0x07,
+                        0x43, 0x00, 0x03, 0x52, 0x00, 0xc2};
+  nas_msg_length     = 13;
+  send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
