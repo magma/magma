@@ -62,6 +62,7 @@ target_link_libraries(test_nas_apn_ambr
 target_link_libraries(test_nas_eps_quality_of_service
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR LIB_HASHTABLE gtest gtest_main
+    )
 
 target_link_libraries(test_mme_app_config
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
