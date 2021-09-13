@@ -20,4 +20,7 @@ import (
 func main() {
 	lm := log.NewManager(zap.NewLogger())
 	server.Start(lm.LoggerFor("server"))
+
+	stopper := make(chan struct{})
+	<-stopper
 }
