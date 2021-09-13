@@ -15,5 +15,3 @@ docker_registry: ""
 docker_user: ""
 docker_pass: ""
 image_version: "latest"
-
-rootca: ""

@@ -38,11 +38,6 @@ fi
 # Pull all images
 /usr/local/bin/docker-compose pull
 
-# Stop all containers
-# NOTE: add docker restart to work around GoRadius failures to stop
-/usr/local/bin/docker-compose down ||
-  systemctl restart docker.socket docker.service
-
 CONTAINERS=$(docker ps -a -q)
 [[ -z "$CONTAINERS" ]] || docker stop $CONTAINERS
 
