@@ -332,6 +332,15 @@
     copy: no
   when: preburn
 
+- name: Set Go environment vars in profile
+  lineinfile:
+    dest: "/home/{{ ansible_user }}/.profile"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - export PATH=$PATH:/usr/local/bin/go/
+  when: full_provision
+
 - name: Install dnsmasq
   apt: pkg=dnsmasq state=present update_cache=yes
   retries: 5

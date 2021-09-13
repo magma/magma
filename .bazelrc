@@ -9,10 +9,11 @@ build:docker --disk_cache=/magma/.bazel-cache
 build:docker --repository_cache=/magma/.bazel-cache-repo
 
 # For building with Bazel inside the Magma VM
-build:vm --sandbox_writable_path=/home/vagrant/.ccache
 build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
-build:vm --repository_cache=.bazel-cache-repo
+build:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
 build:vm --define=folly_so=1
+build:vm --action_env=CC=/usr/bin/gcc
+build:vm --action_env=CXX=/usr/bin/g++
 
 build:asan --strip=never
 build:asan --copt=-fsanitize=address
