@@ -36,13 +36,19 @@ def main():
         max_client_reuse=60,
     )
 
+    config = service.config
+    print_grpc_payload = config.get('print_grpc_payload', False)
+
     # Garbage collector propagates state deletions back to Orchestrator
-    garbage_collector = GarbageCollector(service, grpc_client_manager)
+    garbage_collector = GarbageCollector(
+        service, grpc_client_manager, print_grpc_payload,
+    )
 
     # Start state replication loop
     state_manager = StateReplicator(
         service, garbage_collector,
         grpc_client_manager,
+        print_grpc_payload,
     )
     state_manager.start()
 
