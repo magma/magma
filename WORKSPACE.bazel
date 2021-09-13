@@ -11,7 +11,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("//:third_party_repositories.bzl", "boost", "cpp_testing_deps", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp", "zlib")
+load("//:third_party_repositories.bzl", "boost", "cpp_redis", "cpp_testing_deps", "gflags", "glog", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -112,6 +112,10 @@ grpc_deps()
 ### PROTO / GRPC DEPENDENCIES ###
 
 ### Dependencies for orc8r/gateway/c/common
+gflags()
+
+glog()
+
 boost()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
@@ -125,6 +129,19 @@ nlohmann_json()
 prometheus_cpp_deps()
 ### Dependencies for orc8r/gateway/c/common
 
+### CPP_REDIS DEPENDENCIES ###
+cpp_redis()
+### CPP_REDIS DEPENDENCIES ###
+
 ### DEPENDENCY FOR TESTING
 cpp_testing_deps()
 ### DEPENDENCY FOR TESTING
+
+# To get Folly to build reliably, we're going to pull it from the underlying system
+# This assumes that the build is done in the Docker container or VBox VM
+new_local_repository(
+    name = "system_libraries",
+    build_file = "//third_party:system_libraries.BUILD",
+    path = "/usr/local/lib",
+)
+### Folly dependencies ###

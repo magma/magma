@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"context"
 	"math/rand"
 	"net/http"
 	"time"
@@ -92,12 +91,13 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		if nerr != nil {
 			return nerr
 		}
+		reqCtx := c.Request().Context()
 
 		payload := &models.NetworkProbeTask{}
 		if err := c.Bind(payload); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
-		if err := payload.ValidateModel(context.Background()); err != nil {
+		if err := payload.ValidateModel(reqCtx); err != nil {
 			return obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
@@ -119,6 +119,7 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		}
 
 		_, err := configurator.CreateEntity(
+			reqCtx,
 			networkID,
 			configurator.NetworkEntity{
 				Type:   lte.NetworkProbeTaskEntityType,
@@ -163,16 +164,17 @@ func updateNetworkProbeTask(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &models.NetworkProbeTask{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.UpdateEntity(networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
+	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -188,8 +190,8 @@ func getDeleteNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		}
 
 		networkID, taskID := values[0], values[1]
-		storage.DeleteNProbeData(networkID, taskID)
-		err := configurator.DeleteEntity(networkID, lte.NetworkProbeTaskEntityType, taskID)
+		_ = storage.DeleteNProbeData(networkID, taskID)
+		err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.NetworkProbeTaskEntityType, taskID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -224,16 +226,18 @@ func createNetworkProbeDestination(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &models.NetworkProbeDestination{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	_, err := configurator.CreateEntity(
+		reqCtx,
 		networkID,
 		configurator.NetworkEntity{
 			Type:   lte.NetworkProbeDestinationEntityType,
@@ -277,16 +281,17 @@ func updateNetworkProbeDestination(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
 	payload := &models.NetworkProbeDestination{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := payload.ValidateModel(context.Background()); err != nil {
+	if err := payload.ValidateModel(reqCtx); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.UpdateEntity(networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
+	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -301,7 +306,7 @@ func deleteNetworkProbeDestination(c echo.Context) error {
 	}
 
 	networkID, destinationID := values[0], values[1]
-	err := configurator.DeleteEntity(networkID, lte.NetworkProbeDestinationEntityType, destinationID)
+	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.NetworkProbeDestinationEntityType, destinationID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

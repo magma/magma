@@ -121,6 +121,10 @@ definitions:
     description: The type of the network
     type: string
     example: LTE
+  page_token:
+    type: string
+    description: Base64-encoded page token for subsequent paginated API requests
+
 
   gateway_id:
     type: string

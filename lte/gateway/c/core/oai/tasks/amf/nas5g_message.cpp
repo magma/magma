@@ -992,6 +992,9 @@ std::string get_message_type_str(uint8_t type) {
     case M5G_SERVICE_ACCEPT:
       msgtype_str = "M5G_SERVICE_ACCEPT";
       break;
+    case M5G_SERVICE_REJECT:
+      msgtype_str = "M5G_SERVICE_REJECT";
+      break;
     case M5G_IDENTITY_REQUEST:
       msgtype_str = "M5G_IDENTITY_REQUEST";
       break;
@@ -1035,7 +1038,7 @@ std::string uint8_to_hex_string(const uint8_t* v, const size_t s) {
   std::stringstream ss;
 
   ss << std::hex << std::setfill('0');
-  for (int i = 0; i < s; i++) {
+  for (unsigned int i = 0; i < s; i++) {
     ss << std::hex << std::setw(2) << static_cast<int>(v[i]) << " ";
     if ((i + 1) % 8 == 0) ss << " ";
     if ((i + 1) % 16 == 0) ss << "\n";

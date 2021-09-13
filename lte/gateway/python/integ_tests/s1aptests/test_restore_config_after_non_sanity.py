@@ -47,11 +47,16 @@ class TestRestoreConfigAfterNonSanity(unittest.TestCase):
             ),
         )
 
-        if 1 in ret_codes:
-            print("Restarting services to apply configuration change")
-            self._magmad_util.restart_all_services()
-        else:
-            print("No need to restart the services")
+        print(
+            "Restoring MME configuration to default values using backup "
+            "configuration file",
+        )
+        self._magmad_util.update_mme_config_for_non_sanity(
+            MagmadUtil.config_update_cmds.RESTORE,
+        )
+
+        print("Restarting services to apply configuration change")
+        self._magmad_util.restart_all_services()
 
 
 if __name__ == "__main__":

@@ -42,6 +42,7 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "log.h"
+#include "mme_app_timer.h"
 
 //------------------------------------------------------------------------------
 status_code_e nas_timer_init(void) {
@@ -52,41 +53,31 @@ status_code_e nas_timer_init(void) {
 void nas_timer_cleanup(void) {}
 
 //------------------------------------------------------------------------------
-long int nas_timer_start(
-    uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
-    void* nas_timer_callback_args) {
-  long timer_id;
-  nas_itti_timer_arg_t cb;
-
-  // do not start null timer
-  if (sec == 0 && usec == 0) {
-    return NAS_TIMER_INACTIVE_ID;
+void nas_timer_start(
+    struct nas_timer_s* const timer, time_out_t time_out_cb,
+    timer_arg_t* time_out_cb_args) {
+  if ((timer) && (timer->id == NAS_TIMER_INACTIVE_ID)) {
+    timer->id = mme_app_start_timer_arg(
+        timer->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, time_out_cb_args);
+    if (NAS_TIMER_INACTIVE_ID != timer->id) {
+      OAILOG_DEBUG(
+          LOG_NAS_EMM, "NAS EBR Timer started UE " MME_UE_S1AP_ID_FMT "\n",
+          time_out_cb_args->ue_id);
+    } else {
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "Could not start NAS EBR Timer for UE " MME_UE_S1AP_ID_FMT " ",
+          time_out_cb_args->ue_id);
+    }
   }
-
-  memset(&cb, 0, sizeof(cb));
-  cb.nas_timer_callback     = nas_timer_callback;
-  cb.nas_timer_callback_arg = nas_timer_callback_args;
-
-  if (timer_setup(
-          sec, usec, TASK_MME_APP, INSTANCE_DEFAULT, TIMER_ONE_SHOT, &cb,
-          sizeof(cb), &timer_id) == -1) {
-    return NAS_TIMER_INACTIVE_ID;
-  }
-
-  return timer_id;
 }
 
 //------------------------------------------------------------------------------
-long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg) {
-  nas_itti_timer_arg_t* nas_itti_timer_arg = NULL;
-  timer_remove(timer_id, (void**) &nas_itti_timer_arg);
-  if (nas_itti_timer_arg) {
-    *nas_timer_callback_arg = nas_itti_timer_arg->nas_timer_callback_arg;
-    free_wrapper((void**) &nas_itti_timer_arg);
-  } else {
-    *nas_timer_callback_arg = NULL;
+void nas_timer_stop(struct nas_timer_s* const timer) {
+  if ((timer) && (timer->id != NAS_TIMER_INACTIVE_ID)) {
+    mme_app_stop_timer(timer->id);
+    timer->id = NAS_TIMER_INACTIVE_ID;
   }
-  return (NAS_TIMER_INACTIVE_ID);
 }
 
 //------------------------------------------------------------------------------

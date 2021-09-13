@@ -311,9 +311,12 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
     libconfig_int internal_sampling_fwd_tbl_num = 0;
     libconfig_int uplink_port_num               = 0;
     char* multi_tunnel                          = NULL;
+    char* agw_l3_tunnel                         = NULL;
     char* gtp_echo                              = NULL;
-    char* uplink_mac                            = NULL;
-    char* pipelined_managed_tbl0                = NULL;
+    char* gtp_csum                              = NULL;
+
+    char* uplink_mac             = NULL;
+    char* pipelined_managed_tbl0 = NULL;
     if (config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_BRIDGE_NAME,
             (const char**) &ovs_bridge_name) &&
@@ -339,6 +342,12 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_GTP_ECHO,
             (const char**) &gtp_echo) &&
+        config_setting_lookup_string(
+            ovs_settings, SGW_CONFIG_STRING_OVS_GTP_CHECKSUM,
+            (const char**) &gtp_csum) &&
+        config_setting_lookup_string(
+            ovs_settings, SGW_CONFIG_STRING_AGW_L3_TUNNEL,
+            (const char**) &agw_l3_tunnel) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED,
             (const char**) &pipelined_managed_tbl0)) {
@@ -373,6 +382,19 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         config_pP->ovs_config.gtp_echo = false;
       }
       OAILOG_INFO(LOG_SPGW_APP, "GTP-U echo response enable: %s\n", gtp_echo);
+      if (strcasecmp(gtp_csum, "true") == 0) {
+        config_pP->ovs_config.gtp_csum = true;
+      } else {
+        config_pP->ovs_config.gtp_csum = false;
+      }
+      OAILOG_INFO(LOG_SPGW_APP, "GTP-U checksum enable: %s\n", gtp_csum);
+
+      if (strcasecmp(agw_l3_tunnel, "true") == 0) {
+        config_pP->agw_l3_tunnel = true;
+      } else {
+        config_pP->agw_l3_tunnel = false;
+      }
+      OAILOG_INFO(LOG_SPGW_APP, "AGW L3 tunneling enable: %s\n", agw_l3_tunnel);
     } else {
       Fatal("Couldn't find all ovs settings in spgw config\n");
     }

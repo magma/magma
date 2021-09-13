@@ -152,9 +152,12 @@ static uint32_t get_gtp_port_no(char port_name[]) {
 /**
  * Create GTP tunnel using OVS tool
  */
-static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
+static uint32_t create_gtp_port(
+    struct in_addr enb_addr, char port_name[], bool is_pgw) {
   char gtp_port_create[512];
   char* gtp_echo;
+  char* gtp_csum;
+  char* l3_tunnel;
   int rc;
 
   if (spgw_config.sgw_config.ovs_config.gtp_echo) {
@@ -162,14 +165,22 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
   } else {
     gtp_echo = "false";
   }
+
+  if (spgw_config.sgw_config.ovs_config.gtp_csum) {
+    gtp_csum = "true";
+  } else {
+    gtp_csum = "false";
+  }
+
+  if (is_pgw && spgw_config.sgw_config.agw_l3_tunnel) {
+    l3_tunnel = "true";
+  } else {
+    l3_tunnel = "false";
+  }
   rc = snprintf(
       gtp_port_create, sizeof(gtp_port_create),
-      "sudo ovs-vsctl --may-exist add-port gtp_br0 %s -- set Interface %s "
-      "type=%s "
-      "options:remote_ip=%s options:key=flow "
-      "bfd:enable=%s "
-      "bfd:min_tx=5000 bfd:min_rx=5000",
-      port_name, port_name, ovs_gtp_type, inet_ntoa(enb_addr), gtp_echo);
+      "sudo /usr/local/bin/magma-create-gtp-port.sh %s %s %s %s %s", port_name,
+      inet_ntoa(enb_addr), gtp_echo, gtp_csum, l3_tunnel);
   if (rc < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "gtp-port create: format error %d", rc);
     return rc;
@@ -181,7 +192,8 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
         LOG_GTPV1U, "gtp port create: [%s] failed: %d", gtp_port_create, rc);
   } else {
     OAILOG_DEBUG(
-        LOG_GTPV1U, "gtp port create done: for ENB: %s ", inet_ntoa(enb_addr));
+        LOG_GTPV1U, "gtp port create done[%s]: for ENB: %s ", gtp_port_create,
+        inet_ntoa(enb_addr));
   }
 
   return get_gtp_port_no(port_name);
@@ -191,7 +203,7 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
  * seach port in cached table. otherwise create tunnel and
  * retrieve port number from OVSDB.
  */
-static uint32_t find_gtp_port_no(struct in_addr enb_addr) {
+static uint32_t find_gtp_port_no(struct in_addr enb_addr, bool is_pgw) {
   if (!spgw_config.sgw_config.ovs_config.multi_tunnel) {
     return 0;
   }
@@ -207,7 +219,7 @@ static uint32_t find_gtp_port_no(struct in_addr enb_addr) {
     return portno;
   }
 
-  portno = create_gtp_port(enb_addr, port_name);
+  portno = create_gtp_port(enb_addr, port_name, is_pgw);
   add_portno_rec(port_name, portno);
   return portno;
 }
@@ -260,7 +272,7 @@ int openflow_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
     uint32_t flow_precedence_dl, char* apn) {
-  uint32_t gtp_portno = find_gtp_port_no(enb);
+  uint32_t gtp_portno = find_gtp_port_no(enb, false);
 
   return openflow_controller_add_gtp_tunnel(
       ue, ue_ipv6, vlan, enb, i_tei, o_tei, (const char*) imsi.digit, flow_dl,
@@ -270,7 +282,7 @@ int openflow_add_tunnel(
 int openflow_del_tunnel(
     struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
     uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl) {
-  uint32_t gtp_portno = find_gtp_port_no(enb);
+  uint32_t gtp_portno = find_gtp_port_no(enb, false);
 
   return openflow_controller_del_gtp_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, gtp_portno);
@@ -282,8 +294,8 @@ int openflow_add_s8_tunnel(
     struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
     uint32_t pgw_o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
     uint32_t flow_precedence_dl) {
-  uint32_t enb_portno = find_gtp_port_no(enb);
-  uint32_t pgw_portno = find_gtp_port_no(pgw);
+  uint32_t enb_portno = find_gtp_port_no(enb, false);
+  uint32_t pgw_portno = find_gtp_port_no(pgw, true);
 
   return openflow_controller_add_gtp_s8_tunnel(
       ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_i_tei, pgw_o_tei,
@@ -295,8 +307,8 @@ int openflow_del_s8_tunnel(
     struct in_addr enb, struct in_addr pgw, struct in_addr ue,
     struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
     struct ip_flow_dl* flow_dl) {
-  uint32_t enb_portno = find_gtp_port_no(enb);
-  uint32_t pgw_portno = find_gtp_port_no(pgw);
+  uint32_t enb_portno = find_gtp_port_no(enb, false);
+  uint32_t pgw_portno = find_gtp_port_no(pgw, true);
 
   return openflow_controller_del_gtp_s8_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, enb_portno, pgw_portno);

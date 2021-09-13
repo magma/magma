@@ -22,7 +22,8 @@
 #include "M5GSessionAMBR.h"
 #include "M5GPDUAddress.h"
 #include "M5GDNN.h"
-using namespace std;
+#include "M5GProtocolConfigurationOptions.h"
+
 namespace magma5g {
 // PDUSessionEstablishmentAccept Message Class
 class PDUSessionEstablishmentAcceptMsg {
@@ -37,6 +38,7 @@ class PDUSessionEstablishmentAcceptMsg {
   QOSRulesMsg qos_rules;
   SessionAMBRMsg session_ambr;
   PDUAddressMsg pdu_address;
+  ProtocolConfigurationOptions protocolconfigurationoptions;
   DNNMsg dnn;
 
   PDUSessionEstablishmentAcceptMsg();

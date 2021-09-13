@@ -51,9 +51,9 @@ class CreateSessionUtil:
         self._set_session = \
                   SessionSet(
                       subscriber_id=subscriber_id, local_f_teid=local_f_teid,\
-                             session_version=session_version,\
-                             node_id=NodeID(node_id_type=NodeID.IPv4, node_id=node_id),\
-                             state=Fsm_state(state=Fsm_state.CREATED),
+                      session_version=session_version,\
+                      node_id=NodeID(node_id_type=NodeID.IPv4, node_id=node_id),\
+                      state=Fsm_state(state=Fsm_state.CREATED),
                   )
 
     @staticmethod
@@ -153,20 +153,20 @@ class CreateSessionUtil:
             return SetGroupPDR(
                 pdr_id=pdr_id, pdr_version=pdr_version,
                 pdr_state=pdr_state,\
-                               precedence=precedence,\
-                               pdi=PDI(
+                precedence=precedence,\
+                pdi=PDI(
                                    src_interface=0,\
-                                       local_f_teid=local_f_teid,\
-                                       ue_ip_adr=ue_ip_addr,
-                               ), \
-                                       o_h_remo_desc=0,
+                                   local_f_teid=local_f_teid,\
+                                   ue_ip_adr=ue_ip_addr,
+                ), \
+                o_h_remo_desc=0,
             )
 
         return SetGroupPDR(
             pdr_id=pdr_id, pdr_version=pdr_version,
             pdr_state=pdr_state,\
-                           precedence=precedence,\
-                           pdi=PDI(src_interface=1, ue_ip_adr=ue_ip_addr),
+            precedence=precedence,\
+            pdi=PDI(src_interface=1, ue_ip_adr=ue_ip_addr),
         )
 
     def CreateSessionMsg(

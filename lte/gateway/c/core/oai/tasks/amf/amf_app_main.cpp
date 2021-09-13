@@ -56,7 +56,8 @@ void amf_app_exit(void);
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  // imsi64_t imsi64                =
+  // itti_get_associated_imsi(received_message_p);
 
   OAILOG_INFO(
       LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
@@ -117,7 +118,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This case handles Notification Received for Paging or other events
        * or success messages are coming from NGAP
        */
-      imsi64 = itti_get_associated_imsi(received_message_p);
       amf_app_handle_notification_received(
           &N11_NOTIFICATION_RECEIVED(received_message_p));
       break;

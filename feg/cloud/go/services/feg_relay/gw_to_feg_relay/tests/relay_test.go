@@ -188,28 +188,24 @@ func TestNHRouting(t *testing.T) {
 	// test #4: Verify serving of non-matching PLMN IDs by default NH FeG (if exist)
 	//
 	// Add a FeG to serve non-matching PLMN IDs to NH network
-	_, err = configurator.CreateEntities(
-		nhNetworkID,
-		[]configurator.NetworkEntity{
-			{
-				Type: feg.FegGatewayType, Key: nhFegId,
-			},
-			{
-				Type: orc8r.MagmadGatewayType, Key: nhFegId,
-				Name: "nh_feg_gateway", Description: "neutral host federation gateway",
-				PhysicalID:   nhFegHwId,
-				Config:       &models.MagmadGatewayConfigs{},
-				Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: nhFegId}},
-			},
-			{
-				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
-					{Type: orc8r.MagmadGatewayType, Key: nhFegId},
-				},
+	_, err = configurator.CreateEntities(context.Background(), nhNetworkID, []configurator.NetworkEntity{
+		{
+			Type: feg.FegGatewayType, Key: nhFegId,
+		},
+		{
+			Type: orc8r.MagmadGatewayType, Key: nhFegId,
+			Name: "nh_feg_gateway", Description: "neutral host federation gateway",
+			PhysicalID:   nhFegHwId,
+			Config:       &models.MagmadGatewayConfigs{},
+			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: nhFegId}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{
+				{Type: orc8r.MagmadGatewayType, Key: nhFegId},
 			},
 		},
-		serdes.Entity,
-	)
+	}, serdes.Entity)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(context.Background(), nhNetworkID, orc8r.AccessGatewayRecordType, nhFegHwId, &models.GatewayDevice{HardwareID: nhFegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)

@@ -14,6 +14,7 @@
 package unary_test
 
 import (
+	context2 "context"
 	"net"
 	"testing"
 	"time"
@@ -174,7 +175,7 @@ func TestIdentityInjector(t *testing.T) {
 	// Unregister GW
 	assert.NoError(
 		t,
-		configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gwid.LogicalId))
+		configurator.DeleteEntity(context2.Background(), networkID, orc8r.MagmadGatewayType, gwid.LogicalId))
 
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),

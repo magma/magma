@@ -25,6 +25,7 @@
 #include "asn1_conversions.h"
 #include "ngap_amf_encoder.h"
 #include "ngap_amf.h"
+#include "ngap_amf_ta.h"
 #include "ngap_amf_nas_procedures.h"
 #include "ngap_amf_itti_messaging.h"
 #include "includes/MetricsHelpers.h"
@@ -88,8 +89,7 @@ status_code_e ngap_amf_handle_initial_ue_message(
   }
 
   // gNB UE NGAP ID is limited to 24 bits
-  gnb_ue_ngap_id =
-      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   OAILOG_DEBUG(
       LOG_NGAP,
       "New Initial UE message received with gNB UE NGAP ID: " GNB_UE_NGAP_ID_FMT
@@ -810,7 +810,7 @@ void ngap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items) {
-    for (auto i = 0;
+    for (int i = 0;
          i <
          conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items;
          i++) {
@@ -862,7 +862,7 @@ void ngap_handle_conn_est_cnf(
       if (er.encoded <= 0) {
         OAILOG_ERROR(
             LOG_NGAP, "PDU Session Resource Request IE encode error \n");
-        OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+        OAILOG_FUNC_OUT(LOG_NGAP);
       }
 
       asn_fprint(
@@ -1230,7 +1230,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.size = 1;
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf =
         (uint8_t*) calloc(1, sizeof(uint8_t));
-    ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf[0] = 0x11;
+    ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf[0] = _SST_eMBB;
 
     // filling PDU TX Structure
     amf_pdu_ses_setup_transfer_req =

@@ -123,7 +123,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
     def test_provision(self) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \

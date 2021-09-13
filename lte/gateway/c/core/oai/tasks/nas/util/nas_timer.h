@@ -34,6 +34,10 @@ Description Timer utilities
 #ifndef FILE_NAS_TIMER_SEEN
 #define FILE_NAS_TIMER_SEEN
 
+#include <czmq.h>
+
+#include "3gpp_36.401.h"
+#include "3gpp_24.007.h"
 #include "common_defs.h"
 #include "common_types.h"
 /****************************************************************************/
@@ -45,6 +49,7 @@ Description Timer utilities
  * failed to be started)
  */
 #define NAS_TIMER_INACTIVE_ID (-1)
+typedef int (*time_out_t)(zloop_t* loop, int timer_id, void* args);
 
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/
@@ -55,6 +60,11 @@ typedef struct nas_timer_s {
   long int id;  /* The timer identifier                 */
   uint32_t sec; /* The timer interval value in seconds  */
 } nas_timer_t;
+
+typedef struct timer_arg_s {
+  mme_ue_s1ap_id_t ue_id;
+  ebi_t ebi;
+} timer_arg_t;
 
 /* Type of the callback executed when the timer expired */
 typedef void (*nas_timer_callback_t)(void*, imsi64_t* imsi64);
@@ -74,10 +84,10 @@ typedef struct nas_itti_timer_arg_s {
 
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
-long int nas_timer_start(
-    uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
-    void* nas_timer_callback_args);
-long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg);
+void nas_timer_start(
+    nas_timer_t* const timer, time_out_t time_out_cb,
+    timer_arg_t* time_out_cb_args);
+void nas_timer_stop(nas_timer_t* const timer);
 void mme_app_nas_timer_handle_signal_expiry(
     long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg, imsi64_t* imsi64);
 

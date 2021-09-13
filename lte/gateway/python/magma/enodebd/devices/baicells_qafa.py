@@ -56,7 +56,7 @@ class BaicellsQAFAHandler(BasicEnodebAcsStateMachine):
         service: MagmaService,
     ) -> None:
         self._state_map = {}
-        super().__init__(service)
+        super().__init__(service=service, use_param_key=False)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
@@ -243,7 +243,7 @@ class BaicellsQAFATrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                          and (str(x) not in excluded_params),
+                and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )

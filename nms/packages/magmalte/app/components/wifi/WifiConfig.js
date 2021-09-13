@@ -14,7 +14,7 @@
  * @format
  */
 
-import Configure from '@fbcnms/magmalte/app/components/network/Configure';
+import Configure from '../network/Configure';
 import React from 'react';
 import WifiNetworkConfig from './WifiNetworkConfig';
 
