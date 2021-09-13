@@ -37,6 +37,8 @@ Current Test categories supported are:
 1. Verify 400 UEs across 12 eNodeBs with 500k data per UE
 1. Verify 600 UEs across 12 eNodeBs with 500k data per UE
 1. Verify 30 UEs across 12 eNodeBs with 500K data changing state from active-idle-active-idle
+1. Verify APN 10 correction mapping with 50 UEs
+1. Verify PLMN Restriction for 50 valid UEs and 50 invalid UEs
 
 ### Dashboard
 
