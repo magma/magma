@@ -90,5 +90,4 @@ int amf_start_registration_proc_authentication(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 
 int amf_handle_s6a_update_location_ans(const s6a_update_location_ans_t* ula_pP);
-
 }  // namespace magma5g

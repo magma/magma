@@ -25,9 +25,9 @@ add_library(LIB_N11
 target_link_libraries(LIB_N11
     COMMON
     LIB_MOBILITY_CLIENT
+    LIB_S6A_PROXY
     SERVICE_REGISTRY
     ASYNC_GRPC
-    LIB_S6A_PROXY
     MAGMA_CONFIG
     )
 

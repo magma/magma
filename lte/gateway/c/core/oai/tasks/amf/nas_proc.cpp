@@ -495,7 +495,7 @@ int amf_handle_s6a_update_location_ans(
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received update location Answer from Subscriberdb for"
-      " ue_id = %d\n",
+      " ue_id = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
 
   OAILOG_DEBUG(
@@ -503,7 +503,7 @@ int amf_handle_s6a_update_location_ans(
       ula_pP->subscription_data.subscribed_ambr.br_ul,
       ula_pP->subscription_data.subscribed_ambr.br_dl);
 
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 }  // namespace magma5g

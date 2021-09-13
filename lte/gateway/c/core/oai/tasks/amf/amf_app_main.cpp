@@ -99,9 +99,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
-      /*
-       * We received the update location answer message from HSS -> Handle it
-       */
       OAILOG_INFO(
           LOG_MME_APP,
           "Received S6A Update Location Answer from subscriberd\n");

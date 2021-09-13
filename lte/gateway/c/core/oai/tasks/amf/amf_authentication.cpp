@@ -149,6 +149,7 @@ static int start_authentication_information_procedure(
             imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni),
             auts->data, RAND_LENGTH_OCTETS + AUTS_LENGTH, ue_id);
   }
+
   // Calling GRPC call for default QoS
   amf_send_n11_update_location_req(ue_id);
 

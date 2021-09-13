@@ -74,7 +74,6 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
   bool set_smf_session(SetSMSessionContext& request);
 
   bool set_smf_notification(SetSmNotificationContext& notify);
-
   bool n11_update_location_req(const s6a_update_location_req_t* const ulr_p);
 };
 
