@@ -122,14 +122,14 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		return nil, fmt.Errorf("Unable to convert %T to map %v", subscribers, rawMap)
 	}
 	if len(rawMap) > 0 {
-		glog.Infof("Adding %d subscriber from hss.yml", len(rawMap))
+		glog.Infof("Adding %d subscribers from hss.yml", len(rawMap))
 		glog.V(2).Infof("-> rawMap: %+v", rawMap)
 	}
 	var subscriberData []*protos.SubscriberData
 	for k, v := range rawMap {
 		imsi, ok := k.(string)
 		if !ok {
-			glog.Errorf("IMSI field is not a string: %+v. Make sure you use \"IMSI\" in hss.yml ", k)
+			glog.Errorf("IMSI field must be a string, '%T' is given: %+v. Make sure you use \"IMSI\" in hss.yml", k, k)
 			continue
 		}
 		rawMap, ok := v.(map[interface{}]interface{})
@@ -147,7 +147,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		}
 		authKeyBytes, err := hex.DecodeString(authKey)
 		if err != nil {
-			glog.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
+			glog.Errorf("Could not add '%s' subscriber due to bad or missing auth_key: %s", imsi, err)
 			continue
 		}
 		non3gppEnabled, err := configMap.GetBool("non_3gpp_enabled")
