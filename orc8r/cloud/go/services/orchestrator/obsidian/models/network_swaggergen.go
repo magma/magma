@@ -40,9 +40,6 @@ type Network struct {
 	// sentry config
 	SentryConfig *NetworkSentryConfig `json:"sentry_config,omitempty"`
 
-	// state config
-	StateConfig *StateConfig `json:"state_config,omitempty"`
-
 	// type
 	Type models1.NetworkType `json:"type,omitempty"`
 }
@@ -72,10 +69,6 @@ func (m *Network) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSentryConfig(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateStateConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -171,24 +164,6 @@ func (m *Network) validateSentryConfig(formats strfmt.Registry) error {
 		if err := m.SentryConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("sentry_config")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *Network) validateStateConfig(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.StateConfig) { // not required
-		return nil
-	}
-
-	if m.StateConfig != nil {
-		if err := m.StateConfig.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("state_config")
 			}
 			return err
 		}

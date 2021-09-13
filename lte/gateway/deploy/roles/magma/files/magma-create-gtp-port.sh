@@ -13,13 +13,14 @@
 port_name=$1
 enb_addr=$2
 gtp_echo=$3
-enable_wg_tuneling=$4
+gtp_csum=$4
+enable_wg_tuneling=$5
 
 wg_setup_utility="/usr/local/bin/magma-setup-wg.sh"
 wg_key_dir="/var/opt/magma/sgi-tunnel"
 bfd_time=5000
 
-sudo ovs-vsctl --may-exist add-port gtp_br0 $port_name -- set Interface $port_name type=gtpu options:remote_ip=$enb_addr options:key=flow bfd:enable=$gtp_echo bfd:min_tx=$bfd_time bfd:min_rx=$bfd_time
+sudo ovs-vsctl --may-exist add-port gtp_br0 $port_name -- set Interface $port_name type=gtpu options:remote_ip=$enb_addr options:key=flow bfd:enable=$gtp_echo options:csum=$gtp_csum bfd:min_tx=$bfd_time bfd:min_rx=$bfd_time
 
 if [[ $enable_wg_tuneling == "true" ]]; then
   $wg_setup_utility $wg_key_dir $enb_addr

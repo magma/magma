@@ -60,6 +60,7 @@
 #define SGW_CONFIG_STRING_OVS_UPLINK_MAC "UPLINK_MAC"
 #define SGW_CONFIG_STRING_OVS_MULTI_TUNNEL "MULTI_TUNNEL"
 #define SGW_CONFIG_STRING_OVS_GTP_ECHO "GTP_ECHO"
+#define SGW_CONFIG_STRING_OVS_GTP_CHECKSUM "GTP_CHECKSUM"
 #define SGW_CONFIG_STRING_AGW_L3_TUNNEL "AGW_L3_TUNNEL"
 #define SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED                         \
   "PIPELINED_CONFIG_ENABLED"
@@ -78,6 +79,7 @@ typedef struct ovs_config_s {
   bool multi_tunnel;
   bool gtp_echo;
   bool pipelined_managed_tbl0;
+  bool gtp_csum;
 } ovs_config_t;
 
 typedef struct sgw_config_s {

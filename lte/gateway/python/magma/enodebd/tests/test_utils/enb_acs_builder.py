@@ -12,8 +12,10 @@ limitations under the License.
 """
 
 import asyncio
+from typing import Dict
 from unittest import mock
 
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
@@ -64,10 +66,14 @@ class EnodebAcsStateMachineBuilder:
     def build_magma_service(
         cls,
         device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
+            mconfig: mconfigs_pb2.EnodebD = None,
+            service_config: Dict = None,
     ) -> MagmaService:
         event_loop = asyncio.get_event_loop()
-        mconfig = EnodebConfigBuilder.get_mconfig(device)
-        service_config = EnodebConfigBuilder.get_service_config()
+        if not mconfig:
+            mconfig = EnodebConfigBuilder.get_mconfig(device)
+        if not service_config:
+            service_config = EnodebConfigBuilder.get_service_config()
         with mock.patch('magma.common.service.MagmaService') as MockService:
             MockService.config = service_config
             MockService.mconfig = mconfig

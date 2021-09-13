@@ -111,8 +111,6 @@ uint16_t sm_process_pco_request_ipcp(
   int16_t ipcp_req_remaining_length          = poc_id->length;
   size_t pco_in_index                        = 4;
 
-  struct sockaddr_in primary_dns_sa;
-  struct sockaddr_in secondry_dns_sa;
   uint8_t idp[6]          = {0};
   uint8_t ids[6]          = {0};
   int16_t ipcp_out_length = 0;
