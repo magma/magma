@@ -36,6 +36,28 @@ pipeline {
         }
       }
     }
+    stage("Setup Packages"){
+      environment {
+        PYTHONPATH = "${WORKSPACE}/orc8r"
+      }
+      steps{
+          retry(3) {
+        script {
+          echo "Setup required packages"
+          sh """
+          
+            export PYENV_ROOT="\$HOME/.pyenv"
+            export PATH="/home/jenkins/.local/bin:\$PYENV_ROOT/bin:\$PATH"
+            eval "\$(pyenv init -)"
+            eval "\$(pyenv virtualenv-init -)"
+            pyenv install 3.7.0 -f
+            pyenv global 3.7.0
+            pip3 install --upgrade pip
+            pip3 install ansible fabric3 jsonpickle requests PyYAML awscli docker-compose
+          """
+        }
+      }
+      }
     stage("cwag-precommit"){
       environment {
         MAGMA_ROOT = sh(script: 'pwd', , returnStdout: true).trim()
