@@ -40,76 +40,6 @@
     repo: deb https://download.docker.com/linux/ubuntu focal stable
     state: present
 
-- name: Configuring private package manager.
-  copy:
-    content: >
-      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path}}
-      {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
-    dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
-  become: yes
-
-- name: Add unvalidated Apt signing key.
-  when: magma_pkgrepo_key_fingerprint == ""
-  become: yes
-  block:
-    - name: Download key
-      apt_key:
-        url: "{{ magma_pkgrepo_key }}"
-        state: present
-        validate_certs: no
-    - name: Ignore server ssl cert
-      copy:
-        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
-        content: |
-          Acquire::https::{{ magma_pkgrepo_host }} {
-          Verify-Peer "false";
-          Verify-Host "false";
-          };
-
-- name: Add validated Apt signing key.
-  when: magma_pkgrepo_key_fingerprint != ""
-  become: yes
-  apt_key:
-    url: "{{ magma_pkgrepo_key }}"
-    id: "{{ magma_pkgrepo_key_fingerprint }}"
-    state: present
-
-- name: Update and upgrade apt packages
-  become: yes
-  apt:
-    update_cache: yes
-
-- name: Install runtime dependencies.
-  become: yes
-  apt:
-    name: "{{ packages }}"
-  vars:
-    packages:
-      - graphviz
-      - python-all
-      - module-assistant
-      - openssl
-      - dkms
-      - uuid-runtime
-
-- name: Preconfigure wireshark (tshark) SUID property
-  become: yes
-  ignore_errors: yes
-  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
-
-- name: Install prebuilt openvswitch packages
-  become: yes
-  apt:
-    name: "{{ packages }}"
-    #dpkg_options: 'force-confold,force-confdef,force-overwrite'
-  vars:
-    packages:
-      - libopenvswitch
-      - openvswitch-datapath-dkms
-      - openvswitch-datapath-source
-      - openvswitch-common
-      - openvswitch-switch
-
 - name: Install Docker
   apt:
     name: "{{ packages }}"
@@ -158,38 +88,36 @@
 - name: start docker service
   systemd: name=docker state=started enabled=yes
 
-- name: Start service openvswitch-switch.
-  become: yes
-  service:
-    name: openvswitch-switch
-    state: started
+- name: create the env file
+  template:
+    src: env.j2
+    dest: /var/opt/magma/docker/.env
+    mode: 0400
 
-- name: Copy the gtp interface initialization definition
+- name: copy the config files for magma
+  shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
+
+- name: copy the config files for orchestrator
+  shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
+
+- name: copy docker compose config file
+  shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yml /var/opt/magma/docker/
+
+- name: copy the rootca
+  copy: content={{ rootca }} dest=/var/opt/magma/certs/rootCA.pem mode='400'
+
+- name: docker login
+  shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
+  args:
+   chdir: "/var/opt/magma/docker/"
+  when: docker_pass != ""
+
+- name: copy the recreate script
   copy:
-    src: magma_ifaces_gtp
-    dest: /etc/network/interfaces.d/gtp
+   src: agw_upgrade.sh
+   dest: /var/opt/magma/docker/
+   mode: '0755'
 
-- name: Delete the OVS bridge on system initialization
-  lineinfile: dest=/etc/default/openvswitch-switch regexp='.*OVS_CTL_OPTS=.*' line='OVS_CTL_OPTS=\'--delete-bridges\'' state=present
+- name: bring up the containers.
+  script: agw_upgrade.sh
 
-- name: Restart networking to bring up linux bridge
-  ignore_errors: yes
-  service:
-    name: networking
-    state: restarted
-
-- name: Bring up gtp_br0
-  shell: ifup gtp_br0
-  become: yes
-
-- name: Bring up mtr0
-  shell: ifup mtr0
-  become: yes
-
-- name: Bring up uplink_br0
-  shell: ifup uplink_br0
-  become: yes
-
-- name: Bring up ipfix0
-  shell: ifup ipfix0
-  become: yes

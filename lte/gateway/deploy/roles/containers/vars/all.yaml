@@ -1,7 +1,0 @@
-
-rootca: ""
-
-docker_registry: "registry.hub.docker.com"
-docker_user: ""
-docker_pass: ""
-image_version: "master"

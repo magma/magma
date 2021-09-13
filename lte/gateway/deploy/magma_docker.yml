@@ -14,4 +14,3 @@
   hosts: agw_docker
   roles:
     - role: agw_docker
-    - role: containers
