@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta16
+apiVersion: skaffold/v2beta23
 kind: Config
 metadata:
   name: domain-proxy
@@ -7,6 +7,7 @@ build:
     sha256: {}
   local:
     push: false
+    useBuildkit: true
     concurrency: 0
   artifacts:
     - image: active-mode-controller
@@ -34,12 +35,11 @@ build:
       docker:
         dockerfile: Dockerfile
 deploy:
-  kubectl:
-    manifests:
-      - "./tools/deployment/vendor/fake_sas.yml"
+  kubeContext: minikube
   helm:
     releases:
       - name: domain-proxy
+        createNamespace: true
         chartPath: ./cloud/helm/dp/charts/domain-proxy
         valuesFiles:
           - ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values.yaml
@@ -59,6 +59,11 @@ deploy:
             image: db-service
         imageStrategy:
           helm: {}
+  kubectl:
+    defaultNamespace: default
+    manifests:
+      - "./tools/deployment/vendor/fake_sas.yml"
+      - "./tools/deployment/vendor/postgresql.yml"
 profiles:
   - name: integration-tests
     patches:
@@ -69,13 +74,6 @@ profiles:
           context: ..
           docker:
             dockerfile: dp/cloud/docker/python/test_runner/Dockerfile
-      #- op: add
-        #path: /build/artifacts/-
-        #value:
-          #image: fake_sas
-          #context: tools/fake_sas
-          #docker:
-            #dockerfile: tools/fake_sas/Dockerfile
       - op: add
         path: /deploy/helm/releases/0/setValueTemplates
         value:
@@ -94,16 +92,42 @@ profiles:
           db_service:
             enabled: false
       - op: add
-        path: /deploy/kubectl
+        path: /deploy/kubectl/flags
         value:
-          flags:
-            apply:
-              - "--force=true"
-          manifests:
-           - "./tools/deployment/vendor/fake_sas.yml"
-           - "./tools/deployment/tests/test_runner_*.yml"
+          apply:
+            - "--force=true"
+      - op: add
+        path: /deploy/kubectl/manifests/-
+        value: "./tools/deployment/tests/test_runner_*.yml"
+      #- op: add
+      #  path: /deploy/kubectl
+      #  value:
+      #    flags:
+      #      apply:
+      #        - "--force=true"
+      #    manifests:
+      #     - "./tools/deployment/tests/test_runner_*.yml"
     activation:
       - env: CI=true
+
+  - name: remote
+    deploy:
+      kubeContext: dp_orc8r
+    activation:
+      - env: "REMOTE_NAMESPACE=.*-remote"
+    patches:
+      - op: replace
+        path: /build/local/push
+        value: true
+      - op: replace
+        path: /deploy/helm/releases/0/valuesFiles/0
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/aws_nginx_values.yaml
+      - op: replace
+        path: /deploy/kubectl/defaultNamespace
+        value: "{{.REMOTE_NAMESPACE}}"
+      - op: replace
+        path: /deploy/helm/releases/0/namespace
+        value: "{{.REMOTE_NAMESPACE}}"
 
   - name: nginx-ingress
     patches:

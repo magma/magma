@@ -8,7 +8,7 @@ configuration_controller:
   fullnameOverride: ""
   enabled: true
   name: configuration-controller
-  sasEndpointUrl: "https://fake-sas-service/v1.3"
+  sasEndpointUrl: "https://fake-sas-service/v1.2"
 
   image:
     repository: domainproxyfw1/configuration-controller
@@ -280,13 +280,12 @@ db_service:
   fullnameOverride: ""
   name: db-service
 
-  imageConfig:
-    pullPolicy: IfNotPresent
-
   image:
     repository: domainproxyfw1/db-service
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: ""
+
+  extraEnv: {}
 
   imagePullSecrets: []
 

@@ -37,7 +37,7 @@ jobs:
         make _ci_init
 
     - name: Run ingress tests
-      timeout-minutes: 5
+      timeout-minutes: 10
       env:
         KUBECONFIG: "/home/runner/.kube/config"
       run: | 

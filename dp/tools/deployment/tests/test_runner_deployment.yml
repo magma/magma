@@ -14,7 +14,7 @@ spec:
       containers:
         - image: test_runner_image
           name: test-runner
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           args: ["-m", "pytest", "-vvv", "-s", "-o", "log_cli=true", "-o", "log_cli_level=DEBUG", "tests", "--junitxml=/backend/test_runner/test-results/test_report.xml"]
           volumeMounts:
             - name: test-results
@@ -24,4 +24,4 @@ spec:
           hostPath:
             path: /tmp/integration-tests-results
             type: DirectoryOrCreate
-  backoffLimit: 3
+  backoffLimit: 10

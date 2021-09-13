@@ -14,7 +14,12 @@ RUN unzip protoc3.zip -d protoc3 &&\
 RUN pip3 install protobuf setuptools==49.6.0 grpcio==1.37.1 grpcio-tools==1.37.1
 ENV PYTHONPATH=$MAGMA_ROOT:$MAGMA_ROOT/build/gen
 ENV PYTHON_BUILD=$MAGMA_ROOT/build
-COPY . $MAGMA_ROOT/
+COPY ./protos $MAGMA_ROOT/protos/
+COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos/
+COPY ./lte/protos $MAGMA_ROOT/lte/protos/
+COPY ./feg/protos $MAGMA_ROOT/feg/protos/
+COPY ./cwf/protos $MAGMA_ROOT/cwf/protos/
+COPY ./dp $MAGMA_ROOT/dp/
 WORKDIR $MAGMA_ROOT/dp
 RUN mkdir -p $PYTHON_BUILD && make protos
 
@@ -25,12 +30,12 @@ COPY $PC_DIRECTORY/requirements.txt \
      /$PC_DIRECTORY/requirements.txt
 RUN pip3 install --upgrade pip --no-cache-dir -r /$PC_DIRECTORY/requirements.txt
 
-FROM standard-version as tests-version
-
-COPY $PC_DIRECTORY/plugins/cbsd_sas/tests/requirements.txt \
-     /$PC_DIRECTORY/plugins/cbsd_sas/tests/requirements.txt
-WORKDIR /$PC_DIRECTORY
-RUN pip3 install --upgrade pip --no-cache-dir -r plugins/cbsd_sas/tests/requirements.txt
+#FROM standard-version as tests-version
+#
+#COPY $PC_DIRECTORY/plugins/cbsd_sas/tests/requirements.txt \
+#     /$PC_DIRECTORY/plugins/cbsd_sas/tests/requirements.txt
+#WORKDIR /$PC_DIRECTORY
+#RUN pip3 install --upgrade pip --no-cache-dir -r plugins/cbsd_sas/tests/requirements.txt
 
 FROM ${ENV}-version as final
 

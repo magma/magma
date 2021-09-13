@@ -9,11 +9,10 @@ COPY $CC_DIRECTORY/requirements.txt \
 WORKDIR /$CC_DIRECTORY
 RUN pip3 install --upgrade pip --no-cache-dir -r requirements.txt
 
-FROM standard-version as tests-version
-COPY $CC_DIRECTORY/tests/requirements.txt \
-     /$CC_DIRECTORY/tests/requirements.txt
-RUN pip3 install --upgrade pip --no-cache-dir -r tests/requirements.txt
-
+#FROM standard-version as tests-version
+#COPY $CC_DIRECTORY/tests/requirements.txt \
+#     /$CC_DIRECTORY/tests/requirements.txt
+#RUN pip3 install --upgrade pip --no-cache-dir -r tests/requirements.txt
 
 FROM ${ENV}-version as final
 COPY $CC_DIRECTORY /$CC_DIRECTORY/

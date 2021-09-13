@@ -12,12 +12,30 @@ export SRC := $(MAGMA_ROOT)
 
 dev: export DATE := $(shell date +%F-%T)
 
+ifdef REMOTE_NAMESPACE
+.DEFAULT_GOAL=remote
+else
+.DEFAULT_GOAL=local
+endif
 
-.PHONY: run
-run: init dev
+.PHONY: local
+local: init dev
+
+.PHONY: remote
+remote: _remote_init dev
 
 .PHONY: init
 init: start_minikube _ci_init _contour_install
+
+.PHONY: _remote_init
+_remote_init: _ci_init
+ifneq ($(and $(DP_DOCKERHUB_TOKEN),$(DP_DOCKERHUB_USERNAME)),)
+	@echo "$$DP_DOCKERHUB_TOKEN" | docker login --username $$DP_DOCKERHUB_USERNAME --password-stdin
+	kubectx dp_orc8r
+export SKAFFOLD_DEFAULT_REPO=docker.io/$(DP_DOCKERHUB_USERNAME)
+else
+	$(error DP_DOCKERHUB_TOKEN and DP_DOCKERHUB_USERNAME are not set)
+endif
 
 .PHONY: start_minikube
 start_minikube:
@@ -30,10 +48,14 @@ clean:
 .PHONY: dev
 dev:
 ifdef CI
+ifdef REMOTE_NAMESPACE
 	#MYVAR=$(DATE) skaffold dev --force=true
-	skaffold dev --force=true
+	skaffold dev --force=true -p remote -p integration-tests
 else
-	skaffold dev
+	skaffold dev --force=true
+endif
+else
+	skaffold dev --trigger=manual
 endif
 
 .PHONY: _build_ci
@@ -58,9 +80,8 @@ endif
 _ci_init: _generate_certificates _generate_harness_config
 	kubectl delete secret certificates --ignore-not-found
 	kubectl create secret generic certificates --from-file=tools/deployment/certificates/certs
-	kubectl apply -f ./tools/deployment/vendor/postgresql.yml
-	#kubectl wait --for=condition=Available --timeout=600s Deployment/fake-sas-deployment
-	kubectl rollout status --watch --timeout=600s statefulset/postgres-database
+	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml
+	#kubectl rollout status --watch --timeout=600s statefulset/postgres-database
 
 .PHONY: _contour_install
 _contour_install:

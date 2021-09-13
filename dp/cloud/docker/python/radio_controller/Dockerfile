@@ -14,7 +14,12 @@ RUN pip3 install protobuf setuptools==49.6.0 grpcio==1.37.1 grpcio-tools==1.37.1
 ENV MAGMA_ROOT=/magma
 ENV PYTHONPATH=$MAGMA_ROOT:$MAGMA_ROOT/build/gen
 ENV PYTHON_BUILD=$MAGMA_ROOT/build
-COPY . /magma/
+COPY ./protos $MAGMA_ROOT/protos/
+COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos/
+COPY ./lte/protos $MAGMA_ROOT/lte/protos/
+COPY ./feg/protos $MAGMA_ROOT/feg/protos/
+COPY ./cwf/protos $MAGMA_ROOT/cwf/protos/
+COPY ./dp $MAGMA_ROOT/dp/
 WORKDIR /magma/dp
 RUN mkdir -p $PYTHON_BUILD && make protos
 
@@ -26,12 +31,12 @@ COPY $RC_DIRECTORY/requirements.txt \
      /$RC_DIRECTORY/requirements.txt
 RUN pip3 install --upgrade pip --no-cache-dir -r /$RC_DIRECTORY/requirements.txt
 
-FROM standard-version as tests-version
-
-COPY $RC_DIRECTORY/tests/requirements.txt \
-     /$RC_DIRECTORY/tests/requirements.txt
-WORKDIR /$RC_DIRECTORY
-RUN pip3 install --upgrade pip --no-cache-dir -r tests/requirements.txt
+#FROM standard-version as tests-version
+#
+#COPY $RC_DIRECTORY/tests/requirements.txt \
+#     /$RC_DIRECTORY/tests/requirements.txt
+#WORKDIR /$RC_DIRECTORY
+#RUN pip3 install --upgrade pip --no-cache-dir -r tests/requirements.txt
 
 FROM ${ENV}-version as final
 

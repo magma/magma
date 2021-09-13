@@ -1,0 +1,31 @@
+---
+name: DCO check
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  dco_check_job:
+    runs-on: ubuntu-latest
+    name: DCO Check
+    steps:
+    - name: Get PR Commits
+      id: 'get-pr-commits'
+      uses: tim-actions/get-pr-commits@master
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: DCO Check
+      uses: tim-actions/dco@master
+      with:
+        commits: ${{ steps.get-pr-commits.outputs.commits }}
+    # Need to save PR number as Github action does not propagate it with workflow_run event
+    - name: Save PR number
+      if: failure()
+      run: |
+        mkdir -p ./pr
+        echo ${{ github.event.number }} > ./pr/NR
+    - uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: pr
+        path: pr/
