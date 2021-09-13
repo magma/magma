@@ -71,9 +71,8 @@ int encode_authentication_request(
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_REQUEST_MINIMUM_LENGTH, len);
-  *(buffer + encoded) =
-      encode_u8_nas_key_set_identifier(
-            &authentication_request->naskeysetidentifierasme);
+  *(buffer + encoded) = encode_u8_nas_key_set_identifier(
+      &authentication_request->naskeysetidentifierasme);
   encoded++;
 
   if ((encode_result = encode_authentication_parameter_rand_ie(
