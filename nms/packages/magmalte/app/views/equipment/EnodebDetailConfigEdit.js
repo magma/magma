@@ -740,24 +740,18 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     response['tac'] = parseInt(optConfig.tac);
   }
   if (optConfig.reference_signal_power !== '') {
-    response.radioConfiguration.powerControlParameters.reference_signal_power = parseInt(
+    response.power_control.reference_signal_power = parseInt(
       optConfig.reference_signal_power,
     );
   }
   if (optConfig.power_class !== '') {
-    response.radioConfiguration.powerControlParameters.power_class = parseInt(
-      optConfig.power_class,
-    );
+    response.power_control.power_class = parseInt(optConfig.power_class);
   }
   if (optConfig.pa !== '') {
-    response.radioConfiguration.powerControlParameters.pa = parseInt(
-      optConfig.pa,
-    );
+    response.power_control.pa = parseInt(optConfig.pa);
   }
   if (optConfig.pb !== '') {
-    response.radioConfiguration.powerControlParameters.pb = parseInt(
-      optConfig.pb,
-    );
+    response.power_control.pb = parseInt(optConfig.pb);
   }
   return response;
 }
