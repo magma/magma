@@ -1,52 +1,48 @@
-/*
-Copyright 2020 The Magma Authors.
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+#define grpc_async_service
+#define grpc_async_service_TASK_C
 
 #include <thread>
 #include "includes/MagmaService.h"
-#include "S6aGatewayImpl.h"
-
+#include "grpc_async_service_task.h"
+#ifdef __cplusplus
 extern "C" {
+#endif
+#include "assertions.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
 #include "log.h"
 #include "s6a_service_handler.h"
+#ifdef __cplusplus
 }
+#endif
+
+static void grpc_async_service_exit(void);
+task_zmq_ctx_t grpc_async_service_task_zmq_ctx;
 
 namespace magma {
 #define S6A_ASYNC_PROXY_SERVICE "s6a_async_service"
 #define S6A_ASYNC_PROXY_VERSION "1.0"
 
 magma::S6aProxyResponderAsyncService s6a_async_service(nullptr, nullptr);
-static magma::service303::MagmaService server(
+
+magma::service303::MagmaService server(
     S6A_ASYNC_PROXY_SERVICE, S6A_ASYNC_PROXY_VERSION);
 
 void stop_async_s6a_grpc_server(void) {
   s6a_async_service.stop();  // stop queue after server shuts down
-}
-
-void init_async_s6a_grpc_server(void) {
-  auto async_service_handler =
-      std::make_shared<magma::S6aProxyAsyncResponderHandler>();
-  s6a_async_service.set_callback(
-      server.GetNewCompletionQueue(), async_service_handler);
-  server.AddServiceToServer(&s6a_async_service);
-
-  server.Start();
-  OAILOG_INFO(LOG_S6A, "Started async grpc server for s6a interface \n");
-
-  std::thread proxy_thread([&]() {
-    s6a_async_service.wait_for_requests();  // block here instead of on server
-  });
-  proxy_thread.join();
-  return;
 }
 
 AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
@@ -81,8 +77,6 @@ void AsyncService::stop() {
   bool ok;
   while (cq_->Next(&tag, &ok)) {
   }
-  server.Stop();
-  cq_->Shutdown();
 }
 
 S6aProxyResponderAsyncService::S6aProxyResponderAsyncService(
@@ -168,3 +162,65 @@ void S6aProxyAsyncResponderHandler::Reset(
 }
 
 }  // namespace magma
+
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
+  MessageDef* received_message_p = receive_msg(reader);
+
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case TERMINATE_MESSAGE:
+      free(received_message_p);
+      grpc_async_service_exit();
+      break;
+    default:
+      OAILOG_DEBUG(
+          LOG_UTIL, "Unknown message ID %d: %s\n",
+          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      break;
+  }
+  free(received_message_p);
+  return 0;
+}
+
+static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
+  itti_mark_task_ready(TASK_ASYNC_GRPC_SERVICE);
+  const task_id_t tasks[] = {TASK_MME_APP, TASK_S6A};
+
+  init_task_context(
+      TASK_ASYNC_GRPC_SERVICE, tasks, 2, handle_message,
+      &grpc_async_service_task_zmq_ctx);
+
+  auto async_service_handler =
+      std::make_shared<magma::S6aProxyAsyncResponderHandler>();
+  magma::s6a_async_service.set_callback(
+      magma::server.GetNewCompletionQueue(), async_service_handler);
+  magma::server.AddServiceToServer(&magma::s6a_async_service);
+
+  magma::server.Start();
+  OAILOG_INFO(LOG_S6A, "Started async grpc server for s6a interface \n");
+  std::thread proxy_thread([&]() {
+    magma::s6a_async_service
+        .wait_for_requests();  // block here instead of on server
+  });
+  zloop_start(grpc_async_service_task_zmq_ctx.event_loop);
+  AssertFatal(
+      0, "Asserting as grpc_service_thread should not be exiting on its own!");
+  return NULL;
+}
+
+extern "C" int grpc_async_service_init(void) {
+  OAILOG_DEBUG(LOG_UTIL, "Initializing async_grpc_service task interface\n");
+
+  if (itti_create_task(
+          TASK_ASYNC_GRPC_SERVICE, &grpc_async_service_thread, NULL) < 0) {
+    OAILOG_ALERT(LOG_UTIL, "Initializing async_grpc_service: ERROR\n");
+    return RETURNerror;
+  }
+  return RETURNok;
+}
+
+static void grpc_async_service_exit(void) {
+  magma::stop_async_s6a_grpc_server();
+  destroy_task_context(&grpc_async_service_task_zmq_ctx);
+  OAI_FPRINTF_INFO("TASK_ASYNC_GRPC_SERVICE terminated\n");
+  pthread_exit(NULL);
+}

@@ -64,7 +64,6 @@
 #include "shared_ts_log.h"
 #include "grpc_service.h"
 #include "timer.h"
-#include "grpc_async_service_task.h"
 
 static void send_timer_recovery_message(void);
 

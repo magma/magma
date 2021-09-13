@@ -29,9 +29,7 @@ generate_grpc_protos("${S6ASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 add_library(TASK_ASYNC_GRPC_SERVICE
-    grpc_async_service_task.c
-    S6aGatewayImpl.cpp
-    S6aAsyncGrpc.cpp
+    grpc_async_service_task.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
