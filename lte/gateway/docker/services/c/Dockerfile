@@ -105,9 +105,6 @@ RUN apt-get -y update && apt-get -y install \
   libgmp3-dev \
   libczmq-dev
 
-# TODO(fixup this include in source code @ MConfigLoader.cpp)
-RUN ln -s /usr/include/nlohmann/json.hpp /usr/include/json.hpp
-
 # Copy proto files
 COPY feg/protos $MAGMA_ROOT/feg/protos
 COPY feg/gateway/services/aaa/protos $MAGMA_ROOT/feg/gateway/services/aaa/protos
@@ -123,8 +120,6 @@ COPY lte/gateway/c $MAGMA_ROOT/lte/gateway/c
 COPY lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
 COPY lte/gateway/docker $MAGMA_ROOT/lte/gateway/docker
 COPY lte/gateway/docker/mme/configs/ $MAGMA_ROOT/lte/gateway/docker/configs/
-#COPY lte/gateway/build/configs/mme.conf $MAGMA_ROOT/lte/gateway/build/configs/mme.conf
-#COPY lte/gateway/build/configs/mme_fd.conf $MAGMA_ROOT/lte/gateway/build/configs/mme_fd.conf
 
 ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
