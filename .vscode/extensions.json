@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "mine.cpplint",
+        "bazelbuild.vscode-bazel"
+    ]
+}
