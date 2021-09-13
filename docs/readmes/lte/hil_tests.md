@@ -4,7 +4,7 @@ title: Hardware In Loop Testing
 hide_title: true
 ---
 
-<a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL Sanity Run"></a>
+<a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL Sanity Last Stable"></a>
 
 # Hardware In Loop Tests
 
