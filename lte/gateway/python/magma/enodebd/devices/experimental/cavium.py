@@ -64,7 +64,7 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             service: MagmaService,
     ) -> None:
         self._state_map = {}
-        super().__init__(service)
+        super().__init__(service=service, use_param_key=False)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
@@ -486,6 +486,6 @@ class CaviumTrDataModel(DataModel):
 
 
 class CaviumTrConfigurationInitializer(EnodebConfigurationPostProcessor):
-    def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
+    def postprocess(self, mconfig: Any, service_cfg: Any, desired_cfg: EnodebConfiguration) -> None:
         desired_cfg.set_parameter(ParameterName.CELL_BARRED, True)
         desired_cfg.set_parameter(ParameterName.ADMIN_STATE, True)

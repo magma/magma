@@ -79,7 +79,14 @@ class StatsManager:
         svc_config = load_service_config("enodebd")
 
         app = web.Application()
-        app.router.add_route('POST', "/{something}", self._post_handler)
+        app.router.add_route(
+            'POST', "/{something}",
+            self._post_and_put_handler,
+        )
+        app.router.add_route(
+            'PUT', "/{something}",
+            self._post_and_put_handler,
+        )
 
         handler = app.make_handler()
         create_server_func = self.loop.create_server(
@@ -114,7 +121,8 @@ class StatsManager:
         serial_list = self.enb_manager.get_connected_serial_id_list()
         for enb_serial in serial_list:
             handler = self.enb_manager.get_handler_by_serial(enb_serial)
-            self._check_rf_tx_for_handler(handler)
+            if handler:
+                self._check_rf_tx_for_handler(handler)
 
     def _check_rf_tx_for_handler(self, handler: EnodebAcsStateMachine) -> None:
         status = get_enb_status(handler)
@@ -145,13 +153,15 @@ class StatsManager:
         return label
 
     @asyncio.coroutine
-    def _post_handler(self, request) -> web.Response:
+    def _post_and_put_handler(self, request) -> web.Response:
         """ HTTP POST handler """
         # Read request body and convert to XML tree
         body = yield from request.read()
 
         root = ElementTree.fromstring(body)
-        self._parse_pm_xml(self._get_enb_label_from_request(request), root)
+        label = self._get_enb_label_from_request(request)
+        if label:
+            self._parse_pm_xml(label, root)
 
         # Return success response
         return web.Response()

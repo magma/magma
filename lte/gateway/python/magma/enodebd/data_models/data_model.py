@@ -19,6 +19,14 @@ from magma.enodebd.data_models.data_model_parameters import ParameterName
 
 TrParam = namedtuple('TrParam', ['path', 'is_invasive', 'type', 'is_optional'])
 
+# We may want to model nodes in the datamodel that are derived from other fields
+# in the datamodel and thus maynot have a representation in tr69.
+# e.g PTP_STATUS in FreedomFiOne is True iff GPS is in sync and SyncStatus is
+# True.
+# Explicitly map these params to invalid paths so setters and getters know they
+# should not try to read or write these nodes on the eNB side.
+InvalidTrParamPath = "INVALID_TR_PATH"
+
 
 class DataModel(ABC):
     """

@@ -494,6 +494,9 @@ def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
             return False
         else:
             param = enodeb.get_parameter(ParameterName.GPS_STATUS)
+            if isinstance(param, bool):
+                # No translation to do.
+                return param
             stripped_value = param.lower().strip()
             if stripped_value == '0' or stripped_value == '2':
                 # 2 = GPS locking

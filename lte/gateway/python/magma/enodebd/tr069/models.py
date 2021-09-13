@@ -35,17 +35,6 @@ class Tr069ComplexModel(ComplexModel):
         in CWMP XSD file. """
     __namespace__ = CWMP_NS
 
-    def as_dict(self):
-        """
-        Overriding default implementation to fix memory leak. Can remove if
-        or after https://github.com/arskom/spyne/pull/579 lands.
-        """
-        flat_type_info = self.get_flat_type_info(self.__class__)
-        return dict((
-            (k, getattr(self, k)) for k in flat_type_info
-            if getattr(self, k) is not None
-        ))
-
 
 class anySimpleType(Tr069ComplexModel):
     """ Type used to transfer simple data of various types. Data type is
@@ -163,7 +152,7 @@ class ParameterNames(Tr069ComplexModel):
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
-class ParameterKeyType(String.customize(max_length=32)):
+class ParameterKeyType(anySimpleType):
     pass
 
 
