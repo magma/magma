@@ -810,7 +810,7 @@ void ngap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items) {
-    for (auto i = 0;
+    for (int i = 0;
          i <
          conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items;
          i++) {
@@ -862,7 +862,7 @@ void ngap_handle_conn_est_cnf(
       if (er.encoded <= 0) {
         OAILOG_ERROR(
             LOG_NGAP, "PDU Session Resource Request IE encode error \n");
-        OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+        OAILOG_FUNC_OUT(LOG_NGAP);
       }
 
       asn_fprint(
