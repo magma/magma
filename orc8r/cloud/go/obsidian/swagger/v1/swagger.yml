@@ -8044,6 +8044,7 @@ definitions:
         - Baicells Neutrino 224 ID FDD
         - Baicells ID TDD/FDD
         - NuRAN Cavium OC-LTE
+        - FreedomFi One
         example: Baicells ID TDD/FDD
         type: string
         x-nullable: false

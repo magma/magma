@@ -25,6 +25,7 @@ export const EnodebDeviceClass: {
   BAICELLS_NEUTRINO_224_ID_FDD: 'Baicells Neutrino 224 ID FDD',
   BAICELLS_ID: 'Baicells ID TDD/FDD',
   NURAN_CAVIUM_OC_LTE: 'NuRAN Cavium OC-LTE',
+  FREEDOMFI_ONE: 'FreedomFi One',
 });
 
 export const EnodebBandwidthOption: {
