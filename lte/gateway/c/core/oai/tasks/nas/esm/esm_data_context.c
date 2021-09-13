@@ -46,8 +46,7 @@ void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
     }
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
       esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-      esm_ebr_context->timer.id                = nas_timer_stop(
-          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data);
+      nas_timer_stop(&(esm_ebr_context->timer));
       /*
        * Release the retransmisison timer parameters
        */

@@ -462,6 +462,61 @@ TEST(test_amf_nas5g_pkt_process, test_amf_registration_reject_msg) {
       decode_reg_rej.m5gmm_cause.m5gmm_cause);
 }
 
+TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
+  ServiceRejectMsg service_reject, decoded_service_rej;
+  uint8_t buffer[50] = {0};
+  uint8_t len        = 8;
+
+  int encode_res = 0, decode_res = 0;
+
+  service_reject.extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+
+  service_reject.sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  service_reject.spare_half_octet.spare  = 0;
+
+  service_reject.message_type.msg_type               = M5G_SERVICE_REJECT;
+  service_reject.pdu_session_status.iei              = PDU_SESSION_STATUS;
+  service_reject.pdu_session_status.len              = 0x02;
+  service_reject.pdu_session_status.pduSessionStatus = 0x05;
+  service_reject.cause.iei                           = M5GMM_CAUSE;
+  service_reject.cause.m5gmm_cause                   = 9;
+  service_reject.t3346Value.iei                      = GPRS_TIMER2;
+  service_reject.t3346Value.len                      = 1;
+  service_reject.t3346Value.timervalue               = 60;
+
+  encode_res =
+      service_reject.EncodeServiceRejectMsg(&service_reject, buffer, len);
+
+  EXPECT_EQ(encode_res, len);
+
+  decode_res = decoded_service_rej.DecodeServiceRejectMsg(
+      &decoded_service_rej, buffer, len);
+
+  EXPECT_EQ(decode_res, len);
+
+  EXPECT_EQ(
+      service_reject.sec_header_type.sec_hdr,
+      decoded_service_rej.sec_header_type.sec_hdr);
+  EXPECT_EQ(
+      service_reject.spare_half_octet.spare,
+      decoded_service_rej.spare_half_octet.spare);
+  EXPECT_EQ(
+      service_reject.message_type.msg_type,
+      decoded_service_rej.message_type.msg_type);
+  EXPECT_EQ(
+      service_reject.pdu_session_status.iei,
+      decoded_service_rej.pdu_session_status.iei);
+  EXPECT_EQ(
+      service_reject.pdu_session_status.len,
+      decoded_service_rej.pdu_session_status.len);
+  EXPECT_EQ(
+      service_reject.pdu_session_status.pduSessionStatus,
+      decoded_service_rej.pdu_session_status.pduSessionStatus);
+  EXPECT_EQ(
+      service_reject.cause.m5gmm_cause, decoded_service_rej.cause.m5gmm_cause);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

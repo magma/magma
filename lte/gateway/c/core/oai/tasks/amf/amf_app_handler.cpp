@@ -647,8 +647,8 @@ void amf_app_handle_pdu_session_response(
 
   if (REGISTERED_IDLE == ue_context->mm_state) {
     // pdu session state
-    smf_ctx->pdu_session_state = ACTIVE;
-    amf_sap_t amf_sap;
+    smf_ctx->pdu_session_state            = ACTIVE;
+    amf_sap_t amf_sap                     = {};
     amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
@@ -934,11 +934,11 @@ void amf_app_handle_resource_setup_response(
     memset(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
         sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
-    memcpy(
-        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
-        &session_seup_resp.pduSessionResource_setup_list.item[0]
-             .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
-        4);
+
+    smf_ctx->gtp_tunnel_id
+        .gnb_gtp_teid = htonl(*(reinterpret_cast<unsigned int*>(
+        session_seup_resp.pduSessionResource_setup_list.item[0]
+            .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID)));
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
         &session_seup_resp.pduSessionResource_setup_list.item[0]
@@ -947,16 +947,13 @@ void amf_app_handle_resource_setup_response(
         4);  // time being 4 byte is copying.
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "gnb_gtp_teid_ipaddr: [%02x %02x %02x %02x]  and gnb_gtp_teid [%02x "
-        "%02x %02x %02x ]\n",
+        "gnb_gtp_teid_ipaddr: [%02x %02x %02x %02x]  and gnb_gtp_teid "
+        "[" GNB_GTP_TEID_FMT "]\n",
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[3],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[0],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[1],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[0],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[3]);
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid);
     // Incrementing the  pdu session version
     smf_ctx->pdu_session_version++;
     /*Copy respective gNB fields to amf_smf_establish_t compartible to gRPC
@@ -1337,12 +1334,12 @@ void amf_app_handle_initial_context_setup_rsp(
         amf_smf_establish_t amf_smf_grpc_ies;
 
         // gnb tunnel info
-        memcpy(
-            smf_context->gtp_tunnel_id.gnb_gtp_teid,
-            pdu_list->item[index]
-                .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
-            4);
 
+        smf_context->gtp_tunnel_id.gnb_gtp_teid =
+            htonl(*(reinterpret_cast<unsigned int*>(
+                pdu_list->item[index]
+                    .PDU_Session_Resource_Setup_Response_Transfer.tunnel
+                    .gTP_TEID)));
         memcpy(
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
             pdu_list->item[index]
@@ -1352,16 +1349,12 @@ void amf_app_handle_initial_context_setup_rsp(
 
         OAILOG_DEBUG(
             LOG_AMF_APP,
-            "IP address %02x %02x %02x %02x  and TEID %02x "
-            "%02x %02x %02x \n",
+            "IP address %02x %02x %02x %02x  and TEID" GNB_GTP_TEID_FMT "\n",
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[3],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[0],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[1],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[0],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[3]);
+            smf_context->gtp_tunnel_id.gnb_gtp_teid);
 
         smf_context->pdu_session_version++;
         /*Copy respective gNB fields to amf_smf_establish_t compartible to gRPC

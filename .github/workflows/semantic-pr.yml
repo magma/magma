@@ -67,6 +67,7 @@ jobs:
             redis
             s6a_proxy
             s8_proxy
+            sctpd
             session_proxy
             sessiond
             smf

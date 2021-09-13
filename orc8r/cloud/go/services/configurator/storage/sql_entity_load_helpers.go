@@ -39,8 +39,8 @@ const (
 	loadParents
 )
 
-func (store *sqlConfiguratorStorage) countEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (uint64, error) {
-	selectBuilder, err := store.getBuilder(networkID, filter, criteria, countEntities)
+func (store *sqlConfiguratorStorage) countEntities(networkID string, filter EntityLoadFilter) (uint64, error) {
+	selectBuilder, err := store.getBuilder(networkID, filter, EntityLoadCriteria{}, countEntities)
 	if err != nil {
 		return 0, err
 	}

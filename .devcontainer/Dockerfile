@@ -186,9 +186,8 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
-RUN wget --progress=dot:giga https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
-    tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
-    cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
+RUN git clone https://github.com/liblfds/liblfds.git && \
+    cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
     make -j"$(nproc)" && \
     make ar_install && \
     cd / && \

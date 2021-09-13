@@ -210,8 +210,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   // Clean up all the sessions.
   amf_smf_context_cleanup_pdu_session(ue_context);
 
-  // Remove stored UE context from AMF core.
-  amf_remove_ue_context(ue_context);
+  amf_free_ue_context(ue_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }

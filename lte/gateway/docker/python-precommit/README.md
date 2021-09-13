@@ -7,14 +7,14 @@ export PATH_TO_DOCKERFILE=$MAGMA_ROOT/lte/gateway/docker/python-precommit/Docker
 docker build -t magma/py-lint -f $PATH_TO_DOCKERFILE $MAGMA_ROOT
 ```
 
-## Run commands
+## Run commands directly with Docker
 Refer to `requirements.in` in this directory for available packages inside the image. 
 Here is an example of running flake8 with this image.
 ```bash
-docker run -it -u 0 -v $MAGMA_ROOT:/code magma/py-lint:latest flake8  lte/gateway/python/precommit.py
+docker run -it -u 0 -v $MAGMA_ROOT:/code magma/py-lint:latest flake8 <args>
 ```
 
-## How to use `lte/gateway/python/precommit.py`
+## Recommended: Use `lte/gateway/python/precommit.py`
 We have a utility script that wraps all necessary Docker commands with Python.
 You should refer to the script for all available commands, but the main ones are as follows.
 ```bash

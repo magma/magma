@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "Oops! Looks like you failed the \`Python Format Check\`.
           ### Howto
-          - [Instructions on running the formatter locally are provided](https://github.com/magma/magma/tree/master/lte/gateway/docker/python-precommit)
+          - Instructions on running the formatter and linter locally are provided in the [format AGW doc](https://docs.magmacore.org/docs/next/lte/dev_unit_testing#format-agw)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Semantic PR comment message
         if: ${{ github.event.workflow.name == 'Semantic PR' }}

@@ -261,12 +261,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 	}
 
 	// get total number of subscribers
-	loadCriteria := configurator.EntityLoadCriteria{}
-	count, err := configurator.CountEntitiesOfType(
-		networkID,
-		lte.SubscriberEntityType,
-		loadCriteria,
-		serdes.Entity)
+	count, err := configurator.CountEntitiesOfType(networkID, lte.SubscriberEntityType)
 	if err != nil {
 		return c.JSON(http.StatusOK, nil)
 	}
