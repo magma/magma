@@ -103,9 +103,6 @@
 - name: copy docker compose config file
   shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yml /var/opt/magma/docker/
 
-- name: copy the rootca
-  copy: content={{ rootca }} dest=/var/opt/magma/certs/rootCA.pem mode='400'
-
 - name: docker login
   shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
   args:

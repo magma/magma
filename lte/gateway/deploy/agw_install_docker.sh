@@ -37,9 +37,19 @@ if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
 
-apt-get update
+# unlink resolv.conf to avoid overrides by systemd-resolved
+cp /etc/resolv.conf /etc/resolv.conf.bak
+rm -f /etc/resolv.conf && mv /etc/resolv.conf.bak /etc/resolv.conf
+
+ROOTCA="/var/opt/magma/certs/rootCA.pem"
+if [ ! -f "$ROOTCA" ]; then
+
+  echo "Upload rootCA to $ROOTCA"
+  exit 1
+fi
 
 echo "Install Magma"
+apt-get update
 apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
 
 alias python=python3

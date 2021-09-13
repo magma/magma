@@ -11,9 +11,9 @@ magma_use_pkgrepo: yes
 
 docker_compose_version: 1.29.2
 
-docker_registry: "registry.hub.docker.com"
+docker_registry: ""
 docker_user: ""
 docker_pass: ""
-image_version: "master"
+image_version: "latest"
 
 rootca: ""
