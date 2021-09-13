@@ -15,3 +15,6 @@ docker_registry: ""
 docker_user: ""
 docker_pass: ""
 image_version: "latest"
+
+sgi_interface_ip: "172.31.9.95/24"
+s1_interface_ip: "172.31.200.155/24"
