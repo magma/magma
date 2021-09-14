@@ -305,7 +305,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
             OAILOG_WARNING_UE(
                 LOG_S1AP, imsi64,
-                "Timer expired but no assoicated UE context for UE "
+                "Timer expired but no associated UE context for UE "
                 "id " MME_UE_S1AP_ID_FMT,
                 mme_ue_s1ap_id);
             timer_handle_expired(
