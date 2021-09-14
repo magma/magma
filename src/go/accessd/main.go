@@ -12,17 +12,15 @@
 package main
 
 import (
-	uber_zap "go.uber.org/zap"
-
 	"github.com/magma/magma/accessd/server"
 	"github.com/magma/magma/log"
 	"github.com/magma/magma/log/zap"
 )
 
 func main() {
-	lm := log.NewManager(zap.NewLogger(uber_zap.NewDevelopmentConfig()))
+	lm := log.NewManager(zap.NewLogger())
+	server.Start(lm.LoggerFor("server"))
 
-	if err := server.Start(lm.LoggerFor("server")); err != nil {
-		panic(err)
-	}
+	stopper := make(chan struct{})
+	<-stopper
 }

@@ -1,3 +1,4 @@
+//go:build !link_local_service
 // +build !link_local_service
 
 /*

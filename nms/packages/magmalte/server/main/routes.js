@@ -18,6 +18,7 @@ import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
+import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -91,6 +92,23 @@ router.use(
   }),
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
+
+// router.get(
+//   '/master/network*',
+//   masterOrgMiddleware,
+//   asyncHandler(async (req: FBCNMSRequest, res) => {
+//     res.send
+//     console.warn('request made to req: ', req);
+//   }),
+// );
+
+router.get(
+  '/master/networks/async',
+  asyncHandler(async (_: FBCNMSRequest, res) => {
+    const networks = await MagmaV1API.getNetworks();
+    res.status(200).send(networks);
+  }),
+);
 
 const masterRouter = require('@fbcnms/platform-server/master/routes');
 router.use('/master', masterOrgMiddleware, masterRouter.default);

@@ -16,9 +16,10 @@ package calculations
 import (
 	"bytes"
 	"fmt"
+	"text/template"
+
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
-	"text/template"
 
 	"github.com/golang/glog"
 )

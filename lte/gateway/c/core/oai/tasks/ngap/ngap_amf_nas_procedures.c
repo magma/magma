@@ -270,9 +270,10 @@ status_code_e ngap_amf_handle_uplink_nas_transport(
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UplinkNASTransport_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
-  amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID, (unsigned long*) &amf_ue_ngap_id);
 
-  if (INVALID_AMF_UE_NGAP_ID == ie->value.choice.AMF_UE_NGAP_ID) {
+  if (INVALID_AMF_UE_NGAP_ID == amf_ue_ngap_id) {
     OAILOG_WARNING(
         LOG_NGAP,
         "Received NGAP UPLINK_NAS_TRANSPORT message AMF_UE_NGAP_ID unknown\n");
@@ -382,7 +383,9 @@ status_code_e ngap_amf_handle_nas_non_delivery(
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_NASNonDeliveryIndication_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
-  amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID, (unsigned long*) &amf_ue_ngap_id);
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_NASNonDeliveryIndication_IEs_t, ie, container,
@@ -425,7 +428,7 @@ status_code_e ngap_amf_handle_nas_non_delivery(
 
   // TODO: forward NAS PDU to NAS
   ngap_amf_itti_nas_non_delivery_ind(
-      ie->value.choice.AMF_UE_NGAP_ID, ie->value.choice.NAS_PDU.buf,
+      amf_ue_ngap_id, ie->value.choice.NAS_PDU.buf,
       ie->value.choice.NAS_PDU.size, &ie->value.choice.Cause, imsi64);
   OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
@@ -512,7 +515,8 @@ status_code_e ngap_generate_downlink_nas_transport(
     ie->id            = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
     ie->criticality   = Ngap_Criticality_reject;
     ie->value.present = Ngap_DownlinkNASTransport_IEs__value_PR_AMF_UE_NGAP_ID;
-    ie->value.choice.AMF_UE_NGAP_ID = ue_ref->amf_ue_ngap_id;
+    asn_uint642INTEGER(
+        &ie->value.choice.AMF_UE_NGAP_ID, ue_ref->amf_ue_ngap_id);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
     /* mandatory */
@@ -579,8 +583,9 @@ void ngap_handle_conn_est_cnf(
   OAILOG_DEBUG(
       LOG_NGAP,
       "Received Connection Establishment Confirm from AMF_APP for "
-      "amf_ue_ngap_id = %u\n",
+      "amf_ue_ngap_id = " AMF_UE_NGAP_ID_FMT "\n",
       conn_est_cnf_pP->amf_ue_ngap_id);
+
   ue_ref = ngap_state_get_ue_amfid(conn_est_cnf_pP->amf_ue_ngap_id);
   if (!ue_ref) {
     OAILOG_ERROR(
@@ -629,7 +634,7 @@ void ngap_handle_conn_est_cnf(
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_InitialContextSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = ue_ref->amf_ue_ngap_id;
+  asn_uint642INTEGER(&ie->value.choice.AMF_UE_NGAP_ID, ue_ref->amf_ue_ngap_id);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -641,38 +646,6 @@ void ngap_handle_conn_est_cnf(
       Ngap_InitialContextSetupRequestIEs__value_PR_RAN_UE_NGAP_ID;
   ie->value.choice.RAN_UE_NGAP_ID = ue_ref->gnb_ue_ngap_id;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  /* mandatory */
-#if 0
- /* mandatory */
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtReq;
-  ie->criticality = Ngap_Criticality_reject;
-  ie->value.present = Ngap_InitialContextSetupRequestIEs__value_PR_PDUSessionResourceSetupListCxtReq;
-
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-  //Ngap_PDUSessionResourceSetupListCxtReq_t* const pdusession_to_be_setup_list =
-//              &ie->value.choice.PDUSessionResourceSetupListCxtReq;
-
-  if (conn_est_cnf_pP->nas_pdu) {
-    ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-        1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-       OAILOG_INFO(LOG_NGAP, " 5march NGAP_TEST\n");
-    ie->id            = Ngap_ProtocolIE_ID_id_NAS_PDU;
-    ie->criticality   = Ngap_Criticality_reject;
-    ie->value.present = Ngap_InitialContextSetupRequestIEs__value_PR_NAS_PDU;
-
-    // DevAssert(!nas_pdu);
-    Ngap_NAS_PDU_t* nas_pdu = &ie->value.choice.NAS_PDU;
-    nas_pdu->size           = blength(conn_est_cnf_pP->nas_pdu);
-    nas_pdu->buf            = malloc(blength(conn_est_cnf_pP->nas_pdu));
-    memcpy(nas_pdu->buf, conn_est_cnf_pP->nas_pdu->data, nas_pdu->size);
-       OAILOG_INFO(LOG_NGAP, " 5march NGAP_TEST\n");
-    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-       OAILOG_INFO(LOG_NGAP, " 5march NGAP_TEST\n");
-  }
-#endif
 
   // guami
   ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
@@ -810,7 +783,7 @@ void ngap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items) {
-    for (auto i = 0;
+    for (int i = 0;
          i <
          conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.no_of_items;
          i++) {
@@ -862,7 +835,7 @@ void ngap_handle_conn_est_cnf(
       if (er.encoded <= 0) {
         OAILOG_ERROR(
             LOG_NGAP, "PDU Session Resource Request IE encode error \n");
-        OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+        OAILOG_FUNC_OUT(LOG_NGAP);
       }
 
       asn_fprint(
@@ -1192,7 +1165,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = ue_ref->amf_ue_ngap_id;
+  asn_uint642INTEGER(&ie->value.choice.AMF_UE_NGAP_ID, ue_ref->amf_ue_ngap_id);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -1370,7 +1343,7 @@ int ngap_amf_nas_pdusession_resource_rel_cmd_stream(
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = ue_ref->amf_ue_ngap_id;
+  asn_uint642INTEGER(&ie->value.choice.AMF_UE_NGAP_ID, ue_ref->amf_ue_ngap_id);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */

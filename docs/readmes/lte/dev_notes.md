@@ -168,7 +168,7 @@ Note GRPC printing is independent of the `log_level`. So you can enabled GRPC
 printing even that your level is set as `INFO`.
 
 To enable GRPC logging for `magmad`, `sessiond`, `pipelined`, `mobilityd`,
-`directoryd` or`subscriberdb` you can modify this line on the
+`directoryd`, `subscriberdb` or `state` you can modify this line on the
 `/etc/magma/<service_name>.yml` config file:
 
 ```yaml

@@ -18,11 +18,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"magma/orc8r/cloud/go/services/analytics/protos"
-
 	"net/http"
 	"net/url"
 
+	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/lib/go/metrics"
 )
 

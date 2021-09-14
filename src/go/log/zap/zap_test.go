@@ -12,16 +12,13 @@
 package zap
 
 import (
-	"bytes"
 	"encoding/json"
-	"net/url"
-	"strings"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/magma/magma/log"
 )
@@ -58,199 +55,109 @@ func TestPrinter_Printf(t *testing.T) {
 func TestNewLogger(t *testing.T) {
 	t.Parallel()
 
-	c := zap.NewProductionConfig()
-	l := NewLogger(c)
-	logger, ok := l.(*Logger)
-	assert.True(
-		t, ok, "NewLogger must return *zap.Logger, have=%+v", l)
-	assert.NotNil(t, logger.Config)
-	assert.NotNil(t, logger.Logger)
-	assert.NotNil(t, logger.printers)
+	l := NewLogger()
+
+	assert.Equal(t, zapcore.InfoLevel, l.level.Level())
+	assert.NotNil(t, l.Logger)
+	assert.Nil(t, l.names)
+	assert.NotNil(t, l.newZapLogger)
+	assert.NotNil(t, l.printers)
 	for level := log.DebugLevel; level <= log.ErrorLevel; level++ {
-		assert.NotNil(t, logger.printers[level])
+		assert.NotNil(t, l.printers[level])
 	}
 
-	assert.Same(t, l.Error(), logger.printers[log.ErrorLevel])
-	assert.Same(t, l.Warning(), logger.printers[log.WarnLevel])
-	assert.Same(t, l.Info(), logger.printers[log.InfoLevel])
-	assert.Same(t, l.Debug(), logger.printers[log.DebugLevel])
+	// compiler ensures github.com/magma/magma/log/zap.Logger is a log.Logger
+	var logger log.Logger = l
+
+	assert.Same(t, logger.Error(), l.printers[log.ErrorLevel])
+	assert.Same(t, logger.Warning(), l.printers[log.WarnLevel])
+	assert.Same(t, logger.Info(), l.printers[log.InfoLevel])
+	assert.Same(t, logger.Debug(), l.printers[log.DebugLevel])
 }
 
 func TestNewLogger_Error(t *testing.T) {
 	t.Parallel()
 
-	c := zap.Config{Level: zap.NewAtomicLevelAt(0)}
+	assert.Panics(t, func() {
+		_ = NewLogger("///badpath")
+	})
+}
 
-	// we expect error from zap.Config.Build() to panic
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("The code did not panic")
-			return
-		}
-		err, ok := r.(error)
-		if !ok {
-			t.Errorf("panic value not err, r=%+v", r)
-			return
-		}
-		assert.Regexp(
-			t, "^zap.Config=.*no encoder name specified$", err.Error())
-	}()
-	_ = NewLogger(c)
+func TestNewLoggerAtLevel_Error(t *testing.T) {
+	t.Parallel()
+
+	assert.PanicsWithValue(
+		t,
+		"invalid log.Level, lvl=INVALID (100)",
+		func() {
+			_ = NewLoggerAtLevel(log.Level(100))
+		})
 }
 
 func TestLogger_Level(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		level zapcore.Level
-		want  log.Level
+		zapLevel zapcore.Level
+		logLevel log.Level
 	}{
 		{
-			level: zapcore.DebugLevel,
-			want:  log.DebugLevel,
+			zapLevel: zapcore.DebugLevel,
+			logLevel: log.DebugLevel,
 		},
 		{
-			level: zapcore.InfoLevel,
-			want:  log.InfoLevel,
+			zapLevel: zapcore.InfoLevel,
+			logLevel: log.InfoLevel,
 		},
 		{
-			level: zapcore.WarnLevel,
-			want:  log.WarnLevel,
+			zapLevel: zapcore.WarnLevel,
+			logLevel: log.WarnLevel,
 		},
 		{
-			level: zapcore.ErrorLevel,
-			want:  log.ErrorLevel,
+			zapLevel: zapcore.ErrorLevel,
+			logLevel: log.ErrorLevel,
 		},
 	}
 
 	for _, test := range tests {
-		c := zap.NewProductionConfig()
-		c.Level.SetLevel(test.level)
-		l := NewLogger(c)
-		assert.Equal(t, test.want, l.Level())
+		l := NewLoggerAtLevel(test.logLevel)
+		assert.Equal(t, test.zapLevel, l.level.Level())
+		var logger log.Logger = l
+		assert.Equal(t, test.logLevel, logger.Level())
 	}
 }
 
 func TestLogger_Level_Error(t *testing.T) {
 	t.Parallel()
 
-	// we expect error from zap.Config.Build() to panic
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("The code did not panic")
-			return
-		}
-		assert.Equal(t, r, "unsupported log level fatal")
-	}()
-	c := zap.NewProductionConfig()
-	c.Level.SetLevel(zapcore.FatalLevel)
-	l := NewLogger(c)
-	l.Level()
-}
-
-func TestLogger_SetLevel(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		level log.Level
-		want  zapcore.Level
-	}{
-		{
-			level: log.DebugLevel,
-			want:  zapcore.DebugLevel,
-		},
-		{
-			level: log.InfoLevel,
-			want:  zapcore.InfoLevel,
-		},
-		{
-			level: log.WarnLevel,
-			want:  zapcore.WarnLevel,
-		},
-		{
-			level: log.ErrorLevel,
-			want:  zapcore.ErrorLevel,
-		},
-	}
-
-	for _, test := range tests {
-		l := NewLogger(zap.NewProductionConfig())
-		l.SetLevel(test.level)
-		logger, ok := l.(*Logger)
-		assert.True(
-			t, ok, "NewLogger must return *zap.Logger, have=%+v", l)
-		assert.Equal(t, test.want, logger.Config.Level.Level())
-	}
+	l := NewLogger()
+	l.level.SetLevel(zapcore.FatalLevel)
+	assert.PanicsWithValue(t, "unsupported log level fatal", func() {
+		l.Level()
+	})
 }
 
 func TestLogger_SetLevel_Error(t *testing.T) {
 	t.Parallel()
 
-	// we expect error from zap.Config.Build() to panic
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("The code did not panic")
-			return
-		}
-		assert.Equal(t, r, "unsupported log level INVALID (5)")
-	}()
-	l := NewLogger(zap.NewProductionConfig())
-	l.SetLevel(5)
-}
-
-// memorySink implements zap.Sink by writing all messages to a buffer.
-type memorySink struct {
-	*bytes.Buffer
-}
-
-func (s *memorySink) Close() error { return nil }
-func (s *memorySink) Sync() error  { return nil }
-
-var memorySinks map[string]*memorySink
-var memorySinksM sync.Mutex
-
-func getMemorySink(name string) *memorySink {
-	memorySinksM.Lock()
-	defer memorySinksM.Unlock()
-	return memorySinks[name]
-}
-
-func newMemorySink(name string) *memorySink {
-	memorySinksM.Lock()
-	defer memorySinksM.Unlock()
-
-	if s, ok := memorySinks[name]; ok {
-		return s
-	}
-	s := &memorySink{&bytes.Buffer{}}
-	memorySinks[name] = s
-	return s
-}
-
-func init() {
-	memorySinks = make(map[string]*memorySink)
-	zap.RegisterSink("memory", func(u *url.URL) (zap.Sink, error) {
-		return newMemorySink(u.Host), nil
+	l := NewLogger()
+	assert.PanicsWithValue(t, "unsupported log level INVALID (5)", func() {
+		l.SetLevel(5)
 	})
 }
 
 func TestLoggerNamed(t *testing.T) {
 	t.Parallel()
 
-	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"memory://TestLoggerNamed"}
+	enc := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
+	ws := &zaptest.Buffer{}
+	logger := New(enc, ws, log.InfoLevel)
+	var l log.Logger = logger
 
-	l := NewLogger(c)
-	logger, ok := l.(*Logger)
-	assert.True(
-		t, ok, "NewLogger must return *zap.Logger, have=%+v", l)
 	foo := l.Named("foo")
 	fooLogger, ok := foo.(*Logger)
 	assert.True(
-		t, ok, "NewLogger must return *zap.Logger, have=%+v", l)
+		t, ok, "NewLogger must return *zap.Logger, got=%+v", l)
 
 	assert.NotSame(t, logger, fooLogger)
 	assert.Empty(t, logger.names)
@@ -259,10 +166,7 @@ func TestLoggerNamed(t *testing.T) {
 	l.Info().Print("a")
 	foo.Info().Print("b")
 
-	out := getMemorySink("TestLoggerNamed")
-	assert.NotNil(t, out)
-
-	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	lines := ws.Lines()
 	assert.Equal(t, 2, len(lines))
 
 	var first, second map[string]interface{}
@@ -275,39 +179,14 @@ func TestLoggerNamed(t *testing.T) {
 	assert.Equal(t, "b", second["msg"])
 }
 
-func TestLoggerNamed_Error(t *testing.T) {
-	t.Parallel()
-
-	l := NewLogger(zap.NewProductionConfig())
-	logger, ok := l.(*Logger)
-	assert.True(
-		t, ok, "NewLogger must return *zap.Logger, have=%+v", l)
-	logger.Config.Encoding = ""
-
-	// we expect error from zap.Config.Build() to panic
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("The code did not panic")
-			return
-		}
-		err, ok := r.(error)
-		if !ok {
-			t.Errorf("panic value not err, r=%+v", r)
-			return
-		}
-		assert.Regexp(
-			t, "(?s)^zap.Config=.*no encoder name specified", err.Error())
-	}()
-	_ = l.Named("bar")
-}
-
 func TestLogger_With(t *testing.T) {
 	t.Parallel()
 
-	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"memory://TestLoggerWith"}
-	l := NewLogger(c)
+	enc := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
+	ws := &zaptest.Buffer{}
+	logger := New(enc, ws, log.InfoLevel)
+	var l log.Logger = logger
+
 	test := l.With("env", "test")
 	nested := test.With("foo", "bar")
 	overwrite := nested.With("env", "test2")
@@ -317,10 +196,7 @@ func TestLogger_With(t *testing.T) {
 	nested.Info().Print("hi")
 	overwrite.Info().Print("hi")
 
-	out := getMemorySink("TestLoggerWith")
-	assert.NotNil(t, out)
-
-	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	lines := ws.Lines()
 	assert.Equal(t, 4, len(lines))
 
 	var first, second, third, fourth map[string]interface{}

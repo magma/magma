@@ -46,7 +46,7 @@ Examples:
     $> %s
 
     The command will run magmad service which will periodically
-    check and update the gateway certificats and cloud managed GW configs
+    check and update the gateway certificates and cloud managed GW configs
 
   2. Show the gateway information needed for the gateway registration and exit:
 
