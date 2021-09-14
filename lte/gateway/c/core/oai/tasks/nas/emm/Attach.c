@@ -847,7 +847,7 @@ status_code_e emm_proc_attach_complete(
           LOG_NAS_EMM,
           " Sending EMM INFORMATION for ue_id = " MME_UE_S1AP_ID_FMT "\n",
           ue_id);
-      emm_proc_emm_information(ue_mm_context);
+      emm_proc_emm_informtion(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
       attach_success_event(ue_mm_context->emm_context._imsi64);
     }
