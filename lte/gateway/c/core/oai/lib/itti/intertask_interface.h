@@ -214,6 +214,10 @@ imsi64_t itti_get_associated_imsi(MessageDef* msg);
  **/
 void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 
+/** \brief frees "itti_desc.threads". Added for unit test support.
+ **/
+void itti_free_desc_threads(void);
+
 /** \brief Send a termination message to all tasks.
  * \param task_id task that is broadcasting the message.
  * @note Asserts that newly allocated message ref is non-NULL
