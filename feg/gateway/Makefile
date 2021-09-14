@@ -7,8 +7,9 @@ export MAGMA_ROOT
 
 COVER_DIR:=$(MAGMA_ROOT)/feg/gateway/coverage
 export COVER_DIR
-COVER_FILE:=$(COVER_DIR)/feg.gocov
+COVER_FILE := $(COVER_DIR)/feg.gocov
 DOCKER_DIR := ${MAGMA_ROOT}/feg/gateway/docker
+GOLINT_FILE := ${MAGMA_ROOT}/.golangci.yml
 
 all: fmt lint test vet install
 
@@ -56,7 +57,7 @@ vet:
 	go vet ./...
 
 lint: lint_tools
-	golangci-lint run
+	golangci-lint run --config ${GOLINT_FILE}
 
 lint_tools:
 	@if which golangci-lint 2>/dev/null; then \
