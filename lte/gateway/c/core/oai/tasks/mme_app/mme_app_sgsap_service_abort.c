@@ -112,7 +112,8 @@ status_code_e sgs_fsm_associated_service_abort_request(
 
   if (sgs_context == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "SGS context not found for UE ID %d \n", fsm_evt->ue_id);
+        LOG_MME_APP, "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
+        fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   /* As per 29.118 ,if we receive EXT Service Request with csfb_response set to
@@ -125,7 +126,7 @@ status_code_e sgs_fsm_associated_service_abort_request(
     OAILOG_INFO(
         LOG_MME_APP,
         "Dropping SGS SERVICE ABORT REQUEST message as MT call is already "
-        "accepted by the user for UE ID %d\n",
+        "accepted by the user for UE ID " MME_UE_S1AP_ID_FMT,
         fsm_evt->ue_id);
   }
 
@@ -146,7 +147,7 @@ status_code_e sgs_fsm_null_service_abort_request(const sgs_fsm_t* fsm_evt) {
   OAILOG_ERROR(
       LOG_MME_APP,
       "Dropping SGS SERVICE ABORT REQUEST message as it is received in NULL "
-      "state for UE ID %d\n",
+      "state for UE ID " MME_UE_S1AP_ID_FMT,
       fsm_evt->ue_id);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -166,7 +167,7 @@ status_code_e sgs_fsm_la_update_req_service_abort_request(
   OAILOG_ERROR(
       LOG_MME_APP,
       "Dropping SGS SERVICE ABORT REQUEST message as it is received in "
-      "LA-UPDATE-REQUESTED stae for UE ID %d\n",
+      "LA-UPDATE-REQUESTED stae for UE ID " MME_UE_S1AP_ID_FMT,
       fsm_evt->ue_id);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);

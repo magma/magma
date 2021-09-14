@@ -254,14 +254,15 @@ status_code_e mme_app_handle_s6a_update_location_ans(
         ula_pP->result.present);
     if (handle_ula_failure(ue_mm_context) == RETURNok) {
       OAILOG_DEBUG(
-          LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
+          LOG_MME_APP,
+          "Sent PDN Connectivity failure to NAS for UE ID: " MME_UE_S1AP_ID_FMT,
           ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     } else {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to send PDN Connectivity failure to NAS for "
-          "ue_id " MME_UE_S1AP_ID_FMT "\n",
+          "UE ID: " MME_UE_S1AP_ID_FMT "\n",
           ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }

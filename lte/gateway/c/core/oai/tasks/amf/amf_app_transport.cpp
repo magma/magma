@@ -51,7 +51,9 @@ int amf_app_handle_nas_dl_req(
   if (ue_context) {
     gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   } else {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the UE ID = " AMF_UE_NGAP_ID_FMT,
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
