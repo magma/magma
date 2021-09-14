@@ -33,7 +33,6 @@ using ::testing::_;
 using ::testing::Return;
 
 namespace magma {
-
 namespace lte {
 
 task_zmq_ctx_t task_zmq_ctx_main;
