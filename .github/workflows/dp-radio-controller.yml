@@ -78,6 +78,8 @@ jobs:
       working-directory: "${{ github.workspace }}"
       run: |
         python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
+        dp/protos/common.proto
+        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
         dp/protos/requests.proto
         python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
         dp/protos/active_mode.proto
