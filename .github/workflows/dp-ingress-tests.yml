@@ -12,6 +12,9 @@ jobs:
   ingress_tests:
     name: "${{ matrix.ingress }} tests"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dp
     strategy:
       fail-fast: false
       matrix:

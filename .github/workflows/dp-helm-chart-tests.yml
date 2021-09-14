@@ -4,6 +4,9 @@ name: Helm chart smoke tests
 #  pull_request:
 #    branches:
 #      - 'move_dp_to_magma'
+#  push:
+#    branches:
+#      - 'move_dp_to_magma'
 on:
   pull_request:
     branches:
@@ -16,6 +19,9 @@ jobs:
   helm_chart_tests:
     name: "Helm chart smoke tests"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dp
     steps:
     - uses: actions/checkout@v2
     - name: Install Minikube

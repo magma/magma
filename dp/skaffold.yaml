@@ -108,4 +108,4 @@ profiles:
     patches:
       - op: replace
         path: /deploy/helm/releases/0/valuesFiles/0
-        value: ./charts/domain-proxy/examples/minikube_values_nginx.yaml
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values_nginx.yaml

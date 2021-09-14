@@ -13,7 +13,6 @@ name: Protocol controller unit tests
     #paths:
     #  - "dp/cloud/python/protocol_controller/**"
     #  - ".github/workflows/dp-protocol-controller.yml"
-
 on:
   pull_request:
     branches:
