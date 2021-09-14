@@ -32,6 +32,7 @@
 #include "conversions.h"
 #include "common_types.h"
 #include "intertask_interface.h"
+#include "itti_free_defined_msg.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
 #include "mme_app_ue_context.h"
