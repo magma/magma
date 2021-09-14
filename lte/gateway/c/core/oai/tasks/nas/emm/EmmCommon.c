@@ -557,7 +557,7 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
  **                                                                        **
  ***************************************************************************/
 status_code_e update_tai_list_to_emm_context(
-    uint64_t imsi64, guti_t guti, partial_list_t* par_tai_list,
+    uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
     tai_list_t* tai_list) {
   if (!par_tai_list->plmn) {
     OAILOG_ERROR_UE(LOG_NAS, imsi64, "config PLMN is NULL\n");

@@ -142,6 +142,6 @@ status_code_e verify_tau_tai(
     uint64_t imsi64, guti_t guti, tai_t tai, tai_list_t* emm_ctx_tai);
 
 status_code_e update_tai_list_to_emm_context(
-    uint64_t imsi64, guti_t guti, partial_list_t* par_tai_list,
+    uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
     tai_list_t* tai_list);
 #endif /* FILE_EMM_COMMON_SEEN*/
