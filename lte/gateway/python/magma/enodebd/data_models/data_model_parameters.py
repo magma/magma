@@ -104,7 +104,7 @@ class ParameterName():
     B2_GERAN_IRAT_THRESHOLD = 'b2 geran irat threshold'
     QRXLEVMIN_SIB1 = 'qrxlevmin sib1'
     QRXLEVMINOFFSET = 'qrxlevminoffset'
-    S_INTRASEARCH = 's_intrasearch'
+    S_INTRASEARCH = 's intrasearch'
     S_NONINTRASEARCH = 's nonintrasearch'
     QRXLEVMIN_SIB3 = 'qrxlevmin sib3'
     RESELECTION_PRIORITY = 'reselection priority'

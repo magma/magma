@@ -71,33 +71,36 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
-        // ho algorithm config
-        int32 a1_threshold_rsrp = 69;
-        int32 lte_a1_threshold_rsrq = 70;
-        int32 hysteresis = 71;
-        string time_to_trigger = 72;
-        int32 a2_threshold_rsrp = 73;
-        int32 lte_a2_threshold_rsrq = 74;
-        int32 lte_a2_threshold_rsrp_irat_volte = 75;
-        int32 lte_a2_threshold_rsrq_irat_volte = 76;
-        int32 a3_offset = 83;
-        int32 a3_offset_anr = 84;
-        int32 a4_threshold_rsrp = 88;
-        int32 lte_intra_a5_threshold_1_rsrp = 90;
-        int32 lte_intra_a5_threshold_2_rsrp = 91;
-        uint32 b2_threshold1_rsrp = 100;
-        int32 b2_threshold2_rsrp = 101;
-        uint32 b2_geran_irat_threshold = 102;
-        int32 qrxlevmin_sib1 = 105;
-        uint32 qrxlevminoffset = 106;
-        uint32 s_intrasearch = 107;
-        uint32 s_nonintrasearch = 108;
-        int32 qrxlevmin_sib3 = 109;
-        uint32 reselection_priority = 110;
-        uint32 threshservinglow = 111;
-        bool x2_enable_disable = 112;
-        string ciphering_algorithm = 113;
-        string integrity_algorithm = 114;
+        HoAlgorithmConfig ho_algorithm_config = 16;
+        message HoAlgorithmConfig {
+            // ho algorithm config
+            int32 a1_threshold_rsrp = 1;
+            int32 lte_a1_threshold_rsrq = 2;
+            int32 hysteresis = 3;
+            string time_to_trigger = 4;
+            int32 a2_threshold_rsrp = 5;
+            int32 lte_a2_threshold_rsrq = 6;
+            int32 lte_a2_threshold_rsrp_irat_volte = 7;
+            int32 lte_a2_threshold_rsrq_irat_volte = 8;
+            int32 a3_offset = 9;
+            int32 a3_offset_anr = 10;
+            int32 a4_threshold_rsrp = 11;
+            int32 lte_intra_a5_threshold_1_rsrp = 12;
+            int32 lte_intra_a5_threshold_2_rsrp = 13;
+            uint32 b2_threshold1_rsrp = 14;
+            int32 b2_threshold2_rsrp = 15;
+            uint32 b2_geran_irat_threshold = 16;
+            int32 qrxlevmin_sib1 = 17;
+            uint32 qrxlevminoffset = 18;
+            uint32 s_intrasearch = 19;
+            uint32 s_nonintrasearch = 20;
+            int32 qrxlevmin_sib3 = 21;
+            uint32 reselection_priority = 22;
+            uint32 threshservinglow = 23;
+            bool x2_enable_disable = 24;
+            string ciphering_algorithm = 25;
+            string integrity_algorithm = 26;
+        }
     }
 
     orc8r.LogLevel log_level = 1;

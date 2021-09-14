@@ -245,42 +245,33 @@ def _get_enb_config(
                 subframe_assignment = enb_config.subframe_assignment
                 special_subframe_pattern = \
                     enb_config.special_subframe_pattern
-
-            if enb_config.a1_threshold_rsrp is not None:
-                a1_threshold_rsrp = enb_config.a1_threshold_rsrp
-            if enb_config.lte_a1_threshold_rsrq is not None:
-                lte_a1_threshold_rsrq = enb_config.lte_a1_threshold_rsrq
-            if enb_config.hysteresis is not None:
-                hysteresis = enb_config.hysteresis
-            if enb_config.time_to_trigger is not None:
-                time_to_trigger = enb_config.time_to_trigger
-            if enb_config.a2_threshold_rsrp is not None:
-                a2_threshold_rsrp = enb_config.a2_threshold_rsrp
-            if enb_config.lte_a2_threshold_rsrq is not None:
-                lte_a2_threshold_rsrq = enb_config.lte_a2_threshold_rsrq
-            if enb_config.lte_a2_threshold_rsrp_irat_volte is not None:
-                lte_a2_threshold_rsrp_irat_volte = enb_config.lte_a2_threshold_rsrp_irat_volte
-            if enb_config.lte_a2_threshold_rsrq_irat_volte is not None:
-                lte_a2_threshold_rsrq_irat_volte = enb_config.lte_a2_threshold_rsrq_irat_volte
-
-            a3_offset = enb_config.a3_offset
-            a3_offset_anr = enb_config.a3_offset_anr
-            a4_threshold_rsrp = enb_config.a4_threshold_rsrp
-            lte_intra_a5_threshold_1_rsrp = enb_config.lte_intra_a5_threshold_1_rsrp
-            lte_intra_a5_threshold_2_rsrp = enb_config.lte_intra_a5_threshold_2_rsrp
-            b2_threshold1_rsrp = enb_config.b2_threshold1_rsrp
-            b2_threshold2_rsrp = enb_config.b2_threshold2_rsrp
-            b2_geran_irat_threshold = enb_config.b2_geran_irat_threshold
-            qrxlevmin_sib1 = enb_config.qrxlevmin_sib1
-            qrxlevminoffset = enb_config.qrxlevminoffset
-            s_intrasearch = enb_config.s_intrasearch
-            s_nonintrasearch = enb_config.s_nonintrasearch
-            qrxlevmin_sib3 = enb_config.qrxlevmin_sib3
-            reselection_priority = enb_config.reselection_priority
-            threshservinglow = enb_config.threshservinglow
-            x2_enable_disable = enb_config.x2_enable_disable
-            ciphering_algorithm = enb_config.ciphering_algorithm
-            integrity_algorithm = enb_config.integrity_algorithm
+            enb_hoAlgorithm_config = enb_config.ho_algorithm_config
+            a1_threshold_rsrp = enb_hoAlgorithm_config.a1_threshold_rsrp
+            lte_a1_threshold_rsrq = enb_hoAlgorithm_config.lte_a1_threshold_rsrq
+            hysteresis = enb_hoAlgorithm_config.hysteresis
+            time_to_trigger = enb_hoAlgorithm_config.time_to_trigger
+            a2_threshold_rsrp = enb_hoAlgorithm_config.a2_threshold_rsrp
+            lte_a2_threshold_rsrq = enb_hoAlgorithm_config.lte_a2_threshold_rsrq
+            lte_a2_threshold_rsrp_irat_volte = enb_hoAlgorithm_config.lte_a2_threshold_rsrp_irat_volte
+            lte_a2_threshold_rsrq_irat_volte = enb_hoAlgorithm_config.lte_a2_threshold_rsrq_irat_volte
+            a3_offset = enb_hoAlgorithm_config.a3_offset
+            a3_offset_anr = enb_hoAlgorithm_config.a3_offset_anr
+            a4_threshold_rsrp = enb_hoAlgorithm_config.a4_threshold_rsrp
+            lte_intra_a5_threshold_1_rsrp = enb_hoAlgorithm_config.lte_intra_a5_threshold_1_rsrp
+            lte_intra_a5_threshold_2_rsrp = enb_hoAlgorithm_config.lte_intra_a5_threshold_2_rsrp
+            b2_threshold1_rsrp = enb_hoAlgorithm_config.b2_threshold1_rsrp
+            b2_threshold2_rsrp = enb_hoAlgorithm_config.b2_threshold2_rsrp
+            b2_geran_irat_threshold = enb_hoAlgorithm_config.b2_geran_irat_threshold
+            qrxlevmin_sib1 = enb_hoAlgorithm_config.qrxlevmin_sib1
+            qrxlevminoffset = enb_hoAlgorithm_config.qrxlevminoffset
+            s_intrasearch = enb_hoAlgorithm_config.s_intrasearch
+            s_nonintrasearch = enb_hoAlgorithm_config.s_nonintrasearch
+            qrxlevmin_sib3 = enb_hoAlgorithm_config.qrxlevmin_sib3
+            reselection_priority = enb_hoAlgorithm_config.reselection_priority
+            threshservinglow = enb_hoAlgorithm_config.threshservinglow
+            x2_enable_disable = enb_hoAlgorithm_config.x2_enable_disable
+            ciphering_algorithm = enb_hoAlgorithm_config.ciphering_algorithm
+            integrity_algorithm = enb_hoAlgorithm_config.integrity_algorithm
 
         else:
             raise ConfigurationError(
