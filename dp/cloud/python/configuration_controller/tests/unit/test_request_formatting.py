@@ -1,9 +1,17 @@
 import json
 from unittest import TestCase
 
-from dp.cloud.python.configuration_controller.request_formatting.merger import merge_requests
-from dp.cloud.python.db_service.models import DBRequest, DBRequestState, DBRequestType
-from dp.cloud.python.fixtures.fake_requests.registration_requests import registration_requests
+from dp.cloud.python.configuration_controller.request_formatting.merger import (
+    merge_requests,
+)
+from dp.cloud.python.db_service.models import (
+    DBRequest,
+    DBRequestState,
+    DBRequestType,
+)
+from dp.cloud.python.fixtures.fake_requests.registration_requests import (
+    registration_requests,
+)
 
 
 class RequestMergingTestCase(TestCase):

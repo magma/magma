@@ -1,6 +1,6 @@
-from dp.protos.active_mode_pb2 import Unregistered, Registered, On, Off
 from dp.cloud.python.mappings.types import CbsdStates, GrantStates, Switch
-from dp.protos.common_pb2 import Granted, Authorized
+from dp.protos.active_mode_pb2 import Off, On, Registered, Unregistered
+from dp.protos.common_pb2 import Authorized, Granted
 
 cbsd_state_mapping = {
     CbsdStates.UNREGISTERED.value: Unregistered,

@@ -1,12 +1,21 @@
 import importlib
 import os
 
-from sqlalchemy import create_engine
-
 from dp.cloud.python.db_service.config import Config
-from dp.cloud.python.db_service.models import DBGrantState, DBRequestState, DBRequestType, DBCbsdState
+from dp.cloud.python.db_service.models import (
+    DBCbsdState,
+    DBGrantState,
+    DBRequestState,
+    DBRequestType,
+)
 from dp.cloud.python.db_service.session_manager import SessionManager
-from dp.cloud.python.mappings.types import GrantStates, RequestStates, RequestTypes, CbsdStates
+from dp.cloud.python.mappings.types import (
+    CbsdStates,
+    GrantStates,
+    RequestStates,
+    RequestTypes,
+)
+from sqlalchemy import create_engine
 
 
 class DBInitializer:

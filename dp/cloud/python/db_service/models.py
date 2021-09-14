@@ -1,4 +1,13 @@
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Float, BigInteger
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.functions import now

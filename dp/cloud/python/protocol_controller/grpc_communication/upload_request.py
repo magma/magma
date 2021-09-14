@@ -1,7 +1,9 @@
 import logging
 from typing import List, Optional
 
-from dp.cloud.python.protocol_controller.grpc_client.grpc_client import GrpcClient
+from dp.cloud.python.protocol_controller.grpc_client.grpc_client import (
+    GrpcClient,
+)
 from dp.protos.requests_pb2 import RequestPayload
 
 

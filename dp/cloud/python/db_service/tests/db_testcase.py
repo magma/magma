@@ -1,10 +1,9 @@
 import unittest
 
-from sqlalchemy import create_engine
-
 from dp.cloud.python.db_service.config import TestConfig
 from dp.cloud.python.db_service.models import Base
 from dp.cloud.python.db_service.session_manager import Session
+from sqlalchemy import create_engine
 
 
 class DBTestCase(unittest.TestCase):

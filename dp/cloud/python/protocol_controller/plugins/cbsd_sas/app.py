@@ -1,17 +1,30 @@
 from typing import Type
 
 import grpc
-from flask import Flask
-
 from dp.cloud.python.protocol_controller.config import Config
-from dp.cloud.python.protocol_controller.grpc_client.grpc_client import GrpcClient
+from dp.cloud.python.protocol_controller.grpc_client.grpc_client import (
+    GrpcClient,
+)
 from dp.cloud.python.protocol_controller.logger import configure_logger
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.deregistration import deregistration_page
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.grant import grant_page
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.heartbeat import heartbeat_page
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.registration import registration_page
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.relinquishment import relinquishment_page
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.spectrumInquiry import spectrum_inquiry_page
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.deregistration import (
+    deregistration_page,
+)
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.grant import (
+    grant_page,
+)
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.heartbeat import (
+    heartbeat_page,
+)
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.registration import (
+    registration_page,
+)
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.relinquishment import (
+    relinquishment_page,
+)
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.views.spectrumInquiry import (
+    spectrum_inquiry_page,
+)
+from flask import Flask
 
 
 def create_app(conf: Type[Config]):

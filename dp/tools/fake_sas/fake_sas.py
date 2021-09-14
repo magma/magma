@@ -46,25 +46,21 @@
 A local test server could be run by using "python fake_sas.py".
 
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
-import uuid
 import json
+import os
 import ssl
 import sys
 import tempfile
-import os
+import uuid
 from datetime import datetime, timedelta
 
-from six.moves.BaseHTTPServer import HTTPServer
-from six.moves.BaseHTTPServer import BaseHTTPRequestHandler
-from six.moves import configparser
-from OpenSSL import crypto
-
 import sas_interface
+from OpenSSL import crypto
+from six.moves import configparser
+from six.moves.BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 # Fake SAS server configurations.
 HOST = '0.0.0.0'

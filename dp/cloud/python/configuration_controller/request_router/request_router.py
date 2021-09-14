@@ -1,9 +1,10 @@
 from typing import Dict, List
 
 import requests
+from dp.cloud.python.configuration_controller.request_router.exceptions import (
+    RequestRouterException,
+)
 from requests import Response
-
-from dp.cloud.python.configuration_controller.request_router.exceptions import RequestRouterException
 
 
 class RequestRouter:

@@ -5,15 +5,19 @@ from concurrent import futures
 from signal import SIGTERM, signal
 
 import grpc
-from sqlalchemy import create_engine
-
 from dp.cloud.python.db_service.session_manager import SessionManager
-from dp.cloud.python.radio_controller.services.radio_controller.service import RadioControllerService
-from dp.cloud.python.radio_controller.services.active_mode_controller.service import ActiveModeControllerService
-from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
-from dp.protos.active_mode_pb2_grpc import add_ActiveModeControllerServicer_to_server
-
 from dp.cloud.python.radio_controller.config import Config
+from dp.cloud.python.radio_controller.services.active_mode_controller.service import (
+    ActiveModeControllerService,
+)
+from dp.cloud.python.radio_controller.services.radio_controller.service import (
+    RadioControllerService,
+)
+from dp.protos.active_mode_pb2_grpc import (
+    add_ActiveModeControllerServicer_to_server,
+)
+from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
+from sqlalchemy import create_engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("radio_controller.run")

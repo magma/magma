@@ -1,6 +1,7 @@
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.tests.app_testcase import (
+    AppTestCase,
+)
 from parameterized import parameterized
-
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.tests.app_testcase import AppTestCase
 
 REGISTRATION = 'registration'
 DEREGISTRATION = 'deregistration'

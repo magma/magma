@@ -1,9 +1,13 @@
-from parameterized import parameterized
-
 from dp.cloud.python.db_service.db_initialize import DBInitializer
-from dp.cloud.python.db_service.models import DBRequestState, DBRequestType, DBCbsdState, DBGrantState
+from dp.cloud.python.db_service.models import (
+    DBCbsdState,
+    DBGrantState,
+    DBRequestState,
+    DBRequestType,
+)
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.local_db_test_case import LocalDBTestCase
+from parameterized import parameterized
 
 
 class DBInitializationTestCase(LocalDBTestCase):

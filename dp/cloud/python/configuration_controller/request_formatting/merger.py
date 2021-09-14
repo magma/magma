@@ -1,7 +1,10 @@
 from collections import defaultdict
 from typing import Dict, List
 
-from dp.cloud.python.configuration_controller.custom_types.custom_types import DBRequest, MergedRequests
+from dp.cloud.python.configuration_controller.custom_types.custom_types import (
+    DBRequest,
+    MergedRequests,
+)
 
 
 def merge_requests(request_map: Dict[str, List[DBRequest]]) -> MergedRequests:

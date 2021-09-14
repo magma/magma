@@ -2,19 +2,20 @@ import json
 from time import sleep
 
 import grpc
-
-from dp.protos.active_mode_pb2 import ToggleActiveModeParams
-from dp.protos.active_mode_pb2_grpc import ActiveModeControllerStub
 from dp.cloud.python.db_service.db_initialize import DBInitializer
 from dp.cloud.python.db_service.models import DBCbsd
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.db_testcase import DBTestCase
-from dp.cloud.python.fixtures.fake_requests.registration_requests import registration_requests
-from dp.cloud.python.mappings.types import CbsdStates, Switch
+from dp.cloud.python.fixtures.fake_requests.registration_requests import (
+    registration_requests,
+)
 from dp.cloud.python.mappings.cbsd_states import cbsd_state_mapping
+from dp.cloud.python.mappings.types import CbsdStates, Switch
+from dp.cloud.python.test_runner.config import TestConfig
+from dp.protos.active_mode_pb2 import ToggleActiveModeParams
+from dp.protos.active_mode_pb2_grpc import ActiveModeControllerStub
 from dp.protos.requests_pb2 import RequestPayload
 from dp.protos.requests_pb2_grpc import RadioControllerStub
-from dp.cloud.python.test_runner.config import TestConfig
 
 config = TestConfig()
 

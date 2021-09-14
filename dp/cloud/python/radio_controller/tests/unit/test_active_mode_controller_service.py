@@ -1,18 +1,41 @@
 import json
 from datetime import datetime
 
-from google.protobuf.json_format import MessageToDict
-
 from dp.cloud.python.db_service.db_initialize import DBInitializer
-from dp.cloud.python.db_service.models import DBCbsd, DBCbsdState, DBGrant, DBGrantState, DBActiveModeConfig, \
-    DBChannel, DBRequest, DBRequestType, DBRequestState
+from dp.cloud.python.db_service.models import (
+    DBActiveModeConfig,
+    DBCbsd,
+    DBCbsdState,
+    DBChannel,
+    DBGrant,
+    DBGrantState,
+    DBRequest,
+    DBRequestState,
+    DBRequestType,
+)
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.local_db_test_case import LocalDBTestCase
-from dp.cloud.python.mappings.types import CbsdStates, GrantStates, RequestTypes, RequestStates
-from dp.cloud.python.radio_controller.services.active_mode_controller.service import ActiveModeControllerService
-from dp.protos.active_mode_pb2 import State, GetStateRequest, ActiveModeConfig, Registered, Cbsd, Grant, Channel, \
-    Unregistered
-from dp.protos.common_pb2 import Granted, Authorized, FrequencyRange
+from dp.cloud.python.mappings.types import (
+    CbsdStates,
+    GrantStates,
+    RequestStates,
+    RequestTypes,
+)
+from dp.cloud.python.radio_controller.services.active_mode_controller.service import (
+    ActiveModeControllerService,
+)
+from dp.protos.active_mode_pb2 import (
+    ActiveModeConfig,
+    Cbsd,
+    Channel,
+    GetStateRequest,
+    Grant,
+    Registered,
+    State,
+    Unregistered,
+)
+from dp.protos.common_pb2 import Authorized, FrequencyRange, Granted
+from google.protobuf.json_format import MessageToDict
 
 
 class ActiveModeControllerTestCase(LocalDBTestCase):

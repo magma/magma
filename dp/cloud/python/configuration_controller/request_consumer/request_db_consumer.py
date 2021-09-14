@@ -1,7 +1,13 @@
 import logging
 
-from dp.cloud.python.configuration_controller.custom_types.custom_types import RequestsMap
-from dp.cloud.python.db_service.models import DBRequest, DBRequestState, DBRequestType
+from dp.cloud.python.configuration_controller.custom_types.custom_types import (
+    RequestsMap,
+)
+from dp.cloud.python.db_service.models import (
+    DBRequest,
+    DBRequestState,
+    DBRequestType,
+)
 from dp.cloud.python.mappings.types import RequestStates
 
 logger = logging.getLogger(__name__)

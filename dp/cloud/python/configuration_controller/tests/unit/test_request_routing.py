@@ -2,9 +2,12 @@ import os
 from unittest import TestCase
 
 import requests_mock
-
-from dp.cloud.python.configuration_controller.request_router.exceptions import RequestRouterException
-from dp.cloud.python.configuration_controller.request_router.request_router import RequestRouter
+from dp.cloud.python.configuration_controller.request_router.exceptions import (
+    RequestRouterException,
+)
+from dp.cloud.python.configuration_controller.request_router.request_router import (
+    RequestRouter,
+)
 from dp.cloud.python.mappings.request_mapping import request_mapping
 
 

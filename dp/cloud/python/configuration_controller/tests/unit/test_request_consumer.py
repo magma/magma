@@ -1,9 +1,16 @@
-from parameterized import parameterized
-
-from dp.cloud.python.configuration_controller.request_consumer.request_db_consumer import RequestDBConsumer
-from dp.cloud.python.db_service.models import DBRequest, DBRequestState, DBRequestType, DBCbsd, DBCbsdState
+from dp.cloud.python.configuration_controller.request_consumer.request_db_consumer import (
+    RequestDBConsumer,
+)
+from dp.cloud.python.db_service.models import (
+    DBCbsd,
+    DBCbsdState,
+    DBRequest,
+    DBRequestState,
+    DBRequestType,
+)
 from dp.cloud.python.db_service.session_manager import Session
 from dp.cloud.python.db_service.tests.local_db_test_case import LocalDBTestCase
+from parameterized import parameterized
 
 REQUEST_PROCESSING_LIMIT = 10
 

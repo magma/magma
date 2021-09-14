@@ -2,18 +2,27 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 import requests
-from parameterized import parameterized
-
 from dp.cloud.python.db_service.db_initialize import DBInitializer
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.db_testcase import DBTestCase
-from dp.cloud.python.fixtures.fake_requests.deregistration_requests import deregistration_requests
+from dp.cloud.python.fixtures.fake_requests.deregistration_requests import (
+    deregistration_requests,
+)
 from dp.cloud.python.fixtures.fake_requests.grant_requests import grant_requests
-from dp.cloud.python.fixtures.fake_requests.heartbeat_requests import heartbeat_requests
-from dp.cloud.python.fixtures.fake_requests.registration_requests import registration_requests
-from dp.cloud.python.fixtures.fake_requests.relinquishment_requests import relinquishment_requests
-from dp.cloud.python.fixtures.fake_requests.spectrum_inquiry_requests import spectrum_inquiry_requests
+from dp.cloud.python.fixtures.fake_requests.heartbeat_requests import (
+    heartbeat_requests,
+)
+from dp.cloud.python.fixtures.fake_requests.registration_requests import (
+    registration_requests,
+)
+from dp.cloud.python.fixtures.fake_requests.relinquishment_requests import (
+    relinquishment_requests,
+)
+from dp.cloud.python.fixtures.fake_requests.spectrum_inquiry_requests import (
+    spectrum_inquiry_requests,
+)
 from dp.cloud.python.test_runner.config import TestConfig
+from parameterized import parameterized
 
 incorrect_request_payload = {"incorrect": ["payload"]}
 

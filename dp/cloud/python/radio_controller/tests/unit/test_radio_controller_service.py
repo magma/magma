@@ -1,13 +1,19 @@
 import json
 
 import testing.postgresql
-from parameterized import parameterized
-
 from dp.cloud.python.db_service.db_initialize import DBInitializer
-from dp.cloud.python.db_service.models import DBRequest, DBResponse, DBCbsd, DBChannel
+from dp.cloud.python.db_service.models import (
+    DBCbsd,
+    DBChannel,
+    DBRequest,
+    DBResponse,
+)
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.local_db_test_case import LocalDBTestCase
-from dp.cloud.python.radio_controller.services.radio_controller.service import RadioControllerService
+from dp.cloud.python.radio_controller.services.radio_controller.service import (
+    RadioControllerService,
+)
+from parameterized import parameterized
 
 Postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)
 

@@ -1,7 +1,6 @@
 import testing.postgresql
 from dp.cloud.python.db_service.tests.db_testcase import DBTestCase
 
-
 Postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)
 
 

@@ -2,25 +2,54 @@ from typing import Dict
 
 import requests
 import responses
-from parameterized import parameterized
-
-from dp.cloud.python.mappings.request_response_mapping import request_response
-from dp.cloud.python.configuration_controller.response_processor.response_db_processor import ResponseDBProcessor
-from dp.cloud.python.configuration_controller.response_processor.strategies.strategies_mapping import processor_strategies
+from dp.cloud.python.configuration_controller.response_processor.response_db_processor import (
+    ResponseDBProcessor,
+)
+from dp.cloud.python.configuration_controller.response_processor.strategies.strategies_mapping import (
+    processor_strategies,
+)
 from dp.cloud.python.db_service.db_initialize import DBInitializer
-from dp.cloud.python.db_service.models import DBRequest, DBRequestState, DBRequestType, DBResponse, DBCbsd, \
-    DBCbsdState, DBGrant, DBChannel
+from dp.cloud.python.db_service.models import (
+    DBCbsd,
+    DBCbsdState,
+    DBChannel,
+    DBGrant,
+    DBRequest,
+    DBRequestState,
+    DBRequestType,
+    DBResponse,
+)
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.db_service.tests.local_db_test_case import LocalDBTestCase
-from dp.cloud.python.fixtures.fake_requests.deregistration_requests import deregistration_requests
+from dp.cloud.python.fixtures.fake_requests.deregistration_requests import (
+    deregistration_requests,
+)
 from dp.cloud.python.fixtures.fake_requests.grant_requests import grant_requests
-from dp.cloud.python.fixtures.fake_requests.heartbeat_requests import heartbeat_requests
-from dp.cloud.python.fixtures.fake_requests.registration_requests import registration_requests
-from dp.cloud.python.fixtures.fake_requests.relinquishment_requests import relinquishment_requests
-from dp.cloud.python.fixtures.fake_requests.spectrum_inquiry_requests import spectrum_inquiry_requests
-from dp.cloud.python.fixtures.fake_responses.spectrum_inquiry_responses import zero_channels_for_one_cbsd, single_channel_for_one_cbsd, \
-    two_channels_for_one_cbsd
-from dp.cloud.python.mappings.types import GrantStates, RequestStates, RequestTypes, CbsdStates
+from dp.cloud.python.fixtures.fake_requests.heartbeat_requests import (
+    heartbeat_requests,
+)
+from dp.cloud.python.fixtures.fake_requests.registration_requests import (
+    registration_requests,
+)
+from dp.cloud.python.fixtures.fake_requests.relinquishment_requests import (
+    relinquishment_requests,
+)
+from dp.cloud.python.fixtures.fake_requests.spectrum_inquiry_requests import (
+    spectrum_inquiry_requests,
+)
+from dp.cloud.python.fixtures.fake_responses.spectrum_inquiry_responses import (
+    single_channel_for_one_cbsd,
+    two_channels_for_one_cbsd,
+    zero_channels_for_one_cbsd,
+)
+from dp.cloud.python.mappings.request_response_mapping import request_response
+from dp.cloud.python.mappings.types import (
+    CbsdStates,
+    GrantStates,
+    RequestStates,
+    RequestTypes,
+)
+from parameterized import parameterized
 
 CBSD_SERIAL_NR = "cbsdSerialNumber"
 FCC_ID = "fccId"

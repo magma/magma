@@ -13,11 +13,10 @@
 #    limitations under the License.
 """SAS interfaces for testing."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import abc
+
 import six
 
 

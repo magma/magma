@@ -1,11 +1,15 @@
 import logging
 from typing import Callable, List
 
-from requests import Response
-
-from dp.cloud.python.db_service.models import DBRequest, DBRequestState, DBResponse, DBGrantState
+from dp.cloud.python.db_service.models import (
+    DBGrantState,
+    DBRequest,
+    DBRequestState,
+    DBResponse,
+)
 from dp.cloud.python.db_service.session_manager import Session
-from dp.cloud.python.mappings.types import RequestStates, GrantStates
+from dp.cloud.python.mappings.types import GrantStates, RequestStates
+from requests import Response
 
 logger = logging.getLogger(__name__)
 

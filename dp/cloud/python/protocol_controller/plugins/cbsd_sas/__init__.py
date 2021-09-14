@@ -1,5 +1,7 @@
 from dp.cloud.python.protocol_controller.plugin import ProtocolPlugin
-from dp.cloud.python.protocol_controller.plugins.cbsd_sas.wsgi import application
+from dp.cloud.python.protocol_controller.plugins.cbsd_sas.wsgi import (
+    application,
+)
 
 
 class CBSDSASProtocolPlugin(ProtocolPlugin):

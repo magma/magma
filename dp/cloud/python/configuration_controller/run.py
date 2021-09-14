@@ -7,20 +7,31 @@ from typing import Optional
 import click
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from requests import Response
-from sqlalchemy import create_engine
-
 from dp.cloud.python.configuration_controller.config import Config
-from dp.cloud.python.mappings.request_response_mapping import request_response
-from dp.cloud.python.configuration_controller.request_consumer.request_db_consumer import RequestDBConsumer
-from dp.cloud.python.configuration_controller.request_formatting.merger import merge_requests
-from dp.cloud.python.configuration_controller.request_router.exceptions import RequestRouterException
-from dp.cloud.python.configuration_controller.request_router.request_router import RequestRouter
-from dp.cloud.python.configuration_controller.response_processor.response_db_processor import ResponseDBProcessor
-from dp.cloud.python.configuration_controller.response_processor.strategies.strategies_mapping import processor_strategies
+from dp.cloud.python.configuration_controller.request_consumer.request_db_consumer import (
+    RequestDBConsumer,
+)
+from dp.cloud.python.configuration_controller.request_formatting.merger import (
+    merge_requests,
+)
+from dp.cloud.python.configuration_controller.request_router.exceptions import (
+    RequestRouterException,
+)
+from dp.cloud.python.configuration_controller.request_router.request_router import (
+    RequestRouter,
+)
+from dp.cloud.python.configuration_controller.response_processor.response_db_processor import (
+    ResponseDBProcessor,
+)
+from dp.cloud.python.configuration_controller.response_processor.strategies.strategies_mapping import (
+    processor_strategies,
+)
 from dp.cloud.python.db_service.session_manager import SessionManager
 from dp.cloud.python.mappings.request_mapping import request_mapping
+from dp.cloud.python.mappings.request_response_mapping import request_response
 from dp.cloud.python.mappings.types import RequestTypes
+from requests import Response
+from sqlalchemy import create_engine
 
 logging.basicConfig(level=logging.DEBUG,
                     datefmt='%Y-%m-%d %H:%M:%S',
