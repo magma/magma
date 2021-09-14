@@ -18,6 +18,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/csfb"
@@ -25,8 +27,6 @@ import (
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/message"
 	"magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
 )
 
 const MaxVLRConnectAttempts uint = 200

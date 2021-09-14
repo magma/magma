@@ -17,6 +17,8 @@ import (
 	"flag"
 	"log"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	csfbServicers "magma/feg/gateway/services/csfb/servicers"
@@ -24,8 +26,6 @@ import (
 	"magma/feg/gateway/services/csfb/servicers/decode/message"
 	"magma/feg/gateway/services/testcore/vlr/servicers"
 	"magma/orc8r/cloud/go/service"
-
-	"github.com/golang/glog"
 )
 
 func init() {

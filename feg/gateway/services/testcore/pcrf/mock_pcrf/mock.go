@@ -16,11 +16,11 @@ package mock_pcrf
 import (
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/testcore/mock_driver"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/testcore/mock_driver"
 )
 
 // Here we wrap the protobuf definitions to easily define instance methods

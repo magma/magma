@@ -16,13 +16,13 @@ package storage
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 type healthBlobstore struct {

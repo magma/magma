@@ -19,6 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/thoas/go-funk"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/multiplex"
@@ -33,11 +38,6 @@ import (
 	"magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/thoas/go-funk"
 )
 
 const (

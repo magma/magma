@@ -14,9 +14,9 @@
 package test_utils
 
 import (
-	"magma/feg/cloud/go/services/feg/obsidian/models"
-
 	"github.com/go-openapi/swag"
+
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 )
 
 func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {

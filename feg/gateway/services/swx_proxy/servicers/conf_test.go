@@ -16,12 +16,12 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/gateway/mconfig"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwxProxyMultipleConfigurationMconfig(t *testing.T) {

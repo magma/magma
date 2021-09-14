@@ -22,8 +22,6 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"magma/feg/gateway/services/gateway_health/events"
-
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
@@ -32,6 +30,7 @@ import (
 	"magma/feg/gateway/service_health"
 	"magma/feg/gateway/services/gateway_health"
 	"magma/feg/gateway/services/gateway_health/collection"
+	"magma/feg/gateway/services/gateway_health/events"
 	gwmcfg "magma/gateway/mconfig"
 	"magma/gateway/service_registry"
 )

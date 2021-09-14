@@ -16,9 +16,9 @@ package diameter_test
 import (
 	"testing"
 
-	"magma/feg/gateway/diameter"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/diameter"
 )
 
 func TestEncodePLMN(t *testing.T) {

@@ -21,12 +21,12 @@ import (
 	"strings"
 	"testing"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/csfb/servicers"
-
 	"github.com/ishidawataru/sctp"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/csfb/servicers"
 )
 
 func GetConnToTestFedGWServiceServer(t *testing.T, connectionInterface servicers.ClientConnectionInterface) *grpc.ClientConn {

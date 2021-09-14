@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
+
+	"magma/feg/cloud/go/protos"
 )
 
 // CollectSystemStats fills out the SystemHealthStats protos with system related

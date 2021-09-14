@@ -19,12 +19,12 @@ import (
 	"sync"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/gtp"
-
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/gtp"
 )
 
 const (

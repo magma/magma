@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/testcore/mock_driver"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type TestExpectation struct {

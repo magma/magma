@@ -23,6 +23,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/stretchr/testify/assert"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
@@ -30,11 +35,6 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/testcore/pcrf/mock_pcrf"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

@@ -17,12 +17,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/services/aaa/pipelined"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/test/mock_pipelined"
 	lte_protos "magma/lte/cloud/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (

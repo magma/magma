@@ -18,6 +18,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/metadata"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
@@ -27,11 +32,6 @@ import (
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/metadata"
 )
 
 // GetAllGatewaysIDs returns all Gateways served by calling FeG,
