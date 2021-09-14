@@ -32,6 +32,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       spgw_handler_->sgw_handle_s11_create_session_request();
     } break;
 
+    case S11_DELETE_SESSION_REQUEST: {
+      spgw_handler_->sgw_handle_delete_session_request();
+    } break;
+
     default: {
     } break;
   }

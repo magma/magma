@@ -33,6 +33,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S6A_UPDATE_LOCATION_REQ: {
       s6a_handler_->s6a_viface_update_location_req();
     } break;
+    case S6A_PURGE_UE_REQ: {
+      s6a_handler_->s6a_viface_purge_ue();
+    }
     default: {
     } break;
   }

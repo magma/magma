@@ -45,17 +45,20 @@ class MockS1apHandler {
  public:
   MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
   MOCK_METHOD0(s1ap_handle_conn_est_cnf, void());
+  MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
 };
 
 class MockS6aHandler {
  public:
   MOCK_METHOD0(s6a_viface_authentication_info_req, void());
   MOCK_METHOD0(s6a_viface_update_location_req, void());
+  MOCK_METHOD0(s6a_viface_purge_ue, void());
 };
 
 class MockSpgwHandler {
  public:
   MOCK_METHOD0(sgw_handle_s11_create_session_request, void());
+  MOCK_METHOD0(sgw_handle_delete_session_request, void());
 };
 
 void start_mock_ha_task();

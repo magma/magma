@@ -50,6 +50,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
+      s1ap_handler_->s1ap_handle_ue_context_release_command();
     } break;
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {

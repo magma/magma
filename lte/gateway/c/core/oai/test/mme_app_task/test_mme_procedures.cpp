@@ -142,6 +142,8 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
   MessageDef* message_p = NULL;
   std::string imsi      = "001010000000001";
   plmn_t plmn           = {
@@ -154,9 +156,12 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
@@ -216,7 +221,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
                         0x00, 0x00, 0x00, 0x00, 0x00};
   nas_msg_length     = 19;
   send_mme_app_uplink_data_ind(&nas_msg2[0], nas_msg_length, plmn);
-  
+
   // Constructing and sending SMC Response to mme_app mimicing S1AP
   uint8_t nas_msg3[] = {0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07,
                         0x5e, 0x23, 0x09, 0x33, 0x08, 0x45, 0x86,
@@ -306,12 +311,56 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
       (uint8_t*) malloc(ue_cap_ind_p->radio_capabilities_length);
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
 
-  // Constructing  and sending Attach Complete to mme_app
+  // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
   uint8_t nas_msg4[] = {0x27, 0xb6, 0x28, 0x5a, 0x49, 0x01, 0x07,
                         0x43, 0x00, 0x03, 0x52, 0x00, 0xc2};
   nas_msg_length     = 13;
   send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
+
+  // Check MME state after attach complete
+  // Sleep briefly to ensure processing my mme_app
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  uint8_t nas_msg5[] = {0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07,
+                        0x45, 0x09, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
+                        0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
+  nas_msg_length     = 21;
+  send_mme_app_uplink_data_ind(&nas_msg5[0], nas_msg_length, plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  message_p =
+      itti_alloc_new_message(TASK_SPGW_APP, S11_DELETE_SESSION_RESPONSE);
+  itti_s11_delete_session_response_t* delete_session_resp_p =
+      &message_p->ittiMsg.s11_delete_session_response;
+  delete_session_resp_p->cause.cause_value = REQUEST_ACCEPTED;
+  delete_session_resp_p->teid              = 1;
+  delete_session_resp_p->peer_ip.s_addr    = 100;
+  delete_session_resp_p->lbi               = 5;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
+  S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id = 1;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+
+  // Check MME state after detach complete
+  // Sleep briefly to ensure processing my mme_app
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
