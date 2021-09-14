@@ -320,7 +320,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   // Check MME state after attach complete
   // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
