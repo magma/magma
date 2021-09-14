@@ -33,57 +33,25 @@ link_directories(/usr/src/googletest/googlemock/lib/)
 set(MME_APP_UE_CONTEXT_IMSI_SRC
     test_mme_app_ue_context.c
     )
-set(MME_APP_EMM_DECODE_SRC
+set(MME_APP_TEST_SRC
+    mme_app_test.cpp
     test_mme_app_emm_decode.cpp
-    )
-set(MME_APP_CONFIG_SRC
     test_mme_app_config_partial_tai_list.cpp
-    )
-set(MME_APP_PROC_SRC
     test_mme_procedures.cpp
     )
 
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
-add_executable(test_mme_app_emm_decode ${MME_APP_EMM_DECODE_SRC})
-add_executable(test_mme_app_config ${MME_APP_CONFIG_SRC})
-add_executable(test_mme_app_procedures ${MME_APP_PROC_SRC})
+add_executable(mme_app_test ${MME_APP_TEST_SRC})
 
 target_link_libraries(test_mme_app_ue_context_imsi
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR LIB_HASHTABLE
     )
-target_link_libraries(test_mme_app_emm_decode
-    TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    LIB_BSTR gtest gtest_main
-    )
-target_link_libraries(test_mme_app_procedures
+target_link_libraries(mme_app_test
     TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES}
     )
-target_link_libraries(test_mme_app_config
-    TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    gtest gtest_main
-    )
-
-target_include_directories(test_mme_app_ue_context_imsi PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CHECK_INCLUDE_DIRS}
-    )
-target_include_directories(test_mme_app_emm_decode PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CHECK_INCLUDE_DIRS}
-    )
-target_include_directories(test_mme_app_procedures PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CHECK_INCLUDE_DIRS}
-    )
-target_include_directories(test_mme_app_config PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CHECK_INCLUDE_DIRS}
-    )
 
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
-add_test(NAME test_mme_app_emm_decode COMMAND test_mme_app_emm_decode)
-add_test(NAME test_mme_app_config COMMAND test_mme_app_config)
-add_test(NAME test_mme_app_procedures COMMAND test_mme_app_procedures)
+add_test(NAME test_mme_app COMMAND mme_app_test)
