@@ -397,37 +397,9 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
 
+            //ho cellHoAlgorithm configuration
+            getHoAlgorithmConfig(enbMconfig,cellularEnbConfig)
 
-            hoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
-            if hoAlgorithmConfig != nil {
-				enbMconfig.A1ThresholdRsrp = int32(hoAlgorithmConfig.A1ThresholdRsrp)
-				enbMconfig.LteA1ThresholdRsrq = int32(hoAlgorithmConfig.LteA1ThresholdRsrq)
-				enbMconfig.Hysteresis = int32(hoAlgorithmConfig.Hysteresis)
-				enbMconfig.TimeToTrigger = string(hoAlgorithmConfig.TimeToTrigger)
-				enbMconfig.A2ThresholdRsrp = int32(hoAlgorithmConfig.A2ThresholdRsrp)
-				enbMconfig.LteA2ThresholdRsrpIratVolte = int32(hoAlgorithmConfig.LteA2ThresholdRsrpIratVolte)
-				enbMconfig.LteA2ThresholdRsrq = int32(hoAlgorithmConfig.LteA2ThresholdRsrq)
-				enbMconfig.LteA2ThresholdRsrqIratVolte = int32(hoAlgorithmConfig.LteA2ThresholdRsrqIratVolte)
-				enbMconfig.A3Offset = int32(hoAlgorithmConfig.A3Offset)
-				enbMconfig.A3OffsetAnr = int32(hoAlgorithmConfig.A3OffsetAnr)
-				enbMconfig.A4ThresholdRsrp = int32(hoAlgorithmConfig.A4ThresholdRsrp)
-				enbMconfig.LteIntraA5Threshold_1Rsrp = int32(hoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
-				enbMconfig.LteIntraA5Threshold_2Rsrp = hoAlgorithmConfig.LteIntraA5Threshold2Rsrp
-				enbMconfig.B2Threshold1Rsrp = hoAlgorithmConfig.B2Threshold1Rsrp
-				enbMconfig.B2Threshold2Rsrp = int32(hoAlgorithmConfig.B2Threshold2Rsrp)
-				enbMconfig.B2GeranIratThreshold = uint32(hoAlgorithmConfig.B2GeranIratThreshold)
-				enbMconfig.QrxlevminSib1 = hoAlgorithmConfig.QrxlevminSib1
-				enbMconfig.Qrxlevminoffset = uint32(hoAlgorithmConfig.Qrxlevminoffset)
-				enbMconfig.SIntrasearch = uint32(hoAlgorithmConfig.SIntrasearch)
-				enbMconfig.SNonintrasearch = uint32(hoAlgorithmConfig.SNonintrasearch)
-				enbMconfig.QrxlevminSib3 = int32(hoAlgorithmConfig.QrxlevminSib3)
-				enbMconfig.ReselectionPriority = uint32(hoAlgorithmConfig.ReselectionPriority)
-				enbMconfig.Threshservinglow = uint32(hoAlgorithmConfig.Threshservinglow)
-				enbMconfig.X2EnableDisable = swag.BoolValue(hoAlgorithmConfig.X2EnableDisable)
-				enbMconfig.CipheringAlgorithm = string(hoAlgorithmConfig.CipheringAlgorithm)
-				enbMconfig.IntegrityAlgorithm = string(hoAlgorithmConfig.IntegrityAlgorithm)
-
-            }
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
@@ -699,4 +671,39 @@ func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, g
 func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	syncInterval := s.getSyncInterval(nwEpc, gwEpc)
 	return math.JitterUint32(syncInterval, gwKey, 0.2)
+}
+
+// get ho cellHoAlgorithm parameters
+func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularEnbConfig *lte_models.EnodebConfiguration ) {
+    cellHoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
+	if cellHoAlgorithmConfig != nil {
+		enbHoAlgorithmConfig := &lte_mconfig.EnodebD_EnodebConfig_HoAlgorithmConfig{}
+		enbHoAlgorithmConfig.A1ThresholdRsrp = int32(cellHoAlgorithmConfig.A1ThresholdRsrp)
+		enbHoAlgorithmConfig.LteA1ThresholdRsrq = int32(cellHoAlgorithmConfig.LteA1ThresholdRsrq)
+		enbHoAlgorithmConfig.Hysteresis = int32(cellHoAlgorithmConfig.Hysteresis)
+		enbHoAlgorithmConfig.TimeToTrigger = string(cellHoAlgorithmConfig.TimeToTrigger)
+		enbHoAlgorithmConfig.A2ThresholdRsrp = int32(cellHoAlgorithmConfig.A2ThresholdRsrp)
+		enbHoAlgorithmConfig.LteA2ThresholdRsrpIratVolte = int32(cellHoAlgorithmConfig.LteA2ThresholdRsrpIratVolte)
+		enbHoAlgorithmConfig.LteA2ThresholdRsrq = int32(cellHoAlgorithmConfig.LteA2ThresholdRsrq)
+		enbHoAlgorithmConfig.LteA2ThresholdRsrqIratVolte = int32(cellHoAlgorithmConfig.LteA2ThresholdRsrqIratVolte)
+		enbHoAlgorithmConfig.A3Offset = int32(cellHoAlgorithmConfig.A3Offset)
+		enbHoAlgorithmConfig.A3OffsetAnr = int32(cellHoAlgorithmConfig.A3OffsetAnr)
+		enbHoAlgorithmConfig.A4ThresholdRsrp = int32(cellHoAlgorithmConfig.A4ThresholdRsrp)
+		enbHoAlgorithmConfig.LteIntraA5Threshold_1Rsrp = int32(cellHoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
+		enbHoAlgorithmConfig.LteIntraA5Threshold_2Rsrp = cellHoAlgorithmConfig.LteIntraA5Threshold2Rsrp
+		enbHoAlgorithmConfig.B2Threshold1Rsrp = cellHoAlgorithmConfig.B2Threshold1Rsrp
+		enbHoAlgorithmConfig.B2Threshold2Rsrp = int32(cellHoAlgorithmConfig.B2Threshold2Rsrp)
+		enbHoAlgorithmConfig.B2GeranIratThreshold = uint32(cellHoAlgorithmConfig.B2GeranIratThreshold)
+		enbHoAlgorithmConfig.QrxlevminSib1 = cellHoAlgorithmConfig.QrxlevminSib1
+		enbHoAlgorithmConfig.Qrxlevminoffset = uint32(cellHoAlgorithmConfig.Qrxlevminoffset)
+		enbHoAlgorithmConfig.SIntrasearch = uint32(cellHoAlgorithmConfig.SIntrasearch)
+		enbHoAlgorithmConfig.SNonintrasearch = uint32(cellHoAlgorithmConfig.SNonintrasearch)
+		enbHoAlgorithmConfig.QrxlevminSib3 = int32(cellHoAlgorithmConfig.QrxlevminSib3)
+		enbHoAlgorithmConfig.ReselectionPriority = uint32(cellHoAlgorithmConfig.ReselectionPriority)
+		enbHoAlgorithmConfig.Threshservinglow = uint32(cellHoAlgorithmConfig.Threshservinglow)
+		enbHoAlgorithmConfig.X2EnableDisable = swag.BoolValue(cellHoAlgorithmConfig.X2EnableDisable)
+		enbHoAlgorithmConfig.CipheringAlgorithm = string(cellHoAlgorithmConfig.CipheringAlgorithm)
+		enbHoAlgorithmConfig.IntegrityAlgorithm = string(cellHoAlgorithmConfig.IntegrityAlgorithm)
+		enbMconfig.HoAlgorithmConfig = enbHoAlgorithmConfig
+	}
 }
