@@ -32,9 +32,6 @@ extern "C" {
 using ::testing::_;
 using ::testing::Return;
 
-namespace magma {
-namespace lte {
-
 task_zmq_ctx_t task_zmq_ctx_main;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
@@ -374,5 +371,3 @@ int main(int argc, char** argv) {
   return RUN_ALL_TESTS();
 }
 
-}  // namespace lte
-}  // namespace magma
