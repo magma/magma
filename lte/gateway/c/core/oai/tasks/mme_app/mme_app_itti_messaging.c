@@ -32,6 +32,7 @@
 #include "conversions.h"
 #include "common_types.h"
 #include "intertask_interface.h"
+#include "itti_free_defined_msg.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
 #include "mme_app_ue_context.h"
@@ -385,6 +386,25 @@ status_code_e mme_app_send_s11_create_session_req(
     mme_app_select_sgw(
         &ue_mm_context->emm_context.originating_tai,
         (struct sockaddr* const) & session_request_p->edns_peer_ip);
+
+    if (((struct sockaddr* const) & (session_request_p->edns_peer_ip))
+            ->sa_family == AF_INET) {
+      ue_mm_context->pdn_contexts[pdn_cid]
+          ->s_gw_address_s11_s4.address.ipv4_address.s_addr =
+          session_request_p->edns_peer_ip.addr_v4.sin_addr.s_addr;
+      // Here pdn_type just used to distinguish v4 or v6 IP address, nothing to
+      // deal with PDN type
+      ue_mm_context->pdn_contexts[pdn_cid]->s_gw_address_s11_s4.pdn_type = IPv4;
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+          "Failed Sending s11 create session req message to SPGW task for "
+          "ue_id " MME_UE_S1AP_ID_FMT " unable to select a SPGW peer\n",
+          ue_mm_context->mme_ue_s1ap_id);
+      itti_free_msg_content(message_p);
+      free(message_p);
+      return RETURNerror;
+    }
   }
   COPY_PLMN_IN_ARRAY_FMT(
       (session_request_p->serving_network),
