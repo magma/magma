@@ -218,7 +218,6 @@ def is_hw_id_registered(
         admin_cert=admin_cert,
     )
     for gw in gateways.values():
-        print(gw)
         if gw['device']['hardware_id'] == hw_id:
             return True, gw['id']
     return False, ''
