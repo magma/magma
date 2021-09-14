@@ -115,8 +115,12 @@
 #define MME_CONFIG_STRING_S6A_HSS_REALM "HSS_REALM"
 
 #define MME_CONFIG_STRING_SCTP_CONFIG "SCTP"
-#define MME_CONFIG_STRING_SCTP_INSTREAMS "SCTP_INSTREAMS"
-#define MME_CONFIG_STRING_SCTP_OUTSTREAMS "SCTP_OUTSTREAMS"
+#define MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK "SCTP_UPSTREAM_SOCK"
+#define MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK_DEFAULT                           \
+  "unix:///tmp/sctpd_upstream.sock"
+#define MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK "SCTP_DOWNSTREAM_SOCK"
+#define MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT                         \
+  "unix:///tmp/sctpd_downstream.sock"
 
 #define MME_CONFIG_STRING_S1AP_CONFIG "S1AP"
 #define MME_CONFIG_STRING_S1AP_OUTCOME_TIMER "S1AP_OUTCOME_TIMER"
@@ -266,8 +270,8 @@ typedef struct partial_list_s {
 } partial_list_t;
 
 typedef struct sctp_config_s {
-  uint16_t in_streams;
-  uint16_t out_streams;
+  bstring upstream_sctp_sock;
+  bstring downstream_sctp_sock;
 } sctp_config_t;
 
 typedef struct s1ap_config_s {

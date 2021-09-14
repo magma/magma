@@ -22,8 +22,8 @@ extern "C" {
 #include "bstrlib.h"
 #include "log.h"
 
-#include "sctp_defs.h"
 #include "sctp_itti_messaging.h"
+#include "mme_config.h"
 }
 
 #include <memory>
@@ -140,7 +140,10 @@ int start_sctpd_uplink_server(void) {
   service = std::make_shared<SctpdUplinkImpl>();
 
   ServerBuilder builder;
-  builder.AddListeningPort(UPSTREAM_SOCK, grpc::InsecureServerCredentials());
+  std::string upstream_sctp_sock(
+      bstr2cstr(mme_config.sctp_config.upstream_sctp_sock, '\0'));
+  builder.AddListeningPort(
+      upstream_sctp_sock, grpc::InsecureServerCredentials());
   builder.RegisterService(service.get());
 
   server = builder.BuildAndStart();
