@@ -708,14 +708,11 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
 
   if (ie) {
-    amf_ue_ngap_id = (uint32_t) ie->value.choice.AMF_UE_NGAP_ID;
-    if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) ==
-        NULL) {
-      OAILOG_DEBUG(
-          LOG_NGAP,
-          "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT
-          " %u(10)\n",
-          (uint32_t) amf_ue_ngap_id, (uint32_t) amf_ue_ngap_id);
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
+    if ((ue_ref_p = ngap_state_get_ue_amfid(amf_ue_ngap_id)) == NULL) {
+      OAILOG_DEBUG(LOG_NGAP, "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
+          amf_ue_ngap_id);
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
     }
   } else {
@@ -922,7 +919,8 @@ int ngap_amf_handle_ue_context_release_request(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -931,7 +929,8 @@ int ngap_amf_handle_ue_context_release_request(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
+        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -1023,7 +1022,7 @@ int ngap_amf_handle_ue_context_release_request(
         "UE_CONTEXT_RELEASE_REQUEST ignored cause could not get context with "
         "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
         " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT " ",
-        (uint32_t) amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
+        amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   } else {
     if (ue_ref_p->gnb_ue_ngap_id == gnb_ue_ngap_id) {
@@ -1099,8 +1098,9 @@ status_code_e ngap_amf_generate_ue_context_release_command(
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_UEContextReleaseCommand_IEs__value_PR_UE_NGAP_IDs;
   ie->value.choice.UE_NGAP_IDs.present = Ngap_UE_NGAP_IDs_PR_uE_NGAP_ID_pair;
-  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.aMF_UE_NGAP_ID =
-      ue_ref_p->amf_ue_ngap_id;
+  asn_uint642INTEGER(
+      &ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.aMF_UE_NGAP_ID,
+      ue_ref_p->amf_ue_ngap_id);
   ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.rAN_UE_NGAP_ID =
       ue_ref_p->gnb_ue_ngap_id;
   ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.iE_Extensions = NULL;
@@ -1178,7 +1178,7 @@ status_code_e ngap_handle_ue_context_release_command(
         LOG_NGAP, imsi64,
         "Ignoring UE with amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " %u(10)\n",
         ue_context_release_command_pP->amf_ue_ngap_id,
-        ue_context_release_command_pP->amf_ue_ngap_id);
+        ue_context_release_command_pP->gnb_ue_ngap_id);
     rc = RETURNok;
   } else {
     /*
@@ -1220,7 +1220,8 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
 
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
@@ -1231,11 +1232,8 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
      * command was sent
      * Ignore this message.
      */
-    OAILOG_DEBUG(
-        LOG_NGAP,
-        " UE Context Release commplete: Ng context cleared. Ignore message for "
-        "ueid " AMF_UE_NGAP_ID_FMT "\n",
-        (uint32_t) amf_ue_ngap_id);
+    OAILOG_DEBUG(LOG_NGAP, " UE Context Release commplete: Ng context cleared. Ignore message for "
+        "ueid " AMF_UE_NGAP_ID_FMT "\n", amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   } else {
     /* This is an error scenario, the Ng UE context should have been deleted
@@ -1246,7 +1244,7 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
         " UE Context Release commplete: Ng context should have been cleared "
         "for "
         "ueid " AMF_UE_NGAP_ID_FMT "\n",
-        (uint32_t) amf_ue_ngap_id);
+        amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 }
@@ -1275,7 +1273,8 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
       Ngap_InitialContextSetupFailureIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
@@ -1298,7 +1297,7 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
         "INITIAL_CONTEXT_SETUP_FAILURE ignored. No context with "
         "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
         " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT " ",
-        (uint32_t) amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
+        amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
@@ -1582,9 +1581,8 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
       imsi_map->amf_ue_id_imsi_htbl,
       (const hash_key_t) ue_ref_p->amf_ue_ngap_id, &imsi64);
 
-  OAILOG_DEBUG_UE(
-      LOG_NGAP, imsi64, "Expired- UE Context Release Timer for UE id  %d \n",
-      ue_ref_p->amf_ue_ngap_id);
+  OAILOG_DEBUG_UE(LOG_NGAP, imsi64, "Expired- UE Context Release Timer"
+      " for UE id " AMF_UE_NGAP_ID_FMT "\n", ue_ref_p->amf_ue_ngap_id);
   /*
    * Remove UE context and inform AMF_APP.
    */
@@ -1603,7 +1601,7 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
 
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
-      (uint32_t) ue_ref_p->amf_ue_ngap_id);
+      ue_ref_p->amf_ue_ngap_id);
   ngap_remove_ue(state, ue_ref_p);
 
   hashtable_uint64_ts_remove(
@@ -1619,9 +1617,8 @@ void ngap_amf_release_ue_context(
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_NGAP);
   DevAssert(ue_ref_p != NULL);
-  OAILOG_DEBUG_UE(
-      LOG_NGAP, imsi64, "Releasing UE Context for UE id  %d \n",
-      ue_ref_p->amf_ue_ngap_id);
+  OAILOG_DEBUG_UE(LOG_NGAP, imsi64, "Releasing UE Context for UE id" 
+      AMF_UE_NGAP_ID_FMT "\n", ue_ref_p->amf_ue_ngap_id);
   /*
    * Remove UE context and inform AMF_APP.
    */
@@ -1639,7 +1636,7 @@ void ngap_amf_release_ue_context(
   DevAssert(ue_ref_p->ng_ue_state == NGAP_UE_WAITING_CRR);
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
-      (uint32_t) ue_ref_p->amf_ue_ngap_id);
+      ue_ref_p->amf_ue_ngap_id);
 
   ngap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
@@ -1692,7 +1689,8 @@ status_code_e ngap_amf_handle_pduSession_release_response(
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
-  amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
 
   if ((ie) &&
       (ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) == NULL) {
@@ -1719,9 +1717,10 @@ status_code_e ngap_amf_handle_pduSession_release_response(
   }
 
   ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
+
   hashtable_uint64_ts_get(
-      imsi_map->amf_ue_id_imsi_htbl,
-      (const hash_key_t) ie->value.choice.AMF_UE_NGAP_ID, &imsi64);
+      imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) amf_ue_ngap_id,
+      &imsi64);
 
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_REL_RSP);
@@ -1784,7 +1783,9 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
       Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
+
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
