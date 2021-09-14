@@ -17,17 +17,17 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"magma/orc8r/cloud/go/services/analytics/calculations"
-	"magma/orc8r/cloud/go/services/analytics/protos"
 	"net/http"
 	"net/url"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/analytics/mocks"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/mocks"
+	"magma/orc8r/cloud/go/services/analytics/protos"
 )
 
 const (

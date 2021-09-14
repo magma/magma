@@ -14,6 +14,7 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, Optional
 
+from magma.enodebd.data_models.data_model import InvalidTrParamPath
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.exceptions import ConfigurationError, Tr069Error
@@ -530,7 +531,9 @@ class GetParametersState(EnodebAcsState):
         request.ParameterNames.string = []
         for name in names:
             path = self.acs.data_model.get_parameter(name).path
-            request.ParameterNames.string.append(path)
+            if path is not InvalidTrParamPath:
+                # Only get data elements backed by tr69 path
+                request.ParameterNames.string.append(path)
 
         return AcsMsgAndTransition(request, self.done_transition)
 

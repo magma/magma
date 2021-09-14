@@ -27,7 +27,7 @@ typedef uint32_t
                        gNB UE NGAP ID shall be unique within the gNB logical
                        node. */
 
-typedef uint32_t
+typedef uint64_t
     amf_ue_ngap_id_t; /*!< \brief  A AMF UE NGAP ID shall be allocated so as to
                        uniquely identify the UE over the N2 interface within the
                        AMF. When an gNB receives AMF UE NGAP ID it shall store

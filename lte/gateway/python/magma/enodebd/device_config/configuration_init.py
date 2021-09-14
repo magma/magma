@@ -39,7 +39,6 @@ DEFAULT_S1_PORT = 36412
 # Cell Identity is a 28 bit number, but not all values are supported.
 DEFAULT_CELL_IDENTITY = 138777000
 
-
 SingleEnodebConfig = namedtuple(
     'SingleEnodebConfig',
     [
@@ -74,11 +73,11 @@ def config_assert(condition: bool, message: str = None) -> None:
 
 
 def build_desired_config(
-    mconfig: Any,
-    service_config: Any,
-    device_config: EnodebConfiguration,
-    data_model: DataModel,
-    post_processor: EnodebConfigurationPostProcessor,
+        mconfig: Any,
+        service_config: Any,
+        device_config: EnodebConfiguration,
+        data_model: DataModel,
+        post_processor: EnodebConfigurationPostProcessor,
 ) -> EnodebConfiguration:
     """
     Factory for initializing DESIRED data model configuration.
@@ -223,8 +222,8 @@ def _get_enb_yang_config(
 
 
 def _get_enb_config(
-    mconfig: mconfigs_pb2.EnodebD,
-    device_config: EnodebConfiguration,
+        mconfig: mconfigs_pb2.EnodebD,
+        device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
     if mconfig.enb_configs_by_serial is not None and \
@@ -354,8 +353,8 @@ def _get_enb_config(
 
 
 def _set_pci(
-    cfg: EnodebConfiguration,
-    pci: Any,
+        cfg: EnodebConfiguration,
+        pci: Any,
 ) -> None:
     """
     Set the following parameters:
@@ -367,16 +366,19 @@ def _set_pci(
 
 
 def _set_bandwidth(
-    cfg: EnodebConfiguration,
-    data_model: DataModel,
-    bandwidth_mhz: Any,
+        cfg: EnodebConfiguration,
+        data_model: DataModel,
+        bandwidth_mhz: Any,
 ) -> None:
     """
     Set the following parameters:
      - DL bandwidth
      - UL bandwidth
     """
-    cfg.set_parameter(ParameterName.DL_BANDWIDTH, bandwidth_mhz)
+    _set_param_if_present(
+        cfg, data_model, ParameterName.DL_BANDWIDTH,
+        bandwidth_mhz,
+    )
     _set_param_if_present(
         cfg, data_model, ParameterName.UL_BANDWIDTH,
         bandwidth_mhz,
@@ -384,8 +386,8 @@ def _set_bandwidth(
 
 
 def _set_cell_id(
-    cfg: EnodebConfiguration,
-    cell_id: int,
+        cfg: EnodebConfiguration,
+        cell_id: int,
 ) -> None:
     config_assert(
         cell_id in range(0, 268435456),
@@ -395,10 +397,10 @@ def _set_cell_id(
 
 
 def _set_tdd_subframe_config(
-    device_cfg: EnodebConfiguration,
-    cfg: EnodebConfiguration,
-    subframe_assignment: Any,
-    special_subframe_pattern: Any,
+        device_cfg: EnodebConfiguration,
+        cfg: EnodebConfiguration,
+        subframe_assignment: Any,
+        special_subframe_pattern: Any,
 ) -> None:
     """
     Set the following parameters:
@@ -406,8 +408,11 @@ def _set_tdd_subframe_config(
      - Special subframe pattern
     """
     # Don't try to set if this is not TDD mode
-    if device_cfg.get_parameter(ParameterName.DUPLEX_MODE_CAPABILITY) != \
-            'TDDMode':
+    if (
+        device_cfg.has_parameter(ParameterName.DUPLEX_MODE_CAPABILITY)
+            and device_cfg.get_parameter(ParameterName.DUPLEX_MODE_CAPABILITY)
+            != 'TDDMode'
+    ):
         return
 
     config_assert(
@@ -442,9 +447,9 @@ def _set_management_server(cfg: EnodebConfiguration) -> None:
 
 
 def _set_s1_connection(
-    cfg: EnodebConfiguration,
-    mme_ip: Any,
-    mme_port: Any = DEFAULT_S1_PORT,
+        cfg: EnodebConfiguration,
+        mme_ip: Any,
+        mme_port: Any = DEFAULT_S1_PORT,
 ) -> None:
     """
     Set the following parameters:
@@ -458,9 +463,9 @@ def _set_s1_connection(
 
 
 def _set_perf_mgmt(
-    cfg: EnodebConfiguration,
-    perf_mgmt_ip: str,
-    perf_mgmt_port: int,
+        cfg: EnodebConfiguration,
+        perf_mgmt_ip: str,
+        perf_mgmt_port: int,
 ) -> None:
     """
     Set the following parameters:
@@ -484,9 +489,9 @@ def _set_perf_mgmt(
 
 
 def _set_misc_static_params(
-    device_cfg: EnodebConfiguration,
-    cfg: EnodebConfiguration,
-    data_model: DataModel,
+        device_cfg: EnodebConfiguration,
+        cfg: EnodebConfiguration,
+        data_model: DataModel,
 ) -> None:
     """
     Set the following parameters:
@@ -500,11 +505,12 @@ def _set_misc_static_params(
     _set_param_if_present(cfg, data_model, ParameterName.GPS_ENABLE, True)
     # For BaiCells eNodeBs, IPSec enable may be either integer or bool.
     # Set to false/0 depending on the current type
-    try:
-        int(device_cfg.get_parameter(ParameterName.IP_SEC_ENABLE))
-        cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 0)
-    except ValueError:
-        cfg.set_parameter(ParameterName.IP_SEC_ENABLE, False)
+    if data_model.is_parameter_present(ParameterName.IP_SEC_ENABLE):
+        try:
+            int(device_cfg.get_parameter(ParameterName.IP_SEC_ENABLE))
+            cfg.set_parameter(ParameterName.IP_SEC_ENABLE, value=0)
+        except ValueError:
+            cfg.set_parameter(ParameterName.IP_SEC_ENABLE, value=False)
 
     _set_param_if_present(cfg, data_model, ParameterName.CELL_RESERVED, False)
     _set_param_if_present(
@@ -514,9 +520,9 @@ def _set_misc_static_params(
 
 
 def _set_plmnids_tac(
-    cfg: EnodebConfiguration,
-    plmnids: Union[int, str],
-    tac: Any,
+        cfg: EnodebConfiguration,
+        plmnids: Union[int, str],
+        tac: Any,
 ) -> None:
     """
     Set the following parameters:
@@ -840,10 +846,10 @@ def _set_algorithm_integrity_algorithm(
     cfg.set_parameter(ParameterName.INTEGRITY_ALGORITHM, integrity_algorithm)
 
 def _set_earfcn_freq_band_mode(
-    device_cfg: EnodebConfiguration,
-    cfg: EnodebConfiguration,
-    data_model: DataModel,
-    earfcndl: int,
+        device_cfg: EnodebConfiguration,
+        cfg: EnodebConfiguration,
+        data_model: DataModel,
+        earfcndl: int,
 ) -> None:
     """
     Set the following parameters:
@@ -861,42 +867,43 @@ def _set_earfcn_freq_band_mode(
         raise ConfigurationError(err)
 
     # Verify capabilities
-    duplex_capability =\
-        device_cfg.get_parameter(ParameterName.DUPLEX_MODE_CAPABILITY)
-    if duplex_mode == DuplexMode.TDD and duplex_capability != 'TDDMode':
-        raise ConfigurationError((
-            'eNodeB duplex mode capability is <{0}>, '
-            'but earfcndl is <{1}>, giving duplex '
-            'mode <{2}> instead'
-        ).format(
-            duplex_capability, str(earfcndl), str(duplex_mode),
-        ))
-    elif duplex_mode == DuplexMode.FDD and duplex_capability != 'FDDMode':
-        raise ConfigurationError((
-            'eNodeB duplex mode capability is <{0}>, '
-            'but earfcndl is <{1}>, giving duplex '
-            'mode <{2}> instead'
-        ).format(
-            duplex_capability, str(earfcndl), str(duplex_mode),
-        ))
-    elif duplex_mode not in [DuplexMode.TDD, DuplexMode.FDD]:
-        raise ConfigurationError(
-            'Invalid duplex mode (%s)' % str(duplex_mode),
-        )
+    if device_cfg.has_parameter(ParameterName.DUPLEX_MODE_CAPABILITY):
+        duplex_capability = \
+            device_cfg.get_parameter(ParameterName.DUPLEX_MODE_CAPABILITY)
+        if duplex_mode == DuplexMode.TDD and duplex_capability != 'TDDMode':
+            raise ConfigurationError((
+                'eNodeB duplex mode capability is <{0}>, '
+                'but earfcndl is <{1}>, giving duplex '
+                'mode <{2}> instead'
+            ).format(
+                duplex_capability, str(earfcndl), str(duplex_mode),
+            ))
+        elif duplex_mode == DuplexMode.FDD and duplex_capability != 'FDDMode':
+            raise ConfigurationError((
+                'eNodeB duplex mode capability is <{0}>, '
+                'but earfcndl is <{1}>, giving duplex '
+                'mode <{2}> instead'
+            ).format(
+                duplex_capability, str(earfcndl), str(duplex_mode),
+            ))
+        elif duplex_mode not in {DuplexMode.TDD, DuplexMode.FDD}:
+            raise ConfigurationError(
+                'Invalid duplex mode (%s)' % str(duplex_mode),
+            )
 
-    # Baicells indicated that they no longer use the band capability list,
-    # so it may not be populated correctly
-    band_capability_list = device_cfg.get_parameter(
-        ParameterName.BAND_CAPABILITY,
-    )
-    band_capabilities = band_capability_list.split(',')
-    if str(band) not in band_capabilities:
-        logger.warning(
-            'Band %d not in capabilities list (%s). Continuing'
-            ' with config because capabilities list may not be'
-            ' correct', band, band_capabilities,
+    if device_cfg.has_parameter(ParameterName.BAND_CAPABILITY):
+        # Baicells indicated that they no longer use the band capability list,
+        # so it may not be populated correctly
+        band_capability_list = device_cfg.get_parameter(
+            ParameterName.BAND_CAPABILITY,
         )
-
+        band_capabilities = band_capability_list.split(',')
+        if str(band) not in band_capabilities:
+            logger.warning(
+                'Band %d not in capabilities list (%s). Continuing'
+                ' with config because capabilities list may not be'
+                ' correct', band, band_capabilities,
+            )
     cfg.set_parameter(ParameterName.EARFCNDL, earfcndl)
     if duplex_mode == DuplexMode.FDD:
         _set_param_if_present(
@@ -910,7 +917,7 @@ def _set_earfcn_freq_band_mode(
 
     if duplex_mode == DuplexMode.TDD:
         logger.debug('Set EARFCNDL=%d, Band=%d', earfcndl, band)
-    else:
+    elif duplex_mode == DuplexMode.FDD:
         logger.debug(
             'Set EARFCNDL=%d, EARFCNUL=%d, Band=%d',
             earfcndl, earfcnul, band,
@@ -918,10 +925,10 @@ def _set_earfcn_freq_band_mode(
 
 
 def _set_param_if_present(
-    cfg: EnodebConfiguration,
-    data_model: DataModel,
-    param: ParameterName,
-    value: Any,
+        cfg: EnodebConfiguration,
+        data_model: DataModel,
+        param: ParameterName,
+        value: Any,
 ) -> None:
     if data_model.is_parameter_present(param):
         cfg.set_parameter(param, value)

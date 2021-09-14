@@ -15,11 +15,6 @@ package analytics_test
 
 import (
 	"context"
-	"magma/orc8r/cloud/go/services/analytics"
-	"magma/orc8r/cloud/go/services/analytics/calculations"
-	"magma/orc8r/cloud/go/services/analytics/protos"
-	"magma/orc8r/cloud/go/services/analytics/query_api"
-	"magma/orc8r/lib/go/metrics"
 	"reflect"
 	"sort"
 	"testing"
@@ -27,6 +22,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/analytics"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"magma/orc8r/lib/go/metrics"
 )
 
 func TestUserThresholdEnforcement(t *testing.T) {

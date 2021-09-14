@@ -107,7 +107,7 @@ func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc
 			glog.Error("Received nil message")
 			return
 		}
-		glog.V(2).Infof("Message received in hss service: %s", msg.String())
+		glog.V(2).Infof("Message received in hss service: %s}", msg.String())
 
 		answer, err := reply(srv, msg)
 		if err != nil {
@@ -118,6 +118,7 @@ func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc
 		if err != nil {
 			glog.Errorf("Failed to send response: %s", err.Error())
 		}
+		glog.V(2).Infof("Message sent from hss service: %s}", answer.String())
 	}
 }
 

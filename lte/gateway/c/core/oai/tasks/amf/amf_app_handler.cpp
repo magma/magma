@@ -662,7 +662,7 @@ void amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
-      ue_context->mm_state == REGISTERED_CONNECTED;
+      ue_context->mm_state = REGISTERED_CONNECTED;
     }
   } else {
     OAILOG_DEBUG(
@@ -935,10 +935,10 @@ void amf_app_handle_resource_setup_response(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
         sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
 
-    smf_ctx->gtp_tunnel_id.gnb_gtp_teid =
-        *session_seup_resp.pduSessionResource_setup_list.item[0]
-             .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID;
-
+    smf_ctx->gtp_tunnel_id
+        .gnb_gtp_teid = htonl(*(reinterpret_cast<unsigned int*>(
+        session_seup_resp.pduSessionResource_setup_list.item[0]
+            .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID)));
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
         &session_seup_resp.pduSessionResource_setup_list.item[0]
@@ -1206,6 +1206,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
     OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    if (rc != RETURNok)
+      OAILOG_ERROR(LOG_AMF_APP, "Could not send msg to task\n");
     //    amf_paging_request(paging_ctx);
   } else {
     /*
@@ -1215,7 +1217,6 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         LOG_AMF_APP,
         "T3513: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
@@ -1336,9 +1337,10 @@ void amf_app_handle_initial_context_setup_rsp(
         // gnb tunnel info
 
         smf_context->gtp_tunnel_id.gnb_gtp_teid =
-            *pdu_list->item[index]
-                 .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID;
-
+            htonl(*(reinterpret_cast<unsigned int*>(
+                pdu_list->item[index]
+                    .PDU_Session_Resource_Setup_Response_Transfer.tunnel
+                    .gTP_TEID)));
         memcpy(
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
             pdu_list->item[index]

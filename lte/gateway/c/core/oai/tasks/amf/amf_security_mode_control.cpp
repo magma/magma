@@ -294,9 +294,7 @@ int amf_proc_security_mode_control(
   // TODO: Hardcoded values Will be taken care in upcoming PR
   int amf_eea       = 0;
   int amf_eia       = 0;  // Integrity Algorithm 2
-  uint8_t snni[32]  = {0};
   uint8_t ak_sqn[6] = {0};
-  amf_plmn_t plmn   = {0};
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,

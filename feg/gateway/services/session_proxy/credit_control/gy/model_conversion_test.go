@@ -23,7 +23,7 @@ import (
 )
 
 func TestRedirectServer_ToProto(t *testing.T) {
-	var convertedRedirectServer *protos.RedirectServer = nil
+	var convertedRedirectServer *protos.RedirectServer
 	convertedRedirectServer = (&gy.RedirectServer{
 		RedirectAddressType:   gy.IPV4Address,
 		RedirectServerAddress: "www.magma.com",

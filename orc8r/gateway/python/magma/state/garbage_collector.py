@@ -15,7 +15,7 @@ import logging
 import grpc
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.containers import RedisFlatDict
-from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.rpc_utils import grpc_async_wrapper, print_grpc
 from magma.common.service import MagmaService
 from magma.state.keys import make_scoped_device_id
 from magma.state.redis_dicts import get_json_redis_dicts, get_proto_redis_dicts
@@ -35,8 +35,10 @@ class GarbageCollector:
         self,
         service: MagmaService,
         grpc_client_manager: GRPCClientManager,
+        print_grpc_payload: bool = False,
     ):
         self._service = service
+        self._print_grpc_payload = print_grpc_payload
         # Redis dicts for each type of state to replicate
         self._redis_dicts = []
         self._redis_dicts.extend(get_proto_redis_dicts(service.config))
@@ -67,12 +69,17 @@ class GarbageCollector:
     async def _send_to_state_service(self, request: DeleteStatesRequest):
         state_client = self._grpc_client_manager.get_client()
         try:
-            await grpc_async_wrapper(
+            print_grpc(
+                request, self._print_grpc_payload,
+                "Garbage collector sending to state service",
+            )
+            response = await grpc_async_wrapper(
                 state_client.DeleteStates.future(
                     request,
                     DEFAULT_GRPC_TIMEOUT,
                 ),
             )
+            print_grpc(response, self._print_grpc_payload)
 
         except grpc.RpcError as err:
             logging.error("GRPC call failed for state deletion: %s", err)

@@ -14,12 +14,13 @@
 package analytics
 
 import (
-	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"reflect"
 	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
 func TestRawMetricsCalculation(t *testing.T) {

@@ -11,7 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# log_level is set in mconfig. it can be overridden here
 log_level: INFO
+
+print_grpc_payload: false
 
 sync_interval: 60
 
