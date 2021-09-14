@@ -17,10 +17,10 @@ package servicers
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/envoy_controller/control_plane"
-
-	"github.com/golang/glog"
 )
 
 type envoyControllerService struct {

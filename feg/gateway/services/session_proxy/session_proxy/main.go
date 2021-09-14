@@ -24,6 +24,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
@@ -35,8 +37,6 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/service"
 	"magma/orc8r/lib/go/util"
-
-	"github.com/golang/glog"
 )
 
 func init() {

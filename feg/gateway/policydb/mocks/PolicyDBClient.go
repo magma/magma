@@ -5,10 +5,9 @@
 package mocks
 
 import (
-	policydb "magma/feg/gateway/policydb"
-
 	mock "github.com/stretchr/testify/mock"
 
+	policydb "magma/feg/gateway/policydb"
 	protos "magma/lte/cloud/go/protos"
 )
 

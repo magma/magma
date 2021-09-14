@@ -20,10 +20,9 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
-	orc8r_protos "magma/orc8r/lib/go/protos"
-
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/orc8r/cloud/go/test_utils"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 )
 
 type TestS8ProxyResponderServer struct {

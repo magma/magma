@@ -17,11 +17,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	orc8r_protos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 const GTPCauseNotAvailable = 73 // gtp CauseNoResourcesAvailable

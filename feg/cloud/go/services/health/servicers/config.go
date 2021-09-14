@@ -16,12 +16,12 @@ package servicers
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
-
-	"github.com/golang/glog"
 )
 
 const (

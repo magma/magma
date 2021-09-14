@@ -14,15 +14,15 @@
 package mock_pcrf
 
 import (
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	lteprotos "magma/lte/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	lteprotos "magma/lte/cloud/go/protos"
 )
 
 func toStaticRuleNameRemovalAVP(ruleName string) *diam.AVP {

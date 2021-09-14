@@ -17,6 +17,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/stretchr/testify/assert"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
@@ -25,12 +31,6 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/fiorix/go-diameter/v4/diam/dict"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewMAA_SuccessfulResponse(t *testing.T) {

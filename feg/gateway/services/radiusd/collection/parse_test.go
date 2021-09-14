@@ -16,9 +16,9 @@ package collection_test
 import (
 	"testing"
 
-	"magma/feg/gateway/services/radiusd/collection"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/services/radiusd/collection"
 )
 
 const VALID_PROMETHEUS_METRICS = `

@@ -17,12 +17,12 @@ import (
 	"strings"
 	"testing"
 
-	"magma/feg/gateway/services/radiusd/collection"
-
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/services/radiusd/collection"
 )
 
 const GAUGE_METRIC = `

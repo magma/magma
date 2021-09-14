@@ -18,6 +18,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/servicers"
@@ -30,9 +33,6 @@ import (
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestHealthServer_GetHealth(t *testing.T) {

@@ -23,14 +23,11 @@ const (
 	ServerAssignnmentType_USER_DEREGISTRATION = 5
 	// request user profile from HSS
 	ServerAssignmentType_AAA_USER_DATA_REQUEST = 12
-
 	// 3GPP 29.273 5.2.3.6
 	RadioAccessTechnologyType_WLAN = 0
-
 	// 3GPP 29.273 8.1.2.1.1/2
 	SipAuthScheme_EAP_AKA       = "EAP-AKA"
 	SipAuthScheme_EAP_AKA_PRIME = "EAP-AKA'"
-
 	// END_USER_E164 - Subscription-ID Type indicating that the identifier is
 	// in international E.164 format (eg. MSISDN).
 	// See IETF RFC 4006 section 8.47.
