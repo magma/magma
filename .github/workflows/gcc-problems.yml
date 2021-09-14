@@ -33,7 +33,7 @@ jobs:
           paths: '["orc8r/gateway/c/**", "lte/gateway/c/**"]'
   gen_build_container:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: gen build container job
     runs-on: ubuntu-latest
     steps:
@@ -79,9 +79,9 @@ jobs:
 
   build_oai:
     needs:
-      - gen_build_container
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+      - gen_build_container
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: build oai job
     runs-on: ubuntu-latest
     steps:
@@ -143,9 +143,9 @@ jobs:
 
   build_session_manager:
     needs:
-      - gen_build_container
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+      - gen_build_container
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: build session manager job
     runs-on: ubuntu-latest
     steps:

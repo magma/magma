@@ -24,7 +24,7 @@ jobs:
             paths: '["orc8r/**", "lte/**", "feg/**", "cwf/**"]'
   cwag-precommit:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwag pre-commit job
     runs-on: ubuntu-latest
     env:
@@ -69,7 +69,7 @@ jobs:
           SLACK_FOOTER: ' '
   cwag-build:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwag build job
     runs-on: ubuntu-latest
     env:
@@ -106,9 +106,9 @@ jobs:
         # TODO bring up the containers and check for crashloops
   cwag-deploy:
     needs:
-      - cwag-precommit
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+      - cwag-precommit
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwag deploy job
       # TODO Should also need cwf-integ-test
       # TODO Requires release hold
@@ -195,9 +195,9 @@ jobs:
           SLACK_FOOTER: ' '
   xwfm-deploy-latest:
     needs:
-      - cwag-deploy
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+      - cwag-deploy
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: xwfm deploy job
     runs-on: ubuntu-latest
     env:

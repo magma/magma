@@ -25,7 +25,7 @@ jobs:
           paths: '["orc8r/**", "lte/**", "feg/**"]'
   feg-lint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: feg lint job
     runs-on: ubuntu-latest
     env:
@@ -78,7 +78,7 @@ jobs:
           SLACK_FOOTER: ' '
   feg-precommit:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: feg pre-commit job
     runs-on: ubuntu-latest
     env:
@@ -129,9 +129,9 @@ jobs:
           SLACK_FOOTER: ' '
   feg-build:
     needs:
-      - feg-precommit
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+      - feg-precommit
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwag pre-commit job
     runs-on: ubuntu-latest
     env:

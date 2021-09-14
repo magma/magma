@@ -24,7 +24,7 @@ jobs:
           paths: '["cwf/**", "k8s/**"]'
   cwf-operator-precommit:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwf operator pre-commit job
     runs-on: ubuntu-latest
     env:
@@ -68,7 +68,7 @@ jobs:
     needs:
       - path_filter
       - cwf-operator-precommit
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwf operator build job
     runs-on: ubuntu-latest
     env:

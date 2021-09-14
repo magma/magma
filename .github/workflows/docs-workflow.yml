@@ -25,7 +25,7 @@ jobs:
   # Fail if Markdown doesn't pass linter
   markdown-lint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: markdown lint job
     runs-on: ubuntu-latest
     env:

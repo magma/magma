@@ -183,7 +183,7 @@ jobs:
           SLACK_FOOTER: ' '
   cloud-upload:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' && github.ref == 'refs/heads/master' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' && github.ref == 'refs/heads/master' }}
     name: cloud upload job
     runs-on: ubuntu-latest
     steps:
@@ -221,7 +221,7 @@ jobs:
       - deploy-sync-checkin
       - cloud-lint
       - cloud-test
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: orc8r build job
     runs-on: ubuntu-latest
     env:
