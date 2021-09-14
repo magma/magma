@@ -41,6 +41,5 @@ void stop_mock_service303_task() {
 void start_mock_service303_task() {
   init_task_context(
       TASK_SERVICE303, nullptr, 0, handle_message, &task_zmq_ctx_service303);
-
   zloop_start(task_zmq_ctx_service303.event_loop);
 }

@@ -29,15 +29,16 @@ extern "C" {
 #include "security_types.h"
 }
 
+using ::testing::_;
+using ::testing::Return;
+
 task_zmq_ctx_t task_zmq_ctx_main;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -146,13 +147,12 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   MessageDef* message_p = NULL;
   std::string imsi      = "001010000000001";
-  plmn_t plmn           = {
-      .mcc_digit2 = 0,
-      .mcc_digit1 = 0,
-      .mnc_digit3 = 0x0f,
-      .mcc_digit3 = 1,
-      .mnc_digit2 = 1,
-      .mnc_digit1 = 0};
+  plmn_t plmn           = {.mcc_digit2 = 0,
+                 .mcc_digit1 = 0,
+                 .mnc_digit3 = 0x0f,
+                 .mcc_digit3 = 1,
+                 .mnc_digit2 = 1,
+                 .mnc_digit1 = 0};
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);

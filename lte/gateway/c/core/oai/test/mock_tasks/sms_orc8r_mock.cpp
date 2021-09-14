@@ -41,6 +41,5 @@ void stop_mock_sms_orc8r_task() {
 void start_mock_sms_orc8r_task() {
   init_task_context(
       TASK_SMS_ORC8R, nullptr, 0, handle_message, &task_zmq_ctx_sms_orc8r);
-
   zloop_start(task_zmq_ctx_sms_orc8r.event_loop);
 }

@@ -40,6 +40,5 @@ void stop_mock_sgs_task() {
 
 void start_mock_sgs_task() {
   init_task_context(TASK_SGS, nullptr, 0, handle_message, &task_zmq_ctx_sgs);
-
   zloop_start(task_zmq_ctx_sgs.event_loop);
 }

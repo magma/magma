@@ -36,9 +36,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S6A_PURGE_UE_REQ: {
       s6a_handler_->s6a_viface_purge_ue();
     }
-    default: {
-    } break;
-  }
+    default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
@@ -53,6 +51,5 @@ void stop_mock_s6a_task() {
 void start_mock_s6a_task(std::shared_ptr<MockS6aHandler> s6a_handler) {
   s6a_handler_ = s6a_handler;
   init_task_context(TASK_S6A, nullptr, 0, handle_message, &task_zmq_ctx_s6a);
-
   zloop_start(task_zmq_ctx_s6a.event_loop);
 }

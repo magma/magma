@@ -361,20 +361,22 @@ void create_partial_lists(mme_config_t* config_pP) {
   /* Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
    * add the TAIs to a new partial list
    */
-  uint8_t size            = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED ?
+  uint8_t served_tai_size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED ?
                                 MAX_TAI_SUPPORTED :
                                 config_pP->served_tai.nb_tai;
-  config_pP->partial_list = calloc(size, sizeof(partial_list_t));
+  config_pP->partial_list = calloc(served_tai_size, sizeof(partial_list_t));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
     if (elem_idx == MAX_TAI_SUPPORTED) {
       list_idx++;
       elem_idx = 0;
     }
     if (!config_pP->partial_list[list_idx].plmn) {
-      config_pP->partial_list[list_idx].plmn = calloc(size, sizeof(plmn_t));
+      config_pP->partial_list[list_idx].plmn =
+          calloc(served_tai_size, sizeof(plmn_t));
     }
     if (!config_pP->partial_list[list_idx].tac) {
-      config_pP->partial_list[list_idx].tac = calloc(size, sizeof(tac_t));
+      config_pP->partial_list[list_idx].tac =
+          calloc(served_tai_size, sizeof(tac_t));
     }
     copy_plmn_from_config(
         &config_pP->served_tai, itr,

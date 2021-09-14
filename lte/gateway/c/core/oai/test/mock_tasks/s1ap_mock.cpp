@@ -94,9 +94,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_s1ap_task();
     } break;
 
-    default: {
-    } break;
-  }
+    default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 

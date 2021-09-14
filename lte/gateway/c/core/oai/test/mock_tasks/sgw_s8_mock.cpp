@@ -41,6 +41,5 @@ void stop_mock_sgw_s8_task() {
 void start_mock_sgw_s8_task() {
   init_task_context(
       TASK_SGW_S8, nullptr, 0, handle_message, &task_zmq_ctx_sgw_s8);
-
   zloop_start(task_zmq_ctx_sgw_s8.event_loop);
 }

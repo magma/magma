@@ -38,9 +38,6 @@ const message_info_t messages_info[] = {
 #undef MESSAGE_DEF
 };
 
-using ::testing::_;
-using ::testing::Return;
-
 class MockS1apHandler {
  public:
   MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
