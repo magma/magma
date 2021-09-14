@@ -106,7 +106,7 @@ func GetPlatformInfo() *PlatformInfo {
 	return &PlatformInfo{
 		ConfigInfo:    GetConfigInfo(),
 		KernelVersion: hostInfo.KernelVersion,
-		Packages:      []*Package{&Package{Name: "magma"}},
+		Packages:      []*Package{{Name: "magma"}},
 		VpnIp:         vpnIp,
 	}
 }

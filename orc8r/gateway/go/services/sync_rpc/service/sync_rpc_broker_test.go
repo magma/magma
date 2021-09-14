@@ -112,18 +112,18 @@ func (m *magmadTestServer) TailLogs(req *protos.TailLogsRequest, s protos.Magmad
 	r := strings.NewReader(m.tc.logLines)
 	b := make([]byte, 1000)
 	for {
-		len, err := r.Read(b)
+		l, err := r.Read(b)
 		if err != nil {
 			break
 		}
-		s.SendMsg(&protos.LogLine{Line: string(b[:len])})
+		s.SendMsg(&protos.LogLine{Line: string(b[:l])})
 	}
 	return nil
 }
 
 // run instance of the test grpc service
 func runTestMagmadServer(server *magmadTestServer, grpcPortCh chan string, stopCh chan struct{}) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
+	lis, err := net.Listen("tcp", ":0")
 	if err != nil {
 		glog.Fatalf("failed to listen: %v", err)
 	}
@@ -219,11 +219,10 @@ func (t *testBroker) handler(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	t.reqID++
-	return
 }
 
 func runTestBroker(Broker *testBroker, BrokerPortCh chan string) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
+	lis, err := net.Listen("tcp", ":0")
 	if err != nil {
 		glog.Fatalf("failed to listen: %v", err)
 	}
@@ -317,7 +316,7 @@ func TestBrokerSanity(t *testing.T) {
 	// TC5 - stop magmad service and check if the client recvs error
 	serverStopCh <- struct{}{}
 
-	v, err = client.GetGatewayId(context.Background(), &protos.Void{})
+	_, err = client.GetGatewayId(context.Background(), &protos.Void{})
 	sts, _ = status.FromError(err)
 	assert.Contains(t, sts.Message(), "connection refused")
 }

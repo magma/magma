@@ -11,6 +11,8 @@ linters-settings:
     simplify: true
   misspell:
     locale: US
+  goimports:
+    local-prefixes: magma
 
 issues:
   exclude-rules:

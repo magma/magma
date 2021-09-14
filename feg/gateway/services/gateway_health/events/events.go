@@ -15,7 +15,6 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"magma/feg/cloud/go/protos"
 	"magma/gateway/eventd"
@@ -60,7 +59,7 @@ func LogGatewayHealthFailedEvent(eventType string, failureReason string, prevAct
 		glog.Errorf("Could not serialize %s event: %s", eventType, err)
 		return
 	}
-	go logEvent(eventType, fmt.Sprintf("%s", serializedHealthEvent))
+	go logEvent(eventType, string(serializedHealthEvent))
 }
 
 func logEvent(eventType string, eventValue string) {

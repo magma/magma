@@ -56,7 +56,7 @@ func Execute(ctx context.Context, req *protos.GenericCommandParams) (*protos.Gen
 	if formatters > 0 {
 		if len(cmdParams) < formatters {
 			fillIn := make([]interface{}, formatters-len(cmdParams))
-			for i, _ := range fillIn {
+			for i := range fillIn {
 				fillIn[i] = ""
 			}
 			cmdParams = append(cmdParams, fillIn...)

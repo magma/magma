@@ -122,7 +122,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 		}
 	}
 	// find all removed configs
-	for sn, _ := range oldMap {
+	for sn := range oldMap {
 		if _, found := newMap[sn]; !found {
 			updatedServices = append(updatedServices, sn)
 		}

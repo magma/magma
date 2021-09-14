@@ -223,7 +223,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := []byte("monitor")
 	var ratingGroup uint32 = 10
-	var ruleOut *protos.PolicyRule = nil
+	var ruleOut *protos.PolicyRule
 
 	ruleOut = (&gx.RuleDefinition{
 		RuleName:      "rgonly",

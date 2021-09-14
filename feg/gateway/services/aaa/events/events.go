@@ -15,7 +15,6 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/gateway/eventd"
@@ -165,7 +164,7 @@ func logEvent(streamName string, eventType string, serializedEvent []byte) {
 		StreamName: streamName,
 		EventType:  eventType,
 		Tag:        hwid,
-		Value:      fmt.Sprintf("%s", serializedEvent),
+		Value:      string(serializedEvent),
 	}
 	err := eventd.V(eventd.DefaultVerbosity).Log(event)
 	if err != nil {

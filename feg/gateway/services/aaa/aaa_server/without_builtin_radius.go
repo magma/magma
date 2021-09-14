@@ -1,3 +1,4 @@
+//go:build !with_builtin_radius
 // +build !with_builtin_radius
 
 /*

@@ -14,8 +14,9 @@
 package multiplex_test
 
 import (
-	"magma/feg/gateway/multiplex"
 	"testing"
+
+	"magma/feg/gateway/multiplex"
 
 	"github.com/stretchr/testify/assert"
 )

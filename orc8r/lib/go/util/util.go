@@ -16,6 +16,7 @@ package util
 import (
 	"crypto/x509/pkix"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -27,7 +28,7 @@ import (
 )
 
 func GetFreeTcpPort(preferredPort int) int {
-	l, err := net.Listen("tcp", ":"+string(preferredPort))
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", preferredPort))
 	if err != nil {
 		l, _ = net.Listen("tcp", "")
 	}
