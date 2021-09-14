@@ -483,7 +483,7 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.a1_threshold_rsrp}
                   onChange={({target}) =>
-                     handleOptChange('a1_threshold_rsrp', target.value)
+                    handleOptChange('a1_threshold_rsrp', target.value)
                   }
                 />
               </AltFormField>
@@ -688,9 +688,9 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     response['tac'] = parseInt(optConfig.tac);
   }
   if (optConfig.a1_threshold_rsrp !== '') {
-     response.ho_algorithm_config.a1_threshold_rsrp = parseInt(
-       optConfig.a1_threshold_rsrp,
-     );
+    response.ho_algorithm_config.a1_threshold_rsrp = parseInt(
+      optConfig.a1_threshold_rsrp,
+    );
   }
   return response;
 }

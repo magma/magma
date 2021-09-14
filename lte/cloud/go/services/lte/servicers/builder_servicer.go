@@ -401,10 +401,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
-
-            //ho cellHoAlgorithm configuration
             getHoAlgorithmConfig(enbMconfig,cellularEnbConfig)
-
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
@@ -688,17 +685,17 @@ func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularE
 		enbHoAlgorithmConfig.Hysteresis = int32(cellHoAlgorithmConfig.Hysteresis)
 		enbHoAlgorithmConfig.TimeToTrigger = string(cellHoAlgorithmConfig.TimeToTrigger)
 		enbHoAlgorithmConfig.A2ThresholdRsrp = int32(cellHoAlgorithmConfig.A2ThresholdRsrp)
-		enbHoAlgorithmConfig.LteA2ThresholdRsrpIratVolte = int32(cellHoAlgorithmConfig.LteA2ThresholdRsrpIratVolte)
+		enbHoAlgorithmConfig.LteA2ThresholdRsrpIratVolte = cellHoAlgorithmConfig.LteA2ThresholdRsrpIratVolte
 		enbHoAlgorithmConfig.LteA2ThresholdRsrq = int32(cellHoAlgorithmConfig.LteA2ThresholdRsrq)
 		enbHoAlgorithmConfig.LteA2ThresholdRsrqIratVolte = int32(cellHoAlgorithmConfig.LteA2ThresholdRsrqIratVolte)
-		enbHoAlgorithmConfig.A3Offset = int32(cellHoAlgorithmConfig.A3Offset)
+		enbHoAlgorithmConfig.A3Offset = cellHoAlgorithmConfig.A3Offset
 		enbHoAlgorithmConfig.A3OffsetAnr = int32(cellHoAlgorithmConfig.A3OffsetAnr)
 		enbHoAlgorithmConfig.A4ThresholdRsrp = int32(cellHoAlgorithmConfig.A4ThresholdRsrp)
 		enbHoAlgorithmConfig.LteIntraA5Threshold_1Rsrp = int32(cellHoAlgorithmConfig.LteIntraA5Threshold1Rsrp)
 		enbHoAlgorithmConfig.LteIntraA5Threshold_2Rsrp = cellHoAlgorithmConfig.LteIntraA5Threshold2Rsrp
 		enbHoAlgorithmConfig.B2Threshold1Rsrp = cellHoAlgorithmConfig.B2Threshold1Rsrp
 		enbHoAlgorithmConfig.B2Threshold2Rsrp = int32(cellHoAlgorithmConfig.B2Threshold2Rsrp)
-		enbHoAlgorithmConfig.B2GeranIratThreshold = uint32(cellHoAlgorithmConfig.B2GeranIratThreshold)
+		enbHoAlgorithmConfig.B2GeranIratThreshold = cellHoAlgorithmConfig.B2GeranIratThreshold
 		enbHoAlgorithmConfig.QrxlevminSib1 = cellHoAlgorithmConfig.QrxlevminSib1
 		enbHoAlgorithmConfig.Qrxlevminoffset = uint32(cellHoAlgorithmConfig.Qrxlevminoffset)
 		enbHoAlgorithmConfig.SIntrasearch = uint32(cellHoAlgorithmConfig.SIntrasearch)
