@@ -19,12 +19,11 @@ import (
 	"net"
 	"time"
 
-	orc8r_protos "magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 )
 
 type S8Proxy struct {

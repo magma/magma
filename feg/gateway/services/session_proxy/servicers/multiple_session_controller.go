@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/golang/glog"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/multiplex"
 	"magma/feg/gateway/policydb"
@@ -26,8 +28,6 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 // How CentralSessionControllers works

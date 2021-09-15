@@ -18,14 +18,14 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/swx_proxy"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
 	"magma/feg/gateway/services/swx_proxy/test_init"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwxProxyClient_VerifyAuthorization(t *testing.T) {

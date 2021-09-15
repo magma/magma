@@ -106,6 +106,12 @@ var levelNames = map[Level]string{
 	ErrorLevel: "ERROR",
 }
 
+// Valid returns whether a Level value is defined.
+func (l Level) Valid() bool {
+	_, ok := levelNames[l]
+	return ok
+}
+
 // String returns a upper-case ASCII representation of the log level.
 func (l Level) String() string {
 	if name, ok := levelNames[l]; ok {
@@ -146,6 +152,8 @@ type Logger interface {
 	// scope.
 	With(field string, value interface{}) Logger
 }
+
+//go:generate go run github.com/golang/mock/mockgen -destination mock_log/mock_logger.go . Logger
 
 // FullName is a convenience function to create a fully qualified Logger name
 // from a slice of names.

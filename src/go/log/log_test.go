@@ -18,6 +18,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// A package-local mock is necessary here to facilitate unit testing without a
+// circular dependency. `magma/log/mock_log` imports `magma/log` so we cannot
+// import `magma/log/mock_log` here.
+//go:generate go run github.com/golang/mock/mockgen -write_package_comment=false -package log -destination mock_logger_test.go . Logger
+
+func TestLevel_Valid(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		level Level
+		want  bool
+	}{
+		{
+			level: DebugLevel,
+			want:  true,
+		},
+		{
+			level: InfoLevel,
+			want:  true,
+		},
+		{
+			level: WarnLevel,
+			want:  true,
+		},
+		{
+			level: ErrorLevel,
+			want:  true,
+		},
+		{
+			level: 100,
+			want:  false,
+		},
+	}
+
+	for _, test := range tests {
+		got := test.level.Valid()
+		assert.Equal(t, test.want, got)
+	}
+}
+
 func TestLevel_String(t *testing.T) {
 	t.Parallel()
 
@@ -48,8 +88,8 @@ func TestLevel_String(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		have := test.level.String()
-		assert.Equal(t, test.want, have)
+		got := test.level.String()
+		assert.Equal(t, test.want, got)
 	}
 }
 
@@ -76,12 +116,10 @@ func TestFullName(t *testing.T) {
 	}
 
 	for desc, test := range tests {
-		have := FullName(test.names)
-		assert.Equal(t, test.want, have, desc)
+		got := FullName(test.names)
+		assert.Equal(t, test.want, got, desc)
 	}
 }
-
-//go:generate go run github.com/golang/mock/mockgen -package log -destination mock_logger_test.go . Logger
 
 func TestNewManager(t *testing.T) {
 	ctrl := gomock.NewController(t)

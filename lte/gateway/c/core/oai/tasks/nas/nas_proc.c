@@ -328,7 +328,9 @@ status_code_e nas_proc_ul_transfer_ind(
     rc                           = emm_sap_send(&emm_sap);
   } else {
     OAILOG_WARNING(
-        LOG_NAS, "Received NAS message in uplink is NULL for ue_id = (%u)\n",
+        LOG_NAS,
+        "Received NAS message in uplink is NULL for ue_id "
+        "= " MME_UE_S1AP_ID_FMT,
         ue_id);
   }
 

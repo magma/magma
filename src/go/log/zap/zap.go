@@ -20,7 +20,7 @@
 //		"github.com/magma/magma/log/zap"
 //	)
 //
-//	lm := log.NewManager(zap.NewLogger(uber_zap.NewDevelopmentConfig()))
+//	lm := log.NewManager(zap.NewLogger())
 //	lm.LoggerFor("thing").Info().Print("hello")
 //	// Output: [thing] hello
 package zap
@@ -28,6 +28,7 @@ package zap
 import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/magma/magma/log"
 )
@@ -44,16 +45,6 @@ func (p *printer) Print(args ...interface{}) {
 func (p *printer) Printf(format string, args ...interface{}) {
 	p.printf(format, args...)
 }
-
-type Logger struct {
-	names []string
-	*zap.Logger
-	zap.Config
-
-	printers map[log.Level]*printer
-}
-
-var _ log.Logger = (*Logger)(nil)
 
 func newPrinters(l *zap.Logger) map[log.Level]*printer {
 	s := l.Sugar()
@@ -77,36 +68,41 @@ func newPrinters(l *zap.Logger) map[log.Level]*printer {
 	}
 }
 
-func NewLogger(c zap.Config, opts ...zap.Option) log.Logger {
-	l, err := c.Build(append(opts, zap.AddCallerSkip(1))...)
-	if err != nil {
-		panic(errors.Wrapf(err, "zap.Config=%+v", c))
-	}
-	return &Logger{
-		Config:   c,
-		Logger:   l,
-		printers: newPrinters(l),
-	}
+// Logger adapts *zap.Logger to github.com/magma/magma/log.Logger.
+type Logger struct {
+	*zap.Logger
+
+	names        []string
+	level        zap.AtomicLevel
+	newZapLogger func(zap.AtomicLevel) *zap.Logger
+	printers     map[log.Level]*printer
 }
 
+var _ log.Logger = (*Logger)(nil)
+
+// Error returns a log.ErrorLevel log.Printer backed by a zap.SugaredLogger.
 func (l *Logger) Error() log.Printer {
 	return l.printers[log.ErrorLevel]
 }
 
+// Warning returns a log.WarnLevel log.Printer backed by a zap.SugaredLogger.
 func (l *Logger) Warning() log.Printer {
 	return l.printers[log.WarnLevel]
 }
 
+// Info returns a log.InfoLevel log.Printer backed by a zap.SugaredLogger.
 func (l *Logger) Info() log.Printer {
 	return l.printers[log.InfoLevel]
 }
 
+// Debug returns a log.DebugLevel log.Printer backed by a zap.SugaredLogger.
 func (l *Logger) Debug() log.Printer {
 	return l.printers[log.DebugLevel]
 }
 
+// Level returns the currently configured log.Level.
 func (l *Logger) Level() log.Level {
-	lvl := l.Config.Level.Level()
+	lvl := l.level.Level()
 	switch lvl {
 	case zap.DebugLevel:
 		return log.DebugLevel
@@ -120,51 +116,108 @@ func (l *Logger) Level() log.Level {
 	panic("unsupported log level " + lvl.String())
 }
 
-func (l *Logger) SetLevel(level log.Level) {
+func zapLevel(level log.Level) zapcore.Level {
 	switch level {
 	case log.DebugLevel:
-		l.Config.Level.SetLevel(zap.DebugLevel)
+		return zap.DebugLevel
 	case log.InfoLevel:
-		l.Config.Level.SetLevel(zap.InfoLevel)
+		return zap.InfoLevel
 	case log.WarnLevel:
-		l.Config.Level.SetLevel(zap.WarnLevel)
+		return zap.WarnLevel
 	case log.ErrorLevel:
-		l.Config.Level.SetLevel(zap.ErrorLevel)
-	default:
-		panic("unsupported log level " + level.String())
+		return zap.ErrorLevel
 	}
+	panic("unsupported log level " + level.String())
 }
 
+// SetLevel updates the logger's log.Level. This takes effect immediately.
+func (l *Logger) SetLevel(level log.Level) {
+	l.level.SetLevel(zapLevel(level))
+}
+
+// Named returns a new logger scoped to the provided name.
 func (l *Logger) Named(name string) log.Logger {
 	names := append(l.names, name)
 
-	// create a new config so we can override log levels without affecting
+	// create a new level so that we can override log levels without affecting
 	// existing logger.
-	newConfig := l.Config
-	newConfig.Level = zap.NewAtomicLevelAt(l.Config.Level.Level())
-
-	newLogger, err := newConfig.Build()
-	if err != nil {
-		panic(errors.Wrapf(err, "zap.Config=%+v", newConfig))
-	}
-
+	level := zap.NewAtomicLevelAt(l.level.Level())
+	newLogger := l.newZapLogger(level)
 	for _, name := range names {
 		newLogger = newLogger.Named(name)
 	}
 
 	return &Logger{
-		names:    names,
-		Config:   newConfig,
-		Logger:   newLogger,
-		printers: newPrinters(newLogger),
+		Logger:       newLogger,
+		names:        names,
+		level:        level,
+		newZapLogger: l.newZapLogger,
+		printers:     newPrinters(newLogger),
 	}
 }
 
+// With returns a new logger with the field=value annotated on each message.
 func (l *Logger) With(field string, value interface{}) log.Logger {
 	newLogger := l.Logger.With(zap.Any(field, value))
 	return &Logger{
-		Config:   l.Config,
-		Logger:   newLogger,
-		printers: newPrinters(newLogger),
+		Logger:       newLogger,
+		names:        l.names,
+		level:        l.level,
+		newZapLogger: l.newZapLogger,
+		printers:     newPrinters(newLogger),
 	}
+}
+
+// New returns a new *Logger, which satisfies magma/log.Logger. This function
+// is available for fine-tuning logging config. For most usages, see NewLogger
+// and NewLoggerAtLevel.
+func New(
+	enc zapcore.Encoder,
+	ws zapcore.WriteSyncer,
+	lvl log.Level,
+	opts ...zap.Option,
+) *Logger {
+	if !lvl.Valid() {
+		panic("invalid log.Level, lvl=" + lvl.String())
+	}
+
+	newZapLogger := func(al zap.AtomicLevel) *zap.Logger {
+		nc := zapcore.NewCore(enc, ws, al)
+		return zap.New(nc, append(opts, zap.AddCallerSkip(1))...)
+	}
+	level := zap.NewAtomicLevelAt(zapLevel(lvl))
+	l := newZapLogger(level)
+	return &Logger{
+		Logger:       l,
+		level:        level,
+		newZapLogger: newZapLogger,
+		printers:     newPrinters(l),
+	}
+}
+
+// NewLoggerAtLevel creates a new *Logger at a specified log.Level with default
+// console encoding outputting to the specified paths. See uber_go/zap.Open
+// docs for more info on supported path formats.
+func NewLoggerAtLevel(lvl log.Level, paths ...string) *Logger {
+	if len(paths) == 0 {
+		paths = []string{"stdout"}
+	}
+	ws, _, err := zap.Open(paths...)
+	if err != nil {
+		panic(errors.Wrapf(err, "paths=%s", paths))
+	}
+
+	return New(
+		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
+		ws,
+		lvl,
+		zap.AddCaller(),
+		zap.AddStacktrace(zapcore.ErrorLevel))
+}
+
+// NewLogger returns a new root *Logger with default config, outputting to the
+// specified paths. See uber_go/zap.Open docs for more info on supported path
+// formats.
+func NewLogger(paths ...string) *Logger {
+	return NewLoggerAtLevel(log.InfoLevel, paths...)
 }

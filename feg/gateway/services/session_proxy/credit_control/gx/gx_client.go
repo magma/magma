@@ -20,16 +20,16 @@ import (
 	"os"
 	"time"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/gateway/service_registry"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/util"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/glog"
 )
 
 const (

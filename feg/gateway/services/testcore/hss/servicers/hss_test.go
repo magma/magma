@@ -18,13 +18,13 @@ import (
 	"net"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 func TestHomeSubscriberServer_AddSubscriber(t *testing.T) {

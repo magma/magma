@@ -14,6 +14,8 @@
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/feg"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
@@ -23,8 +25,6 @@ import (
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-
-	"github.com/golang/glog"
 )
 
 func main() {

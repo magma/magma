@@ -19,16 +19,16 @@ import (
 	"net"
 	"testing"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/servicers/mocks"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/ptypes"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 func TestVLRServer_GetNextRequestReplyPair(t *testing.T) {

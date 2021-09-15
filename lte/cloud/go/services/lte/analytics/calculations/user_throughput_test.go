@@ -1,11 +1,12 @@
 package calculations_test
 
 import (
+	"testing"
+
 	lte_calculations "magma/lte/cloud/go/services/lte/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/query_api/mocks"
 	"magma/orc8r/lib/go/metrics"
-	"testing"
 
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"

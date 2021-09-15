@@ -18,12 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/envoy_controller/control_plane"
-	"magma/feg/gateway/services/envoy_controller/control_plane/mocks"
-	"magma/feg/gateway/services/envoy_controller/servicers"
-	lte_proto "magma/lte/cloud/go/protos"
-
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
@@ -34,6 +28,12 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/envoy_controller/control_plane"
+	"magma/feg/gateway/services/envoy_controller/control_plane/mocks"
+	"magma/feg/gateway/services/envoy_controller/servicers"
+	lte_proto "magma/lte/cloud/go/protos"
 )
 
 const (

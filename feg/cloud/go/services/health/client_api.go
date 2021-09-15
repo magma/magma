@@ -20,11 +20,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 // getHealthClient is a utility function to get an RPC connection to the

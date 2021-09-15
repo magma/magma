@@ -14,13 +14,13 @@ limitations under the License.
 package policydb
 
 import (
-	"magma/feg/gateway/object_store"
-	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
+
+	"magma/feg/gateway/object_store"
+	"magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 type storedObjectListener struct {

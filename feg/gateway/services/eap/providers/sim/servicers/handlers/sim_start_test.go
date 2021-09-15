@@ -18,12 +18,11 @@ import (
 	"reflect"
 	"testing"
 
-	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/providers/sim"
-
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/eap"
+	"magma/feg/gateway/services/eap/providers/sim"
 	"magma/feg/gateway/services/eap/providers/sim/servicers"
 	"magma/orc8r/cloud/go/test_utils"
 )

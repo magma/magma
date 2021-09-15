@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  cache:
+    build:
+      target: gocache
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/go/Dockerfile

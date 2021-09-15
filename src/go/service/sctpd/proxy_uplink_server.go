@@ -15,28 +15,23 @@ import (
 	"context"
 	"net"
 
-	"google.golang.org/grpc"
-
 	"github.com/magma/magma/log"
 	pb "github.com/magma/magma/protos/magma/sctpd"
+	"github.com/magma/magma/service"
 )
 
 // ProxyUplinkServer handles SctpdUplinkServer RPCs by calling out to a
-// provided SctpdUplinkClient.
+// SctpdUplinkClient.
 type ProxyUplinkServer struct {
-	client pb.SctpdUplinkClient
-
+	service.Router
 	log.Logger
 	*pb.UnimplementedSctpdUplinkServer
 }
 
 // NewProxyUplinkServer creates a new ProxyUplinkServer with the provided
 // logger and client connection.
-func NewProxyUplinkServer(logger log.Logger, cc *grpc.ClientConn) *ProxyUplinkServer {
-	return &ProxyUplinkServer{
-		Logger: logger,
-		client: pb.NewSctpdUplinkClient(cc),
-	}
+func NewProxyUplinkServer(logger log.Logger, sr service.Router) *ProxyUplinkServer {
+	return &ProxyUplinkServer{Logger: logger, Router: sr}
 }
 
 // SendUl proxies calls to SctpdUplink.SendUl.
@@ -47,7 +42,7 @@ func (p *ProxyUplinkServer) SendUl(ctx context.Context, req *pb.SendUlReq) (*pb.
 		With("ppid", req.GetPpid()).
 		With("payload_size", len(req.GetPayload())).
 		Debug().Print("SendUl")
-	return p.client.SendUl(ctx, req)
+	return p.SctpdUplinkClient().SendUl(ctx, req)
 }
 
 // NewAssoc proxies calls to SctpdUplink.NewAssoc.
@@ -59,7 +54,7 @@ func (p *ProxyUplinkServer) NewAssoc(ctx context.Context, req *pb.NewAssocReq) (
 		With("ppid", req.GetPpid()).
 		With("ran_cp_ipaddr", net.IP(req.GetRanCpIpaddr()).String()).
 		Debug().Print("NewAssoc")
-	return p.client.NewAssoc(ctx, req)
+	return p.SctpdUplinkClient().NewAssoc(ctx, req)
 }
 
 // CloseAssoc proxies calls to SctpdUplink.CloseAssoc.
@@ -69,5 +64,5 @@ func (p *ProxyUplinkServer) CloseAssoc(ctx context.Context, req *pb.CloseAssocRe
 		With("is_reset", req.GetIsReset()).
 		With("ppid", req.GetPpid()).
 		Debug().Print("CloseAssoc")
-	return p.client.CloseAssoc(ctx, req)
+	return p.SctpdUplinkClient().CloseAssoc(ctx, req)
 }

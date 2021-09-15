@@ -21,31 +21,57 @@ import (
 
 	"github.com/magma/magma/log"
 	sctpdpb "github.com/magma/magma/protos/magma/sctpd"
+	"github.com/magma/magma/service"
 	"github.com/magma/magma/service/sctpd"
 )
 
-const (
-	mmeUpstreamTarget  = "unix:///tmp/mme_sctpd_upstream.sock"
-	mmeGrpcDialTimeout = time.Second
-)
-
-func newMmeGrpcConn() (*grpc.ClientConn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), mmeGrpcDialTimeout)
+func newGrpcConn(target string, timeout time.Duration) (*grpc.ClientConn, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	return grpc.DialContext(ctx, mmeUpstreamTarget, grpc.WithInsecure(), grpc.WithBlock())
+	return grpc.DialContext(ctx, target, grpc.WithInsecure())
 }
 
-func newServer(logger log.Logger) *grpc.Server {
-	grpcServer := grpc.NewServer()
+const (
+	sctpdDownstreamTarget = "unix:///tmp/mme_sctpd_downstream.sock"
+	sctpdGrpcDialTimeout  = time.Second
+	mmeUpstreamTarget     = "unix:///tmp/mme_sctpd_upstream.sock"
+	mmeGrpcDialTimeout    = time.Second
+)
 
-	mmeGrpcConn, err := newMmeGrpcConn()
+func newServiceRouter() service.Router {
+	sctpdDownstreamConn, err := newGrpcConn(sctpdDownstreamTarget, sctpdGrpcDialTimeout)
 	if err != nil {
 		panic(err)
 	}
-	sctpdUplinkServer := sctpd.NewProxyUplinkServer(logger, mmeGrpcConn)
-	sctpdpb.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
+	mmeGrpcConn, err := newGrpcConn(mmeUpstreamTarget, mmeGrpcDialTimeout)
+	if err != nil {
+		panic(err)
+	}
+	return service.NewRouter(
+		sctpdpb.NewSctpdDownlinkClient(sctpdDownstreamConn),
+		sctpdpb.NewSctpdUplinkClient(mmeGrpcConn),
+	)
+}
 
-	return grpcServer
+const (
+	sctpdDownstreamNetwork = "unix"
+	sctpdDownstreamPath    = "/tmp/sctpd_downstream.sock"
+)
+
+func startSctpdDownlinkServer(logger log.Logger, sr service.Router) {
+	listener, err := net.Listen(sctpdDownstreamNetwork, sctpdDownstreamPath)
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			sctpdDownstreamNetwork,
+			sctpdDownstreamPath))
+	}
+
+	grpcServer := grpc.NewServer()
+	sctpdDownlinkServer := sctpd.NewProxyDownlinkServer(logger, sr)
+	sctpdpb.RegisterSctpdDownlinkServer(grpcServer, sctpdDownlinkServer)
+	go grpcServer.Serve(listener)
 }
 
 const (
@@ -53,14 +79,24 @@ const (
 	sctpdUpstreamPath    = "/tmp/sctpd_upstream.sock"
 )
 
-func Start(logger log.Logger) error {
+func startSctpdUplinkServer(logger log.Logger, sr service.Router) {
 	listener, err := net.Listen(sctpdUpstreamNetwork, sctpdUpstreamPath)
 	if err != nil {
-		return errors.Wrapf(
+		panic(errors.Wrapf(
 			err,
 			"net.Listen(network=%s, address=%s)",
 			sctpdUpstreamNetwork,
-			sctpdUpstreamPath)
+			sctpdUpstreamPath))
 	}
-	return errors.WithStack(newServer(logger).Serve(listener))
+
+	grpcServer := grpc.NewServer()
+	sctpdUplinkServer := sctpd.NewProxyUplinkServer(logger, sr)
+	sctpdpb.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
+	go grpcServer.Serve(listener)
+}
+
+func Start(logger log.Logger) {
+	sr := newServiceRouter()
+	startSctpdDownlinkServer(logger, sr)
+	startSctpdUplinkServer(logger, sr)
 }

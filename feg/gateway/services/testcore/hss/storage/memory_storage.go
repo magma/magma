@@ -16,10 +16,10 @@ package storage
 import (
 	"sync"
 
-	"magma/lte/cloud/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+
+	"magma/lte/cloud/go/protos"
 )
 
 // MemorySubscriberStore is an in memory implementation of SubscriberStore.

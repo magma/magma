@@ -19,7 +19,6 @@ limitations under the License.
 #include "includes/ServiceRegistrySingleton.h"
 #include "feg/protos/s8_proxy.pb.h"
 #include "orc8r/protos/common.pb.h"
-#include "GrpcMagmaUtils.h"
 
 namespace grpc {
 class Status;
@@ -46,9 +45,6 @@ void S8Client::s8_create_session_request(
     const CreateSessionRequestPgw& csr_req,
     std::function<void(grpc::Status, CreateSessionResponsePgw)> callback) {
   S8Client& client = get_instance();
-  std::cout << "[INFO] sent CSR " << std::endl;
-  auto& request_cpy = csr_req;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto response = new AsyncLocalResponse<CreateSessionResponsePgw>(

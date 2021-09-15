@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	health_test_init "magma/feg/cloud/go/services/health/test_init"
@@ -28,8 +30,6 @@ import (
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	orcprotos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // Test the health service by simulating one FeG in a network

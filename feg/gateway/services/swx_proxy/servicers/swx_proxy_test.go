@@ -21,13 +21,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
-
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 const TEST_LOOPS = 33

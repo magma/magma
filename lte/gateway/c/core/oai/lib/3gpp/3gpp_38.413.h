@@ -14,6 +14,7 @@
 #pragma once
 
 #include "3gpp_23.003.h"
+#include "3gpp_38.401.h"
 #include "bstrlib.h"
 #include "n11_messages_types.h"
 #include "TrackingAreaIdentity.h"
@@ -67,7 +68,6 @@ typedef struct ngap_ue_aggregate_maximum_bit_rate_s {
   bit_rate_t ul;
 } ngap_ue_aggregate_maximum_bit_rate_t;
 
-typedef uint32_t amf_ue_ngap_id_t;
 typedef uint32_t ran_ue_ngap_id_t;
 
 typedef struct pdusession_setup_item_s {

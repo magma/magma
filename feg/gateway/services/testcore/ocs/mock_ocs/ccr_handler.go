@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"reflect"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/session_proxy/credit_control"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 )
 
 type ccrMessage struct {

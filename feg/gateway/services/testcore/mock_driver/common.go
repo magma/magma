@@ -16,10 +16,10 @@ package mock_driver
 import (
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/protobuf/ptypes/wrappers"
+
+	"magma/feg/cloud/go/protos"
 )
 
 type CreditControlRequestPK struct {

@@ -139,7 +139,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 	}
 
 	// Test marshaling of new configs
-	mc.ConfigsByKey["service2"], err = ptypes.MarshalAny(
+	mc.ConfigsByKey["service2"], _ = ptypes.MarshalAny(
 		&testcfg.Service2Config{
 			Str21: "str21",
 			Str22: "str22",

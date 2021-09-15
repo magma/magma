@@ -17,16 +17,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/glog"
 )
 
 const (

@@ -18,16 +18,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/glog"
 )
 
 // ConstructFailureAnswer creates an answer for the message with an embedded

@@ -15,6 +15,8 @@ package handlers_test
 
 import (
 	context2 "context"
+	"testing"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/serdes"
@@ -24,7 +26,6 @@ import (
 	"magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
-	"testing"
 
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 

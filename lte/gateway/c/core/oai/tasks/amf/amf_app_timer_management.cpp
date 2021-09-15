@@ -19,13 +19,13 @@ extern "C" {
 }
 #include "amf_app_timer_management.h"
 //--C++ includes ---------------------------------------------------------------
+#include <utility>
 #include <stdexcept>
 //--Other includes -------------------------------------------------------------
 
 namespace magma5g {
 
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-typedef uint32_t timer_arg_t;
 
 //------------------------------------------------------------------------------
 int amf_app_start_timer(
@@ -52,7 +52,7 @@ int AmfUeContext::StartTimer(
   int timer_id = -1;
   if ((timer_id = start_timer(
            &amf_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
-    amf_app_timers.insert(std::pair<int, uint32_t>(timer_id, arg));
+    amf_app_timers.insert(std::pair<int, timer_arg_t>(timer_id, arg));
   }
   return timer_id;
 }

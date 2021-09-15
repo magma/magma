@@ -16,14 +16,14 @@ package gy_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRedirectServer_ToProto(t *testing.T) {
-	var convertedRedirectServer *protos.RedirectServer = nil
+	var convertedRedirectServer *protos.RedirectServer
 	convertedRedirectServer = (&gy.RedirectServer{
 		RedirectAddressType:   gy.IPV4Address,
 		RedirectServerAddress: "www.magma.com",

@@ -170,6 +170,11 @@ status_code_e mme_api_get_emm_config(
  ***************************************************************************/
 status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config) {
   OAILOG_FUNC_IN(LOG_NAS);
+  if (mme_config.non_eps_service_control == NULL) {
+    config->features = 0;
+    OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
+  }
+
   if (strcmp((const char*) mme_config.non_eps_service_control->data, "SMS") ==
       0) {
     config->features = config->features | MME_API_SMS_SUPPORTED;
