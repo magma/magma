@@ -559,6 +559,7 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
 status_code_e update_tai_list_to_emm_context(
     uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
     tai_list_t* tai_list) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!par_tai_list->plmn) {
     OAILOG_ERROR_UE(LOG_NAS, imsi64, "config PLMN is NULL\n");
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
@@ -580,6 +581,11 @@ status_code_e update_tai_list_to_emm_context(
   switch (par_tai_list->list_type) {
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
       if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti.gummei.plmn)) {
+        /* As per 3gpp spec 24.301 sec-9.9.3.33, numberofelements=0
+         * corresponds to 1 element,
+         * numberofelements=1 corresponds to 2 elements ...
+         * So set numberofelements = nb_elem - 1
+         */
         tai_list->partial_tai_list[0].numberofelements =
             par_tai_list->nb_elem - 1;
         tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
