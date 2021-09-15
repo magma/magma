@@ -17,6 +17,9 @@ import (
 	context2 "context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -27,9 +30,6 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestCallTraceServicer(t *testing.T) {

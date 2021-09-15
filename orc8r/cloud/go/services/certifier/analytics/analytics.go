@@ -14,13 +14,12 @@
 package analytics
 
 import (
-	"magma/orc8r/cloud/go/services/analytics/calculations"
-	"magma/orc8r/cloud/go/services/certifier"
-	"magma/orc8r/lib/go/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/certifier"
 	certifier_calcs "magma/orc8r/cloud/go/services/certifier/analytics/calculations"
+	"magma/orc8r/lib/go/metrics"
 )
 
 // GetAnalyticsCalculations returns all calculations computed by the component

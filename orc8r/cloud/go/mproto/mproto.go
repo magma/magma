@@ -17,9 +17,9 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 
-	"magma/orc8r/cloud/go/mproto/protos"
-
 	"github.com/golang/protobuf/proto"
+
+	"magma/orc8r/cloud/go/mproto/protos"
 )
 
 // HashManyDeterministic takes a collection of proto messages and returns a deterministic

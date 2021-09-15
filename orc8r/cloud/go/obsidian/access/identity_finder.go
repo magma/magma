@@ -14,10 +14,10 @@ limitations under the License.
 package access
 
 import (
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/labstack/echo"
 )
 
 // FindRequestedIdentities examines the request URL and finds Identities of

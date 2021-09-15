@@ -19,15 +19,15 @@ import (
 	"fmt"
 	"os"
 
+	entsql "github.com/facebookincubator/ent/dialect/sql"
+	"github.com/thoas/go-funk"
+
 	"magma/orc8r/cloud/go/blobstore/ent"
 	"magma/orc8r/cloud/go/blobstore/ent/blob"
 	"magma/orc8r/cloud/go/blobstore/ent/predicate"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	magmaerrors "magma/orc8r/lib/go/errors"
-
-	entsql "github.com/facebookincubator/ent/dialect/sql"
-	"github.com/thoas/go-funk"
 )
 
 // NewEntStorage returns an ent-based implementation of blobstore.

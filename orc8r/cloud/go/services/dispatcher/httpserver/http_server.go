@@ -35,13 +35,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/services/dispatcher/broker"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc/codes"
 )
 
 const (

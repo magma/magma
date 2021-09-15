@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"magma/orc8r/cloud/go/services/analytics/protos"
-	"magma/orc8r/cloud/go/services/analytics/query_api"
-
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
 )
 
 const (

@@ -17,13 +17,12 @@ import (
 	"context"
 	"fmt"
 
-	"magma/orc8r/lib/go/errors"
-	"magma/orc8r/lib/go/protos"
-
-	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 )
 
 type tenantsServicer struct {

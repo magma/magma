@@ -16,14 +16,14 @@ package identity
 import (
 	"context"
 
-	"magma/orc8r/cloud/go/services/certifier"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/lib/go/protos"
 )
 
 const CLIENT_CERT_SN_KEY = "x-magma-client-cert-serial"

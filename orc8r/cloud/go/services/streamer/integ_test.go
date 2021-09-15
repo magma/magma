@@ -19,6 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	streamer_client "magma/gateway/streamer"
 	"magma/orc8r/cloud/go/services/streamer"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
@@ -26,11 +31,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 const (
