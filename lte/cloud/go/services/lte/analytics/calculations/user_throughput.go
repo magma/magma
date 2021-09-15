@@ -16,13 +16,13 @@ package calculations
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+	"github.com/influxdata/tdigest"
+
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
-	"github.com/influxdata/tdigest"
 )
 
 type UserThroughputCalculation struct {

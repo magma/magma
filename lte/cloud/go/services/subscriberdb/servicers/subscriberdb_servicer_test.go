@@ -19,6 +19,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -36,12 +42,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListSubscribers(t *testing.T) {

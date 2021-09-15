@@ -18,16 +18,16 @@ services to interact with assignments from policy rules and subscribers.
 package servicers
 
 import (
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type PolicyAssignmentServer struct{}

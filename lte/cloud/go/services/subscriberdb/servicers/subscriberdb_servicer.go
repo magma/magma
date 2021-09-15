@@ -17,17 +17,6 @@ import (
 	"context"
 	"time"
 
-	"magma/lte/cloud/go/services/subscriberdb"
-	"magma/orc8r/cloud/go/orc8r/math"
-	"magma/orc8r/cloud/go/syncstore"
-
-	"magma/lte/cloud/go/lte"
-	lte_protos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/serdes"
-	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
@@ -35,6 +24,16 @@ import (
 	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/lte/cloud/go/lte"
+	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/subscriberdb"
+	"magma/orc8r/cloud/go/orc8r/math"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/syncstore"
+	"magma/orc8r/lib/go/protos"
 )
 
 type subscriberdbServicer struct {
