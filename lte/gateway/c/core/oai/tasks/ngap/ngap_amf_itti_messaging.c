@@ -60,7 +60,8 @@ status_code_e ngap_amf_itti_nas_uplink_ind(
   imsi64_t imsi64       = INVALID_IMSI64;
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64,
-      "Sending NAS Uplink indication to NAS_AMF_APP, amf_ue_ngap_id = (%u) \n",
+      "Sending NAS Uplink indication to NAS_AMF_APP, amf_ue_ngap_id "
+      "= " AMF_UE_NGAP_ID_FMT,
       ue_id);
   message_p = itti_alloc_new_message(TASK_NGAP, AMF_APP_UPLINK_DATA_IND);
   if (message_p == NULL) {

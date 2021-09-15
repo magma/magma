@@ -127,10 +127,10 @@ bool trigger_agw_offload_for_ue(
     OAILOG_INFO(
         LOG_UTIL,
         "Processing IMSI64: " IMSI_64_FMT
-        " Requested IMSI: %s, MME UE ID: %d, ENB UE ID: %d, UE "
-        "Context ENB ID: "
-        "%d, UE "
-        "Context cell id: %d, S1AP State ENB ID: %d",
+        " Requested IMSI: %s, MME UE ID: " MME_UE_S1AP_ID_FMT
+        ", ENB UE ID: " ENB_UE_S1AP_ID_FMT
+        " , UE Context ENB ID: %d, UE Context cell id: %d, S1AP State ENB ID: "
+        "%d",
         ue_context_p->emm_context._imsi64, offload_request->imsi,
         ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id,
         ue_context_p->e_utran_cgi.cell_identity.enb_id,

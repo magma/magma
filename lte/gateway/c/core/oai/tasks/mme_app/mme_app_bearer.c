@@ -1316,8 +1316,8 @@ error_handling_csr_failure:
   create_session_response_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
   OAILOG_ERROR_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Handling Create Session Response failure for ue_id = (%u), "
-      "bearer id = (%d), pti = (%d)\n",
+      "Handling Create Session Response failure for ue_id = " MME_UE_S1AP_ID_FMT
+      ", bearer id = (%d), pti = (%d)",
       ue_context_p->mme_ue_s1ap_id, bearer_id, transaction_identifier);
   rc = nas_proc_ula_or_csrsp_fail(&create_session_response_fail);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -2979,7 +2979,7 @@ void mme_app_handle_modify_ue_ambr_request(
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "MME APP :Sent UE context modification request \
-        for UE id %d\n",
+        for UE id " MME_UE_S1AP_ID_FMT,
         ue_context_p->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

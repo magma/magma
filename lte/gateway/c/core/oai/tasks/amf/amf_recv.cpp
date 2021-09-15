@@ -77,7 +77,7 @@ int amf_handle_service_request(
   if (ue_context && (tmsi_rcv == tmsi_stored)) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "TMSI matched for the UE id %d "
+        "TMSI matched for UE ID " AMF_UE_NGAP_ID_FMT
         " receved TMSI %08X stored TMSI %08X \n",
         ue_id, tmsi_rcv, tmsi_stored);
 
@@ -251,7 +251,9 @@ int amf_handle_registration_request(
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "UE context is null for ue id:%d \n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "UE context is null for UE ID: " AMF_UE_NGAP_ID_FMT,
+        ue_id);
     return RETURNerror;
   }
   // Save the UE Security Capability into AMF's UE Context
@@ -275,7 +277,7 @@ int amf_handle_registration_request(
       OAILOG_ERROR(
           LOG_NAS_AMF,
           "UE is not supporting any algorithms, AMF rejecting the initial "
-          "registration with cause : %d for UE ID : %d",
+          "registration with cause : %d for UE ID: " AMF_UE_NGAP_ID_FMT,
           amf_cause, ue_id);
       rc = amf_proc_registration_reject(ue_id, amf_cause);
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -295,8 +297,8 @@ int amf_handle_registration_request(
         OAILOG_ERROR(
             LOG_NAS_AMF,
             "UE is not supporting the algorithms IA0,IA1,IA2 and EA0,EA1,EA2, "
-            "AMF rejecting the initial registration with cause : %d for UE ID "
-            ": %d",
+            "AMF rejecting the initial registration with cause : %d for UE "
+            "ID: " AMF_UE_NGAP_ID_FMT,
             amf_cause, ue_id);
         rc = amf_proc_registration_reject(ue_id, amf_cause);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
