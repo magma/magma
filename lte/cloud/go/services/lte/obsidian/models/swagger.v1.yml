@@ -2274,6 +2274,7 @@ definitions:
           - 'Baicells Neutrino 224 ID FDD'
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
+          - 'FreedomFi One'
         x-nullable: false
 
   unmanaged_enodeb_configuration:

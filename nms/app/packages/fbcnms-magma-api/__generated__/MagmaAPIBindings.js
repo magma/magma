@@ -352,7 +352,7 @@ export type enodeb_config = {
 export type enodeb_configuration = {
     bandwidth_mhz ? : 3 | 5 | 10 | 15 | 20,
     cell_id: number,
-    device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE",
+    device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
     earfcndl ? : number,
     pci ? : number,
     special_subframe_pattern ? : number,
