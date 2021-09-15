@@ -621,17 +621,6 @@ int create_temporary_dedicated_bearer_context(
   // Save Policy Rule Name
   strcpy(eps_bearer_ctxt_p->policy_rule_name, bearer_req_p->policy_rule_name);
   eps_bearer_ctxt_p->sgw_sequence_number = sequence_number;
-  OAILOG_INFO(
-      module,
-      "Rashmi*****  qci:%d mbr_ul:%d mbr_dl:%d gbr_ul:%d "
-      "gbr_dl:%d  seq_num:%d \n",
-      eps_bearer_ctxt_p->eps_bearer_qos.qci,
-      eps_bearer_ctxt_p->eps_bearer_qos.mbr.br_ul,
-      eps_bearer_ctxt_p->eps_bearer_qos.mbr.br_dl,
-      eps_bearer_ctxt_p->eps_bearer_qos.gbr.br_ul,
-      eps_bearer_ctxt_p->eps_bearer_qos.gbr.br_dl,
-      eps_bearer_ctxt_p->sgw_sequence_number);
-
   OAILOG_INFO_UE(
       module, sgw_ctxt_p->imsi64, "Number of DL packet filter rules: %d\n",
       eps_bearer_ctxt_p->tft.numberofpacketfilters);

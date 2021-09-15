@@ -48,9 +48,6 @@ static void convert_proto_msg_to_itti_create_bearer_req(
   auto ip                  = request->pgwaddrs();
   itti_msg->pgw_cp_address = (char*) calloc(1, (ip.size() + 1));
   strcpy(itti_msg->pgw_cp_address, ip.c_str());
-  OAILOG_INFO(
-      LOG_SGW_S8, "Rashmi** pgwip :%p :%s \n", itti_msg->pgw_cp_address,
-      itti_msg->pgw_cp_address);
   itti_msg->context_teid         = request->c_agw_teid();
   itti_msg->sequence_number      = request->sequence_number();
   itti_msg->linked_eps_bearer_id = request->linked_bearer_id();
@@ -66,25 +63,6 @@ static void convert_proto_msg_to_itti_create_bearer_req(
   if (request->bearer_context().has_tft()) {
     magma::lte::SpgwStateConverter::proto_to_traffic_flow_template(
         request->bearer_context().tft(), &s8_bc->tft);
-    OAILOG_ERROR(
-        LOG_SGW_S8,
-        "Rashmi** recevied tft num of packet filter:%d tft operation:%d "
-        "direction:%d addr-0:%d addr-1:%d addr-2:%d addr-3:%d \n",
-        s8_bc->tft.numberofpacketfilters,
-        s8_bc->tft.packetfilterlist.notftoperation,
-        s8_bc->tft.packetfilterlist.createnewtft[0].direction,
-        s8_bc->tft.packetfilterlist.createnewtft[0]
-            .packetfiltercontents.ipv4remoteaddr[0]
-            .addr,
-        s8_bc->tft.packetfilterlist.createnewtft[0]
-            .packetfiltercontents.ipv4remoteaddr[1]
-            .addr,
-        s8_bc->tft.packetfilterlist.createnewtft[0]
-            .packetfiltercontents.ipv4remoteaddr[2]
-            .addr,
-        s8_bc->tft.packetfilterlist.createnewtft[0]
-            .packetfiltercontents.ipv4remoteaddr[3]
-            .addr);
   }
   get_fteid_from_proto_msg(
       request->bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);

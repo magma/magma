@@ -1179,11 +1179,6 @@ static int update_pgw_info_to_temp_dedicated_bearer_context(
       LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
   while (spgw_eps_bearer_entry_p &&
          spgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, sgw_context_p->imsi64,
-        "Rashmi*** s1_u_sgw_fteid: " TEID_FMT " bearer_s1u_teid " TEID_FMT "\n",
-        s1_u_sgw_fteid,
-        spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up);
     if (s1_u_sgw_fteid == spgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                               ->s_gw_teid_S1u_S12_S4_up) {
       // update PGW teid and ip adress
@@ -1202,13 +1197,6 @@ static int update_pgw_info_to_temp_dedicated_bearer_context(
           pgw_cp_ip_port, pgw_ip_port_len);
       spgw_eps_bearer_entry_p->sgw_eps_bearer_entry
           ->pgw_cp_ip_port[pgw_ip_port_len] = '\0';
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP, sgw_context_p->imsi64,
-          "Rashmi** pgw_cp_ip_port:%p :%s pgw_ip_port_len :%d \n",
-          pgw_cp_ip_port,
-          spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->pgw_cp_ip_port,
-          pgw_ip_port_len);
-
       break;
     }
     spgw_eps_bearer_entry_p = LIST_NEXT(spgw_eps_bearer_entry_p, entries);
@@ -1258,45 +1246,36 @@ imsi64_t sgw_s8_handle_create_bearer_request(
   // store the received pgw_address from Create bearer req message
   // sgw_context_p->pdn_connection.p_gw_address_in_use_cp.address.ipv4_address =
   //    cb_req->pgw_cp_address;
-  itti_gx_nw_init_actv_bearer_request_t bearer_req = {0};
+  itti_gx_nw_init_actv_bearer_request_t itti_bearer_req = {0};
   s8_bearer_context_t bc_cbreq = cb_req->bearer_context[bearer_idx];
 
-  bearer_req.lbi = cb_req->linked_eps_bearer_id;
-  memcpy(&bearer_req.ul_tft, &bc_cbreq.tft, sizeof(traffic_flow_template_t));
-  memcpy(&bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
-  OAILOG_ERROR(
-      LOG_SGW_S8,
-      "Rashmi** recevied tft num of packet filter:%d tft operation:%d "
-      "direction:%d addr-0:%d addr-1:%d addr-2:%d addr-3:%d packet filter "
-      "len:%d\n",
-      bearer_req.ul_tft.numberofpacketfilters,
-      bearer_req.ul_tft.packetfilterlist.notftoperation,
-      bearer_req.ul_tft.packetfilterlist.createnewtft[0].direction,
-      bearer_req.ul_tft.packetfilterlist.createnewtft[0]
-          .packetfiltercontents.ipv4remoteaddr[0]
-          .addr,
-      bearer_req.ul_tft.packetfilterlist.createnewtft[0]
-          .packetfiltercontents.ipv4remoteaddr[1]
-          .addr,
-      bearer_req.ul_tft.packetfilterlist.createnewtft[0]
-          .packetfiltercontents.ipv4remoteaddr[2]
-          .addr,
-      bearer_req.ul_tft.packetfilterlist.createnewtft[0]
-          .packetfiltercontents.ipv4remoteaddr[3]
-          .addr,
-      bearer_req.ul_tft.packetfilterlist.createnewtft[0].length);
+  itti_bearer_req.lbi = cb_req->linked_eps_bearer_id;
 
-  OAILOG_INFO(
-      LOG_SGW_S8,
-      "Rashmi*****  qci:%d mbr_ul:%d mbr_dl:%d gbr_ul:%d "
-      "gbr_dl:%d \n",
-      bearer_req.eps_bearer_qos.qci, bearer_req.eps_bearer_qos.mbr.br_ul,
-      bearer_req.eps_bearer_qos.mbr.br_dl, bearer_req.eps_bearer_qos.gbr.br_ul,
-      bearer_req.eps_bearer_qos.gbr.br_dl);
-
+  if (bc_cbreq.tft.packetfilterlist.createnewtft[0].direction ==
+      TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY) {
+    memcpy(
+        &itti_bearer_req.dl_tft, &bc_cbreq.tft,
+        sizeof(traffic_flow_template_t));
+  }
+  if (bc_cbreq.tft.packetfilterlist.createnewtft[0].direction ==
+      TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY) {
+    memcpy(
+        &itti_bearer_req.ul_tft, &bc_cbreq.tft,
+        sizeof(traffic_flow_template_t));
+  }
+  if (bc_cbreq.tft.packetfilterlist.createnewtft[0].direction ==
+      TRAFFIC_FLOW_TEMPLATE_BIDIRECTIONAL) {
+    memcpy(
+        &itti_bearer_req.ul_tft, &bc_cbreq.tft,
+        sizeof(traffic_flow_template_t));
+    memcpy(
+        &itti_bearer_req.dl_tft, &bc_cbreq.tft,
+        sizeof(traffic_flow_template_t));
+  }
+  memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
   int rc                = create_temporary_dedicated_bearer_context(
-      sgw_context_p, &bearer_req,
+      sgw_context_p, &itti_bearer_req,
       sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
       cb_req->sequence_number, LOG_SGW_S8);
   if (rc != RETURNok) {
@@ -1304,32 +1283,32 @@ imsi64_t sgw_s8_handle_create_bearer_request(
         LOG_SGW_S8, sgw_context_p->imsi64,
         "Failed to create temporary dedicated bearer context for lbi: %u"
         " and context_teid " TEID_FMT "\n ",
-        bearer_req.lbi, cb_req->context_teid);
+        itti_bearer_req.lbi, cb_req->context_teid);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, INVALID_IMSI64);
   }
 
   rc = update_pgw_info_to_temp_dedicated_bearer_context(
       sgw_context_p, s1_u_sgw_fteid, &bc_cbreq, sgw_state,
       cb_req->pgw_cp_address);
-  free_wrapper(&cb_req->pgw_cp_address);
+  free_wrapper((void**) &cb_req->pgw_cp_address);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, sgw_context_p->imsi64,
         "Failed to update PGW info to temporary dedicated bearer context for "
         "lbi %u and context_teid " TEID_FMT " \n ",
-        bearer_req.lbi, cb_req->context_teid);
+        itti_bearer_req.lbi, cb_req->context_teid);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, INVALID_IMSI64);
   }
 
   if (sgw_build_and_send_s11_create_bearer_request(
-          sgw_context_p, &bearer_req,
+          sgw_context_p, &itti_bearer_req,
           sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
           LOG_SGW_S8) != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, sgw_context_p->imsi64,
         "Failed to send create bearer request from s8_proxy for lbi :%u "
         "context_teid " TEID_FMT " \n",
-        bearer_req.lbi, cb_req->context_teid);
+        itti_bearer_req.lbi, cb_req->context_teid);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, INVALID_IMSI64);
   }
   OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p->imsi64);
@@ -1361,16 +1340,8 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
-  OAILOG_ERROR_UE(
-      LOG_SGW_S8, imsi64,
-      "Rashmi*** bc_cbrsp->s1u_sgw_fteid.teid:" TEID_FMT "\n",
-      bc_cbrsp->s1u_sgw_fteid.teid);
   sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
   while (sgw_eps_bearer_entry_p) {
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64,
-        "Rashmi*** bc_cbrsp->s1u_sgw_fteid.teid:" TEID_FMT "\n",
-        sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up);
     if (bc_cbrsp->s1u_sgw_fteid.teid ==
         sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up) {
       eps_bearer_ctxt_p = sgw_eps_bearer_entry_p->sgw_eps_bearer_entry;
@@ -1395,15 +1366,23 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
         } else {
           OAILOG_INFO_UE(
               LOG_SGW_S8, imsi64,
-              "Successfully created new EPS bearer entry with EBI %d\n",
-              eps_bearer_ctxt_p->eps_bearer_id);
+              "Successfully created new EPS bearer entry with EBI %d ip:%x "
+              "enb_s1u_teid :" TEID_FMT "\n",
+              eps_bearer_ctxt_p->eps_bearer_id,
+              eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr,
+              eps_bearer_ctxt_p->enb_teid_S1u);
 
-          // TODO Rashmi cause = REQUEST_ACCEPTED;
-          sgw_s8_add_gtp_up_tunnel(eps_bearer_ctxt_p, sgw_context_p);
+          if (sgw_s8_add_gtp_up_tunnel(eps_bearer_ctxt_p, sgw_context_p) ==
+              RETURNerror) {
+            OAILOG_ERROR_UE(
+                LOG_SGW_S8, imsi64,
+                "Failed to create OVS rules for dedicated bearer with "
+                "bearer_id:%u \n",
+                eps_bearer_ctxt_p->eps_bearer_id);
+            bc_cbrsp->cause.cause_value = REQUEST_REJECTED;
+          }
+          bc_cbrsp->cause.cause_value = REQUEST_ACCEPTED;
           sequence_number = eps_bearer_ctxt_p->sgw_sequence_number;
-          OAILOG_INFO(
-              LOG_SGW_S8, "Rashmi*** sequence_number from bearer context:%d\n",
-              sequence_number);
         }
       }
       // Remove the temporary spgw entry
@@ -1421,9 +1400,6 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
   }
 
-  OAILOG_ERROR_UE(
-      LOG_SGW_S8, imsi64, "Rashmi***  num_bearer_context :%d \n",
-      s11_actv_bearer_rsp->bearer_contexts.num_bearer_context);
   for (uint8_t idx = 0;
        idx < s11_actv_bearer_rsp->bearer_contexts.num_bearer_context; idx++) {
     bearer_context_within_create_bearer_response_t* bc_cbresp_msg =
@@ -1436,13 +1412,10 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
           "Failed to get dedicated eps bearer context for context "
           "teid " TEID_FMT "and bearer_id :%u \n",
           s11_actv_bearer_rsp->sgw_s11_teid, bc_cbrsp->eps_bearer_id);
-      OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+      OAILOG_FUNC_OUT(LOG_SGW_S8);
     }
     bc_cbresp_msg->s5_s8_u_sgw_fteid.teid =
         dedicated_bearer_ctx_p->s_gw_teid_S5_S8_up;
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64, "Rashmi***  >s5_s8_u_sgw_fteid :" TEID_FMT "\n",
-        bc_cbresp_msg->s5_s8_u_sgw_fteid.teid);
     bc_cbresp_msg->s5_s8_u_sgw_fteid.ipv4 = 1;
     bc_cbresp_msg->s5_s8_u_sgw_fteid.ipv4_address =
         sgw_state->sgw_ip_address_S5S8_up;
@@ -1451,21 +1424,11 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
         &dedicated_bearer_ctx_p->eps_bearer_qos, sizeof(bearer_qos_t));
     pgw_cp_ip_port = dedicated_bearer_ctx_p->pgw_cp_ip_port;
 
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64, "Rashmi***  s8 address :%d \n",
-        bc_cbrsp->s5_s8_u_sgw_fteid.ipv4_address);
-
     bc_cbresp_msg->s5_s8_u_pgw_fteid.teid =
         dedicated_bearer_ctx_p->p_gw_teid_S5_S8_up;
     bc_cbresp_msg->s5_s8_u_pgw_fteid.ipv4 = 1;
     bc_cbresp_msg->s5_s8_u_pgw_fteid.ipv4_address =
         dedicated_bearer_ctx_p->p_gw_address_in_use_up.address.ipv4_address;
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64, "Rashmi***  s8 address :%d \n",
-        bc_cbrsp->s5_s8_u_sgw_fteid.ipv4_address);
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64, "Rashmi***  >s5_s8_u_pgw_fteid :" TEID_FMT "\n",
-        bc_cbresp_msg->s5_s8_u_pgw_fteid.teid);
   }
 
   send_s8_create_bearer_response(

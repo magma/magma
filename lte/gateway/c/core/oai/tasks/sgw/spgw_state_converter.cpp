@@ -751,6 +751,7 @@ void SpgwStateConverter::proto_to_packet_filter(
   packet_filter->direction       = packet_filter_proto.direction();
   packet_filter->identifier      = packet_filter_proto.identifier();
   packet_filter->eval_precedence = packet_filter_proto.eval_precedence();
+  packet_filter->length          = packet_filter_proto.length();
 
   auto* packet_filter_contents = &packet_filter->packetfiltercontents;
   for (uint32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
@@ -760,7 +761,7 @@ void SpgwStateConverter::proto_to_packet_filter(
     switch (packet_filter_content_proto.flags()) {
       case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR: {
         if (packet_filter_content_proto.ipv4_remote_addresses_size()) {
-          packet_filter_contents->flags =
+          packet_filter_contents->flags |=
               TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
           int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
           for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
@@ -776,7 +777,7 @@ void SpgwStateConverter::proto_to_packet_filter(
       } break;
       case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR: {
         if (packet_filter_content_proto.ipv6_remote_addresses_size()) {
-          packet_filter_contents->flags =
+          packet_filter_contents->flags |=
               TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
           int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE - 1;
           for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
@@ -789,31 +790,31 @@ void SpgwStateConverter::proto_to_packet_filter(
         }
       } break;
       case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
         packet_filter_contents->protocolidentifier_nextheader =
             packet_filter_content_proto.protocol_identifier_nextheader();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
         packet_filter_contents->singlelocalport =
             packet_filter_content_proto.single_local_port();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
         packet_filter_contents->singleremoteport =
             packet_filter_content_proto.single_remote_port();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
         packet_filter_contents->securityparameterindex =
             packet_filter_content_proto.security_parameter_index();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
         packet_filter_contents->typdeofservice_trafficclass.value =
             packet_filter_content_proto.type_of_service_traffic_class().value();
@@ -821,19 +822,19 @@ void SpgwStateConverter::proto_to_packet_filter(
             packet_filter_content_proto.type_of_service_traffic_class().mask();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL: {
-        packet_filter_contents->flags = TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
+        packet_filter_contents->flags |= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
         packet_filter_contents->flowlabel =
             packet_filter_content_proto.flow_label();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
         proto_to_port_range(
             packet_filter_content_proto.local_port_range(),
             &packet_filter_contents->localportrange);
       } break;
       case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
         proto_to_port_range(
             packet_filter_content_proto.remote_port_range(),
