@@ -110,14 +110,14 @@ int amf_proc_deregistration_request(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT " type = %d\n",
+      "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT " type = %d",
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, -1);
+    return -1;
   }
 
   amf_context_t* amf_ctx = amf_context_get(ue_id);
