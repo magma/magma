@@ -26,7 +26,7 @@ jobs:
   feg-lint:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
-    name: feg lint job
+    name: feg lint jobs
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
