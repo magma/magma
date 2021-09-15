@@ -189,6 +189,55 @@ status_code_e csfb_handle_tracking_area_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
+void static _validate_and_fill_eps_bearer_cntxt_status(
+  eps_bearer_context_status_t *tau_accept_eps_ber_cntx_status,
+  eps_bearer_context_status_t *rcvd_tau_req_eps_eps_ber_cntx_status,
+  ue_mm_context_t *ue_mm_context)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  ebi_t ebi = 0;
+  ebi_t ebi_relsd = 0;
+  uint32_t itrn = 0;
+  int bidx = 0;
+  uint8_t pos = 0;
+  uint8_t shift_bits = 8;
+  pdn_cid_t pid = 0;
+  int rc = RETURNok;
+  bool is_ebi_active = false;
+
+  for (itrn = 0 ; itrn < BEARERS_PER_UE; itrn++ ) {
+    bearer_context_t *bearer_context =
+      mme_app_get_bearer_context(ue_mm_context, itrn);
+
+    if ((bearer_context) &&
+      bearer_context->esm_ebr_context.status == ESM_EBR_ACTIVE) {
+      ebi = bearer_context->ebi;
+      // Check if the ebi bit is in octet3 or octet4 of the rcvd TAU req
+      if ((ebi >= ESM_EBI_MIN) && (ebi <= (ESM_EBI_MAX/2))) {
+        pos = ebi + shift_bits; //Octet 3
+        is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
+      } else {
+        pos = ebi - shift_bits; //Octet 4
+        is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
+      }
+      /* Delete the bearer context if the bearer context rcvd in TAU req
+       * is inactive
+       */
+      if (!is_ebi_active) {
+        /* Deactivate the bearer as UE has locally deactivated it.
+         * If its a default bearer, trigger delete session request
+         * else trigger deactivate dedicated bearer request
+         */
+        OAILOG_INFO(
+          LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
+      } else {
+        // Set the status of active bearers to be sent in TAU Accept
+        (*tau_accept_eps_ber_cntx_status) |= 1 << pos;
+      }
+    }
+  }
+}
+
 status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
     tac_t tac) {
