@@ -118,7 +118,8 @@
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
       "relayEnabled": false,
-      "gxGyRelayEnabled": false
+      "gxGyRelayEnabled": false,
+      "enable5gFeatures": false
     },
     "td-agent-bit": {
       "@type": "type.googleapis.com/magma.mconfig.FluentBit",
