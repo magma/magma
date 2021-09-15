@@ -701,11 +701,11 @@ func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularE
 		enbHoAlgorithmConfig.SIntrasearch = uint32(cellHoAlgorithmConfig.SIntrasearch)
 		enbHoAlgorithmConfig.SNonintrasearch = uint32(cellHoAlgorithmConfig.SNonintrasearch)
 		enbHoAlgorithmConfig.QrxlevminSib3 = int32(cellHoAlgorithmConfig.QrxlevminSib3)
-		enbHoAlgorithmConfig.ReselectionPriority = uint32(cellHoAlgorithmConfig.ReselectionPriority)
+		enbHoAlgorithmConfig.ReselectionPriority = cellHoAlgorithmConfig.ReselectionPriority
 		enbHoAlgorithmConfig.Threshservinglow = uint32(cellHoAlgorithmConfig.Threshservinglow)
 		enbHoAlgorithmConfig.X2EnableDisable = swag.BoolValue(cellHoAlgorithmConfig.X2EnableDisable)
-		enbHoAlgorithmConfig.CipheringAlgorithm = string(cellHoAlgorithmConfig.CipheringAlgorithm)
-		enbHoAlgorithmConfig.IntegrityAlgorithm = string(cellHoAlgorithmConfig.IntegrityAlgorithm)
+		enbHoAlgorithmConfig.CipheringAlgorithm = cellHoAlgorithmConfig.CipheringAlgorithm
+		enbHoAlgorithmConfig.IntegrityAlgorithm = cellHoAlgorithmConfig.IntegrityAlgorithm
 		enbMconfig.HoAlgorithmConfig = enbHoAlgorithmConfig
 	}
 }
