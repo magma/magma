@@ -14,9 +14,8 @@ limitations under the License.
 import logging
 
 import grpc
-from google.protobuf.json_format import MessageToJson
 from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
-from magma.common.rpc_utils import return_void
+from magma.common.rpc_utils import print_grpc, return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
@@ -45,7 +44,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Adds a subscriber to the store
         """
-        self._print_grpc(request)
+        print_grpc(request, self._print_grpc_payload, "Add Subscriber Request:")
         sid = SIDUtils.to_str(request.sid)
         logging.debug("Add subscriber rpc for sid: %s", sid)
         try:
@@ -59,7 +58,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Deletes a subscriber from the store
         """
-        self._print_grpc(request)
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Delete Subscriber Request:",
+        )
         sid = SIDUtils.to_str(request)
         logging.debug("Delete subscriber rpc for sid: %s", sid)
         self._store.delete_subscriber(sid)
@@ -70,7 +72,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         Updates the subscription data
         """
         try:
-            self._print_grpc(request)
+            print_grpc(
+                request, self._print_grpc_payload,
+                "Update Subscriber Request",
+            )
         except Exception as e:  # pylint: disable=broad-except
             logging.debug("Exception while trying to log GRPC: %s", e)
         sid = SIDUtils.to_str(request.data.sid)
@@ -87,39 +92,36 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Returns the subscription data for the subscriber
         """
-        self._print_grpc(request)
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Get Subscriber Data Request:",
+        )
         sid = SIDUtils.to_str(request)
         try:
-            return self._store.get_subscriber_data(sid)
+            response = self._store.get_subscriber_data(sid)
         except SubscriberNotFoundError:
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
-            return subscriberdb_pb2.SubscriberData()
+            response = subscriberdb_pb2.SubscriberData()
+        print_grpc(
+            response, self._print_grpc_payload,
+            "Get Subscriber Data Response:",
+        )
+        return response
 
     def ListSubscribers(self, request, context):  # pylint:disable=unused-argument
         """
         Returns a list of subscribers from the store
         """
-        self._print_grpc(request)
+        print_grpc(
+            request, self._print_grpc_payload,
+            "List Subscribers Request:",
+        )
         sids = self._store.list_subscribers()
         sid_msgs = [SIDUtils.to_pb(sid) for sid in sids]
-        return subscriberdb_pb2.SubscriberIDSet(sids=sid_msgs)
-
-    def _print_grpc(self, message):
-        if self._print_grpc_payload:
-            try:
-                log_msg = "{} {}".format(
-                    message.DESCRIPTOR.full_name,
-                    MessageToJson(message),
-                )
-                # add indentation
-                padding = 2 * ' '
-                log_msg = ''.join(
-                    "{}{}".format(padding, line)
-                    for line in log_msg.splitlines(True)
-                )
-
-                log_msg = "GRPC message:\n{}".format(log_msg)
-                logging.info(log_msg)
-            except Exception as e:  # pylint: disable=broad-except
-                logging.debug("Exception while trying to log GRPC: %s", e)
+        response = subscriberdb_pb2.SubscriberIDSet(sids=sid_msgs)
+        print_grpc(
+            response, self._print_grpc_payload,
+            "List Subscribers Response:",
+        )
+        return response
