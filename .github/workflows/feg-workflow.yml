@@ -6,19 +6,27 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
-      - 'feg/**'
   pull_request:
     branches:
       - master
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
-      - 'feg/**'
+    types: [opened, reopened, synchronize]
+
 jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["orc8r/**", "lte/**", "feg/**"]'
   feg-lint:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: feg lint job
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -69,6 +77,9 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   feg-precommit:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: feg pre-commit job
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -117,7 +128,11 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   feg-build:
-    needs: feg-precommit
+    needs:
+      - path_filter
+      - feg-precommit
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: cwag pre-commit job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"

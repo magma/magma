@@ -5,17 +5,27 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-    paths:
-      - 'cwf/**'
-      - 'k8s/**'
   pull_request:
     branches:
       - master
-    paths:
-      - 'cwf/**'
-      - 'k8s/**'
+    types: [opened, reopened, synchronize]
+
 jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["cwf/**", "k8s/**"]'
   cwf-operator-precommit:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: cwf operator pre-commit job
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -55,7 +65,11 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ''
   cwf-operator-build:
-    needs: cwf-operator-precommit
+    needs:
+      - path_filter
+      - cwf-operator-precommit
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: cwf operator build job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
