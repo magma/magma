@@ -104,12 +104,13 @@ status_code_e esm_proc_default_eps_bearer_context(
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Default EPS bearer context activation "
       "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_id);
-  OAILOG_DEBUG(LOG_NAS_ESM, "(pid=%d,  QCI %u)\n", pid, qci);
+  OAILOG_DEBUG_UE(
+      LOG_NAS_ESM, emm_context->_imsi64, "(pid=%d,  QCI %u)\n", pid, qci);
   /*
    * Assign new EPS bearer context
    */
@@ -128,8 +129,8 @@ status_code_e esm_proc_default_eps_bearer_context(
       /*
        * No resource available
        */
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - Failed to create new default EPS "
           "bearer context (ebi=%d) for ue_id " MME_UE_S1AP_ID_FMT "\n",
           *ebi, ue_id);
@@ -140,8 +141,8 @@ status_code_e esm_proc_default_eps_bearer_context(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
-  OAILOG_ERROR(
-      LOG_NAS_ESM,
+  OAILOG_ERROR_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Failed to assign new EPS bearer context for "
       "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_id);
@@ -193,8 +194,8 @@ status_code_e esm_proc_default_eps_bearer_context_request(
      * Send activate default EPS bearer context request message and
      * * * * start timer T3485
      */
-    OAILOG_INFO(
-        LOG_NAS_ESM,
+    OAILOG_INFO_UE(
+        LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-PROC  - Initiate standalone default EPS bearer context activation "
         "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
         ue_id, ebi);
@@ -204,8 +205,8 @@ status_code_e esm_proc_default_eps_bearer_context_request(
      */
     rc = default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
   } else {
-    OAILOG_INFO(
-        LOG_NAS_ESM,
+    OAILOG_INFO_UE(
+        LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-PROC  - Initiate non standalone default EPS bearer context "
         "activation "
         "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
@@ -223,8 +224,8 @@ status_code_e esm_proc_default_eps_bearer_context_request(
       /*
        * The EPS bearer context was already in ACTIVE PENDING state
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM,
+      OAILOG_WARNING_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - EBI %d was already ACTIVE PENDING for ue "
           "id " MME_UE_S1AP_ID_FMT "\n",
           ebi, ue_id);
@@ -264,8 +265,8 @@ status_code_e esm_proc_default_eps_bearer_context_accept(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Default EPS bearer context activation "
       "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
       ue_id, ebi);
@@ -284,8 +285,8 @@ status_code_e esm_proc_default_eps_bearer_context_accept(
       /*
        * The EPS bearer context was already in ACTIVE state
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM,
+      OAILOG_WARNING_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - EBI %d was already ACTIVE for ue id " MME_UE_S1AP_ID_FMT
           "\n",
           ebi, ue_id);
@@ -326,8 +327,8 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_WARNING(
-      LOG_NAS_ESM,
+  OAILOG_WARNING_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Default EPS bearer context activation "
       "not accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
       ue_id, ebi);
@@ -357,8 +358,8 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
     ue_mm_context_t* ue_context_p =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     if (!ue_context_p) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - ue_context_p is NULL for ue_id" MME_UE_S1AP_ID_FMT
           ", ebi %u\n",
           ue_id, ebi);
@@ -415,14 +416,14 @@ status_code_e esm_proc_default_eps_bearer_context_failure(
   *pid = MAX_APN_PER_UE;
 
   if (emm_context) {
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-PROC  - Default EPS bearer context activation "
         "failure (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
   } else {
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-PROC  - Default EPS bearer context activation "
         "failure (context is NULL) for ue id " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
@@ -495,8 +496,8 @@ status_code_e default_eps_bearer_activate_t3485_handler(
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
       ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -523,8 +524,8 @@ status_code_e default_eps_bearer_activate_t3485_handler(
         (esm_ebr_timer_data_t*) (ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
         "ESM-PROC  - T3485 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
         ", ebi=%d), "
         "retransmission counter = %d\n",
@@ -627,8 +628,8 @@ static int default_eps_bearer_activate(
         emm_context, ebi, *msg, mme_config.nas_config.t3485_sec,
         default_eps_bearer_activate_t3485_handler);
     if (rc != RETURNerror) {
-      OAILOG_DEBUG(
-          LOG_NAS_ESM,
+      OAILOG_DEBUG_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - Started t3485 for ue_id=" MME_UE_S1AP_ID_FMT "\n",
           ue_id);
     }

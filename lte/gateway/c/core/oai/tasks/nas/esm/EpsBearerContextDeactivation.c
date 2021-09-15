@@ -150,8 +150,8 @@ status_code_e esm_proc_eps_bearer_context_deactivate(
 
   if ((ue_mm_context) && (*pid < MAX_APN_PER_UE)) {
     if (ue_mm_context->pdn_contexts[*pid] == NULL) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
           "ESM-PROC  - PDN connection %d has not been "
           "allocated for ue id " MME_UE_S1AP_ID_FMT "\n",
           *pid, ue_mm_context->mme_ue_s1ap_id);
@@ -218,8 +218,8 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context_p->_imsi64,
       "ESM-PROC  - Initiate EPS bearer context deactivation "
       "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
       ue_id, ebi);
@@ -242,8 +242,8 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
       /*
        * The EPS bearer context was already in ACTIVE state
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM,
+      OAILOG_WARNING_UE(
+          LOG_NAS_ESM, emm_context_p->_imsi64,
           "ESM-PROC  - EBI %d was already INACTIVE PENDING for ue "
           "id " MME_UE_S1AP_ID_FMT "\n",
           ebi, ue_id);
@@ -288,8 +288,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 
   ue_context_p =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context_p->_imsi64,
       "ESM-PROC  - EPS bearer context deactivation "
       "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
       ue_context_p->mme_ue_s1ap_id, ebi);
@@ -417,8 +417,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
       ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -447,8 +447,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
         (esm_ebr_timer_data_t*) (ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
         "ESM-PROC  - T3495 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
         ", ebi=%d), "
         "retransmission counter = %d\n",
@@ -474,8 +474,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
       pdn_cid_t pdn_id = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
 
       if (!ue_mm_context->pdn_contexts[pdn_id]) {
-        OAILOG_ERROR(
-            LOG_NAS_ESM,
+        OAILOG_ERROR_UE(
+            LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
             "eps_bearer_deactivate_t3495_handler pid context NULL for ue "
             "id " MME_UE_S1AP_ID_FMT
             "\n"
@@ -516,8 +516,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
       rc = eps_bearer_release(esm_ebr_timer_data->ctx, ebi, &pdn_id, &bid);
 
       if (rc == RETURNerror) {
-        OAILOG_WARNING(
-            LOG_NAS_ESM,
+        OAILOG_WARNING_UE(
+            LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
             "ESM-PROC  - Could not release bearer(ue_id=" MME_UE_S1AP_ID_FMT
             ", ebi=%d), \n",
             ue_id, ebi);

@@ -109,8 +109,8 @@ status_code_e esm_proc_dedicated_eps_bearer_context(
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Dedicated EPS bearer context activation "
       "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d)\n",
       ue_id, pid);
@@ -189,8 +189,8 @@ status_code_e esm_proc_dedicated_eps_bearer_context_request(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Initiate dedicated EPS bearer context "
       "activation (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
       ue_id, ebi);
@@ -256,8 +256,8 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     OAILOG_ERROR(LOG_NAS_ESM, "Failed to find ue context from emm_context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Dedicated EPS bearer context activation "
       "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%u)\n",
       ue_context_p->mme_ue_s1ap_id, ebi);
@@ -276,8 +276,8 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
       /*
        * The EPS bearer context was already in ACTIVE state
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM,
+      OAILOG_WARNING_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - EBI %u was already ACTIVE for ue id " MME_UE_S1AP_ID_FMT
           "\n",
           ebi, ue_context_p->mme_ue_s1ap_id);
@@ -346,8 +346,8 @@ status_code_e esm_proc_dedicated_eps_bearer_context_reject(
     OAILOG_ERROR(LOG_NAS_ESM, "Failed to find ue context from emm_context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - Dedicated EPS bearer context activation "
       "not accepted by the UE for ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%u\n",
       ue_context_p->mme_ue_s1ap_id, ebi);
@@ -367,8 +367,8 @@ status_code_e esm_proc_dedicated_eps_bearer_context_reject(
         emm_context, true, ebi, &pid, &bid, NULL);
 
     if (rc != RETURNok) {
-      OAILOG_INFO(
-          LOG_NAS_ESM,
+      OAILOG_INFO_UE(
+          LOG_NAS_ESM, emm_context->_imsi64,
           "Failed to release the dedicated EPS bearer context for ebi:%u for "
           "ue id " MME_UE_S1AP_ID_FMT "\n",
           ebi, ue_context_p->mme_ue_s1ap_id);
@@ -427,8 +427,8 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
       ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -642,8 +642,8 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
         (esm_ebr_timer_data_t*) (ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
         "ESM-PROC  - erab_setup_rsp timer expired (ue_id=" MME_UE_S1AP_ID_FMT
         ", ebi=%d), "
         "retransmission counter = %d\n",
@@ -657,8 +657,8 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
             ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_ded_bearer_handler);
         if (rc != RETURNerror) {
-          OAILOG_INFO(
-              LOG_NAS_ESM,
+          OAILOG_INFO_UE(
+              LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
               "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
               "ue_id=" MME_UE_S1AP_ID_FMT
               "ebi (%u)"
@@ -670,8 +670,8 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
         // UE will need to release the session or perform attach/detach
         // to recover. Or network side should release the bearers by disabling
         // policy rules for the subscriber.
-        OAILOG_WARNING(
-            LOG_NAS_ESM,
+        OAILOG_WARNING_UE(
+            LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
             "ESM-PROC  - ERAB_SETUP_RSP_COUNTER_MAX reached for ERAB_SETUP_RSP "
             "ue_id= " MME_UE_S1AP_ID_FMT
             " ebi (%u)"

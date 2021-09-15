@@ -68,8 +68,8 @@ status_code_e esm_proc_esm_information_request(
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context_p->_imsi64,
       "ESM-PROC  - Initiate ESM information ue_id=(" MME_UE_S1AP_ID_FMT ")\n",
       ue_id);
 
@@ -84,7 +84,8 @@ status_code_e esm_proc_esm_information_request(
     char emm_sap_buffer[16];  // very short msg
     int size        = esm_msg_encode(&esm_msg, (uint8_t*) emm_sap_buffer, 16);
     bstring msg_req = NULL;
-    OAILOG_INFO(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
+    OAILOG_INFO_UE(
+        LOG_NAS_EMM, emm_context_p->_imsi64, "ESM encoded MSG size %d\n", size);
     if (size > 0) {
       msg_req = blk2bstr(emm_sap_buffer, size);
       /*
@@ -183,8 +184,8 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Deactivate EPS Bearer Ctx Request T3489 Timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -202,8 +203,8 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
      * Increment the retransmission counter
      */
     esm_ebr_timer_data->count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
         "ESM-PROC  - T3489 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
         "), "
         "retransmission counter = %d\n",
@@ -295,8 +296,8 @@ static int esm_information(
   if (NAS_TIMER_INACTIVE_ID != emm_context_p->esm_ctx.T3489.id) {
     emm_context_p->esm_ctx.t3489_arg = (void*) data;
 
-    OAILOG_INFO(
-        LOG_NAS_EMM,
+    OAILOG_INFO_UE(
+        LOG_NAS_EMM, emm_context_p->_imsi64,
         "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %d seconds\n",
         ue_id, emm_context_p->esm_ctx.T3489.id,
         emm_context_p->esm_ctx.T3489.sec);

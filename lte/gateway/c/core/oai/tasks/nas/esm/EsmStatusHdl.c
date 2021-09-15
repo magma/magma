@@ -74,10 +74,11 @@ status_code_e esm_proc_status_ind(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM, "ESM-PROC  - ESM status procedure requested (cause=%d)\n",
-      *esm_cause);
-  OAILOG_DEBUG(LOG_NAS_ESM, "ESM-PROC  - To be implemented\n");
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
+      "ESM-PROC  - ESM status procedure requested (cause=%d)\n", *esm_cause);
+  OAILOG_DEBUG_UE(
+      LOG_NAS_ESM, emm_context->_imsi64, "ESM-PROC  - To be implemented\n");
 
   switch (*esm_cause) {
     case ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY:
@@ -157,7 +158,9 @@ status_code_e esm_proc_status(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(LOG_NAS_ESM, "ESM-PROC  - ESM status procedure requested\n");
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
+      "ESM-PROC  - ESM status procedure requested\n");
   /*
    * Notity EMM that ESM PDU has to be forwarded to lower layers
    */
