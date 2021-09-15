@@ -14,10 +14,10 @@ limitations under the License.
 package storage
 
 import (
-	"magma/lte/cloud/go/protos"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/suite"
+
+	"magma/lte/cloud/go/protos"
 )
 
 // SubscriberStoreTestSuite is a test suite which can be run against any implementation

@@ -1338,7 +1338,8 @@ status_code_e emm_send_identity_request(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Send Identity Request message for ue_id = (%u)\n",
+      "EMMAS-SAP - Send Identity Request message for ue_id "
+      "= " MME_UE_S1AP_ID_FMT,
       msg->ue_id);
   /*
    * Mandatory - Message type

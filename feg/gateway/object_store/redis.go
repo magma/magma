@@ -16,10 +16,10 @@ package object_store
 import (
 	"fmt"
 
+	"github.com/go-redis/redis"
+
 	"magma/feg/gateway/registry"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/go-redis/redis"
 )
 
 // RedisClient defines an interface to interact with Redis. Only hash functions

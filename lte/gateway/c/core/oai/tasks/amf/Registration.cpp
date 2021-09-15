@@ -657,7 +657,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
       OAILOG_DEBUG(
           LOG_AMF_APP,
           "Timer: Registration_accept timer T3550 with id  %lu "
-          "Started for ue id: " AMF_UE_NGAP_ID_FMT "\n",
+          "Started for ue id: " AMF_UE_NGAP_ID_FMT,
           registration_proc->T3550.id, registration_proc->ue_id);
     }
   }

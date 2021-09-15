@@ -796,9 +796,9 @@ void ngap_handle_conn_est_cnf(
 
       ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-      pdu_session_resource_setup_request_transfer_t*
+      const pdu_session_resource_setup_request_transfer_t*
           amf_pdu_ses_setup_transfer_req;
-      pdusession_setup_item_t* pdu_session_item =
+      const pdusession_setup_item_t* pdu_session_item =
           &conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.item[i];
 
       Ngap_PDUSessionResourceSetupItemCxtReq_t* session_context =
@@ -986,7 +986,7 @@ static int get_ue_ref(
 
 /* ngap_build_pdu_session_resource_setup_request_transfer */
 int ngap_fill_pdu_session_resource_setup_request_transfer(
-    pdu_session_resource_setup_request_transfer_t* session_transfer,
+    const pdu_session_resource_setup_request_transfer_t* session_transfer,
     Ngap_PDUSessionResourceSetupRequestTransfer_t* transfer_request) {
   OAILOG_FUNC_IN(LOG_NGAP);
 
@@ -1135,7 +1135,8 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
 
   uint8_t* buffer_p = NULL;
   uint32_t length   = 0;
-  pdu_session_resource_setup_request_transfer_t* amf_pdu_ses_setup_transfer_req;
+  const pdu_session_resource_setup_request_transfer_t*
+      amf_pdu_ses_setup_transfer_req;
 
   /*
    * We have found the UE in the list.

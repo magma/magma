@@ -42,6 +42,7 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.7.26
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
+	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
 	gotest.tools/gotestsum v1.7.0 // indirect

@@ -17,14 +17,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/servicers/mocks"
 	"magma/feg/gateway/services/csfb/test_init"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const mandatoryFieldLength = decode.LengthIEI + decode.LengthLengthIndicator

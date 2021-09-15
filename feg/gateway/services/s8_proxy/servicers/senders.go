@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"net"
 
-	"magma/feg/cloud/go/protos"
-	orc8r_protos "magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
+
+	"magma/feg/cloud/go/protos"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 )
 
 // sendAndReceiveCreateSession creates a session in the gtp client, sends the create session request

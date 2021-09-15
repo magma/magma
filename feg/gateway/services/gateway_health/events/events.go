@@ -16,12 +16,12 @@ package events
 import (
 	"encoding/json"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/gateway/eventd"
 	"magma/gateway/status"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 const (

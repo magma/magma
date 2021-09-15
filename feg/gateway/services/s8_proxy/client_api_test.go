@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy"
 	"magma/feg/gateway/services/s8_proxy/test_init"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (

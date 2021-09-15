@@ -15,6 +15,7 @@ limitations under the License.
 //--C includes -----------------------------------------------------------------
 extern "C" {
 #include "intertask_interface.h"
+#include "3gpp_38.401.h"
 }
 ////--C++ includes
 ///---------------------------------------------------------------
@@ -30,7 +31,7 @@ namespace magma5g {
 typedef uint64_t timer_arg_t;
 
 typedef struct ue_pdu_id {
-  uint32_t ue_id;
+  amf_ue_ngap_id_t ue_id;
   uint8_t pdu_id;
 } ue_pdu_id_t;
 

@@ -284,14 +284,16 @@ static int identification_t3570_handler(
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
-        LOG_AMF_APP, "T3570: ue_amf_context is NULL for ue id: %d\n", ue_id);
+        LOG_AMF_APP,
+        "T3570: ue_amf_context is NULL for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   amf_ctx = &ue_amf_context->amf_context;
   if (!(amf_ctx)) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3570: timer expired No AMF context for ue id: %d\n",
+        LOG_AMF_APP,
+        "T3570: timer expired No AMF context for UE ID: " AMF_UE_NGAP_ID_FMT,
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -301,7 +303,8 @@ static int identification_t3570_handler(
 
   if (ident_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3570: Timer expired for timer id %lu ue id %d\n",
+        LOG_AMF_APP,
+        "T3570: Timer expired for timer id %lu for UE ID " AMF_UE_NGAP_ID_FMT,
         ident_proc->T3570.id, ident_proc->ue_id);
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
     /*
@@ -434,7 +437,7 @@ int amf_nas_proc_authentication_info_answer(
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received Authentication Information Answer from Subscriberdb for"
-      " ue_id = %d\n",
+      " UE ID = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
 
   if (aia->auth_info.nb_of_vectors) {

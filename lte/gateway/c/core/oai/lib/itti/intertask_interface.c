@@ -499,6 +499,11 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
   }
 }
 
+void itti_free_desc_threads() {
+  free_wrapper((void**) &itti_desc.threads);
+  return;
+}
+
 void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx) {
   MessageDef* terminate_message_p;
 

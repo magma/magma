@@ -16,9 +16,9 @@ package multiplex_test
 import (
 	"testing"
 
-	"magma/feg/gateway/multiplex"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/multiplex"
 )
 
 type muxSelectorsScenario struct {

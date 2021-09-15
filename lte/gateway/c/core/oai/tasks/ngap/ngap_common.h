@@ -794,5 +794,5 @@ status_code_e ngap_send_msg_to_task(
  @returns 0 on success
  **/
 int ngap_fill_pdu_session_resource_setup_request_transfer(
-    pdu_session_resource_setup_request_transfer_t* session_transfer,
+    const pdu_session_resource_setup_request_transfer_t* session_transfer,
     Ngap_PDUSessionResourceSetupRequestTransfer_t* transfer_request);

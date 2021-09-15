@@ -17,9 +17,9 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/feg/gateway/object_store"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/object_store"
 )
 
 type mockRedisClient struct {

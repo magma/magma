@@ -65,7 +65,8 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
       OAILOG_ERROR(
           LOG_NAS_AMF,
           "EMM-PROC  - "
-          "Failed to find Auth_info procedure associated to UE %d\n",
+          "Failed to find Auth_info procedure associated to UE "
+          "ID: " AMF_UE_NGAP_ID_FMT,
           msg->ue_id);
     }
   }

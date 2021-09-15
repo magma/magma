@@ -26,16 +26,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/jsonpb"
+	protobuf_proto "github.com/golang/protobuf/proto"
+	"github.com/wmnsk/go-gtp/gtpv2"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s8_proxy/servicers"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
 	"magma/orc8r/cloud/go/tools/commands"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/jsonpb"
-	protobuf_proto "github.com/golang/protobuf/proto"
-	"github.com/wmnsk/go-gtp/gtpv2"
 )
 
 var (

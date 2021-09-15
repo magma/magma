@@ -15,10 +15,10 @@ import (
 	"fmt"
 	"net"
 
-	oaiprotos "magma/lte/cloud/go/protos/oai"
-
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
+
+	oaiprotos "magma/lte/cloud/go/protos/oai"
 )
 
 func handleTFT(tftIE *ie.IE) (*oaiprotos.TrafficFlowTemplate, error) {

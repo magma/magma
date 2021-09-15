@@ -782,7 +782,8 @@ static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
    */
   OAILOG_DEBUG(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Decoding Initial NAS message for ue_id = (%u)\n",
+      "EMMAS-SAP - Decoding Initial NAS message for ue_id "
+      "= " MME_UE_S1AP_ID_FMT,
       msg->ue_id);
   decoder_rc = nas_message_decode(
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), emm_security_context,

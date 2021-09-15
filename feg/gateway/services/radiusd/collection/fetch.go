@@ -18,10 +18,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos/mconfig"
 	gwmcfg "magma/gateway/mconfig"
-
-	"github.com/golang/glog"
 )
 
 const (

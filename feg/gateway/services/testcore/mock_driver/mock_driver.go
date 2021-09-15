@@ -16,9 +16,9 @@ package mock_driver
 import (
 	"sync"
 
-	"magma/feg/cloud/go/protos"
-
 	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos"
 )
 
 type Expectation interface {
