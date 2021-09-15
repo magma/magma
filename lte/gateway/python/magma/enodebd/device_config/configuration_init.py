@@ -226,6 +226,32 @@ def _get_enb_config(
         device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
+    a1_threshold_rsrp = None
+    lte_a1_threshold_rsrq = None
+    hysteresis = None
+    time_to_trigger = None
+    a2_threshold_rsrp = None
+    lte_a2_threshold_rsrq = None
+    lte_a2_threshold_rsrp_irat_volte = None
+    lte_a2_threshold_rsrq_irat_volte = None
+    a3_offset = None
+    a3_offset_anr = None
+    a4_threshold_rsrp = None
+    lte_intra_a5_threshold_1_rsrp = None
+    lte_intra_a5_threshold_2_rsrp = None
+    b2_threshold1_rsrp = None
+    b2_threshold2_rsrp = None
+    b2_geran_irat_threshold = None
+    qrxlevmin_sib1 = None
+    qrxlevminoffset = None
+    s_intrasearch = None
+    s_nonintrasearch = None
+    qrxlevmin_sib3 = None
+    reselection_priority = None
+    threshservinglow = None
+    x2_enable_disable = None
+    ciphering_algorithm = None
+    integrity_algorithm = None
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
         enb_serial = \
