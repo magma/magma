@@ -3,14 +3,14 @@ package calculations_test
 import (
 	"testing"
 
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	lte_calculations "magma/lte/cloud/go/services/lte/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/query_api/mocks"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/prometheus/common/model"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestUserThroughput(t *testing.T) {

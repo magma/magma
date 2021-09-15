@@ -14,13 +14,13 @@ limitations under the License.
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/ha"
 	"magma/lte/cloud/go/services/ha/servicers"
 	"magma/orc8r/cloud/go/service"
-
-	"github.com/golang/glog"
 )
 
 func main() {

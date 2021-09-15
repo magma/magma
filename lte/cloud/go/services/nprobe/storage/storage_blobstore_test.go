@@ -17,14 +17,14 @@ import (
 	"testing"
 	"time"
 
+	strfmt "github.com/go-openapi/strfmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/storage"
-
-	strfmt "github.com/go-openapi/strfmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 const (

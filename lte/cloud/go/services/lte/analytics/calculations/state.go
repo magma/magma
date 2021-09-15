@@ -16,6 +16,9 @@ package calculations
 import (
 	"context"
 
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -26,9 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (

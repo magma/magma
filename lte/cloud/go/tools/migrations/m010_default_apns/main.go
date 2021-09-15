@@ -61,14 +61,6 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/lte/cloud/go/tools/migrations/m010_default_apns/types"
-	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/cloud/go/tools/migrations"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
@@ -76,6 +68,14 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/lte/cloud/go/tools/migrations/m010_default_apns/types"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/tools/migrations"
+	"magma/orc8r/lib/go/registry"
 )
 
 const (
