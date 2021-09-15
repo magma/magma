@@ -24,11 +24,11 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/protos"
-
 	"github.com/golang/glog"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+
+	"magma/orc8r/cloud/go/services/metricsd/protos"
 )
 
 const (

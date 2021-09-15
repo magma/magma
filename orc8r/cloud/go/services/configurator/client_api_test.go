@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

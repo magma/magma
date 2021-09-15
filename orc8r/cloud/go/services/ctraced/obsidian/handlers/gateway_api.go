@@ -16,14 +16,14 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type GwCtracedClient interface {

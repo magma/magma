@@ -19,12 +19,12 @@ package providers
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/lib/go/registry"
 )
 
 // GetStreamProvider gets the stream provider for a stream name.

@@ -20,15 +20,15 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/pkg/errors"
 )
 
 // UIInfo contains the templating variables injected into the Swagger

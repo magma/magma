@@ -19,12 +19,12 @@ import (
 	"sync"
 	"testing"
 
-	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/sqorc"
-
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 var (

@@ -71,9 +71,9 @@ import (
 	"fmt"
 	"os"
 
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
-
 	"github.com/golang/glog"
+
+	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 )
 
 func main() {

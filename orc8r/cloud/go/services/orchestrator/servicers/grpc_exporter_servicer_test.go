@@ -14,6 +14,11 @@ package servicers_test
 import (
 	"testing"
 
+	edge_hub "github.com/facebookincubator/prometheus-edge-hub/grpc"
+	prometheus_models "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
@@ -23,11 +28,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/servicers/mocks"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
-
-	edge_hub "github.com/facebookincubator/prometheus-edge-hub/grpc"
-	prometheus_models "github.com/prometheus/client_model/go"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 const (

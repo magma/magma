@@ -18,13 +18,13 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 type mockMconfigBuilder struct {

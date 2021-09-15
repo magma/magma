@@ -28,12 +28,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (
