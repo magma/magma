@@ -790,7 +790,13 @@ void mme_remove_ue_context(
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
   }
 
-  _clear_emm_ctxt(&ue_context_p->emm_context);
+  /*
+   * Release ESM PDN and bearer context
+   */
+  release_esm_pdn_context(
+      &ue_context_p->emm_context, ue_context_p->mme_ue_s1ap_id);
+  clear_emm_ctxt(&ue_context_p->emm_context);
+
   // eNB UE S1P UE ID
   hash_rc = hashtable_uint64_ts_remove(
       mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
