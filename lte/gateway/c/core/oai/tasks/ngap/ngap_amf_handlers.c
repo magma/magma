@@ -1527,7 +1527,6 @@ typedef struct arg_ngap_construct_gnb_reset_req_s {
 status_code_e ngap_handle_sctp_disconnection(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset) {
   arg_ngap_send_gnb_dereg_ind_t arg  = {0};
-  int i                              = 0;
   MessageDef* message_p              = NULL;
   gnb_description_t* gnb_association = NULL;
 
@@ -1558,6 +1557,7 @@ status_code_e ngap_handle_sctp_disconnection(
       OAILOG_INFO(
           LOG_NGAP, "Moving gNB with assoc_id %u to INIT state\n", assoc_id);
       gnb_association->ng_state = NGAP_INIT;
+      state->num_gnbs--;
       // update_amf_app_stats_connected_gnb_sub(); TODO : part of stats
     } else {
       OAILOG_INFO(
@@ -1582,15 +1582,6 @@ status_code_e ngap_handle_sctp_disconnection(
   hashtable_uint64_ts_apply_callback_on_elements(
       &gnb_association->ue_id_coll, ngap_send_gnb_deregistered_ind,
       (void*) &arg, (void**) &message_p);
-
-  for (i = arg.current_ue_index; i < NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE; i++) {
-    NGAP_GNB_DEREGISTERED_IND(message_p).amf_ue_ngap_id[arg.current_ue_index] =
-        0;
-    NGAP_GNB_DEREGISTERED_IND(message_p).gnb_ue_ngap_id[arg.current_ue_index] =
-        0;
-  }
-  NGAP_GNB_DEREGISTERED_IND(message_p).gnb_id = gnb_association->gnb_id;
-  message_p                                   = NULL;
 
   OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }

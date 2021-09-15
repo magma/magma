@@ -118,6 +118,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     } break;
 
+    // SCTP layer notifies NGAP of disconnection of a peer.
+    case SCTP_CLOSE_ASSOCIATION: {
+      ngap_handle_sctp_disconnection(
+          state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
+          SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
+    } break;
+
     case SCTP_NEW_ASSOCIATION: {
       increment_counter("amf_new_association", 1, NO_LABELS);
       if (ngap_handle_new_association(
