@@ -448,8 +448,8 @@ static int esm_sap_recv(
                    .protocolconfigurationoptions);
         }
 
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
+        OAILOG_DEBUG_UE(
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-SAP   - ESM Message type = "
             "ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT(0x%x)"
             "(ESM Cause = %d) for (ue_id = %u)\n",
@@ -477,8 +477,8 @@ static int esm_sap_recv(
         esm_cause = esm_recv_activate_default_eps_bearer_context_reject(
             emm_context, pti, ebi,
             &esm_msg.activate_default_eps_bearer_context_reject);
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
+        OAILOG_DEBUG_UE(
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-SAP   - ESM Message type = "
             "ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT(0x%x)"
             "(ESM Cause = %d) for (ue_id = %u)\n",
@@ -528,8 +528,8 @@ static int esm_sap_recv(
             emm_context, pti, ebi,
             &esm_msg.deactivate_eps_bearer_context_accept);
 
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
+        OAILOG_DEBUG_UE(
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-SAP   - ESM Message type = "
             "DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT(0x%x)"
             "(ESM Cause = %d) for (ue_id = %u)\n",
@@ -557,8 +557,8 @@ static int esm_sap_recv(
         esm_cause = esm_recv_activate_dedicated_eps_bearer_context_accept(
             emm_context, pti, ebi,
             &esm_msg.activate_dedicated_eps_bearer_context_accept);
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
+        OAILOG_DEBUG_UE(
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-SAP   - ESM Message type = "
             "ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT(0x%x)"
             "(ESM Cause = %d) for (ue_id = %u)\n",
@@ -586,8 +586,8 @@ static int esm_sap_recv(
         esm_cause = esm_recv_activate_dedicated_eps_bearer_context_reject(
             emm_context, pti, ebi,
             &esm_msg.activate_dedicated_eps_bearer_context_reject);
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
+        OAILOG_DEBUG_UE(
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-SAP   - ESM Message type = "
             "ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT(0x%x)"
             "(ESM Cause = %d) for (ue_id = %u)\n",
@@ -631,8 +631,8 @@ static int esm_sap_recv(
           /*
            * Return reject message
            */
-          OAILOG_ERROR(
-              LOG_NAS_ESM,
+          OAILOG_ERROR_UE(
+              LOG_NAS_ESM, emm_context->_imsi64,
               "ESM-SAP   - Sending PDN connectivity reject for ue_id = "
               "(" MME_UE_S1AP_ID_FMT ")\n",
               ue_id);
@@ -657,8 +657,8 @@ static int esm_sap_recv(
          */
         esm_cause = esm_recv_pdn_disconnect_request(
             emm_context, pti, ebi, &esm_msg.pdn_disconnect_request);
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
+        OAILOG_DEBUG_UE(
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-SAP   - ESM Message type = PDN_DISCONNECT_REQUEST(0x%x)"
             "(ESM Cause = %d) for (ue_id = " MME_UE_S1AP_ID_FMT " )\n",
             esm_msg.header.message_type, esm_cause, ue_id);
