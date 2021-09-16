@@ -1,18 +1,26 @@
 name: Protocol controller unit tests
 
-on: 
-  pull_request:
-    branches:
-      - 'move_dp_to_magma'
-    paths:
-      - "dp/cloud/python/protocol_controller/**"
-      - ".github/workflows/protocol-controller.yml"
-  push:
+#on: 
+#  pull_request:
+    #branches:
+    #  - 'move_dp_to_magma'
+    #paths:
+    #  - "dp/cloud/python/protocol_controller/**"
+    #  - ".github/workflows/protocol-controller.yml"
+#  push:
     #branches:
     #  - 'move_dp_to_magma'
     #paths:
     #  - "dp/cloud/python/protocol_controller/**"
     #  - ".github/workflows/dp-protocol-controller.yml"
+
+on:
+  pull_request:
+    branches:
+      - "cl_develop"
+  push:
+    branches:
+      - "!cl_develop"
 
 jobs:
   configuration_controller_unit_tests:

@@ -1,18 +1,25 @@
 name: Active mode controller unit tests
 
-on:
-  pull_request:
-    branches:
-      - "move_dp_to_magma"
-    paths:
-      - "dp/cloud/go/active_mode_controller/**"
-      - ".github/workflows/dp-active-mode-controller.yml"
-  push:
+#on:
+#  pull_request:
+#    branches:
+#      - "move_dp_to_magma"
+#    paths:
+#      - "dp/cloud/go/active_mode_controller/**"
+#      - ".github/workflows/dp-active-mode-controller.yml"
+#  push:
     #branches:
     #  - "move_dp_to_magma"
     #paths:
     #  - "dp/cloud/go/active_mode_controller/**"
     #  - ".github/workflows/dp-active-mode-controller.yml"
+on:
+  pull_request:
+    branches:
+      - "cl_develop"
+  push:
+    branches:
+      - "!cl_develop"
 
 jobs:
   active_mode_controller_unit_tests:

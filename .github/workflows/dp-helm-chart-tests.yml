@@ -1,9 +1,16 @@
 name: Helm chart smoke tests
 
-on: 
+#on: 
+#  pull_request:
+#    branches:
+#      - 'move_dp_to_magma'
+on:
   pull_request:
     branches:
-      - 'move_dp_to_magma'
+      - "cl_develop"
+  push:
+    branches:
+      - "!cl_develop"
 
 jobs:
   helm_chart_tests:

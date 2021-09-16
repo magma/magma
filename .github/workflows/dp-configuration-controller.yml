@@ -1,16 +1,24 @@
 name: Configuration controller unit tests
 
-on: 
-  pull_request:
-    branches:
-      - "move_dp_to_magma"
-    paths:
-      - "dp/cloud/python/configuration_controller/**"
-      - ".github/workflows/configuration-controller.yml"
-  push:
+#on: 
+#  pull_request:
+#    branches:
+#      - "move_dp_to_magma"
+#    paths:
+#      - "dp/cloud/python/configuration_controller/**"
+#      - ".github/workflows/configuration-controller.yml"
+#  push:
     #paths:
     #  - "dp/cloud/python/configuration_controller/**"
     #  - ".github/workflows/dp-configuration-controller.yml"
+    #
+on:
+  pull_request:
+    branches:
+      - "cl_develop"
+  push:
+    branches:
+      - "!cl_develop"
 
 jobs:
   configuration_controller_unit_tests:

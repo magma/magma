@@ -3,7 +3,10 @@ name: Ingress tests
 on: 
   pull_request:
     branches:
-      - 'move_dp_to_magma'
+      - "cl_develop"
+  push:
+    branches:
+      - "!cl_develop"
 
 jobs:
   ingress_tests:
