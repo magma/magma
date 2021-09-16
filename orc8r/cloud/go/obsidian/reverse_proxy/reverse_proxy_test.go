@@ -22,14 +22,14 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian/access/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {

@@ -19,6 +19,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/smsd/servicers"
 	"magma/lte/cloud/go/services/smsd/storage"
@@ -26,10 +30,6 @@ import (
 	"magma/lte/cloud/go/sms_ll"
 	mocks2 "magma/lte/cloud/go/sms_ll/mocks"
 	protos2 "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSMSDServicer_GetMessages(t *testing.T) {

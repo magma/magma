@@ -16,6 +16,11 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"
 	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -32,11 +37,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

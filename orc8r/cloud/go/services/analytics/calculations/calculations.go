@@ -18,13 +18,13 @@ import (
 	"sort"
 	"strings"
 
-	"magma/orc8r/cloud/go/services/analytics/protos"
-	"magma/orc8r/cloud/go/services/analytics/query_api"
-
 	"github.com/golang/glog"
 	"github.com/google/go-cmp/cmp"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
+
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
 )
 
 const (

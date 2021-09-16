@@ -17,6 +17,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -24,8 +26,6 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 func GetEnodebState(ctx context.Context, networkID string, gatewayID string, enodebSN string) (*lte_models.EnodebState, error) {

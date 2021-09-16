@@ -18,13 +18,13 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/lte/protos"
 	"magma/lte/cloud/go/services/lte/servicers"
 	"magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLookupServicer_EnodebState(t *testing.T) {

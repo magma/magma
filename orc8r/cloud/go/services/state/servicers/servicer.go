@@ -17,18 +17,18 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer/index"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (

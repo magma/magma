@@ -17,6 +17,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -27,10 +31,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 var localBuilders = []mconfig.Builder{

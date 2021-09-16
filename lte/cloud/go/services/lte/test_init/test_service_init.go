@@ -17,6 +17,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_protos "magma/lte/cloud/go/services/lte/protos"
@@ -28,8 +30,6 @@ import (
 	provider_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func StartTestService(t *testing.T) {

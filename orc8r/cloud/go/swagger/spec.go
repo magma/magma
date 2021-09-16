@@ -33,7 +33,6 @@ type Spec struct {
 	Parameters  map[string]interface{}
 	Definitions map[string]interface{}
 }
-
 type TagDefinition struct {
 	Description string
 	Name        string

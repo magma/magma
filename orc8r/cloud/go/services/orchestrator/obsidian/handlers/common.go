@@ -17,10 +17,10 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-
-	"github.com/labstack/echo"
 )
 
 // GetAndValidatePayload can be used by any model that implements ValidateModel

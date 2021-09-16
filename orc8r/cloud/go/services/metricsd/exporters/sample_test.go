@@ -17,12 +17,12 @@ import (
 	"fmt"
 	"testing"
 
+	dto "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/lib/go/metrics"
-
-	dto "github.com/prometheus/client_model/go"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetSamplesForMetrics(t *testing.T) {

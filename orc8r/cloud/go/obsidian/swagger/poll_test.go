@@ -16,14 +16,14 @@ package swagger_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	spec "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetCombinedSwaggerSpecs(t *testing.T) {

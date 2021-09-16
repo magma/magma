@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -31,10 +35,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 const (

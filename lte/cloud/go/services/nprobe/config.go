@@ -14,10 +14,10 @@ limitations under the License.
 package nprobe
 
 import (
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 )
 
 const (

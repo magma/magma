@@ -19,13 +19,13 @@ import (
 	"fmt"
 	"time"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
-	"magma/orc8r/lib/go/service/config"
-
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
+	"magma/orc8r/lib/go/service/config"
 )
 
 const (

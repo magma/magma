@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	orc8r_storage "magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

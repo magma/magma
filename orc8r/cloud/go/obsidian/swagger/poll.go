@@ -14,10 +14,10 @@
 package swagger
 
 import (
-	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 )
 
 // GetCombinedSpec polls every servicer registered with

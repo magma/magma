@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"sync"
 
-	"magma/lte/cloud/go/services/nprobe/obsidian/models"
-
 	"github.com/gogf/gf/net/gtcp"
 	"github.com/golang/glog"
+
+	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 )
 
 // RecordExporter sends records to a remote host over tcp/tls
