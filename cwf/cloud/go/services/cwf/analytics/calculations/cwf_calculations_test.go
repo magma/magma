@@ -18,15 +18,15 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/analytics/calculations"
-	"magma/orc8r/cloud/go/services/analytics/protos"
-	"magma/orc8r/cloud/go/services/analytics/query_api"
-	"magma/orc8r/cloud/go/services/analytics/query_api/mocks"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"magma/orc8r/cloud/go/services/analytics/query_api/mocks"
 )
 
 // mocked prometheus clients that are used for multiple calculation types

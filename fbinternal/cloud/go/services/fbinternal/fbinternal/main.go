@@ -16,6 +16,9 @@ package main
 import (
 	"os"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+
 	"magma/fbinternal/cloud/go/fbinternal"
 	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
@@ -24,9 +27,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/definitions"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 const (

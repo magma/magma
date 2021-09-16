@@ -14,6 +14,8 @@
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
@@ -23,8 +25,6 @@ import (
 	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
 	"magma/wifi/cloud/go/services/wifi/servicers"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/golang/glog"
 )
 
 func main() {

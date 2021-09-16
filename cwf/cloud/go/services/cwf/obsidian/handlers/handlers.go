@@ -19,6 +19,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/serdes"
 	cwfModels "magma/cwf/cloud/go/services/cwf/obsidian/models"
@@ -35,9 +38,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
