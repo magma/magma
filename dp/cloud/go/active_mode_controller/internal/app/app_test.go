@@ -19,7 +19,7 @@ import (
 
 const (
 	bufferSize = 16
-	timeout    = time.Millisecond * 10
+	timeout    = time.Millisecond * 20
 )
 
 func TestAppTestSuite(t *testing.T) {
