@@ -130,6 +130,7 @@ bool SessionStateEnforcer::m5g_update_session_context(
   bool get_gnb_teid = true;
   bool get_upf_teid = false;
   RulesToProcess pending_activation, pending_deactivation;
+  RulesToSchedule pending_scheduling;
 
   /* Check and update latest session rules
    * we get gnodeb TEID, and IP address details here
@@ -156,9 +157,9 @@ bool SessionStateEnforcer::m5g_update_session_context(
       to_vec(csr.static_rules());
   std::vector<DynamicRuleInstall> dynamic_rule_installs =
       to_vec(csr.dynamic_rules());
-  session->process_5g_rules_to_install(
+  session->process_rules_to_install(
       static_rule_installs, dynamic_rule_installs, &pending_activation,
-      &pending_deactivation, &session_uc);
+      &pending_deactivation, nullptr, &pending_scheduling, &session_uc);
 
   /* Reset the upf resend retransmission counter counter, send the session
    * creation request to UPF
@@ -240,12 +241,6 @@ bool SessionStateEnforcer::handle_session_init_rule_updates(
   uint32_t cur_version = session_state->get_current_version();
   session_state->set_current_version(++cur_version, &session_uc);
 
-  /* Send the UPF (local TEID) info to AMF which are going to
-   * be used by GnodeB
-   */
-  // prepare_response_to_access(
-  //    *session_state, magma::lte::M5GSMCause::OPERATION_SUCCESS, upf_ip,
-  //    upf_teid);
   return true;
 }
 
@@ -275,9 +270,6 @@ bool SessionStateEnforcer::m5g_release_session(
   SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
   MLOG(MDEBUG) << "Trying to release " << session_id << " from state "
                << session_fsm_state_to_str(session->get_state());
-  for (const auto& rule : session_uc.dynamic_rules_to_install) {
-    MLOG(MINFO) << "dyn_rules_to_install----88" << rule.id();
-  }
 
   m5g_start_session_termination(session_map, session, pdu_id, &session_uc);
   return true;
@@ -315,7 +307,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
       pdr_map_.erase(imsi);
     }
   }
-  session->remove_all_5g_rules_for_termination(session_uc);
+  session->remove_all_rules_for_termination(session_uc);
   /* Forcefully terminate session context on time out
    * time out = 5000ms from sessiond.yml config file
    */
@@ -518,15 +510,16 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
                  << " SMF latest version: " << cur_version << " Resending";
     if (inc_rtx_counter(session)) {
       RulesToProcess pending_activation, pending_deactivation;
+      RulesToSchedule pending_scheduling;
       const CreateSessionResponse& csr = session->get_create_session_response();
       std::vector<StaticRuleInstall> static_rule_installs =
           to_vec(csr.static_rules());
       std::vector<DynamicRuleInstall> dynamic_rule_installs =
           to_vec(csr.dynamic_rules());
 
-      session->process_5g_rules_to_install(
+      session->process_rules_to_install(
           static_rule_installs, dynamic_rule_installs, &pending_activation,
-          &pending_deactivation, &session_uc);
+          &pending_deactivation, nullptr, &pending_scheduling, &session_uc);
       m5g_send_session_request_to_upf(
           session, pending_activation, pending_deactivation);
     }

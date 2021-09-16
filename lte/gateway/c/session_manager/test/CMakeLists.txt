@@ -25,6 +25,7 @@ add_library(SESSIOND_TEST_LIB
     ProtobufCreators.h
     SessiondMocks.h
     SessionStateTester.h
+    SessionStateTester5g.h
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
