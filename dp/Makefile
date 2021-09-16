@@ -2,6 +2,14 @@ SHELL := /bin/bash
 export MINIKUBE_HOME ?= $(shell echo ~/.minikube)
 export KUBECONFIG ?= $(shell echo ~/.kube/config)
 export CERTS := $(shell mktemp -d /tmp/certs.XXXXXXXXXX)
+export DP_MODULES:= active_mode_controller configuration_controller db_service protocol_controller radio_controller  test_runner
+export PROTO_LIST = orc8r_protos lte_protos feg_protos cwf_protos #//TODO dp_protos
+export MAGMA_ROOT ?= $(shell cd .. && pwd)
+export PYTHON_BUILD ?= $(MAGMA_ROOT)/build
+export BIN := $(PYTHON_BUILD)/bin
+export SRC := $(MAGMA_ROOT)
+
+
 dev: export DATE := $(shell date +%F-%T)
 
 
@@ -168,6 +176,18 @@ migration:
 	alembic -c ./alembic.ini upgrade head; \
 	alembic -c ./alembic.ini revision --autogenerate
 	docker rm -f db
+
+.PHONY: protos
+protos:: $(PROTO_LIST) prometheus_proto
+	@find $(PYTHON_BUILD)/gen -type d | tail -n +2 | sed '/__pycache__/d' | xargs -I % touch "%/__init__.py"
+$(PROTO_LIST): %_protos:
+	@echo "Generating python code for $* .proto files"
+	@mkdir -p $(PYTHON_BUILD)/gen
+	python $(SRC)/protos/gen_protos.py $(SRC)/$*/protos/ $(MAGMA_ROOT),$(MAGMA_ROOT)/orc8r/protos/prometheus $(SRC) $(PYTHON_BUILD)/gen/
+
+.PHONY: prometheus_proto
+prometheus_proto:
+	python $(SRC)/protos/gen_prometheus_proto.py $(MAGMA_ROOT) $(PYTHON_BUILD)/gen
 
 .PHONY: connect
 connect:
