@@ -109,12 +109,14 @@ static int ngap_amf_compare_plmn(
 
   /* Match the Slice Configuration for the PLMN */
   if (is_plmn_present) {
-    for (uint8_t i = 0; i < amf_config.plmn_support_count; i++) {
+    for (uint8_t i = 0; i < amf_config.plmn_support_list.plmn_support_count;
+         i++) {
       if (memcmp(
-              &(amf_config.plmn_support[i].plmn), &match_plmn,
+              &(amf_config.plmn_support_list.plmn_support[i].plmn), &match_plmn,
               sizeof(plmn_t)) == 0) {
         if (ngap_tai_item_slice_compare(
-                slice_support_list, &(amf_config.plmn_support[i].s_nssai)) ==
+                slice_support_list,
+		&(amf_config.plmn_support_list.plmn_support[i].s_nssai)) ==
             0) {
           ret = TA_LIST_AT_LEAST_ONE_MATCH;
           break;

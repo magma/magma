@@ -623,7 +623,7 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
 
   plmn_support_list = &ie->value.choice.PLMNSupportList;
 
-  for (i = 0; i < amf_config.plmn_support_count; i++) {
+  for (i = 0; i < amf_config.plmn_support_list.plmn_support_count; i++) {
     Ngap_PLMNSupportItem_t* plmn_support_item   = NULL;
     Ngap_PLMNIdentity_t* pLMNIdentity           = NULL;
     Ngap_SliceSupportList_t* slice_support_list = NULL;
@@ -633,7 +633,8 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     pLMNIdentity       = &plmn_support_item->pLMNIdentity;
     slice_support_list = &plmn_support_item->sliceSupportList;
 
-    PLMN_T_TO_PLMNID(amf_config.plmn_support[i].plmn, pLMNIdentity);
+    PLMN_T_TO_PLMNID(amf_config.plmn_support_list.plmn_support[i].plmn,
+		     pLMNIdentity);
 
     Ngap_SliceSupportItem_t* slice_support_item = NULL;
     Ngap_S_NSSAI_t* s_NSSAI                     = NULL;
@@ -645,13 +646,15 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     sST     = &s_NSSAI->sST;
 
     //defaultSliceServiceType
-    INT8_TO_OCTET_STRING(amf_config.plmn_support[i].s_nssai.sst, sST);
-    if (amf_config.plmn_support[i].s_nssai.sd.v !=
+    INT8_TO_OCTET_STRING(
+          amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
+    if (amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v !=
         NGAP_S_NSSAI_SD_INVALID_VALUE) {
       //defaultSliceDifferentiator
       s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
       INT24_TO_OCTET_STRING(
-          amf_config.plmn_support[i].s_nssai.sd.v, s_NSSAI->sD);
+          amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v,
+	  s_NSSAI->sD);
     }
 
     ASN_SEQUENCE_ADD(&slice_support_list->list, slice_support_item);
@@ -664,7 +667,6 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
 
 status_code_e ngap_generate_ng_setup_response(
     ngap_state_t* state, gnb_description_t* gnb_association) {
-  int i;
   int enc_rval    = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;

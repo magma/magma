@@ -139,6 +139,13 @@ typedef struct plmn_support_s {
   amf_s_nssai_t s_nssai;
 } plmn_support_t;
 
+typedef struct plmn_support_list_s {
+#define MIN_PLMN_SUPPORT 1
+#define MAX_PLMN_SUPPORT 5
+  uint8_t plmn_support_count;
+  plmn_support_t plmn_support[MAX_PLMN_SUPPORT];
+} plmn_support_list_t;
+
 typedef struct amf_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -155,12 +162,7 @@ typedef struct amf_config_s {
   bstring ip_capability;
   uint8_t unauthenticated_imsi_supported;
   guamfi_config_t guamfi;
-
-#define MIN_PLMN_SUPPORT 1
-#define MAX_PLMN_SUPPORT 5
-  uint8_t plmn_support_count;
-  plmn_support_t plmn_support[MAX_PLMN_SUPPORT];
-
+  plmn_support_list_t plmn_support_list;
   m5g_served_tai_t served_tai;
   service303_data_t service303_config;
   ngap_config_t ngap_config;

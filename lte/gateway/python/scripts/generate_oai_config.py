@@ -267,7 +267,7 @@ def _get_default_slice_service_type_config(service_mconfig: object) -> str:
     Returns: slice service type value
     """
 
-    if service_mconfig.default_slice_service_type is not None:
+    if len(service_mconfig.default_slice_service_type):
         return service_mconfig.default_slice_service_type
 
     return DEFAULT_NGAP_S_NSSAI_SST
@@ -282,8 +282,7 @@ def _get_default_slice_differentiator_type_config(service_mconfig: object) -> st
 
     Returns: slice differentiator config value
     """
-
-    if service_mconfig.default_slice_differentiator is not None:
+    if len(service_mconfig.default_slice_differentiator):
         return service_mconfig.default_slice_differentiator
 
     return DEFAULT_NGAP_S_NSSAI_SD
