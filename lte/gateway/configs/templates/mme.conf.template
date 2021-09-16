@@ -355,6 +355,6 @@ NGAP :
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
     AMF_NAME = "{{ amf_name }}";
     PLMN_SUPPORT_LIST = (
-       { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; DEFAULT_SLICE_SERVICE_TYPE="{{ default_slice_service_type }}" ;                         DEFAULT_SLICE_DIFFERENTIATOR="{{ default_slice_differentiator }}"; }
+       { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; DEFAULT_SLICE_SERVICE_TYPE="{{ default_slice_service_type }}" ; DEFAULT_SLICE_DIFFERENTIATOR="{{ default_slice_differentiator }}"; }
     );
 };

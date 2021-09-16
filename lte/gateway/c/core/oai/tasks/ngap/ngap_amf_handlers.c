@@ -536,9 +536,6 @@ status_code_e ngap_amf_handle_ng_setup_request(
 //------------------------------------------------------------------------------
 static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
   int i;
-  int enc_rval    = 0;
-  uint8_t* buffer = NULL;
-  uint32_t length = 0;
 
   /* Config Parameters */
   Ngap_NGSetupResponse_t* ng_setup_response = NULL;
@@ -647,9 +644,11 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     s_NSSAI = &slice_support_item->s_NSSAI;
     sST     = &s_NSSAI->sST;
 
+    //defaultSliceServiceType
     INT8_TO_OCTET_STRING(amf_config.plmn_support[i].s_nssai.sst, sST);
     if (amf_config.plmn_support[i].s_nssai.sd.v !=
         NGAP_S_NSSAI_SD_INVALID_VALUE) {
+      //defaultSliceDifferentiator
       s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
       INT24_TO_OCTET_STRING(
           amf_config.plmn_support[i].s_nssai.sd.v, s_NSSAI->sD);
@@ -659,6 +658,8 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
 
     ASN_SEQUENCE_ADD(&plmn_support_list->list, plmn_support_item);
   }
+
+  amf_config_unlock(&amf_config);
 }
 
 status_code_e ngap_generate_ng_setup_response(

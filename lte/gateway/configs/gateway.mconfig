@@ -40,7 +40,7 @@
       "natEnabled": true,
       "congestionControlEnabled": true,
       "enableConvergedCore": false,
-      "defaultSliceServiceType": "1",
+      "defaultSliceServiceType": "1"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
