@@ -675,7 +675,7 @@ func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_mod
 	return math.JitterUint32(syncInterval, gwKey, 0.2)
 }
 
-// get ho cellHoAlgorithm parameters
+// get Ho HoAlgorithm parameters
 func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularEnbConfig *lte_models.EnodebConfiguration ) {
     cellHoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
 	if cellHoAlgorithmConfig != nil {
