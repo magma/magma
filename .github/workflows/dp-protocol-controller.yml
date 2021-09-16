@@ -33,7 +33,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: dp/cloud/python/protocol_controller
+        working-directory: dp/cloud/python/magma/protocol_controller
 
     strategy:
       matrix:
@@ -94,8 +94,9 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
+      working-directory: "${{ github.workspace }}/dp/cloud/python"
       run: |
-        coverage run --source=. -m pytest plugins/cbsd_sas/tests/unit
+        coverage run --source=. -m pytest magma/protocol_controller/plugins/cbsd_sas/tests/unit
         coverage report
 
     - name: Upload coverage to Codecov
