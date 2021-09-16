@@ -12,38 +12,26 @@
 package server
 
 import (
-	"context"
 	"net"
-	"time"
 
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
+	"github.com/magma/magma/agwd/config"
 	"github.com/magma/magma/log"
 	sctpdpb "github.com/magma/magma/protos/magma/sctpd"
 	"github.com/magma/magma/service"
 	"github.com/magma/magma/service/sctpd"
 )
 
-func newGrpcConn(target string, timeout time.Duration) (*grpc.ClientConn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	return grpc.DialContext(ctx, target, grpc.WithInsecure())
-}
-
-const (
-	sctpdDownstreamTarget = "unix:///tmp/mme_sctpd_downstream.sock"
-	sctpdGrpcDialTimeout  = time.Second
-	mmeUpstreamTarget     = "unix:///tmp/mme_sctpd_upstream.sock"
-	mmeGrpcDialTimeout    = time.Second
-)
-
-func newServiceRouter() service.Router {
-	sctpdDownstreamConn, err := newGrpcConn(sctpdDownstreamTarget, sctpdGrpcDialTimeout)
+func newServiceRouter(cfgr config.Configer) service.Router {
+	sctpdDownstreamConn, err := grpc.Dial(
+		cfgr.Config().GetSctpdDownstreamServiceTarget(), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
-	mmeGrpcConn, err := newGrpcConn(mmeUpstreamTarget, mmeGrpcDialTimeout)
+	mmeGrpcConn, err := grpc.Dial(
+		cfgr.Config().GetMmeSctpdUpstreamServiceTarget(), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
@@ -53,19 +41,18 @@ func newServiceRouter() service.Router {
 	)
 }
 
-const (
-	sctpdDownstreamNetwork = "unix"
-	sctpdDownstreamPath    = "/tmp/sctpd_downstream.sock"
-)
-
-func startSctpdDownlinkServer(logger log.Logger, sr service.Router) {
-	listener, err := net.Listen(sctpdDownstreamNetwork, sctpdDownstreamPath)
+func startSctpdDownlinkServer(
+	cfgr config.Configer, logger log.Logger, sr service.Router,
+) {
+	target := config.ParseTarget(cfgr.Config().GetMmeSctpdDownstreamServiceTarget())
+	listener, err := net.Listen(
+		target.Scheme, target.Endpoint)
 	if err != nil {
 		panic(errors.Wrapf(
 			err,
 			"net.Listen(network=%s, address=%s)",
-			sctpdDownstreamNetwork,
-			sctpdDownstreamPath))
+			target.Scheme,
+			target.Endpoint))
 	}
 
 	grpcServer := grpc.NewServer()
@@ -74,19 +61,17 @@ func startSctpdDownlinkServer(logger log.Logger, sr service.Router) {
 	go grpcServer.Serve(listener)
 }
 
-const (
-	sctpdUpstreamNetwork = "unix"
-	sctpdUpstreamPath    = "/tmp/sctpd_upstream.sock"
-)
-
-func startSctpdUplinkServer(logger log.Logger, sr service.Router) {
-	listener, err := net.Listen(sctpdUpstreamNetwork, sctpdUpstreamPath)
+func startSctpdUplinkServer(
+	cfgr config.Configer, logger log.Logger, sr service.Router,
+) {
+	target := config.ParseTarget(cfgr.Config().GetSctpdUpstreamServiceTarget())
+	listener, err := net.Listen(target.Scheme, target.Endpoint)
 	if err != nil {
 		panic(errors.Wrapf(
 			err,
 			"net.Listen(network=%s, address=%s)",
-			sctpdUpstreamNetwork,
-			sctpdUpstreamPath))
+			target.Scheme,
+			target.Endpoint))
 	}
 
 	grpcServer := grpc.NewServer()
@@ -95,8 +80,8 @@ func startSctpdUplinkServer(logger log.Logger, sr service.Router) {
 	go grpcServer.Serve(listener)
 }
 
-func Start(logger log.Logger) {
-	sr := newServiceRouter()
-	startSctpdDownlinkServer(logger, sr)
-	startSctpdUplinkServer(logger, sr)
+func Start(cfgr config.Configer, logger log.Logger) {
+	sr := newServiceRouter(cfgr)
+	startSctpdDownlinkServer(cfgr, logger, sr)
+	startSctpdUplinkServer(cfgr, logger, sr)
 }

@@ -12,14 +12,30 @@
 package main
 
 import (
-	"github.com/magma/magma/accessd/server"
+	"flag"
+
+	"github.com/magma/magma/agwd/config"
+	"github.com/magma/magma/agwd/server"
 	"github.com/magma/magma/log"
 	"github.com/magma/magma/log/zap"
 )
 
 func main() {
+	configFlag := flag.String(
+		"c", "/etc/magma/accessd.json", "Path to config file")
+	flag.Parse()
+
+	cfgr := config.NewConfigManager()
+	if err := config.LoadConfigFile(cfgr, *configFlag); err != nil {
+		panic(err)
+	}
+
 	lm := log.NewManager(zap.NewLogger())
-	server.Start(lm.LoggerFor("server"))
+	lm.
+		LoggerFor("").
+		SetLevel(config.LogLevel(cfgr.Config().GetLogLevel()))
+
+	server.Start(cfgr, lm.LoggerFor("server"))
 
 	stopper := make(chan struct{})
 	<-stopper

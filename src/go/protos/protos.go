@@ -18,3 +18,7 @@ package protos
 //go:generate protoc --go-grpc_out=. --go-grpc_opt=Msctpd.proto=magma/sctpd;sctpd -I ../../../lte/protos sctpd.proto
 
 //go:generate go run github.com/golang/mock/mockgen -source magma/sctpd/sctpd_grpc.pb.go -destination magma/sctpd/mock_sctpd/mock_sctpd_grpc.pb.go
+
+//go:generate protoc --go_out=. --go_opt=Mcommon.proto=magma/orc8r;orc8r -I ../../../orc8r/protos common.proto
+//go:generate protoc --go_out=. --go_opt=Mmconfigs.proto=magma/mconfig;mconfig --go_opt=Morc8r/protos/common.proto=github.com/magma/magma/protos/magma/orc8r -I ../../../lte/protos/mconfig -I ../../../ mconfigs.proto
+//go:generate protoc --go-grpc_out=. --go-grpc_opt=Mmconfigs.proto=magma/mconfig;mconfig -I ../../../lte/protos/mconfig -I ../../../ mconfigs.proto
