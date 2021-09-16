@@ -1,31 +1,30 @@
 ---
-id: hil_tests
+id: HIL_AGW_tests
 title: Hardware In Loop Testing
 hide_title: true
 ---
 
-<a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL Sanity Last Stable"></a>
+<a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL AGW Last Stable"></a>
 
 # Hardware In Loop Tests
 
-Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and Performance tests. We cover
-gateway-only tests.
-HIL tests can be run with different gateway. However for now the automated runs are using physical [Protectli](https://protectli.com/vault-4-port) box.
+Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and performance tests. HIL is focusing on Magma AGW.
+HIL tests can be run with virtual or physical gateway. However, for now the automated runs are using physical [SUT-HW](https://protectli.com/vault-4-port) box.
 
 ## Lab Setup
 
-Spirent test emulation hardware is hosted in FB lab emulating eNODEB, UE and traffic host elements. gateway are also hosted in same lab. All tests are
-executed in worker node in FB lab. Reports and logs are pushed out to aws S3 for debug and analysis.
+Spirent test emulation hardware is hosted in FB lab emulating eNODEB, UE and traffic host elements. Magma AGW is also hosted in same lab. All tests are
+executed in worker node in FB lab. Reports and logs are pushed out to AWS S3 for debug and analysis.
 
 ### Run tests
 
 To setup HIL worker follow [instruction](https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation)
 Current Test categories supported are:
 
-1. Sanity (nightly run time - 30 minutes) update badge with latest results on magma main README
-1. Performance (nightly run time - 12hrs)
-1. Feature tests at scale - (nightly run time - 6 hrs)
-1. Availability - Every day for 12hrs period
+1. Sanity (every new build, run time - 30 minutes) updates badge with latest result on magma main README
+1. Performance (nightly, run time - 12hrs)
+1. Feature tests at scale - (nightly, run time - 6hrs)
+1. Availability - Every day, for 12hrs
 
 ### HIL SANITY TEST CASES
 
@@ -37,15 +36,13 @@ Current Test categories supported are:
 1. Verify 400 UEs across 12 eNodeBs with 500k data per UE
 1. Verify 600 UEs across 12 eNodeBs with 500k data per UE
 1. Verify 30 UEs across 12 eNodeBs with 500K data changing state from active-idle-active-idle
-1. Verify APN 10 correction mapping with 50 UEs
-1. Verify PLMN Restriction for 50 valid UEs and 50 invalid UEs
 
 ### Dashboard
 
-All test suite results and daily runs are available to compare on [dashboard](http://automation.fbmagma.ninja/) admin/test1234
-We can retrieve log and grafana metrics for each run by clicking on test run result table.
+All test results are available to compare on [dashboard](http://automation.fbmagma.ninja/). Please use `username:magma` and `password:magma`.
+We can retrieve log and Grafana metrics for each run by clicking on test run result table.
 
 ### Notification
 
-All test suite run send notification to slack channel which is used as alerting mechanism.
-please join slack [chennal](https://magmacore.slack.com/archives/C02164DSGPM) for regular update
+All test suites run send notification to slack channel which is used as alerting mechanism.
+please join slack [channel](https://magmacore.slack.com/archives/C02164DSGPM) for regular update
