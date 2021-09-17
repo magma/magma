@@ -633,8 +633,8 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     pLMNIdentity       = &plmn_support_item->pLMNIdentity;
     slice_support_list = &plmn_support_item->sliceSupportList;
 
-    PLMN_T_TO_PLMNID(amf_config.plmn_support_list.plmn_support[i].plmn,
-		     pLMNIdentity);
+    PLMN_T_TO_PLMNID(
+        amf_config.plmn_support_list.plmn_support[i].plmn, pLMNIdentity);
 
     Ngap_SliceSupportItem_t* slice_support_item = NULL;
     Ngap_S_NSSAI_t* s_NSSAI                     = NULL;
@@ -645,16 +645,16 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     s_NSSAI = &slice_support_item->s_NSSAI;
     sST     = &s_NSSAI->sST;
 
-    //defaultSliceServiceType
+    // defaultSliceServiceType
     INT8_TO_OCTET_STRING(
-          amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
+        amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
     if (amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v !=
         NGAP_S_NSSAI_SD_INVALID_VALUE) {
-      //defaultSliceDifferentiator
+      // defaultSliceDifferentiator
       s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
       INT24_TO_OCTET_STRING(
           amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v,
-	  s_NSSAI->sD);
+          s_NSSAI->sD);
     }
 
     ASN_SEQUENCE_ADD(&slice_support_list->list, slice_support_item);

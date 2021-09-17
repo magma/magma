@@ -93,7 +93,7 @@ void guamfi_config_init(guamfi_config_t* guamfi_conf) {
 **                                                                        **
 ***************************************************************************/
 void plmn_support_list_config_init(plmn_support_list_t* plmn_support_list) {
-  plmn_support_list->plmn_support_count        = MIN_PLMN_SUPPORT;
+  plmn_support_list->plmn_support_count              = MIN_PLMN_SUPPORT;
   plmn_support_list->plmn_support[0].plmn.mcc_digit1 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit2 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit3 = 0;
@@ -101,9 +101,9 @@ void plmn_support_list_config_init(plmn_support_list_t* plmn_support_list) {
   plmn_support_list->plmn_support[0].plmn.mcc_digit2 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit3 = 0x0F;
   plmn_support_list->plmn_support[0].s_nssai.sst =
-                                     NGAP_S_NSSAI_ST_DEFAULT_VALUE;
+      NGAP_S_NSSAI_ST_DEFAULT_VALUE;
   plmn_support_list->plmn_support[0].s_nssai.sd.v =
-                                     NGAP_S_NSSAI_SD_INVALID_VALUE;
+      NGAP_S_NSSAI_SD_INVALID_VALUE;
 }
 
 /***************************************************************************
@@ -722,15 +722,15 @@ int amf_config_parse_file(amf_config_t* config_pP) {
                 strlen(mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001",
                 strlen(mcc), MAX_MCC_LENGTH);
-            char c[2]                                  = {mcc[0], 0};
+            char c[2] = {mcc[0], 0};
             config_pP->plmn_support_list.plmn_support[i].plmn.mcc_digit1 =
-                                                       (uint8_t) atoi(c);
-            c[0]                                       = mcc[1];
+                (uint8_t) atoi(c);
+            c[0] = mcc[1];
             config_pP->plmn_support_list.plmn_support[i].plmn.mcc_digit2 =
-                                                       (uint8_t) atoi(c);
-            c[0]                                       = mcc[2];
+                (uint8_t) atoi(c);
+            c[0] = mcc[2];
             config_pP->plmn_support_list.plmn_support[i].plmn.mcc_digit3 =
-                                                       (uint8_t) atoi(c);
+                (uint8_t) atoi(c);
           }
 
           if ((config_setting_lookup_string(
@@ -740,26 +740,26 @@ int amf_config_parse_file(amf_config_t* config_pP) {
                     (strlen(mnc) == MAX_MNC_LENGTH),
                 "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
                 strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
-            char c[2]                                  = {mnc[0], 0};
+            char c[2] = {mnc[0], 0};
             config_pP->plmn_support_list.plmn_support[i].plmn.mnc_digit1 =
-                                                         (uint8_t) atoi(c);
-            c[0]                                       = mnc[1];
+                (uint8_t) atoi(c);
+            c[0] = mnc[1];
             config_pP->plmn_support_list.plmn_support[i].plmn.mnc_digit2 =
-                                                         (uint8_t) atoi(c);
+                (uint8_t) atoi(c);
             if (3 == strlen(mnc)) {
-              c[0]                                       = mnc[2];
+              c[0] = mnc[2];
               config_pP->plmn_support_list.plmn_support[i].plmn.mnc_digit3 =
-                                                         (uint8_t) atoi(c);
+                  (uint8_t) atoi(c);
             } else {
               config_pP->plmn_support_list.plmn_support[i].plmn.mnc_digit3 =
-                                                         0x0F;
+                  0x0F;
             }
           }
 
           if (config_setting_lookup_string(
                   sub2setting, NGAP_CONFIG_PLMN_SUPPORT_SST, &set_sst)) {
             config_pP->plmn_support_list.plmn_support[i].s_nssai.sst =
-                                                      (uint8_t) atoi(set_sst);
+                (uint8_t) atoi(set_sst);
           }
 
           if (config_setting_lookup_string(
@@ -773,7 +773,7 @@ int amf_config_parse_file(amf_config_t* config_pP) {
                     !(errno != 0 && default_sd_val == 0),
                 "Slice Descriptor out of Range/Invalid");
             config_pP->plmn_support_list.plmn_support[i].s_nssai.sd.v =
-                                                                default_sd_val;
+                default_sd_val;
           }
           config_pP->plmn_support_list.plmn_support_count += 1;
         }  // If MCC/MNC/Slice Information is found

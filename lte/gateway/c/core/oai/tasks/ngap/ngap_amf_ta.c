@@ -116,8 +116,7 @@ static int ngap_amf_compare_plmn(
               sizeof(plmn_t)) == 0) {
         if (ngap_tai_item_slice_compare(
                 slice_support_list,
-		&(amf_config.plmn_support_list.plmn_support[i].s_nssai)) ==
-            0) {
+                &(amf_config.plmn_support_list.plmn_support[i].s_nssai)) == 0) {
           ret = TA_LIST_AT_LEAST_ONE_MATCH;
           break;
         }  // Slice Found in plmn_support list

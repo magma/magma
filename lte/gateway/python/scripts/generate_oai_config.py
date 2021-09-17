@@ -266,11 +266,7 @@ def _get_default_slice_service_type_config(service_mconfig: object) -> str:
 
     Returns: slice service type value
     """
-
-    if len(service_mconfig.default_slice_service_type):
-        return service_mconfig.default_slice_service_type
-
-    return DEFAULT_NGAP_S_NSSAI_SST
+    return service_mconfig.default_slice_service_type or DEFAULT_NGAP_S_NSSAI_SST
 
 
 def _get_default_slice_differentiator_type_config(service_mconfig: object) -> str:
@@ -282,10 +278,7 @@ def _get_default_slice_differentiator_type_config(service_mconfig: object) -> st
 
     Returns: slice differentiator config value
     """
-    if len(service_mconfig.default_slice_differentiator):
-        return service_mconfig.default_slice_differentiator
-
-    return DEFAULT_NGAP_S_NSSAI_SD
+    return service_mconfig.default_slice_differentiator or DEFAULT_NGAP_S_NSSAI_SD
 
 
 def _get_amf_name_config(service_mconfig: object) -> str:
@@ -297,11 +290,7 @@ def _get_amf_name_config(service_mconfig: object) -> str:
 
     Returns: amf name string
     """
-
-    if service_mconfig.amf_name is not None:
-        return service_mconfig.amf_name
-
-    return DEFAULT_NGAP_AMF_NAME
+    return service_mconfig.amf_name or DEFAULT_NGAP_AMF_NAME
 
 
 def _get_amf_region_id(service_mconfig: object) -> str:
@@ -313,11 +302,7 @@ def _get_amf_region_id(service_mconfig: object) -> str:
 
     Returns: amf region id
     """
-
-    if service_mconfig.amf_region_id is not None:
-        return service_mconfig.amf_region_id
-
-    return DEFAULT_NGAP_AMF_REGION_ID
+    return service_mconfig.amf_region_id or DEFAULT_NGAP_AMF_REGION_ID
 
 
 def _get_amf_set_id(service_mconfig: object) -> str:
@@ -329,11 +314,7 @@ def _get_amf_set_id(service_mconfig: object) -> str:
 
     Returns: amf set id
     """
-
-    if service_mconfig.amf_set_id is not None:
-        return service_mconfig.amf_set_id
-
-    return DEFAULT_NGAP_SET_ID
+    return service_mconfig.amf_set_id or DEFAULT_NGAP_SET_ID
 
 
 def _get_amf_pointer(service_mconfig: object) -> str:
@@ -345,11 +326,7 @@ def _get_amf_pointer(service_mconfig: object) -> str:
 
     Returns: amf pointer value
     """
-
-    if service_mconfig.amf_pointer is not None:
-        return service_mconfig.amf_pointer
-
-    return DEFAULT_NGAP_AMF_POINTER
+    return service_mconfig.amf_pointer or DEFAULT_NGAP_AMF_POINTER
 
 
 def _get_context():
