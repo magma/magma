@@ -670,9 +670,8 @@ void ngap_handle_conn_est_cnf(
       conn_est_cnf_pP->Ngap_guami.amf_regionid,
       &ie->value.choice.GUAMI.aMFRegionID);  // 8
 
-  OCTET_STRING_fromBuf(
-      &ie->value.choice.GUAMI.pLMNIdentity, buf_plmn,
-      sizeof(buf_plmn) /*3bytes*/);
+  PLMN_T_TO_PLMNID(
+      conn_est_cnf_pP->Ngap_guami.plmn, &ie->value.choice.GUAMI.pLMNIdentity);
 
   // AllowedNSSAI
   ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(

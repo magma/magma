@@ -27,10 +27,10 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
-      "amf_name": "AMF_1",
+      "amfName": "AMF_1",
       "amfRegionId": "1",
       "amfSetId": "1",
-      "amfPointer": "3",
+      "amfPointer": "0",
       "attachedEnodebTacs": [],
       "dnsPrimary": "8.8.8.8",
       "dnsSecondary": "8.8.4.4",
@@ -39,7 +39,9 @@
       "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
       "natEnabled": true,
       "congestionControlEnabled": true,
-      "enableConvergedCore": false
+      "enableConvergedCore": false,
+      "defaultSliceServiceType": "1",
+      "defaultSliceDifferentiator" : "0xffffff"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
