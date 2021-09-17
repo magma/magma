@@ -191,6 +191,8 @@ export type ci_node = {
 export type config_info = {
     mconfig_created_at ? : number,
 };
+export type core_network_type_restriction = Array < "NT_EPC" | "NT_5GC" >
+;
 export type csfb = {
     client ? : sctp_client_configs,
 };
@@ -895,6 +897,7 @@ export type mutable_subscriber = {
     active_base_names ? : base_names,
     active_policies ? : policy_ids,
     active_policies_by_apn ? : policy_ids_by_apn,
+    allowed_nw_types ? : core_network_type_restriction,
     id: subscriber_id,
     lte: lte_subscription,
     name ? : string,
@@ -1406,6 +1409,7 @@ export type subscriber = {
     active_base_names ? : base_names,
     active_policies ? : policy_ids,
     active_policies_by_apn ? : policy_ids_by_apn,
+    allowed_nw_types ? : core_network_type_restriction,
     config: subscriber_config,
     id: subscriber_id,
     lte: lte_subscription,
@@ -1415,6 +1419,7 @@ export type subscriber = {
     state ? : subscriber_state,
 };
 export type subscriber_config = {
+    allowed_nw_types ? : core_network_type_restriction,
     lte: lte_subscription,
     static_ips ? : subscriber_static_ips,
 };

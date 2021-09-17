@@ -39,10 +39,13 @@ func TestConvertSubEntsToProtos(t *testing.T) {
 			ApnName: "apple",
 		},
 	}
+
+	sub_nt := models.CoreNetworkTypeRestriction{"NT_5GC", "NT_EPC"}
+
 	subscriber := configurator.NetworkEntity{
 		NetworkID:    "n1",
 		Key:          "IMSI00000",
-		Config:       &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}},
+		Config:       &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}, AllowedNwTypes: sub_nt},
 		Associations: storage2.TKs{{Type: lte.APNResourceEntityType, Key: "apple"}},
 	}
 
@@ -54,6 +57,9 @@ func TestConvertSubEntsToProtos(t *testing.T) {
 		SubProfile: "default",
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 	}
+	sub_network := &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC, lte_protos.CoreNetworkTypeRestriction_NT_EPC}}
+	expectedSubProto.SubNetwork = sub_network
+
 	subProto, err := subscriberdb.ConvertSubEntsToProtos(subscriber, apnConfigs, apnResources)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSubProto, subProto)

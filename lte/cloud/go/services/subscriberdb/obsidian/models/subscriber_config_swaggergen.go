@@ -17,6 +17,9 @@ import (
 // swagger:model subscriber_config
 type SubscriberConfig struct {
 
+	// allowed nw types
+	AllowedNwTypes CoreNetworkTypeRestriction `json:"allowed_nw_types,omitempty"`
+
 	// lte
 	// Required: true
 	Lte *LteSubscription `json:"lte"`
@@ -29,6 +32,10 @@ type SubscriberConfig struct {
 func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateAllowedNwTypes(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateLte(formats); err != nil {
 		res = append(res, err)
 	}
@@ -40,6 +47,22 @@ func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *SubscriberConfig) validateAllowedNwTypes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AllowedNwTypes) { // not required
+		return nil
+	}
+
+	if err := m.AllowedNwTypes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("allowed_nw_types")
+		}
+		return err
+	}
+
 	return nil
 }
 

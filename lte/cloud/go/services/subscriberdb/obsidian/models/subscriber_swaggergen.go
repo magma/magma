@@ -30,6 +30,9 @@ type Subscriber struct {
 	// active policies by apn
 	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
 
+	// allowed nw types
+	AllowedNwTypes CoreNetworkTypeRestriction `json:"allowed_nw_types,omitempty"`
+
 	// config
 	// Required: true
 	Config *SubscriberConfig `json:"config"`
@@ -72,6 +75,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateActivePoliciesByApn(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateAllowedNwTypes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -162,6 +169,22 @@ func (m *Subscriber) validateActivePoliciesByApn(formats strfmt.Registry) error 
 	if err := m.ActivePoliciesByApn.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("active_policies_by_apn")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateAllowedNwTypes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AllowedNwTypes) { // not required
+		return nil
+	}
+
+	if err := m.AllowedNwTypes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("allowed_nw_types")
 		}
 		return err
 	}

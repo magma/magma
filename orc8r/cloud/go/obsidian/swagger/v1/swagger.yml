@@ -7471,6 +7471,14 @@ definitions:
         format: uint64
         type: integer
     type: object
+  core_network_type_restriction:
+    items:
+      enum:
+      - NT_EPC
+      - NT_5GC
+      type: string
+      x-nullable: false
+    type: array
   csfb:
     description: csfb configuration
     properties:
@@ -9794,6 +9802,8 @@ definitions:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:
         $ref: '#/definitions/policy_ids_by_apn'
+      allowed_nw_types:
+        $ref: '#/definitions/core_network_type_restriction'
       id:
         $ref: '#/definitions/subscriber_id'
       lte:
@@ -11510,6 +11520,8 @@ definitions:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:
         $ref: '#/definitions/policy_ids_by_apn'
+      allowed_nw_types:
+        $ref: '#/definitions/core_network_type_restriction'
       config:
         $ref: '#/definitions/subscriber_config'
       id:
@@ -11533,6 +11545,8 @@ definitions:
     type: object
   subscriber_config:
     properties:
+      allowed_nw_types:
+        $ref: '#/definitions/core_network_type_restriction'
       lte:
         $ref: '#/definitions/lte_subscription'
       static_ips:

@@ -88,13 +88,15 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI99999",
 			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "ACTIVE"},
+				Lte:            &models.LteSubscription{State: "ACTIVE"},
+				AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_5GC"},
 			},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI11111",
 			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "ACTIVE"},
+				Lte:            &models.LteSubscription{State: "ACTIVE"},
+				AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_EPC"},
 			},
 		},
 	}, serdes.Entity)
@@ -117,6 +119,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
 		SubProfile: "default",
+		SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 	}
 	expectedDigestPrefix1, err := mproto.HashDeterministic(sub1)
 	assert.NoError(t, err)
@@ -130,6 +133,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
 		SubProfile: "default",
+		SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 	}
 	expectedDigestPrefix2, err := mproto.HashDeterministic(sub2)
 	assert.NoError(t, err)
@@ -236,6 +240,56 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 	assert.NotEmpty(t, page)
 }
 
+func TestSubscriberdbCacheExt(t *testing.T) {
+	store := initializeSyncstore(t)
+	serviceConfig := subscriberdb_cache.Config{
+		SleepIntervalSecs:  5,
+		UpdateIntervalSecs: 300,
+	}
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n2"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntities(context2.Background(), "n2", []configurator.NetworkEntity{
+		{Type: lte.APNEntityType, Key: "apn1", Config: &lte_models.ApnConfiguration{}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00011", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}, AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_EPC", "NT_5GC"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00012", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}, AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_EPC", "NT_5GC"}}},
+	}, serdes.Entity)
+	assert.NoError(t, err)
+
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
+	assert.NoError(t, err)
+	_, err = subscriberdb.GetDigest("n2")
+	assert.NoError(t, err)
+	page, _, err := store.GetCachedByPage("n2", "", 3)
+	assert.NoError(t, err)
+	assert.Len(t, page, 2)
+	subProtos, err := subscriberdb.DeserializeSubscribers(page)
+	assert.NoError(t, err)
+	assert.True(t, proto.Equal(subProtoWithNwType("IMSI00011"), subProtos[0]))
+	assert.True(t, proto.Equal(subProtoWithNwType("IMSI00012"), subProtos[1]))
+
+	err = configurator.DeleteEntities(
+		context2.Background(),
+		"n2",
+		storage2.MakeTKs(lte.SubscriberEntityType, []string{"IMSI00011", "IMSI00012"}),
+	)
+	assert.NoError(t, err)
+	newRootDigest, err := subscriberdb.GetDigest("n2")
+	assert.NoError(t, err)
+	newDigestTree := &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: newRootDigest}}
+	err = store.SetDigest("n2", newDigestTree)
+	assert.NoError(t, err)
+
+	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
+	assert.NoError(t, err)
+	page, _, err = store.GetCachedByPage("n2", "", 3)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, page)
+}
+
 func getTokenByLastIncludedEntity(t *testing.T, sid string) string {
 	token := &configurator_storage.EntityPageToken{
 		LastIncludedEntity: sid,
@@ -251,6 +305,18 @@ func subProtoFromID(sid string) *lte_protos.SubscriberData {
 		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
+		SubProfile: "default",
+	}
+	return subProto
+}
+
+func subProtoWithNwType(sid string) *lte_protos.SubscriberData {
+	subProto := &lte_protos.SubscriberData{
+		Sid:        lte_protos.SidFromString(sid),
+		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
+		SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC, lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
+		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+		NetworkId:  &protos.NetworkID{Id: "n2"},
 		SubProfile: "default",
 	}
 	return subProto

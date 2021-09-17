@@ -31,6 +31,8 @@ magma-gen-meta:
       filename: subscriber_directory_record_swaggergen.go
     - go-struct-name: UntypedSubscriberState
       filename: untyped_subscriber_state_swaggergen.go
+    - go-struct-name: CoreNetworkTypeRestriction
+      filename: core_network_type_restriction_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -313,6 +315,8 @@ definitions:
         $ref: '#/definitions/subscriber_state'
       msisdn:
         $ref: '#/definitions/msisdn'
+      allowed_nw_types:
+        $ref: '#/definitions/core_network_type_restriction'
 
   mutable_subscriber:
     description: Subset of subscriber field which are mutable
@@ -339,6 +343,17 @@ definitions:
         $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
+      allowed_nw_types:
+        $ref: '#/definitions/core_network_type_restriction'
+
+  core_network_type_restriction:
+    type: array
+    items:
+      type: string
+      enum:
+        - NT_EPC
+        - NT_5GC
+      x-nullable: false
 
   mutable_subscribers:
     type: array
@@ -378,6 +393,8 @@ definitions:
         $ref: '#/definitions/lte_subscription'
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
+      allowed_nw_types:
+        $ref: '#/definitions/core_network_type_restriction'
 
   msisdn:
     type: string

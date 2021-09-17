@@ -103,12 +103,13 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				},
-				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
+				AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_5GC"},
+				StaticIps:      models.SubscriberStaticIps{"apn1": "192.168.100.1"},
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}, AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_EPC"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}, AllowedNwTypes: models.CoreNetworkTypeRestriction{"NT_5GC"}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -121,6 +122,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			},
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "default",
 			Non_3Gpp: &lte_protos.Non3GPPUserProfile{
@@ -161,6 +163,7 @@ func TestListSubscribers(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "foo",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 		},
 	}
 
@@ -185,6 +188,7 @@ func TestListSubscribers(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "foo",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 		},
 	}
 
@@ -319,6 +323,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			},
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "default",
 			Non_3Gpp: &lte_protos.Non3GPPUserProfile{
@@ -359,6 +364,7 @@ func TestListSubscribersDigestsEnabled(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "foo",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 		},
 	}
 	expectedProtosSerialized, err := subscriberdb.SerializeSubscribers(expectedProtos)
@@ -630,6 +636,7 @@ func TestSyncSubscribers(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_apple",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 		},
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
@@ -637,6 +644,7 @@ func TestSyncSubscribers(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_banana",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 		},
 	}
 	expectedToRenewDataMarshaled := []*any.Any{}
@@ -683,6 +691,7 @@ func TestSyncSubscribers(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_banana2",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 		},
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
@@ -690,6 +699,7 @@ func TestSyncSubscribers(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_cherry",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 		},
 	}
 	expectedToRenewDataMarshaled = []*any.Any{}
@@ -759,6 +769,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_apple",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC}},
 		},
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
@@ -766,6 +777,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "profile_banana",
+			SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 		},
 	}
 	expectedToRenewDataMarshaled := []*any.Any{}
@@ -834,6 +846,7 @@ func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.Subscr
 	assert.True(t, len(expectedProtos) == len(actualProtos))
 	for i := 0; i < len(expectedProtos); i++ {
 		assert.True(t, proto.Equal(expectedProtos[i], actualProtos[i]))
+		//assert.Equal(t, expectedProtos[i], actualProtos[i])
 	}
 }
 
@@ -871,6 +884,7 @@ func basicSubProtoFromSid(sid string, subProfile string) *lte_protos.SubscriberD
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
 		SubProfile: subProfile,
+		SubNetwork: &lte_protos.CoreNetworkTypeRestriction{AllowedNwTypes: []lte_protos.CoreNetworkTypeRestriction_CoreNetworkType{lte_protos.CoreNetworkTypeRestriction_NT_5GC, lte_protos.CoreNetworkTypeRestriction_NT_EPC}},
 	}
 	return subProto
 }
