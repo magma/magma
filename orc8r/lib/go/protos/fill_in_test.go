@@ -16,9 +16,9 @@ package protos_test
 import (
 	"testing"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func TestOverlapFillIn(t *testing.T) {

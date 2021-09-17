@@ -21,10 +21,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/lib/go/security/csr"
 	"magma/orc8r/lib/go/security/key"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func getDefaultCertificateRequestTemplate() (template *x509.CertificateRequest) {

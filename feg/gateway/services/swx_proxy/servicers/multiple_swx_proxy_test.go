@@ -17,14 +17,14 @@ import (
 	"net"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+	"google.golang.org/grpc"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/multiplex"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
-
-	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc"
 )
 
 // How multiple_swx_proxy_test works:

@@ -16,9 +16,9 @@ package storage
 import (
 	"testing"
 
-	"magma/lte/cloud/go/protos"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/lte/cloud/go/protos"
 )
 
 func TestValidateSubscriberData(t *testing.T) {

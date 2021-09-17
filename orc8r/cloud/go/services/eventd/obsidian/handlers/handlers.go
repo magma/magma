@@ -20,14 +20,14 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/obsidian"
-	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
-	logH "magma/orc8r/cloud/go/services/eventd/log/handlers"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"
+
+	"magma/orc8r/cloud/go/obsidian"
+	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
+	logH "magma/orc8r/cloud/go/services/eventd/log/handlers"
 )
 
 const (

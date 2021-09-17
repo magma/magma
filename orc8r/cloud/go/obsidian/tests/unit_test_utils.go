@@ -23,10 +23,10 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian"
-
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/obsidian"
 )
 
 type Test struct {

@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"net"
 
-	"magma/feg/gateway/gtp/enriched_message"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
+
+	"magma/feg/gateway/gtp/enriched_message"
 )
 
 type GtpParserFunc = func(msg message.Message) (csRes proto.Message, err error)

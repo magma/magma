@@ -59,7 +59,9 @@ int amf_handle_security_complete_response(
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
   } else {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the UE ID " AMF_UE_NGAP_ID_FMT,
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
@@ -68,7 +70,7 @@ int amf_handle_security_complete_response(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         "Timer: After stopping timer T3560 for securiy mode command"
-        " with id: %lu and ue_id: %d\n",
+        " with id: %lu and UE ID: " AMF_UE_NGAP_ID_FMT,
         smc_proc->T3560.id, ue_id);
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 

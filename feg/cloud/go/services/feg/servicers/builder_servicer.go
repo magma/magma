@@ -17,6 +17,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/feg/cloud/go/feg"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/cloud/go/serdes"
@@ -26,10 +30,6 @@ import (
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 type builderServicer struct{}

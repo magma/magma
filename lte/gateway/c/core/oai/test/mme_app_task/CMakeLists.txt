@@ -13,16 +13,27 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Dependencies
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
+pkg_search_module(OPENSSL openssl REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIRS})
+
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+include_directories(${CRYPTO_INCLUDE_DIRS})
+
+pkg_search_module(NETTLE nettle REQUIRED)
+include_directories(${NETTLE_INCLUDE_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR})
+
 include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 set(MME_APP_UE_CONTEXT_IMSI_SRC
     test_mme_app_ue_context.c
     )
+
 set(MME_APP_NAS_ENCODE_DECODE_SRC
 test_mme_app_nas_encode_decode.cpp
     )
@@ -34,15 +45,19 @@ set(NAS_EPS_QUALITY_OF_SERVICE
 set(NAS_APN_AMBR
     test_ApnAggregateMaximumBitRate.cpp
     )
-set(MME_APP_CONFIG_SRC
+
+set(MME_APP_TEST_SRC
+    mme_app_test.cpp
+    test_mme_app_emm_decode.cpp
     test_mme_app_config_partial_tai_list.cpp
+    test_mme_procedures.cpp
     )
 
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
 add_executable(test_nas_encode_decode ${MME_APP_NAS_ENCODE_DECODE_SRC})
 add_executable(test_nas_eps_quality_of_service ${NAS_EPS_QUALITY_OF_SERVICE})
 add_executable(test_nas_apn_ambr ${NAS_APN_AMBR})
-add_executable(test_mme_app_config ${MME_APP_CONFIG_SRC})
+add_executable(mme_app_test ${MME_APP_TEST_SRC})
 
 target_link_libraries(test_mme_app_ue_context_imsi
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
@@ -64,9 +79,10 @@ target_link_libraries(test_nas_eps_quality_of_service
     LIB_BSTR LIB_HASHTABLE gtest gtest_main
     )
 
-target_link_libraries(test_mme_app_config
-    TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    gtest gtest_main
+target_link_libraries(mme_app_test
+    TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
+    ${NETTLE_LIBRARIES}
     )
 
 target_include_directories(test_mme_app_ue_context_imsi PUBLIC
@@ -88,13 +104,8 @@ target_include_directories(test_nas_apn_ambr PUBLIC
     ${CHECK_INCLUDE_DIRS}
     )
 
-target_include_directories(test_mme_app_config PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CHECK_INCLUDE_DIRS}
-    )
-
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_nas_encode_decode COMMAND test_nas_encode_decode)
 add_test(NAME test_nas_eps_quality_of_service COMMAND test_nas_eps_quality_of_service)
 add_test(NAME test_nas_apn_ambr COMMAND test_nas_apn_ambr)
-add_test(NAME test_mme_app_config COMMAND test_mme_app_config)
+add_test(NAME test_mme_app COMMAND mme_app_test)

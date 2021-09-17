@@ -14,10 +14,10 @@
 package calculations
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
 )
 
 // UserStateManager contains the user state in the deployment to enforce minUserThreshold constraint

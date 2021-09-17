@@ -18,10 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/dispatcher/broker/memstore"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // process response when no reqId is set up, should return err, not panic

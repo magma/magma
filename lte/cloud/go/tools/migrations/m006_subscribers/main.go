@@ -19,15 +19,14 @@ import (
 	"encoding/json"
 	"log"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/tools/migrations"
-
 	"github.com/Masterminds/squirrel"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
+	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/tools/migrations"
 )
 
 const (

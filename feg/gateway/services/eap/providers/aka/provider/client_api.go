@@ -1,3 +1,4 @@
+//go:build !link_local_service
 // +build !link_local_service
 
 /*
@@ -21,15 +22,14 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/gateway/services/eap/providers"
-	"magma/feg/gateway/services/eap/providers/aka/servicers"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	eapp "magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers"
+	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 )
 

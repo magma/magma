@@ -16,13 +16,13 @@ package policydb_test
 import (
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/object_store"
 	"magma/feg/gateway/policydb"
 	lteProtos "magma/lte/cloud/go/protos"
 	orc8rProtos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestPolicySerializer(t *testing.T) {

@@ -18,6 +18,9 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
@@ -33,9 +36,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 var (

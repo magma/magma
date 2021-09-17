@@ -18,14 +18,13 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/cloud/go/services/feg_relay"
-	orc8r_protos "magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
+	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/registry"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 )
 
 // GWS8ProxyCreateBearerRequest forwards Create Bearer Request to FegRelay and

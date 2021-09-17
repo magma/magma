@@ -23,6 +23,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+	context2 "golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/services/accessd"
@@ -33,10 +37,6 @@ import (
 	security_cert "magma/orc8r/lib/go/security/cert"
 	certifier_test_utils "magma/orc8r/lib/go/security/csr"
 	"magma/orc8r/lib/go/util"
-
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
-	context2 "golang.org/x/net/context"
 )
 
 const (

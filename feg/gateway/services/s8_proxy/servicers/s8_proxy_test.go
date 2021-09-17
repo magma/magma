@@ -21,17 +21,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/wmnsk/go-gtp/gtpv2"
+	"github.com/wmnsk/go-gtp/gtpv2/ie"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_feg_relay"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/wmnsk/go-gtp/gtpv2"
-	"github.com/wmnsk/go-gtp/gtpv2/ie"
 )
 
 const (

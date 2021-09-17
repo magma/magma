@@ -17,12 +17,12 @@ import (
 	"context"
 	"sort"
 
+	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
 
 // ListMSISDNs returns the tracked MSISDNs, keyed by their associated IMSI.

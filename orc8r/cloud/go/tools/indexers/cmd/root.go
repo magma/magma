@@ -19,11 +19,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"magma/orc8r/cloud/go/services/state"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/spf13/cobra"
 )
 
 var (

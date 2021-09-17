@@ -23,8 +23,8 @@ extern "C" {
 #include "amf_as.h"
 #include "conversions.h"
 #include "secu_defs.h"
+#include "3gpp_38.401.h"
 
-typedef uint32_t amf_ue_ngap_id_t;
 #define QUADLET 4
 #define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
   LENGTH += QUADLET - (LENGTH % QUADLET)

@@ -1035,7 +1035,7 @@ static int emm_cn_cs_domain_mm_information_req(
     }
 
     if (ue_context_p->sgs_context->sgs_state == SGS_ASSOCIATED) {
-      if ((rc = emm_proc_emm_informtion(ue_context_p)) != RETURNok) {
+      if ((rc = emm_proc_emm_information(ue_context_p)) != RETURNok) {
         OAILOG_WARNING(
             LOG_NAS_EMM,
             "Failed to send Emm Information Reqest for " IMSI_64_FMT "\n",

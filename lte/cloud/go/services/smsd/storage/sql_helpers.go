@@ -19,13 +19,13 @@ import (
 	"sort"
 	"time"
 
-	"magma/orc8r/cloud/go/sqorc"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 type tSmsByPk = map[string]*SMS

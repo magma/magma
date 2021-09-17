@@ -2161,7 +2161,7 @@ nw_rc_t nwGtpv2cProcessTimeoutOld(void* arg) {
     if (timeoutInfo) {
       NW_GTPV2C_TIMER_SUB(&timeoutInfo->tvTimeout, &tv, &tv);
       rc = thiz->tmrMgr.tmrStartCallback(
-          thiz->tmrMgr.tmrMgrHandle, tv.tv_sec, tv.tv_usec,
+          thiz->tmrMgr.tmrMgrHandle, tv.tv_sec * 1000 + tv.tv_usec / 1000,
           timeoutInfo->tmrType, (void*) timeoutInfo, &timeoutInfo->hTimer);
       NW_ASSERT(NW_OK == rc);
       thiz->activeTimerInfo = timeoutInfo;
@@ -2169,6 +2169,10 @@ nw_rc_t nwGtpv2cProcessTimeoutOld(void* arg) {
   }
 
   OAILOG_FUNC_RETURN(LOG_GTPV2C, rc);
+}
+
+nw_rc_t nwGtpv2cProcessTimeoutExt(zloop_t* loop, int timer_id, void* arg) {
+  return nwGtpv2cProcessTimeout(arg);
 }
 
 nw_rc_t nwGtpv2cProcessTimeout(void* arg) {
@@ -2214,7 +2218,7 @@ nw_rc_t nwGtpv2cProcessTimeout(void* arg) {
     rc = nwGtpv2cTmrMinHeapRemove(
         (NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap,
         timeoutInfo->timerMinHeapIndex);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
     timeoutInfo->next       = gpGtpv2cTimeoutInfoPool;
     gpGtpv2cTimeoutInfoPool = timeoutInfo;
     rc = ((timeoutInfo)->timeoutCallbackFunc)(timeoutInfo->timeoutArg);
@@ -2234,7 +2238,7 @@ nw_rc_t nwGtpv2cProcessTimeout(void* arg) {
     if (timeoutInfo) {
       NW_GTPV2C_TIMER_SUB(&timeoutInfo->tvTimeout, &tv, &tv);
       rc = thiz->tmrMgr.tmrStartCallback(
-          thiz->tmrMgr.tmrMgrHandle, tv.tv_sec, tv.tv_usec,
+          thiz->tmrMgr.tmrMgrHandle, tv.tv_sec * 1000 + tv.tv_usec / 1000,
           timeoutInfo->tmrType, (void*) timeoutInfo, &timeoutInfo->hTimer);
       NW_ASSERT(NW_OK == rc);
       thiz->activeTimerInfo = timeoutInfo;
@@ -2320,89 +2324,8 @@ nw_rc_t nwGtpv2cStartTimer(
     }
 
     rc = thiz->tmrMgr.tmrStartCallback(
-        thiz->tmrMgr.tmrMgrHandle, timeoutSec, timeoutUsec, tmrType,
-        (void*) timeoutInfo, &timeoutInfo->hTimer);
-    OAILOG_DEBUG(
-        LOG_GTPV2C, "Started timer 0x%" PRIxPTR " for info 0x%p!\n",
-        timeoutInfo->hTimer, timeoutInfo);
-    NW_ASSERT(NW_OK == rc);
-    thiz->activeTimerInfo = timeoutInfo;
-  }
-
-  *phTimer = (nw_gtpv2c_timer_handle_t) timeoutInfo;
-  OAILOG_FUNC_RETURN(LOG_GTPV2C, rc);
-}
-
-nw_rc_t nwGtpv2cStartTimerOld(
-    nw_gtpv2c_stack_t* thiz, uint32_t timeoutSec, uint32_t timeoutUsec,
-    uint32_t tmrType, nw_rc_t (*timeoutCallbackFunc)(void*),
-    void* timeoutCallbackArg, nw_gtpv2c_timer_handle_t* phTimer) {
-  nw_rc_t rc = NW_OK;
-  struct timeval tv;
-  nw_gtpv2c_timeout_info_t* timeoutInfo;
-  nw_gtpv2c_timeout_info_t* collision;
-
-  NW_ASSERT(thiz != NULL);
-  OAILOG_FUNC_IN(LOG_GTPV2C);
-
-  if (gpGtpv2cTimeoutInfoPool) {
-    timeoutInfo             = gpGtpv2cTimeoutInfoPool;
-    gpGtpv2cTimeoutInfoPool = gpGtpv2cTimeoutInfoPool->next;
-  } else {
-    NW_GTPV2C_MALLOC(
-        thiz, sizeof(nw_gtpv2c_timeout_info_t), timeoutInfo,
-        nw_gtpv2c_timeout_info_t*);
-  }
-
-  if (timeoutInfo) {
-    timeoutInfo->tmrType             = tmrType;
-    timeoutInfo->timeoutArg          = timeoutCallbackArg;
-    timeoutInfo->timeoutCallbackFunc = timeoutCallbackFunc;
-    timeoutInfo->hStack              = (nw_gtpv2c_stack_handle_t) thiz;
-    NW_ASSERT(gettimeofday(&tv, NULL) == 0);
-    NW_ASSERT(gettimeofday(&timeoutInfo->tvTimeout, NULL) == 0);
-    timeoutInfo->tvTimeout.tv_sec  = timeoutSec;
-    timeoutInfo->tvTimeout.tv_usec = timeoutUsec;
-    NW_GTPV2C_TIMER_ADD(&tv, &timeoutInfo->tvTimeout, &timeoutInfo->tvTimeout);
-
-    do {
-      collision = RB_INSERT(
-          NwGtpv2cActiveTimerList, &(thiz->activeTimerList), timeoutInfo);
-
-      if (!collision) break;
-
-      OAILOG_WARNING(LOG_GTPV2C, "timer collision!\n");
-      timeoutInfo->tvTimeout.tv_usec++; /* HACK: In case there is a collision,
-                                           schedule this event 1 usec later */
-
-      if (timeoutInfo->tvTimeout.tv_usec > (999999 /*1000000 - 1 */)) {
-        timeoutInfo->tvTimeout.tv_usec = 0;
-        timeoutInfo->tvTimeout.tv_sec++;
-      }
-    } while (1);
-
-    if (thiz->activeTimerInfo) {
-      if (NW_GTPV2C_TIMER_CMP_P(
-              &(thiz->activeTimerInfo->tvTimeout), &(timeoutInfo->tvTimeout),
-              >)) {
-        OAILOG_DEBUG(
-            LOG_GTPV2C, "Stopping active timer 0x%" PRIxPTR " for info 0x%p!\n",
-            thiz->activeTimerInfo->hTimer, thiz->activeTimerInfo);
-        rc = thiz->tmrMgr.tmrStopCallback(
-            thiz->tmrMgr.tmrMgrHandle, thiz->activeTimerInfo->hTimer);
-        NW_ASSERT(NW_OK == rc);
-      } else {
-        OAILOG_DEBUG(
-            LOG_GTPV2C, "Already Started timer 0x%" PRIxPTR " for info 0x%p!\n",
-            thiz->activeTimerInfo->hTimer, thiz->activeTimerInfo);
-        *phTimer = (nw_gtpv2c_timer_handle_t) timeoutInfo;
-        OAILOG_FUNC_RETURN(LOG_GTPV2C, NW_OK);
-      }
-    }
-
-    rc = thiz->tmrMgr.tmrStartCallback(
-        thiz->tmrMgr.tmrMgrHandle, timeoutSec, timeoutUsec, tmrType,
-        (void*) timeoutInfo, &timeoutInfo->hTimer);
+        thiz->tmrMgr.tmrMgrHandle, timeoutSec * 1000 + timeoutUsec / 1000,
+        tmrType, (void*) timeoutInfo, &timeoutInfo->hTimer);
     OAILOG_DEBUG(
         LOG_GTPV2C, "Started timer 0x%" PRIxPTR " for info 0x%p!\n",
         timeoutInfo->hTimer, timeoutInfo);
@@ -2466,57 +2389,7 @@ nw_rc_t nwGtpv2cStopTimer(
       } else {
         NW_GTPV2C_TIMER_SUB(&timeoutInfo->tvTimeout, &tv, &tv);
         rc = thiz->tmrMgr.tmrStartCallback(
-            thiz->tmrMgr.tmrMgrHandle, tv.tv_sec, tv.tv_usec,
-            timeoutInfo->tmrType, (void*) timeoutInfo, &timeoutInfo->hTimer);
-        NW_ASSERT(NW_OK == rc);
-        OAILOG_DEBUG(
-            LOG_GTPV2C, "Started timer 0x%" PRIxPTR " for info 0x%p!\n",
-            timeoutInfo->hTimer, timeoutInfo);
-        thiz->activeTimerInfo = timeoutInfo;
-      }
-    }
-  }
-
-  OAILOG_FUNC_RETURN(LOG_GTPV2C, rc);
-}
-
-nw_rc_t nwGtpv2cStopTimerOld(
-    nw_gtpv2c_stack_t* thiz, nw_gtpv2c_timer_handle_t hTimer) {
-  nw_rc_t rc = NW_OK;
-  struct timeval tv;
-  nw_gtpv2c_timeout_info_t* timeoutInfo;
-
-  NW_ASSERT(thiz != NULL);
-  OAILOG_FUNC_IN(LOG_GTPV2C);
-  timeoutInfo = (nw_gtpv2c_timeout_info_t*) hTimer;
-  RB_REMOVE(NwGtpv2cActiveTimerList, &(thiz->activeTimerList), timeoutInfo);
-  timeoutInfo->next       = gpGtpv2cTimeoutInfoPool;
-  gpGtpv2cTimeoutInfoPool = timeoutInfo;
-  OAILOG_DEBUG(
-      LOG_GTPV2C, "Stopping active timer 0x%" PRIxPTR " for info 0x%p!\n",
-      timeoutInfo->hTimer, timeoutInfo);
-
-  if (thiz->activeTimerInfo == timeoutInfo) {
-    OAILOG_DEBUG(
-        LOG_GTPV2C, "Stopping active timer 0x%" PRIxPTR " for info 0x%p!\n",
-        timeoutInfo->hTimer, timeoutInfo);
-    rc = thiz->tmrMgr.tmrStopCallback(
-        thiz->tmrMgr.tmrMgrHandle, timeoutInfo->hTimer);
-    thiz->activeTimerInfo = NULL;
-    NW_ASSERT(NW_OK == rc);
-    timeoutInfo = RB_MIN(NwGtpv2cActiveTimerList, &(thiz->activeTimerList));
-
-    if (timeoutInfo) {
-      NW_ASSERT(gettimeofday(&tv, NULL) == 0);
-
-      if (NW_GTPV2C_TIMER_CMP_P(&timeoutInfo->tvTimeout, &tv, <)) {
-        thiz->activeTimerInfo = timeoutInfo;
-        rc                    = nwGtpv2cProcessTimeout(timeoutInfo);
-        NW_ASSERT(NW_OK == rc);
-      } else {
-        NW_GTPV2C_TIMER_SUB(&timeoutInfo->tvTimeout, &tv, &tv);
-        rc = thiz->tmrMgr.tmrStartCallback(
-            thiz->tmrMgr.tmrMgrHandle, tv.tv_sec, tv.tv_usec,
+            thiz->tmrMgr.tmrMgrHandle, tv.tv_sec * 1000 + tv.tv_usec / 1000,
             timeoutInfo->tmrType, (void*) timeoutInfo, &timeoutInfo->hTimer);
         NW_ASSERT(NW_OK == rc);
         OAILOG_DEBUG(

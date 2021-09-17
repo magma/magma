@@ -22,15 +22,15 @@ import (
 	"net/http"
 	neturl "net/url"
 
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
-	"magma/orc8r/lib/go/metrics"
-
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
+
+	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
+	"magma/orc8r/lib/go/metrics"
 )
 
 const (

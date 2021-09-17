@@ -19,11 +19,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
+
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/utils"
 	"magma/gateway/mconfig"
-
-	"github.com/golang/glog"
 )
 
 const (

@@ -17,12 +17,12 @@ import (
 	"context"
 	"strings"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 // remoteBuilder identifies a remote mconfig builder.

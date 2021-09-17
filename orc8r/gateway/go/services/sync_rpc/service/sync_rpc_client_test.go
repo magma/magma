@@ -55,7 +55,7 @@ func (svc *testSyncRpcService) SyncRPC(stream protos.SyncRPCService_SyncRPCServe
 
 // run instance of the test grpc service
 func runTestSyncRpcService(server *testSyncRpcService, grpcPortCh chan string) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
+	lis, err := net.Listen("tcp", ":0")
 	if err != nil {
 		glog.Fatalf("failed to listen: %v", err)
 	}
@@ -103,7 +103,8 @@ func TestSyncRpcClient(t *testing.T) {
 		conn, err := grpc.Dial(fmt.Sprintf("localhost:%s", grpcPort),
 			grpc.WithInsecure())
 		if err != nil {
-			t.Fatal("Failed creating a test client")
+			t.Log("Failed creating a test client")
+			svcSyncRpcRespCh <- &protos.SyncRPCResponse{}
 			return
 		}
 		defer conn.Close()
@@ -157,7 +158,8 @@ func TestSyncRpcClient(t *testing.T) {
 		conn, err := grpc.Dial(fmt.Sprintf("localhost:%s", grpcPort),
 			grpc.WithInsecure())
 		if err != nil {
-			t.Fatal("Failed creating a test client")
+			t.Log("Failed creating a test client")
+			svcSyncRpcRespCh <- &protos.SyncRPCResponse{}
 			return
 		}
 		defer conn.Close()

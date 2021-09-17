@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/labstack/echo"
+	"github.com/thoas/go-funk"
+
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	"magma/lte/cloud/go/services/smsd/obsidian/models"
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/orc8r/cloud/go/obsidian"
-
-	"github.com/labstack/echo"
-	"github.com/thoas/go-funk"
 )
 
 const (

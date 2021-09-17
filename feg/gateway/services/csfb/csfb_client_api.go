@@ -18,15 +18,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 )
 
 type grpcClient func(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error)
