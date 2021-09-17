@@ -71,6 +71,7 @@ def prometheus_cpp_deps():
         # Used what master was around when D6071833@fb was authored (Oct 18, 2017)
         # The metrics.proto pulled here should match what we have in orc8r/protos/prometheus/metrics.proto
         commit = "fa8ad6fec33561be4280a8f0514318c79d7f6cb6",
+        shallow_since = "1423736264 +0000",
         remote = "https://github.com/prometheus/client_model.git",
     )
 
@@ -86,6 +87,7 @@ def prometheus_cpp_deps():
         name = "prometheus_cpp",
         commit = "d8326b2bba945a435f299e7526c403d7a1f68c1f",
         remote = "https://github.com/jupp0r/prometheus-cpp.git",
+        shallow_since = "1485901529 +0100",
     )
 
 def cpp_redis():
