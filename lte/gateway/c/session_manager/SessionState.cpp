@@ -695,7 +695,7 @@ void SessionState::apply_session_static_rule_set(
   std::vector<PolicyRule> static_pending_deactivation;
 
   // Go through the existing rules and uninstall any rule not in the rule set
-  for (const auto static_rule_id : active_static_rules_) {
+  for (const auto& static_rule_id : active_static_rules_) {
     if (static_rules.find(static_rule_id) == static_rules.end()) {
       PolicyRule rule;
       if (static_rules_.get_rule(static_rule_id, &rule)) {
@@ -705,7 +705,7 @@ void SessionState::apply_session_static_rule_set(
   }
   // Do the actual removal separately so we're not modifying the vector while
   // looping
-  for (const PolicyRule static_rule : static_pending_deactivation) {
+  for (const PolicyRule& static_rule : static_pending_deactivation) {
     MLOG(MINFO) << "Removing static rule " << static_rule.id() << " for "
                 << session_id_;
     optional<RuleToProcess> op_rule_info =
@@ -1032,10 +1032,10 @@ SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   gy_dynamic_rules_.get_rules(gy_dynamic_rules);
 
   // Set versions
-  for (const PolicyRule rule : gx_dynamic_rules) {
+  for (const PolicyRule& rule : gx_dynamic_rules) {
     info.gx_rules.push_back(make_rule_to_process(rule));
   }
-  for (const PolicyRule rule : gy_dynamic_rules) {
+  for (const PolicyRule& rule : gy_dynamic_rules) {
     info.gy_dynamic_rules.push_back(make_rule_to_process(rule));
   }
 
@@ -1647,7 +1647,7 @@ std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {
     if (grant->service_state != SERVICE_RESTRICTED) {
       continue;
     }
-    for (const std::string rule_id : grant->final_action_info.restrict_rules) {
+    for (const std::string& rule_id : grant->final_action_info.restrict_rules) {
       PolicyRule rule;
       if (static_rules_.get_rule(rule_id, &rule)) {
         rules.push_back(rule);
