@@ -60,8 +60,7 @@ static magma::mconfig::SessionD get_default_mconfig() {
 
 static magma::mconfig::SessionD load_mconfig() {
   magma::mconfig::SessionD mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(SESSIOND_SERVICE, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(SESSIOND_SERVICE, &mconfig)) {
     MLOG(MERROR) << "Unable to load mconfig for SessionD, using default";
     return get_default_mconfig();
   }
