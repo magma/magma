@@ -1,0 +1,5 @@
+{
+  "log_level": "DEBUG",
+  "sctpd_upstream_service_target": "foo",
+  "mme_sctpd_downstream_service_target": "bar"
+}

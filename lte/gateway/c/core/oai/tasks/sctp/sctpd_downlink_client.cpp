@@ -26,7 +26,7 @@ extern "C" {
 #include "sctp_defs.h"
 }
 
-#include <memory.h>
+#include <memory>  // for make_unique<>
 #include <unistd.h>
 
 #include <grpcpp/grpcpp.h>

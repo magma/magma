@@ -104,3 +104,4 @@ bazel-magma
 bazel-out
 bazel-testlogs
 help
+compile_commands.json
