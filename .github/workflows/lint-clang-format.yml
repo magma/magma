@@ -6,13 +6,23 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
-    paths:
-      - .github/workflows/lint-clang-format.yml
-      - lte/gateway/c/**
-      - orc8r/gateway/c/**
 
 jobs:
+  pre_job_c_cpp_determinator:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '[".github/workflows/lint-clang-format.yml", "lte/gateway/c/**", "orc8r/gateway/c/**"]'
+
   lint-clang-format:
+    needs: pre_job_c_cpp_determinator
+    if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_skip == 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

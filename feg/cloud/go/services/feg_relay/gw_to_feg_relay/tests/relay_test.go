@@ -21,14 +21,13 @@ import (
 	"testing"
 	"time"
 
-	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
-
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 
 	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/serdes"
+	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"

@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -29,8 +31,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (

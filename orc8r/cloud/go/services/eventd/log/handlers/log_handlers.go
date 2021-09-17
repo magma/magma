@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian"
-
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"
+
+	"magma/orc8r/cloud/go/obsidian"
 )
 
 const (

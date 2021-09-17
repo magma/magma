@@ -18,13 +18,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 // getGWMagmadClient gets a GRPC client to the magmad service running on the gateway specified by (network ID, gateway ID).

@@ -186,7 +186,11 @@ int amf_proc_registration_request(
 
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_m5gmm_context == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "ue context not found for the"
+        "ue_id=" AMF_UE_NGAP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
@@ -652,8 +656,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
           registration_accept_t3550_handler, registration_proc->ue_id);
       OAILOG_DEBUG(
           LOG_AMF_APP,
-          "Timer: Registration_accept timer T3550 with id  %lu Started for ue "
-          "id: %d\n",
+          "Timer: Registration_accept timer T3550 with id  %lu "
+          "Started for ue id: " AMF_UE_NGAP_ID_FMT,
           registration_proc->T3550.id, registration_proc->ue_id);
     }
   }
@@ -679,7 +683,8 @@ static int registration_accept_t3550_handler(
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
-        LOG_AMF_APP, "T3550: ue_context is NULL for ue_id: %d\n", ue_id);
+        LOG_AMF_APP,
+        "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
@@ -821,7 +826,8 @@ int amf_handle_registration_complete_response(
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "AMFAS-SAP - received registration complete message for ue_id = (%u)\n",
+      "AMFAS-SAP - received registration complete message for ue_id "
+      "=" AMF_UE_NGAP_ID_FMT "\n",
       ue_id);
 
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -909,7 +915,9 @@ int amf_reg_send(amf_sap_t* const msg) {
 
   if (!ue_amf_context) {
     OAILOG_ERROR(
-        LOG_NAS_AMF, "Ue context not found for the ue id %u\n", evt->ue_id);
+        LOG_NAS_AMF,
+        "Ue context not found for the ue id" AMF_UE_NGAP_ID_FMT "\n",
+        evt->ue_id);
     rc = RETURNerror;
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }

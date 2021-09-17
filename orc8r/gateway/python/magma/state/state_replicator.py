@@ -19,7 +19,7 @@ import grpc
 import jsonpickle
 from google.protobuf.json_format import MessageToDict
 from magma.common.grpc_client_manager import GRPCClientManager
-from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.rpc_utils import grpc_async_wrapper, print_grpc
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service import MagmaService
 from magma.state.garbage_collector import GarbageCollector
@@ -54,6 +54,7 @@ class StateReplicator(SDWatchdogTask):
         service: MagmaService,
         garbage_collector: GarbageCollector,
         grpc_client_manager: GRPCClientManager,
+        print_grpc_payload: bool = False,
     ):
         sync_interval = service.config.get(
             'sync_interval', DEFAULT_SYNC_INTERVAL,
@@ -81,6 +82,10 @@ class StateReplicator(SDWatchdogTask):
         # Track replication iteration to track when to trigger garbage
         # collection
         self._replication_iteration = 0
+        self._print_grpc_payload = print_grpc_payload
+
+        if self._print_grpc_payload:
+            logging.info("Printing GRPC messages")
 
     async def _run(self):
         logging.debug("Check state")
@@ -123,12 +128,20 @@ class StateReplicator(SDWatchdogTask):
             return
         state_client = self._grpc_client_manager.get_client()
         request = SyncStatesRequest(states=states_to_sync)
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Sending resync state request",
+        )
         response = await grpc_async_wrapper(
             state_client.SyncStates.future(
                 request,
                 DEFAULT_GRPC_TIMEOUT,
             ),
             self._loop,
+        )
+        print_grpc(
+            response, self._print_grpc_payload,
+            "Received resync state request",
         )
         unsynced_states = set()
         for id_and_version in response.unsyncedStates:
@@ -205,6 +218,10 @@ class StateReplicator(SDWatchdogTask):
     async def _send_to_state_service(self, request: ReportStatesRequest):
         state_client = self._grpc_client_manager.get_client()
         try:
+            print_grpc(
+                request, self._print_grpc_payload,
+                "Sending to state service",
+            )
             response = await grpc_async_wrapper(
                 state_client.ReportStates.future(
                     request,
@@ -212,6 +229,7 @@ class StateReplicator(SDWatchdogTask):
                 ),
                 self._loop,
             )
+            print_grpc(response, self._print_grpc_payload)
 
         except grpc.RpcError as err:
             logging.error("GRPC call failed for state replication: %s", err)

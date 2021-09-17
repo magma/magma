@@ -16,6 +16,9 @@ extern "C" {
 #include "include/mme_config.h"
 }
 
+namespace magma {
+namespace lte {
+
 class MMEConfigTest : public ::testing::Test {
  protected:
   std::array<int, 25> ncon_tac;
@@ -525,7 +528,5 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
   free(config_pP.partial_list);
 }
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+}  // namespace lte
+}  // namespace magma

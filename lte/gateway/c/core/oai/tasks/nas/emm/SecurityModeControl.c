@@ -345,7 +345,8 @@ status_code_e emm_proc_security_mode_control(
     smc_proc->selected_eea = emm_ctx->_security.selected_algorithms.encryption;
     OAILOG_DEBUG(
         LOG_NAS_EMM,
-        "EPS encryption algorithm selected is (%d) for ue_id (%u)\n",
+        "EPS encryption algorithm selected is (%d) for UE "
+        "ID: " MME_UE_S1AP_ID_FMT,
         smc_proc->selected_eea, ue_id);
     /*
      * Set the EPS integrity algorithms selected to the UE
@@ -353,7 +354,8 @@ status_code_e emm_proc_security_mode_control(
     smc_proc->selected_eia = emm_ctx->_security.selected_algorithms.integrity;
     OAILOG_DEBUG(
         LOG_NAS_EMM,
-        "EPS integrity algorithm selected is (%d) for ue_id (%u)\n",
+        "EPS integrity algorithm selected is (%d) for UE "
+        "ID: " MME_UE_S1AP_ID_FMT,
         smc_proc->selected_eia, ue_id);
 
     smc_proc->is_new = security_context_is_new;

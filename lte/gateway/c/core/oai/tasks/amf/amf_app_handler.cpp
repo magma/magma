@@ -489,7 +489,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         "Creating new ue_m5gmm_context: [%p]"
-        "for amf_ue_ngap_id: [%u]\n",
+        "for amf_ue_ngap_id: [" AMF_UE_NGAP_ID_FMT "]",
         ue_context_p, ue_context_p->amf_ue_ngap_id);
 
     AMF_APP_GNB_NGAP_ID_KEY(
@@ -517,7 +517,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         " Sending nas establishment indication to nas for ue_id = "
-        "(%d)\n",
+        "(" AMF_UE_NGAP_ID_FMT ")",
         ue_context_p->amf_ue_ngap_id);
   }
   is_mm_ctx_new = true;
@@ -525,7 +525,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   OAILOG_DEBUG(
       LOG_AMF_APP,
       " Sending NAS Establishment Indication to NAS for ue_id = "
-      "(%d)\n",
+      "(" AMF_UE_NGAP_ID_FMT ")",
       ue_context_p->amf_ue_ngap_id);
   nas_proc_establish_ind(
       ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
@@ -566,7 +566,9 @@ int amf_app_handle_uplink_nas_message(
     rc                                   = amf_sap_send(&amf_sap);
   } else {
     OAILOG_WARNING(
-        LOG_NAS, "Received NAS message in uplink is NULL for ue_id = (%u)\n",
+        LOG_NAS,
+        "Received NAS message in uplink is NULL for for UE "
+        "ID: " AMF_UE_NGAP_ID_FMT,
         amf_app_desc_p->amf_app_ue_ngap_id_generator);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -662,7 +664,7 @@ void amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
-      ue_context->mm_state == REGISTERED_CONNECTED;
+      ue_context->mm_state = REGISTERED_CONNECTED;
     }
   } else {
     OAILOG_DEBUG(
@@ -721,14 +723,14 @@ int amf_app_handle_pdu_session_accept(
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
-    OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
+    OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %u", ue_id);
     return M5G_AS_FAILURE;
   }
 
   smf_ctx = amf_smf_context_exists_pdu_session_id(
       ue_context, pdu_session_resp->pdu_session_id);
   if (!smf_ctx) {
-    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %d", ue_id);
+    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %u", ue_id);
     return M5G_AS_FAILURE;
   }
   // updating session state
@@ -899,7 +901,8 @@ void amf_app_handle_resource_setup_response(
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context == NULL) {
       OAILOG_ERROR(
-          LOG_AMF_APP, "UE context not found for the ue_id=%u\n", ue_id);
+          LOG_AMF_APP,
+          "UE context not found for the ue_id = " AMF_UE_NGAP_ID_FMT, ue_id);
       return;
     }
 
@@ -927,7 +930,9 @@ void amf_app_handle_resource_setup_response(
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     // Handling of ue context
     if (!ue_context) {
-      OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
+      OAILOG_ERROR(
+          LOG_AMF_APP, "UE context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
+          ue_id);
     }
 
     // Store gNB ip and TEID in respective smf_context
@@ -1032,7 +1037,9 @@ void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req) {
   int rc = RETURNerror;
   OAILOG_DEBUG(
-      LOG_AMF_APP, " Handling UL UE context release for CM-idle for ue id %d\n",
+      LOG_AMF_APP,
+      " Handling UL UE context release for CM-idle for UE "
+      "ID: " AMF_UE_NGAP_ID_FMT,
       cm_idle_req.amf_ue_ngap_id);
   /* Currently only one PDU session is considered.
    * for multiple PDU session context (smf_context_t) will be part of vector
@@ -1072,7 +1079,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       OAILOG_WARNING(
           LOG_AMF_APP,
           " UE in registered_connected state, but cause from NGAP"
-          " is wrong for UE ID %d and return\n",
+          " is wrong for UE ID: " AMF_UE_NGAP_ID_FMT " and return",
           cm_idle_req.amf_ue_ngap_id);
       return;
     }
@@ -1085,7 +1092,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         " UE in REGISTERED_IDLE or CM-idle state, nothing to do"
-        " for UE ID %d\n",
+        " for UE ID: " AMF_UE_NGAP_ID_FMT,
         cm_idle_req.amf_ue_ngap_id);
     return;
   }
@@ -1105,7 +1112,7 @@ void ue_context_release_command(
   OAILOG_DEBUG(
       LOG_AMF_APP,
       "preparing for context release command to NGAP "
-      "for ue_id %d\n",
+      "for ue_id " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
 
   message_p =
@@ -1156,8 +1163,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "T3513: timer has expired for ue id: %d with timer id: %d,"
-        "Sending Paging request again\n",
+        "T3513: timer has expired for UE ID: " AMF_UE_NGAP_ID_FMT
+        " with timer id: %d, Sending Paging request again",
         ue_id, timer_id);
     /*
      * Increment the retransmission counter
@@ -1206,6 +1213,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
     OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    if (rc != RETURNok)
+      OAILOG_ERROR(LOG_AMF_APP, "Could not send msg to task\n");
     //    amf_paging_request(paging_ctx);
   } else {
     /*
@@ -1215,7 +1224,6 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         LOG_AMF_APP,
         "T3513: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
@@ -1252,7 +1260,8 @@ int amf_app_handle_notification_received(
       paging_ctx = &ue_context->paging_context;
 
       OAILOG_INFO(
-          LOG_AMF_APP, "T3513: Starting PAGING Timer for ue id: %d\n",
+          LOG_AMF_APP,
+          "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT,
           ue_context->amf_ue_ngap_id);
       paging_ctx->paging_retx_count = 0;
       /* Start Paging Timer T3513 */
@@ -1262,7 +1271,8 @@ int amf_app_handle_notification_received(
       // Fill the itti msg based on context info produced in amf core
       OAILOG_INFO(
           LOG_AMF_APP,
-          "T3513: Starting PAGING Timer for ue id: %u and timer id: %ld\n",
+          "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT
+          " and timer id: %ld",
           ue_context->amf_ue_ngap_id, paging_ctx->m5_paging_response_timer.id);
 
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -1316,7 +1326,7 @@ void amf_app_handle_initial_context_setup_rsp(
 
   if (!ue_context) {
     OAILOG_ERROR(
-        LOG_AMF_APP, " Ue context not found for the id %u\n",
+        LOG_AMF_APP, " Ue context not found for the id " AMF_UE_NGAP_ID_FMT,
         initial_context_rsp->ue_id);
     return;
   }

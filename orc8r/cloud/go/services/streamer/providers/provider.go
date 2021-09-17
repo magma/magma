@@ -16,9 +16,9 @@ package providers
 import (
 	"context"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes/any"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 // StreamProvider provides a streamer policy. Given a gateway hardware ID,

@@ -28,6 +28,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/emakeev/snowflake"
+	"github.com/go-openapi/strfmt"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/metadata"
+
 	"magma/gateway/config"
 	bootstrap_client "magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/cloud/go/orc8r"
@@ -44,12 +50,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/csr"
 	"magma/orc8r/lib/go/security/key"
-
-	"github.com/emakeev/snowflake"
-	"github.com/go-openapi/strfmt"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
 )
 
 const (

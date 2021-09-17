@@ -22,11 +22,11 @@ import (
 	"fmt"
 	"log"
 
+	"google.golang.org/grpc"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/hlr"
 	"magma/feg/gateway/registry"
-
-	"google.golang.org/grpc"
 )
 
 // Wrapper for GRPC Client

@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/feg/gateway/services/session_proxy/credit_control/gy"
-	"magma/feg/gateway/services/session_proxy/relay/mocks"
-	"magma/lte/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	"magma/feg/gateway/services/session_proxy/relay/mocks"
+	"magma/lte/cloud/go/protos"
 )
 
 func TestReAuthRelay(t *testing.T) {

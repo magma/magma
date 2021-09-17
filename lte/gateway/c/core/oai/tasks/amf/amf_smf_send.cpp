@@ -306,7 +306,8 @@ static int pdu_session_resource_release_t3592_handler(
     }
   } else {
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3592: ue context not found for the ue_id=%u\n",
+        LOG_AMF_APP,
+        "T3592: ue context not found for UE ID = " AMF_UE_NGAP_ID_FMT,
         amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
@@ -381,7 +382,9 @@ int amf_smf_send(
       OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
     }
   } else {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id = " AMF_UE_NGAP_ID_FMT,
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 

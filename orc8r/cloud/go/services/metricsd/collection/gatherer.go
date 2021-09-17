@@ -17,11 +17,11 @@ import (
 	"fmt"
 	"time"
 
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	prometheus_proto "github.com/prometheus/client_model/go"
+
+	"magma/orc8r/lib/go/registry"
 )
 
 // MetricsGatherer wraps a set of MetricCollectors, polling each collector

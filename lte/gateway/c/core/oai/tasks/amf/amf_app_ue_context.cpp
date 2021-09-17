@@ -112,7 +112,8 @@ int amf_insert_ue_context(
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
       OAILOG_DEBUG(
-          LOG_AMF_APP, "Overwriting the Existing entry UE_ID=%u\n", ue_id);
+          LOG_AMF_APP,
+          "Overwriting the Existing entry UE_ID = " AMF_UE_NGAP_ID_FMT, ue_id);
     }
   }
 
@@ -431,6 +432,8 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
     h_rc = hashtable_uint64_ts_remove(
         amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
         (const hash_key_t) ue_context_p->gnb_ngap_id_key);
+    if (h_rc != HASH_TABLE_OK)
+      OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   }
 
@@ -438,6 +441,8 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
     h_rc = hashtable_ts_remove(
         amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
         reinterpret_cast<void**>(&ue_context_p));
+    if (h_rc != HASH_TABLE_OK)
+      OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
   }
 

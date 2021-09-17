@@ -16,12 +16,12 @@ package mock_ocs
 import (
 	"fmt"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/testcore/mock_driver"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/golang/glog"
 )
 
 func (c ccrCredit) String() string {

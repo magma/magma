@@ -17,11 +17,11 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
+
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/protos"
 )
 
 func getGWClient(service gateway_registry.GwServiceType, hwId string) (protos.Service303Client, context.Context, error) {

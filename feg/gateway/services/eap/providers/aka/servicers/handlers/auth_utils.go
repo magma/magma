@@ -16,8 +16,6 @@ package handlers
 import (
 	"time"
 
-	"magma/feg/gateway/services/eap/providers/sim"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,6 +25,7 @@ import (
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
+	"magma/feg/gateway/services/eap/providers/sim"
 	"magma/feg/gateway/services/swx_proxy"
 )
 

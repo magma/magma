@@ -14,13 +14,13 @@ limitations under the License.
 package storage
 
 import (
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const (

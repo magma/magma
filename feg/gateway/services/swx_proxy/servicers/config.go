@@ -16,13 +16,13 @@ package servicers
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/gateway/mconfig"
-
-	"github.com/golang/glog"
 )
 
 const (

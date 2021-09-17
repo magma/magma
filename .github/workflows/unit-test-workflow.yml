@@ -6,6 +6,7 @@ on:  # yamllint disable-line rule:truthy
       - cloud-workflow
       - feg-workflow
       - agw-workflow
+      - golang-build-test
     types:
       - completed
 

@@ -16,9 +16,9 @@ package service
 import (
 	"os"
 
-	"magma/orc8r/cloud/go/orc8r"
-
 	"github.com/golang/glog"
+
+	"magma/orc8r/cloud/go/orc8r"
 )
 
 // MustGetHostname gets the hostname of the calling service.

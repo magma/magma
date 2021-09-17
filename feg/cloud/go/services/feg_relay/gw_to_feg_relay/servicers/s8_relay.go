@@ -16,13 +16,12 @@ package servicers
 import (
 	"context"
 
-	orc8r_protos "magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 )
 
 const FegS8Proxy gateway_registry.GwServiceType = "s8_proxy"

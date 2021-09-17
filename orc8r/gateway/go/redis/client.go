@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/proto"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 type RedisStateClient struct {

@@ -16,6 +16,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/dispatcher"
@@ -24,9 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
 	"magma/orc8r/lib/go/protos"
 	platform_service "magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 const (

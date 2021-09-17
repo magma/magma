@@ -19,6 +19,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
@@ -26,9 +29,6 @@ import (
 	"magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/test_utils"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 type MockHealthServicer struct {

@@ -22,10 +22,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
-
-	"github.com/golang/protobuf/ptypes"
 )
 
 // List-certs command - prints out all registered certificates & associated with

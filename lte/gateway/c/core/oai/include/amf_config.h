@@ -86,7 +86,6 @@ typedef struct m5g_nas_config_s {
   m5g_apn_map_config_t m5g_apn_map_config;
 } m5g_nas_config_t;
 typedef uint64_t imsi64_t;
-typedef uint32_t amf_ue_ngap_id_t;
 
 typedef struct m5g_served_tai_s {
   uint8_t list_type;
@@ -116,7 +115,7 @@ typedef struct guamfi_config_s {
   pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)
 
   uint64_t imsi64_t;         /*holds the IMSI value*/
-  uint32_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
+  uint64_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
                                         interface within the AMF*/
 } guamfi_config_t;
 

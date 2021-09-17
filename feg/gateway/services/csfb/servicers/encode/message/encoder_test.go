@@ -16,12 +16,12 @@ package message_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/encode/ie"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeSGsAPAlertAck(t *testing.T) {

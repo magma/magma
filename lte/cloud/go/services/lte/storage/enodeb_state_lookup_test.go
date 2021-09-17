@@ -17,12 +17,12 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEnodebStateLookup(t *testing.T) {

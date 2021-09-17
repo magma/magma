@@ -18,6 +18,13 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	feg "magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"
 	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -35,14 +42,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
-
-	"github.com/thoas/go-funk"
 )
 
 type builderServicer struct {
@@ -60,28 +59,33 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
+		glog.V(4).Infof("LTE mconfig not build (conversion error Network cast failed) '%v' for gateway: %s", err, request.GatewayId)
 		return nil, err
 	}
 	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
+		glog.V(4).Infof("LTE mconfig not build (conversion error EntityGraph cast failed) '%v' for gateway: %s", err, request.GatewayId)
 		return nil, err
 	}
-
 	// Only build mconfig if cellular network and gateway configs exist
 	inwConfig, found := network.Configs[lte.CellularNetworkConfigType]
 	if !found || inwConfig == nil {
+		glog.V(4).Infof("LTE mconfig not build for %s: CellularNetworkConfigType not found", request.GatewayId)
 		return ret, nil
 	}
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 
 	cellGW, err := graph.GetEntity(lte.CellularGatewayEntityType, request.GatewayId)
 	if err == merrors.ErrNotFound {
+		glog.V(4).Infof("LTE mconfig not build for %s: CellularGatewayEntityType not found in graph", request.GatewayId)
 		return ret, nil
 	}
 	if err != nil {
 		return nil, err
 	}
+
 	if cellGW.Config == nil {
+		glog.V(4).Infof("LTE mconfig not build for %s: CellularGatewayEntityType.Config is nill", request.GatewayId)
 		return ret, nil
 	}
 	cellularGwConfig := cellGW.Config.(*lte_models.GatewayCellularConfigs)
@@ -92,7 +96,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	federatedNetworkConfigs, err := getFederatedNetworkConfigs(network.Type, cellularNwConfig.FegNetworkID, request)
 	if err != nil {
-		glog.Errorf("Failed to retrieve LTE_federated network config while building lte mconfig")
+		glog.Errorf("Failed to retrieve LTE_federated network config while building lte mconfig for gateway %s", request.GatewayId)
 		return nil, err
 	}
 

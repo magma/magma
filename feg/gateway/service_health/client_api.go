@@ -18,12 +18,12 @@ package service_health
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 // getClient is a utility function to get an RPC connection to

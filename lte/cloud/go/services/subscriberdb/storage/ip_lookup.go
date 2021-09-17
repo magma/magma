@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/state"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 )
 
 type IPLookup interface {

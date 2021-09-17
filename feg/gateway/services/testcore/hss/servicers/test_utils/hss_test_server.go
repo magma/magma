@@ -16,11 +16,11 @@ package test_utils
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (

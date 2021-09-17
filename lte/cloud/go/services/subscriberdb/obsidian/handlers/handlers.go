@@ -20,9 +20,11 @@ import (
 	"regexp"
 	"strconv"
 
-	"magma/orc8r/cloud/go/serde"
-
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -34,16 +36,12 @@ import (
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (

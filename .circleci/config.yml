@@ -733,64 +733,6 @@ jobs:
             go vet ./...
       - magma_slack_notify
 
-  feg-lint:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *federated_build_verify
-      - install-go
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          name: Go lint code
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway lint
-      - run:
-          name: Generate test coverage
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway cover
-      - codecov/upload:
-          file: /home/circleci/project/feg/gateway/coverage/feg.gocov
-          flags: feg-lint
-      - magma_slack_notify
-
-  feg-precommit:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *federated_build_verify
-      - install-go
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          name: make feg precommit
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway precommit
-      - store_test_results:
-          path: /tmp/test-results
-      - magma_slack_notify
-
   feg-build:
     parameters:
       tag-latest:
@@ -1562,14 +1504,6 @@ workflows:
           requires:
             - release-hold
             - ami-hold
-  feg:
-    jobs:
-      - feg-lint
-      - feg-precommit
-      - feg-build:
-          requires:
-            - feg-precommit
-          tag-latest: true
 
   cwag:
     jobs:

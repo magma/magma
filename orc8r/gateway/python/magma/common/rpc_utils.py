@@ -13,9 +13,12 @@ limitations under the License.
 # pylint: disable=broad-except
 
 import asyncio
+import logging
 from enum import Enum
 
 import grpc
+from google.protobuf import message as proto_message
+from google.protobuf.json_format import MessageToJson
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import common_pb2
 
@@ -147,3 +150,34 @@ def is_grpc_error_retryable(error: grpc.RpcError) -> bool:
         # server end closed connection.
         return True
     return False
+
+
+def print_grpc(
+    message: proto_message.Message, print_grpc_payload: bool,
+    message_header: str = "",
+):
+    """
+    Prints content of grpc message
+
+    Args:
+        message: grpc message to print
+        print_grpc_payload: flag to enable/disable printing of the message
+        message_header: header to print before printing grpc content
+    """
+
+    if print_grpc_payload:
+        log_msg = "{} {}".format(
+            message.DESCRIPTOR.full_name,
+            MessageToJson(message),
+        )
+        # add indentation
+        padding = 2 * ' '
+        log_msg = ''.join(
+            "{}{}".format(padding, line)
+            for line in log_msg.splitlines(True)
+        )
+        log_msg = "GRPC message:\n{}".format(log_msg)
+
+        if message_header:
+            logging.info(message_header)
+        logging.info(log_msg)

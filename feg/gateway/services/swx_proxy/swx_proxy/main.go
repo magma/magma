@@ -17,12 +17,12 @@ package main
 import (
 	"flag"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
 )
 
 func init() {

@@ -70,7 +70,7 @@ func TestRedisStateClientTest(t *testing.T) {
 	err = client.MarkAsGarbage("mock1")
 	assert.NoError(t, err)
 
-	actualObjI, err = client.Get("mock1")
+	_, err = client.Get("mock1")
 	assert.EqualError(t, err, "object found for key mock1 is garbage")
 
 	deleted, err := client.Delete("mock1")
@@ -81,7 +81,7 @@ func TestRedisStateClientTest(t *testing.T) {
 	_, err = client.Get("nonexistent")
 	assert.Error(t, err)
 
-	version, err = client.GetVersion("nonexistent")
+	version, _ = client.GetVersion("nonexistent")
 	assert.Equal(t, uint64(0), version)
 
 	err = client.MarkAsGarbage("nonexistent")

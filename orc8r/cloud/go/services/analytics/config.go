@@ -14,10 +14,10 @@
 package analytics
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 )
 
 const (

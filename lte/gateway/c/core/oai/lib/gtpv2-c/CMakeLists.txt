@@ -20,6 +20,7 @@ target_include_directories(LIB_GTPV2C PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/nwgtpv2c-0.11/shared/
     ${CMAKE_CURRENT_SOURCE_DIR}/nwgtpv2c-0.11/src/
     ${PROJECT_SOURCE_DIR}/tasks/nas/ies/
+    ${PROJECT_SOURCE_DIR}/common/
     ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/gtpv2c_ie_formatter/shared/
     )

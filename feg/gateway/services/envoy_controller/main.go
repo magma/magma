@@ -21,13 +21,13 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/envoy_controller/control_plane"
 	"magma/feg/gateway/services/envoy_controller/servicers"
 	"magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
 )
 
 func init() {

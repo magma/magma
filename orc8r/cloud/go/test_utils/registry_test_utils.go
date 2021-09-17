@@ -17,9 +17,9 @@ import (
 	"context"
 	"time"
 
-	"magma/orc8r/lib/go/registry"
-
 	"google.golang.org/grpc"
+
+	"magma/orc8r/lib/go/registry"
 )
 
 // GetConnectionWithAuthority provides a gRPC connection to a service in the registry with Authority header.

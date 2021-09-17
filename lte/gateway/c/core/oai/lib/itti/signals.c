@@ -116,8 +116,10 @@ int signal_mask(void) {
    * to receive the timer signal. Note that threads created will inherit this
    * configuration.
    */
+#if !MME_UNIT_TEST
+  SIG_DEBUG("MME_UNIT_TEST Flag is Disabled\n");
   DevAssert(get_thread_count(getpid()) == 1);
-
+#endif
   sigemptyset(&set);
   sigaddset(&set, SIGTIMER);
   sigaddset(&set, SIGABRT);

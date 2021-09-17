@@ -15,14 +15,13 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/gateway/eventd"
 	"magma/gateway/status"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 type sessionEventBase struct {
@@ -165,7 +164,7 @@ func logEvent(streamName string, eventType string, serializedEvent []byte) {
 		StreamName: streamName,
 		EventType:  eventType,
 		Tag:        hwid,
-		Value:      fmt.Sprintf("%s", serializedEvent),
+		Value:      string(serializedEvent),
 	}
 	err := eventd.V(eventd.DefaultVerbosity).Log(event)
 	if err != nil {

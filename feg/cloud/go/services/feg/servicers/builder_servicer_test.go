@@ -16,6 +16,10 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/feg"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/cloud/go/serdes"
@@ -26,10 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build(t *testing.T) {

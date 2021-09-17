@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"magma/orc8r/cloud/go/services/configurator"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/services/configurator"
 )
 
 func (m FegNetworkID) ValidateModel(ctx context.Context) error {
