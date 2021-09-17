@@ -337,6 +337,7 @@ static void cbresp_convert_bearer_context_to_proto(
     magma::feg::BearerContext* bc) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   bc->set_id(msg_bc->eps_bearer_id);
+  bc->set_cause(msg_bc->cause.cause_value);
   char sgw_s8_up_ip[INET_ADDRSTRLEN];
   inet_ntop(
       AF_INET, &msg_bc->s5_s8_u_sgw_fteid.ipv4_address.s_addr, sgw_s8_up_ip,
@@ -398,7 +399,7 @@ static void fill_s8_create_session_req(
   char msisdn[MSISDN_LENGTH + 1];
   int msisdn_len = get_msisdn_from_session_req(msg, msisdn);
   csr->set_imsi((char*) msg->imsi.digit, msg->imsi.length);
-  csr->set_msisdn((char*) msisdn, msisdn_len);
+  csr->set_msisdn(reinterpret_cast<char*>(msisdn), msisdn_len);
   char imeisv[IMEISV_DIGITS_MAX + 1];
   get_imeisv_from_session_req(msg, imeisv);
   convert_imeisv_to_string(imeisv);
@@ -528,7 +529,7 @@ void send_s8_delete_session_request(
   magma::feg::DeleteSessionRequestPgw dsr_req;
 
   dsr_req.Clear();
-  dsr_req.set_imsi((char*) imsi.digit, imsi.length);
+  dsr_req.set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
   dsr_req.set_bearer_id(bearer_id);
   dsr_req.set_c_pgw_teid(pgw_s5_teid);
   dsr_req.set_c_agw_teid(sgw_s11_teid);
@@ -551,7 +552,16 @@ static void fill_s8_create_bearer_response(
     uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   proto_cb_rsp->Clear();
-  proto_cb_rsp->set_imsi((char*) imsi.digit, imsi.length);
+  if (itti_msg->cause.cause_value != REQUEST_ACCEPTED) {
+    proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+    proto_cb_rsp->set_sequence_number(sequence_number);
+    proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);
+    proto_cb_rsp->mutable_bearer_context()->set_cause(
+        itti_msg->bearer_contexts.bearer_contexts[0].cause.cause_value);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+
+  proto_cb_rsp->set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
   proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
   proto_cb_rsp->set_sequence_number(sequence_number);
   proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);

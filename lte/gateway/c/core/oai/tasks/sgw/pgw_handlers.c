@@ -619,7 +619,9 @@ int create_temporary_dedicated_bearer_context(
       &eps_bearer_ctxt_p->eps_bearer_qos, &bearer_req_p->eps_bearer_qos,
       sizeof(bearer_qos_t));
   // Save Policy Rule Name
-  strcpy(eps_bearer_ctxt_p->policy_rule_name, bearer_req_p->policy_rule_name);
+  snprintf(
+      eps_bearer_ctxt_p->policy_rule_name, POLICY_RULE_NAME_MAXLEN + 1, "%s",
+      bearer_req_p->policy_rule_name);
   eps_bearer_ctxt_p->sgw_sequence_number = sequence_number;
   OAILOG_INFO_UE(
       module, sgw_ctxt_p->imsi64, "Number of DL packet filter rules: %d\n",

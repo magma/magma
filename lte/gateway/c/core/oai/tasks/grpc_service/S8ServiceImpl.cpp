@@ -72,17 +72,14 @@ static void convert_proto_msg_to_itti_create_bearer_req(
 grpc::Status S8ServiceImpl::CreateBearer(
     ServerContext* context, const CreateBearerRequestPgw* request,
     Void* response) {
-  s8_create_bearer_request_t* cb_req = NULL;
   OAILOG_INFO(
       LOG_SGW_S8,
       " Received Create Bearer Request from roaming network's PGW"
       " for context teid: " TEID_FMT "\n",
       request->c_agw_teid());
 
-  // Rashmi TODO remove
-  auto& request_cpy = *request;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MessageDef* message_p = NULL;
+  s8_create_bearer_request_t* cb_req = NULL;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_CREATE_BEARER_REQ);
   if (!message_p) {
     OAILOG_ERROR(

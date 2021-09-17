@@ -1924,9 +1924,10 @@ void handle_failed_create_bearer_response(
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
-  ebi_t default_bearer_id = sgw_context_p->pdn_connection.default_bearer;
+  ebi_t default_bearer_id = 0;
 
   if (sgw_context_p) {
+    default_bearer_id = sgw_context_p->pdn_connection.default_bearer;
     pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
     if (((pgw_ni_cbr_proc) &&
          (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
@@ -1936,8 +1937,8 @@ void handle_failed_create_bearer_response(
             sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                 ->s_gw_teid_S1u_S12_S4_up) {
           if (module == LOG_SPGW_APP) {
-            strcpy(
-                policy_rule_name,
+            snprintf(
+                policy_rule_name, POLICY_RULE_NAME_MAXLEN + 1, "%s",
                 sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
           }
           // Remove the temporary spgw entry
