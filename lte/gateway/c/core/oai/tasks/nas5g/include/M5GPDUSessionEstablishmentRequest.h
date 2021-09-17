@@ -21,7 +21,6 @@
 #include "M5GSSCMode.h"
 #include "M5GProtocolConfigurationOptions.h"
 
-using namespace std;
 namespace magma5g {
 // PDUSessionEstablishmentRequest Message Class
 class PDUSessionEstablishmentRequestMsg {

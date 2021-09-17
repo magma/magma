@@ -17,7 +17,6 @@
 #include "M5GUESecurityCapability.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 UESecurityCapabilityMsg::UESecurityCapabilityMsg(){};
 UESecurityCapabilityMsg::~UESecurityCapabilityMsg(){};
@@ -42,7 +41,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " length = " << hex << int(ue_sec_capability->length) << endl;
+  MLOG(MDEBUG) << " length = " << std::hex << int(ue_sec_capability->length) << std::endl;
 
   // 5GS encryption algorithms
   ea                     = *(buffer + decoded);
@@ -99,23 +98,23 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   }
 
   // Decoded 5GS encryption algorithms
-  MLOG(MDEBUG) << " ea0 = " << hex << int(ue_sec_capability->ea0) << endl;
-  MLOG(MDEBUG) << " ea1 = " << hex << int(ue_sec_capability->ea1) << endl;
-  MLOG(MDEBUG) << " ea2 = " << hex << int(ue_sec_capability->ea2) << endl;
-  MLOG(MDEBUG) << " ea3 = " << hex << int(ue_sec_capability->ea3) << endl;
-  MLOG(MDEBUG) << " ea4 = " << hex << int(ue_sec_capability->ea4) << endl;
-  MLOG(MDEBUG) << " ea5 = " << hex << int(ue_sec_capability->ea5) << endl;
-  MLOG(MDEBUG) << " ea6 = " << hex << int(ue_sec_capability->ea6) << endl;
-  MLOG(MDEBUG) << " ea7 = " << hex << int(ue_sec_capability->ea7) << endl;
+  MLOG(MDEBUG) << " ea0 = " << std::hex << int(ue_sec_capability->ea0) << std::endl;
+  MLOG(MDEBUG) << " ea1 = " << std::hex << int(ue_sec_capability->ea1) << std::endl;
+  MLOG(MDEBUG) << " ea2 = " << std::hex << int(ue_sec_capability->ea2) << std::endl;
+  MLOG(MDEBUG) << " ea3 = " << std::hex << int(ue_sec_capability->ea3) << std::endl;
+  MLOG(MDEBUG) << " ea4 = " << std::hex << int(ue_sec_capability->ea4) << std::endl;
+  MLOG(MDEBUG) << " ea5 = " << std::hex << int(ue_sec_capability->ea5) << std::endl;
+  MLOG(MDEBUG) << " ea6 = " << std::hex << int(ue_sec_capability->ea6) << std::endl;
+  MLOG(MDEBUG) << " ea7 = " << std::hex << int(ue_sec_capability->ea7) << std::endl;
   // Decoded 5GS integrity algorithm
-  MLOG(MDEBUG) << " ia0 = " << hex << int(ue_sec_capability->ia0) << endl;
-  MLOG(MDEBUG) << " ia1 = " << hex << int(ue_sec_capability->ia1) << endl;
-  MLOG(MDEBUG) << " ia2 = " << hex << int(ue_sec_capability->ia2) << endl;
-  MLOG(MDEBUG) << " ia3 = " << hex << int(ue_sec_capability->ia3) << endl;
-  MLOG(MDEBUG) << " ia4 = " << hex << int(ue_sec_capability->ia4) << endl;
-  MLOG(MDEBUG) << " ia5 = " << hex << int(ue_sec_capability->ia5) << endl;
-  MLOG(MDEBUG) << " ia6 = " << hex << int(ue_sec_capability->ia6) << endl;
-  MLOG(MDEBUG) << " ia7 = " << hex << int(ue_sec_capability->ia7) << endl;
+  MLOG(MDEBUG) << " ia0 = " << std::hex << int(ue_sec_capability->ia0) << std::endl;
+  MLOG(MDEBUG) << " ia1 = " << std::hex << int(ue_sec_capability->ia1) << std::endl;
+  MLOG(MDEBUG) << " ia2 = " << std::hex << int(ue_sec_capability->ia2) << std::endl;
+  MLOG(MDEBUG) << " ia3 = " << std::hex << int(ue_sec_capability->ia3) << std::endl;
+  MLOG(MDEBUG) << " ia4 = " << std::hex << int(ue_sec_capability->ia4) << std::endl;
+  MLOG(MDEBUG) << " ia5 = " << std::hex << int(ue_sec_capability->ia5) << std::endl;
+  MLOG(MDEBUG) << " ia6 = " << std::hex << int(ue_sec_capability->ia6) << std::endl;
+  MLOG(MDEBUG) << " ia7 = " << std::hex << int(ue_sec_capability->ia7) << std::endl;
 
   return (decoded);
 };
@@ -138,7 +137,7 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
       buffer, UE_SECURITY_CAPABILITY_MIN_LENGTH, len);
 
   *(buffer + encoded) = ue_sec_capability->length;
-  MLOG(MDEBUG) << "Length : " << setfill('0') << hex << setw(2)
+  MLOG(MDEBUG) << "Length : " << std::setfill('0') << std::hex << std::setw(2)
                << int(*(buffer + encoded));
   encoded++;
 
@@ -151,7 +150,7 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                         ((ue_sec_capability->ea5 & 0x1) << 2) |
                         ((ue_sec_capability->ea6 & 0x1) << 1) |
                         ((ue_sec_capability->ea7) & 0x1);
-  MLOG(MDEBUG) << " 5GS Encryption Algorithms Supported : " << hex
+  MLOG(MDEBUG) << " 5GS Encryption Algorithms Supported : " << std::hex
                << int(*(buffer + encoded));
   encoded++;
 
@@ -164,7 +163,7 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                         ((ue_sec_capability->ia5 & 0x1) << 2) |
                         ((ue_sec_capability->ia6 & 0x1) << 1) |
                         ((ue_sec_capability->ia7) & 0x1);
-  MLOG(MDEBUG) << " 5GS Integrity Algorithms Supported : " << hex
+  MLOG(MDEBUG) << " 5GS Integrity Algorithms Supported : " << std::hex
                << int(*(buffer + encoded));
   encoded++;
 
@@ -195,7 +194,7 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
   }
 
   MLOG(DEBUG) << " Encoding UE Security Capability : encoded  " << encoded
-              << endl;
+              << std::endl;
   return encoded;
 };
 }  // namespace magma5g

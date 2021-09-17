@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 
 namespace magma5g {
 // AuthenticationParameterRANDM IE Class

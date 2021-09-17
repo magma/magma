@@ -16,7 +16,6 @@
 #include "M5GAuthenticationResponseParameter.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 AuthenticationResponseParameterMsg::AuthenticationResponseParameterMsg(){};
 AuthenticationResponseParameterMsg::~AuthenticationResponseParameterMsg(){};
@@ -33,11 +32,11 @@ int AuthenticationResponseParameterMsg::
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
     response_parameter->iei = *(buffer + decoded);
-    MLOG(MDEBUG) << " ElementID : " << hex << int(response_parameter->iei);
+    MLOG(MDEBUG) << " ElementID : " << std::hex << int(response_parameter->iei);
     decoded++;
   }
   response_parameter->length = *(buffer + decoded);
-  MLOG(MDEBUG) << " Length : " << dec << int(response_parameter->length);
+  MLOG(MDEBUG) << " Length : " << std::dec << int(response_parameter->length);
   decoded++;
   response_parameter->response_parameter[0] = 0;
   for (int i = 0; i < (int) (response_parameter->length); i++) {
@@ -45,7 +44,7 @@ int AuthenticationResponseParameterMsg::
     decoded++;
   }
   for (int i = 0; i < (int) (response_parameter->length); i++) {
-    MLOG(MDEBUG) << " RES : " << hex
+    MLOG(MDEBUG) << " RES : " << std::hex
                  << int(response_parameter->response_parameter[i]);
   }
   return (decoded);
@@ -65,8 +64,8 @@ int AuthenticationResponseParameterMsg::
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, response_parameter->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" << hex
-                 << int(*buffer) << endl;
+    MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" << std::hex
+                 << int(*buffer) << std::endl;
     encoded++;
   } else {
     return 0;

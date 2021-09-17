@@ -13,7 +13,6 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 #define AMF_CAUSE_LENGTH 1
 // M5GMMCause IE Class

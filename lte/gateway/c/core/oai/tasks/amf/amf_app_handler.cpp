@@ -596,7 +596,7 @@ void amf_app_handle_pdu_session_response(
   smf_context_t* smf_ctx;
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
-  uint32_t ue_id = 0;
+  uint64_t ue_id = 0;
   int rc         = RETURNerror;
 
   imsi64_t imsi64;
@@ -703,7 +703,7 @@ void amf_app_handle_pdu_session_response(
  **                                                                        **
  ***************************************************************************/
 int amf_app_handle_pdu_session_accept(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
   DLNASTransportMsg* encode_msg;
@@ -720,14 +720,16 @@ int amf_app_handle_pdu_session_accept(
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
-    OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %u", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id : " AMF_UE_NGAP_ID_FMT,
+        ue_id);
     return M5G_AS_FAILURE;
   }
 
   smf_ctx = amf_smf_context_exists_pdu_session_id(
       ue_context, pdu_session_resp->pdu_session_id);
   if (!smf_ctx) {
-    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %u", ue_id);
+    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %lu", ue_id);
     return M5G_AS_FAILURE;
   }
   // updating session state

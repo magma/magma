@@ -16,7 +16,6 @@ limitations under the License.
 #include "M5GCommonDefs.h"
 #include "M5GPDUSessionReActivationResult.h"
 
-using namespace std;
 namespace magma5g {
 M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult(){};
 M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult(){};
@@ -49,12 +48,12 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
 
   if (iei > 0) {
     pduSessionReActivationStatus->iei = *buffer;
-    MLOG(MDEBUG) << "In DecodeM5GPDUSessionReActivationResult: iei = " << hex
+    MLOG(MDEBUG) << "In DecodeM5GPDUSessionReActivationResult: iei = " << std::hex
                  << int(pduSessionReActivationStatus->iei);
     decoded++;
 
     pduSessionReActivationStatus->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "In DecodeM5GPDUSessionReActivationResult: len = " << hex
+    MLOG(MDEBUG) << "In DecodeM5GPDUSessionReActivationResult: len = " << std::hex
                  << int(pduSessionReActivationStatus->len);
     decoded++;
 
@@ -66,7 +65,7 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
     MLOG(MDEBUG)
         << "In DecodeM5GPDUSessionReActivationResult: "
            "pduSessionReActivationResult = "
-        << hex
+        << std::hex
         << int(pduSessionReActivationStatus->pduSessionReActivationResult);
     decoded++;
   }

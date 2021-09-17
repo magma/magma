@@ -12,7 +12,6 @@ limitations under the License.
 #pragma once
 #include <sstream>
 
-using namespace std;
 namespace magma5g {
 class M5GSDeRegistrationTypeMsg {
  public:
