@@ -57,8 +57,8 @@ class TestAttachDetachIpv6(unittest.TestCase):
                 "UE id ", req.ue_id,
             )
             self._s1ap_wrapper.configAPN(
-                "IMSI" + "".join([str(j) for j in req.imsi]), 
-                apn_list, default=False
+                "IMSI" + "".join([str(j) for j in req.imsi]),
+                apn_list, default=False,
             )
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(
