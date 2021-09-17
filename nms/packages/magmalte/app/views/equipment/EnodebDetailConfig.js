@@ -247,7 +247,7 @@ function EnodebManagedRanConfig({
         category: 'A1 Threshold Rsrp',
 
         value: enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
-          ?.a1_threshold_rsrp ?? '-',
+            ?.a1_threshold_rsrp ?? '-',
       },
     ],
   ];
