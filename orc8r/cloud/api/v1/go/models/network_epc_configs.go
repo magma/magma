@@ -30,7 +30,7 @@ type NetworkEpcConfigs struct {
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
 	// True if 5G Standalone (SA) should be enabled
-	EnableConvergedCore *bool `json:"enable_converged_core,omitempty"`
+	Enable5gFeatures *bool `json:"enable5g_features,omitempty"`
 
 	// gx gy relay enabled
 	// Required: true

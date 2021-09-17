@@ -39,7 +39,7 @@
       "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
       "natEnabled": true,
       "congestionControlEnabled": true,
-      "enableConvergedCore": false,
+      "enable5gFeatures": false,
       "defaultSliceServiceType": "1",
       "defaultSliceDifferentiator" : "0xffffff"
     },
@@ -81,6 +81,8 @@
        ],
       "allowedGrePeers": [
        ],
+      "enable5gFeatures": false,
+      "upfNodeIdentifier": "192.168.60.142",
       "liUes": {}
     },
     "subscriberdb": {
@@ -88,6 +90,7 @@
       "logLevel": "INFO",
       "lteAuthOp": "EREREREREREREREREREREQ==",
       "lteAuthAmf": "gAA=",
+      "enable5gFeatures": false,
       "sync_interval": 300
     },
     "dnsd": {

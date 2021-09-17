@@ -182,7 +182,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
 			SentryConfig:             getNetworkSentryConfig(&network),
-			EnableConvergedCore:      swag.BoolValue(nwEpc.EnableConvergedCore),
+			Enable5GFeatures:         swag.BoolValue(nwEpc.Enable5gFeatures),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -195,14 +195,17 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
 			HeConfig:                 heConfig,
 			LiUes:                    liUes,
+			Enable5GFeatures:         swag.BoolValue(nwEpc.Enable5gFeatures),
+			UpfNodeIdentifier:        string(nwEpc.NodeIdentifier),
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       nwEpc.LteAuthOp,
-			LteAuthAmf:      nwEpc.LteAuthAmf,
-			SubProfiles:     getSubProfiles(nwEpc),
-			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
-			SyncInterval:    s.getRandomizedSyncInterval(cellGW.Key, nwEpc, gwEpc),
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        nwEpc.LteAuthOp,
+			LteAuthAmf:       nwEpc.LteAuthAmf,
+			SubProfiles:      getSubProfiles(nwEpc),
+			HssRelayEnabled:  swag.BoolValue(nwEpc.HssRelayEnabled),
+			SyncInterval:     s.getRandomizedSyncInterval(cellGW.Key, nwEpc, gwEpc),
+			Enable5GFeatures: swag.BoolValue(nwEpc.Enable5gFeatures),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -213,7 +216,8 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: getNetworkSentryConfig(&network),
+			SentryConfig:     getNetworkSentryConfig(&network),
+			Enable5GFeatures: swag.BoolValue(nwEpc.Enable5gFeatures),
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 		"liagentd": &lte_mconfig.LIAgentD{
