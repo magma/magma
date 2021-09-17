@@ -1111,13 +1111,58 @@ status_code_e emm_send_tracking_area_update_accept_dl_nas(
    * Mandatory - EMM cause
    */
   size += EPS_UPDATE_RESULT_MAXIMUM_LENGTH;
-  emm_msg->epsupdateresult = EPS_UPDATE_RESULT_TA_UPDATED;
+  emm_msg->epsupdateresult = msg->eps_update_result;
 
   if (msg->eps_bearer_context_status) {
     emm_msg->presencemask |=
         TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
     emm_msg->epsbearercontextstatus = *msg->eps_bearer_context_status;
     size += EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH;
+  }
+
+  /* Optional - TAI list
+   * This IE may be included to assign a TAI list to a UE.
+   */
+  if (msg->tai_list.numberoflists > 0) {
+    if (emm_msg->tailist.numberoflists > 16) {
+      OAILOG_ERROR(
+          LOG_NAS_EMM, "Too many TAIs in TAI list %d",
+          emm_msg->tailist.numberoflists);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+    }
+    emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_PRESENT;
+
+    size += TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH *
+            msg->tai_list.numberoflists;
+    memcpy(&emm_msg->tailist, &msg->tai_list, sizeof(msg->tai_list));
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d)\n",
+        TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
+        emm_msg->tailist.numberoflists, size);
+    for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
+      if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
+          emm_msg->tailist.partial_tai_list[p].typeoflist) {
+        size =
+            size + (2 * emm_msg->tailist.partial_tai_list[p].numberofelements);
+        OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "EMMAS-SAP - size += "
+            "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
+            2, emm_msg->tailist.partial_tai_list[p].numberofelements, size);
+      } else if (
+          TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
+          emm_msg->tailist.partial_tai_list[p].typeoflist) {
+        size =
+            size + (5 * emm_msg->tailist.partial_tai_list[p].numberofelements);
+        OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "EMMAS-SAP - size += "
+            "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
+            5, emm_msg->tailist.partial_tai_list[p].numberofelements, size);
+      }
+    }
   }
 
   // Optional - EPS network feature support

@@ -338,6 +338,7 @@ MME :
      {% endfor %}
    );
 
+   ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB = "{{ accept_combined_attach_tau_wo_csfb }}";
    SENTRY_CONFIG = {
      {% if sentry_config %}
        # Sentry.io configuration sent from the Orc8r
