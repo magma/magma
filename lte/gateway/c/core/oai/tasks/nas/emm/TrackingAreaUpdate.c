@@ -869,7 +869,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           calloc(1, sizeof(eps_bearer_context_status_t));
       *tau_proc->ies->eps_bearer_context_status = 16384;
       handle_and_fill_eps_bearer_cntxt_status(
-          emm_sap.u.emm_as.u.establish.eps_bearer_context_status,
+          emm_as->eps_bearer_context_status,
           tau_proc->ies->eps_bearer_context_status, ue_mm_context);
 
       emm_sap.u.emm_as.u.data.eps_network_feature_support =
