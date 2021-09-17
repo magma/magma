@@ -20,14 +20,14 @@ import (
 	"os"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
 )
 
 const (

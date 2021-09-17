@@ -21,6 +21,10 @@ import (
 	"testing"
 	"time"
 
+	prometheus_models "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/fbinternal/cloud/go/metrics/ods"
 	"magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
@@ -29,10 +33,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/lib/go/metrics"
-
-	prometheus_models "github.com/prometheus/client_model/go"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestODSSubmit(t *testing.T) {

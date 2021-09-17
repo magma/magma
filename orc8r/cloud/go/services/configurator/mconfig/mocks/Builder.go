@@ -6,7 +6,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 
 	mconfig "magma/orc8r/cloud/go/services/configurator/mconfig"
-
 	storage "magma/orc8r/cloud/go/services/configurator/storage"
 )
 
