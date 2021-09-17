@@ -441,6 +441,8 @@ void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id) {
  **                                                                        **
  ***************************************************************************/
 void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
+
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (emm_common_data_ctx) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
 
@@ -463,6 +465,7 @@ void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
 void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id) {
   emm_common_data_t* emm_common_data_ctx = NULL;
 
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_common_data_ctx =
       emm_common_data_context_get(&emm_common_data_head, ue_id);
 
@@ -483,6 +486,8 @@ void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id) {
 
 void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id) {
   emm_common_data_t* emm_common_data_ctx = NULL;
+
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_common_data_ctx =
       emm_common_data_context_get(&emm_common_data_head, ue_id);
   if (emm_common_data_ctx && emm_common_data_ctx->args) {
@@ -519,6 +524,7 @@ void create_new_attach_info(
 partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
   partial_list_t* par_list = NULL;
 
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!mme_config.partial_list) {
     OAILOG_ERROR(LOG_NAS_EMM, "partial_list in mme_config is NULL\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, par_list);
