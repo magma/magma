@@ -46,7 +46,8 @@ class UplinkBridgeController(MagmaController):
             'enable_nat', 'virtual_mac', 'dhcp_port',
             'sgi_management_iface_vlan', 'sgi_management_iface_ip_addr',
             'dev_vlan_in', 'dev_vlan_out', 'ovs_vlan_workaround',
-            'sgi_management_iface_gw',
+            'sgi_management_iface_gw', 'sgi_management_iface_ipv6_addr',
+            'sgi_management_iface_gw_ipv6',
         ],
     )
 
@@ -56,6 +57,7 @@ class UplinkBridgeController(MagmaController):
         self.config = self._get_config(kwargs['config'])
         self.logger.info("uplink bridge app config: %s", self.config)
         self._clean_restart = kwargs['config']['clean_restart']
+        self._sgi_ip_mon = None
 
     def _get_config(self, config_dict) -> namedtuple:
 
@@ -83,10 +85,14 @@ class UplinkBridgeController(MagmaController):
         )
         sgi_management_iface_vlan = config_dict.get('sgi_management_iface_vlan', "")
         sgi_management_iface_ip_addr = config_dict.get('sgi_management_iface_ip_addr', "")
+        sgi_management_iface_ipv6_addr = config_dict.get('sgi_management_iface_ipv6_addr', "")
+
         dev_vlan_in = config_dict.get('dev_vlan_in', self.DEFAULT_DEV_VLAN_IN)
         dev_vlan_out = config_dict.get('dev_vlan_out', self.DEFAULT_DEV_VLAN_OUT)
         ovs_vlan_workaround = config_dict.get('ovs_vlan_workaround', True)
         sgi_management_iface_gw = config_dict.get('sgi_management_iface_gw', "")
+        sgi_management_iface_gw_ipv6 = config_dict.get('sgi_management_iface_gw_ipv6', "")
+
         return self.UplinkConfig(
             enable_nat=enable_nat,
             uplink_bridge=bridge_name,
@@ -96,13 +102,16 @@ class UplinkBridgeController(MagmaController):
             dhcp_port=dhcp_port,
             sgi_management_iface_vlan=sgi_management_iface_vlan,
             sgi_management_iface_ip_addr=sgi_management_iface_ip_addr,
+            sgi_management_iface_ipv6_addr=sgi_management_iface_ipv6_addr,
             dev_vlan_in=dev_vlan_in,
             dev_vlan_out=dev_vlan_out,
             ovs_vlan_workaround=ovs_vlan_workaround,
             sgi_management_iface_gw=sgi_management_iface_gw,
+            sgi_management_iface_gw_ipv6=sgi_management_iface_gw_ipv6,
         )
 
     def initialize_on_connect(self, datapath):
+
         if self.config.enable_nat is True:
             self._delete_all_flows()
             self._del_eth_port()
@@ -154,7 +163,6 @@ class UplinkBridgeController(MagmaController):
         self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
 
         # 4. Remaining Ingress traffic
-
         if self.config.ovs_vlan_workaround:
             # 4.a. All ingress IP traffic for UE mac
             match = "in_port=%s,dl_dst=%s, vlan_tci=0x0000/0x1000" % \
@@ -200,15 +208,15 @@ class UplinkBridgeController(MagmaController):
         self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
 
         # config interfaces:
-        self._kill_dhclient(self.config.uplink_eth_port_name)
-        self._flush_ip(self.config.uplink_eth_port_name)
 
-        self._set_sgi_ip_addr(self.config.uplink_bridge)
-        self._set_sgi_gw(self.config.uplink_bridge)
+        self._cleanup_ipv4_and_ipv6(self.config.uplink_eth_port_name)
+        self._set_sgi_ip4_and_ipv6_addr(self.config.uplink_bridge)
+        self._set_sgi_ip4_and_ipv6_gw(self.config.uplink_bridge)
+
         self._set_arp_ignore('all', '1')
 
         # 6. After setting IP, setup SGi interface Ingress flow
-        self._set_sgi_interface_ingress_flows()
+        self._set_sgi_ipv4_and_v6_ingress_flows()
 
     def cleanup_on_disconnect(self, datapath):
         if self._clean_restart:
@@ -218,12 +226,24 @@ class UplinkBridgeController(MagmaController):
     def delete_all_flows(self, datapath):
         self._delete_all_flows()
 
-    def _set_sgi_interface_ingress_flows(self):
+    def _set_sgi_ipv4_and_v6_ingress_flows(self):
         if_addrs = netifaces.ifaddresses(self.config.uplink_bridge).get(netifaces.AF_INET, [])
         for addr in if_addrs:
             addr = addr['addr']
 
             match = "in_port=%s,ip,ip_dst=%s" % (
+                self.config.uplink_eth_port_name,
+                addr,
+            )
+            actions = "output:LOCAL"
+            self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
+
+        if_addrs = netifaces.ifaddresses(self.config.uplink_bridge).get(netifaces.AF_INET6, [])
+        for addr in if_addrs:
+            addr = addr['addr']
+            # get rid of dev name if present.
+            addr = addr.split('%')[0]
+            match = "in_port=%s,ipv6,ipv6_dst=%s" % (
                 self.config.uplink_eth_port_name,
                 addr,
             )
@@ -270,7 +290,8 @@ class UplinkBridgeController(MagmaController):
             self.config.uplink_eth_port_name,
         ):
             return
-        self._cleanup_if(self.config.uplink_eth_port_name, True)
+
+        self._cleanup_ipv4_and_ipv6(self.config.uplink_eth_port_name)
         # Add eth interface to OVS.
         ovs_add_port = "ovs-vsctl --may-exist add-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
@@ -286,7 +307,8 @@ class UplinkBridgeController(MagmaController):
             self.config.uplink_bridge,
             self.config.uplink_eth_port_name,
         ):
-            self._cleanup_if(self.config.uplink_bridge, True)
+            self._cleanup_ipv4_and_ipv6(self.config.uplink_bridge)
+
             if self.config.uplink_eth_port_name is None:
                 return
 
@@ -300,24 +322,34 @@ class UplinkBridgeController(MagmaController):
                 return
 
         if self.config.uplink_eth_port_name:
-            self._set_sgi_ip_addr(self.config.uplink_eth_port_name)
-            self._set_sgi_gw(self.config.uplink_eth_port_name)
+            self._set_sgi_ip4_and_ipv6_addr(self.config.uplink_eth_port_name)
+            self._set_sgi_ip4_and_ipv6_gw(self.config.uplink_eth_port_name)
 
-    def _set_sgi_gw(self, if_name: str):
-        self.logger.debug(
-            'self.config.sgi_management_iface_gw %s',
-            self.config.sgi_management_iface_gw,
+    def _set_sgi_ip4_and_ipv6_gw(self, if_name: str):
+        self._set_sgi_gw_ip(
+            if_name, self.config.sgi_management_iface_gw,
+            netifaces.AF_INET,
+        )
+        self._set_sgi_gw_ip(
+            if_name, self.config.sgi_management_iface_gw_ipv6,
+            netifaces.AF_INET6,
         )
 
-        if self.config.sgi_management_iface_gw is None or \
-                self.config.sgi_management_iface_gw == "":
-            return
+    def _set_sgi_gw_ip(self, if_name: str, gw_ip: str, af_inet: int):
+        self.logger.debug('Set GW IP %s', gw_ip)
 
+        if gw_ip is None or gw_ip == "":
+            return
+        ver = "-4"
+        if af_inet == netifaces.AF_INET6:
+            ver = "-6"
         try:
             set_gw_command = [
                 "ip",
-                "route", "replace", "default", "via",
-                self.config.sgi_management_iface_gw,
+                ver,
+                "route",
+                "replace", "default", "via",
+                gw_ip,
                 "metric", "100", "dev",
                 if_name,
             ]
@@ -326,25 +358,35 @@ class UplinkBridgeController(MagmaController):
         except subprocess.SubprocessError as e:
             self.logger.warning("Error while setting SGi GW: %s", e)
 
-    def _set_sgi_ip_addr(self, if_name: str):
-        self.logger.debug(
-            "self.config.sgi_management_iface_ip_addr %s",
+    def _set_sgi_ip4_and_ipv6_addr(self, iface_name: str):
+        self._set_iface_ip_addr(
+            iface_name,
             self.config.sgi_management_iface_ip_addr,
+            netifaces.AF_INET,
         )
-        if self.config.sgi_management_iface_ip_addr is None or \
-                self.config.sgi_management_iface_ip_addr == "":
+        self._set_iface_ip_addr(
+            iface_name,
+            self.config.sgi_management_iface_ipv6_addr,
+            netifaces.AF_INET6,
+        )
+
+    def _set_iface_ip_addr(self, if_name: str, if_ip: str, af_inet: int):
+        self.logger.debug(
+            "Set IP %s to interface %s", if_ip, if_name,
+        )
+        if if_ip is None or if_ip == "":
             if if_name == self.config.uplink_bridge:
-                self._restart_dhclient(if_name)
+                self._restart_dhclient(if_name, af_inet)
 
             else:
-                if_addrs = netifaces.ifaddresses(if_name).get(netifaces.AF_INET, [])
+                if_addrs = netifaces.ifaddresses(if_name).get(af_inet, [])
                 if len(if_addrs) != 0:
                     self.logger.info("SGi has valid IP, skip reconfiguration %s", if_addrs)
                     return
 
                 # for system port, use networking config
                 try:
-                    self._flush_ip(if_name)
+                    self._flush_ip(if_name, af_inet)
                 except subprocess.CalledProcessError as ex:
                     self.logger.info(
                         "could not flush ip addr: %s, %s",
@@ -362,25 +404,23 @@ class UplinkBridgeController(MagmaController):
             return
 
         try:
-            self._kill_dhclient(if_name)
+            self._kill_dhclient(if_name, af_inet)
 
-            if self._is_iface_ip_set(
-                if_name,
-                self.config.sgi_management_iface_ip_addr,
-            ):
-                self.logger.info(
-                    "ip addr %s already set for iface %s",
-                    self.config.sgi_management_iface_ip_addr,
-                    if_name,
-                )
-                return
-
-            self._flush_ip(if_name)
+            if af_inet == netifaces.AF_INET:
+                # TODO add check for IPv6
+                # The API does not provide a way to retrieve IPv6 address
+                # in 'cidr', so skip check for now.
+                if self._is_iface_ip_set(if_name, if_ip, af_inet):
+                    self.logger.info(
+                        "ip addr %s already set for iface %s", if_ip, if_name,
+                    )
+                    return
+            self._flush_ip(if_name, af_inet)
 
             set_ip_cmd = [
                 "ip",
                 "addr", "add",
-                self.config.sgi_management_iface_ip_addr,
+                if_ip,
                 "dev",
                 if_name,
             ]
@@ -389,9 +429,10 @@ class UplinkBridgeController(MagmaController):
         except subprocess.SubprocessError as e:
             self.logger.warning("Error while setting SGi IP: %s", e)
 
-    def _is_iface_ip_set(self, if_name, ip_addr):
+    def _is_iface_ip_set(self, if_name: str, ip_addr: str, af_inet: int) -> bool:
         ip_addr = netaddr.IPNetwork(ip_addr)
-        if_addrs = netifaces.ifaddresses(if_name).get(netifaces.AF_INET, [])
+
+        if_addrs = netifaces.ifaddresses(if_name).get(af_inet, [])
 
         for addr in if_addrs:
             addr = netaddr.IPNetwork("/".join((addr['addr'], addr['netmask'])))
@@ -399,11 +440,22 @@ class UplinkBridgeController(MagmaController):
                 return True
         return False
 
-    def _flush_ip(self, if_name):
-        flush_ip = ["ip", "addr", "flush", "dev", if_name]
+    def _flush_ip(self, if_name: str, af_inet: int):
+        ver = "-4"
+        if af_inet == netifaces.AF_INET6:
+            ver = "-6"
+        flush_ip = ["ip", ver, "addr", "flush", "dev", if_name]
         subprocess.check_call(flush_ip)
 
-    def _kill_dhclient(self, if_name):
+    def _cleanup_ipv4_and_ipv6(self, if_name: str):
+        self._cleanup_if(if_name=if_name, flush=True, af_inet=netifaces.AF_INET)
+        self._cleanup_if(if_name=if_name, flush=True, af_inet=netifaces.AF_INET6)
+
+    def _kill_dhclient(self, if_name: str, af_inet: int):
+        if af_inet != netifaces.AF_INET:
+            self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
+            return
+
         # Kill dhclient if running.
         pgrep_out = subprocess.Popen(
             ["pgrep", "-f", "dhclient.*" + if_name],
@@ -412,9 +464,12 @@ class UplinkBridgeController(MagmaController):
         for pid in pgrep_out.stdout.readlines():
             subprocess.check_call(["kill", pid.strip()])
 
-    def _restart_dhclient(self, if_name):
+    def _restart_dhclient(self, if_name: str, af_inet: int):
+        if af_inet != netifaces.AF_INET:
+            self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
+            return
         # restart DHCP client can take loooong time, process it in separate thread:
-        hub.spawn(self._restart_dhclient_if(if_name))
+        self._sgi_ip_mon = hub.spawn(self._restart_dhclient_if(if_name, af_inet))
 
     def _setup_vlan_pop_dev(self):
         if self.config.ovs_vlan_workaround:
@@ -435,8 +490,10 @@ class UplinkBridgeController(MagmaController):
                 self.config.dev_vlan_out, "71",
             )
 
-    def _cleanup_if(self, if_name, flush: bool):
-        # Release eth IP first.
+    def _release_dhcp_ip(self, if_name: str, af_inet: int):
+        if af_inet != netifaces.AF_INET:
+            self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
+            return
         release_eth_ip = ["dhclient", "-r", if_name]
         try:
             subprocess.check_call(release_eth_ip)
@@ -446,17 +503,23 @@ class UplinkBridgeController(MagmaController):
                 release_eth_ip, ex,
             )
 
+    def _cleanup_if(self, if_name: str, flush: bool, af_inet: int):
+        # Release eth IP first.
+        self._release_dhcp_ip(if_name, af_inet)
+
         if not flush:
             return
         try:
-            self._flush_ip(if_name)
+            self._flush_ip(if_name, af_inet)
         except subprocess.CalledProcessError as ex:
             self.logger.info("could not flush ip addr: %s, %s", if_name, ex)
 
         self.logger.info("SGi DHCP: port [%s] ip removed", if_name)
 
-    def _restart_dhclient_if(self, if_name):
-        self._cleanup_if(if_name, False)
+    def _start_dhclient_if(self, if_name: str, af_inet: int):
+        if af_inet != netifaces.AF_INET:
+            self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
+            return
 
         setup_dhclient = ["dhclient", if_name]
         try:
@@ -467,10 +530,16 @@ class UplinkBridgeController(MagmaController):
                 setup_dhclient, ex,
             )
 
+    def _restart_dhclient_if(self, if_name: str, af_inet: int):
+        self._cleanup_if(if_name=if_name, flush=True, af_inet=af_inet)
+
+        self._start_dhclient_if(if_name, af_inet)
+
         self.logger.info("SGi DHCP: restart for %s done", if_name)
         while True:
             # keep updating flow to handle IP address change.
-            self._set_sgi_interface_ingress_flows()
+
+            self._set_sgi_ipv4_and_v6_ingress_flows()
             hub.sleep(self.SGI_INGRESS_FLOW_UPDATE_FREQ)
 
     def _set_arp_ignore(self, if_name: str, val: str):
