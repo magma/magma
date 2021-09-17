@@ -72,31 +72,31 @@
 <li><p>For managed eNB check status of eNodeB(s) attached to gateway using the cli(skip this step for unmanaged eNB):</p>
 <p><code>sudo enodebd_cli.py get_all_status</code></p>
 <p>An eNodeB in good state, looks similar to the below:</p>
-<pre><code class="hljs">magma@magma:~$ enodebd_cli.py get_all_status
---- eNodeB Serial: 120200004917CNJ0028 ---<span class="hljs-built_in">
-IP </span>Address<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>10.0.2.243
-eNodeB connected<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>ON
-eNodeB Configured<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.ON
-Opstate Enabled<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.ON
-RF TX on<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>ON
-RF TX desired<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.ON<span class="hljs-built_in">
-GPS </span>Connected<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.ON
-PTP Connected<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>OFF<span class="hljs-built_in">
-MME </span>Connected<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.ON<span class="hljs-built_in">
-GPS </span>Longitude<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>-106.347936<span class="hljs-built_in">
-GPS </span>Latitude<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.35.608135
-FSM State<span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span><span class="hljs-built_in">..</span>.Completed provisioning eNB. Awaiting new Inform.
+<pre><code class="hljs css language-sh">magma@magma:~$ enodebd_cli.py get_all_status
+--- eNodeB Serial: 120200004917CNJ0028 ---
+IP Address..................10.0.2.243
+eNodeB connected....................ON
+eNodeB Configured...................ON
+Opstate Enabled.....................ON
+RF TX on............................ON
+RF TX desired.......................ON
+GPS Connected.......................ON
+PTP Connected......................OFF
+MME Connected.......................ON
+GPS Longitude..............-106.347936
+GPS Latitude.................35.608135
+FSM State...............Completed provisioning eNB. Awaiting new Inform.
 </code></pre></li>
 <li><p>Check eNodeB at SCTP level by taking a TCP dump. There should be a heartbeat messaging between eNB and AGW IP.</p>
 <p><code>sudo tcpdump -i any sctp</code></p>
 <p>A sctp association in good state looks similar as below:</p>
-<pre><code class="hljs"><span class="hljs-symbol">magma@</span>magma:~$ sudo tcpdump -i any sctp
-tcpdump: verbose output suppressed, use -v <span class="hljs-keyword">or</span> -vv <span class="hljs-keyword">for</span> full protocol decode
-listening on any, link-type LINUX_SLL (Linux cooked), capture size <span class="hljs-number">262144</span> bytes
-<span class="hljs-number">06</span>:<span class="hljs-number">59</span>:<span class="hljs-number">06.045369</span> IP <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.243</span><span class="hljs-number">.36412</span> &gt; <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.242</span><span class="hljs-number">.36412</span>: sctp (<span class="hljs-number">1</span>) [HB REQ]
-<span class="hljs-number">06</span>:<span class="hljs-number">59</span>:<span class="hljs-number">06.045521</span> IP <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.242</span><span class="hljs-number">.36412</span> &gt; <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.243</span><span class="hljs-number">.36412</span>: sctp (<span class="hljs-number">1</span>) [HB ACK]
-<span class="hljs-number">06</span>:<span class="hljs-number">59</span>:<span class="hljs-number">07.534188</span> IP <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.242</span><span class="hljs-number">.36412</span> &gt; <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.243</span><span class="hljs-number">.36412</span>: sctp (<span class="hljs-number">1</span>) [HB REQ]
-<span class="hljs-number">06</span>:<span class="hljs-number">59</span>:<span class="hljs-number">07.544183</span> IP <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.243</span><span class="hljs-number">.36412</span> &gt; <span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.242</span><span class="hljs-number">.36412</span>: sctp (<span class="hljs-number">1</span>) [HB ACK]
+<pre><code class="hljs css language-sh">magma@magma:~$ sudo tcpdump -i any sctp
+tcpdump: verbose output suppressed, use -v or -vv <span class="hljs-keyword">for</span> full protocol decode
+listening on any, link-type LINUX_SLL (Linux cooked), capture size 262144 bytes
+06:59:06.045369 IP 10.0.2.243.36412 &gt; 10.0.2.242.36412: sctp (1) [HB REQ]
+06:59:06.045521 IP 10.0.2.242.36412 &gt; 10.0.2.243.36412: sctp (1) [HB ACK]
+06:59:07.534188 IP 10.0.2.242.36412 &gt; 10.0.2.243.36412: sctp (1) [HB REQ]
+06:59:07.544183 IP 10.0.2.243.36412 &gt; 10.0.2.242.36412: sctp (1) [HB ACK]
 </code></pre></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="magma-services"></a><a href="#magma-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Magma Services</h2>
@@ -123,21 +123,21 @@ CGroup: /system.slice/system-magma.slice/magma@mme.service
 </code></pre></li>
 <li><p>Check the status of OVS module with <code>sudo ovs-vsctl show</code>. Make sure the “is_connected” states are “true” and there are any port errors.</p>
 <p>OVS in good state looks similar to the below:</p>
-<pre><code class="hljs">magma-dev:~$ sudo ovs-vsctl show
+<pre><code class="hljs css language-sh">magma-dev:~$ sudo ovs-vsctl show
 e2bf2cb0-7bbe-48ef-a489-3341731685e1
     Manager <span class="hljs-string">"ptcp:6640"</span>
-   <span class="hljs-built_in"> Bridge </span><span class="hljs-string">"uplink_br0"</span>
-       <span class="hljs-built_in"> Port </span><span class="hljs-string">"uplink_br0"</span>
-           <span class="hljs-built_in"> Interface </span><span class="hljs-string">"uplink_br0"</span>
-                type: internal
-       <span class="hljs-built_in"> Port </span>patch-agw
-           <span class="hljs-built_in"> Interface </span>patch-agw
-                type: patch
-                options: {<span class="hljs-attribute">peer</span>=patch-up}
-       <span class="hljs-built_in"> Port </span><span class="hljs-string">"dhcp0"</span>
-           <span class="hljs-built_in"> Interface </span><span class="hljs-string">"dhcp0"</span>
-                type: internal
-   <span class="hljs-built_in"> Bridge </span><span class="hljs-string">"gtp_br0"</span>
+    Bridge <span class="hljs-string">"uplink_br0"</span>
+        Port <span class="hljs-string">"uplink_br0"</span>
+            Interface <span class="hljs-string">"uplink_br0"</span>
+                <span class="hljs-built_in">type</span>: internal
+        Port patch-agw
+            Interface patch-agw
+                <span class="hljs-built_in">type</span>: patch
+                options: {peer=patch-up}
+        Port <span class="hljs-string">"dhcp0"</span>
+            Interface <span class="hljs-string">"dhcp0"</span>
+                <span class="hljs-built_in">type</span>: internal
+    Bridge <span class="hljs-string">"gtp_br0"</span>
         Controller <span class="hljs-string">"tcp:127.0.0.1:6633"</span>
             is_connected: <span class="hljs-literal">true</span>
 </code></pre></li>
@@ -169,11 +169,9 @@ Success!
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="performance"></a><a href="#performance" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Performance</h2>
 <ol>
-<li>Check CPU utilization. <code>top</code>. If it is high, check which process is utilizing CPU more from output of the same command. All processes are listed there.</li>
-</ol>
-<ol start="2">
-<li>Check memory utilization by running the same command as above. You can also verify by service using the command
-<code>ps -o pid,user,%mem,command ax | sort -b -k3 -r</code></li>
+<li><p>Check CPU utilization. <code>top</code>. If it is high, check which process is utilizing CPU more from output of the same command. All processes are listed there.</p></li>
+<li><p>Check memory utilization by running the same command as above. You can also verify by service using the command
+<code>ps -o pid,user,%mem,command ax | sort -b -k3 -r</code></p></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="metrics"></a><a href="#metrics" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Metrics</h2>
 <p>Login to NMS UI. From the left side menu options, select  “Metrics”.  Check various metrics that are available. Look  for any sudden spike or degradation that may indicate issues with the system.</p>
