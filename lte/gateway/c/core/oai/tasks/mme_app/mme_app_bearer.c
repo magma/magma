@@ -951,6 +951,28 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+  if (ue_context_p->lcl_deact_due_to_eps_bearer_cxt_sts) {
+    ue_context_p->lcl_deact_due_to_eps_bearer_cxt_sts = false;
+    int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
+    eps_bearer_release(
+        &ue_context_p->emm_context, delete_sess_resp_pP->lbi, &pid,
+        &bearer_idx);
+    if (ue_context_p->pdn_contexts[pid]) {
+      mme_app_free_pdn_context(
+          &ue_context_p->pdn_contexts[pid], ue_context_p->emm_context._imsi64);
+    }
+    if (ue_context_p->nb_active_pdn_contexts == 0) {
+      // Send NW initiated detach
+      OAILOG_INFO_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Sending NW initiated detach as the last PDN lbi:%u is deleted for "
+          "ue_id " MME_UE_S1AP_ID_FMT "\n",
+          pdn_disconnect_rsp.lbi, ue_context_p->mme_ue_s1ap_id);
+      mme_app_handle_nw_initiated_detach_request(
+          ue_context_p->mme_ue_s1ap_id, MME_INITIATED_EPS_DETACH);
+    }
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   /*
    * If UE is already in idle state or if response received with
    * CONTEXT_NOT_FOUND, skip asking eNB to release UE context and just clean up

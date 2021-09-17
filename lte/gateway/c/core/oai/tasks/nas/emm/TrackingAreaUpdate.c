@@ -189,35 +189,35 @@ status_code_e csfb_handle_tracking_area_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
-void static _validate_and_fill_eps_bearer_cntxt_status(
-  eps_bearer_context_status_t *tau_accept_eps_ber_cntx_status,
-  eps_bearer_context_status_t *rcvd_tau_req_eps_eps_ber_cntx_status,
-  ue_mm_context_t *ue_mm_context)
-{
+status_code_e handle_and_fill_eps_bearer_cntxt_status(
+    eps_bearer_context_status_t* tau_accept_eps_ber_cntx_status,
+    const eps_bearer_context_status_t* const
+        rcvd_tau_req_eps_eps_ber_cntx_status,
+    ue_mm_context_t* ue_mm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ebi_t ebi = 0;
-  ebi_t ebi_relsd = 0;
-  uint32_t itrn = 0;
-  int bidx = 0;
-  uint8_t pos = 0;
+  ebi_t ebi          = 0;
+  uint32_t itrn      = 0;
+  uint8_t pos        = 0;
   uint8_t shift_bits = 8;
-  pdn_cid_t pid = 0;
-  int rc = RETURNok;
+  pdn_cid_t pid      = 0;
+  int rc             = RETURNok;
   bool is_ebi_active = false;
 
-  for (itrn = 0 ; itrn < BEARERS_PER_UE; itrn++ ) {
-    bearer_context_t *bearer_context =
-      mme_app_get_bearer_context(ue_mm_context, itrn);
+  tau_accept_eps_ber_cntx_status =
+      calloc(1, sizeof(eps_bearer_context_status_t));
+  for (itrn = 0; itrn < BEARERS_PER_UE; itrn++) {
+    bearer_context_t* bearer_context =
+        mme_app_get_bearer_context(ue_mm_context, itrn);
 
     if ((bearer_context) &&
-      bearer_context->esm_ebr_context.status == ESM_EBR_ACTIVE) {
+        bearer_context->esm_ebr_context.status == ESM_EBR_ACTIVE) {
       ebi = bearer_context->ebi;
       // Check if the ebi bit is in octet3 or octet4 of the rcvd TAU req
-      if ((ebi >= ESM_EBI_MIN) && (ebi <= (ESM_EBI_MAX/2))) {
-        pos = ebi + shift_bits; //Octet 3
+      if ((ebi >= ESM_EBI_MIN) && (ebi <= (ESM_EBI_MAX / 2))) {
+        pos           = ebi + shift_bits;  // Octet 3
         is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
       } else {
-        pos = ebi - shift_bits; //Octet 4
+        pos           = ebi - shift_bits;  // Octet 4
         is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
       }
       /* Delete the bearer context if the bearer context rcvd in TAU req
@@ -228,14 +228,35 @@ void static _validate_and_fill_eps_bearer_cntxt_status(
          * If its a default bearer, trigger delete session request
          * else trigger deactivate dedicated bearer request
          */
+        pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+        if (pid >= MAX_APN_PER_UE) {
+          OAILOG_ERROR_UE(
+              ue_mm_context->emm_context._imsi64, LOG_NAS_ESM,
+              "No PDN connection found for pid=%d, EBI=%d \n", pid, ebi);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+        }
+        if (!ue_mm_context->pdn_contexts[pid]) {
+          OAILOG_ERROR_UE(
+              ue_mm_context->emm_context._imsi64, LOG_NAS_ESM,
+              "PDN context is NULL for pid=%d, EBI=%d \n", pid, ebi);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+        }
+        if (ebi == ue_mm_context->pdn_contexts[pid]->default_ebi) {
+          ue_mm_context->lcl_deact_due_to_eps_bearer_cxt_sts = true;
+          mme_app_send_delete_session_request(
+              ue_mm_context, ebi, pid, true /*no_delete_gtpv2c_tunnel*/);
+        } else {
+          // Deactivate dedicated bearer
+        }
         OAILOG_INFO(
-          LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
+            LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
       } else {
         // Set the status of active bearers to be sent in TAU Accept
         (*tau_accept_eps_ber_cntx_status) |= 1 << pos;
       }
     }
   }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 status_code_e emm_proc_tracking_area_update_request(
@@ -730,10 +751,16 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       emm_sap.u.emm_as.u.establish.nas_info               = EMM_AS_NAS_INFO_TAU;
 
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
-      if (tau_proc->ies->eps_bearer_context_status) {
-        emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
-            tau_proc->ies->eps_bearer_context_status;
-      }
+      // if (tau_proc->ies->eps_bearer_context_status) {
+      tau_proc->ies->eps_bearer_context_status =
+          calloc(1, sizeof(eps_bearer_context_status_t));
+      *tau_proc->ies->eps_bearer_context_status = 0x4000;
+      handle_and_fill_eps_bearer_cntxt_status(
+          &emm_sap.u.emm_as.u.establish.eps_bearer_context_status,
+          tau_proc->ies->eps_bearer_context_status, ue_mm_context);
+      /*emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
+          tau_proc->ies->eps_bearer_context_status;*/
+      //}
       // TODO Reminder
       emm_sap.u.emm_as.u.establish.location_area_identification = NULL;
       emm_sap.u.emm_as.u.establish.combined_tau_emm_cause       = NULL;
@@ -834,10 +861,16 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       emm_as->ue_id = tau_proc->ue_id;
 
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
-      if (tau_proc->ies->eps_bearer_context_status) {
+      /*if (tau_proc->ies->eps_bearer_context_status) {
         emm_as->eps_bearer_context_status =
             tau_proc->ies->eps_bearer_context_status;
-      }
+      }*/
+      tau_proc->ies->eps_bearer_context_status =
+          calloc(1, sizeof(eps_bearer_context_status_t));
+      *tau_proc->ies->eps_bearer_context_status = 16384;
+      handle_and_fill_eps_bearer_cntxt_status(
+          emm_sap.u.emm_as.u.establish.eps_bearer_context_status,
+          tau_proc->ies->eps_bearer_context_status, ue_mm_context);
 
       emm_sap.u.emm_as.u.data.eps_network_feature_support =
           (eps_network_feature_support_t*) &_emm_data.conf
