@@ -16,6 +16,9 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+
 	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -31,9 +34,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 )
 
 func (m *FegNetwork) ValidateModel(context.Context) error {

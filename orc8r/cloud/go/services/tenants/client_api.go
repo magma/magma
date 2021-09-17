@@ -16,13 +16,13 @@ package tenants
 import (
 	"context"
 
-	merrors "magma/orc8r/lib/go/errors"
-	"magma/orc8r/lib/go/protos"
-	srvRegistry "magma/orc8r/lib/go/registry"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	srvRegistry "magma/orc8r/lib/go/registry"
 )
 
 // getTenantsClient is a utility function to get a RPC connection to the

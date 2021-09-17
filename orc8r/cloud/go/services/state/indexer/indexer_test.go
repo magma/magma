@@ -17,9 +17,9 @@ import (
 	"sort"
 	"testing"
 
-	state_types "magma/orc8r/cloud/go/services/state/types"
-
 	"github.com/stretchr/testify/assert"
+
+	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 // Test filter IDs and filter states

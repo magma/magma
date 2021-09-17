@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 type Error string

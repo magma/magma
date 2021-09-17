@@ -17,6 +17,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service/middleware/unary/test/protos"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -26,8 +28,6 @@ import (
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestInterceptorsHappyPath(t *testing.T) {

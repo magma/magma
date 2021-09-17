@@ -16,12 +16,12 @@ package servicers
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 type PortNumber = int

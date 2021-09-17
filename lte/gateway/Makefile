@@ -67,6 +67,8 @@ $(info OAI_FLAGS $(OAI_FLAGS))
 
 FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
+OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
+OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
 
 all: build
 
@@ -134,25 +136,23 @@ $(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
 cd $(2) && ctest --output-on-failure
 endef
 
-format_common:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
-format_%: ## Format service in magma/lte/gateway/c/
-	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
-build_common: format_common ## Build shared libraries
+build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-build_oai: format_core ## Build OAI
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS))
+build_oai: ## Build OAI
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+
+format_all:
+	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
 
 # Upload Clang-Warning counts by type to Google Sheet via Google Survey
 #  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
@@ -178,16 +178,16 @@ clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning st
 		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
 		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
-build_sctpd: format_sctpd
+build_sctpd:
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
-build_session_manager: format_session_manager build_common ## Build session manager
+build_session_manager: build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
-build_li_agent: format_li_agent ## Build li agent
+build_li_agent: ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
-build_connection_tracker: format_connection_tracker
+build_connection_tracker:
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
@@ -205,7 +205,7 @@ test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS))
 
 test_sctpd: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
@@ -242,10 +242,10 @@ coverage_session_manager: test_session_manager
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 # format and test c/session_manager
-precommit_sm: format_session_manager test_session_manager
+precommit_sm: format_all test_session_manager
 
 # format and test c/oai
-precommit_oai: format_oai test_oai
+precommit_oai: format_all test_oai
 
 # Run clang-tidy
 # TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).

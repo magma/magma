@@ -21,7 +21,11 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/imdario/mergo"
+	"github.com/labstack/echo"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/mocks"
@@ -29,11 +33,6 @@ import (
 	"magma/orc8r/cloud/go/services/tenants"
 	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/imdario/mergo"
-	"github.com/labstack/echo"
-	"github.com/prometheus/common/model"
-	"github.com/stretchr/testify/assert"
 )
 
 type prometheusAPITestCase struct {

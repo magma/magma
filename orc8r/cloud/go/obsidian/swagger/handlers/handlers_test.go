@@ -17,6 +17,9 @@ import (
 	"html/template"
 	"testing"
 
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
@@ -25,9 +28,6 @@ import (
 	spec "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetCombinedSpecHandler(t *testing.T) {

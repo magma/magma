@@ -18,6 +18,9 @@ extern "C" {
 #include "log.h"
 }
 
+namespace magma {
+namespace lte {
+
 class EMMDecodeTest : public ::testing::Test {
   virtual void SetUp() {}
   virtual void TearDown() {}
@@ -67,8 +70,5 @@ TEST_F(EMMDecodeTest, TestDecodeAttachRequest2) {
   bdestroy_wrapper(&attach_request.esmmessagecontainer);
 }
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
-  return RUN_ALL_TESTS();
-}
+}  // namespace lte
+}  // namespace magma

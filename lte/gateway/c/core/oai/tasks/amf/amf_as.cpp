@@ -1457,8 +1457,7 @@ static int amf_as_establish_rej(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "Send AS connection establish Reject for (ue_id = "
-      "%d)\n",
+      "Send AS connection establish Reject for UE ID: " AMF_UE_NGAP_ID_FMT,
       msg->ue_id);
   amf_nas_message_t nas_msg = {0};
   // Setting-up the AS message

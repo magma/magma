@@ -16,6 +16,10 @@ package test_utils
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/metadata"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
@@ -24,10 +28,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
 )
 
 func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayStatus) {

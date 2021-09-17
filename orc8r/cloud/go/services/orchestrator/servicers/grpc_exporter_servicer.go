@@ -14,13 +14,13 @@ package servicers
 import (
 	"context"
 
-	"magma/orc8r/cloud/go/services/metricsd/protos"
-	"magma/orc8r/lib/go/registry"
-
 	edge_hub "github.com/facebookincubator/prometheus-edge-hub/grpc"
 	"github.com/pkg/errors"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"google.golang.org/grpc"
+
+	"magma/orc8r/cloud/go/services/metricsd/protos"
+	"magma/orc8r/lib/go/registry"
 )
 
 const (

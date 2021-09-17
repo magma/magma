@@ -14,10 +14,10 @@
 package configurator
 
 import (
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/pkg/errors"
 )
 
 // why pointer receivers here? we can cache intermediate computation steps

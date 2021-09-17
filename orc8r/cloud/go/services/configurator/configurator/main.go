@@ -19,6 +19,8 @@ and meta data for the network and network entity structures.
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -27,8 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
 )
 
 const (

@@ -711,7 +711,9 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
     asn_INTEGER2ulong(
         &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
     if ((ue_ref_p = ngap_state_get_ue_amfid(amf_ue_ngap_id)) == NULL) {
-      OAILOG_DEBUG(LOG_NGAP, "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
+      OAILOG_DEBUG(
+          LOG_NGAP,
+          "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
           amf_ue_ngap_id);
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
     }
@@ -1232,8 +1234,11 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
      * command was sent
      * Ignore this message.
      */
-    OAILOG_DEBUG(LOG_NGAP, " UE Context Release commplete: Ng context cleared. Ignore message for "
-        "ueid " AMF_UE_NGAP_ID_FMT "\n", amf_ue_ngap_id);
+    OAILOG_DEBUG(
+        LOG_NGAP,
+        " UE Context Release commplete: Ng context cleared. Ignore message for "
+        "ueid " AMF_UE_NGAP_ID_FMT "\n",
+        amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   } else {
     /* This is an error scenario, the Ng UE context should have been deleted
@@ -1581,8 +1586,11 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
       imsi_map->amf_ue_id_imsi_htbl,
       (const hash_key_t) ue_ref_p->amf_ue_ngap_id, &imsi64);
 
-  OAILOG_DEBUG_UE(LOG_NGAP, imsi64, "Expired- UE Context Release Timer"
-      " for UE id " AMF_UE_NGAP_ID_FMT "\n", ue_ref_p->amf_ue_ngap_id);
+  OAILOG_DEBUG_UE(
+      LOG_NGAP, imsi64,
+      "Expired- UE Context Release Timer"
+      " for UE id " AMF_UE_NGAP_ID_FMT "\n",
+      ue_ref_p->amf_ue_ngap_id);
   /*
    * Remove UE context and inform AMF_APP.
    */
@@ -1617,8 +1625,10 @@ void ngap_amf_release_ue_context(
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_NGAP);
   DevAssert(ue_ref_p != NULL);
-  OAILOG_DEBUG_UE(LOG_NGAP, imsi64, "Releasing UE Context for UE id" 
-      AMF_UE_NGAP_ID_FMT "\n", ue_ref_p->amf_ue_ngap_id);
+  OAILOG_DEBUG_UE(
+      LOG_NGAP, imsi64,
+      "Releasing UE Context for UE id" AMF_UE_NGAP_ID_FMT "\n",
+      ue_ref_p->amf_ue_ngap_id);
   /*
    * Remove UE context and inform AMF_APP.
    */

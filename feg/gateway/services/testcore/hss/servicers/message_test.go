@@ -16,15 +16,15 @@ package servicers_test
 import (
 	"testing"
 
-	"magma/feg/cloud/go/protos/mconfig"
-	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
-	hss "magma/feg/gateway/services/testcore/hss/servicers"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/cloud/go/protos/mconfig"
+	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
 )
 
 func TestConstructPermanentFailureAnswer(t *testing.T) {

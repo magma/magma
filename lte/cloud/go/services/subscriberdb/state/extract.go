@@ -18,9 +18,9 @@ import (
 	"net"
 	"regexp"
 
-	"magma/orc8r/cloud/go/services/state"
-
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/services/state"
 )
 
 const (

@@ -20,6 +20,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/glog"
+	dto "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
@@ -30,11 +35,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	dto "github.com/prometheus/client_model/go"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 type testMetricExporter struct {

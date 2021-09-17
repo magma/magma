@@ -16,15 +16,15 @@ package gx
 import (
 	"time"
 
-	"magma/feg/gateway/policydb"
-	"magma/feg/gateway/services/session_proxy/credit_control"
-	"magma/lte/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+
+	"magma/feg/gateway/policydb"
+	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/lte/cloud/go/protos"
 )
 
 func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {

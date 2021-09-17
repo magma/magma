@@ -17,12 +17,13 @@ import (
 	"flag"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/nprobe"
 	manager "magma/lte/cloud/go/services/nprobe/nprobe_manager"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 	np_storage "magma/lte/cloud/go/services/nprobe/storage"
-
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -30,8 +31,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
 )
 
 func init() {

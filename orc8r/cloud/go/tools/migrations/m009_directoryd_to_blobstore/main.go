@@ -19,13 +19,13 @@ import (
 	"flag"
 	"fmt"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/tools/migrations"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/tools/migrations"
 )
 
 const (

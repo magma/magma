@@ -18,6 +18,13 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	feg "magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"
 	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -35,14 +42,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
-
-	"github.com/thoas/go-funk"
 )
 
 type builderServicer struct {

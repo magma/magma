@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/testcore/pcrf/mock_pcrf"
 	"magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
 )
 
 var (

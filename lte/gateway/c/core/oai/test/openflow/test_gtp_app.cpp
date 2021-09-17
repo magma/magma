@@ -1014,6 +1014,150 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelS8) {
   controller->dispatch_event(del_tunnel);
 }
 
+TEST_F(GTPApplicationTest, TestAddTunnelS8DlFlowGtpPort) {
+  struct in_addr ue_ip;
+  ue_ip.s_addr = inet_addr("0.0.0.1");
+  struct in_addr enb_ip;
+  enb_ip.s_addr = inet_addr("0.0.0.2");
+  struct in_addr pgw_ip;
+  enb_ip.s_addr = inet_addr("0.0.0.22");
+
+  uint32_t in_tei      = 1;
+  uint32_t out_tei     = 2;
+  uint32_t pgw_in_tei  = 3;
+  uint32_t pgw_out_tei = 4;
+  char imsi[]          = "001010000000013";
+  struct ip_flow_dl dl_flow;
+  uint32_t dl_flow_precedence = 0;
+  int vlan                    = 0;
+  int enb_port                = 100;
+  int pgw_port                = 200;
+
+  dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
+  dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
+  dl_flow.tcp_dst_port  = 33;
+  dl_flow.tcp_src_port  = 44;
+  dl_flow.ip_proto      = 6;  // TCP
+  dl_flow.set_params =
+      SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
+
+  AddGTPTunnelEvent add_tunnel(
+      ue_ip, NULL, vlan, enb_ip, pgw_ip, in_tei, out_tei, pgw_in_tei,
+      pgw_out_tei, imsi, &dl_flow, dl_flow_precedence, enb_port, pgw_port);
+
+  // Uplink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(enb_port), CheckTunnelId(in_tei),
+              CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+  // downlink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(pgw_port), CheckEthType(0x0800),
+              CheckIPv4Dst(dl_flow.dst_ip), CheckIPv4Src(dl_flow.src_ip),
+              CheckIPv4Proto(dl_flow.ip_proto),
+              CheckTcpDstPort(dl_flow.tcp_dst_port),
+              CheckTcpSrcPort(dl_flow.tcp_src_port),
+              CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0800),
+              CheckIPv4Dst(dl_flow.dst_ip), CheckIPv4Src(dl_flow.src_ip),
+              CheckIPv4Proto(dl_flow.ip_proto),
+              CheckTcpDstPort(dl_flow.tcp_dst_port),
+              CheckTcpSrcPort(dl_flow.tcp_src_port),
+              CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0806),
+              CheckArpTpa(ue_ip), CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+
+  controller->dispatch_event(add_tunnel);
+}
+
+TEST_F(GTPApplicationTest, TestDeleteTunnelS8DlFlowGtpPort) {
+  struct in_addr ue_ip;
+  ue_ip.s_addr    = inet_addr("0.0.0.1");
+  uint32_t in_tei = 1;
+  struct ip_flow_dl dl_flow;
+  int enb_port = 100;
+  int pgw_port = 200;
+
+  dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
+  dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
+  dl_flow.tcp_dst_port  = 33;
+  dl_flow.tcp_src_port  = 44;
+  dl_flow.ip_proto      = 6;  // TCP
+  dl_flow.set_params =
+      SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
+
+  DeleteGTPTunnelEvent del_tunnel(
+      ue_ip, NULL, in_tei, &dl_flow, enb_port, pgw_port);
+
+  // Uplink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(enb_port), CheckTunnelId(in_tei),
+              CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+  // downlink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(pgw_port), CheckEthType(0x0800),
+              CheckIPv4Dst(dl_flow.dst_ip), CheckIPv4Src(dl_flow.src_ip),
+              CheckIPv4Proto(dl_flow.ip_proto),
+              CheckTcpDstPort(dl_flow.tcp_dst_port),
+              CheckTcpSrcPort(dl_flow.tcp_src_port),
+              CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0800),
+              CheckIPv4Dst(dl_flow.dst_ip), CheckIPv4Src(dl_flow.src_ip),
+              CheckIPv4Proto(dl_flow.ip_proto),
+              CheckTcpDstPort(dl_flow.tcp_dst_port),
+              CheckTcpSrcPort(dl_flow.tcp_src_port),
+              CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0806),
+              CheckArpTpa(ue_ip), CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+
+  controller->dispatch_event(del_tunnel);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

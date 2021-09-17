@@ -209,9 +209,9 @@ void gummei_config_init(gummei_config_t* gummei_conf) {
   gummei_conf->gummei[0].plmn.mcc_digit1 = 0;
   gummei_conf->gummei[0].plmn.mcc_digit2 = 0;
   gummei_conf->gummei[0].plmn.mcc_digit3 = 1;
-  gummei_conf->gummei[0].plmn.mcc_digit1 = 0;
-  gummei_conf->gummei[0].plmn.mcc_digit2 = 1;
-  gummei_conf->gummei[0].plmn.mcc_digit3 = 0x0F;
+  gummei_conf->gummei[0].plmn.mnc_digit1 = 0;
+  gummei_conf->gummei[0].plmn.mnc_digit2 = 1;
+  gummei_conf->gummei[0].plmn.mnc_digit3 = 0x0F;
 }
 
 void served_tai_config_init(served_tai_t* served_tai) {
@@ -275,6 +275,14 @@ void mme_config_init(mme_config_t* config) {
   sac_to_tacs_map_config_init(&config->sac_to_tacs_map);
 }
 
+void free_partial_lists(mme_config_t* config_pP) {
+  for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
+    free_wrapper((void**) &(config_pP->partial_list[itr].plmn));
+    free_wrapper((void**) &(config_pP->partial_list[itr].tac));
+  }
+  free_wrapper((void**) &config_pP->partial_list);
+}
+
 //------------------------------------------------------------------------------
 void mme_config_exit(void) {
   pthread_rwlock_destroy(&mme_config.rw_lock);
@@ -294,6 +302,11 @@ void mme_config_exit(void) {
   free_wrapper((void**) &mme_config.served_tai.plmn_mnc);
   free_wrapper((void**) &mme_config.served_tai.plmn_mnc_len);
   free_wrapper((void**) &mme_config.served_tai.tac);
+
+  free_partial_lists(&mme_config);
+
+  bdestroy_wrapper(&mme_config.service303_config.name);
+  bdestroy_wrapper(&mme_config.service303_config.version);
 
   for (int i = 0; i < mme_config.e_dns_emulation.nb_sgw_entries; i++) {
     bdestroy_wrapper(&mme_config.e_dns_emulation.sgw_id[i]);
@@ -348,20 +361,22 @@ void create_partial_lists(mme_config_t* config_pP) {
   /* Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
    * add the TAIs to a new partial list
    */
-  uint8_t size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED ?
-                     MAX_TAI_SUPPORTED :
-                     config_pP->served_tai.nb_tai;
-  config_pP->partial_list = calloc(size, sizeof(partial_list_t));
+  uint8_t served_tai_size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED ?
+                                MAX_TAI_SUPPORTED :
+                                config_pP->served_tai.nb_tai;
+  config_pP->partial_list = calloc(served_tai_size, sizeof(partial_list_t));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
     if (elem_idx == MAX_TAI_SUPPORTED) {
       list_idx++;
       elem_idx = 0;
     }
     if (!config_pP->partial_list[list_idx].plmn) {
-      config_pP->partial_list[list_idx].plmn = calloc(size, sizeof(plmn_t));
+      config_pP->partial_list[list_idx].plmn =
+          calloc(served_tai_size, sizeof(plmn_t));
     }
     if (!config_pP->partial_list[list_idx].tac) {
-      config_pP->partial_list[list_idx].tac = calloc(size, sizeof(tac_t));
+      config_pP->partial_list[list_idx].tac =
+          calloc(served_tai_size, sizeof(tac_t));
     }
     copy_plmn_from_config(
         &config_pP->served_tai, itr,
@@ -416,6 +431,7 @@ void create_partial_lists(mme_config_t* config_pP) {
   }
   return;
 }
+
 //------------------------------------------------------------------------------
 int mme_config_parse_file(mme_config_t* config_pP) {
   config_t cfg                  = {0};

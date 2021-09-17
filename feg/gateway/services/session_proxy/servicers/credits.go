@@ -18,14 +18,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/golang/glog"
 )
 
 // sendSingleCreditRequest sends a CCR message through the gy client

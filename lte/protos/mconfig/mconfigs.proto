@@ -498,3 +498,22 @@ message GatewayDNSConfigRecordsItems {
   repeated string cname_record = 3;
   string domain = 4;
 }
+
+//----------------------------------------------------------------------------
+// AgwD configs
+//----------------------------------------------------------------------------
+message AgwD {
+  enum LogLevel {
+    UNSET = 0;
+    DEBUG = 1;
+    INFO = 2;
+    WARN = 3;
+    ERROR = 4;
+  }
+  LogLevel log_level = 1;
+
+  string sctpd_downstream_service_target = 2;
+  string sctpd_upstream_service_target = 3;
+  string mme_sctpd_downstream_service_target = 4;
+  string mme_sctpd_upstream_service_target = 5;
+}

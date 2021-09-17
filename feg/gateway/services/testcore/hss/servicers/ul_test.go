@@ -16,6 +16,12 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/stretchr/testify/assert"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
@@ -23,12 +29,6 @@ import (
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/feg/gateway/services/testcore/hss/storage"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/fiorix/go-diameter/v4/diam/dict"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewULA_MissingMandatoryAVP(t *testing.T) {

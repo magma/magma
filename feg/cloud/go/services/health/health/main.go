@@ -16,6 +16,8 @@ package main
 import (
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
@@ -25,8 +27,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
 )
 
 const (

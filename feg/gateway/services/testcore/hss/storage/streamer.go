@@ -14,12 +14,12 @@ limitations under the License.
 package storage
 
 import (
-	lteprotos "magma/lte/cloud/go/protos"
-	orc8rprotos "magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
+
+	lteprotos "magma/lte/cloud/go/protos"
+	orc8rprotos "magma/orc8r/lib/go/protos"
 )
 
 type subscriberListener struct {

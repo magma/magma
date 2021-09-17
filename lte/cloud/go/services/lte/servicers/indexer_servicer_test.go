@@ -18,6 +18,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_service "magma/lte/cloud/go/services/lte"
@@ -32,9 +35,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIndexerEnodebState(t *testing.T) {

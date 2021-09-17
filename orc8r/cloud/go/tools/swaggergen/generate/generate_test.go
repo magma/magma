@@ -21,10 +21,10 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
-
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
+
+	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 )
 
 func TestParseSwaggerDependencyTree(t *testing.T) {

@@ -17,9 +17,9 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/lte/cloud/go/protos"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/lte/cloud/go/protos"
 )
 
 func TestSidProto(t *testing.T) {

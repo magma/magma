@@ -16,16 +16,16 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (

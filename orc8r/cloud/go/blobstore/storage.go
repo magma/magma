@@ -17,9 +17,9 @@ import (
 	"sort"
 	"strings"
 
-	"magma/orc8r/cloud/go/storage"
-
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/storage"
 )
 
 // Blob encapsulates a blob for storage.

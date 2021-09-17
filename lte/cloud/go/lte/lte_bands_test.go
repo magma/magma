@@ -16,9 +16,9 @@ package lte_test
 import (
 	"testing"
 
-	"magma/lte/cloud/go/lte"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/lte/cloud/go/lte"
 )
 
 func TestGetBand(t *testing.T) {

@@ -18,10 +18,6 @@ import (
 	"strings"
 	"time"
 
-	"magma/feg/gateway/diameter"
-	swx "magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/lte/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -29,6 +25,10 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/feg/gateway/diameter"
+	swx "magma/feg/gateway/services/swx_proxy/servicers"
+	"magma/lte/cloud/go/protos"
 )
 
 //Permanently terminate the non-3gpp subscription
