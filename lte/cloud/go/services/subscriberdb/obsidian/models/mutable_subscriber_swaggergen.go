@@ -30,8 +30,8 @@ type MutableSubscriber struct {
 	// active policies by apn
 	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
 
-	// allowed nw types
-	AllowedNwTypes CoreNetworkTypeRestriction `json:"allowed_nw_types,omitempty"`
+	// List of Network Types to be restricted per subscriber. If not configured, subscriber will have access to all Network Types by default.
+	ForbiddenNetworkTypes CoreNetworkTypes `json:"forbidden_network_types,omitempty"`
 
 	// id
 	// Required: true
@@ -68,7 +68,7 @@ func (m *MutableSubscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateAllowedNwTypes(formats); err != nil {
+	if err := m.validateForbiddenNetworkTypes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -154,15 +154,15 @@ func (m *MutableSubscriber) validateActivePoliciesByApn(formats strfmt.Registry)
 	return nil
 }
 
-func (m *MutableSubscriber) validateAllowedNwTypes(formats strfmt.Registry) error {
+func (m *MutableSubscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.AllowedNwTypes) { // not required
+	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
 		return nil
 	}
 
-	if err := m.AllowedNwTypes.Validate(formats); err != nil {
+	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("allowed_nw_types")
+			return ve.ValidateName("forbidden_network_types")
 		}
 		return err
 	}

@@ -15,6 +15,7 @@ package subscriberdb
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/go-openapi/swag"
@@ -169,17 +170,13 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 		AuthOpc:  cfg.Lte.AuthOpc,
 	}
 
-	if len(cfg.AllowedNwTypes) > 0 {
-		var i = 0
-		sub_network := &lte_protos.CoreNetworkTypeRestriction{}
-		sub_network.AllowedNwTypes = make([]lte_protos.CoreNetworkTypeRestriction_CoreNetworkType, len(cfg.AllowedNwTypes))
-
-		for i < len(cfg.AllowedNwTypes) {
-			sub_network.AllowedNwTypes[i] = lte_protos.CoreNetworkTypeRestriction_CoreNetworkType(lte_protos.CoreNetworkTypeRestriction_CoreNetworkType_value[cfg.AllowedNwTypes[i]])
-			i++
-		}
-		subData.SubNetwork = sub_network
+	const coreNwTypePrefix = "NT_"
+	subNetwork := &lte_protos.CoreNetworkType{}
+	subNetwork.ForbiddenNetworkTypes = make([]lte_protos.CoreNetworkType_CoreNetworkTypes, len(cfg.ForbiddenNetworkTypes))
+	for i, nwType := range cfg.ForbiddenNetworkTypes {
+		subNetwork.ForbiddenNetworkTypes[i] = lte_protos.CoreNetworkType_CoreNetworkTypes(lte_protos.CoreNetworkType_CoreNetworkTypes_value[fmt.Sprintf("%v%v", coreNwTypePrefix, nwType)])
 	}
+	subData.SubNetwork = subNetwork
 
 	if cfg.Lte.SubProfile != "" {
 		subData.SubProfile = string(cfg.Lte.SubProfile)

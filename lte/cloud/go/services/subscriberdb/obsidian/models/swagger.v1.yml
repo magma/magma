@@ -31,8 +31,8 @@ magma-gen-meta:
       filename: subscriber_directory_record_swaggergen.go
     - go-struct-name: UntypedSubscriberState
       filename: untyped_subscriber_state_swaggergen.go
-    - go-struct-name: CoreNetworkTypeRestriction
-      filename: core_network_type_restriction_swaggergen.go
+    - go-struct-name: CoreNetworkType
+      filename: core_network_types_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -315,8 +315,8 @@ definitions:
         $ref: '#/definitions/subscriber_state'
       msisdn:
         $ref: '#/definitions/msisdn'
-      allowed_nw_types:
-        $ref: '#/definitions/core_network_type_restriction'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
 
   mutable_subscriber:
     description: Subset of subscriber field which are mutable
@@ -343,17 +343,19 @@ definitions:
         $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
-      allowed_nw_types:
-        $ref: '#/definitions/core_network_type_restriction'
+      forbidden_network_types:
+        description: List of Network Types to be restricted per subscriber. If not configured, subscriber will have access to all Network Types by default.
+        $ref: '#/definitions/core_network_types'
 
-  core_network_type_restriction:
+  core_network_types:
+    description: List of core network types.
     type: array
     items:
       type: string
-      enum:
-        - NT_EPC
-        - NT_5GC
       x-nullable: false
+      enum:
+        - EPC
+        - 5GC
 
   mutable_subscribers:
     type: array
@@ -393,8 +395,8 @@ definitions:
         $ref: '#/definitions/lte_subscription'
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
-      allowed_nw_types:
-        $ref: '#/definitions/core_network_type_restriction'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
 
   msisdn:
     type: string

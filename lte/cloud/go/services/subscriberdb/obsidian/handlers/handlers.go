@@ -675,7 +675,6 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 	}
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)
-
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -695,9 +694,9 @@ func getCreateSubscriberEnts(sub *subscribermodels.MutableSubscriber) configurat
 		Key:  string(sub.ID),
 		Name: sub.Name,
 		Config: &subscribermodels.SubscriberConfig{
-			Lte:            sub.Lte,
-			StaticIps:      sub.StaticIps,
-			AllowedNwTypes: sub.AllowedNwTypes,
+			Lte:                   sub.Lte,
+			StaticIps:             sub.StaticIps,
+			ForbiddenNetworkTypes: sub.ForbiddenNetworkTypes,
 		},
 		Associations: sub.GetAssocs(),
 	}
@@ -737,9 +736,9 @@ func updateSubscriber(ctx context.Context, networkID string, sub *subscribermode
 		Type:    lte.SubscriberEntityType,
 		NewName: swag.String(sub.Name),
 		NewConfig: &subscribermodels.SubscriberConfig{
-			Lte:            sub.Lte,
-			StaticIps:      sub.StaticIps,
-			AllowedNwTypes: sub.AllowedNwTypes,
+			Lte:                   sub.Lte,
+			StaticIps:             sub.StaticIps,
+			ForbiddenNetworkTypes: sub.ForbiddenNetworkTypes,
 		},
 		AssociationsToSet: sub.GetAssocs(),
 	}

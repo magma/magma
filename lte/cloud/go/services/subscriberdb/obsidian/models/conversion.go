@@ -36,26 +36,26 @@ import (
 
 func (m *MutableSubscriber) ToSubscriber() *Subscriber {
 	sub := &Subscriber{
-		ActiveApns:          m.ActiveApns,
-		ActiveBaseNames:     m.ActiveBaseNames,
-		ActivePolicies:      m.ActivePolicies,
-		ActivePoliciesByApn: m.ActivePoliciesByApn,
-		Config:              nil, // handled below
-		ID:                  m.ID,
-		Lte:                 m.Lte,
-		Monitoring:          nil, // augmented field
-		Name:                m.Name,
-		State:               nil, // augmented field
-		AllowedNwTypes:      m.AllowedNwTypes,
+		ActiveApns:            m.ActiveApns,
+		ActiveBaseNames:       m.ActiveBaseNames,
+		ActivePolicies:        m.ActivePolicies,
+		ActivePoliciesByApn:   m.ActivePoliciesByApn,
+		Config:                nil, // handled below
+		ID:                    m.ID,
+		Lte:                   m.Lte,
+		Monitoring:            nil, // augmented field
+		Name:                  m.Name,
+		State:                 nil, // augmented field
+		ForbiddenNetworkTypes: m.ForbiddenNetworkTypes,
 	}
 
 	// TODO(v1.3.0+): For backwards compatibility we maintain the Lte field
 	// on the sub. We can convert to just storing and exposing the Config
 	// field after the next minor version.
 	sub.Config = &SubscriberConfig{
-		Lte:            m.Lte,
-		StaticIps:      m.StaticIps,
-		AllowedNwTypes: m.AllowedNwTypes,
+		Lte:                   m.Lte,
+		StaticIps:             m.StaticIps,
+		ForbiddenNetworkTypes: m.ForbiddenNetworkTypes,
 	}
 
 	return sub
@@ -147,7 +147,7 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfil
 		if model.Lte.SubProfile == "" {
 			model.Lte.SubProfile = "default"
 		}
-		model.AllowedNwTypes = config.AllowedNwTypes
+		model.ForbiddenNetworkTypes = config.ForbiddenNetworkTypes
 	}
 
 	for _, tk := range ent.Associations.Filter(lte.APNEntityType) {

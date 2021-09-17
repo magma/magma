@@ -17,8 +17,8 @@ import (
 // swagger:model subscriber_config
 type SubscriberConfig struct {
 
-	// allowed nw types
-	AllowedNwTypes CoreNetworkTypeRestriction `json:"allowed_nw_types,omitempty"`
+	// forbidden network types
+	ForbiddenNetworkTypes CoreNetworkTypes `json:"forbidden_network_types,omitempty"`
 
 	// lte
 	// Required: true
@@ -32,7 +32,7 @@ type SubscriberConfig struct {
 func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAllowedNwTypes(formats); err != nil {
+	if err := m.validateForbiddenNetworkTypes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -50,15 +50,15 @@ func (m *SubscriberConfig) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SubscriberConfig) validateAllowedNwTypes(formats strfmt.Registry) error {
+func (m *SubscriberConfig) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.AllowedNwTypes) { // not required
+	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
 		return nil
 	}
 
-	if err := m.AllowedNwTypes.Validate(formats); err != nil {
+	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("allowed_nw_types")
+			return ve.ValidateName("forbidden_network_types")
 		}
 		return err
 	}

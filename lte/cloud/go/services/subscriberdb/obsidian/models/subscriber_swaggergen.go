@@ -30,12 +30,12 @@ type Subscriber struct {
 	// active policies by apn
 	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
 
-	// allowed nw types
-	AllowedNwTypes CoreNetworkTypeRestriction `json:"allowed_nw_types,omitempty"`
-
 	// config
 	// Required: true
 	Config *SubscriberConfig `json:"config"`
+
+	// forbidden network types
+	ForbiddenNetworkTypes CoreNetworkTypes `json:"forbidden_network_types,omitempty"`
 
 	// id
 	// Required: true
@@ -78,11 +78,11 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateAllowedNwTypes(formats); err != nil {
+	if err := m.validateConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.validateConfig(formats); err != nil {
+	if err := m.validateForbiddenNetworkTypes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -176,22 +176,6 @@ func (m *Subscriber) validateActivePoliciesByApn(formats strfmt.Registry) error 
 	return nil
 }
 
-func (m *Subscriber) validateAllowedNwTypes(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.AllowedNwTypes) { // not required
-		return nil
-	}
-
-	if err := m.AllowedNwTypes.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("allowed_nw_types")
-		}
-		return err
-	}
-
-	return nil
-}
-
 func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
 
 	if err := validate.Required("config", "body", m.Config); err != nil {
@@ -205,6 +189,22 @@ func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
+		return nil
+	}
+
+	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("forbidden_network_types")
+		}
+		return err
 	}
 
 	return nil

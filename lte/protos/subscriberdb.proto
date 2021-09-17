@@ -160,15 +160,15 @@ message SubscriberData {
 
   Non3GPPUserProfile non_3gpp = 7;
 
-  CoreNetworkTypeRestriction sub_network = 8;
+  CoreNetworkType sub_network = 8;
 }
 
-message CoreNetworkTypeRestriction {
-  enum CoreNetworkType {
+message CoreNetworkType {
+  enum CoreNetworkTypes {
       NT_EPC = 0;
       NT_5GC = 1;
   }
-  repeated CoreNetworkType allowed_nw_types = 1;
+  repeated CoreNetworkTypes forbidden_network_types = 1;
 }
 
 message SubscriberUpdate {
