@@ -18,10 +18,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/labstack/echo"
 )
 
 func getVersionHandler(c echo.Context) error {

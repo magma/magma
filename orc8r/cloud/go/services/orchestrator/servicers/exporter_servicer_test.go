@@ -18,15 +18,15 @@ import (
 	"strings"
 	"testing"
 
+	prometheus_models "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/cloud/go/services/metricsd/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	"magma/orc8r/lib/go/metrics"
-
-	prometheus_models "github.com/prometheus/client_model/go"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

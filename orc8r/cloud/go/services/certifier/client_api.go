@@ -17,16 +17,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/clock"
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"golang.org/x/net/context"
 )
 
 const ServiceName = "CERTIFIER"

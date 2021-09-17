@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/mocks"
-
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/mocks"
 )
 
 var (

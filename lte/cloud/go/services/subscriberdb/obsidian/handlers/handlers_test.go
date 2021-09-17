@@ -18,6 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -42,10 +46,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	stateTypes "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateSubscriber(t *testing.T) {

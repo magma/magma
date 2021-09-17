@@ -299,9 +299,11 @@ status_code_e emm_proc_security_mode_control(
 status_code_e emm_proc_security_mode_complete(
     mme_ue_s1ap_id_t ue_id, const imeisv_mobile_identity_t* const imeisv);
 status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id);
-status_code_e emm_proc_emm_informtion(ue_mm_context_t* emm_ctx);
+status_code_e emm_proc_emm_information(ue_mm_context_t* emm_ctx);
 
-void _clear_emm_ctxt(emm_context_t* emm_ctx);
+status_code_e release_esm_pdn_context(
+    emm_context_t* emm_ctx, mme_ue_s1ap_id_t ue_id);
+void clear_emm_ctxt(emm_context_t* emm_ctx);
 
 status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id);
 status_code_e emm_send_service_reject_in_dl_nas(

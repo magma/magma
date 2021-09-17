@@ -22,14 +22,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
-
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 )
 
 const (

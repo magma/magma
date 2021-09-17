@@ -16,10 +16,10 @@ package main
 import (
 	"os"
 
-	"magma/orc8r/cloud/go/services/magmad"
-
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
+
+	"magma/orc8r/cloud/go/services/magmad"
 )
 
 func init() {

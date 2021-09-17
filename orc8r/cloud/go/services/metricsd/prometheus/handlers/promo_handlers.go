@@ -21,7 +21,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/echo"
 	"github.com/pkg/errors"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
@@ -31,10 +34,6 @@ import (
 	"magma/orc8r/cloud/go/services/tenants"
 	tenantH "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/labstack/echo"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/prometheus/common/model"
 )
 
 const (

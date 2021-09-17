@@ -17,6 +17,10 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/go-openapi/swag"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -28,10 +32,6 @@ import (
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {

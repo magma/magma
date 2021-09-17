@@ -4,6 +4,8 @@ import (
 	context2 "context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
@@ -14,8 +16,6 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSiteCalculations(t *testing.T) {

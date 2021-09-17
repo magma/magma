@@ -18,11 +18,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 // RemoteSpec identifies a remote spec

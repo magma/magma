@@ -18,6 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
@@ -28,10 +32,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 var (

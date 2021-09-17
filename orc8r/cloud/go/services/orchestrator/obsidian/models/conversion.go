@@ -16,15 +16,15 @@ package models
 import (
 	"fmt"
 
+	"github.com/go-openapi/swag"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 func (m *Network) ToConfiguratorNetwork() configurator.Network {

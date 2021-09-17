@@ -19,15 +19,15 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/util"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/util"
 )
 
 type loadType int

@@ -16,13 +16,13 @@ package configurator
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator/storage"
-	storage2 "magma/orc8r/cloud/go/storage"
-
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator/storage"
+	storage2 "magma/orc8r/cloud/go/storage"
 )
 
 // Network partitions a set of entities. Networks can be configured in a

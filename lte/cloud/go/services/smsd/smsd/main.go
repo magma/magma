@@ -14,6 +14,8 @@
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/smsd"
@@ -26,8 +28,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
 )
 
 func main() {

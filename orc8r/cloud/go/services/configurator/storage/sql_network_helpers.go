@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sqorc"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {

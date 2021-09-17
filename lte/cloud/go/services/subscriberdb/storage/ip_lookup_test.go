@@ -16,11 +16,11 @@ package storage_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIPLookup(t *testing.T) {

@@ -14,6 +14,10 @@ limitations under the License.
 package subscriberdb
 
 import (
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -23,10 +27,6 @@ import (
 	mproto_protos "magma/orc8r/cloud/go/mproto/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	orc8r_protos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const defaultSubProfile = "default"

@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofrs/uuid"
+
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	eventdM "magma/orc8r/cloud/go/services/eventd/obsidian/models"
-
-	"github.com/gofrs/uuid"
 )
 
 // EpsIRIRecord represents a full IRI record combining header and payload

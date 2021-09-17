@@ -16,6 +16,11 @@ package subscriberdb
 import (
 	"sort"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -24,11 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 // LoadSubProtosPage streams one page (of configurable size) of subscriber data and

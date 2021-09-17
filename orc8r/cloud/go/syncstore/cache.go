@@ -17,11 +17,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 type cacheWriter struct {

@@ -123,6 +123,7 @@ qos:
  impl: linux_tc
  enable_pyroute2: true
  max_rate: 1000000000
+ gbr_rate: 80Kbit
  linux_tc:
   min_idx: 2
   max_idx: 65534

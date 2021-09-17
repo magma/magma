@@ -14,12 +14,12 @@ limitations under the License.
 package reindex
 
 import (
-	"magma/orc8r/cloud/go/blobstore"
-	state_types "magma/orc8r/cloud/go/services/state/types"
-
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/cloud/go/blobstore"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 // Store provides a cross-network DAO for local usage by the state service.
