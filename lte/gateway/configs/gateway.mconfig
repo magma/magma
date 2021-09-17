@@ -30,7 +30,7 @@
       "amfName": "AMF_1",
       "amfRegionId": "1",
       "amfSetId": "1",
-      "amfPointer": "3",
+      "amfPointer": "0",
       "attachedEnodebTacs": [],
       "dnsPrimary": "8.8.8.8",
       "dnsSecondary": "8.8.4.4",
@@ -41,7 +41,7 @@
       "congestionControlEnabled": true,
       "enableConvergedCore": false,
       "defaultSliceServiceType": "1",
-      "defaultSliceDifferentiator" : "0x0"
+      "defaultSliceDifferentiator" : "0xffffff"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
