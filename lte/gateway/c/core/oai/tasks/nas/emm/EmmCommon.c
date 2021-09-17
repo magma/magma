@@ -441,7 +441,6 @@ void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id) {
  **                                                                        **
  ***************************************************************************/
 void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
-
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (emm_common_data_ctx) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
@@ -700,8 +699,11 @@ status_code_e verify_tau_tai(
       if ((IS_PLMN_EQUAL(
               tai.plmn, emm_ctx_tai->partial_tai_list[0]
                             .u.tai_one_plmn_consecutive_tacs.plmn)) &&
-          (tai.tac == emm_ctx_tai->partial_tai_list[0]
-                          .u.tai_one_plmn_consecutive_tacs.tac)) {
+          ((tai.tac >= emm_ctx_tai->partial_tai_list[0]
+                           .u.tai_one_plmn_consecutive_tacs.tac) &&
+           (tai.tac <= (emm_ctx_tai->partial_tai_list[0]
+                           .u.tai_one_plmn_consecutive_tacs.tac +
+                       emm_ctx_tai->partial_tai_list[0].numberofelements)))) {
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
       break;
