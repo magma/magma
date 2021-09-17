@@ -1,21 +1,21 @@
 ARG ENV=standard
 FROM python:3.9.2-slim-buster as standard-version
 
-COPY dp/cloud/python/protocol_controller dp/cloud/python/protocol_controller
+COPY dp/cloud/python/magma/protocol_controller dp/cloud/python/magma/protocol_controller
 COPY dp/protos dp/protos
 
-RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/protocol_controller/requirements.txt
+RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/magma/protocol_controller/requirements.txt
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/requests.proto
 
 FROM standard-version as tests-version
-RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/protocol_controller/plugins/cbsd_sas/tests/requirements.txt
+RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/magma/protocol_controller/plugins/cbsd_sas/tests/requirements.txt
 RUN python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. dp/protos/requests.proto
 
 FROM ${ENV}-version as final
 
-WORKDIR dp/cloud/python/protocol_controller
+WORKDIR dp/cloud/python/magma/protocol_controller
 
-ENV PYTHONPATH=$PYTHONPATH:/
+ENV PYTHONPATH=/:/dp/cloud/python
 
 EXPOSE 8000
 

@@ -27,13 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
-      PYTHONPATH: "${{ github.workspace }}"
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
       MAGMA_ROOT: "${{ github.workspace }}"
       PYTHON_BUILD: "${{ github.workspace }}/build"
 
     defaults:
       run:
-        working-directory: dp/cloud/python/radio_controller
+        working-directory: dp/cloud/python/magma/radio_controller
 
     strategy:
       matrix:
@@ -75,16 +75,6 @@ jobs:
         if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
 
     - name: Generate protobufs
-      working-directory: "${{ github.workspace }}"
-      run: |
-        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
-        dp/protos/common.proto
-        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
-        dp/protos/requests.proto
-        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
-        dp/protos/active_mode.proto
-
-    - name: Generate protobufs
       working-directory: "${{ github.workspace }}/dp"
       run: |
         mkdir -p ${PYTHON_BUILD}
@@ -98,8 +88,9 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
+      working-directory: "${{ github.workspace }}/dp/cloud/python"
       run: |
-        coverage run --source=. -m pytest tests/unit
+        coverage run --source=. -m pytest magma/radio_controller/tests/unit
         coverage report
 
     - name: Upload coverage to Codecov
