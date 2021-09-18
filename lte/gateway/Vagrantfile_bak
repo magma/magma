@@ -30,12 +30,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
      # Enable Dynamic Swap Space to prevent Out of Memory crashes
     config.vm.provision :shell, inline: "swapoff -a && fallocate -l 4G /swapfile && chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab && swapon -a"
     config.vm.provision :shell, inline: "echo vm.swappiness = 10 >> /etc/sysctl.conf && echo vm.vfs_cache_pressure = 50 >> /etc/sysctl.conf && sysctl -p"
-
+    
     magma.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    magma.vm.network "public_network", ip: "192.168.60.142", nic_type: "82540EM"
+    magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
     # iperf3 trfserver routable IP.
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 
@@ -65,7 +65,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    magma_trfserver.vm.network "public_network", ip: "192.168.8.173", nic_type: "82540EM"
+    magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
     # iperf3 server IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM"
 
@@ -116,7 +116,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    magma_test.vm.network "public_network", ip: "192.168.8.175", nic_type: "82540EM"
+    magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
     # UE trfgen network
     magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM"
     #config.ssh.private_key_path = "~/.ssh/vagrant.key"
@@ -175,7 +175,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_prod.vm.network "private_network", ip: "10.10.2.1", nic_type: "82540EM"
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    magma_prod.vm.network "public_network", ip: "192.168.8.176", nic_type: "82540EM"
+    magma_prod.vm.network "private_network", ip: "192.168.60.151", nic_type: "82540EM"
     #config.ssh.private_key_path = "~/.ssh/vagrant.key"
     config.ssh.forward_agent = true
 
@@ -222,7 +222,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    oai_hss.vm.network "public_network", ip: "192.168.8.177", nic_type: "82540EM"
+    oai_hss.vm.network "private_network", ip: "192.168.60.153", nic_type: "82540EM"
     config.ssh.insert_key = false
     oai_hss.vm.provider "virtualbox" do |vb|
       vb.name = "oai-hss"
