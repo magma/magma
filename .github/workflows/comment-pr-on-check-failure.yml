@@ -17,6 +17,7 @@ jobs:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
     steps:
       # Retrieve PR number from triggering workflow artifacts
+      - uses: hmarr/debug-action@v2
       - name: 'Download artifact'
         uses: actions/github-script@v3.1.0
         with:
@@ -67,9 +68,21 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
+
             var fs = require('fs');
             var issue_number = Number(fs.readFileSync('./NR'));
-            const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
+            const msg = fs.readFileSync('./msg',{encoding: 'utf8'});
+
+            const commentsList = await github.pulls.listComments({
+                                        owner: context.repo.owner,
+                                        repo: context.repo.repo,
+                                        issue_number: issue_number,
+                                      });
+
+            for (const c of commentsList['data']) {
+              var commentBody = c.body;
+              console.log("CommentBody=" + commentBody);
+            } // end of for loop on commentsList
 
             github.issues.createComment({
               issue_number: issue_number,
