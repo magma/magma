@@ -72,6 +72,10 @@ jobs:
             var fs = require('fs');
             var issue_number = Number(fs.readFileSync('./NR'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'});
+            var oldMsg = '';
+            var newMsg = msg;
+            var oldExists = 0;
+            var commentId = 0;
 
             const commentsList = await github.issues.listComments({
                                         owner: context.repo.owner,
@@ -80,13 +84,35 @@ jobs:
                                       });
 
             for (const c of commentsList['data']) {
-              var commentBody = c.body;
+              commentId = c.id;
+              oldMsg += c.body;
               console.log("CommentBody=" + commentBody);
+              if( oldMsg.includes('Oops! Looks like you failed the ') ) {
+                oldExists = 1;
+                console.log("Found an Oops comment=" + oldMsg);
+                newMsg = oldMsg + "\n" + msg
+              }
             } // end of for loop on commentsList
 
-            github.issues.createComment({
-              issue_number: issue_number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: msg,
-            })
+            if( oldExists == 0 ) {
+              console.log("oldExists==0. CREATING comment=" + msg);
+              github.issues.createComment({
+                            issue_number: issue_number,
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            body: msg,
+                          });
+            }
+            else  {
+              console.log("oldExists==1. UPDATING comment=" + newMsg);
+              github.issues.updateComment({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            comment_id: commentId,
+                            body: newMsg,
+                          });
+            }
+
+
+
+
