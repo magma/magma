@@ -86,7 +86,7 @@ jobs:
             for (const c of commentsList['data']) {
               commentId = c.id;
               oldMsg += c.body;
-              console.log("CommentBody=" + commentBody);
+              console.log("CommentBody=" + oldMsg);
               if( oldMsg.includes('Oops! Looks like you failed the ') ) {
                 oldExists = 1;
                 console.log("Found an Oops comment=" + oldMsg);
