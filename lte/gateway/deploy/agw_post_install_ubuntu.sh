@@ -25,7 +25,7 @@ addInfo() {
 }
 
 if ! grep -q 'Ubuntu' /etc/issue; then
-  addError "Ubuntu is not installed" "Restart installation following agw_install.sh, agw has to run on Debian"
+  addError "Ubuntu is not installed" "Restart installation following agw_install_ubuntu.sh, agw has to run on Debian"
   exit
 fi
 
@@ -84,7 +84,7 @@ packages=("magma" "magma-cpp-redis" "magma-libfluid" "libopenvswitch" "openvswit
 for package in "${packages[@]}"; do
     PACKAGE_INSTALLED=$(dpkg-query -W -f='${Status}' "$package"  > /dev/null 2>&1 && echo "$SUCCESS_MESSAGE")
     if [ "$PACKAGE_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
-        addError "$package hasn't been installed" "Rerun the agw_install.sh"
+        addError "$package hasn't been installed" "Rerun the agw_install_ubuntu.sh"
     fi
 done
 
