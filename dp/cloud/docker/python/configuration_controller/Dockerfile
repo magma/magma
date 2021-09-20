@@ -1,20 +1,24 @@
 ARG ENV=standard
 FROM python:3.9.2-slim-buster as standard-version
 
-COPY dp/cloud/python/magma/configuration_controller dp/cloud/python/magma/configuration_controller
-COPY dp/cloud/python/magma/db_service/config.py \
-    dp/cloud/python/magma/db_service/models.py \
-    dp/cloud/python/magma/db_service/session_manager.py \
-    dp/cloud/python/magma/db_service/session_manager.py \
-    dp/cloud/python/magma/db_service/
-COPY dp/cloud/python/magma/mappings dp/cloud/python/magma/mappings
-WORKDIR dp/cloud/python/magma/configuration_controller
+ENV CC_DIRECTORY=dp/cloud/python/magma/configuration_controller
+ENV DB_DIRECTORY=dp/cloud/python/magma/db_service
+
+COPY $CC_DIRECTORY/requirements.txt \
+     /$CC_DIRECTORY/requirements.txt
+WORKDIR /$CC_DIRECTORY
 RUN pip3 install --upgrade pip --no-cache-dir -r requirements.txt
 
 FROM standard-version as tests-version
+COPY $CC_DIRECTORY/tests/requirements.txt \
+     /$CC_DIRECTORY/tests/requirements.txt
 RUN pip3 install --upgrade pip --no-cache-dir -r tests/requirements.txt
 
+
 FROM ${ENV}-version as final
+COPY $CC_DIRECTORY /$CC_DIRECTORY/
+COPY $DB_DIRECTORY /$DB_DIRECTORY/
+COPY dp/cloud/python/magma/mappings /dp/cloud/python/magma/mappings/
 ENV PYTHONPATH=/:/dp/cloud/python
 ENTRYPOINT ["python"]
 CMD ["run.py"]

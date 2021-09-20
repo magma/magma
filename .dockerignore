@@ -54,6 +54,7 @@
 !dp/cloud/go/
 !dp/cloud/python/
 !dp/protos/
+!dp/Makefile
 
 !protos/
 

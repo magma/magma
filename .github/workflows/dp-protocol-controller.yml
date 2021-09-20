@@ -75,12 +75,6 @@ jobs:
         if [ -f plugins/cbsd_sas/tests/requirements.txt ]; then pip install -r plugins/cbsd_sas/tests/requirements.txt; fi
 
     - name: Generate protobufs
-      working-directory: "${{ github.workspace }}"
-      run: |
-        python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. \
-        dp/protos/requests.proto
-
-    - name: Generate protobufs
       working-directory: "${{ github.workspace }}/dp"
       run: |
         mkdir -p ${PYTHON_BUILD}
