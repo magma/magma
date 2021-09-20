@@ -10,7 +10,7 @@ aliases:
   - &only_release
     filters:
       branches:
-        only: v*
+        only: v1.7
   - &master_and_develop
     filters:
       branches:
@@ -359,8 +359,6 @@ commands:
         type: string
     steps:
       - checkout
-      - build/determinator:
-          <<: *lte_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           name: Install tools
@@ -415,7 +413,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-1.7.0/$i;deb.distribution=focal-1.7.0;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -1001,8 +999,6 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      - build/determinator:
-          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
@@ -1369,28 +1365,16 @@ workflows:
           type: approval
       - lte-agw-deploy:
           <<: *only_release
-          requires:
-            - release-hold
       - cwag-deploy:
           <<: *only_release
-          requires:
-            - release-hold
       - cwf-operator-build:
           <<: *only_release
-          requires:
-            - release-hold
       - feg-build:
           <<: *only_release
-          requires:
-            - release-hold
       - orc8r-build:
           <<: *only_release
-          requires:
-            - release-hold
       - nms-build:
           <<: *only_release
-          requires:
-            - release-hold
       # Debian Packages need to be promoted to production repo before releasing to Linux Foundation AWS
       - publish-amis-to-marketplace:
           aws_account: "LF"
@@ -1419,7 +1403,7 @@ workflows:
       - schedule:
           cron: "0 * * * *"
           <<: *only_master
-        
+
     jobs:
       - xwfm-test:
           notify_magma_ci: false
