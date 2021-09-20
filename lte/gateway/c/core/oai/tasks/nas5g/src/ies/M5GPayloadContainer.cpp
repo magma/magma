@@ -67,5 +67,5 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   memcpy(buffer + tmp, payload_container->contents, encoded);
 
   return (encoded + tmp);
-};
+}
 }  // namespace magma5g

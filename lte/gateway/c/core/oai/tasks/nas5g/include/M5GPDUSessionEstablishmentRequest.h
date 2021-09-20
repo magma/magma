@@ -55,15 +55,14 @@ class PDUSessionEstablishmentRequestMsg {
     ssc_mode.copy(p.ssc_mode);
   }
   bool isEqual(const PDUSessionEstablishmentRequestMsg& p) {
-    if (extended_protocol_discriminator.isEqual(
+    return (
+        extended_protocol_discriminator.isEqual(
             p.extended_protocol_discriminator) &&
         pdu_session_identity.isEqual(p.pdu_session_identity) &&
         pti.isEqual(p.pti) && message_type.isEqual(p.message_type) &&
         integrity_prot_max_data_rate.isEqual(p.integrity_prot_max_data_rate) &&
         pdu_session_type.isEqual(p.pdu_session_type) &&
-        ssc_mode.isEqual(p.ssc_mode))
-      return true;
-    return false;
+        ssc_mode.isEqual(p.ssc_mode));
   }
 };
 }  // namespace magma5g

@@ -32,8 +32,7 @@ class SSCModeMsg {
     mode_val = s.mode_val;
   }
   bool isEqual(const SSCModeMsg& s) {
-    if ((iei == s.iei) && (mode_val == s.mode_val)) return true;
-    return false;
+    return ((iei == s.iei) && (mode_val == s.mode_val));
   }
 };
 }  // namespace magma5g

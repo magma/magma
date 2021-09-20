@@ -37,13 +37,12 @@ class SmfMsgHeader {
     message_type                    = s.message_type;
   }
   bool isEqual(const SmfMsgHeader& s) {
-    if ((extended_protocol_discriminator ==
+    return (
+        (extended_protocol_discriminator ==
          s.extended_protocol_discriminator) &&
         (pdu_session_id == s.pdu_session_id) &&
         (procedure_transaction_id == s.procedure_transaction_id) &&
-        (message_type == s.message_type))
-      return true;
-    return false;
+        (message_type == s.message_type));
   }
 };
 

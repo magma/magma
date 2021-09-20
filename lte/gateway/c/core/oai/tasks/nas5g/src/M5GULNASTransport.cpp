@@ -98,8 +98,8 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
         }
         break;
       }
-      case M5GIei::PDU_SESSION_ID:
-      case M5GIei::OLD_PDU_SESSION_ID:
+      case M5GIei::PDU_SESSION_IDENTITY_2:
+      case M5GIei::OLD_PDU_SESSION_IDENTITY_2:
         decoded_result += 2;
         decoded += decoded_result;
         break;

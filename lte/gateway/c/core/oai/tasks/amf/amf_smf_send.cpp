@@ -25,7 +25,7 @@ extern "C" {
 #endif
 #include "include/amf_session_manager_pco.h"
 #include "amf_recv.h"
-#include "./amf_sap.h"
+#include "amf_sap.h"
 #include "M5gNasMessage.h"
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
@@ -721,7 +721,8 @@ int amf_max_pdu_session_reject(
   dlmsg->payload_container_type.iei      = 0;
   dlmsg->payload_container_type.type_val = N1_SM_INFO;
   len++;
-  dlmsg->pdu_session_identity.iei = PDU_SESSION_IDENTITY;
+  dlmsg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
   len++;
   dlmsg->pdu_session_identity.pdu_session_id =
       ulmsg->payload_container.smf_msg.header.pdu_session_id;

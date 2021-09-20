@@ -26,6 +26,7 @@ extern "C" {
 #include "amf_fsm.h"
 #include "amf_recv.h"
 #include "M5GDLNASTransport.h"
+#include "amf_common.h"
 namespace magma5g {
 
 #define NAS5G_MESSAGE_SECURITY_HEADER_SIZE 7
@@ -76,7 +77,6 @@ static uint32_t _nas5g_message_get_mac(
     int const direction, amf_security_context_t* const amf_security_context);
 
 std::string get_message_type_str(uint8_t type);
-std::string uint8_to_hex_string(const uint8_t* v, const size_t s);
 
 /****************************************************************************
  *                                                                           *
@@ -1039,8 +1039,11 @@ std::string get_message_type_str(uint8_t type) {
   }
   return msgtype_str;
 }
+
 std::string uint8_to_hex_string(const uint8_t* v, const size_t s) {
   std::stringstream ss;
+
+  if (!v || (0 == s)) return ss.str();
 
   ss << std::hex << std::setfill('0');
   for (unsigned int i = 0; i < s; i++) {

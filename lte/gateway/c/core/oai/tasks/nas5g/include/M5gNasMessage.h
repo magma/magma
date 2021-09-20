@@ -96,7 +96,6 @@ namespace magma5g {
 #define PDU_SESSION_MODIFICATION_REJECT 0xCA
 // 5G Session Management IE Types
 #define REQUEST_PDU_SESSION_TYPE_TYPE 0x90
-#define PDU_SESSION_IDENTITY 0x12
 #define REQUEST_SSC_MODE_TYPE 0xA0
 #define M5GSM_CAUSE 0x59
 #define PDU_ADDRESS 0x29

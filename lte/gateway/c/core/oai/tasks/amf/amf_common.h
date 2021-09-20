@@ -30,6 +30,7 @@ extern "C" {
   LENGTH += QUADLET - (LENGTH % QUADLET)
 
 namespace magma5g {
+std::string uint8_to_hex_string(const uint8_t* v, const size_t s);
 status_code_e amf_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);

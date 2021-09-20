@@ -18,8 +18,8 @@ namespace magma5g {
 enum class M5GIei : uint8_t {
   M5GMM_CAUSE                   = 0x58,
   REQUEST_TYPE                  = 0x80,
-  PDU_SESSION_ID                = 0x12,
-  OLD_PDU_SESSION_ID            = 0x59,
+  PDU_SESSION_IDENTITY_2        = 0x12,
+  OLD_PDU_SESSION_IDENTITY_2    = 0x59,
   S_NSSA                        = 0x22,
   DNN                           = 0x25,
   ADDITIONAL_INFORMATION        = 0x24,

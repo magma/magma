@@ -40,12 +40,11 @@ class PayloadContainerMsg {
   }
 
   bool isEqual(const PayloadContainerMsg& p) {
-    if ((iei == p.iei) && (len == p.len) &&
+    return (
+        (iei == p.iei) && (len == p.len) &&
         (0 ==
          memcmp(contents, p.contents, PAYLOAD_CONTAINER_CONTENTS_MAX_LEN)) &&
-        (smf_msg.isEqual(p.smf_msg)))
-      return true;
-    return false;
+        (smf_msg.isEqual(p.smf_msg)));
   }
 };
 }  // namespace magma5g

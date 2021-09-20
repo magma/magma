@@ -553,15 +553,17 @@ TEST(test_dlnastransport, test_dlnastransport) {
 
   // Message construction for PDU Establishment Reject
   // NAS-5GS (NAS) PDU
-  msg.security_protected.plain.amf.header.extended_protocol_discriminator =
+  msg.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
-  msg.header.security_header_type =
-      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.plain.amf.header.message_type          = DLNASTRANSPORT;
+  msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  // SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.message_type                    = DLNASTRANSPORT;
   msg.header.sequence_number                 = 1;
 
-  dlmsg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
+  dlmsg = &msg.plain.amf.msg.downlinknas5gtransport;
 
   // AmfHeader
   dlmsg->extended_protocol_discriminator.extended_proto_discriminator =
@@ -578,7 +580,8 @@ TEST(test_dlnastransport, test_dlnastransport) {
   dlmsg->payload_container_type.iei      = 0;
   dlmsg->payload_container_type.type_val = N1_SM_INFO;
   len++;
-  dlmsg->pdu_session_identity.iei = PDU_SESSION_IDENTITY;
+  dlmsg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
   len++;
   dlmsg->pdu_session_identity.pdu_session_id =
       ulmsg->payload_container.smf_msg.header.pdu_session_id;
@@ -599,22 +602,21 @@ TEST(test_dlnastransport, test_dlnastransport) {
    * so length is modified such that it will be mode of 4
    */
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
-  if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
-    amf_msg_header* header = &msg.security_protected.plain.amf.header;
-    /*
-     * Expand size of protected NAS message
-     */
-    len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
-    /*
-     * Set header of plain NAS message
-     */
-    header->extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
-    header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  }
 
   buffer = bfromcstralloc(len, "\0");
   bytes  = nas5g_message_encode(buffer->data, &msg, len, nullptr);
   EXPECT_TRUE(bytes > 0);
+
+  amf_nas_message_t decode_msg                  = {0};
+  amf_nas_message_decode_status_t decode_status = {};
+  int status                                    = RETURNerror;
+  status                                        = nas5g_message_decode(
+      buffer->data, &decode_msg, bytes, nullptr, &decode_status);
+
+  EXPECT_EQ(true, dlmsg->payload_container.isEqual(ulmsg->payload_container));
+  EXPECT_EQ(
+      dlmsg->m5gmm_cause.m5gmm_cause,
+      static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED));
   bdestroy(buffer);
 }
 int main(int argc, char** argv) {

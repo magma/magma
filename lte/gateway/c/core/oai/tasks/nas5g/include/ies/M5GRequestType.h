@@ -28,8 +28,7 @@ class RequestType {
     type_val = p.type_val;
   }
   bool isEqual(const RequestType& p) {
-    if ((iei == p.iei) && (type_val == p.type_val)) return true;
-    return false;
+    return ((iei == p.iei) && (type_val == p.type_val));
   }
 };
 }  // namespace magma5g

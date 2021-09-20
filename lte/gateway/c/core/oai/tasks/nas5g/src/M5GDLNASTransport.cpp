@@ -104,9 +104,30 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
         } else {
           decoded += decoded_result;
         }
-      } break;
-      default:
         break;
+      }
+      case M5GIei::PDU_SESSION_IDENTITY_2: {
+        if ((decoded_result =
+                 dl_nas_transport->pdu_session_identity
+                     .DecodePDUSessionIdentityMsg(
+                         &dl_nas_transport->pdu_session_identity,
+                         static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
+                         buffer + decoded, len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
+      }
+      default:
+        MLOG(MDEBUG) << "ERROR: Unable to decode Optional Parameter \n";
+        decoded_result = -1;
+        break;
+    }
+
+    if (decoded_result < 0) {
+      MLOG(MDEBUG) << "ERROR: decode DLNASTransportMsg failed";
+      return decoded_result;
     }
   }
   return decoded;
@@ -181,13 +202,16 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result =
-           dl_nas_transport->pdu_session_identity.EncodePDUSessionIdentityMsg(
-               &dl_nas_transport->pdu_session_identity, PDU_SESSION_IDENTITY,
-               buffer + encoded, len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
+  if (dl_nas_transport->pdu_session_identity.pdu_session_id) {
+    if ((encoded_result =
+             dl_nas_transport->pdu_session_identity.EncodePDUSessionIdentityMsg(
+                 &dl_nas_transport->pdu_session_identity,
+                 static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
+                 buffer + encoded, len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
   }
 
   if (dl_nas_transport->m5gmm_cause.m5gmm_cause) {
