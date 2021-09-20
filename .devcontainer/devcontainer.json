@@ -12,8 +12,7 @@
 		"ms-vsliveshare.vsliveshare",
 		"ms-azuretools.vscode-docker"
 	],
-	"dockerFile": "Dockerfile",
-	"context": "..",
+	"image": "ghcr.io/magma/devcontainer:sha-b435783",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"clang-tidy.compilerArgs": [
