@@ -101,14 +101,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case S8_CREATE_BEARER_REQ: {
       gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
-      s8_create_bearer_request_t cb_req =
-          received_message_p->ittiMsg.s8_create_bearer_req;
+      s8_create_bearer_request_t* cb_req =
+          &received_message_p->ittiMsg.s8_create_bearer_req;
       imsi64_t imsi64 =
-          sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value);
+          sgw_s8_handle_create_bearer_request(sgw_state, cb_req, &cause_value);
       Imsi_t imsi = {0};
       if (imsi64 == INVALID_IMSI64) {
         sgw_s8_send_failed_create_bearer_response(
-            sgw_state, cb_req.sequence_number, cb_req.pgw_cp_address,
+            sgw_state, cb_req->sequence_number, cb_req->pgw_cp_address,
             cause_value, imsi);
       }
     } break;
