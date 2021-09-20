@@ -768,7 +768,8 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
       }
       // delete paging rule
       char* ip_str = inet_ntoa(ue_ipv4);
-      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
+      //char* ip_str = inet_ntoa(ue_ipv6);
+      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4,ue_ipv6);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
@@ -2269,7 +2270,7 @@ void sgw_process_release_access_bearer_request(
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
       }
       // Paging is performed without packet buffering
-      rv = gtp_tunnel_ops->add_paging_rule(eps_bearer_ctxt->paa.ipv4_address);
+      rv = gtp_tunnel_ops->add_paging_rule(eps_bearer_ctxt->paa.ipv4_address,ue_ipv6);
       // Convert to string for logging
       char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
       if (rv < 0) {

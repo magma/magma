@@ -20,6 +20,6 @@
 
 struct in_addr;
 
-void sgw_send_paging_request(const struct in_addr* dest_ip);
+void sgw_send_paging_request(const struct in_addr* dest_ip, const struct in6_addr* dest_ipv6);
 
 #endif

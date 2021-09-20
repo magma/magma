@@ -63,11 +63,19 @@ void PagingApplication::handle_paging_message(
   // send paging request to MME
   struct ip* ip_header = (struct ip*) (data + ETH_HEADER_LENGTH);
   struct in_addr dest_ip;
+  struct in6_addr* dest_ipv6;
+  char ip6_str[INET6_ADDRSTRLEN];
+
   memcpy(&dest_ip, &ip_header->ip_dst, sizeof(struct in_addr));
   char* dest_ip_str = inet_ntoa(dest_ip);
+
+if (!(ip_header)) {
+    inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
+  }
+
   OAILOG_DEBUG(
       LOG_GTPV1U, "Initiating paging procedure for IP %s\n", dest_ip_str);
-  sgw_send_paging_request(&dest_ip);
+  sgw_send_paging_request(&dest_ip, dest_ipv6);
 
   /*
    * Clamp on this ip for configured amount of time
@@ -84,6 +92,12 @@ void PagingApplication::handle_paging_message(
 
   of13::IPv4Dst ip_match(dest_ip.s_addr);
   fm.add_oxm_field(ip_match);
+
+of13::IPv6Dst ipv6_match(IPAddress(ip6_str));
+if (!(ip_header)){
+
+  fm.add_oxm_field(ipv6_match);
+}
 
   // No actions mean packet is dropped
   messenger.send_of_msg(fm, ofconn);
@@ -102,6 +116,10 @@ void PagingApplication::add_paging_flow(
   const struct in_addr& ue_ip = ev.get_ue_ip();
   of13::IPv4Dst ip_match(ue_ip.s_addr);
   fm.add_oxm_field(ip_match);
+
+  const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
+  of13::IPv6Dst ipv6_match(ue_ipv6);
+  fm.add_oxm_field(ipv6_match);
 
   // Output to controller
   of13::OutputAction act(of13::OFPP_CONTROLLER, of13::OFPCML_NO_BUFFER);

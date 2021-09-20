@@ -31,10 +31,10 @@
 #include "itti_types.h"
 #include "s11_messages_types.h"
 
-void sgw_send_paging_request(const struct in_addr* dest_ip) {
-  OAILOG_DEBUG(
-      TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
-      dest_ip->s_addr);
+
+
+void sgw_send_paging_request(const struct in_addr* dest_ip, const struct in6_addr* dest_ipv6) {
+
   MessageDef* message_p                       = NULL;
   itti_s11_paging_request_t* paging_request_p = NULL;
 
@@ -42,7 +42,25 @@ void sgw_send_paging_request(const struct in_addr* dest_ip) {
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SPGW_APP, S11_PAGING_REQUEST);
   paging_request_p = &message_p->ittiMsg.s11_paging_request;
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
-  paging_request_p->ipv4_addr = *dest_ip;
+
+
+char* ip_str = inet_ntoa(*dest_ip);
+if(strcmp(*ip_str , "0"))
+{
+  OAILOG_DEBUG(
+      TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
+      dest_ip->s_addr);
+paging_request_p->address.ipv4_addr.sin_addr = *dest_ip;
+}
+
+else
+{
+  OAILOG_DEBUG(
+      TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %x\n",
+      dest_ipv6->__in6_u);
+  paging_request_p->address.ipv6_addr.sin6_addr = *dest_ipv6;
+}
+
 
   send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   return;

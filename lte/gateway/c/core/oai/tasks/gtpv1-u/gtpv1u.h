@@ -158,8 +158,8 @@ struct gtp_tunnel_ops {
   int (*forward_data_on_tunnel)(
       struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
       struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl);
-  int (*add_paging_rule)(struct in_addr ue);
-  int (*delete_paging_rule)(struct in_addr ue);
+  int (*add_paging_rule)(struct in_addr ue, struct in6_addr* ue_ipv6);
+  int (*delete_paging_rule)(struct in_addr ue, struct in6_addr* ue_ipv6);
   int (*send_end_marker)(struct in_addr enbode, uint32_t i_tei);
   const char* (*get_dev_name)(void);
 };
