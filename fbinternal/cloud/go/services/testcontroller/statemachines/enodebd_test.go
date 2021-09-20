@@ -28,6 +28,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/swag"
+	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
 	storage2 "magma/fbinternal/cloud/go/services/testcontroller/storage"
@@ -49,11 +54,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	structpb "github.com/golang/protobuf/ptypes/struct"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 // don't test intermediate failure conditions (e.g. unexpected config types,

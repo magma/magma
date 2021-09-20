@@ -63,6 +63,7 @@ define add_module
 	COVER_LIST += $(MODULE)_cover
 	DOWNLOAD_LIST += $(MODULE)_download
 	FMT_LIST += $(MODULE)_fmt
+	GOIMPORTS_LIST += $(MODULE)_goimports
 	GEN_LIST += $(MODULE)_gen
 	GEN_PROTO_LIST += $(MODULE)_gen_proto
 	LINT_LIST += $(MODULE)_lint
@@ -110,9 +111,13 @@ $(FMT_LIST): %_fmt:
 
 fullgen: clean_gen gen swagger tidy
 
-gen: tools gen_protos $(GEN_LIST)
+gen: tools order_imports gen_protos $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
+
+order_imports: $(GOIMPORTS_LIST)
+$(GOIMPORTS_LIST): %_goimports:
+	make -C $*/cloud/go order_imports
 
 gen_protos: $(GEN_PROTO_LIST)
 $(GEN_PROTO_LIST): %_gen_proto:

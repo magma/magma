@@ -19,13 +19,13 @@ import (
 	"testing"
 	"time"
 
-	"magma/fbinternal/cloud/go/services/testcontroller/storage"
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 var expectedNodeCols = []string{

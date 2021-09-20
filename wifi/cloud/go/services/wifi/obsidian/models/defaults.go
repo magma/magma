@@ -14,10 +14,10 @@
 package models
 
 import (
+	"github.com/go-openapi/swag"
+
 	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/go-openapi/swag"
 )
 
 func NewDefaultWifiNetwork() *WifiNetwork {

@@ -24,6 +24,7 @@ fi
 prefix="vt$tag"
 ip_addr="10.$network_id.$tag.111/24"
 router_ip="10.$network_id.$tag.211"
+router_ipv6="fc00::$network_id:$tag:211/96"
 
 ip link del "$prefix"_port
 ip link add "$prefix"_port type veth peer name  "$prefix"_port1
@@ -38,6 +39,7 @@ ip link set dev  "$prefix"_port1 netns "$prefix"_dhcp_srv
 ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 "$ip_addr"
 ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 hw ether b2:a0:cc:85:80:$tag
 ip netns exec    "$prefix"_dhcp_srv   ip addr add $router_ip  dev "$prefix"_port1
+ip netns exec    "$prefix"_dhcp_srv   ip -6 addr add $router_ipv6  dev "$prefix"_port1
 
 ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 up
 

@@ -216,7 +216,7 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
 
 status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
-    tac_t tac);
+    tai_t tai);
 
 status_code_e emm_proc_tracking_area_update_reject(
     const mme_ue_s1ap_id_t ue_id, const int emm_cause);

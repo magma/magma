@@ -1457,6 +1457,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB,
+            (const char**) &astring))) {
+      config_pP->accept_combined_attach_tau_wo_csfb = parse_bool(astring);
+    }
+
     // NAS SETTING
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_NAS_CONFIG);

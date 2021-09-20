@@ -419,3 +419,11 @@
   patch:
     src: patches/aioeventlet_fd_exception.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+
+- name: Install requirements for VSCode <-> Bazel integration
+  when: full_provision
+  apt:
+    state: present
+    pkg:
+      - clangd-12
+  retries: 5

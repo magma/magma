@@ -19,13 +19,13 @@ import (
 	"fmt"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 const (

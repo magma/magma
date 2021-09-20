@@ -25,6 +25,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/fbinternal/cloud/go/services/testcontroller/utils"
@@ -39,12 +45,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	structpb "github.com/golang/protobuf/ptypes/struct"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 const (
