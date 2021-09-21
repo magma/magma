@@ -28,14 +28,12 @@ extern "C" {
 #include "conversions.h"
 #include "include/amf_pdu_session_configs.h"
 #include "include/amf_session_manager_pco.h"
-#include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
 #include "amf_sap.h"
 #include "amf_recv.h"
 #include "amf_app_state_manager.h"
 #include "M5gNasMessage.h"
-#include "dynamic_memory_check.h"
 #include "n11_messages_types.h"
 #include "amf_app_timer_management.h"
 
@@ -59,7 +57,7 @@ static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
 //------------------------------------------------------------------------------
 void amf_ue_context_update_coll_keys(
     amf_ue_context_t* const amf_ue_context_p,
-    ue_m5gmm_context_s* const ue_context_p,
+    ue_m5gmm_context_s*  ue_context_p,
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
@@ -82,7 +80,7 @@ void amf_ue_context_update_coll_keys(
         (const hash_key_t) ue_context_p->gnb_ngap_id_key);
     h_rc = hashtable_uint64_ts_insert(
         amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) gnb_ngap_id_key, amf_ue_ngap_id);
+        (const hash_key_t) gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id);
 
     if (HASH_TABLE_OK != h_rc) {
       OAILOG_ERROR_UE(
@@ -96,14 +94,14 @@ void amf_ue_context_update_coll_keys(
     ue_context_p->gnb_ngap_id_key = gnb_ngap_id_key;
   }
 
-  if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+  if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
       h_rc = hashtable_ts_remove(
-          amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-          (void**) &ue_context_p);
+          amf_state_ue_id_ht, (const hash_key_t)amf_ue_ngap_id,
+          reinterpret_cast<void**>(&ue_context_p));
       h_rc = hashtable_ts_insert(
-          amf_state_ue_id_ht, (const hash_key_t) amf_ue_ngap_id,
-          (void*) ue_context_p);
+          amf_state_ue_id_ht, (const hash_key_t)ue_context_p->amf_ue_ngap_id,
+          reinterpret_cast<void*>(ue_context_p));
 
       if (HASH_TABLE_OK != h_rc) {
         OAILOG_ERROR(
@@ -112,22 +110,21 @@ void amf_ue_context_update_coll_keys(
             "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
             amf_ue_ngap_id);
       }
-      ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
   } else {
     OAILOG_ERROR(
         LOG_AMF_APP, "Invalid  amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-        amf_ue_ngap_id);
+        ue_context_p->amf_ue_ngap_id);
   }
 
   h_rc = hashtable_uint64_ts_remove(
       amf_ue_context_p->imsi_amf_ue_id_htbl,
       (const hash_key_t) ue_context_p->amf_context.imsi64);
 
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+  if (INVALID_AMF_UE_NGAP_ID != ue_context_p->amf_ue_ngap_id) {
     h_rc = hashtable_uint64_ts_insert(
         amf_ue_context_p->imsi_amf_ue_id_htbl, (const hash_key_t) imsi,
-        amf_ue_ngap_id);
+        ue_context_p->amf_ue_ngap_id);
   } else {
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
@@ -137,7 +134,7 @@ void amf_ue_context_update_coll_keys(
         LOG_AMF_APP,
         "Insertion of Hash entry failed for  "
         "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-        amf_ue_ngap_id);
+        ue_context_p->amf_ue_ngap_id);
   }
 
   amf_directoryd_report_location(
@@ -146,10 +143,11 @@ void amf_ue_context_update_coll_keys(
       amf_ue_context_p->tun11_ue_context_htbl,
       (const hash_key_t) ue_context_p->amf_teid_n11);
 
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+  if (INVALID_AMF_UE_NGAP_ID != ue_context_p->amf_ue_ngap_id) {
     h_rc = hashtable_uint64_ts_insert(
         amf_ue_context_p->tun11_ue_context_htbl,
-        (const hash_key_t) amf_teid_n11, (uint64_t) amf_ue_ngap_id);
+        (const hash_key_t) amf_teid_n11,
+        (uint64_t)ue_context_p->amf_ue_ngap_id);
   } else {
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
@@ -169,7 +167,7 @@ void amf_ue_context_update_coll_keys(
   if (guti_p) {
     if ((guti_p->guamfi.amf_set_id !=
          ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
-        (guti_p->guamfi.amf_set_id !=
+        (guti_p->guamfi.amf_regionid !=
          ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
         (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (guti_p->guamfi.plmn.mcc_digit1 !=
@@ -182,10 +180,10 @@ void amf_ue_context_update_coll_keys(
       h_rc = obj_hashtable_uint64_ts_remove(
           amf_ue_context_p->guti_ue_context_htbl,
           &ue_context_p->amf_context.m5_guti, sizeof(*guti_p));
-      if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
+      if (INVALID_AMF_UE_NGAP_ID != ue_context_p->amf_ue_ngap_id) {
         h_rc = obj_hashtable_uint64_ts_insert(
             amf_ue_context_p->guti_ue_context_htbl, (const void* const) guti_p,
-            sizeof(*guti_p), (uint64_t) amf_ue_ngap_id);
+            sizeof(*guti_p), (uint64_t) ue_context_p->amf_ue_ngap_id);
       } else {
         h_rc = HASH_TABLE_KEY_NOT_EXISTS;
       }
@@ -308,8 +306,9 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
     if (ue_context) {
       return ue_context;
     }
+  }
 
-  } else {
+  if (!ue_context) {
     OAILOG_WARNING(
         LOG_AMF_APP, "No GUTI hashtable for GUTI Hash %x", guti_p->m_tmsi);
     ue_context = ue_context_loopkup_by_guti(guti_p->m_tmsi);
@@ -346,6 +345,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   guti_m5_t guti                    = {0};
   plmn_t plmn                       = {0};
   s_tmsi_m5_t s_tmsi                = {0};
+  amf_ue_ngap_id_t old_amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
 
   if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     OAILOG_ERROR(
@@ -405,6 +405,7 @@ imsi64_t amf_app_handle_initial_ue_message(
 
         /* remove amf_ngap_ud_id entry from ue context */
         amf_remove_ue_context(ue_context_p);
+        old_amf_ue_ngap_id =  ue_context_p->amf_ue_ngap_id;
         ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
 
         // Update AMF UE context with new gnb_ue_ngap_id
@@ -423,7 +424,7 @@ imsi64_t amf_app_handle_initial_ue_message(
             ue_context_p);
         amf_ue_context_update_coll_keys(
             &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-            ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+            old_amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
             ue_context_p->amf_teid_n11, &guti);
         imsi64 = ue_context_p->amf_context.imsi64;
       }
