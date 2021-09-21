@@ -79,7 +79,7 @@ func TestNewLogger_Error(t *testing.T) {
 	t.Parallel()
 
 	assert.Panics(t, func() {
-		_ = NewLogger("///badpath")
+		_ = NewLogger("///bad/path")
 	})
 }
 

@@ -64,4 +64,5 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     cd / && \
     rm -rf folly
 
+
 WORKDIR /magma
