@@ -1,9 +1,53 @@
-#! /bin/sh
+#!/bin/bash
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
 
 set -e # exit on any error
 
+USAGE="generateAPIFromSwagger.sh — generates NMS API bindings for swagger spec
+
+  Usage:
+    generateAPIFromSwagger.sh <input> <output>
+
+  Options:
+    <input>   Input swagger.yml file to read.
+    <input>   Output file for js bindings.
+    -h        Show this message.
+"
+
+help() {
+  echo "$USAGE"
+}
+
+while getopts ':hs:' option; do
+  case "$option" in
+    h) echo "$USAGE"
+       exit
+       ;;
+   \?) printf "illegal option: -%s\n" "$OPTARG" >&2
+       echo "$USAGE" >&2
+       exit 1
+       ;;
+  esac
+done
+
+INPUT=${1:-swagger.yml}
+OUTPUT=${2:-generated/MagmaAPIBindings.js}
+echo "Input Swagger file: $INPUT";
+echo "Output file: $OUTPUT";
+
 TEMP_FILE=$(mktemp)
-yarn --silent swagger2js gen swagger.yml -t flow -c MagmaAPIBindings -b > "$TEMP_FILE"
+yarn --silent swagger2js gen "$INPUT" -t flow -c MagmaAPIBindings -b > "$TEMP_FILE"
 
 HEADER='/**
  * Copyright 2020 The Magma Authors.
@@ -23,8 +67,4 @@ HEADER='/**
  */
 '
 
-OUTPUT=generated/MagmaAPIBindings.js
-
-# adding this sed command to avoid having Phabricator think this file is
-# generated since it looks for the "generated" keyword
-(echo "$HEADER"; cat "$TEMP_FILE") | sed -e "s#REPLACE_WITH_GENERATED_TOKEN#generated#" >$OUTPUT
+(echo "$HEADER"; cat "$TEMP_FILE") > $OUTPUT
