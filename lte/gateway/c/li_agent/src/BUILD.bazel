@@ -1,0 +1,86 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
+
+cc_binary(
+    name = "main",
+    srcs = ["main.cpp"],
+    deps = [
+        ":interface_monitor",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)
+
+cc_library(
+    name = "interface_monitor",
+    srcs = ["InterfaceMonitor.cpp"],
+    hdrs = ["InterfaceMonitor.h"],
+    deps = [
+        ":pdu_generator",
+        "@system_libraries//:libpcap",
+    ],
+)
+
+cc_library(
+    name = "pdu_generator",
+    srcs = ["PDUGenerator.cpp"],
+    hdrs = ["PDUGenerator.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/li_agent/src",
+    deps = [
+        ":mobilityd_client",
+        ":proxy_connector",
+        ":utilities",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "@system_libraries//:libtins",
+        "@system_libraries//:libuuid",
+    ],
+)
+
+cc_library(
+    name = "proxy_connector",
+    srcs = ["ProxyConnector.cpp"],
+    hdrs = ["ProxyConnector.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/li_agent/src",
+    deps = [
+        "//orc8r/gateway/c/common/logging",
+    ],
+)
+
+cc_library(
+    name = "mobilityd_client",
+    srcs = ["MobilitydClient.cpp"],
+    hdrs = ["MobilitydClient.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/li_agent/src",
+    deps = [
+        "//lte/protos:mobilityd_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+    ],
+)
+
+cc_library(
+    name = "utilities",
+    srcs = ["Utilities.cpp"],
+    hdrs = ["Utilities.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/li_agent/src",
+    deps = [
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)

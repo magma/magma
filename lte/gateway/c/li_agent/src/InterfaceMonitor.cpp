@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <utility>
 
 #include "lte/gateway/c/li_agent/src/InterfaceMonitor.h"

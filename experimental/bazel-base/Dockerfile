@@ -46,6 +46,7 @@ RUN apt-get update && \
         python3 \
         python-is-python3 \
         unzip \
+        uuid-dev \
         vim \
         wget \
         zip 
