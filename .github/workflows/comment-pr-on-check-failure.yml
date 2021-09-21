@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
-      WORKFLOW_NAME: "{{ github.event.workflow.name }}"
+      WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       COMMIT_ID: "${{ github.event.pull_requests[0].head.sha }}"
       COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.pull_requests[0].head.sha }}"
     steps:
@@ -75,11 +75,10 @@ jobs:
             var fs = require('fs');
             var issue_number = Number(fs.readFileSync('./NR'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'});
+            var commentId = 0;
             var oldMsg = '';
             var updMsg = '';
-            var newMsg = msg;
-            var oldExists = 0;
-            var commentId = 0;
+            var newMsg = '';
             var shortCommitId = '';
 
             const commentsList = await github.issues.listComments({
@@ -89,19 +88,22 @@ jobs:
                                       });
 
             shortCommitId = "${{ github.event.pull_requests[0].head.sha }}".substr(0,9);
-            updMsg = "Updated: The check is still failing the " + $WORKFLOW_NAME  + " on last commit id: [" + shortCommitId + "](" + $COMMIT_ID_URL + ")";
+            updMsg = "Updated: The check is still failing the " + ${{ github.event.workflow.name }} + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
             for (const c of commentsList['data']) {
-              commentId = c.id;
-              console.log("CommentBody=" + oldMsg);
+              oldMsg = c.body;
+              console.log("Old CommentBody=" + oldMsg);
               if( oldMsg.includes('Oops! Looks like you failed the ') ) {
-                oldExists = 1;
-                newMsg = msg + updMsg;
-                console.log("Found an Oops comment. newMsg=" + newMsg);
-              }
+                if( oldMsg.includes("${{ github.event.workflow.name }}") {
+                  commentId = c.id;
+                  newMsg = msg + "\n\n" + updMsg;
+                  console.log("Found an Oops comment for ${{ github.event.workflow.name }} failure. newMsg=" + newMsg);
+                  break;
+                } // end of inner if block
+              } // end of outer if block
             } // end of for loop on commentsList
 
-            if( oldExists == 0 ) {
-              console.log("oldExists==0. CREATING comment=" + msg);
+            if( commentId == 0 ) {
+              console.log("CREATING comment=" + msg);
               github.issues.createComment({
                             issue_number: issue_number,
                             owner: context.repo.owner,
@@ -110,7 +112,7 @@ jobs:
                           });
             }
             else  {
-              console.log("oldExists==1. UPDATING comment=" + newMsg);
+              console.log("UPDATING comment=" + newMsg);
               github.issues.updateComment({
                             owner: context.repo.owner,
                             repo: context.repo.repo,
