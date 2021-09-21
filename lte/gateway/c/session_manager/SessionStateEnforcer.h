@@ -186,7 +186,7 @@ class SessionStateEnforcer {
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, SessionUpdate& session_update);
 
-  std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
+  std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; }
 
   void update_session_with_policy(
       std::unique_ptr<SessionState>& session,

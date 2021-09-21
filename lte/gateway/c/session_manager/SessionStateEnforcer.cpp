@@ -568,7 +568,6 @@ void SessionStateEnforcer::prepare_response_to_access(
     std::string upf_ip, uint32_t upf_teid) {
   magma::SetSMSessionContextAccess response;
   const auto& config = session_state.get_config();
-  bool flag_set      = false;
   if (!config.rat_specific_context.has_m5gsm_session_context()) {
     MLOG(MWARNING) << "No M5G SM Session Context is specified for session";
     return;
@@ -624,10 +623,13 @@ void SessionStateEnforcer::prepare_response_to_access(
   rsp->mutable_session_ambr()->set_max_bandwidth_ul(DEFAULT_AMBR_UNITS);
   rsp->mutable_session_ambr()->set_max_bandwidth_dl(DEFAULT_AMBR_UNITS);
 
+  /* This flag is used for sending defult qos value or getting from policy
+   *  value to AMF.
+   */
+  bool flag_set      = false;
   for (auto& val : pending_activation) {
-    // const FlowQos& flowqos = val.rule.qos();
     if (val.rule.qos().max_req_bw_dl() && val.rule.qos().max_req_bw_ul()) {
-      MLOG(MINFO) << "value set for pending_activation"
+      MLOG(MDEBUG) << "value set for pending_activation"
                   << val.rule.qos().max_req_bw_ul();
       rsp->mutable_session_ambr()->set_max_bandwidth_dl(
           val.rule.qos().max_req_bw_dl());
@@ -639,7 +641,6 @@ void SessionStateEnforcer::prepare_response_to_access(
     }
   }
   if (!flag_set) {
-    MLOG(MINFO) << "value set for convg_qos";
     auto* convg_qos = rsp->mutable_qos();
     convg_qos->set_qci(FlowQos_Qci_QCI_9);
     convg_qos->mutable_arp()->set_pre_vulnerability(

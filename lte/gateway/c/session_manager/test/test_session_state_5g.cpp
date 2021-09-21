@@ -28,59 +28,9 @@ using ::testing::Test;
 
 namespace magma {
 
-TEST_F(SessionStateTest5G, test_session_rules) {
-  session_state->set_config(cfg, nullptr);
-  activate_rule(1, "m1", "rule1", DYNAMIC, 0, 0);
-  EXPECT_EQ(1, session_state->total_monitored_rules_count());
-  activate_rule(2, "m2", "rule2", STATIC, 0, 0);
-  EXPECT_EQ(2, session_state->total_monitored_rules_count());
-  // add a OCS-ONLY static rule
-  activate_rule(3, "", "rule3", STATIC, 0, 0);
-  EXPECT_EQ(2, session_state->total_monitored_rules_count());
-
-  std::vector<std::string> rules_out{};
-  std::vector<std::string>& rules_out_ptr = rules_out;
-
-  session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 1);
-  EXPECT_EQ(rules_out_ptr[0], "rule1");
-
-  EXPECT_EQ(session_state->is_static_rule_installed("rule2"), true);
-  EXPECT_EQ(session_state->is_static_rule_installed("rule3"), true);
-  EXPECT_EQ(session_state->is_static_rule_installed("rule_DNE"), false);
-
-  EXPECT_EQ(session_state->get_current_rule_version("rule2"), 1);
-  EXPECT_EQ(session_state->get_current_rule_version("rule3"), 1);
-
-  // Test rule removals
-  PolicyRule rule_out;
-  session_state->deactivate_static_rule("rule2", &update_criteria);
-  EXPECT_EQ(1, session_state->total_monitored_rules_count());
-  EXPECT_TRUE(
-      session_state->remove_dynamic_rule("rule1", &rule_out, &update_criteria));
-  EXPECT_EQ("m1", rule_out.monitoring_key());
-  EXPECT_EQ(0, session_state->total_monitored_rules_count());
-
-  // basic sanity checks to see it's properly deleted
-  rules_out = {};
-  session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 0);
-
-  EXPECT_EQ(0, get_monitored_rule_count("m1"));
-
-  std::string mkey;
-  // searching for non-existent rule should fail
-  EXPECT_EQ(
-      false, session_state->get_dynamic_rules().get_monitoring_key_for_rule_id(
-                 "rule1", &mkey));
-  // deleting an already deleted rule should fail
-  EXPECT_EQ(
-      false,
-      session_state->get_dynamic_rules().remove_rule("rule1", &rule_out));
-}
-
 TEST_F(SessionStateTest5G, test_get_session_rules) {
   session_state->set_config(cfg, nullptr);
+  EXPECT_TRUE(session_state->is_5g_session());
   // populate rule store with 2 static and 2 dynamic rules
   activate_rule(1, "", "rule-static-1", STATIC, 0, 0);
   activate_rule(2, "m1", "rule-static-2", STATIC, 0, 0);
@@ -166,20 +116,28 @@ TEST_F(SessionStateTest5G, test_process_static_rule_installs) {
       create_static_rule_install("static-qos-4"),
   };
   EXPECT_EQ(4, rule_installs.size());
-  RulesToProcess pending_activation, pending_deactivation;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
   RulesToSchedule pending_scheduling;
+  // For 5g verification
+  EXPECT_TRUE(session_state->is_5g_session());
   session_state->process_static_rule_installs(
-      rule_installs, &pending_activation, &pending_deactivation, nullptr,
+      rule_installs, &pending_activation, &pending_deactivation, &pending_bearer_setup,
       &pending_scheduling, &update_criteria);
   EXPECT_EQ(2, pending_activation.size());
   EXPECT_EQ("static-2", pending_activation[0].rule.id());
   EXPECT_EQ(1, pending_activation[0].version);
   EXPECT_EQ("static-qos-4", pending_activation[1].rule.id());
   EXPECT_EQ(1, pending_activation[1].version);
+  // For 5g verification
+  EXPECT_EQ(0, pending_activation[0].teids.agw_teid());
+  EXPECT_EQ(0, pending_activation[0].teids.enb_teid());
 
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 2);
   EXPECT_TRUE(update_criteria.static_rules_to_install.count("static-2"));
   EXPECT_TRUE(update_criteria.static_rules_to_install.count("static-qos-4"));
+
+  // For 5g verification
+  EXPECT_EQ(0, pending_bearer_setup.size());
 }
 
 TEST_F(SessionStateTest5G, test_process_dynamic_rule_installs) {
@@ -209,10 +167,12 @@ TEST_F(SessionStateTest5G, test_process_dynamic_rule_installs) {
       create_dynamic_rule_install(dynamic_qos_4),
   };
   EXPECT_EQ(4, rule_installs.size());
-  RulesToProcess pending_activation, pending_deactivation;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
   RulesToSchedule pending_scheduling;
+  // For 5g verification
+  EXPECT_TRUE(session_state->is_5g_session());
   session_state->process_dynamic_rule_installs(
-      rule_installs, &pending_activation, &pending_deactivation, nullptr,
+      rule_installs, &pending_activation, &pending_deactivation, &pending_bearer_setup,
       &pending_scheduling, &update_criteria);
   EXPECT_EQ(4, pending_activation.size());
   EXPECT_EQ("dynamic-1", pending_activation[0].rule.id());
@@ -224,11 +184,19 @@ TEST_F(SessionStateTest5G, test_process_dynamic_rule_installs) {
   EXPECT_EQ("dynamic-qos-4", pending_activation[3].rule.id());
   EXPECT_EQ(1, pending_activation[3].version);
 
+  // For 5g verification
+  EXPECT_EQ(0, pending_activation[0].teids.agw_teid());
+  EXPECT_EQ(0, pending_activation[0].teids.enb_teid());
+
+
   EXPECT_EQ(update_criteria.dynamic_rules_to_install.size(), 4);
   EXPECT_EQ("dynamic-1", update_criteria.dynamic_rules_to_install[0].id());
   EXPECT_EQ("dynamic-2", update_criteria.dynamic_rules_to_install[1].id());
   EXPECT_EQ("dynamic-qos-3", update_criteria.dynamic_rules_to_install[2].id());
   EXPECT_EQ("dynamic-qos-4", update_criteria.dynamic_rules_to_install[3].id());
+
+  // For 5g verification
+  EXPECT_EQ(0, pending_bearer_setup.size());
 }
 
 TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
@@ -255,11 +223,13 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
   };
   EXPECT_EQ(2, dynamic_rule_installs.size());
 
-  RulesToProcess pending_activation, pending_deactivation;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
   RulesToSchedule pending_scheduling;
+  // For 5g verification
+  EXPECT_TRUE(session_state->is_5g_session());
   session_state->process_rules_to_install(
       static_rule_installs, dynamic_rule_installs, &pending_activation,
-      &pending_deactivation, nullptr, &pending_scheduling, &update_criteria);
+      &pending_deactivation, &pending_bearer_setup, &pending_scheduling, &update_criteria);
 
   EXPECT_EQ(4, pending_activation.size());
 
@@ -280,6 +250,12 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
   EXPECT_EQ("dynamic-1", update_criteria.dynamic_rules_to_install[0].id());
   EXPECT_EQ("dynamic-2", update_criteria.dynamic_rules_to_install[1].id());
 
+  // For 5g verification
+  EXPECT_EQ(0, pending_activation[0].teids.agw_teid());
+  EXPECT_EQ(0, pending_activation[0].teids.enb_teid());
+
+  // For 5g verification
+  EXPECT_EQ(0, pending_bearer_setup.size());
   session_state->remove_all_rules_for_termination(&update_criteria);
 
   EXPECT_EQ(update_criteria.static_rules_to_uninstall.size(), 1);
