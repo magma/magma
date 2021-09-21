@@ -16,8 +16,8 @@ jobs:
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
-      COMMIT_ID: "${{ github.event.workflow_run.head_commit.id }}"
-      COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.workflow_run.head_commit.id }}"
+      COMMIT_ID: "${{ github.event.workflow_run.pull_requests[0].head.sha }}"
+      COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.workflow_run.pull_requests[0].head.sha }}"
     steps:
       # Retrieve PR number from triggering workflow artifacts
       - uses: hmarr/debug-action@v2
@@ -87,16 +87,16 @@ jobs:
                                         issue_number: issue_number,
                                       });
 
-            shortCommitId = "${{ github.event.pull_requests[0].head.sha }}".substr(0,9);
-            updMsg = "Updated: The check is still failing the " + ${{ github.event.workflow.name }} + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
+            shortCommitId = process.env.COMMIT_ID.substr(0,9);
+            updMsg = "Updated: The check is still failing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
             for (const c of commentsList['data']) {
               oldMsg = c.body;
               console.log("Old CommentBody=" + oldMsg);
               if( oldMsg.includes('Oops! Looks like you failed the ') ) {
-                if( oldMsg.includes("${{ github.event.workflow.name }}") {
+                if( oldMsg.includes(process.env.WORKFLOW_NAME) {
                   commentId = c.id;
                   newMsg = msg + "\n\n" + updMsg;
-                  console.log("Found an Oops comment for ${{ github.event.workflow.name }} failure. newMsg=" + newMsg);
+                  console.log("Found an Oops comment for" + process.env.WORKFLOW_NAME + " failure. newMsg=" + newMsg);
                   break;
                 } // end of inner if block
               } // end of outer if block
