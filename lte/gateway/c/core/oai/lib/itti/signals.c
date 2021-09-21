@@ -157,8 +157,8 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
   }
 
   /*
-    * Dispatch the signal to sub-handlers
-    */
+   * Dispatch the signal to sub-handlers
+   */
   switch (info.si_signo) {
     case SIGABRT:
       SIG_DEBUG("Received SIGABORT\n");
@@ -176,7 +176,6 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
       SIG_ERROR("Received unknown signal %d\n", info.si_signo);
       break;
   }
-  
 
   return 0;
 }
