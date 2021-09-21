@@ -15,6 +15,9 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
+      WORKFLOW_NAME: "{{ github.event.workflow.name }}"
+      COMMIT_ID: "${{ github.event.pull_requests[0].head.sha }}"
+      COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.pull_requests[0].head.sha }}"
     steps:
       # Retrieve PR number from triggering workflow artifacts
       - uses: hmarr/debug-action@v2
@@ -73,9 +76,11 @@ jobs:
             var issue_number = Number(fs.readFileSync('./NR'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'});
             var oldMsg = '';
+            var updMsg = '';
             var newMsg = msg;
             var oldExists = 0;
             var commentId = 0;
+            var shortCommitId = '';
 
             const commentsList = await github.issues.listComments({
                                         owner: context.repo.owner,
@@ -83,14 +88,15 @@ jobs:
                                         issue_number: issue_number,
                                       });
 
+            shortCommitId = "${{ github.event.pull_requests[0].head.sha }}".substr(0,9);
+            updMsg = "Updated: The check is still failing the " + $WORKFLOW_NAME  + " on last commit id: [" + shortCommitId + "](" + $COMMIT_ID_URL + ")";
             for (const c of commentsList['data']) {
               commentId = c.id;
-              oldMsg += c.body;
               console.log("CommentBody=" + oldMsg);
               if( oldMsg.includes('Oops! Looks like you failed the ') ) {
                 oldExists = 1;
-                console.log("Found an Oops comment=" + oldMsg);
-                newMsg = oldMsg + "\n" + msg
+                newMsg = msg + updMsg;
+                console.log("Found an Oops comment. newMsg=" + newMsg);
               }
             } // end of for loop on commentsList
 
