@@ -8,7 +8,6 @@ include_directories("${S1AP_C_DIR}")
 set(ITTI_FILES
     intertask_interface.c
     signals.c
-    timer.c
     )
 add_library(LIB_ITTI ${ITTI_FILES})
 target_link_libraries(LIB_ITTI

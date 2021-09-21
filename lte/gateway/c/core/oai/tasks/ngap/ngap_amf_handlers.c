@@ -25,7 +25,6 @@
 #include "assertions.h"
 #include "conversions.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
 #include "ngap_common.h"

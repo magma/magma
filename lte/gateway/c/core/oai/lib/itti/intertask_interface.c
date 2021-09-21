@@ -55,7 +55,6 @@
 #undef CHECK_PROTOTYPE_ONLY
 
 #include "signals.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "shared_ts_log.h"
 #include "log.h"
