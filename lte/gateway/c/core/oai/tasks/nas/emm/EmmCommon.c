@@ -702,8 +702,8 @@ status_code_e verify_tau_tai(
           ((tai.tac >= emm_ctx_tai->partial_tai_list[0]
                            .u.tai_one_plmn_consecutive_tacs.tac) &&
            (tai.tac <= (emm_ctx_tai->partial_tai_list[0]
-                           .u.tai_one_plmn_consecutive_tacs.tac +
-                       emm_ctx_tai->partial_tai_list[0].numberofelements)))) {
+                            .u.tai_one_plmn_consecutive_tacs.tac +
+                        emm_ctx_tai->partial_tai_list[0].numberofelements)))) {
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
       break;

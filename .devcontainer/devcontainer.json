@@ -3,17 +3,20 @@
 		"CoenraadS.bracket-pair-colorizer-2",
 		"xaver.clang-format",
 		"notskm.clang-tidy",
-		"ms-vscode.cpptools",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
 		"christian-kohler.path-intellisense",
 		"vscodevim.vim",
 		"vscode-icons-team.vscode-icons",
 		"ms-vsliveshare.vsliveshare",
-		"ms-azuretools.vscode-docker"
+		"ms-azuretools.vscode-docker",
+		"llvm-vs-code-extensions.vscode-clangd",
+		"mitaki28.vscode-clang",
+		"stackbuild.bazel-stack-vscode",
+		"coolchyni.beyond-debug",
+		"stackbuild.bazel-stack-vscode-cc",
 	],
-	"dockerFile": "Dockerfile",
-	"context": "..",
+	"image": "ghcr.io/magma/devcontainer:sha-b435783",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"clang-tidy.compilerArgs": [
@@ -48,6 +51,36 @@
 			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/esm/msg/",
 			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/ies/",
 			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/util/"
+		],
+		"files.watcherExclude": {
+			"**/.bazel-cache/**": true,
+			"**/.bazel-cache-repo/**": true,
+		},		
+		"bsv.bazel.buildFlags": [
+			"--config=devcontainer",
+		],
+		"bsv.bazel.testFlags": [
+			"--compilation_mode=dbg",
+		],
+		"bsv.bes.enabled": false,
+		"bsv.bzl.codesearch.enabled": false,
+		"bsv.bzl.invocation.buildEventPublishAllActions": false,
+		"bsv.bzl.invocation.enabled": false,
+		"bsv.bzl.invocation.invokeWithBuildEventStreaming": false,
+		"bsv.bzl.lsp.enableCodelensStarlarkDebug": false,
+		"bsv.bzl.lsp.enableCodelensRun": false,
+		"bsv.bzl.remoteCache.enabled": false,
+		"bsv.bzl.starlarkDebugger.enabled": false,
+		"clangd.path": "clangd-12",
+		"clangd.arguments": [
+			"-log=verbose",
+			"-pretty",
+			"--background-index",
+		],
+		"clangd.onConfigChanged": "restart",
+		// Update this field with any new targets that need compilation database generation
+		"bsv.cc.compdb.targets": [
+			"//lte/gateway/c/session_manager:sessiond"
 		]
 	},
 	"mounts": [
