@@ -103,6 +103,9 @@
 #define EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST                   \
   "EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST"
 
+#define MME_CONFIG_STRING_ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB                   \
+  "ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB"
+
 #define MME_CONFIG_STRING_INTERTASK_INTERFACE_CONFIG "INTERTASK_INTERFACE"
 #define MME_CONFIG_STRING_INTERTASK_INTERFACE_QUEUE_SIZE "ITTI_QUEUE_SIZE"
 
@@ -435,6 +438,7 @@ typedef struct mme_config_s {
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
   bool enable_converged_core;
+  bool accept_combined_attach_tau_wo_csfb;
 
   bool enable_congestion_control;
   long s1ap_zmq_th;

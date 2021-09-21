@@ -11,7 +11,7 @@
 
 SHELL:=/bin/bash
 
-.PHONY: build clean clean_gen download fmt fullgen gen gen_prots lint test tidy vet
+.PHONY: build clean clean_gen download fmt fullgen gen gen_prots lint test tidy vet order_imports
 
 build::
 	go install ./...
@@ -81,6 +81,10 @@ gen_protos::
 #	- After: orc8r/cloud/swagger/specs/partial/policydb.swagger.v1.yml
 copy_swagger_files:
 	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_PARTIAL_SPECS_DIR}/$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
+
+# reorder imports with goimports
+order_imports:
+	for f in $$(find . -type f -name '*.go' ! -name '*.pb.go' ! -name '*_swaggergen.go') ; do $(MAGMA_ROOT)/orc8r/cloud/order_go_imports.sh $${f} ; done
 
 lint:
 	golangci-lint run

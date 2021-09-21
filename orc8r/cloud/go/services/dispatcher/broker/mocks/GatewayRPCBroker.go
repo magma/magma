@@ -20,7 +20,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 
 	broker "magma/orc8r/cloud/go/services/dispatcher/broker"
-
 	protos "magma/orc8r/lib/go/protos"
 )
 

@@ -23,7 +23,7 @@ Teal provides programmable SIMs that can provide connectivity globally
 (or just locally if specified),
 and have the home network be specified as the Magma network.
 
-Another use for this is for CBRS <to be filled in>
+Another use for this is for CBRS **to be filled in**
 
 ### Goals
 
@@ -34,18 +34,20 @@ Another use for this is for CBRS <to be filled in>
 
 ## Proposal
 
-#### Overview
+### Overview
 
 Magma will add optional integration with the eSIM platform provided by [Teal Communications](https://www.tealcom.io/).
-Network operators running Magma will not need to 
+Network operators running Magma will not need to
 
-#### NMS UI Changes
+### NMS UI Changes
+
 - SIM management as a tab under subscribers
     - as passthrough to underlying SIM management system being integrated with
 -
 - need a page to enable or disable SIM management
 
-#### API Changes
+### API Changes
+
 - Endpoint to upload file with auth opc and key to be correlated with UICCs
 - Endpoint to update API keys for accessing SIM management system
 - Subscribers resource changed
@@ -56,22 +58,24 @@ Network operators running Magma will not need to
 - polymorphism used so subscribers endpoints can return both types of subscribers
 - See [swagger spec](https://swagger.io/specification/v2/#schemaObject) - polymorphism
 - `/magma/v1/lte/{network_id}/uicc`
-	
 
-#### New Orc8r Service uicc for SIM management
+### New Orc8r Service uicc for SIM management
+
 - Orc8r-only service, in LTE directory
 - optional service
 - gRPC interface
-	- upload file with auth opc and key to be correlated with SIMs
-	- update API keys
+    - upload file with auth opc and key to be correlated with SIMs
+    - update API keys
 
-#### Orc8r Subscriberdb Changes
+### Orc8r Subscriberdb Changes
+
 - Edit Subscriberdb -> subscribers are split to have SIM entries
-	- subscribers can either have associated SIM EIDs from a separate managed system, or be Magma managed
-	- orc8r subscriberdb should still stream the same updates to AGW
-	
-#### AGW Subscriberdb Changes
-- No changes, as the same data is still streamed from the Orc8r 
+    - subscribers can either have associated SIM EIDs from a separate managed system, or be Magma managed
+    - orc8r subscriberdb should still stream the same updates to AGW
+
+### AGW Subscriberdb Changes
+
+- No changes, as the same data is still streamed from the Orc8r
 
 ## Alternatives considered
 
@@ -95,19 +99,19 @@ in various stages from development through production.]
 Implementation will occur in several phases, so verification will occur with
 each phase.
 
-#### Phase 1 - Orc8r Subscriberdb Modification:
+#### Phase 1 - Orc8r Subscriberdb Modification
 
 Subscribers will be modified to either be associated with an externally managed
 eSIM, or a Magma managed SIM.
 
-#### Phase 2 - Orc8r Service uicc:
+#### Phase 2 - Orc8r Service uicc
 
 Orc8r service `uicc` will be added, and API changes will be added.
 Subscriberdb will be changed to interact with `uicc`.
 In this phase, `uicc` will interact with Teal Communications eSIM management
 platform.
 
-#### Phase 3 - NMS Integration:
+#### Phase 3 - NMS Integration
 
 All SIM management functionality will be provided on NMS.
 This functionality should have already been present by the end of phase 2,
