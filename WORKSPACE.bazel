@@ -141,6 +141,6 @@ cpp_testing_deps()
 new_local_repository(
     name = "system_libraries",
     build_file = "//third_party:system_libraries.BUILD",
-    path = "/usr/local/lib",
+    path = "/",
 )
 ### Folly dependencies ###
