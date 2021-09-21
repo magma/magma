@@ -15,7 +15,6 @@
 #include "M5GIMEISVRequest.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 ImeisvRequestMsg::ImeisvRequestMsg(){};
 ImeisvRequestMsg::~ImeisvRequestMsg(){};
@@ -37,8 +36,8 @@ int ImeisvRequestMsg::DecodeImeisvRequestMsg(
   imeisv_request->spare          = (*(buffer + decoded) >> 7) & 0x1;
   imeisv_request->imeisv_request = (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << "   spare = " << dec << int(imeisv_request->spare);
-  MLOG(MDEBUG) << "   imeisv request = " << dec
+  MLOG(MDEBUG) << "   spare = " << std::dec << int(imeisv_request->spare);
+  MLOG(MDEBUG) << "   imeisv request = " << std::dec 
                << int(imeisv_request->imeisv_request);
   return decoded;
 };
@@ -48,7 +47,7 @@ int ImeisvRequestMsg::EncodeImeisvRequestMsg(
     uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeImeisvRequestMsg : " << endl;
+  MLOG(MDEBUG) << " EncodeImeisvRequestMsg : " << std::endl;
   *(buffer + encoded) = 0xe0 | (imeisv_request->spare & 0x1) << 3 |
                         (imeisv_request->imeisv_request & 0x7);
   encoded++;

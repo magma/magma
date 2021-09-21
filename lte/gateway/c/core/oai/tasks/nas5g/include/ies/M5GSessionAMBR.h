@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // SessionAMBR Class
 class SessionAMBRMsg {

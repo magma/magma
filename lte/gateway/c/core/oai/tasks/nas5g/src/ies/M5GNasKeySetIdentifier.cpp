@@ -15,7 +15,6 @@
 #include "M5GNASKeySetIdentifier.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 NASKeySetIdentifierMsg::NASKeySetIdentifierMsg(){};
 NASKeySetIdentifierMsg::~NASKeySetIdentifierMsg(){};
@@ -40,8 +39,8 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
   nas_key_set_identifier->nas_key_set_identifier =
       (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << "   tsc = " << dec << int(nas_key_set_identifier->tsc);
-  MLOG(MDEBUG) << "   NASkeysetidentifier = " << dec
+  MLOG(MDEBUG) << "   tsc = " << std::dec << int(nas_key_set_identifier->tsc);
+  MLOG(MDEBUG) << "   NASkeysetidentifier = " << std::dec 
                << int(nas_key_set_identifier->nas_key_set_identifier);
   return decoded;
 };
@@ -59,17 +58,17 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, nas_key_set_identifier->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeNASKeySetIdentifierMsg: iei" << hex
-                 << int(*buffer) << endl;
+    MLOG(MDEBUG) << "In EncodeNASKeySetIdentifierMsg: iei" << std::hex
+                 << int(*buffer) << std::endl;
     encoded++;
   }
 
-  MLOG(MDEBUG) << " EncodeNASKeySetIdentifierMsg : " << endl;
+  MLOG(MDEBUG) << " EncodeNASKeySetIdentifierMsg : " << std::endl;
   *(buffer + encoded) = 0x00 | (nas_key_set_identifier->tsc & 0x1) << 3 |
                         (nas_key_set_identifier->nas_key_set_identifier & 0x7);
-  MLOG(MDEBUG) << "   Type of Security Context  = 0x" << hex
+  MLOG(MDEBUG) << "   Type of Security Context  = 0x" << std::hex
                << int(nas_key_set_identifier->tsc) << "\n";
-  MLOG(MDEBUG) << "   NAS key set identifier = 0x" << hex
+  MLOG(MDEBUG) << "   NAS key set identifier = 0x" << std::hex
                << int(*(buffer + encoded)) << "\n";
   encoded++;
 

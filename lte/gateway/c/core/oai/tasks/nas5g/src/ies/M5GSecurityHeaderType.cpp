@@ -15,7 +15,6 @@
 #include "M5GSecurityHeaderType.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 SecurityHeaderTypeMsg::SecurityHeaderTypeMsg(){};
 SecurityHeaderTypeMsg::~SecurityHeaderTypeMsg(){};
@@ -29,7 +28,7 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
   MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
   sec_header_type->sec_hdr = *(buffer) &0xf;
   decoded++;
-  MLOG(MDEBUG) << " Security header type = " << dec
+  MLOG(MDEBUG) << " Security header type = " << std::dec 
                << int(sec_header_type->sec_hdr);
   return (decoded);
 };
@@ -43,7 +42,7 @@ int SecurityHeaderTypeMsg::EncodeSecurityHeaderTypeMsg(
   MLOG(MDEBUG) << " EncodeSecurityHeaderTypeMsg : ";
   *(buffer) = sec_header_type->sec_hdr & 0xf;
   encoded++;
-  MLOG(MDEBUG) << "Security header type = 0x" << hex << int(*(buffer));
+  MLOG(MDEBUG) << "Security header type = 0x" << std::hex << int(*(buffer));
   return (encoded);
 };
 }  // namespace magma5g

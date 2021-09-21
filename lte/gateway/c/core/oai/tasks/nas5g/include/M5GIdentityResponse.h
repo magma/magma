@@ -17,7 +17,6 @@
 #include "M5GMessageType.h"
 #include "M5GSMobileIdentity.h"
 
-using namespace std;
 namespace magma5g {
 // 5GSIdentityResponse Message Class
 class IdentityResponseMsg {

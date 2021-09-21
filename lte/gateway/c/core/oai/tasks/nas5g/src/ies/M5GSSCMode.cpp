@@ -16,7 +16,6 @@
 #include "M5GSSCMode.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 SSCModeMsg::SSCModeMsg(){};
 SSCModeMsg::~SSCModeMsg(){};
@@ -28,13 +27,13 @@ int SSCModeMsg::DecodeSSCModeMsg(
 
   // Storing the IEI Information
   if (iei > 0) {
-    ssc_mode->iei = (*buffer & 0xf0) >> 4;
-    MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << hex << int(ssc_mode->iei);
+    ssc_mode->iei = *buffer;
+    MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << std::hex << int(ssc_mode->iei);
     decoded++;
   }
 
   ssc_mode->mode_val = (*buffer & 0x07);
-  MLOG(MDEBUG) << "DecodeSSCModeMsg__: mode_val = " << hex
+  MLOG(MDEBUG) << "DecodeSSCModeMsg__: mode_val = " << std::hex
                << int(ssc_mode->mode_val);
 
   return decoded;
@@ -47,15 +46,14 @@ int SSCModeMsg::EncodeSSCModeMsg(
 
   // CHECKING IEI
   if (iei > 0) {
-    CHECK_IEI_ENCODER(
-        (uint8_t) iei, (uint8_t)(0x00 | (ssc_mode->iei & 0x0f) << 4));
-    *buffer = (ssc_mode->iei & 0x0f) << 4;
-    MLOG(MDEBUG) << "In EncodeSSCModeMsg: iei" << hex << int(*buffer);
+    CHECK_IEI_ENCODER((unsigned char) iei, ssc_mode->iei);
+    *buffer = 0x00 | (ssc_mode->iei & 0x0f) << 4;
+    MLOG(MDEBUG) << "In EncodeSSCModeMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
 
-  *buffer = 0x00 | (*buffer & 0xf0) | (ssc_mode->mode_val & 0x07);
-  MLOG(MDEBUG) << "EncodeSSCModeMsg__: mode_val = " << hex << int(*buffer);
+  *buffer = (ssc_mode->mode_val << 4) & 0xf0;
+  MLOG(MDEBUG) << "EncodeSSCModeMsg__: mode_val = " << std::hex << int(*buffer);
 
   return (encoded);
 };

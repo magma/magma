@@ -13,7 +13,6 @@ limitations under the License.
 #include <string.h>
 #include "M5GTAIList.h"
 #include "M5GCommonDefs.h"
-using namespace std;
 namespace magma5g {
 TAIListMsg::TAIListMsg(){};
 
@@ -25,7 +24,7 @@ int TAIListMsg::EncodeTAIListMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char) TAIList->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "iei = " << hex << int(*(buffer + encoded));
+    MLOG(MDEBUG) << "iei = " << std::hex << int(*(buffer + encoded));
     encoded++;
   }
   *(buffer + encoded) = TAIList->len;
@@ -36,17 +35,17 @@ int TAIListMsg::EncodeTAIListMsg(
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mcc_digit2 & 0x0f) << 4) | (TAIList->mcc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "mcc_digit2 >mcc_digit1 type_of_identity = " << hex
+  MLOG(MDEBUG) << "mcc_digit2 >mcc_digit1 type_of_identity = " << std::hex
                << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mnc_digit3 & 0x0f) << 4) | (TAIList->mcc_digit3 & 0x0f);
-  MLOG(MDEBUG) << "mnc_digit3 >mcc_digit3 type_of_identity = " << hex
+  MLOG(MDEBUG) << "mnc_digit3 >mcc_digit3 type_of_identity = " << std::hex
                << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((TAIList->mnc_digit2 & 0x0f) << 4) | (TAIList->mnc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "mnc_digit2 >mcc_digit1 type_of_identity = " << hex
+  MLOG(MDEBUG) << "mnc_digit2 >mcc_digit1 type_of_identity = " << std::hex
                << int(*(buffer + encoded));
   encoded++;
 

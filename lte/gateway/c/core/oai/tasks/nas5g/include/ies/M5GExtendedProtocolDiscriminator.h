@@ -13,7 +13,6 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // ExtendedProtocolDiscriminator IE Class
 class ExtendedProtocolDiscriminatorMsg {

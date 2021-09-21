@@ -20,7 +20,6 @@
 #include "M5GSMobileIdentity.h"
 #include "M5GUESecurityCapability.h"
 
-using namespace std;
 namespace magma5g {
 // RegistrationRequest Message Class
 class RegistrationRequestMsg {
