@@ -16,7 +16,7 @@
 		"coolchyni.beyond-debug",
 		"stackbuild.bazel-stack-vscode-cc",
 	],
-	"image": "ghcr.io/magma/devcontainer:sha-b435783",
+	"image": "ghcr.io/magma/devcontainer:sha-9fe32d6",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"clang-tidy.compilerArgs": [
