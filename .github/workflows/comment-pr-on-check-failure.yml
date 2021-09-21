@@ -16,8 +16,8 @@ jobs:
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
-      COMMIT_ID: "${{ github.event.pull_requests[0].head.sha }}"
-      COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.pull_requests[0].head.sha }}"
+      COMMIT_ID: "${{ github.event.workflow_run.head_commit.id }}"
+      COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.workflow_run.head_commit.id }}"
     steps:
       # Retrieve PR number from triggering workflow artifacts
       - uses: hmarr/debug-action@v2
