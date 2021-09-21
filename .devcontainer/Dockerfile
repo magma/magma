@@ -56,6 +56,7 @@ RUN echo "Install general purpose packages" && \
         g++-9 \
         gcc-9 \
         lcov \
+        gdb \
         git \
         gnupg \
         golang \

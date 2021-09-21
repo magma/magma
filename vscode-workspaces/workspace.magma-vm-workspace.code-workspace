@@ -9,8 +9,9 @@
 			"llvm-vs-code-extensions.vscode-clangd",
 			"mitaki28.vscode-clang",
 			"stackbuild.bazel-stack-vscode",
-			"stackbuild.bazel-stack-vscode-cc",
 			"coolchyni.beyond-debug",
+			"stackbuild.bazel-stack-vscode-cc",
+			"augustocdias.tasks-shell-input",
 		]
 	},
 	"settings": {
@@ -33,7 +34,7 @@
 		"bsv.bzl.lsp.enableCodelensRun": false,
 		"bsv.bzl.remoteCache.enabled": false,
 		"bsv.bzl.starlarkDebugger.enabled": false,
-		"clangd.path": "clangd-12",
+		"clangd.path": "/usr/bin/clangd-12",
 		"clangd.arguments": [
 			"-log=verbose",
 			"-pretty",
@@ -42,87 +43,6 @@
 		"clangd.onConfigChanged": "restart",
 		"bsv.cc.compdb.targets": [
 			"//lte/gateway/c/session_manager:sessiond"
-		]
-	},
-	"launch": {
-		"configurations": [
-			{
-				"type": "by-gdb",
-				"request": "launch",
-				"name": "(Remote SSH) Run SessionD test with GDB",
-				"program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
-				"cwd": "${workspaceRoot}",
-				"preLaunchTask": "Build SessionD Unit Tests (Debug)",
-				"commandsBeforeExec": ["enable pretty-printer"],
-			},
-			{
-				"type": "by-gdb",
-				"request": "launch",
-				"name": "(Remote SSH) Run SessionD test with GDB - Skip build",
-				"program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
-				"cwd": "${workspaceRoot}",
-				"commandsBeforeExec": ["enable pretty-printer"],
-			}
-		],
-		"inputs": [
-			{
-				"id": "pickSessionDUnitTest",
-				"description": "Select a SessionD Unit Test",
-				"type": "pickString",
-				"options": [
-					"session_store_test",
-					"polling_pipelined_test",
-					"session_credit_test",
-					"charging_grant_test",
-					"usage_monitor_test",
-					"local_enforcer_test", 
-					"local_enforcer_wallet_exhaust_test",
-					"cloud_reporter_test",
-					"session_manager_handler_test",
-					"sessiond_integ_test",
-					"session_state_test",
-					"store_client_test",
-					"stored_state_test",
-					"proxy_responder_handler_test",
-					"metering_reporter_test",
-					"upf_node_state_test",
-					"set_session_manager_handler_test"
-				],
-				"default": "local_enforcer_test"
-			}
-		]
-	},
-	"tasks": {
-		"version": "2.0.0",
-		"tasks": [
-			{
-				"label": "Refresh Compilation Database And Restart Clangd",
-				"type": "shell",
-				"command": "echo 'Regenerated compilation database and restarted clangd!'",
-				"dependsOn": [
-					"bsv.cc.compdb.generate",
-					"clangd.restart"
-				],
-				"runOptions": {
-					"runOn": "folderOpen"
-				},
-				"problemMatcher": []
-			},
-			{
-				"label": "Build All",
-				"type": "shell",
-				"command": "bazel build --config=vm -c dbg ... && ./scripts/gen_compilation_database.py",
-				"group": {
-					"kind": "build",
-					"isDefault": true
-				}
-			},
-			{
-				"label": "Build SessionD Unit Tests (Debug)",
-				"type": "shell",
-				"command": "bazel build --config=vm lte/gateway/c/session_manager/test:all -c dbg",
-				"group": "build"
-			}
 		]
 	},
 }
