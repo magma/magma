@@ -35,7 +35,6 @@
 #include "itti_free_defined_msg.h"
 #include "mme_config.h"
 #include "nas_network.h"
-#include "timer.h"
 #include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
@@ -51,7 +50,6 @@
 #include "mme_app_state.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
-#include "timer_messages_types.h"
 
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
@@ -251,29 +249,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
       mme_app_handle_initial_context_setup_failure(
           &MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(received_message_p));
-      is_task_state_same = true;
-    } break;
-
-    case TIMER_HAS_EXPIRED: {
-      /*
-       * Check statistic timer
-       */
-      if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-        OAILOG_WARNING(
-            LOG_MME_APP,
-            "Timer expiry signal received for timer \
-          %lu, but it has already been deleted\n",
-            received_message_p->ittiMsg.timer_has_expired.timer_id);
-        is_task_state_same = true;
-        break;
-      } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
-        mme_app_nas_timer_handle_signal_expiry(
-            TIMER_HAS_EXPIRED(received_message_p).timer_id,
-            TIMER_HAS_EXPIRED(received_message_p).arg, &imsi64);
-      }
-      timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
       is_task_state_same = true;
     } break;
 

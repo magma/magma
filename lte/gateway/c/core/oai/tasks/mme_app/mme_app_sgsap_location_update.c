@@ -31,7 +31,6 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
 #include "mme_app_sgs_fsm.h"

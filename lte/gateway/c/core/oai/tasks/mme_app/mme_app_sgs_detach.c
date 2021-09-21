@@ -37,7 +37,6 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_defs.h"
-#include "timer.h"
 #include "conversions.h"
 #include "includes/MetricsHelpers.h"
 #include "3gpp_36.401.h"

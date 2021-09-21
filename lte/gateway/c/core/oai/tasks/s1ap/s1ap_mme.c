@@ -47,7 +47,6 @@
 #include "service303_message_utils.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "itti_free_defined_msg.h"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
@@ -59,7 +58,6 @@
 #include "mme_default_values.h"
 #include "s1ap_messages_types.h"
 #include "sctp_messages_types.h"
-#include "timer_messages_types.h"
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
@@ -291,55 +289,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &MME_APP_HANDOVER_COMMAND(received_message_p));
     } break;
 
-    case TIMER_HAS_EXPIRED: {
-      if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-        break;
-      }
-      ue_description_t* ue_ref_p = NULL;
-      if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
-        // check whether timer is related to eNB procedure or UE procedure
-        s1ap_timer_arg_t timer_arg =
-            *((s1ap_timer_arg_t*) (received_message_p->ittiMsg.timer_has_expired
-                                       .arg));
-        if (timer_arg.timer_class == S1AP_UE_TIMER) {
-          mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
-          if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
-            OAILOG_WARNING_UE(
-                LOG_S1AP, imsi64,
-                "Timer expired but no associated UE context for UE "
-                "id " MME_UE_S1AP_ID_FMT,
-                mme_ue_s1ap_id);
-            timer_handle_expired(
-                received_message_p->ittiMsg.timer_has_expired.timer_id);
-            is_ue_state_same = true;
-            break;
-          }
-          if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_ref_p->s1ap_ue_context_rel_timer.id) {
-            // UE context release complete timer expiry handler
-            OAILOG_WARNING_UE(
-                LOG_S1AP, imsi64,
-                "ue_context_release_command_timer_expired for UE "
-                "id " MME_UE_S1AP_ID_FMT,
-                mme_ue_s1ap_id);
-            increment_counter(
-                "ue_context_release_command_timer_expired", 1, NO_LABELS);
-            s1ap_mme_handle_ue_context_rel_comp_timer_expiry(state, ue_ref_p);
-          }
-        } else {
-          is_ue_state_same = true;
-          OAILOG_WARNING_UE(
-              LOG_S1AP, imsi64,
-              "S1AP Timer expired with invalid timer class %u \n",
-              timer_arg.timer_class);
-        }
-      }
-      timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-
-    } break;
-
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       free(received_message_p);
@@ -569,17 +518,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   // Updating number of UE
   enb_ref->nb_ue_associated--;
 
-  // Stop UE Context Release Complete timer,if running
-  if (ue_ref->s1ap_ue_context_rel_timer.id != S1AP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_ref->s1ap_ue_context_rel_timer.id, NULL)) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop s1ap ue context release complete timer, UE "
-          "id: " MME_UE_S1AP_ID_FMT,
-          ue_ref->mme_ue_s1ap_id);
-    }
-    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-  }
   OAILOG_TRACE(
       LOG_S1AP,
       "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT

@@ -40,7 +40,6 @@
 #include <ctype.h>
 
 #include "intertask_interface.h"
-#include "timer.h"
 #include "backtrace.h"
 #include "assertions.h"
 #include "signals.h"
@@ -121,7 +120,6 @@ int signal_mask(void) {
   DevAssert(get_thread_count(getpid()) == 1);
 #endif
   sigemptyset(&set);
-  sigaddset(&set, SIGTIMER);
   sigaddset(&set, SIGABRT);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
@@ -139,7 +137,6 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
   siginfo_t info;
 
   sigemptyset(&set);
-  sigaddset(&set, SIGTIMER);
   sigaddset(&set, SIGABRT);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
@@ -158,36 +155,28 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
     perror("sigwait");
     return ret;
   }
-  // printf("Received signal %d\n", info.si_signo);
 
   /*
-   * Real-time signals are non constant and are therefore not suitable for
-   * * * use in switch.
-   */
-  if (info.si_signo == SIGTIMER) {
-    timer_handle_signal(&info, task_ctx);
-  } else {
-    /*
-     * Dispatch the signal to sub-handlers
-     */
-    switch (info.si_signo) {
-      case SIGABRT:
-        SIG_DEBUG("Received SIGABORT\n");
-        backtrace_handle_signal(&info);
-        break;
+    * Dispatch the signal to sub-handlers
+    */
+  switch (info.si_signo) {
+    case SIGABRT:
+      SIG_DEBUG("Received SIGABORT\n");
+      backtrace_handle_signal(&info);
+      break;
 
-      case SIGINT:
-      case SIGTERM:
-        printf("Received SIGINT or SIGTERM\n");
-        send_terminate_message_fatal(task_ctx);
-        *end = 1;
-        break;
+    case SIGINT:
+    case SIGTERM:
+      printf("Received SIGINT or SIGTERM\n");
+      send_terminate_message_fatal(task_ctx);
+      *end = 1;
+      break;
 
-      default:
-        SIG_ERROR("Received unknown signal %d\n", info.si_signo);
-        break;
-    }
+    default:
+      SIG_ERROR("Received unknown signal %d\n", info.si_signo);
+      break;
   }
+  
 
   return 0;
 }

@@ -21,7 +21,6 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "ie_to_bytes.h"
 #include "log.h"
-#include "timer.h"
 }
 
 #include "mme_app_state_converter.h"

@@ -45,7 +45,6 @@
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
 #include "mme_app_statistics.h"
-#include "timer.h"
 #include "nas_proc.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"

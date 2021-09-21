@@ -35,7 +35,6 @@
 #include <string.h>  // memset
 #include <stdlib.h>  // malloc, free
 
-#include "timer.h"
 #include "nas_timer.h"
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
@@ -80,14 +79,3 @@ void nas_timer_stop(struct nas_timer_s* const timer) {
   }
 }
 
-//------------------------------------------------------------------------------
-void mme_app_nas_timer_handle_signal_expiry(
-    long timer_id, nas_itti_timer_arg_t* cb, imsi64_t* imsi64) {
-  OAILOG_FUNC_IN(LOG_NAS);
-  if ((!timer_exists(timer_id)) || (cb->nas_timer_callback == NULL)) {
-    OAILOG_ERROR(LOG_NAS, "Invalid timer id %ld \n", timer_id);
-    OAILOG_FUNC_OUT(LOG_NAS);
-  }
-  cb->nas_timer_callback(cb->nas_timer_callback_arg, imsi64);
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
