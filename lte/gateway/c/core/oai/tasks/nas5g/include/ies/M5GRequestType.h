@@ -1,5 +1,5 @@
 /*
-   Copyright 2020 The Magma Authors.
+   Copyright 2021 The Magma Authors.
    This source code is licensed under the BSD-style license found in the
    LICENSE file in the root directory of this source tree.
    Unless required by applicable law or agreed to in writing, software
@@ -10,30 +10,24 @@
  */
 
 #pragma once
-#include <sstream>
-#include <cstdint>
-
-using namespace std;
 namespace magma5g {
-// PDUSessionType Class
-class PDUSessionTypeMsg {
+// RequestType Class
+class RequestType {
  public:
   uint8_t iei : 4;
   uint32_t type_val : 3;
 
-  PDUSessionTypeMsg();
-  ~PDUSessionTypeMsg();
-  int EncodePDUSessionTypeMsg(
-      PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodePDUSessionTypeMsg(
-      PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  void copy(const PDUSessionTypeMsg& p) {
+  RequestType();
+  ~RequestType();
+  int EncodeRequestType(
+      RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeRequestType(
+      RequestType* reqest_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+  void copy(const RequestType& p) {
     iei      = p.iei;
     type_val = p.type_val;
   }
-  bool isEqual(const PDUSessionTypeMsg& p) {
+  bool isEqual(const RequestType& p) {
     return ((iei == p.iei) && (type_val == p.type_val));
   }
 };
