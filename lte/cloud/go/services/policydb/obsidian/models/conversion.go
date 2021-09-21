@@ -19,15 +19,15 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	orc8rProtos "magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
 )
 
 // TODO(8/21/20): provide entity-wise namespacing support from configurator

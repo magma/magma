@@ -16,15 +16,15 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const (

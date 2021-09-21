@@ -15,6 +15,7 @@ import logging
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
 from google.protobuf.json_format import MessageToJson
+from magma.common.rpc_utils import print_grpc
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import SubscriberNotFoundError
@@ -37,7 +38,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         s6a_proxy_pb2_grpc.add_S6aProxyServicer_to_server(self, server)
 
     def AuthenticationInformation(self, request, context):
-        self._print_grpc(request)
+        print_grpc(request, self._print_grpc_payload, "AIR:")
         imsi = request.user_name
         aia = s6a_proxy_pb2.AuthenticationInformationAnswer()
         try:
@@ -65,7 +66,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             eutran_vector.autn = autn
             eutran_vector.kasme = kasme
             logging.info("Auth success: %s", imsi)
-            self._print_grpc(aia)
             return aia
 
         except CryptoError as e:
@@ -74,7 +74,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
                 code=metrics.DIAMETER_AUTHENTICATION_REJECTED,
             ).inc()
             aia.error_code = metrics.DIAMETER_AUTHENTICATION_REJECTED
-            self._print_grpc(aia)
             return aia
 
         except SubscriberNotFoundError as e:
@@ -83,11 +82,12 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
                 code=metrics.DIAMETER_ERROR_USER_UNKNOWN,
             ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
-            self._print_grpc(aia)
             return aia
+        finally:
+            print_grpc(aia, self._print_grpc_payload, "AIA:")
 
     def UpdateLocation(self, request, context):
-        self._print_grpc(request)
+        print_grpc(request, self._print_grpc_payload, "ULR:")
         imsi = request.user_name
         ula = s6a_proxy_pb2.UpdateLocationAnswer()
         try:
@@ -95,7 +95,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         except SubscriberNotFoundError as e:
             ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
             logging.warning('Subscriber not found for ULR: %s', e)
-            self._print_grpc(ula)
+            print_grpc(ula, self._print_grpc_payload, "ULA:")
             return ula
 
         try:
@@ -103,6 +103,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         except SubscriberNotFoundError as e:
             ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
             logging.warning("Subscriber not found for ULR: %s", e)
+            print_grpc(ula, self._print_grpc_payload, "ULA:")
             return ula
         ula.error_code = s6a_proxy_pb2.SUCCESS
         ula.default_context_id = 0
@@ -138,7 +139,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
                 else s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
             )
 
-        self._print_grpc(ula)
+        print_grpc(ula, self._print_grpc_payload, "ULA:")
         return ula
 
     def PurgeUE(self, request, context):
@@ -146,28 +147,9 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             "Purge request not implemented: %s %s",
             request.DESCRIPTOR.full_name, MessageToJson(request),
         )
-        res = s6a_proxy_pb2.PurgeUEAnswer()
-        self._print_grpc(res)
-        return res
-
-    def _print_grpc(self, message):
-        if self._print_grpc_payload:
-            try:
-                log_msg = "{} {}".format(
-                    message.DESCRIPTOR.full_name,
-                    MessageToJson(message),
-                )
-                # add indentation
-                padding = 2 * ' '
-                log_msg = ''.join(
-                    "{}{}".format(padding, line)
-                    for line in log_msg.splitlines(True)
-                )
-
-                log_msg = "GRPC message:\n{}".format(log_msg)
-                logging.info(log_msg)
-            except Exception as e:  # pylint: disable=broad-except
-                logging.debug("Exception while trying to log GRPC: %s", e)
+        pur = s6a_proxy_pb2.PurgeUEAnswer()
+        print_grpc(pur, self._print_grpc_payload, "PUR:")
+        return pur
 
     @staticmethod
     def encode_msisdn(msisdn: str) -> bytes:

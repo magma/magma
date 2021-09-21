@@ -34,8 +34,7 @@ static magma::mconfig::ConnectionD get_default_mconfig() {
 
 static magma::mconfig::ConnectionD load_mconfig() {
   magma::mconfig::ConnectionD mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(CONNECTION_SERVICE, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(CONNECTION_SERVICE, &mconfig)) {
     MLOG(MERROR) << "Unable to load mconfig for connectiond, using default";
     return get_default_mconfig();
   }

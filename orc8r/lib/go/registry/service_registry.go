@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/orc8r/lib/go/service/config"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/lib/go/service/config"
 )
 
 const (

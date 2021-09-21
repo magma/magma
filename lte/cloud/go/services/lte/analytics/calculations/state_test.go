@@ -4,10 +4,11 @@ import (
 	context2 "context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_calculations "magma/lte/cloud/go/services/lte/analytics/calculations"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -17,8 +18,6 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUserCalculations(t *testing.T) {

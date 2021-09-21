@@ -16,6 +16,11 @@ package configurator
 import (
 	"context"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
@@ -23,11 +28,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 	commonProtos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 // ListNetworkIDs loads a list of all networkIDs registered

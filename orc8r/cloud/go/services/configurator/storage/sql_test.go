@@ -23,15 +23,15 @@ import (
 	"regexp"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/configurator/storage"
-	"magma/orc8r/cloud/go/sqorc"
-	orc8r_storage "magma/orc8r/cloud/go/storage"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+
+	"magma/orc8r/cloud/go/services/configurator/storage"
+	"magma/orc8r/cloud/go/sqorc"
+	orc8r_storage "magma/orc8r/cloud/go/storage"
 )
 
 const (

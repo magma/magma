@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
-
-	"github.com/golang/glog"
 )
 
 // RawMetricsCalculation params for querying existing prometheus metrics.

@@ -8,14 +8,14 @@ import (
 	"strconv"
 	"strings"
 
-	"magma/fbinternal/cloud/go/services/download"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/golang/glog"
 	"golang.org/x/net/http2"
+
+	"magma/fbinternal/cloud/go/services/download"
+	"magma/orc8r/lib/go/registry"
 )
 
 const (

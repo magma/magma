@@ -18,11 +18,11 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func TestNewSQLNodeLeasorStorage_Integration(t *testing.T) {

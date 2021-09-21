@@ -16,11 +16,11 @@ package models
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/configurator"
-
 	"github.com/go-openapi/swag"
 	structpb "github.com/golang/protobuf/ptypes/struct"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/configurator"
 )
 
 // JSONMapToProtobufStruct converts a map[string]interface{} JSON object to

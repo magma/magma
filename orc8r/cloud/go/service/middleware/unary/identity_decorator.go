@@ -18,16 +18,6 @@ import (
 	"net"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/serdes"
-	"magma/orc8r/cloud/go/services/certifier"
-	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/lib/go/metrics"
-	"magma/orc8r/lib/go/protos"
-	unarylib "magma/orc8r/lib/go/service/middleware/unary"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,6 +27,16 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/serdes"
+	"magma/orc8r/cloud/go/services/certifier"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/metrics"
+	"magma/orc8r/lib/go/protos"
+	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 )
 
 // SetIdentityFromContext is an identity decorator implements Identity injector

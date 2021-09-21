@@ -16,11 +16,11 @@ package servicers
 import (
 	"testing"
 
-	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
-	"magma/orc8r/lib/go/metrics"
-
 	prometheus_models "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+
+	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
 )
 
 const (

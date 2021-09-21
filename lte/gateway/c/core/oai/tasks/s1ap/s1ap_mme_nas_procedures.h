@@ -66,7 +66,8 @@ status_code_e s1ap_mme_handle_nas_non_delivery(
 
 void s1ap_handle_conn_est_cnf(
     s1ap_state_t* state,
-    const itti_mme_app_connection_establishment_cnf_t* const conn_est_cnf_p);
+    const itti_mme_app_connection_establishment_cnf_t* const conn_est_cnf_p,
+    imsi64_t imsi64);
 
 status_code_e s1ap_generate_downlink_nas_transport(
     s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,

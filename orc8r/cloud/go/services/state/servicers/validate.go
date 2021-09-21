@@ -14,10 +14,10 @@
 package servicers
 
 import (
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func validateGetStatesRequest(req *protos.GetStatesRequest) error {

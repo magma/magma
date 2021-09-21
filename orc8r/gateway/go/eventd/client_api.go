@@ -17,13 +17,13 @@ import (
 	"context"
 	"strings"
 
+	"github.com/golang/glog"
+
 	"magma/gateway/mconfig"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	mcfgprotos "magma/orc8r/lib/go/protos/mconfig"
 	platformregistry "magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 const (

@@ -19,16 +19,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 type (

@@ -52,6 +52,7 @@
 #include "nas_procedures.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_defs.h"
+#include "include/mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -261,7 +262,7 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
 
 status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
-    tac_t tac) {
+    tai_t tai) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                         = RETURNerror;
   ue_mm_context_t* ue_mm_context = NULL;
@@ -327,30 +328,6 @@ status_code_e emm_proc_tracking_area_update_request(
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
   }
-  if (EPS_UPDATE_TYPE_PERIODIC_UPDATING !=
-      ies->eps_update_type.eps_update_type_value) {
-    /*
-     * MME24.301R10_5.5.3.2.4_6 Normal and periodic tracking area updating
-     * procedure accepted by the network UE - EPS update type If the EPS update
-     * type IE included in the TRACKING AREA UPDATE REQUEST message indicates
-     * "periodic updating", and the UE was previously successfully attached for
-     * EPS and non-EPS services, subject to operator policies the MME should
-     * allocate a TAI list that does not span more than one location area.
-     */
-    // This IE not implemented
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "EMM-PROC- Sending Tracking Area Update Reject. "
-        "ue_id=" MME_UE_S1AP_ID_FMT ", cause=%d)\n",
-        ue_id, EMM_CAUSE_IE_NOT_IMPLEMENTED);
-    rc = emm_tracking_area_update_reject(ue_id, EMM_CAUSE_IE_NOT_IMPLEMENTED);
-    increment_counter(
-        "tracking_area_update_req", 1, 2, "result", "failure", "cause",
-        "normal_tau_not_supported");
-    free_emm_tau_request_ies(&ies);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
-
   /*
    * Requirements MME24.301R10_5.5.3.2.4_3
    */
@@ -400,8 +377,13 @@ status_code_e emm_proc_tracking_area_update_request(
    * Requirement MME24.301R10_5.5.3.2.4_6
    */
   // If CSFB feature is not enabled, send TAU accept
-  if (EPS_UPDATE_TYPE_PERIODIC_UPDATING ==
-      ies->eps_update_type.eps_update_type_value) {
+  if ((EPS_UPDATE_TYPE_PERIODIC_UPDATING ==
+       ies->eps_update_type.eps_update_type_value) ||
+      (EPS_UPDATE_TYPE_TA_UPDATING ==
+       ies->eps_update_type.eps_update_type_value) ||
+      ((EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING ==
+        ies->eps_update_type.eps_update_type_value) &&
+       (mme_config.accept_combined_attach_tau_wo_csfb))) {
     /*
      * MME24.301R10_5.5.3.2.4_6 Normal and periodic tracking area updating
      * procedure accepted by the network UE - EPS update type If the EPS update
@@ -410,17 +392,18 @@ status_code_e emm_proc_tracking_area_update_request(
      * EPS and non-EPS services, subject to operator policies the MME should
      * allocate a TAI list that does not span more than one location area.
      */
-    // Handle periodic TAU
+    // Handle TAU
     if (ue_mm_context->num_reg_sub > 0) {
       if (verify_service_area_restriction(
-              tac, ue_mm_context->reg_sub, ue_mm_context->num_reg_sub) !=
+              tai.tac, ue_mm_context->reg_sub, ue_mm_context->num_reg_sub) !=
           RETURNok) {
         OAILOG_ERROR_UE(
             LOG_MME_APP, ue_mm_context->emm_context._imsi64,
             "No suitable cells found for tac = %d, sending tau_reject "
             "message "
             "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
-            tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
+            tai.tac, ue_mm_context->mme_ue_s1ap_id,
+            EMM_CAUSE_NO_SUITABLE_CELLS);
         free_emm_tau_request_ies(&ies);
         if (emm_tracking_area_update_reject(
                 ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) !=
@@ -434,6 +417,29 @@ status_code_e emm_proc_tracking_area_update_request(
         }
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
+    }
+    if (verify_tau_tai(
+            ue_mm_context->emm_context._imsi64,
+            ue_mm_context->emm_context._guti, tai,
+            &ue_mm_context->emm_context._tai_list) != RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+          "tac = %d not configured, sending tau_reject "
+          "message "
+          "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
+          tai.tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_TA_NOT_ALLOWED);
+      free_emm_tau_request_ies(&ies);
+      if (emm_tracking_area_update_reject(
+              ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_TA_NOT_ALLOWED) !=
+          RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+            "Sending of tau reject message failed for "
+            "ue_id " MME_UE_S1AP_ID_FMT "\n",
+            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      }
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
     }
     OAILOG_DEBUG(
         LOG_NAS_EMM,
@@ -720,6 +726,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
   emm_sap_t emm_sap              = {0};
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_context     = NULL;
+  uint8_t eps_update_result      = 0;
 
   if ((tau_proc) && (tau_proc->ies)) {
     ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(tau_proc->ue_id);
@@ -734,6 +741,19 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
+    switch (tau_proc->ies->eps_update_type.eps_update_type_value) {
+      case EPS_UPDATE_TYPE_TA_UPDATING:
+      case EPS_UPDATE_TYPE_PERIODIC_UPDATING:
+        eps_update_result = EPS_UPDATE_RESULT_TA_UPDATED;
+        break;
+      case EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING:
+        eps_update_result = EPS_UPDATE_RESULT_COMBINED_TA_LA_UPDATED;
+        break;
+      default:
+        eps_update_result = EPS_UPDATE_RESULT_TA_UPDATED;
+        break;
+    }
+
     if ((tau_proc->ies->eps_update_type.active_flag) &&
         (ue_mm_context->ecm_state != ECM_CONNECTED)) {
       /* If active flag is set to true in TAU request then re-establish bearer
@@ -742,13 +762,14 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       emm_sap.primitive                  = EMMAS_ESTABLISH_CNF;
       emm_sap.u.emm_as.u.establish.ue_id = tau_proc->ue_id;
 
-      emm_sap.u.emm_as.u.establish.eps_update_result =
-          EPS_UPDATE_RESULT_TA_UPDATED;
       emm_sap.u.emm_as.u.establish.eps_id.guti = &emm_context->_guti;
       emm_sap.u.emm_as.u.establish.new_guti    = NULL;
 
-      emm_sap.u.emm_as.u.establish.tai_list.numberoflists = 0;
-      emm_sap.u.emm_as.u.establish.nas_info               = EMM_AS_NAS_INFO_TAU;
+      emm_sap.u.emm_as.u.establish.eps_update_result = eps_update_result;
+      memcpy(
+          &emm_sap.u.emm_as.u.establish.tai_list, &emm_context->_tai_list,
+          sizeof(tai_list_t));
+      emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
 
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
       // if (tau_proc->ies->eps_bearer_context_status) {
@@ -858,8 +879,11 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       /*
        * Set the UE identifier
        */
-      emm_as->ue_id = tau_proc->ue_id;
-
+      emm_as->ue_id                             = tau_proc->ue_id;
+      emm_sap.u.emm_as.u.data.eps_update_result = eps_update_result;
+      memcpy(
+          &emm_sap.u.emm_as.u.data.tai_list, &emm_context->_tai_list,
+          sizeof(tai_list_t));
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
       /*if (tau_proc->ies->eps_bearer_context_status) {
         emm_as->eps_bearer_context_status =

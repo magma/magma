@@ -24,13 +24,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {

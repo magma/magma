@@ -19,12 +19,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/golang/glog"
+
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 const ServiceName = "ACCESSD"

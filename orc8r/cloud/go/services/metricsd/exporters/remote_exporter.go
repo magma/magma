@@ -4,11 +4,11 @@ import (
 	"context"
 	"strings"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 // remoteExporter identifies a remote metrics exporter.

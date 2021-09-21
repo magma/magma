@@ -16,12 +16,12 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
 )
 
 // PartialEntityModel describe models that represents a portion of network

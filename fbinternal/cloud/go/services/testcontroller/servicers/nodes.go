@@ -16,13 +16,13 @@ package servicers
 import (
 	"context"
 
-	tcprotos "magma/fbinternal/cloud/go/services/testcontroller/protos"
-	"magma/fbinternal/cloud/go/services/testcontroller/storage"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	tcprotos "magma/fbinternal/cloud/go/services/testcontroller/protos"
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
+	"magma/orc8r/lib/go/protos"
 )
 
 type nodeLeasorServicer struct {

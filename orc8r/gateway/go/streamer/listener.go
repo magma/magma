@@ -15,9 +15,9 @@ limitations under the License.
 package streamer
 
 import (
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes/any"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 // Listener interface defines Stream Listener which will become

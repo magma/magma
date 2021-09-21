@@ -17,6 +17,10 @@ import (
 	context2 "context"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -29,10 +33,6 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/storage"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestAssignmentsServicer(t *testing.T) {

@@ -33,6 +33,12 @@ enum {
   TA_LIST_COMPLETE_MATCH     = 0x3,
 };
 
+enum {
+  NGAP_SLICE_CMP_MATCH_FAILED_SD  = -101,
+  NGAP_SLICE_CMP_MATCH_FAILED_SST = -100,
+  NGAP_SLICE_CMP_MATCH_SUCCESS    = 0
+};
+
 typedef enum s_nssai_sst_s {
   _SST_eMBB  = 1,
   _SST_URLLC = 2,

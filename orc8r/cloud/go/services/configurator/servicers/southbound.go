@@ -17,17 +17,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/thoas/go-funk"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	cfg_protos "magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	orc8r_storage "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/thoas/go-funk"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type sbConfiguratorServicer struct {

@@ -29,11 +29,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 	"magma/orc8r/cloud/go/tools/combine_swagger/generate"
-
-	"github.com/golang/glog"
 )
 
 func main() {
