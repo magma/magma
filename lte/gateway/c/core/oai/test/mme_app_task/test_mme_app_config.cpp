@@ -19,18 +19,326 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-class MMEConfigTest : public ::testing::Test {
- protected:
-  std::array<int, 25> ncon_tac;
-  virtual void SetUp() {
-    ncon_tac = {1,  2,  4,  6,  7,  8,  10, 11, 12, 14, 15,
-                16, 19, 21, 23, 26, 28, 31, 33, 37, 39};
-  }
-  virtual void TearDown() {}
+const char* kHealthyConfig =
+    R"libconfig(MME :
+{
+    REALM                                     = "magma.com"
+    PID_DIRECTORY                             = "/var/run";
+    # Define the limits of the system in terms of served eNB and served UE.
+    # When the limits will be reached, overload procedure will take place.
+    MAXENB                                    = 8;                              # power of 2
+    MAXUE                                     = 16;                             # power of 2
+    RELATIVE_CAPACITY                         = 11;
+
+    EMERGENCY_ATTACH_SUPPORTED                     = "no";
+    UNAUTHENTICATED_IMSI_SUPPORTED                 = "no";
+
+    # EPS network feature support
+    EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1      = "no";    # DO NOT CHANGE
+    EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE = "no";    # DO NOT CHANGE
+    EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC            = "no";    # DO NOT CHANGE
+    EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST             = "no";    # DO NOT CHANGE
+
+    # Report/Display MME statistics (expressed in seconds)
+    STATS_TIMER_SEC                    = 60;
+
+    USE_STATELESS = "True";
+    USE_HA = "False";
+    ENABLE_GTPU_PRIVATE_IP_CORRECTION = "False";
+    ENABLE_CONVERGED_CORE = "False";
+
+    # Congestion control configuration parameters
+    CONGESTION_CONTROL_ENABLED = "True";
+    # Congestion control thresholds (expressed in microseconds)
+    S1AP_ZMQ_TH = 2000000;
+    MME_APP_ZMQ_CONGEST_TH = 100000;
+    MME_APP_ZMQ_AUTH_TH = 200000;
+    MME_APP_ZMQ_IDENT_TH = 400000;
+    MME_APP_ZMQ_SMC_TH = 1000000;
+
+    INTERTASK_INTERFACE :
+    {
+        # max queue size per task
+        ITTI_QUEUE_SIZE            = 2000000;
+    };
+
+    S6A :
+    {
+        S6A_CONF                   = "/var/opt/magma/tmp/mme_fd.conf"; # YOUR MME freeDiameter config file path
+        HSS_HOSTNAME               = "hss"; # relevant for freeDiameter only
+    };
+
+    # ------- SCTP definitions
+    SCTP :
+    {
+        # Number of streams to use in input/output
+        SCTP_INSTREAMS  = 8;
+        SCTP_OUTSTREAMS = 8;
+    };
+
+    # ------- S1AP definitions
+    S1AP :
+    {
+        # outcome drop timer value (seconds)
+        S1AP_OUTCOME_TIMER = 10;
+    };
+
+    # ------- MME served GUMMEIs
+    # MME code DEFAULT  size = 8 bits
+    # MME GROUP ID size = 16 bits
+    GUMMEI_LIST = (
+         { MCC="001" ; MNC="01"; MME_GID="1" ; MME_CODE="1"; }
+    );
+
+    # ------- MME served TAIs
+    # TA (mcc.mnc:tracking area code) DEFAULT = 208.34:1
+    # max values = 999.999:65535
+    # maximum of 16 TAIs, comma separated
+    # !!! Actually use only one PLMN
+    TAI_LIST = (
+    
+         { MCC="001" ; MNC="01" ; TAC="1"; }
+    );
+
+    TAC_LIST = (
+         { MCC="001" ; MNC="01" ; TAC="1"; }
+         
+    );
+
+    # List of restricted PLMNs
+    # By default this list is empty
+    # Max number of restricted plmn is 10
+    RESTRICTED_PLMN_LIST = (
+        # PlmnConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        
+    );
+
+    # List of blocked IMEIs
+    # By default this list is empty
+    # Stored in a hash table on mme side
+    # Length of IMEI=15 digits, length of IMEISV=16 digits
+    BLOCKED_IMEI_LIST = (
+        # Sample IMEI: TAC(8 digits) + SNR (6 digits)
+        #{ IMEI_TAC="99000482"; SNR="351037"}
+        # Sample IMEI without SNR: TAC(8 digits)
+        #{ IMEI_TAC="99000482";}
+        # ImeiConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        
+    );
+
+    CSFB :
+    {
+        NON_EPS_SERVICE_CONTROL = "OFF";
+        CSFB_MCC = "001";
+        CSFB_MNC = "01";
+        LAC = "1";
+    };
+
+    # NGAP definitions
+    NGAP :
+    {
+      # outcome drop timer value (seconds)
+      #  S1AP_OUTCOME_TIMER = 10;
+      AMF_NAME = "AMF_1"
+    };
+    # AMF served GUAMFIs
+    # AMF code DEFAULT  size = 8 bits
+    # AMF GROUP ID size = 16 bits
+    GUAMFI_LIST = (
+     { MCC="001" ; MNC="01"; AMF_REGION_ID="1" ; AMF_SET_ID="1"; AMF_POINTER="3"}
+    );
+
+    NAS :
+    {
+        # 3GPP TS 33.401 section 7.2.4.3 Procedures for NAS algorithm selection
+        # decreasing preference goes from left to right
+        ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST = [ "EIA2" , "EIA1" , "EIA0" ];
+        ORDERED_SUPPORTED_CIPHERING_ALGORITHM_LIST = [ "EEA0" , "EEA1" , "EEA2" ];
+
+        # EMM TIMERS
+        # T3402 start:
+        # At attach failure and the attempt counter is equal to 5.
+        # At tracking area updating failure and the attempt counter is equal to 5.
+        # T3402 stop:
+        # ATTACH REQUEST sent, TRACKING AREA REQUEST sent.
+        # On expiry:
+        # Initiation of the attach procedure, if still required or TAU procedure
+        # attached for emergency bearer services.
+        T3402                                 =  1                              # in minutes (default is 12 minutes)
+
+        # T3412 start:
+        # In EMM-REGISTERED, when EMM-CONNECTED mode is left.
+        # T3412 stop:
+        # When entering state EMM-DEREGISTERED or when entering EMM-CONNECTED mode.
+        # On expiry:
+        # Initiation of the periodic TAU procedure if the UE is not attached for
+        # emergency bearer services. Implicit detach from network if the UE is
+        # attached for emergency bearer services.
+        T3412                                 =  54                             # in minutes (default is 54 minutes, network dependent)
+        # T3422 start: DETACH REQUEST sent
+        # T3422 stop: DETACH ACCEPT received
+        # ON THE 1st, 2nd, 3rd, 4th EXPIRY: Retransmission of DETACH REQUEST
+        T3422                                 =  6                              # in seconds (default is 6s)
+
+        # T3450 start:
+        # ATTACH ACCEPT sent, TRACKING AREA UPDATE ACCEPT sent with GUTI, TRACKING AREA UPDATE ACCEPT sent with TMSI,
+        # GUTI REALLOCATION COMMAND sent
+        # T3450 stop:
+        # ATTACH COMPLETE received, TRACKING AREA UPDATE COMPLETE received, GUTI REALLOCATION COMPLETE received
+        # ON THE 1st, 2nd, 3rd, 4th EXPIRY: Retransmission of the same message type
+        T3450                                 =  6                              # in seconds (default is 6s)
+
+        # T3460 start: AUTHENTICATION REQUEST sent, SECURITY MODE COMMAND sent
+        # T3460 stop:
+        # AUTHENTICATION RESPONSE received, AUTHENTICATION FAILURE received,
+        # SECURITY MODE COMPLETE received, SECURITY MODE REJECT received
+        # ON THE 1st, 2nd, 3rd, 4th EXPIRY: Retransmission of the same message type
+        T3460                                 =  6                              # in seconds (default is 6s)
+
+        # T3470 start: IDENTITY REQUEST sent
+        # T3470 stop: IDENTITY RESPONSE received
+        # ON THE 1st, 2nd, 3rd, 4th EXPIRY: Retransmission of IDENTITY REQUEST
+        T3470                                 =  6                              # in seconds (default is 6s)
+
+        # ESM TIMERS
+        T3485                                 =  8                              # UNUSED in seconds (default is 8s)
+        T3486                                 =  8                              # UNUSED in seconds (default is 8s)
+        T3489                                 =  4                              # UNUSED in seconds (default is 4s)
+        T3495                                 =  8                              # UNUSED in seconds (default is 8s)
+
+        # APN CORRECTION FEATURE
+        ENABLE_APN_CORRECTION                 = "False"
+        APN_CORRECTION_MAP_LIST               = (
+          {
+            APN_CORRECTION_MAP_IMSI_PREFIX = "00101" ;
+            APN_CORRECTION_MAP_APN_OVERRIDE = "magma.ipv4" ;
+          }
+         
+        );
+    };
+
+    SGS :
+    {
+        # TS6_1 start: SGSAP LOCATION UPDATE REQUEST sent
+        # TS6_1 stop: SGSAP LOCATION UPDATE ACCEPT received,SGSAP LOCATION UPDATE REJECT received
+        TS6_1                                 =  10                             # in seconds (default is 10s)
+
+        # TS8 start: SGSAP EPS DETACH INDICATION explicit detach sent for EPS services
+        # TS8 stop: SGSAP EPS DETACH ACK  received
+        TS8                                   =  4                              # in seconds (default is 4s)
+
+        # TS9 start: SGSAP IMSI DETACH INDICATION explicit detach sent for non-EPS services
+        # TS9 stop:  SGSAP IMSI DETACH ACK received
+        # changed the Ts9 default value to 2s since the T3421 ue detach timer value is 5s
+        # To avoid retransmission of UE detach message and small delay to wait for sgs detach retransmission
+        TS9                                   =  2                              # in seconds (default is 4s)
+
+        # TS10 start: SGSAP IMSI DETACH INDICATION implicit detach sent for non-EPS services
+        # TS10 stop: SGSAP EPS DETACH ACK  received
+        TS10                                   =  4                              # in seconds (default is 4s)
+
+        # TS13 start: SGSAP EPS DETACH INDICATION implicit detach sent for EPS services
+        # TS13 stop: SGSAP EPS DETACH ACK  received
+        TS13                                   =  4                              # in seconds (default is 4s)
+
+
+    };
+    NETWORK_INTERFACES :
+    {
+        # MME binded interface for S1-C or S1-MME  communication (S1AP), can be ethernet interface, virtual ethernet interface,
+        # we don't advise wireless interfaces
+        MME_INTERFACE_NAME_FOR_S1_MME         = "eth1";
+        MME_IPV4_ADDRESS_FOR_S1_MME           = "192.168.60.142/24";
+
+        # MME binded interface for S11 communication (GTPV2-C)
+        MME_INTERFACE_NAME_FOR_S11_MME        = "eth1";
+        MME_IPV4_ADDRESS_FOR_S11_MME          = "192.168.60.142/24";
+        MME_PORT_FOR_S11_MME                  = 2123;
+    };
+
+    LOGGING :
+    {
+        # OUTPUT choice in { "CONSOLE", "SYSLOG", `path to file`", "`IPv4@`:`TCP port num`"}
+        # `path to file` must start with '.' or '/'
+        # if TCP stream choice, then you can easily dump the traffic on the remote or local host: nc -l `TCP port num` > received.txt
+        #OUTPUT            = "CONSOLE";
+        #OUTPUT            = "SYSLOG";
+        OUTPUT            = "/var/log/mme.log";
+        #OUTPUT            = "127.0.0.1:5656";
+
+        # THREAD_SAFE choice in { "yes", "no" } means use of thread safe intermediate buffer then a single thread pick each message log one
+        # by one to flush it to the chosen output
+        THREAD_SAFE       = "no";
+
+        # COLOR choice in { "yes", "no" } means use of ANSI styling codes or no
+        COLOR             = "no";
+
+        # Log level choice in { "EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "TRACE"}
+        SCTP_LOG_LEVEL     = "INFO";
+        GTPV1U_LOG_LEVEL   = "INFO";
+        SPGW_APP_LOG_LEVEL = "INFO";
+        UDP_LOG_LEVEL      = "INFO";
+        S1AP_LOG_LEVEL     = "INFO";
+        NAS_LOG_LEVEL      = "INFO";
+        MME_APP_LOG_LEVEL  = "INFO";
+        GTPV2C_LOG_LEVEL   = "INFO";
+        S11_LOG_LEVEL      = "INFO";
+        S6A_LOG_LEVEL      = "INFO";
+        UTIL_LOG_LEVEL     = "INFO";
+        SERVICE303_LOG_LEVEL     = "INFO";
+        MSC_LOG_LEVEL      = "ERROR";
+        ITTI_LOG_LEVEL     = "ERROR";
+        MME_SCENARIO_PLAYER_LOG_LEVEL = "ERROR";
+
+        # ASN1 VERBOSITY: none, info, annoying
+        # for S1AP protocol
+        # Won't be templatized because its value space is different
+        ASN1_VERBOSITY    = "INFO";
+    };
+    TESTING :
+    {
+        # file should be copied here from source tree by following command: run_mme --install-mme-files ...
+        SCENARIO_FILE = "/usr/local/share/oai/test/MME/no_regression.xml";
+    };
+
+    S-GW :
+    {
+        # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
+        SGW_IPV4_ADDRESS_FOR_S11              = "192.168.60.153";
+    };
+
+
+    FEDERATED_MODE_MAP = (
+        # ModeMapItem values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        
+   );
+
+   SRVC_AREA_CODE_2_TACS_MAP = (
+     
+   );
+
+   SENTRY_CONFIG = {
+     
+       # Sentry.io configuration sent from the Orc8r
+       SAMPLE_RATE      = 0.0;
+       UPLOAD_MME_LOG   = "False";
+       URL_NATIVE       = ""
+   }
 };
 
+NGAP :
+{
+    # DNS address communicated to UEs
+    DEFAULT_DNS_IPV4_ADDRESS     = "8.8.8.8";
+    DEFAULT_DNS_SEC_IPV4_ADDRESS = "8.8.4.4";
+};)libconfig";
+
+constexpr std::array<int, 25> ncon_tac = {1,  2,  4,  6,  7,  8,  10,
+                                          11, 12, 14, 15, 16, 19, 21,
+                                          23, 26, 28, 31, 33, 37, 39};
+
 // Test partial list with 1 TAI
-TEST_F(MMEConfigTest, TestOneTai) {
+TEST(MMEConfigTest, TestOneTai) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 1;
   uint8_t itr                   = 0;
@@ -76,7 +384,7 @@ TEST_F(MMEConfigTest, TestOneTai) {
 }
 
 // Test 1 partial list with Consecutive Tacs
-TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
+TEST(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 16;
   uint8_t itr                   = 0;
@@ -130,7 +438,7 @@ TEST_F(MMEConfigTest, TestParTaiListWithConsecutiveTacs) {
 }
 
 // Test 2 partial lists with Consecutive Tacs
-TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
+TEST(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 20;
   uint8_t itr                   = 0;
@@ -192,7 +500,7 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsecutiveTacs) {
 }
 
 // Test 1 partial list with Non-consecutive Tacs
-TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
+TEST(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 16;
   uint8_t itr                   = 0;
@@ -246,7 +554,7 @@ TEST_F(MMEConfigTest, TestParTaiListWithNonConsecutiveTacs) {
 }
 
 // Test 2 partial lists with Non-consecutive Tacs
-TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
+TEST(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 20;
   uint8_t itr                   = 0;
@@ -309,7 +617,7 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithNonConsecutiveTacs) {
 }
 
 // Test 2 partial lists with 1-Consecutive tacs and 1-Non-consecutive Tacs
-TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
+TEST(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 24;
   uint8_t itr                   = 0;
@@ -385,7 +693,7 @@ TEST_F(MMEConfigTest, TestTwoParTaiListsWithConsAndNonConsecutiveTacs) {
 }
 
 // Test 1 partial list with many plmns
-TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
+TEST(MMEConfigTest, TestParTaiListWithManyPlmns) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 6;
   uint8_t itr                   = 0;
@@ -435,7 +743,7 @@ TEST_F(MMEConfigTest, TestParTaiListWithManyPlmns) {
 }
 
 // Test 3 partial lists, 1-consecutive tacs, 1-non consecutive tacs,1-many plmns
-TEST_F(MMEConfigTest, TestMixedParTaiLists) {
+TEST(MMEConfigTest, TestMixedParTaiLists) {
   mme_config_t config_pP        = {0};
   config_pP.served_tai.nb_tai   = 35;
   uint8_t itr                   = 0;
@@ -526,6 +834,12 @@ TEST_F(MMEConfigTest, TestMixedParTaiLists) {
     free(config_pP.partial_list[itr].tac);
   }
   free(config_pP.partial_list);
+}
+
+TEST(MMEConfigTest, TestParseHealthyConfig) {
+  mme_config_t mme_config = {0};
+  EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+  free_mme_config(&mme_config);
 }
 
 }  // namespace lte
