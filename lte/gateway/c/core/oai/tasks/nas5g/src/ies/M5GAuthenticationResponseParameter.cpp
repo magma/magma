@@ -64,8 +64,8 @@ int AuthenticationResponseParameterMsg::
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, response_parameter->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" << std::hex
-                 << int(*buffer) << std::endl;
+    MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei"
+                 << std::hex << int(*buffer) << std::endl;
     encoded++;
   } else {
     return 0;

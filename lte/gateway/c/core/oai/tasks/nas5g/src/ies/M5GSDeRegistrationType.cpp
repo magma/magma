@@ -27,11 +27,12 @@ int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
   de_reg_type->switchoff       = (*(buffer + decoded) >> 3) & 0x01;
   de_reg_type->re_reg_required = (*(buffer + decoded) >> 2) & 0x01;
   de_reg_type->access_type     = *(buffer + decoded) & 0x03;
-  MLOG(MDEBUG) << "DecodeM5GSDe-RegistrationType : \n   switchoff = " << std::hex
-               << int(de_reg_type->switchoff);
+  MLOG(MDEBUG) << "DecodeM5GSDe-RegistrationType : \n   switchoff = "
+               << std::hex << int(de_reg_type->switchoff);
   MLOG(MDEBUG) << "   re_reg_required = " << std::hex
                << int(de_reg_type->re_reg_required);
-  MLOG(MDEBUG) << "   access_type = " << std::hex << int(de_reg_type->access_type);
+  MLOG(MDEBUG) << "   access_type = " << std::hex
+               << int(de_reg_type->access_type);
   return (decoded);
 };
 

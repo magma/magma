@@ -41,7 +41,8 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " length = " << std::hex << int(ue_sec_capability->length) << std::endl;
+  MLOG(MDEBUG) << " length = " << std::hex << int(ue_sec_capability->length)
+               << std::endl;
 
   // 5GS encryption algorithms
   ea                     = *(buffer + decoded);
@@ -98,23 +99,39 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   }
 
   // Decoded 5GS encryption algorithms
-  MLOG(MDEBUG) << " ea0 = " << std::hex << int(ue_sec_capability->ea0) << std::endl;
-  MLOG(MDEBUG) << " ea1 = " << std::hex << int(ue_sec_capability->ea1) << std::endl;
-  MLOG(MDEBUG) << " ea2 = " << std::hex << int(ue_sec_capability->ea2) << std::endl;
-  MLOG(MDEBUG) << " ea3 = " << std::hex << int(ue_sec_capability->ea3) << std::endl;
-  MLOG(MDEBUG) << " ea4 = " << std::hex << int(ue_sec_capability->ea4) << std::endl;
-  MLOG(MDEBUG) << " ea5 = " << std::hex << int(ue_sec_capability->ea5) << std::endl;
-  MLOG(MDEBUG) << " ea6 = " << std::hex << int(ue_sec_capability->ea6) << std::endl;
-  MLOG(MDEBUG) << " ea7 = " << std::hex << int(ue_sec_capability->ea7) << std::endl;
+  MLOG(MDEBUG) << " ea0 = " << std::hex << int(ue_sec_capability->ea0)
+               << std::endl;
+  MLOG(MDEBUG) << " ea1 = " << std::hex << int(ue_sec_capability->ea1)
+               << std::endl;
+  MLOG(MDEBUG) << " ea2 = " << std::hex << int(ue_sec_capability->ea2)
+               << std::endl;
+  MLOG(MDEBUG) << " ea3 = " << std::hex << int(ue_sec_capability->ea3)
+               << std::endl;
+  MLOG(MDEBUG) << " ea4 = " << std::hex << int(ue_sec_capability->ea4)
+               << std::endl;
+  MLOG(MDEBUG) << " ea5 = " << std::hex << int(ue_sec_capability->ea5)
+               << std::endl;
+  MLOG(MDEBUG) << " ea6 = " << std::hex << int(ue_sec_capability->ea6)
+               << std::endl;
+  MLOG(MDEBUG) << " ea7 = " << std::hex << int(ue_sec_capability->ea7)
+               << std::endl;
   // Decoded 5GS integrity algorithm
-  MLOG(MDEBUG) << " ia0 = " << std::hex << int(ue_sec_capability->ia0) << std::endl;
-  MLOG(MDEBUG) << " ia1 = " << std::hex << int(ue_sec_capability->ia1) << std::endl;
-  MLOG(MDEBUG) << " ia2 = " << std::hex << int(ue_sec_capability->ia2) << std::endl;
-  MLOG(MDEBUG) << " ia3 = " << std::hex << int(ue_sec_capability->ia3) << std::endl;
-  MLOG(MDEBUG) << " ia4 = " << std::hex << int(ue_sec_capability->ia4) << std::endl;
-  MLOG(MDEBUG) << " ia5 = " << std::hex << int(ue_sec_capability->ia5) << std::endl;
-  MLOG(MDEBUG) << " ia6 = " << std::hex << int(ue_sec_capability->ia6) << std::endl;
-  MLOG(MDEBUG) << " ia7 = " << std::hex << int(ue_sec_capability->ia7) << std::endl;
+  MLOG(MDEBUG) << " ia0 = " << std::hex << int(ue_sec_capability->ia0)
+               << std::endl;
+  MLOG(MDEBUG) << " ia1 = " << std::hex << int(ue_sec_capability->ia1)
+               << std::endl;
+  MLOG(MDEBUG) << " ia2 = " << std::hex << int(ue_sec_capability->ia2)
+               << std::endl;
+  MLOG(MDEBUG) << " ia3 = " << std::hex << int(ue_sec_capability->ia3)
+               << std::endl;
+  MLOG(MDEBUG) << " ia4 = " << std::hex << int(ue_sec_capability->ia4)
+               << std::endl;
+  MLOG(MDEBUG) << " ia5 = " << std::hex << int(ue_sec_capability->ia5)
+               << std::endl;
+  MLOG(MDEBUG) << " ia6 = " << std::hex << int(ue_sec_capability->ia6)
+               << std::endl;
+  MLOG(MDEBUG) << " ia7 = " << std::hex << int(ue_sec_capability->ia7)
+               << std::endl;
 
   return (decoded);
 };

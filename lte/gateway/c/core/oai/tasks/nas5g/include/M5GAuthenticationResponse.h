@@ -18,7 +18,6 @@
 #include "M5GMessageType.h"
 #include "M5GAuthenticationResponseParameter.h"
 
-
 namespace magma5g {
 // AuthenticationResponse Message Class
 class AuthenticationResponseMsg {

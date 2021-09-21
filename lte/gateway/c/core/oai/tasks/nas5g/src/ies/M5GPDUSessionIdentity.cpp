@@ -60,7 +60,8 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
   }
 
   *(buffer + encoded) = pdu_session_identity->pdu_session_id;
-  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex
+               << int(*(buffer + encoded));
   encoded++;
 
   return (encoded);

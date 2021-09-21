@@ -28,7 +28,8 @@ int SSCModeMsg::DecodeSSCModeMsg(
   // Storing the IEI Information
   if (iei > 0) {
     ssc_mode->iei = *buffer;
-    MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << std::hex << int(ssc_mode->iei);
+    MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << std::hex
+                 << int(ssc_mode->iei);
     decoded++;
   }
 

@@ -28,7 +28,7 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
   MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
   sec_header_type->sec_hdr = *(buffer) &0xf;
   decoded++;
-  MLOG(MDEBUG) << " Security header type = " << std::dec 
+  MLOG(MDEBUG) << " Security header type = " << std::dec
                << int(sec_header_type->sec_hdr);
   return (decoded);
 };

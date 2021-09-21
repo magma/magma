@@ -89,12 +89,14 @@ int QOSRulesMsg::EncodeQOSRulesMsg(
     }
 
     *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_precedence;
-    MLOG(MDEBUG) << "qos_rule_precedence: " << std::hex << int(*(buffer + encoded));
+    MLOG(MDEBUG) << "qos_rule_precedence: " << std::hex
+                 << int(*(buffer + encoded));
     encoded++;
     *(buffer + encoded) = 0x00 | ((qos_rules->qos_rule[i].spare & 0x01) << 7) |
                           ((qos_rules->qos_rule[i].segregation & 0x01) << 6) |
                           (qos_rules->qos_rule[i].qfi & 0x3f);
-    MLOG(MDEBUG) << "segregation, qfi: " << std::hex << int(*(buffer + encoded));
+    MLOG(MDEBUG) << "segregation, qfi: " << std::hex
+                 << int(*(buffer + encoded));
     encoded++;
     i++;
   }

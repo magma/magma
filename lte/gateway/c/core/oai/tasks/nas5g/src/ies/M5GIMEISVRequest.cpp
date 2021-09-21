@@ -37,7 +37,7 @@ int ImeisvRequestMsg::DecodeImeisvRequestMsg(
   imeisv_request->imeisv_request = (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
   MLOG(MDEBUG) << "   spare = " << std::dec << int(imeisv_request->spare);
-  MLOG(MDEBUG) << "   imeisv request = " << std::dec 
+  MLOG(MDEBUG) << "   imeisv request = " << std::dec
                << int(imeisv_request->imeisv_request);
   return decoded;
 };

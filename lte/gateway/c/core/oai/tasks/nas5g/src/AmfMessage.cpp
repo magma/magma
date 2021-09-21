@@ -44,8 +44,8 @@ int AmfMsg::M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
                << int(msg->header.extended_protocol_discriminator) << "\n"
                << "   security hdr =  0x" << std::hex
                << int(msg->header.sec_header_type) << "\n"
-               << "   hdr type = 0x" << std::hex << int(msg->header.message_type)
-               << "\n";
+               << "   hdr type = 0x" << std::hex
+               << int(msg->header.message_type) << "\n";
   decode_result = msg->AmfMsgDecodeMsg(msg, buffer, len);
   if (decode_result <= 0) {
     MLOG(MERROR) << "decode result error ";
@@ -122,8 +122,9 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
     ENCODE_U8(buffer + size, hdr->message_type, size);
     MLOG(MDEBUG) << "epd = 0x" << std::hex
                  << int(hdr->extended_protocol_discriminator)
-                 << " security hdr = 0x" << std::hex << int(hdr->sec_header_type)
-                 << " hdr type = 0x" << std::hex << int(hdr->message_type);
+                 << " security hdr = 0x" << std::hex
+                 << int(hdr->sec_header_type) << " hdr type = 0x" << std::hex
+                 << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);

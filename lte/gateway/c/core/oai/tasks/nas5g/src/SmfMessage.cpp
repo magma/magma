@@ -34,10 +34,10 @@ int SmfMsg::SmfMsgDecodeHeaderMsg(
     DECODE_U8(buffer + size, hdr->message_type, size);
     MLOG(MDEBUG) << "epd = 0x" << std::hex
                  << int(hdr->extended_protocol_discriminator)
-                 << "pdu session id = 0x" << std::hex << int(hdr->pdu_session_id)
-                 << " procedure_transaction_id = 0x" << std::hex
-                 << int(hdr->procedure_transaction_id) << " message_type = 0x"
-                 << std::hex << int(hdr->message_type);
+                 << "pdu session id = 0x" << std::hex
+                 << int(hdr->pdu_session_id) << " procedure_transaction_id = 0x"
+                 << std::hex << int(hdr->procedure_transaction_id)
+                 << " message_type = 0x" << std::hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty" << std::endl;
     return (RETURNerror);
@@ -63,10 +63,10 @@ int SmfMsg::SmfMsgEncodeHeaderMsg(
     ENCODE_U8(buffer + size, hdr->message_type, size);
     MLOG(MDEBUG) << " epd = 0x" << std::hex
                  << int(hdr->extended_protocol_discriminator)
-                 << " pdu session id = 0x" << std::hex << int(hdr->pdu_session_id)
-                 << " procedure_transaction_id = 0x" << std::hex
-                 << int(hdr->procedure_transaction_id) << " message_type = 0x"
-                 << std::hex << int(hdr->message_type);
+                 << " pdu session id = 0x" << std::hex
+                 << int(hdr->pdu_session_id) << " procedure_transaction_id = 0x"
+                 << std::hex << int(hdr->procedure_transaction_id)
+                 << " message_type = 0x" << std::hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);

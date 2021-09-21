@@ -12,7 +12,6 @@
 #include <sstream>
 #include <cstdint>
 
-
 namespace magma5g {
 // ABBA IE Class
 class ABBAMsg {

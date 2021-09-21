@@ -28,7 +28,7 @@ int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
   if (iei > 0) {
     m5g_auth_failure_ie->iei = *(buffer + decoded);
     CHECK_IEI_DECODER((unsigned char) iei, m5g_auth_failure_ie->iei);
-    MLOG(MDEBUG) << "In DecodeM5GAuthenticationFailureIE: iei = " << std::dec 
+    MLOG(MDEBUG) << "In DecodeM5GAuthenticationFailureIE: iei = " << std::hex
                  << int(m5g_auth_failure_ie->iei) << std::endl;
     decoded++;
   }

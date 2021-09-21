@@ -40,7 +40,7 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
       (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
   MLOG(MDEBUG) << "   tsc = " << std::dec << int(nas_key_set_identifier->tsc);
-  MLOG(MDEBUG) << "   NASkeysetidentifier = " << std::dec 
+  MLOG(MDEBUG) << "   NASkeysetidentifier = " << std::dec
                << int(nas_key_set_identifier->nas_key_set_identifier);
   return decoded;
 };
