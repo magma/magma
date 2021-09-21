@@ -21,6 +21,7 @@ RUN apt-get update && \
         python-dev \
         zip \
         unzip \
+        uuid-dev \
         vim \
         wget \
         libssl-dev

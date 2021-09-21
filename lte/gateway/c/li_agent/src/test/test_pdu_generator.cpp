@@ -13,6 +13,7 @@
 
 #include <netinet/ip.h>
 #include <net/ethernet.h>
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include <limits>
@@ -129,8 +130,6 @@ TEST_F(PDUGeneratorTest, test_generator_non_ip_packet) {
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
   return RUN_ALL_TESTS();
 }
 

@@ -46,12 +46,20 @@ cc_library(
 
 cc_library(
     name = "libtins",
-    srcs = ["usr/lib/libtins.so"],
     linkopts = ["-ltins"],
 )
 
 cc_library(
     name = "libmnl",
-    srcs = ["usr/lib/x86_64-linux-gnu/libmnl.so"],
     linkopts = ["-lmnl"],
+)
+
+cc_library(
+    name = "libpcap",
+    linkopts = ["-lpcap"],
+)
+
+cc_library(
+    name = "libuuid",
+    linkopts = ["-luuid"],
 )

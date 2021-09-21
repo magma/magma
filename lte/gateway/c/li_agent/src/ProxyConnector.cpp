@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <unistd.h>
 
 #include "ProxyConnector.h"
 #include "magma_logging.h"
