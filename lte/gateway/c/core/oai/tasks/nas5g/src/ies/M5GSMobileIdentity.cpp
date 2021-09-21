@@ -82,18 +82,20 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
   decoded++;
   guti->tmsi4 = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << "   Odd/Even Indecation = " << std::dec << int(guti->odd_even)
+  MLOG(MDEBUG) << "   Odd/Even Indication = " << std::dec << int(guti->odd_even)
                << "\n";
-  MLOG(MDEBUG) << "   Mobile Country Code (MCC) = " << std::dec 
-               << int(guti->mcc_digit1) << std::dec << int(guti->mcc_digit2) << std::dec 
-               << int(guti->mcc_digit3) << "\n";
-  MLOG(MDEBUG) << "   Mobile Network Code (MNC) = " << std::dec 
-               << int(guti->mnc_digit1) << std::dec << int(guti->mnc_digit2) << std::dec 
-               << int(guti->mnc_digit3) << "\n";
+  MLOG(MDEBUG) << "   Mobile Country Code (MCC) = " << std::dec
+               << int(guti->mcc_digit1) << std::dec << int(guti->mcc_digit2)
+               << std::dec << int(guti->mcc_digit3) << "\n";
+  MLOG(MDEBUG) << "   Mobile Network Code (MNC) = " << std::dec
+               << int(guti->mnc_digit1) << std::dec << int(guti->mnc_digit2)
+               << std::dec << int(guti->mnc_digit3) << "\n";
   MLOG(MDEBUG) << "   Amf Region ID = " << std::dec << int(guti->amf_regionid)
                << "\n";
-  MLOG(MDEBUG) << "   Amf Set ID = " << std::dec << int(guti->amf_setid) << "\n";
-  MLOG(MDEBUG) << "   Amf Pointer = " << std::dec << int(guti->amf_pointer) << "\n";
+  MLOG(MDEBUG) << "   Amf Set ID = " << std::dec << int(guti->amf_setid)
+               << "\n";
+  MLOG(MDEBUG) << "   Amf Pointer = " << std::dec << int(guti->amf_pointer)
+               << "\n";
   MLOG(MDEUBG) << "   M5G-TMSI = "
                << "0x0" << std::hex << int(guti->tmsi1) << "0" << std::hex
                << int(guti->tmsi2) << "0" << std::hex << int(guti->tmsi3) << "0"
@@ -128,9 +130,12 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
   imei->identity_digit2 = *(buffer + decoded) & 0xf;
   decoded++;
   MLOG(MDEBUG) << "  odd_even = " << std::hex << int(imei->odd_even) << "\n";
-  MLOG(MDEBUG) << "  digit1 = " << std::hex << int(imei->identity_digit1) << "\n";
-  MLOG(MDEBUG) << "  digit2 = " << std::hex << int(imei->identity_digit2) << "\n";
-  MLOG(MDEBUG) << "  digit3 = " << std::hex << int(imei->identity_digit3) << "\n";
+  MLOG(MDEBUG) << "  digit1 = " << std::hex << int(imei->identity_digit1)
+               << "\n";
+  MLOG(MDEBUG) << "  digit2 = " << std::hex << int(imei->identity_digit2)
+               << "\n";
+  MLOG(MDEBUG) << "  digit3 = " << std::hex << int(imei->identity_digit3)
+               << "\n";
 
   return (decoded);
 };
@@ -211,13 +216,14 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
   MLOG(MDEBUG) << "  Spare = " << std::hex << int(imsi->spare2);
   MLOG(MDEBUG) << "  Supi Format = " << std::hex << int(imsi->supi_format);
   MLOG(MDEBUG) << "  Spare = " << std::hex << int(imsi->spare1);
-  MLOG(MDEBUG) << "  Type of Identity = " << std::hex << int(imsi->type_of_identity);
-  MLOG(MDEBUG) << "  Mobile Country Code (MCC) = " << std::dec 
-               << int(imsi->mcc_digit1) << std::dec << int(imsi->mcc_digit2) << std::dec 
-               << int(imsi->mcc_digit3);
-  MLOG(MDEBUG) << "  Mobile Network Code (MNC) = " << std::dec 
-               << int(imsi->mnc_digit1) << std::dec << int(imsi->mnc_digit2) << std::dec 
-               << int(imsi->mnc_digit3);
+  MLOG(MDEBUG) << "  Type of Identity = " << std::hex
+               << int(imsi->type_of_identity);
+  MLOG(MDEBUG) << "  Mobile Country Code (MCC) = " << std::dec
+               << int(imsi->mcc_digit1) << std::dec << int(imsi->mcc_digit2)
+               << std::dec << int(imsi->mcc_digit3);
+  MLOG(MDEBUG) << "  Mobile Network Code (MNC) = " << std::dec
+               << int(imsi->mnc_digit1) << std::dec << int(imsi->mnc_digit2)
+               << std::dec << int(imsi->mnc_digit3);
   MLOG(MDEBUG) << "  Routing Indicator = " << std::hex
                << int(imsi->rout_ind_digit_1);
   MLOG(MDEBUG) << "  Protection Scheme ID = " << std::hex
@@ -301,7 +307,8 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
   decoded = ielen;
   MLOG(MDEBUG) << "  spare2 = " << std::dec << int(tmsi->spare);
   MLOG(MDEBUG) << "  odd_even = " << std::dec << int(tmsi->odd_even);
-  MLOG(MDEBUG) << "  type_of_identity = " << std::dec << int(tmsi->type_of_identity);
+  MLOG(MDEBUG) << "  type_of_identity = " << std::dec
+               << int(tmsi->type_of_identity);
   MLOG(MDEBUG) << "  amf_setid = " << std::dec << int(tmsi->amf_setid);
   MLOG(MDEBUG) << "  amf_pointer = " << std::dec << int(tmsi->amf_pointer);
   MLOG(MDEBUG) << "  M5G TMSI = ";
@@ -398,7 +405,8 @@ int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(
   encoded++;
   *(buffer + encoded) =
       0x00 | ((guti->amf_setid & 0xF3) << 6) | (guti->amf_pointer & 0x3f);
-  MLOG(MDEBUG) << "amf_setid amf_pointer = " << std::hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "amf_setid amf_pointer = " << std::hex
+               << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->tmsi1;
   MLOG(MDEBUG) << "tmsi1 = " << std::hex << int(*(buffer + encoded));
@@ -534,7 +542,8 @@ int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
   encoded++;
   suci->suci_nai.assign(
       (const char*) (buffer + encoded), suci->suci_nai.size());
-  MLOG(MDEBUG) << "ielen = " << std::hex << (unsigned char) suci->suci_nai.size();
+  MLOG(MDEBUG) << "ielen = " << std::hex
+               << (unsigned char) suci->suci_nai.size();
   MLOG(MDEBUG) << "contents";
   for (uint32_t i = 0; i < suci->suci_nai.size(); i++) {
     MLOG(MDEBUG) << std::hex << int(suci->suci_nai[i]);

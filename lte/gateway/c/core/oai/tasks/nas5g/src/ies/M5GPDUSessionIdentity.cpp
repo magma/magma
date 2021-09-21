@@ -29,7 +29,7 @@ int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(
     pdu_session_identity->iei = *(buffer + decoded);
     CHECK_IEI_DECODER((unsigned char) iei, pdu_session_identity->iei);
     MLOG(MDEBUG) << "In DecodePDUSessionIdentityMsg iei = " << std::dec
-                 << int(pdu_session_identity->iei) << endl;
+                 << int(pdu_session_identity->iei) << std::endl;
     decoded++;
   }
 
@@ -60,7 +60,8 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
   }
 
   *(buffer + encoded) = pdu_session_identity->pdu_session_id;
-  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex
+               << int(*(buffer + encoded));
   encoded++;
 
   return (encoded);

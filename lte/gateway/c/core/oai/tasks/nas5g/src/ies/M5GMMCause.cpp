@@ -26,7 +26,7 @@ int M5GMMCauseMsg::DecodeM5GMMCauseMsg(
   if (iei > 0) {
     m5gmm_cause->iei = *(buffer + decoded);
     CHECK_IEI_DECODER((unsigned char) iei, m5gmm_cause->iei);
-    MLOG(MDEBUG) << "In DecodeM5GMMCauseMsg: iei = " << std::dec 
+    MLOG(MDEBUG) << "In DecodeM5GMMCauseMsg: iei = " << std::dec
                  << int(m5gmm_cause->iei) << std::endl;
     decoded++;
   }

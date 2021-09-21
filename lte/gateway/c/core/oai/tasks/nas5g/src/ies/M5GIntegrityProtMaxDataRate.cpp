@@ -29,9 +29,9 @@ int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(
   decoded++;
   integrity_prot_max_data_rate->max_downlink = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " max_uplink = " << std::dec 
+  MLOG(MDEBUG) << " max_uplink = " << std::dec
                << int(integrity_prot_max_data_rate->max_uplink);
-  MLOG(MDEBUG) << " max_downlink = " << std::dec 
+  MLOG(MDEBUG) << " max_downlink = " << std::dec
                << int(integrity_prot_max_data_rate->max_downlink);
   return (decoded);
 };

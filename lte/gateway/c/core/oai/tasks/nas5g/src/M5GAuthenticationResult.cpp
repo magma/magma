@@ -27,7 +27,8 @@ int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_RESULT_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "\n\n---Decoding Authentication Result Message---\n" << std::endl;
+  MLOG(MDEBUG) << "\n\n---Decoding Authentication Result Message---\n"
+               << std::endl;
   if ((decoded_result = auth_result->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_result->extended_protocol_discriminator,

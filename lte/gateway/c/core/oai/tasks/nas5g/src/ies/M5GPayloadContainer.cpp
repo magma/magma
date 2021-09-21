@@ -27,7 +27,7 @@ int PayloadContainerMsg::DecodePayloadContainerMsg(
   uint32_t ielen = 0;
   IES_DECODE_U16(buffer, decoded, ielen);
   payload_container->len = ielen;
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::dec 
+  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::dec
                << int(payload_container->len) << std::endl;
   memcpy(&payload_container->contents, buffer + decoded, int(ielen));
   BUFFER_PRINT_LOG(payload_container->contents, int(ielen));
@@ -47,8 +47,8 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   int tmp        = 0;
   ielen          = payload_container->len;
 
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::hex << int(ielen)
-               << std::endl;
+  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::hex
+               << int(ielen) << std::endl;
 
   // SMF NAS Message Decode
   encoded += payload_container->smf_msg.SmfMsgEncodeMsg(

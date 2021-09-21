@@ -54,8 +54,8 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
     *buffer = (pdu_session_type->iei & 0x0f) << 4;
     CHECK_IEI_ENCODER(
         (uint8_t) iei, (uint8_t)((pdu_session_type->iei & 0x0f) << 4));
-    MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: iei" << std::hex << int(*buffer)
-                 << std::endl;
+    MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: iei" << std::hex
+                 << int(*buffer) << std::endl;
   }
 
   *buffer = 0x00 | (*buffer & 0xf0) | (pdu_session_type->type_val & 0x07);

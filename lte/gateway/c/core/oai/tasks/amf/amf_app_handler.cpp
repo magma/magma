@@ -721,7 +721,7 @@ int amf_app_handle_pdu_session_accept(
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id : " AMF_UE_NGAP_ID_FMT,
+        LOG_AMF_APP, "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
         ue_id);
     return M5G_AS_FAILURE;
   }
@@ -729,7 +729,9 @@ int amf_app_handle_pdu_session_accept(
   smf_ctx = amf_smf_context_exists_pdu_session_id(
       ue_context, pdu_session_resp->pdu_session_id);
   if (!smf_ctx) {
-    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %lu", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT,
+        ue_id);
     return M5G_AS_FAILURE;
   }
   // updating session state

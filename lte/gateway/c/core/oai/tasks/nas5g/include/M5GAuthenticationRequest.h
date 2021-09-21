@@ -22,7 +22,6 @@
 #include "M5GAuthenticationParameterAUTN.h"
 #include "M5GEAPMessage.h"
 
-
 namespace magma5g {
 // AuthenticationRequest Message Class
 class AuthenticationRequestMsg {
