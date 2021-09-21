@@ -40,9 +40,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
