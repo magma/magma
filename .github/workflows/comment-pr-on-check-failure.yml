@@ -89,11 +89,12 @@ jobs:
 
             shortCommitId = process.env.COMMIT_ID.substr(0,9);
             updMsg = "Updated: The check is still failing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
+            console.log("Updated msg=" + updMsg);
             for (const c of commentsList['data']) {
               oldMsg = c.body;
               console.log("Old CommentBody=" + oldMsg);
               if( oldMsg.includes('Oops! Looks like you failed the ') ) {
-                if( oldMsg.includes(process.env.WORKFLOW_NAME) {
+                if( oldMsg.includes(process.env.WORKFLOW_NAME) ) {
                   commentId = c.id;
                   newMsg = msg + "\n\n" + updMsg;
                   console.log("Found an Oops comment for" + process.env.WORKFLOW_NAME + " failure. newMsg=" + newMsg);
