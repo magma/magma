@@ -78,4 +78,3 @@ void nas_timer_stop(struct nas_timer_s* const timer) {
     timer->id = NAS_TIMER_INACTIVE_ID;
   }
 }
-
