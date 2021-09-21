@@ -33,7 +33,7 @@ enum class M5GMmCause : uint8_t {
   ILLEGAL_ME                                          = 0b00000110,
   FIVEG_SERVICES_NOT_ALLOWED                          = 0b00000111,
   UE_IDENTITY_CANNOT_BE_DERIVED_FROM_NETWORK          = 0b00001001,
-  IMPLICITY_DEREGISTERED                              = 0b00001010,
+  IMPLICITLY_DEREGISTERED                             = 0b00001010,
   PLMN_NOT_ALLOWED                                    = 0b00001011,
   TA_NOT_ALLOWED                                      = 0b00001100,
   ROAMING_NOT_ALLOWED_IN_TA                           = 0b00001101,

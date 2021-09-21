@@ -24,11 +24,6 @@ extern "C" {
 #include "intertask_interface_types.h"
 #include "itti_free_defined_msg.h"
 }
-#if 0
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
-#endif
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
@@ -605,7 +600,7 @@ TEST(test_dlnastransport, test_dlnastransport) {
 
   buffer = bfromcstralloc(len, "\0");
   bytes  = nas5g_message_encode(buffer->data, &msg, len, nullptr);
-  EXPECT_TRUE(bytes > 0);
+  EXPECT_GT(bytes, 0);
 
   amf_nas_message_t decode_msg                  = {0};
   amf_nas_message_decode_status_t decode_status = {};

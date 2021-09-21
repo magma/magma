@@ -10,9 +10,9 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
 #include <string.h>
+#include <sstream>
 #include <SmfMessage.h>
 #define PAYLOAD_CONTAINER_CONTENTS_MAX_LEN 8192
 
