@@ -17,6 +17,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/fbinternal/cloud/go/fbinternal"
 	"magma/fbinternal/cloud/go/serdes"
 	"magma/fbinternal/cloud/go/services/testcontroller"
@@ -31,8 +33,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
 )
 
 func main() {

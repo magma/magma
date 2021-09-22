@@ -86,7 +86,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GUplinkDataStatus.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GProtocolConfigurationOptions.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer2.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GRequestType.cpp
     )
 
 add_library(LIB_NAS5G

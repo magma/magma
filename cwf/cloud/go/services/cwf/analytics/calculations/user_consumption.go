@@ -16,12 +16,12 @@ package calculations
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
 )
 
 // UserConsumptionCalculation input params, direction can be user consumption volume

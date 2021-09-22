@@ -21,7 +21,6 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "emm_proc.h"
 #include "log.h"
-#include "timer.h"
 }
 
 #include "mme_app_state_manager.h"
@@ -208,7 +207,6 @@ void MmeNasStateManager::free_state() {
     return;
   }
   clear_mme_nas_hashtables();
-  timer_remove(state_cache_p->statistic_timer_id, nullptr);
   free(state_cache_p);
   state_cache_p = nullptr;
 }

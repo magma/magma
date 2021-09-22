@@ -28,10 +28,7 @@ extern "C" {
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "ngap_messages_types.h"
-
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+#include "amf_common.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;

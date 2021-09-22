@@ -18,13 +18,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/fbinternal/cloud/go/services/testcontroller/utils"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 const (

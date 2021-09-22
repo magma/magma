@@ -16,6 +16,9 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -26,9 +29,6 @@ import (
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	wifi_test_init "magma/wifi/cloud/go/services/wifi/test_init"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build_BaseCases(t *testing.T) {

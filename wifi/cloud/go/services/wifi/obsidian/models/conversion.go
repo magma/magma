@@ -14,6 +14,8 @@
 package models
 
 import (
+	"github.com/go-openapi/swag"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -22,8 +24,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/go-openapi/swag"
 )
 
 func (m *WifiNetwork) GetEmptyNetwork() handlers.NetworkModel {

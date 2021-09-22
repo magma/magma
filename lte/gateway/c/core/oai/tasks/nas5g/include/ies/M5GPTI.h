@@ -24,5 +24,10 @@ class PTIMsg {
   ~PTIMsg();
   int EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len);
   int DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len);
+  void copy(const PTIMsg& p) { pti = p.pti; }
+  bool isEqual(const PTIMsg& p) {
+    if (pti == p.pti) return true;
+    return false;
+  }
 };
 }  // namespace magma5g

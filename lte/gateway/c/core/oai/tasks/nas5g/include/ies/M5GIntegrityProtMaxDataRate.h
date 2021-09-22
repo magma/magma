@@ -29,5 +29,16 @@ class IntegrityProtMaxDataRateMsg {
   int DecodeIntegrityProtMaxDataRateMsg(
       IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
       uint8_t* buffer, uint32_t len);
+
+  void copy(const IntegrityProtMaxDataRateMsg& i) {
+    max_uplink   = i.max_uplink;
+    max_downlink = i.max_downlink;
+  }
+  bool isEqual(const IntegrityProtMaxDataRateMsg& i) {
+    if ((max_uplink == i.max_uplink) && (max_downlink == i.max_downlink)) {
+      return true;
+    }
+    return false;
+  }
 };
 }  // namespace magma5g

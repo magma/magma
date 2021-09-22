@@ -16,15 +16,15 @@ package testcontroller
 import (
 	"context"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/protos"
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/cloud/go/serde"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 // UnmarshalledTestCase encapsulates a TestCase and the unmarshaled
