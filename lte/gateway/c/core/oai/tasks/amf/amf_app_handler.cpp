@@ -335,6 +335,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   guti_m5_t guti                    = {0};
   plmn_t plmn                       = {0};
   s_tmsi_m5_t s_tmsi                = {0};
+  amf_ue_ngap_id_t amf_ue_ngap_id   = INVALID_AMF_UE_NGAP_ID;
 
   if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     OAILOG_ERROR(
@@ -394,26 +395,25 @@ imsi64_t amf_app_handle_initial_ue_message(
 
         /* remove amf_ngap_ud_id entry from ue context */
         amf_remove_ue_context(ue_context_p);
-        ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
 
         // Update AMF UE context with new gnb_ue_ngap_id
         ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
 
         AMF_APP_GNB_NGAP_ID_KEY(
-            ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
-            initial_pP->gnb_ue_ngap_id);
+            gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
 
         // generate new amf_ngap_ue_id
-        ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+        amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
             &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
+        amf_ue_context_update_coll_keys(
+            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
+            amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+            ue_context_p->amf_teid_n11, &guti);
 
         amf_insert_ue_context(
             ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
             ue_context_p);
-        amf_ue_context_update_coll_keys(
-            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-            ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
-            ue_context_p->amf_teid_n11, &guti);
         imsi64 = ue_context_p->amf_context.imsi64;
       }
     } else {
