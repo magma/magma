@@ -32,7 +32,7 @@
       "headless": true,
       "http_directory": "http",
       "iso_checksum": "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2",
-      "iso_url": "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04.1/release/ubuntu-20.04.1-legacy-server-amd64.iso",
+      "iso_url": "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
       "memory": 2048,
       "name": "ubuntu-2004",
       "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
@@ -46,17 +46,42 @@
           "modifyvm",
           "{{.Name}}",
           "--memory",
-          "2048"
+          "8192"
         ],
         [
           "modifyvm",
           "{{.Name}}",
           "--cpus",
-          "2"
+          "4"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--nicpromisc2",
+          "allow-all"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--uart1",
+          "0x3F8",
+          "4"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--nestedpaging",
+          "off"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--paravirtprovider",
+          "hyperv"
         ]
       ],
       "virtualbox_version_file": ".vbox_version",
-      "vm_name": "packer-ubuntu-20.04-amd64"
+      "vm_name": "magma_dev_focal_vb"
     }
   ],
   "post-processors": [
@@ -113,7 +138,6 @@
         "../../../lte/gateway/deploy/roles/dev_common",
         "../../../lte/gateway/deploy/roles/magma",
         "../../../lte/gateway/deploy/roles/dev_common",
-        "../../../lte/gateway/deploy/roles/focal_hacks",
         "../../../lte/gateway/deploy/roles/magma",
         "../../../lte/gateway/deploy/roles/magma_test",
         "../../../lte/gateway/deploy/roles/ovs_build",
