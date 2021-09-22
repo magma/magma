@@ -15,8 +15,11 @@ Open VSCode and use **Command+Shift+P** to open the editor preferences and selec
         "stackbuild.bazel-stack-vscode",
         "coolchyni.beyond-debug",
         "stackbuild.bazel-stack-vscode-cc",
+        "augustocdias.tasks-shell-input",
     ],
 ```
+
+It may be good to periodically check this section for any updated extensions that should be installed.
 
 ## Add the VM SSH config to ~/.ssh/config
 
