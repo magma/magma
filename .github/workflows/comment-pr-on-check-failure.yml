@@ -88,7 +88,7 @@ jobs:
                                       });
 
             shortCommitId = process.env.COMMIT_ID.substr(0,9);
-            updMsg = "Updated: The check is still failing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
+            updMsg = ":recycle: Updated: :x: The check is still failing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
             console.log("Updated msg=" + updMsg);
             for (const c of commentsList['data']) {
               oldMsg = c.body;
