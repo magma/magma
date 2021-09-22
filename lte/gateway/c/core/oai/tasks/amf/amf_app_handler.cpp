@@ -48,8 +48,7 @@ extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
 void amf_ue_context_update_coll_keys(
-    amf_ue_context_t* const amf_ue_context_p,
-    ue_m5gmm_context_s*  ue_context_p,
+    amf_ue_context_t* const amf_ue_context_p, ue_m5gmm_context_s* ue_context_p,
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
@@ -89,10 +88,10 @@ void amf_ue_context_update_coll_keys(
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
       h_rc = hashtable_ts_remove(
-          amf_state_ue_id_ht, (const hash_key_t)ue_context_p->amf_ue_ngap_id,
+          amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
           reinterpret_cast<void**>(&ue_context_p));
       h_rc = hashtable_ts_insert(
-          amf_state_ue_id_ht, (const hash_key_t)amf_ue_ngap_id,
+          amf_state_ue_id_ht, (const hash_key_t) amf_ue_ngap_id,
           reinterpret_cast<void*>(ue_context_p));
 
       if (HASH_TABLE_OK != h_rc) {
@@ -138,8 +137,7 @@ void amf_ue_context_update_coll_keys(
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
     h_rc = hashtable_uint64_ts_insert(
         amf_ue_context_p->tun11_ue_context_htbl,
-        (const hash_key_t) amf_teid_n11,
-        (uint64_t)amf_ue_ngap_id);
+        (const hash_key_t) amf_teid_n11, (uint64_t) amf_ue_ngap_id);
   } else {
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
