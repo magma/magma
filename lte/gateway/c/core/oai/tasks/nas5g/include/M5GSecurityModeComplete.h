@@ -16,7 +16,6 @@
 #include "M5GSecurityHeaderType.h"
 #include "M5GMessageType.h"
 
-using namespace std;
 namespace magma5g {
 // SecurityModeComplete Message Class
 class SecurityModeCompleteMsg {

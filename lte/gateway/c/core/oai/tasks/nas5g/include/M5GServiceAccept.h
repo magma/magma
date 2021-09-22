@@ -18,7 +18,6 @@
 #include "M5GPDUSessionStatus.h"
 #include "M5GPDUSessionReActivationResult.h"
 
-using namespace std;
 namespace magma5g {
 // ServiceAccept Message Class
 class ServiceAcceptMsg {

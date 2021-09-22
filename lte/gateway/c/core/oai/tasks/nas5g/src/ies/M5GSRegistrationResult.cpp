@@ -16,7 +16,6 @@
 #include "M5GSRegistrationResult.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 M5GSRegistrationResultMsg::M5GSRegistrationResultMsg(){};
 M5GSRegistrationResultMsg::~M5GSRegistrationResultMsg(){};
@@ -50,7 +49,7 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char) m5gs_reg_result->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeM5GSRegistrationResultMsg___: iei  = " << hex
+    MLOG(MDEBUG) << "In EncodeM5GSRegistrationResultMsg___: iei  = " << std::hex
                  << int(*buffer);
     encoded++;
   }
@@ -65,11 +64,11 @@ int M5GSRegistrationResultMsg::EncodeM5GSRegistrationResultMsg(
                << "spare = " << ((m5gs_reg_result->spare & 0xf) << 0x4)
                << ", sms allowed = "
                << ((m5gs_reg_result->sms_allowed & 0x1) << 3)
-               << ", result val = " << hex
+               << ", result val = " << std::hex
                << int(m5gs_reg_result->reg_result_val & 0x7) << ")";
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
-  MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : length  = 0x0" << hex
+  MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : length  = 0x0" << std::hex
                << int(*lenPtr);
   return encoded;
 };

@@ -16,7 +16,6 @@ limitations under the License.
 #include "M5GSMCause.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 M5GSMCauseMsg::M5GSMCauseMsg(){};
 M5GSMCauseMsg::~M5GSMCauseMsg(){};
@@ -34,10 +33,10 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(
 
   m5gsm_cause->cause_value = *buffer;
   decoded++;
-  MLOG(MDEBUG) << "DecodeM5GSMCauseMsg__: iei = " << hex
-               << int(m5gsm_cause->iei) << endl;
-  MLOG(MDEBUG) << "DecodeM5GSMCauseMsg__: cause_value = " << hex
-               << int(m5gsm_cause->cause_value) << endl;
+  MLOG(MDEBUG) << "DecodeM5GSMCauseMsg__: iei = " << std::hex
+               << int(m5gsm_cause->iei) << std::endl;
+  MLOG(MDEBUG) << "DecodeM5GSMCauseMsg__: cause_value = " << std::hex
+               << int(m5gsm_cause->cause_value) << std::endl;
 
   return (decoded);
 };
@@ -56,8 +55,8 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(
 
   *(buffer + encoded) = m5gsm_cause->cause_value;
   encoded++;
-  MLOG(MDEBUG) << "EncodeM5GSMCauseMsg__: cause_value = " << hex
-               << int(m5gsm_cause->cause_value) << endl;
+  MLOG(MDEBUG) << "EncodeM5GSMCauseMsg__: cause_value = " << std::hex
+               << int(m5gsm_cause->cause_value) << std::endl;
 
   return (encoded);
 };

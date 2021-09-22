@@ -16,7 +16,6 @@
 #include "M5GPDUAddress.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 PDUAddressMsg::PDUAddressMsg(){};
 PDUAddressMsg::~PDUAddressMsg(){};

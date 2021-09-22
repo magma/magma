@@ -19,7 +19,6 @@
 #include "M5GPDUSessionStatus.h"
 #include "M5GGprsTimer2.h"
 
-using namespace std;
 namespace magma5g {
 // ServiceAccept Message Class
 class ServiceRejectMsg {

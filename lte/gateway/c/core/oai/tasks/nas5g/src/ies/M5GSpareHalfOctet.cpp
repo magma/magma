@@ -15,7 +15,6 @@
 #include "M5GSpareHalfOctet.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 SpareHalfOctetMsg::SpareHalfOctetMsg(){};
 SpareHalfOctetMsg::~SpareHalfOctetMsg(){};
@@ -28,7 +27,7 @@ int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(
 
   MLOG(MDEBUG) << "   DecodeSpareHalfOctetMsg : ";
   spare_half_octet->spare = (*buffer & 0xf0) >> 4;
-  MLOG(MDEBUG) << "Spare = 0x" << hex << int(spare_half_octet->spare);
+  MLOG(MDEBUG) << "Spare = 0x" << std::hex << int(spare_half_octet->spare);
   return (decoded);
 };
 
@@ -40,7 +39,7 @@ int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(
 
   MLOG(MDEBUG) << " EncodeSpareHalfOctetMsg : ";
   *(buffer) = 0x00 | (spare_half_octet->spare & 0xf) << 4;
-  MLOG(MDEBUG) << "   Spare = 0x" << hex << int(*(buffer));
+  MLOG(MDEBUG) << "   Spare = 0x" << std::hex << int(*(buffer));
   return (encoded);
 };
 }  // namespace magma5g
