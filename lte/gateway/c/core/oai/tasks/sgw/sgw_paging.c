@@ -37,28 +37,32 @@ void sgw_send_paging_request(const struct in_addr* dest_ip, const struct in6_add
 
   MessageDef* message_p                       = NULL;
   itti_s11_paging_request_t* paging_request_p = NULL;
+  uint8_t* data;
+  struct ip* ip_header = (struct ip*) (data + ETH_HEADER_LENGTH);
 
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SPGW_APP, S11_PAGING_REQUEST);
   paging_request_p = &message_p->ittiMsg.s11_paging_request;
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
 
-
 char* ip_str = inet_ntoa(*dest_ip);
-if(strcmp(*ip_str , "0"))
-{
-  OAILOG_DEBUG(
-      TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
-      dest_ip->s_addr);
-paging_request_p->address.ipv4_addr.sin_addr = *dest_ip;
-}
 
-else
+
+//put NULL for either ipv4 or ipv6
+if((ip_header->ip_v==6))
 {
   OAILOG_DEBUG(
       TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %x\n",
       dest_ipv6->__in6_u);
   paging_request_p->address.ipv6_addr.sin6_addr = *dest_ipv6;
+}
+
+else
+{
+    OAILOG_DEBUG(
+      TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
+      dest_ip->s_addr);
+paging_request_p->address.ipv4_addr.sin_addr = *dest_ip;
 }
 
 

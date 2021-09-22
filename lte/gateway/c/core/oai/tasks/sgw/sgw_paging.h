@@ -19,7 +19,7 @@
 #include <netinet/ip.h>
 
 struct in_addr;
-
+#define ETH_HEADER_LENGTH 14
 void sgw_send_paging_request(const struct in_addr* dest_ip, const struct in6_addr* dest_ipv6);
 
 #endif
