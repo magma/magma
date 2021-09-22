@@ -2307,7 +2307,7 @@ def generate(ofp_name, ofpp_name):
 
         # probability, collector_set_id, obs_domain_id,
         # obs_point_id, msisdn, apn_mac_addr, apn_name, sampling_port
-        _fmt_str = '!HIIIH16s6B24s8s6x'
+        _fmt_str = '!HIIIL16s6B24s8s6x'
 
         def __init__(
             self,

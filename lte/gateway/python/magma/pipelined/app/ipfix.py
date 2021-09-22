@@ -19,6 +19,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from ryu.controller.controller import Datapath
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
 class IPFIXController(MagmaController):
@@ -117,7 +118,7 @@ class IPFIXController(MagmaController):
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
             cache_timeout=config_dict['ipfix']['cache_timeout'],
-            sampling_port=config_dict['ovs_gtp_port_number'],
+            sampling_port=OFPP_LOCAL,
         )
 
     def initialize_on_connect(self, datapath: Datapath):
