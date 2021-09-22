@@ -23,14 +23,32 @@ ethtool_utility = '/usr/sbin/ethtool'
 wg_dev = 'magma_wg0'
 wg_setup_utility = '/usr/local/bin/magma-setup-wg.sh'
 wg_key_dir = '/var/opt/magma/sgi-tunnel'
+gtpu_dev = 'gtpu_sys_2152'
 
-'''
-Following function sets various tuning parameters related
-interface queue.
-1. RX queue size
-2. TX queue size
-3. queue CPU assignment
-'''
+
+def configure_tso(config_dict):
+    if 'dp_tso' not in config_dict:
+        return
+    if 'gtp_tso_enable' not in config_dict['dp_tso']:
+        return
+    if config_dict['dp_tso']['gtp_tso_enable']:
+        tso_flag = 'on'
+    else:
+        tso_flag = 'off'
+
+    setup_tso = ['ethtool', '-K', gtpu_dev, 'tx', tso_flag]
+    logging.debug("setup_tso: %s", setup_tso)
+    try:
+        subprocess.check_call(setup_tso)
+    except subprocess.CalledProcessError as ex:
+        logging.debug('%s failed with: %s', setup_tso, ex)
+
+
+# Following function sets various tuning parameters related
+# interface queue.
+# 1. RX queue size
+# 2. TX queue size
+# 3. queue CPU assignment
 
 
 def tune_datapath(config_dict):
@@ -104,6 +122,7 @@ def setup_sgi_tunnel(config, loop):
             logging.error(
                 "Failed to setup wg-dev: %d", returncode,
             )
+
     sgi_tunnel = config.get('sgi_tunnel', None)
     if sgi_tunnel is None or sgi_tunnel.get('enabled', False) is False:
         wg_del = 'wg-quick down %s || true' % wg_dev
@@ -135,7 +154,7 @@ def setup_sgi_tunnel(config, loop):
     else:
         allowed_ips = wg_local_ip
 
-    wg_add = "%s %s %s %s %s %s|| true" %\
+    wg_add = "%s %s %s %s %s %s|| true" % \
              (
                  wg_setup_utility, wg_key_dir, allowed_ips,
                  wg_local_ip, peer_pub_key, peer_pub_ip,
@@ -165,6 +184,7 @@ def setup_masquerade_rule(config, loop):
             logging.error(
                 "Failed to set MASQUERADE: %d", returncode,
             )
+
     if del_dev:
         ip_table_rule_del = 'POSTROUTING -o %s -j MASQUERADE' % del_dev
         rule_del = 'iptables -t nat -D %s || true' % ip_table_rule_del
