@@ -1,3 +1,4 @@
+//go:build all || qos
 // +build all qos
 
 /*
