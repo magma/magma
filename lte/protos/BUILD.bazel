@@ -134,6 +134,31 @@ proto_library(
     ],
 )
 
+proto_library(
+    name = "sctpd_proto",
+    srcs = ["sctpd.proto"],
+)
+
+cpp_proto_library(
+    name = "sctpd_cpp_proto",
+    protos = [":sctpd_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+        "//orc8r/protos:digest_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "sctpd_cpp_grpc",
+    protos = [":sctpd_proto"],
+    deps = [
+        ":sctpd_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+        "//orc8r/protos:digest_cpp_proto",
+    ],
+)
+
 cpp_proto_library(
     name = "session_manager_cpp_proto",
     protos = [":session_manager_proto"],

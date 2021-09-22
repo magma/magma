@@ -1,0 +1,107 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package(default_visibility = ["//lte/gateway/c/sctpd/src:__subpackages__"])
+
+cc_binary(
+    name = "sctpd",
+    srcs = ["sctpd.cpp"],
+    deps = [
+        ":config",
+        ":sctpd_downlink_impl",
+        ":sctpd_event_handler",
+    ],
+)
+
+cc_library(
+    name = "sctpd_event_handler",
+    srcs = ["sctpd_event_handler.cpp"],
+    hdrs = ["sctpd_event_handler.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/sctpd/src",
+    deps = [
+        ":sctp_connection",
+        ":sctpd_uplink_client",
+    ],
+)
+
+cc_library(
+    name = "sctpd_uplink_client",
+    srcs = ["sctpd_uplink_client.cpp"],
+    hdrs = ["sctpd_uplink_client.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/sctpd/src",
+    deps = [
+        ":util",
+        "//lte/protos:sctpd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "sctpd_downlink_impl",
+    srcs = ["sctpd_downlink_impl.cpp"],
+    hdrs = ["sctpd_downlink_impl.h"],
+    deps = [
+        ":sctp_connection",
+        "//lte/protos:sctpd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "sctp_connection",
+    srcs = ["sctp_connection.cpp"],
+    hdrs = ["sctp_connection.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/sctpd/src",
+    deps = [
+        ":sctp_desc",
+        "//lte/protos:sctpd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "sctp_desc",
+    srcs = ["sctp_desc.cpp"],
+    hdrs = ["sctp_desc.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/sctpd/src",
+    deps = [
+        ":sctp_assoc",
+    ],
+)
+
+cc_library(
+    name = "sctp_assoc",
+    srcs = ["sctp_assoc.cpp"],
+    hdrs = ["sctp_assoc.h"],
+    # TODO(@smoeller): Migrate to using full path for includes - GH8494
+    strip_include_prefix = "/lte/gateway/c/sctpd/src",
+    deps = [
+        ":util",
+    ],
+)
+
+cc_library(
+    name = "util",
+    srcs = ["util.cpp"],
+    hdrs = ["util.h"],
+    deps = [
+        ":config",
+        "//lte/protos:sctpd_cpp_grpc",
+        "//orc8r/gateway/c/common/logging",
+        "@system_libraries//:sctp",
+    ],
+)
+
+cc_library(
+    name = "config",
+    hdrs = ["sctpd.h"],
+)

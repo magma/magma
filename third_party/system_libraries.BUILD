@@ -21,10 +21,10 @@ config_setting(
 cc_library(
     name = "folly",
     srcs = select({
-        ":use_folly_so": ["libfolly.so"],
+        ":use_folly_so": ["usr/local/lib/libfolly.so"],
         "//conditions:default": [
-            "libfolly.a",
-            "libfmt.a",
+            "usr/local/lib/libfolly.a",
+            "usr/local/lib/libfmt.a",
         ],
     }),
     linkopts = select({
@@ -42,4 +42,33 @@ cc_library(
             "-liberty",
         ],
     }),
+)
+
+cc_library(
+    name = "libtins",
+    srcs = ["usr/local/lib/libtins.so"],
+    linkopts = ["-ltins"],
+)
+
+cc_library(
+    name = "libmnl",
+    srcs = ["usr/lib/x86_64-linux-gnu/libmnl.so"],
+    linkopts = ["-lmnl"],
+)
+
+cc_library(
+    name = "libpcap",
+    srcs = ["usr/lib/x86_64-linux-gnu/libpcap.so"],
+    linkopts = ["-lpcap"],
+)
+
+cc_library(
+    name = "libuuid",
+    srcs = ["usr/lib/x86_64-linux-gnu/libuuid.so"],
+    linkopts = ["-luuid"],
+)
+
+cc_library(
+    name = "sctp",
+    linkopts = ["-lsctp"],
 )
