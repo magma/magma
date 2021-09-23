@@ -1,4 +1,6 @@
+//go:build ignore
 // +build ignore
+
 /*
 Copyright 2020 The Magma Authors.
 
