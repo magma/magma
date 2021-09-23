@@ -581,99 +581,6 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/circleci/release
             fab find_release_commits
-  ### CLOUD
-  cloud-test:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --tests --up
-          no_output_timeout: 15m
-      - store_test_results:
-          path: /home/circleci/project/orc8r/cloud/test-results
-      - magma_slack_notify
-
-  # Fail if code doesn't pass formatting requirements.
-  # Upload test coverage statistics.
-  cloud_lint:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          name: Lint cloud Go code
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --lint
-      - run:
-          name: Generate test coverage
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --coverage
-      - codecov/upload:
-          file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
-          flags: cloud_lint
-      - magma_slack_notify
-
-  # Fail if checked-in generated code doesn't match output from
-  # generation command.
-  insync-checkin:
-    machine:
-      image: ubuntu-1604:201903-01
-      #docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --generate
-      - run: sudo chown -R circleci $MAGMA_ROOT/*
-      - run: git add .
-      - run: git status
-      - run: git diff-index --quiet HEAD
-      - magma_slack_notify
-
-  # Fail if terraform variables, helm charts and orcl is out of sync
-  deploy-sync-checkin:
-    machine:
-      image: ubuntu-1604:201903-01
-      # docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
-            ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
-      - magma_slack_notify
 
   orc8r-build:
     machine:
@@ -1108,26 +1015,6 @@ jobs:
 
   ## CWF OPERATOR
 
-  cwf-operator-precommit:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "cwf/k8s"
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-          command: go mod download
-          workdir: ${MAGMA_ROOT}/cwf/k8s/cwf_operator
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
-            make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
-      - magma_slack_notify
-
   cwf-operator-build:
     machine:
       image: ubuntu-1604:201903-01
@@ -1427,19 +1314,6 @@ jobs:
 workflows:
   version: 2
 
-  cloud:
-    jobs:
-      - insync-checkin
-      - deploy-sync-checkin
-      - cloud_lint
-      - cloud-test
-      - orc8r-build:
-          requires:
-            - insync-checkin
-            - deploy-sync-checkin
-            - cloud_lint
-            - cloud-test
-
   lib_gateway:
     jobs:
       - orc8r-gateway-test
@@ -1511,14 +1385,6 @@ workflows:
           <<: *master_and_develop
       - xwfm-test:
           <<: *master_and_develop
-
-
-  cwf_operator:
-    jobs:
-      - cwf-operator-precommit
-      - cwf-operator-build:
-          requires:
-            - cwf-operator-precommit
 
   hourly_xwfm:
     triggers:

@@ -1250,27 +1250,10 @@ imsi64_t sgw_s8_handle_create_bearer_request(
 
   itti_bearer_req.lbi = cb_req->linked_eps_bearer_id;
 
-  if (bc_cbreq.tft.packetfilterlist.createnewtft[0].direction ==
-      TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY) {
-    memcpy(
-        &itti_bearer_req.dl_tft, &bc_cbreq.tft,
-        sizeof(traffic_flow_template_t));
-  }
-  if (bc_cbreq.tft.packetfilterlist.createnewtft[0].direction ==
-      TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY) {
-    memcpy(
-        &itti_bearer_req.ul_tft, &bc_cbreq.tft,
-        sizeof(traffic_flow_template_t));
-  }
-  if (bc_cbreq.tft.packetfilterlist.createnewtft[0].direction ==
-      TRAFFIC_FLOW_TEMPLATE_BIDIRECTIONAL) {
-    memcpy(
-        &itti_bearer_req.ul_tft, &bc_cbreq.tft,
-        sizeof(traffic_flow_template_t));
-    memcpy(
-        &itti_bearer_req.dl_tft, &bc_cbreq.tft,
-        sizeof(traffic_flow_template_t));
-  }
+  memcpy(
+      &itti_bearer_req.ul_tft, &bc_cbreq.tft, sizeof(traffic_flow_template_t));
+  memcpy(
+      &itti_bearer_req.dl_tft, &bc_cbreq.tft, sizeof(traffic_flow_template_t));
   memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
   int rc                = create_temporary_dedicated_bearer_context(

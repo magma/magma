@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	models3 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -33,10 +37,6 @@ import (
 	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
 	models2 "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListNetworks(t *testing.T) {

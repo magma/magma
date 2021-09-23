@@ -29,5 +29,13 @@ class PDUSessionIdentityMsg {
   int DecodePDUSessionIdentityMsg(
       PDUSessionIdentityMsg* pdu_session_id, uint8_t iei, uint8_t* buffer,
       uint32_t len);
+  void copy(const PDUSessionIdentityMsg& p) {
+    iei            = p.iei;
+    pdu_session_id = p.pdu_session_id;
+  }
+  bool isEqual(const PDUSessionIdentityMsg& p) {
+    if ((iei == p.iei) && (pdu_session_id == p.pdu_session_id)) return true;
+    return false;
+  }
 };
 }  // namespace magma5g

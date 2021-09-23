@@ -25,7 +25,13 @@
 namespace magma {
 namespace lte {
 
-using namespace Tins;
+using Tins::EthernetII;
+using Tins::IP;
+using Tins::IPv4Address;
+using Tins::NetworkInterface;
+using Tins::PacketSender;
+using Tins::TCP;
+using Tins::UDP;
 
 PacketGenerator::PacketGenerator(
     const std::string& iface_name, const std::string& pkt_dst_mac,

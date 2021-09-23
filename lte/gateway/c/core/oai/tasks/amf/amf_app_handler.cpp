@@ -38,10 +38,7 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "n11_messages_types.h"
 #include "amf_app_timer_management.h"
-
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+#include "amf_common.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -761,7 +758,8 @@ int amf_app_handle_pdu_session_accept(
   // SmfMsg
   encode_msg->payload_container_type.type_val = N1_SM_INFO;
   encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
-  encode_msg->pdu_session_identity.iei        = PDU_SESSION_IDENTITY;
+  encode_msg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
   encode_msg->pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
 

@@ -191,7 +191,7 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       imsi_(imsi),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
-      dl_flow_precedence_(DEFAULT_PRECEDENCE),
+      dl_flow_precedence_(dl_flow_precedence),
       ExternalEvent(EVENT_ADD_GTP_S8_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(pgw_gtp_port) {}

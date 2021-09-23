@@ -54,7 +54,6 @@
 #include "common_defs.h"
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
-#include "timer.h"
 #include "mme_app_statistics.h"
 #include "directoryd.h"
 #include "3gpp_23.003.h"

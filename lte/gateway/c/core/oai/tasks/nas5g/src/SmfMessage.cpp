@@ -128,10 +128,6 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int header_result = 0;
 
   MLOG(MDEBUG) << " SmfMsgEncodeMsg : " << endl;
-  if (len <= 0 || buffer == NULL) {
-    MLOG(MERROR) << "Error : Buffer is Empty";
-    return (RETURNerror);
-  }
 
   header_result = msg->SmfMsgEncodeHeaderMsg(&msg->header, buffer, len);
   if (header_result <= 0) {
@@ -141,6 +137,11 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   }
 
   switch ((unsigned char) msg->header.message_type) {
+    case PDU_SESSION_ESTABLISHMENT_REQUEST:
+      encode_result = msg->msg.pdu_session_estab_request
+                          .EncodePDUSessionEstablishmentRequestMsg(
+                              &msg->msg.pdu_session_estab_request, buffer, len);
+      break;
     case PDU_SESSION_ESTABLISHMENT_ACCEPT:
       encode_result = msg->msg.pdu_session_estab_accept
                           .EncodePDUSessionEstablishmentAcceptMsg(

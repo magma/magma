@@ -216,6 +216,10 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
       decode_result = msg->msg.ul_nas_transport.DecodeULNASTransportMsg(
           &msg->msg.ul_nas_transport, buffer, len);
       break;
+    case DLNASTRANSPORT:
+      decode_result = msg->msg.dl_nas_transport.DecodeDLNASTransportMsg(
+          &msg->msg.dl_nas_transport, buffer, len);
+      break;
     case M5G_SERVICE_REQUEST:
       decode_result = msg->msg.svc_req.DecodeServiceRequestMsg(
           &msg->msg.svc_req, buffer, len);

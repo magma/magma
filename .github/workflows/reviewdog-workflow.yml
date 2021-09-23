@@ -68,10 +68,9 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cpplint --recursive ${{ github.workspace }} \
-            --extensions=hh,c,hpp,cpp,cuh,cc,cxx,c++,hxx,h,h++,cu \
-            --filter=build/include_subdir,build/c++11 \
-            --linelength=120 2>&1 \
+          cpplint --recursive \
+            --filter=-build/include_subdir,-build/c++11,-build/include_what_you_use \
+            --linelength=120 ${{ github.workspace }} 2>&1 \
             | ./reviewdog -efm="%f:%l: %m" -name="cpplint" -reporter="github-pr-check" -level="warning"
 
   golangci-lint:

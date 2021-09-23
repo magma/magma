@@ -185,14 +185,6 @@
       - python3-aioeventlet
   retries: 5
 
-- name: Install requirements for VSCode <-> Bazel integration
-  when: full_provision
-  apt:
-    state: present
-    pkg:
-      - clangd-12
-  retries: 5
-
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
 - name: Create the env script
