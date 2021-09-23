@@ -120,21 +120,13 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that the rule is associated to the subscriber
-	ent, err := configurator.LoadEntity(
-		testNetworkId, lte.PolicyRuleEntityType, testPolicyId,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err := configurator.LoadEntity(context2.Background(), testNetworkId, lte.PolicyRuleEntityType, testPolicyId, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	testPolicy := (&models.PolicyRule{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(testPolicy.AssignedSubscribers))
 
 	// Verify that the base name is associated to the subscriber
-	ent, err = configurator.LoadEntity(
-		testNetworkId, lte.BaseNameEntityType, testBaseName,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err = configurator.LoadEntity(context2.Background(), testNetworkId, lte.BaseNameEntityType, testBaseName, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	baseName := (&models.BaseNameRecord{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(baseName.AssignedSubscribers))
@@ -145,21 +137,13 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that the rule is disassociated from the subscriber
-	ent, err = configurator.LoadEntity(
-		testNetworkId, lte.PolicyRuleEntityType, testPolicyId,
-		configurator.EntityLoadCriteria{LoadConfig: true},
-		serdes.Entity,
-	)
+	ent, err = configurator.LoadEntity(context2.Background(), testNetworkId, lte.PolicyRuleEntityType, testPolicyId, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	testPolicy = (&models.PolicyRule{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(testPolicy.AssignedSubscribers))
 
 	// Verify that the base name is disassociated from the subscriber
-	ent, err = configurator.LoadEntity(
-		testNetworkId, lte.BaseNameEntityType, testBaseName,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err = configurator.LoadEntity(context2.Background(), testNetworkId, lte.BaseNameEntityType, testBaseName, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	baseName = (&models.BaseNameRecord{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(baseName.AssignedSubscribers))

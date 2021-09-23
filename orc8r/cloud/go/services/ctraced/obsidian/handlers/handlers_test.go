@@ -14,7 +14,7 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 
 	"github.com/go-openapi/swag"
@@ -35,14 +35,14 @@ import (
 
 type MockGWCtracedClient struct{}
 
-func (c MockGWCtracedClient) StartCallTrace(networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
+func (c MockGWCtracedClient) StartCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
 	resp := &protos.StartTraceResponse{
 		Success: true,
 	}
 	return resp, nil
 }
 
-func (c MockGWCtracedClient) EndCallTrace(networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
+func (c MockGWCtracedClient) EndCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
 	resp := &protos.EndTraceResponse{
 		Success:      true,
 		TraceContent: []byte("abcdefghijklmnopqrstuvwxyz\n"),
@@ -58,7 +58,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	fact := test_utils.NewSQLBlobstore(t, "ctraced_handlers_test_blobstore")
 	blobstore := storage.NewCtracedBlobstore(fact)
 	obsidianHandlers := handlers.GetObsidianHandlers(mockGWClient, blobstore)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	listTraces := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing", obsidian.GET).HandlerFunc

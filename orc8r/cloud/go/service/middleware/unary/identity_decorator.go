@@ -202,7 +202,7 @@ func findGatewayIdentity(ctx context.Context, serialNumber string, md metadata.M
 	// At this point we should have a valid GW Identity with HardwareId, so
 	// the Gateway is authenticated
 
-	entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{}, serdes.Entity)
+	entity, err := configurator.LoadEntityForPhysicalID(ctx, gwIdentity.HardwareId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		glog.Infof("Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v", gwIdentity.HardwareId, serialNumber, err, md)
 	}

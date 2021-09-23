@@ -55,6 +55,7 @@ func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
 			continue
 		}
 		gateways, _, err := configurator.LoadEntities(
+			ctx,
 			networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
 			configurator.EntityLoadCriteria{},
 			serdes.Entity,

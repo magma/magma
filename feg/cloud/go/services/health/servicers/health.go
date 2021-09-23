@@ -120,6 +120,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	// the number of gateways, which gateway is active, and gateway health
 	magmadGatewayTypeVal := orc8r.MagmadGatewayType
 	gateways, _, err := configurator.LoadEntities(
+		ctx,
 		networkID, &magmadGatewayTypeVal, nil, nil, nil,
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,

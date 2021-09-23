@@ -42,7 +42,7 @@ func (srv *callTraceServicer) ReportEndedCallTrace(ctx context.Context, req *pro
 	if err != nil {
 		return nil, err
 	}
-	callTrace, err := getCallTraceModel(networkID, req.TraceId)
+	callTrace, err := getCallTraceModel(ctx, networkID, req.TraceId)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +76,9 @@ func getNetworkID(ctx context.Context) (string, error) {
 	return id.GetNetworkId(), nil
 }
 
-func getCallTraceModel(networkID string, callTraceID string) (*models.CallTrace, error) {
+func getCallTraceModel(ctx context.Context, networkID string, callTraceID string) (*models.CallTrace, error) {
 	ent, err := configurator.LoadEntity(
+		ctx,
 		networkID, orc8r.CallTraceEntityType, callTraceID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

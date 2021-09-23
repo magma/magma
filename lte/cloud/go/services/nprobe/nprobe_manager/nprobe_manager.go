@@ -70,6 +70,7 @@ func NewNProbeManager(
 // getNetworkProbeTasks retrieves the list of all tasks provisioned for a specific network
 func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask, error) {
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		context.Background(),
 		networkID,
 		lte.NetworkProbeTaskEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
@@ -90,6 +91,7 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 // for a specific network and creates a record exporter
 func createNewRecordExporter(networkID string) (*exporter.RecordExporter, error) {
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		context.Background(),
 		networkID,
 		lte.NetworkProbeDestinationEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},

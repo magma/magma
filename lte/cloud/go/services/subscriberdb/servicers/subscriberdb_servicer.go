@@ -120,7 +120,7 @@ func (s *subscriberdbServicer) Sync(
 
 	// Since the cached protos don't contain gateway-specific information, inject
 	// the apn resource configs related to the gateway
-	renewed, err = injectAPNResources(renewed, gateway)
+	renewed, err = injectAPNResources(ctx, renewed, gateway)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	networkID := gateway.NetworkId
 	gatewayID := gateway.LogicalId
 
-	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
+	apnsByName, apnResourcesByAPN, err := loadAPNs(ctx, gateway)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	var subProtos []*lte_protos.SubscriberData
 	var nextToken string
 	if s.DigestsEnabled {
-		subProtos, nextToken, err = s.loadSubscribersPageFromCache(networkID, req, gateway)
+		subProtos, nextToken, err = s.loadSubscribersPageFromCache(ctx, networkID, req, gateway)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +230,7 @@ func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientD
 	return false, renewed, deleted, nil
 }
 
-func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, req *lte_protos.ListSubscribersRequest, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, string, error) {
+func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context, networkID string, req *lte_protos.ListSubscribersRequest, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, string, error) {
 	// If request page size is 0, return max entity load size
 	pageSize := uint64(req.PageSize)
 	if req.PageSize == 0 {
@@ -244,7 +244,7 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(networkID string, re
 	if err != nil {
 		return nil, "", err
 	}
-	subProtos, err = injectAPNResources(subProtos, gateway)
+	subProtos, err = injectAPNResources(ctx, subProtos, gateway)
 	if err != nil {
 		return nil, "", err
 	}
@@ -287,10 +287,11 @@ func (s *subscriberdbServicer) shouldResync(network string, gateway string) bool
 	return shouldResync
 }
 
-func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
+func loadAPNs(ctx context.Context, gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
 	networkID := gateway.NetworkId
 	gatewayID := gateway.LogicalId
 	lteGateway, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.CellularGatewayEntityType, gatewayID,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -303,7 +304,7 @@ func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfi
 	if err != nil {
 		return nil, nil, err
 	}
-	apnResources, err := lte_models.LoadAPNResources(networkID, lteGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	apnResources, err := lte_models.LoadAPNResources(ctx, networkID, lteGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -313,8 +314,8 @@ func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfi
 
 // injectAPNResources adds the gateway-specific apn resources data to subscriber
 // protos before returning to AGWs.
-func injectAPNResources(subProtos []*lte_protos.SubscriberData, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, error) {
-	_, apnResources, err := loadAPNs(gateway)
+func injectAPNResources(ctx context.Context, subProtos []*lte_protos.SubscriberData, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, error) {
+	_, apnResources, err := loadAPNs(ctx, gateway)
 	if err != nil {
 		return nil, err
 	}

@@ -146,11 +146,7 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	Gateway, err = configurator.LoadEntity(
-		networkID, orc8r.MagmadGatewayType, "test_gateway_1",
-		configurator.EntityLoadCriteria{LoadMetadata: true},
-		serdes.Entity,
-	)
+	Gateway, err = configurator.LoadEntity(context2.Background(), networkID, orc8r.MagmadGatewayType, "test_gateway_1", configurator.EntityLoadCriteria{LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, "updated Name!", Gateway.Name)
 }
@@ -208,8 +204,9 @@ func (m *testName) ValidateModel(context2.Context) error {
 	return nil
 }
 
-func (m *testName) FromBackendModels(networkID string, gatewayID string) error {
+func (m *testName) FromBackendModels(ctx context2.Context, networkID string, gatewayID string) error {
 	entity, err := configurator.LoadEntity(
+		ctx,
 		networkID, orc8r.MagmadGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{LoadMetadata: true},
 		serdes.Entity,
@@ -221,8 +218,8 @@ func (m *testName) FromBackendModels(networkID string, gatewayID string) error {
 	return nil
 }
 
-func (m *testName) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
-	exists, err := configurator.DoesEntityExist(networkID, orc8r.MagmadGatewayType, gatewayID)
+func (m *testName) ToUpdateCriteria(ctx context2.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	exists, err := configurator.DoesEntityExist(ctx, networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
 		return nil, err
 	}

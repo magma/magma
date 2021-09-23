@@ -102,7 +102,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	assert.Equal(t, 10*time.Minute, actualDuration)
 
 	// Tier should get updated
-	actualTierCfg, err := configurator.LoadEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1", serdes.Entity)
+	actualTierCfg, err := configurator.LoadEntityConfig(context.Background(), "n1", orc8r.UpgradeTierEntityType, "t1", serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, &models2.Tier{Version: "0.3.74-1560824953-b50f1bab"}, actualTierCfg)
 
@@ -903,12 +903,12 @@ type mockMagmadClient struct {
 	mock.Mock
 }
 
-func (m *mockMagmadClient) GenerateTraffic(networkId string, trafficGatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error) {
+func (m *mockMagmadClient) GenerateTraffic(ctx context.Context, networkId string, trafficGatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error) {
 	args := m.Called(networkId, trafficGatewayId, ssid, pw)
 	return args.Get(0).(*protos.GenericCommandResponse), args.Error(1)
 }
 
-func (m *mockMagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error) {
+func (m *mockMagmadClient) RebootEnodeb(ctx context.Context, networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error) {
 	args := m.Called(networkId, gatewayId, enodebSerial)
 	return args.Get(0).(*protos.GenericCommandResponse), args.Error(1)
 }

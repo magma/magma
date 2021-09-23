@@ -27,9 +27,9 @@ import (
 )
 
 type GwCtracedClient interface {
-	StartCallTrace(networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error)
+	StartCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error)
 
-	EndCallTrace(networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error)
+	EndCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error)
 }
 
 type gwCtracedClientImpl struct{}
@@ -40,28 +40,28 @@ func NewGwCtracedClient() GwCtracedClient {
 
 // getGWCtracedClient gets a GRPC client to the ctraced service running on the gateway specified by (network ID, gateway ID).
 // If gateway not found by configurator, returns ErrNotFound from magma/orc8r/lib/go/errors.
-func getGWCtracedClient(networkID string, gatewayID string) (protos.CallTraceServiceClient, context.Context, error) {
-	hwID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+func getGWCtracedClient(ctx context.Context, networkID string, gatewayID string) (protos.CallTraceServiceClient, context.Context, error) {
+	hwID, err := configurator.GetPhysicalIDOfEntity(ctx, networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, fmt.Sprintf("gateway not found, network-id: %s, gateway-id: %s", networkID, gatewayID))
 	}
-	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwCtraced, hwID)
+	conn, gatewayCtx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwCtraced, hwID)
 	if err != nil {
 		errMsg := fmt.Sprintf("gateway ctraced client initialization error: %s", err)
 		glog.Errorf(errMsg, err)
 		return nil, nil, errors.New(errMsg)
 	}
-	return protos.NewCallTraceServiceClient(conn), ctx, nil
+	return protos.NewCallTraceServiceClient(conn), gatewayCtx, nil
 }
 
 // StartCallTrace starts a call trace on the specified gateway
 // If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
-func (c gwCtracedClientImpl) StartCallTrace(networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
-	client, ctx, err := getGWCtracedClient(networkId, gatewayId)
+func (c gwCtracedClientImpl) StartCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
+	client, gatewayCtx, err := getGWCtracedClient(ctx, networkId, gatewayId)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.StartCallTrace(ctx, req)
+	resp, err := client.StartCallTrace(gatewayCtx, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start call trace, gRPC client received error")
 	}
@@ -70,12 +70,12 @@ func (c gwCtracedClientImpl) StartCallTrace(networkId string, gatewayId string, 
 
 // EndCallTrace ends a call trace on the specified gateway
 // If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
-func (c gwCtracedClientImpl) EndCallTrace(networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
-	client, ctx, err := getGWCtracedClient(networkId, gatewayId)
+func (c gwCtracedClientImpl) EndCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
+	client, gatewayCtx, err := getGWCtracedClient(ctx, networkId, gatewayId)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.EndCallTrace(ctx, req)
+	resp, err := client.EndCallTrace(gatewayCtx, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to end call trace, gRPC client received error")
 	}
