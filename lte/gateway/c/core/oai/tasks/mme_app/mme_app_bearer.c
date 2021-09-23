@@ -2269,8 +2269,8 @@ for (int idx = 0; idx < num_imsis; idx++) {
       imsi64 = imsi_list[idx];
     }
   }
+  mme_app_send_paging_request(mme_app_desc_p, imsi64);
 }
-      mme_app_send_paging_request(mme_app_desc_p, imsi64);
   free_wrapper((void**) &imsi_list);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
