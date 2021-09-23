@@ -551,7 +551,6 @@ static void fill_s8_create_bearer_response(
     magma::feg::CreateBearerResponsePgw* proto_cb_rsp, teid_t pgw_s8_teid,
     uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  proto_cb_rsp->Clear();
   if (itti_msg->cause.cause_value != REQUEST_ACCEPTED) {
     proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
     proto_cb_rsp->set_sequence_number(sequence_number);
