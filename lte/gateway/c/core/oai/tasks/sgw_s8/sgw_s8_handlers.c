@@ -199,6 +199,16 @@ sgw_create_bearer_context_information_in_collection(teid_t teid) {
       teid);
   return new_sgw_bearer_context_information;
 }
+bool check_empty_apn(char* apn) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+#define MAX_APN_LEN (ACCESS_POINT_NAME_MAX_LENGTH + 1)
+
+  char zerobuf[MAX_APN_LEN] = {0};
+  if (memcmp(apn, zerobuf, MAX_APN_LEN) == 0) {
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, true);
+  }
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, false);
+}
 
 int sgw_update_bearer_context_information_on_csreq(
     sgw_state_t* sgw_state,
@@ -217,11 +227,11 @@ int sgw_update_bearer_context_information_on_csreq(
   new_sgw_eps_context->s_gw_teid_S11_S4 = sgw_s11_tunnel.local_teid;
   new_sgw_eps_context->trxn             = session_req_pP->trxn;
   // Update PDN details
-  if (session_req_pP->apn) {
+  if (check_empty_apn(session_req_pP->apn)) {
+    new_sgw_eps_context->pdn_connection.apn_in_use = strdup("NO APN");
+  } else {
     new_sgw_eps_context->pdn_connection.apn_in_use =
         strdup(session_req_pP->apn);
-  } else {
-    new_sgw_eps_context->pdn_connection.apn_in_use = strdup("NO APN");
   }
   new_sgw_eps_context->pdn_connection.s_gw_teid_S5_S8_cp =
       sgw_s11_tunnel.local_teid;
