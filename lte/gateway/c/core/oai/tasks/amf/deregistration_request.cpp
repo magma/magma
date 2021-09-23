@@ -110,11 +110,7 @@ int amf_proc_deregistration_request(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-<<<<<<< HEAD
-      "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT " type = %d\n",
-=======
       "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT " type = %d",
->>>>>>> 546745a453f808fd120e0e6b3cde7dc8346db983
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
 
