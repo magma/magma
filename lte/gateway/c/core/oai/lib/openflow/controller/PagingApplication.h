@@ -57,10 +57,25 @@ class PagingApplication : public Application {
       const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger);
 
   /**
+   * Creates exact paging flow, which sends a packet intended for an
+   * idle UE with ipv6 to this application
+   */
+  void add_paging_flow_ipv6(
+      const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger);
+
+
+  /**
    * Removes exact paging flow rule to stop paging UE
    */
   void delete_paging_flow(
       const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger);
+
+  /**
+   * Removes exact paging flow rule to stop paging UE with IPv6
+   */
+  void delete_paging_flow_ipv6(
+      const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger);
+
 };
 
 }  // namespace openflow

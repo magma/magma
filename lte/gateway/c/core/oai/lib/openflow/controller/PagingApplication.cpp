@@ -118,10 +118,6 @@ void PagingApplication::add_paging_flow(
   of13::IPv4Dst ip_match(ue_ip.s_addr);
   fm.add_oxm_field(ip_match);
 
-  const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
-  of13::IPv6Dst ipv6_match(ue_ipv6);
-  fm.add_oxm_field(ipv6_match);
-
   // Output to controller
   of13::OutputAction act(of13::OFPP_CONTROLLER, of13::OFPCML_NO_BUFFER);
   of13::ApplyActions inst;
@@ -134,6 +130,34 @@ void PagingApplication::add_paging_flow(
   inet_ntop(AF_INET, &(ue_ip.s_addr), ip_str, INET_ADDRSTRLEN);
   OAILOG_INFO(LOG_GTPV1U, "Added paging flow rule for UE IP %s\n", ip_str);
 }
+
+
+void PagingApplication::add_paging_flow_ipv6(
+    const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger) {
+  of13::FlowMod fm =
+      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY);
+  // IP eth type
+  of13::EthType type_match(IP_ETH_TYPE);
+  fm.add_oxm_field(type_match);
+
+  // Match on UE IP addr
+  const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
+  of13::IPv6Dst ipv6_match(ue_ipv6);
+  fm.add_oxm_field(ipv6_match);
+
+  // Output to controller
+  of13::OutputAction act(of13::OFPP_CONTROLLER, of13::OFPCML_NO_BUFFER);
+  of13::ApplyActions inst;
+  inst.add_action(act);
+  fm.add_instruction(inst);
+
+  messenger.send_of_msg(fm, ev.get_connection());
+  // Convert to string for logging
+  char ip_str[INET6_ADDRSTRLEN];
+  inet_ntop(AF_INET6, &(ue_ipv6), ip_str, INET6_ADDRSTRLEN);
+  OAILOG_INFO(LOG_GTPV1U, "Added paging flow rule for UE IPv6 %s\n", ip_str);
+}
+
 
 void PagingApplication::delete_paging_flow(
     const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger) {
@@ -165,6 +189,39 @@ void PagingApplication::delete_paging_flow(
   // Convert to string for logging
   char* ip_str = inet_ntoa(ue_ip);
   OAILOG_INFO(LOG_GTPV1U, "Deleted paging flow rule for UE IP %s\n", ip_str);
+}
+
+void PagingApplication::delete_paging_flow_ipv6(
+    const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger) {
+  of13::FlowMod fm =
+      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+
+  // IP eth type
+  of13::EthType type_match(IP_ETH_TYPE);
+  fm.add_oxm_field(type_match);
+
+  // match all ports and groups
+  fm.out_port(of13::OFPP_ANY);
+  fm.out_group(of13::OFPG_ANY);
+
+  // Match on UE IP addr
+  const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
+  of13::IPv6Dst ipv6_match(ue_ipv6);
+  fm.add_oxm_field(ipv6_match);
+
+  // Output to controller
+  // (This has actually no effect on deletion, but included
+  // for symmetry purposes wrt add_paging_flow)
+  of13::OutputAction act(of13::OFPP_CONTROLLER, of13::OFPCML_NO_BUFFER);
+  of13::ApplyActions inst;
+  inst.add_action(act);
+  fm.add_instruction(inst);
+
+  messenger.send_of_msg(fm, ev.get_connection());
+  // Convert to string for logging
+char ip_str[INET6_ADDRSTRLEN];
+  inet_ntop(AF_INET6, &(ue_ipv6), ip_str, INET6_ADDRSTRLEN);
+OAILOG_INFO(LOG_GTPV1U, "Added paging flow rule for UE IPv6 %s\n", ip_str);
 }
 
 }  // namespace openflow
