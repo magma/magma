@@ -104,7 +104,10 @@ def integ_test(
             "awk '/virtualbox/{print $1}' | "
             "xargs -I {} vagrant destroy -f {}",
         )
-
+        # Clean some space
+        run(
+            "docker system prune -f",
+        )
         if should_test:
             if env.stack == LTE_STACK:
                 _run_remote_lte_integ_test(repo, magma_root)
