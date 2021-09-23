@@ -18,7 +18,7 @@ aliases:
           - master
           - develop
   - &lte_build_verify
-    paths: "orc8r lte"
+    paths: "orc8r lte circleci/fabfile.py"
   - &c_cpp_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos feg/protos orc8r/protos lte/gateway/Makefile"
   - &session_manager_build_verify
