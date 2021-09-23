@@ -38,16 +38,12 @@ jobs:
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
         - name: Bazel Cache Repo
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
         - name: Bazel Build
           uses: addnab/docker-run-action@v2
           with:
