@@ -14,7 +14,6 @@
 #include "M5GPTI.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 PTIMsg::PTIMsg(){};
 PTIMsg::~PTIMsg(){};
@@ -27,7 +26,7 @@ int PTIMsg::DecodePTIMsg(
   MLOG(MDEBUG) << " DecodePTIMsg : ";
   pti->pti = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " PTI = 0x" << hex << int(pti->pti);
+  MLOG(MDEBUG) << " PTI = 0x" << std::hex << int(pti->pti);
 
   return (decoded);
 };
@@ -39,7 +38,7 @@ int PTIMsg::EncodePTIMsg(
 
   MLOG(MDEBUG) << " EncodePTIMsg : ";
   *(buffer + encoded) = pti->pti;
-  MLOG(MDEBUG) << "PTI = 0x" << hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "PTI = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
 
   return (encoded);

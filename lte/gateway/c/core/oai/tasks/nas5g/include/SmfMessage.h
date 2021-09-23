@@ -20,7 +20,6 @@
 #include "M5GPDUSessionModificationRequest.h"
 #include "M5GPDUSessionModificationReject.h"
 
-using namespace std;
 namespace magma5g {
 // Smf NAS Header Class
 class SmfMsgHeader {

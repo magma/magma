@@ -18,7 +18,6 @@ limitations under the License.
 #include "M5GMMCause.h"
 #include "M5GAuthenticationFailureIE.h"
 
-using namespace std;
 namespace magma5g {
 class AuthenticationFailureMsg {
  public:
