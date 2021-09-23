@@ -283,42 +283,48 @@ void free_partial_lists(mme_config_t* config_pP) {
   free_wrapper((void**) &config_pP->partial_list);
 }
 
-//------------------------------------------------------------------------------
-void mme_config_exit(void) {
-  pthread_rwlock_destroy(&mme_config.rw_lock);
-  bdestroy_wrapper(&mme_config.log_config.output);
-  bdestroy_wrapper(&mme_config.realm);
-  bdestroy_wrapper(&mme_config.config_file);
+void free_mme_config(mme_config_t* mme_config) {
+  bdestroy_wrapper(&mme_config->pid_dir);
+  bdestroy_wrapper(&mme_config->non_eps_service_control);
+  bdestroy_wrapper(&mme_config->log_config.output);
+  bdestroy_wrapper(&mme_config->realm);
+  bdestroy_wrapper(&mme_config->config_file);
 
   /*
    * IP configuration
    */
-  bdestroy_wrapper(&mme_config.ip.if_name_s1_mme);
-  bdestroy_wrapper(&mme_config.ip.if_name_s11);
-  bdestroy_wrapper(&mme_config.s6a_config.conf_file);
-  bdestroy_wrapper(&mme_config.itti_config.log_file);
+  bdestroy_wrapper(&mme_config->ip.if_name_s1_mme);
+  bdestroy_wrapper(&mme_config->ip.if_name_s11);
+  bdestroy_wrapper(&mme_config->s6a_config.conf_file);
+  bdestroy_wrapper(&mme_config->itti_config.log_file);
 
-  free_wrapper((void**) &mme_config.served_tai.plmn_mcc);
-  free_wrapper((void**) &mme_config.served_tai.plmn_mnc);
-  free_wrapper((void**) &mme_config.served_tai.plmn_mnc_len);
-  free_wrapper((void**) &mme_config.served_tai.tac);
+  free_wrapper((void**) &mme_config->served_tai.plmn_mcc);
+  free_wrapper((void**) &mme_config->served_tai.plmn_mnc);
+  free_wrapper((void**) &mme_config->served_tai.plmn_mnc_len);
+  free_wrapper((void**) &mme_config->served_tai.tac);
 
-  free_partial_lists(&mme_config);
+  free_partial_lists(mme_config);
 
-  bdestroy_wrapper(&mme_config.service303_config.name);
-  bdestroy_wrapper(&mme_config.service303_config.version);
+  bdestroy_wrapper(&mme_config->service303_config.name);
+  bdestroy_wrapper(&mme_config->service303_config.version);
 
-  for (int i = 0; i < mme_config.e_dns_emulation.nb_sgw_entries; i++) {
-    bdestroy_wrapper(&mme_config.e_dns_emulation.sgw_id[i]);
+  for (int i = 0; i < mme_config->e_dns_emulation.nb_sgw_entries; i++) {
+    bdestroy_wrapper(&mme_config->e_dns_emulation.sgw_id[i]);
   }
 
-  if (mme_config.blocked_imei.imei_htbl) {
-    hashtable_uint64_ts_destroy(mme_config.blocked_imei.imei_htbl);
+  if (mme_config->blocked_imei.imei_htbl) {
+    hashtable_uint64_ts_destroy(mme_config->blocked_imei.imei_htbl);
   }
 
-  if (mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl) {
-    obj_hashtable_destroy(mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl);
+  if (mme_config->sac_to_tacs_map.sac_to_tacs_map_htbl) {
+    obj_hashtable_destroy(mme_config->sac_to_tacs_map.sac_to_tacs_map_htbl);
   }
+}
+
+//------------------------------------------------------------------------------
+void mme_config_exit(void) {
+  pthread_rwlock_destroy(&mme_config.rw_lock);
+  free_mme_config(&mme_config);
 }
 
 /****************************************************************************
@@ -432,8 +438,24 @@ void create_partial_lists(mme_config_t* config_pP) {
   return;
 }
 
-//------------------------------------------------------------------------------
-int mme_config_parse_file(mme_config_t* config_pP) {
+/****************************************************************************
+ **                                                                        **
+ ** Name:        mme_config_parse_string()                                 **
+ **                                                                        **
+ ** Description: Parses libconfig string passed as config_string and       **
+ **              stores the result to the provided config_pP struct.       **
+ **                                                                        **
+ ** Inputs: config_string:     String in libconfig format to be parsed as  **
+ **                            MME config and stored to config_pP          **
+ **                                                                        **
+ ** Outputs:  config_pP:       Source of config_file path and destination  **
+ **                            of output configuration parsing result      **
+ **                                                                        **
+ **          int retval:       Zero on success, other on failure           **
+ **                                                                        **
+ ***************************************************************************/
+int mme_config_parse_string(
+    const char* config_string, mme_config_t* config_pP) {
   config_t cfg                  = {0};
   config_setting_t* setting_mme = NULL;
   config_setting_t* setting     = NULL;
@@ -471,23 +493,18 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
   config_init(&cfg);
 
-  if (config_pP->config_file != NULL) {
-    /*
-     * Read the file. If there is an error, report it and exit.
-     */
-    if (!config_read_file(&cfg, bdata(config_pP->config_file))) {
-      OAILOG_CRITICAL(
-          LOG_CONFIG, "Failed to parse MME configuration file: %s:%d - %s\n",
-          bdata(config_pP->config_file), config_error_line(&cfg),
-          config_error_text(&cfg));
-      config_destroy(&cfg);
-      Fatal(
-          "Failed to parse MME configuration file %s!\n",
-          bdata(config_pP->config_file));
-    }
-  } else {
+  /*
+   * Read the file. If there is an error, report it and exit.
+   */
+  if (!config_read_string(&cfg, config_string)) {
+    OAILOG_CRITICAL(
+        LOG_CONFIG, "Failed to parse MME configuration file: %s:%d - %s\n",
+        bdata(config_pP->config_file), config_error_line(&cfg),
+        config_error_text(&cfg));
     config_destroy(&cfg);
-    Fatal("No MME configuration file provided!\n");
+    Fatal(
+        "Failed to parse MME configuration file %s!\n",
+        bdata(config_pP->config_file));
   }
 
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
@@ -1720,6 +1737,45 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
   config_destroy(&cfg);
   return 0;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:        mme_config_parse_file()                                   **
+ **                                                                        **
+ ** Description: Reads configuration file (in libconfig format) from the   **
+ **              path defined in config_pP.config_file and stores results  **
+ **              to the provided config_pP pointed-to config struct.       **
+ **                                                                        **
+ ** Inputs:  config_pP:        Source of config_file path and destination  **
+ **                            of output configuration parsing result      **
+ **                                                                        **
+ ** Outputs: int retval:       Zero on success, other on failure           **
+ **                                                                        **
+ ***************************************************************************/
+int mme_config_parse_file(mme_config_t* config_pP) {
+  FILE* fp = NULL;
+  fp       = fopen(bdata(config_pP->config_file), "r");
+  if (fp == NULL) {
+    OAILOG_CRITICAL(
+        LOG_CONFIG, "Failed to open MME configuration file at path: %s\n",
+        bdata(config_pP->config_file));
+    Fatal(
+        "Failed to open MME configuration file at path: %s\n",
+        bdata(config_pP->config_file));
+  }
+
+  bstring buff = bread((bNread) fread, fp);
+  if (buff == NULL) {
+    fclose(fp);
+    OAILOG_CRITICAL(
+        LOG_CONFIG, "Failed to read MME configuration file at path: %s\n",
+        bdata(config_pP->config_file));
+    Fatal(
+        "Failed to read MME configuration file at path: %s:\n",
+        bdata(config_pP->config_file));
+  }
+  return mme_config_parse_string(bdata(buff), config_pP);
 }
 
 //------------------------------------------------------------------------------

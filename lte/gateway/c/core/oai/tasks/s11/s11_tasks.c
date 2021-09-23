@@ -39,7 +39,6 @@
 #include "mme_config.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
-#include "timer.h"
 #include "NwLog.h"
 #include "NwGtpv2c.h"
 #include "NwGtpv2cMsg.h"

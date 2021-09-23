@@ -23,7 +23,9 @@ In order to get code jumping and navigation working properly for C++, there are 
 
 Note that since external libraries and generated source files are only pulled in after a build, you will have to build the relevant target at least once for code jumping and completion to work. See above section on how to build specific targets.
 
-As for compilation database generation, we have patched together a few commands into a task to make this easier. To generate the database, follow **Terminal->Run Task...->Refresh Compilation Database And Restart Clangd**. 
+As for compilation database generation, we have patched together a few commands into a task to make this easier. To generate the database, follow **Terminal->Run Task...->Refresh Compilation Database And Restart Clangd**. This is a wrapper command that runs `bsv.cc.compdb.generate` (**Bzl: Bazel/C++: Generate Compilation Database**) and then `clangd.restart` (**clangd: Restart language server**). If the wrapper command does not work, try running the indivdual commands opening up the command palette via **Command+Shift+P**.
+
+If you get an error saying that `clangd` is not found, reinstall clangd with **clangd: Download language server** and try again.
 
 At this point, you should be able to jump to and have code completion for source files of generated and imported libraries.
 

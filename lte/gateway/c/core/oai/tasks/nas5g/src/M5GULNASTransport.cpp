@@ -10,6 +10,7 @@
  */
 
 #include <sstream>
+#include <iomanip>
 #include "M5GULNASTransport.h"
 #include "M5GCommonDefs.h"
 
@@ -22,6 +23,8 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
   uint32_t decoded   = 0;
   int decoded_result = 0;
+  uint8_t type_len   = 0;
+  uint8_t length_len = 0;
 
   // Checking Pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -75,6 +78,55 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+
+  while (decoded < len) {
+    // Size is incremented for the unhandled types by 1 byte
+    uint32_t type = *(buffer + decoded) >= 0x80 ?
+                        ((*(buffer + decoded)) & 0xf0) :
+                        (*(buffer + decoded));
+    decoded_result = 0;
+
+    switch (static_cast<M5GIei>(type)) {
+      case M5GIei::REQUEST_TYPE: {
+        if ((decoded_result = ul_nas_transport->request_type.DecodeRequestType(
+                 &ul_nas_transport->request_type,
+                 static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + decoded,
+                 len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
+      }
+      case M5GIei::PDU_SESSION_IDENTITY_2:
+      case M5GIei::OLD_PDU_SESSION_IDENTITY_2:
+        decoded_result += 2;
+        decoded += decoded_result;
+        break;
+      case M5GIei::MA_PDU_SESSION_INFORMATION:
+      case M5GIei::RELEASE_ASSISTANCE_INDICATION:
+        decoded_result += 1;
+        decoded += decoded_result;
+        break;
+      case M5GIei::S_NSSA:
+      case M5GIei::DNN:
+      case M5GIei::ADDITIONAL_INFORMATION:
+        // TLV Types. 1 byte for Type and 1 Byte for size
+        type_len   = sizeof(uint8_t);
+        length_len = sizeof(uint8_t);
+        DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
+
+        decoded += (length_len + decoded_result);
+        break;
+      default:
+        decoded_result = -1;
+        break;
+    }
+    if (decoded_result < 0) {
+      MLOG(MDEBUG) << "ERROR: decode ULNASTransportMsg failed";
+      return decoded_result;
+    }
+  }
 
   return decoded;
 }
@@ -142,6 +194,16 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
   else
     encoded += encoded_result;
 
+  if ((uint32_t) ul_nas_transport->request_type.type_val) {
+    if ((encoded_result = ul_nas_transport->request_type.EncodeRequestType(
+             &ul_nas_transport->request_type,
+             static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + encoded,
+             len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
   return encoded;
 }
 }  // namespace magma5g

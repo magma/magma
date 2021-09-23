@@ -22,7 +22,6 @@
 #include "M5GGprsTimer3.h"
 #include "M5GTAIList.h"
 
-using namespace std;
 namespace magma5g {
 class RegistrationAcceptMsg {
  public:

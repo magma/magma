@@ -188,6 +188,9 @@ message SessionD {
     bool gx_gy_relay_enabled = 4;
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 5;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 6;
 }
 
 message WalletExhaustDetection {

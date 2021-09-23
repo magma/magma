@@ -88,7 +88,5 @@ void nas_timer_start(
     nas_timer_t* const timer, time_out_t time_out_cb,
     timer_arg_t* time_out_cb_args);
 void nas_timer_stop(nas_timer_t* const timer);
-void mme_app_nas_timer_handle_signal_expiry(
-    long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg, imsi64_t* imsi64);
 
 #endif /* FILE_NAS_TIMER_SEEN */

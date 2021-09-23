@@ -12,7 +12,6 @@
 #pragma once
 #include <sstream>
 #include <cstdint>
-using namespace std;
 namespace magma5g {
 class M5GPDUSessionStatus {
  public:

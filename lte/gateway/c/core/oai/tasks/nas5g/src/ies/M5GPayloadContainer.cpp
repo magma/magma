@@ -16,7 +16,6 @@
 #include "M5GPayloadContainer.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 PayloadContainerMsg::PayloadContainerMsg(){};
 PayloadContainerMsg::~PayloadContainerMsg(){};
@@ -28,13 +27,13 @@ int PayloadContainerMsg::DecodePayloadContainerMsg(
   uint32_t ielen = 0;
   IES_DECODE_U16(buffer, decoded, ielen);
   payload_container->len = ielen;
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << dec
-               << int(payload_container->len) << endl;
+  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::dec
+               << int(payload_container->len) << std::endl;
   memcpy(&payload_container->contents, buffer + decoded, int(ielen));
   BUFFER_PRINT_LOG(payload_container->contents, int(ielen));
 
   // SMF NAS Message Decode
-  decoded = payload_container->smf_msg.SmfMsgDecodeMsg(
+  decoded += payload_container->smf_msg.SmfMsgDecodeMsg(
       &payload_container->smf_msg, payload_container->contents, int(ielen));
 
   return (decoded);
@@ -47,19 +46,25 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   uint32_t ielen = 0;
   int tmp        = 0;
   ielen          = payload_container->len;
-  IES_ENCODE_U16(buffer, encoded, ielen);
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << hex << int(ielen)
-               << endl;
-  tmp = encoded;
+
+  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::hex
+               << int(ielen) << std::endl;
 
   // SMF NAS Message Decode
   encoded += payload_container->smf_msg.SmfMsgEncodeMsg(
       &payload_container->smf_msg, payload_container->contents,
       payload_container->len);
 
-  BUFFER_PRINT_LOG(payload_container->contents, payload_container->len);
-  memcpy(buffer + tmp, payload_container->contents, payload_container->len);
+  if (ielen != encoded) {
+    MLOG(MDEBUG) << "WARNING: mismatch IE length :" << ielen
+                 << " encoded SmfMsg length :" << encoded;
+  }
 
-  return (encoded);
-};
+  IES_ENCODE_U16(buffer, tmp, encoded);
+
+  BUFFER_PRINT_LOG(payload_container->contents, encoded);
+  memcpy(buffer + tmp, payload_container->contents, encoded);
+
+  return (encoded + tmp);
+}
 }  // namespace magma5g

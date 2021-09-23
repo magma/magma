@@ -14,7 +14,6 @@
 #include "M5GMMCause.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 M5GMMCauseMsg::M5GMMCauseMsg(){};
 M5GMMCauseMsg::~M5GMMCauseMsg(){};
@@ -27,15 +26,15 @@ int M5GMMCauseMsg::DecodeM5GMMCauseMsg(
   if (iei > 0) {
     m5gmm_cause->iei = *(buffer + decoded);
     CHECK_IEI_DECODER((unsigned char) iei, m5gmm_cause->iei);
-    MLOG(MDEBUG) << "In DecodeM5GMMCauseMsg: iei = " << dec
-                 << int(m5gmm_cause->iei) << endl;
+    MLOG(MDEBUG) << "In DecodeM5GMMCauseMsg: iei = " << std::dec
+                 << int(m5gmm_cause->iei) << std::endl;
     decoded++;
   }
 
   MLOG(MDEBUG) << "   DecodeM5GMMCauseMsg : ";
   m5gmm_cause->m5gmm_cause = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " CauseValue = " << hex << int(m5gmm_cause->m5gmm_cause);
+  MLOG(MDEBUG) << " CauseValue = " << std::hex << int(m5gmm_cause->m5gmm_cause);
   return (decoded);
 };
 
@@ -47,14 +46,14 @@ int M5GMMCauseMsg::EncodeM5GMMCauseMsg(
   if (iei > 0) {
     *(buffer + encoded) = m5gmm_cause->iei;
     CHECK_IEI_ENCODER((unsigned char) iei, m5gmm_cause->iei);
-    MLOG(MDEBUG) << "In EncodeM5GMMCauseMsg: iei = " << hex
-                 << int(*(buffer + encoded)) << endl;
+    MLOG(MDEBUG) << "In EncodeM5GMMCauseMsg: iei = " << std::hex
+                 << int(*(buffer + encoded)) << std::endl;
     encoded++;
   }
 
   MLOG(MDEBUG) << " EncodeM5GMMCauseMsg : ";
   *(buffer + encoded) = m5gmm_cause->m5gmm_cause;
-  MLOG(MDEBUG) << "CauseValue = 0x" << hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "CauseValue = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

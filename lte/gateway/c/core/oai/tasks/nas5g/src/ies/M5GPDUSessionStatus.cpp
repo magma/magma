@@ -16,7 +16,6 @@ limitations under the License.
 #include "M5GCommonDefs.h"
 #include "M5GPDUSessionStatus.h"
 
-using namespace std;
 namespace magma5g {
 M5GPDUSessionStatus::M5GPDUSessionStatus(){};
 M5GPDUSessionStatus::~M5GPDUSessionStatus(){};
@@ -47,19 +46,19 @@ int M5GPDUSessionStatus::DecodePDUSessionStatus(
 
   if (iei > 0) {
     pduSessionStatus->iei = *buffer;
-    MLOG(MDEBUG) << "DecodePDUSessionStatus: iei = " << hex
+    MLOG(MDEBUG) << "DecodePDUSessionStatus: iei = " << std::hex
                  << int(pduSessionStatus->iei);
     decoded++;
 
     pduSessionStatus->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "In DecodePDUSessionStatus: len = " << hex
+    MLOG(MDEBUG) << "In DecodePDUSessionStatus: len = " << std::hex
                  << int(pduSessionStatus->len);
     decoded++;
 
     pduSessionStatus->pduSessionStatus = *(buffer + decoded);
     decoded++;
     pduSessionStatus->pduSessionStatus |= (*(buffer + decoded) << 8);
-    MLOG(MDEBUG) << "In DecodePDUSessionStatus: pduSessionStatus = " << hex
+    MLOG(MDEBUG) << "In DecodePDUSessionStatus: pduSessionStatus = " << std::hex
                  << int(pduSessionStatus->pduSessionStatus);
     decoded++;
   }

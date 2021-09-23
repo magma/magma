@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "agwd_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/magma/magma/agwd",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//src/go/agwd/config",
+        "//src/go/agwd/config/internal/grpcutil",
+        "//src/go/agwd/server",
+        "//src/go/log",
+        "//src/go/log/zap",
+    ],
+)
+
+go_binary(
+    name = "agwd",
+    embed = [":agwd_lib"],
+    visibility = ["//visibility:public"],
+)

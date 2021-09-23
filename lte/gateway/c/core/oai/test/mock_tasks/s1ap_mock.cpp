@@ -84,9 +84,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_HANDOVER_COMMAND: {
     } break;
 
-    case TIMER_HAS_EXPIRED: {
-    } break;
-
     case TERMINATE_MESSAGE: {
       s1ap_handler_.reset();
       itti_free_msg_content(received_message_p);

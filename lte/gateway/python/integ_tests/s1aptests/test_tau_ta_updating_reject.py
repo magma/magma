@@ -32,7 +32,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
 
     def test_tau_ta_updating_reject(self):
         """Attach a UE. Move the UE to idle mode.
-        Send tracking area update(TAU)request with TAC=5
+        Send tracking area update(TAU)request with TAC=55
         MME sends TAU reject as the tac is not configured in mme.conf
         """
         num_ues = 1
@@ -57,7 +57,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
         # Configure TAC=5 in s1aptester
         config_tai = s1ap_types.nbConfigTai_t()
         config_tai.ue_Id = req.ue_id
-        config_tai.tac = 5
+        config_tai.tac = 55
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.ENB_CONFIG_TAI, config_tai,
         )

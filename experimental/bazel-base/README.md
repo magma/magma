@@ -48,3 +48,15 @@ To format all bazel related files, exec into a bazel container and run the follo
 ```bash
 bazel run //:buildifier
 ```
+
+## Generate go_repository via Gazelle
+
+Gazelle is a tool that generates Bazel configurations from an existing Go project
+
+Any time there is a dependency upgrade or a new Go dependency is added to the project, run the following
+
+```bash
+bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=go_repositories.bzl%go_repositories
+```
+
+This will output all `go_repository` configurations into `$MAGMA_ROOT/go_repositories.bzl`.

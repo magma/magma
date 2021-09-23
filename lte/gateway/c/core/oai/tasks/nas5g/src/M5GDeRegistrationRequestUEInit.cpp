@@ -14,7 +14,6 @@
 #include "M5GDeRegistrationRequestUEInit.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 DeRegistrationRequestUEInitMsg::DeRegistrationRequestUEInitMsg(){};
 DeRegistrationRequestUEInitMsg::~DeRegistrationRequestUEInitMsg(){};
@@ -30,7 +29,7 @@ int DeRegistrationRequestUEInitMsg::DecodeDeRegistrationRequestUEInitMsg(
       buffer, DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH, len);
 
   MLOG(MDEBUG) << "\n\n---Decoding De-Registration Request Message---\n"
-               << endl;
+               << std::endl;
   if ((decoded_result =
            de_reg_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(

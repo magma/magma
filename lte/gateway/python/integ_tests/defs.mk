@@ -153,6 +153,9 @@ s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
 s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_fail.py \
+s1aptests/test_tau_ta_updating.py \
+s1aptests/test_tau_ta_updating_reject.py \
+s1aptests/test_tau_mixed_partial_lists.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
