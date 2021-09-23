@@ -16,13 +16,13 @@ package testcontroller
 import (
 	"context"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/protos"
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/wrappers"
 )
 
 func getNodeClient() (protos.NodeLeasorClient, error) {

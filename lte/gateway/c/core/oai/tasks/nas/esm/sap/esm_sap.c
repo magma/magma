@@ -858,8 +858,7 @@ static int esm_sap_send_a(
           &data->eps_dedicated_bearer_context_activate;
 
       EpsQualityOfService eps_qos = {0};
-
-      rc = qos_params_to_eps_qos(
+      rc                          = qos_params_to_eps_qos(
           msg->qci, msg->mbr_dl, msg->mbr_ul, msg->gbr_dl, msg->gbr_ul,
           &eps_qos, false);
 

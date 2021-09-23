@@ -16,7 +16,6 @@
 #include "M5GServiceType.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 ServiceTypeMsg::ServiceTypeMsg(){};
 ServiceTypeMsg::~ServiceTypeMsg(){};
@@ -27,8 +26,8 @@ int ServiceTypeMsg::DecodeServiceTypeMsg(
   int decoded = 0;
 
   svc_type->service_type_value = ((*buffer & 0xf0) >> 4);
-  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << hex
-               << int(svc_type->service_type_value) << endl;
+  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << std::hex
+               << int(svc_type->service_type_value) << std::endl;
 
   return (decoded);
 };
@@ -39,8 +38,8 @@ int ServiceTypeMsg::EncodeServiceTypeMsg(
   int encoded = 0;
 
   *buffer = svc_type->service_type_value & 0x0f;
-  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << hex
-               << int(*buffer) << endl;
+  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << std::hex
+               << int(*buffer) << std::endl;
   encoded++;
 
   return (encoded);

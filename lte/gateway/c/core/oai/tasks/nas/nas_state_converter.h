@@ -23,7 +23,6 @@ extern "C" {
 #include "esm_proc.h"
 #include "nas_message.h"
 #include "nas_procedures.h"
-#include "timer.h"
 }
 
 #include <sstream>
@@ -127,6 +126,22 @@ class NasStateConverter : StateConverter {
       const oai::EsmEbrTimerData& proto_esm_ebr_timer_data,
       esm_ebr_timer_data_t** state_esm_ebr_timer_data);
 
+  static void proto_to_esm_context(
+      const oai::EsmContext& esm_context_proto,
+      esm_context_t* state_esm_context);
+
+  static void proto_to_nas_emm_attach_proc(
+      const oai::AttachProc& attach_proc_proto,
+      nas_emm_attach_proc_t* state_nas_emm_attach_proc);
+
+  static void proto_to_nas_emm_smc_proc(
+      const oai::SmcProc& smc_proc_proto,
+      nas_emm_smc_proc_t* state_nas_emm_smc_proc);
+
+  static void proto_to_nas_emm_auth_proc(
+      const oai::AuthProc& auth_proc_proto,
+      nas_emm_auth_proc_t* state_nas_emm_auth_proc);
+
  private:
   static void partial_tai_list_to_proto(
       const partial_tai_list_t* state_partial_tai_list,
@@ -206,10 +221,6 @@ class NasStateConverter : StateConverter {
       const esm_context_t* state_esm_context,
       oai::EsmContext* esm_context_proto);
 
-  static void proto_to_esm_context(
-      const oai::EsmContext& esm_context_proto,
-      esm_context_t* state_esm_context);
-
   static void nas_message_decode_status_to_proto(
       const nas_message_decode_status_t* state_nas_message_decode_status,
       oai::NasMsgDecodeStatus* nas_msg_decode_status_proto);
@@ -229,10 +240,6 @@ class NasStateConverter : StateConverter {
   static void nas_attach_proc_to_proto(
       const nas_emm_attach_proc_t* state_nas_attach_proc,
       oai::AttachProc* attach_proc_proto);
-
-  static void proto_to_nas_emm_attach_proc(
-      const oai::AttachProc& attach_proc_proto,
-      nas_emm_attach_proc_t* state_nas_emm_attach_proc);
 
   static void emm_detach_request_ies_to_proto(
       const emm_detach_request_ies_t* state_emm_detach_request_ies,
@@ -262,17 +269,9 @@ class NasStateConverter : StateConverter {
       const nas_emm_auth_proc_t* state_nas_emm_auth_proc,
       oai::AuthProc* auth_proc_proto);
 
-  static void proto_to_nas_emm_auth_proc(
-      const oai::AuthProc& auth_proc_proto,
-      nas_emm_auth_proc_t* state_nas_emm_auth_proc);
-
   static void nas_emm_smc_proc_to_proto(
       const nas_emm_smc_proc_t* state_nas_emm_smc_proc,
       oai::SmcProc* smc_proc_proto);
-
-  static void proto_to_nas_emm_smc_proc(
-      const oai::SmcProc& smc_proc_proto,
-      nas_emm_smc_proc_t* state_nas_emm_smc_proc);
 
   static void nas_proc_mess_sign_to_proto(
       const nas_proc_mess_sign_t* state_nas_proc_mess_sign,

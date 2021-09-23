@@ -19,15 +19,15 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
 )
 
 func listChannelsHandler(c echo.Context) error {

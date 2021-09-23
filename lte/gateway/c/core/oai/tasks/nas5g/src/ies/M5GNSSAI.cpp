@@ -13,7 +13,6 @@ limitations under the License.
 #include <string.h>
 #include "M5GNSSAI.h"
 #include "M5GCommonDefs.h"
-using namespace std;
 namespace magma5g {
 NSSAIMsg::NSSAIMsg(){};
 

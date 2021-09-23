@@ -20,16 +20,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 )
 
 type Request struct {

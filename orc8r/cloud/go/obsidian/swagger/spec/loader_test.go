@@ -19,9 +19,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 )
 
 func TestSpecs_GetCommonSpec(t *testing.T) {

@@ -18,19 +18,18 @@ import (
 	"net/http"
 	"time"
 
+	strfmt "github.com/go-openapi/strfmt"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/lte/cloud/go/services/nprobe/storage"
-
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	merrors "magma/orc8r/lib/go/errors"
-
-	strfmt "github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (

@@ -19,6 +19,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -38,10 +42,6 @@ import (
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestSubscriberdbCacheWorker(t *testing.T) {

@@ -19,6 +19,10 @@ import (
 	"log"
 	"testing"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
@@ -28,10 +32,6 @@ import (
 	"magma/feg/gateway/services/testcore/ocs/mock_ocs"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestOCSExpectations(t *testing.T) {

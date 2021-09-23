@@ -32,28 +32,65 @@
 #include "Ngap_PLMNIdentity.h"
 #include "Ngap_SupportedTAItem.h"
 #include "Ngap_TAC.h"
+#include "Ngap_SliceSupportItem.h"
+#include "Ngap_S-NSSAI.h"
 #include "TrackingAreaIdentity.h"
 #include "ngap_types.h"
 
-char buf_plmn[3];
+static int32_t ngap_tai_item_slice_compare(
+    const Ngap_SliceSupportList_t* const slice_support_list,
+    const amf_s_nssai_t* const config_nssai) {
+  uint8_t slice_list_count = slice_support_list->list.count;
+  Ngap_S_NSSAI_t* s_NSSAI  = NULL;
+  int32_t ret              = NGAP_SLICE_CMP_MATCH_FAILED_SD;
 
-static int ngap_amf_compare_plmn(const Ngap_PLMNIdentity_t* const plmn) {
-  int i            = 0;
-  uint16_t mcc     = 0;
-  uint16_t mnc     = 0;
-  uint16_t mnc_len = 0;
+  for (uint8_t i = 0; i < slice_list_count; i++) {
+    s_NSSAI = &(slice_support_list->list.array[i]->s_NSSAI);
+
+    // If Slice Type does not match keep looking
+    if (s_NSSAI->sST.buf[0] != config_nssai->sst) {
+      ret = NGAP_SLICE_CMP_MATCH_FAILED_SST;
+      continue;
+    }
+
+    // If Slice Differenitator does not match keep looking
+    if (s_NSSAI->sD) {
+      uint32_t rcvd_sd_val = htonl(*(uint32_t*) s_NSSAI->sD->buf);
+      rcvd_sd_val          = rcvd_sd_val >> 8;
+
+      if (config_nssai->sd.v != rcvd_sd_val) {
+        ret = NGAP_SLICE_CMP_MATCH_FAILED_SD;
+        continue;
+      }
+    }
+    ret = NGAP_SLICE_CMP_MATCH_SUCCESS;
+    break;
+  }
+  return ret;
+}
+
+/* Compare the list against PLMN Support List */
+static int ngap_amf_compare_plmn(
+    const Ngap_PLMNIdentity_t* const plmn,
+    const Ngap_SliceSupportList_t* const slice_support_list) {
+  uint16_t mcc         = 0;
+  uint16_t mnc         = 0;
+  uint16_t mnc_len     = 0;
+  plmn_t match_plmn    = {};
+  bool is_plmn_present = false;
+  int ret              = TA_LIST_NO_MATCH;
 
   OAILOG_DEBUG(LOG_NGAP, " :%s, %d", plmn->buf, (int) plmn->size);
-  OAILOG_DEBUG(
-      LOG_NGAP, " :%02x %02x %02x ", plmn->buf[0], plmn->buf[1], plmn->buf[2]);
-
-  memcpy(buf_plmn, plmn->buf, plmn->size);
+  OAILOG_INFO(
+      LOG_NGAP, "[TRACE] :%02x %02x %02x ", plmn->buf[0], plmn->buf[1],
+      plmn->buf[2]);
 
   DevAssert(plmn != NULL);
   TBCD_TO_MCC_MNC(plmn, mcc, mnc, mnc_len);
   amf_config_read_lock(&amf_config);
 
-  for (i = 0; i < amf_config.served_tai.nb_tai; i++) {
+  /* Match Configured Served TAI List */
+  for (uint8_t i = 0; i < amf_config.served_tai.nb_tai; i++) {
     OAILOG_TRACE(
         LOG_NGAP,
         "Comparing plmn_mcc %d/%d, plmn_mnc %d/%d plmn_mnc_len %d/%d\n",
@@ -63,33 +100,50 @@ static int ngap_amf_compare_plmn(const Ngap_PLMNIdentity_t* const plmn) {
 
     if ((amf_config.served_tai.plmn_mcc[i] == mcc) &&
         (amf_config.served_tai.plmn_mnc[i] == mnc) &&
-        (amf_config.served_tai.plmn_mnc_len[i] == mnc_len))
-      /*
-       * There is a matching plmn
-       */
-      return TA_LIST_AT_LEAST_ONE_MATCH;
+        (amf_config.served_tai.plmn_mnc_len[i] == mnc_len)) {
+      is_plmn_present = true;
+      TBCD_TO_PLMN_T(plmn, &match_plmn);
+      break;
+    }
   }
 
+  /* Match the Slice Configuration for the PLMN */
+  if (is_plmn_present) {
+    for (uint8_t i = 0; i < amf_config.plmn_support_list.plmn_support_count;
+         i++) {
+      if (memcmp(
+              &(amf_config.plmn_support_list.plmn_support[i].plmn), &match_plmn,
+              sizeof(plmn_t)) == 0) {
+        if (ngap_tai_item_slice_compare(
+                slice_support_list,
+                &(amf_config.plmn_support_list.plmn_support[i].s_nssai)) == 0) {
+          ret = TA_LIST_AT_LEAST_ONE_MATCH;
+          break;
+        }  // Slice Found in plmn_support list
+      }    // Plmn found in support list
+    }      // Loop through plmn support list
+  }        // Plmn Match Found
+
   amf_config_unlock(&amf_config);
-  return TA_LIST_NO_MATCH;
+  return ret;
 }
 
 /* @brief compare a list of broadcasted plmns against the AMF configured.
- o*/
+ */
 static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
   int i                   = 0;
   int matching_occurrence = 0;
   DevAssert(b_plmns != NULL);
 
   for (i = 0; i < b_plmns->list.count; i++) {
-    if (ngap_amf_compare_plmn(&b_plmns->list.array[i]->pLMNIdentity) ==
+    if (ngap_amf_compare_plmn(
+            &b_plmns->list.array[i]->pLMNIdentity,
+            &b_plmns->list.array[i]->tAISliceSupportList) ==
         TA_LIST_AT_LEAST_ONE_MATCH)
       matching_occurrence++;
     // TBD will work on match case
   }
 
-  return TA_LIST_AT_LEAST_ONE_MATCH;  // TODO remove later after MME config
-                                      // parsing issue is fixed
   if (matching_occurrence == 0)
     return TA_LIST_NO_MATCH;
   else if (matching_occurrence == b_plmns->list.count - 1)
@@ -163,13 +217,13 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
 /* @brief compare PLMNs
  */
 static int ngap_paging_compare_plmns(
-    plmn_t* gnb_bplmns, uint8_t gnb_plmn_count,
+    m5g_supported_tai_items_t* gnb_tai_item,
     const paging_tai_list_t* p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
-  for (plmn_idx = 0; plmn_idx < gnb_plmn_count; plmn_idx++) {
+  for (plmn_idx = 0; plmn_idx < gnb_tai_item->bplmnlist_count; plmn_idx++) {
     plmn_t* gnb_plmn = NULL;
-    gnb_plmn         = &gnb_bplmns[plmn_idx];
+    gnb_plmn         = &gnb_tai_item->bplmn_list[plmn_idx].plmn_id;
     if (gnb_plmn == NULL) {
       OAILOG_ERROR(LOG_NGAP, "PLMN Information not found in eNB tai list\n");
       return false;
@@ -238,8 +292,7 @@ int ngap_paging_compare_ta_lists(
       if (tac_ret != true) {
         return false;
       } else {
-        bplmn_ret = ngap_paging_compare_plmns(
-            gnb_tai_item->bplmns, gnb_tai_item->bplmnlist_count, tai);
+        bplmn_ret = ngap_paging_compare_plmns(gnb_tai_item, tai);
       }
       // Returns TRUE only if both TAC and PLMN matches
       if (tac_ret && bplmn_ret) {

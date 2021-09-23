@@ -19,9 +19,9 @@ import (
 	"log"
 	"time"
 
-	"magma/orc8r/cloud/go/services/state/protos"
-
 	"github.com/spf13/cobra"
+
+	"magma/orc8r/cloud/go/services/state/protos"
 )
 
 var reindexCmd = &cobra.Command{

@@ -17,6 +17,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
@@ -28,8 +30,6 @@ import (
 	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIndexerSessionID(t *testing.T) {

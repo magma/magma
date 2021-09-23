@@ -16,12 +16,12 @@ package swagger_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRegistry_GetSpecServicers(t *testing.T) {

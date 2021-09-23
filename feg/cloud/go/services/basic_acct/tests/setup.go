@@ -17,6 +17,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -29,9 +32,6 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 var (

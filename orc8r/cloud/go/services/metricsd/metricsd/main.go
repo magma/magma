@@ -16,6 +16,10 @@ package main
 import (
 	"time"
 
+	"github.com/golang/glog"
+	io_prometheus_client "github.com/prometheus/client_model/go"
+	"google.golang.org/grpc"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
@@ -26,10 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	io_prometheus_client "github.com/prometheus/client_model/go"
-	"google.golang.org/grpc"
 )
 
 const (

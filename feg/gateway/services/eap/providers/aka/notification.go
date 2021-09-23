@@ -17,14 +17,14 @@ package aka
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/feg/gateway/services/aaa/protos"
 	aaa "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func NewAKANotificationReq(identifier uint8, code uint16) eap.Packet {

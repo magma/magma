@@ -16,17 +16,17 @@ package servicers
 import (
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	prom_proto "github.com/prometheus/client_model/go"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	prom_proto "github.com/prometheus/client_model/go"
-	"golang.org/x/net/context"
 )
 
 // MetricsControllerServer implements a handler to the gRPC server run by the

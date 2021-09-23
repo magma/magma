@@ -17,11 +17,11 @@ import (
 	"fmt"
 	"testing"
 
-	cwf_calculations "magma/cwf/cloud/go/services/cwf/analytics/calculations"
-	"magma/orc8r/cloud/go/services/analytics/calculations"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+
+	cwf_calculations "magma/cwf/cloud/go/services/cwf/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
 func TestGetXAPCalculations(t *testing.T) {

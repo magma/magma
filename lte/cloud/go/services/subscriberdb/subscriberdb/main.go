@@ -14,6 +14,8 @@ limitations under the License.
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
@@ -31,8 +33,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 )
 
 func main() {

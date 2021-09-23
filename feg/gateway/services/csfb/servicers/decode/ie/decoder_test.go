@@ -17,11 +17,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/ie"
 	"magma/feg/gateway/services/csfb/servicers/decode/test_utils"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDecodeIMSI(t *testing.T) {

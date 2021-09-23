@@ -14,12 +14,11 @@
 package main
 
 import (
-	"magma/orc8r/cloud/go/services/analytics"
+	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
-
-	"github.com/golang/glog"
+	"magma/orc8r/cloud/go/services/analytics"
 )
 
 func main() {

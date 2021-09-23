@@ -16,10 +16,10 @@ package policydb_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/policydb"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestFlowAction(t *testing.T) {

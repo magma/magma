@@ -19,10 +19,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/any"
+
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/message"
-
-	"github.com/golang/protobuf/ptypes/any"
 )
 
 const (

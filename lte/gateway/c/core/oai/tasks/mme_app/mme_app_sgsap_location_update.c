@@ -31,7 +31,6 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
 #include "mme_app_sgs_fsm.h"
@@ -527,7 +526,7 @@ status_code_e send_itti_sgsap_location_update_req(
 
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "SGS Context is NULL for UE ID %d ",
+        LOG_MME_APP, "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
         ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -679,7 +678,8 @@ status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
 
   if (sgs_context == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "SGS Context is NULL for UE ID %d ", fsm_evt->ue_id);
+        LOG_MME_APP, "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
+        fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -741,7 +741,8 @@ status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
 
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
   if (sgs_context == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
+    OAILOG_ERROR(
+        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // If we received Location Updt Accept from MSC/VLR and ts6_1_timer is not
@@ -781,13 +782,15 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
+    OAILOG_ERROR(
+        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
   if (sgs_context == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "SGS context not found for UE ID %d ", fsm_evt->ue_id);
+        LOG_MME_APP, "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
+        fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   itti_sgsap_location_update_acc_p =
@@ -894,14 +897,16 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
     mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
+    OAILOG_ERROR(
+        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
     mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   if (sgs_context == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "SGS Context is NULL for UE ID %d ", fsm_evt->ue_id);
+        LOG_MME_APP, "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
+        fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // Change SGS state to NULL
@@ -990,12 +995,14 @@ status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
+    OAILOG_ERROR(
+        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (sgs_context == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "SGS context not found for UE ID %d ", fsm_evt->ue_id);
+        LOG_MME_APP, "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
+        fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   OAILOG_DEBUG(

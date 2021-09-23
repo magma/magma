@@ -16,7 +16,6 @@ limitations under the License.
 #include "M5GCommonDefs.h"
 #include "M5GUplinkDataStatus.h"
 
-using namespace std;
 namespace magma5g {
 M5GUplinkDataStatus::M5GUplinkDataStatus(){};
 M5GUplinkDataStatus::~M5GUplinkDataStatus(){};
@@ -47,19 +46,19 @@ int M5GUplinkDataStatus::DecodeUplinkDataStatus(
 
   if (iei > 0) {
     uplinkDataStatus->iei = *buffer;
-    MLOG(MDEBUG) << "DecodeUplinkDataStatus: iei = " << hex
+    MLOG(MDEBUG) << "DecodeUplinkDataStatus: iei = " << std::hex
                  << int(uplinkDataStatus->iei);
     decoded++;
 
     uplinkDataStatus->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "In DecodeUplinkDataStatus: len = " << hex
+    MLOG(MDEBUG) << "In DecodeUplinkDataStatus: len = " << std::hex
                  << int(uplinkDataStatus->len);
     decoded++;
 
     uplinkDataStatus->uplinkDataStatus = *(buffer + decoded);
     decoded++;
     uplinkDataStatus->uplinkDataStatus |= (*(buffer + decoded) << 8);
-    MLOG(MDEBUG) << "In DecodeUplinkDataStatus: uplinkDataStatus = " << hex
+    MLOG(MDEBUG) << "In DecodeUplinkDataStatus: uplinkDataStatus = " << std::hex
                  << int(uplinkDataStatus->uplinkDataStatus);
     decoded++;
   }

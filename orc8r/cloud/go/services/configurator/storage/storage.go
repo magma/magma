@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/storage"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/storage"
 )
 
 // ConfiguratorStorageFactory creates ConfiguratorStorage implementations bound

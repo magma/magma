@@ -588,7 +588,7 @@ static int emm_as_recv(
       /* Process Extended-Service request */
       rc = emm_recv_tracking_area_update_request(
           ue_id, &emm_msg->tracking_area_update_request, false,
-          originating_tai->tac, emm_cause, decode_status);
+          *originating_tai, emm_cause, decode_status);
 
       break;
 
@@ -782,7 +782,8 @@ static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
    */
   OAILOG_DEBUG(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Decoding Initial NAS message for ue_id = (%u)\n",
+      "EMMAS-SAP - Decoding Initial NAS message for ue_id "
+      "= " MME_UE_S1AP_ID_FMT,
       msg->ue_id);
   decoder_rc = nas_message_decode(
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), emm_security_context,
@@ -891,7 +892,7 @@ static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
       // Process periodic TAU
       rc = emm_recv_tracking_area_update_request(
           msg->ue_id, &emm_msg->tracking_area_update_request, msg->is_initial,
-          msg->tai->tac, emm_cause, &decode_status);
+          *msg->tai, emm_cause, &decode_status);
       break;
 
     case SERVICE_REQUEST:

@@ -16,10 +16,10 @@ package syncstore_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetLeafDigestsDiff(t *testing.T) {

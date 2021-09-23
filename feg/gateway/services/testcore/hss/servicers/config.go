@@ -21,13 +21,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	configs "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 )
 
 // HSS Flag Variables to overwrite default configs

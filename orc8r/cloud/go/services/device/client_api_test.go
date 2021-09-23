@@ -19,12 +19,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (

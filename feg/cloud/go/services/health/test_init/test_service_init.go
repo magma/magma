@@ -16,13 +16,13 @@ package test_init
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/servicers"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func StartTestService(t *testing.T) (*servicers.TestHealthServer, error) {

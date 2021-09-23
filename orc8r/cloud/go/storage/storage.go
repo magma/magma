@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/lib/go/definitions"
-
 	"github.com/google/uuid"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/lib/go/definitions"
 )
 
 type IsolationLevel int

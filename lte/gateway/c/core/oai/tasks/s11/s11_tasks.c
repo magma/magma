@@ -39,7 +39,6 @@
 #include "mme_config.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
-#include "timer.h"
 #include "NwLog.h"
 #include "NwGtpv2c.h"
 #include "NwGtpv2cMsg.h"
@@ -163,37 +162,32 @@ static nw_rc_t s11_mme_send_udp_msg(
 
 //------------------------------------------------------------------------------
 static nw_rc_t s11_mme_start_timer_wrapper(
-    nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle, uint32_t timeoutSec,
-    uint32_t timeoutUsec, uint32_t tmrType, void* timeoutArg,
-    nw_gtpv2c_timer_handle_t* hTmr) {
+    nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle, uint32_t timeoutMilliSec,
+    uint32_t tmrType, void* timeoutArg, nw_gtpv2c_timer_handle_t* hTmr) {
   long timer_id;
   int ret = 0;
 
   if (tmrType == NW_GTPV2C_TMR_TYPE_REPETITIVE) {
-    ret = timer_setup(
-        timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_PERIODIC,
-        timeoutArg, 0, &timer_id);
+    *hTmr = (nw_gtpv2c_timer_handle_t) start_timer(
+        &s11_task_zmq_ctx, timeoutMilliSec, TIMER_REPEAT_FOREVER,
+        nwGtpv2cProcessTimeoutExt, timeoutArg);
   } else {
-    ret = timer_setup(
-        timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_ONE_SHOT,
-        timeoutArg, 0, &timer_id);
+    *hTmr = (nw_gtpv2c_timer_handle_t) start_timer(
+        &s11_task_zmq_ctx, timeoutMilliSec, TIMER_REPEAT_ONCE,
+        nwGtpv2cProcessTimeoutExt, timeoutArg);
   }
-
-  *hTmr = (nw_gtpv2c_timer_handle_t) timer_id;
-  return ((ret == 0) ? NW_OK : NW_FAILURE);
+  return NW_OK;
 }
 
 //------------------------------------------------------------------------------
 static nw_rc_t s11_mme_stop_timer_wrapper(
     nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle,
     nw_gtpv2c_timer_handle_t tmrHandle) {
-  static long timer_id = 0;
-  void* timeoutArg     = NULL;
-
-  timer_id = (long) tmrHandle;
-  return ((timer_remove(timer_id, &timeoutArg) == 0) ? NW_OK : NW_FAILURE);
+  stop_timer(&s11_task_zmq_ctx, (int) tmrHandle);
+  return NW_OK;
 }
 
+//------------------------------------------------------------------------------
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
@@ -249,22 +243,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       itti_free_msg_content(received_message_p);
       free(received_message_p);
       s11_mme_exit();
-    } break;
-
-    case TIMER_HAS_EXPIRED: {
-      OAILOG_DEBUG(
-          LOG_S11, "Processing timeout for timer_id 0x%lx and arg %p\n",
-          received_message_p->ittiMsg.timer_has_expired.timer_id,
-          received_message_p->ittiMsg.timer_has_expired.arg);
-      nw_rc_t nw_rc = nwGtpv2cProcessTimeout(
-          received_message_p->ittiMsg.timer_has_expired.arg);
-      if (nw_rc != NW_OK) {
-        OAILOG_DEBUG(
-            LOG_S11,
-            "Processing timeout for timer_id 0x%lx and arg %p failed\n",
-            received_message_p->ittiMsg.timer_has_expired.timer_id,
-            received_message_p->ittiMsg.timer_has_expired.arg);
-      }
     } break;
 
     case UDP_DATA_IND: {

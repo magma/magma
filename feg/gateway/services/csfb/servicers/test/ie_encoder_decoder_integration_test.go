@@ -16,11 +16,11 @@ package test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	decodeIE "magma/feg/gateway/services/csfb/servicers/decode/ie"
 	encodeIE "magma/feg/gateway/services/csfb/servicers/encode/ie"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeDecodeIMSI(t *testing.T) {

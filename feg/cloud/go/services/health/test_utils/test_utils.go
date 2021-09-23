@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/serdes"
@@ -27,8 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const TestFegHwId1 = "Test-FeG-Hw-Id1"

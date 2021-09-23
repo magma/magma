@@ -112,7 +112,8 @@ int amf_insert_ue_context(
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
       OAILOG_DEBUG(
-          LOG_AMF_APP, "Overwriting the Existing entry UE_ID=%u\n", ue_id);
+          LOG_AMF_APP,
+          "Overwriting the Existing entry UE_ID = " AMF_UE_NGAP_ID_FMT, ue_id);
     }
   }
 

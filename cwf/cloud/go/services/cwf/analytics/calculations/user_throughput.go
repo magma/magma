@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // UserThroughputCalculation params for computing average user throughput

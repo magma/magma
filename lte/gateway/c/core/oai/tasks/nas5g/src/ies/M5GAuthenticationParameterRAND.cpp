@@ -15,7 +15,6 @@
 #include "M5GAuthenticationParameterRAND.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 AuthenticationParameterRANDMsg::AuthenticationParameterRANDMsg(){};
 AuthenticationParameterRANDMsg::~AuthenticationParameterRANDMsg(){};
@@ -41,8 +40,8 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, rand->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationParameterRANDMsg: iei" << hex
-                 << int(*buffer) << endl;
+    MLOG(MDEBUG) << "In EncodeAuthenticationParameterRANDMsg: iei" << std::hex
+                 << int(*buffer) << std::endl;
     encoded++;
   }
 

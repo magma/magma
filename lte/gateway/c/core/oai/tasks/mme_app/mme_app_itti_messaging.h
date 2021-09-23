@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "log.h"
-#include "timer.h"
 #include "mme_config.h"
 #include "3gpp_36.401.h"
 #include "common_types.h"
@@ -110,7 +109,7 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
     OAILOG_DEBUG(
         LOG_MME_APP,
         "MME APP :Sent UE context modification request and Started guard timer "
-        "for UE id %d\n",
+        "for UE id " MME_UE_S1AP_ID_FMT,
         ue_context_p->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

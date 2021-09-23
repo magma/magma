@@ -11,6 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	fbprotos "magma/fbinternal/cloud/go/protos"
 	"magma/fbinternal/cloud/go/services/vpnservice/servicers"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -18,9 +21,6 @@ import (
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/key"
-
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const (

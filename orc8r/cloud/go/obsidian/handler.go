@@ -19,12 +19,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"magma/orc8r/lib/go/util"
-
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+
+	"magma/orc8r/lib/go/util"
 )
 
 type (

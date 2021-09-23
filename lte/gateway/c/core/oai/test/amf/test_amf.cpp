@@ -479,11 +479,11 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
   service_reject.pdu_session_status.iei              = PDU_SESSION_STATUS;
   service_reject.pdu_session_status.len              = 0x02;
   service_reject.pdu_session_status.pduSessionStatus = 0x05;
-  service_reject.cause.iei                           = M5GMM_CAUSE;
-  service_reject.cause.m5gmm_cause                   = 9;
-  service_reject.t3346Value.iei                      = GPRS_TIMER2;
-  service_reject.t3346Value.len                      = 1;
-  service_reject.t3346Value.timervalue               = 60;
+  service_reject.cause.iei         = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
+  service_reject.cause.m5gmm_cause = 9;
+  service_reject.t3346Value.iei    = GPRS_TIMER2;
+  service_reject.t3346Value.len    = 1;
+  service_reject.t3346Value.timervalue = 60;
 
   encode_res =
       service_reject.EncodeServiceRejectMsg(&service_reject, buffer, len);
@@ -517,6 +517,103 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
       service_reject.cause.m5gmm_cause, decoded_service_rej.cause.m5gmm_cause);
 }
 
+TEST(test_dlnastransport, test_dlnastransport) {
+  DLNASTransportMsg* dlmsg = nullptr;
+  SmfMsg* smf_msg          = nullptr;
+  uint32_t bytes           = 0;
+  uint32_t container_len   = 0;
+  bstring buffer;
+  amf_nas_message_t msg = {};
+
+  /* build uplinknastransport */
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
+                     0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
+                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
+                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01, 0x25, 0x09, 0x08,
+                     0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+  uint32_t len    = sizeof(pdu) / sizeof(uint8_t);
+
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, true);
+  /* build uplinknastransport */
+
+  ULNASTransportMsg* ulmsg = &pdu_sess_est_req;
+
+  // Message construction for PDU Establishment Reject
+  // NAS-5GS (NAS) PDU
+  msg.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.plain.amf.header.message_type          = DLNASTRANSPORT;
+  msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  // SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.message_type                    = DLNASTRANSPORT;
+  msg.header.sequence_number                 = 1;
+
+  dlmsg = &msg.plain.amf.msg.downlinknas5gtransport;
+
+  // AmfHeader
+  dlmsg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  len++;
+  dlmsg->spare_half_octet.spare  = 0x00;
+  dlmsg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  len++;
+  dlmsg->message_type.msg_type = DLNASTRANSPORT;
+  len++;
+  dlmsg->payload_container.iei = PAYLOAD_CONTAINER;
+
+  // SmfMsg
+  dlmsg->payload_container_type.iei      = 0;
+  dlmsg->payload_container_type.type_val = N1_SM_INFO;
+  len++;
+  dlmsg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
+  len++;
+  dlmsg->pdu_session_identity.pdu_session_id =
+      ulmsg->payload_container.smf_msg.header.pdu_session_id;
+  len++;
+
+  dlmsg->m5gmm_cause.iei = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
+  dlmsg->m5gmm_cause.m5gmm_cause =
+      static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED);
+  len += 2;
+
+  // Payload container IE from ulmsg
+  dlmsg->payload_container.copy(ulmsg->payload_container);
+
+  len += 2;  // 2 bytes for container.len
+  len += dlmsg->payload_container.len;
+
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(buffer->data, &msg, len, nullptr);
+  EXPECT_GT(bytes, 0);
+
+  amf_nas_message_t decode_msg                  = {0};
+  amf_nas_message_decode_status_t decode_status = {};
+  int status                                    = RETURNerror;
+  status                                        = nas5g_message_decode(
+      buffer->data, &decode_msg, bytes, nullptr, &decode_status);
+
+  EXPECT_EQ(true, dlmsg->payload_container.isEqual(ulmsg->payload_container));
+  EXPECT_EQ(
+      dlmsg->m5gmm_cause.m5gmm_cause,
+      static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED));
+  bdestroy(buffer);
+}
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

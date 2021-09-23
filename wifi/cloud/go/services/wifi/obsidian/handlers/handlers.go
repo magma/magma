@@ -18,6 +18,9 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -30,9 +33,6 @@ import (
 	"magma/wifi/cloud/go/serdes"
 	wifimodels "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (

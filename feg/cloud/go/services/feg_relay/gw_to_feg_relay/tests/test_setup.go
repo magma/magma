@@ -17,8 +17,6 @@ import (
 	"sync"
 	"testing"
 
-	healthTestInit "magma/feg/cloud/go/services/health/test_init"
-
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 
@@ -26,6 +24,7 @@ import (
 	"magma/feg/cloud/go/serdes"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	health_servicers "magma/feg/cloud/go/services/health/servicers"
+	healthTestInit "magma/feg/cloud/go/services/health/test_init"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"

@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	"magma/lte/cloud/go/protos"
-
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+
+	"magma/lte/cloud/go/protos"
 )
 
 // Create and start a mock SessionProxyResponder as a service. This returns the

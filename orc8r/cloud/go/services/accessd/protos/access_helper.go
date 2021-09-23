@@ -15,10 +15,10 @@ limitations under the License.
 package protos
 
 import (
-	"magma/orc8r/lib/go/protos"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 // ACCESS_CONTROL_ALL_PERMISSIONS is a bitmask for all existing permissions

@@ -17,11 +17,11 @@ import (
 	"regexp"
 	"sort"
 
-	"magma/orc8r/cloud/go/swagger"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+
+	"magma/orc8r/cloud/go/swagger"
 )
 
 // Combine multiple Swagger specs, giving precedence to the "common" spec.

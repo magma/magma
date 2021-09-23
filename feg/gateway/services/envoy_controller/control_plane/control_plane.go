@@ -10,8 +10,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
@@ -26,6 +24,8 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/protos"
 )
 
 const (

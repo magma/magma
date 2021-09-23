@@ -42,7 +42,7 @@ void amf_app_handle_pdu_session_response(
 int amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification);
 int amf_app_handle_pdu_session_accept(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id);
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id);
 int amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p);
 void amf_app_handle_initial_context_setup_rsp(

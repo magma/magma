@@ -17,6 +17,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+
 	"magma/cwf/cloud/go/cwf"
 	"magma/feg/cloud/go/feg"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -29,9 +32,6 @@ import (
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 )
 
 func (m *CwfNetwork) GetEmptyNetwork() handlers.NetworkModel {

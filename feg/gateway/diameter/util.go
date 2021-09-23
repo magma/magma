@@ -16,11 +16,11 @@ package diameter
 import (
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/feg/cloud/go/protos"
 )
 
 // TranslateDiamResultCode maps Diameter Result Codes (both Base and Experimental)

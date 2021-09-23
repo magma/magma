@@ -17,6 +17,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/swx_proxy/cache"
@@ -24,8 +26,6 @@ import (
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestMAR_Successful(t *testing.T) {

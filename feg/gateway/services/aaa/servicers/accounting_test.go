@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/protos"
@@ -25,8 +27,6 @@ import (
 	"magma/feg/gateway/services/aaa/store"
 	"magma/feg/gateway/services/aaa/test/mock_pipelined"
 	"magma/feg/gateway/services/aaa/test/mock_sessiond"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (

@@ -19,12 +19,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/orc8r/lib/go/util"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 type s8ProxyClient struct {

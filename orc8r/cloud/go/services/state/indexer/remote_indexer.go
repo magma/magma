@@ -17,12 +17,12 @@ import (
 	"context"
 	"strings"
 
+	"github.com/golang/glog"
+
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 // remoteIndexer identifies a remote state indexer.
