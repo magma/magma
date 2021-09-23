@@ -27,6 +27,7 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "3gpp_24.008.h"
+#include "3gpp_36.413.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "async_system_messages_types.h"
@@ -84,8 +85,13 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(&mme_app_est_cnf.ue_radio_capability);
     } break;
 
-    case MME_APP_INITIAL_CONTEXT_SETUP_RSP:
-      break;
+    case MME_APP_INITIAL_CONTEXT_SETUP_RSP: {
+      e_rab_setup_list_t* e_rab_setup_list =
+          &(MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list);
+      for (int i = 0; i < MAX_NO_OF_E_RABS; ++i) {
+        bdestroy_wrapper(&(e_rab_setup_list->item[i].transport_layer_address));
+      }
+    } break;
 
     case MME_APP_DELETE_SESSION_RSP:
       // DO nothing
@@ -95,10 +101,16 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(&message_p->ittiMsg.mme_app_ul_data_ind.nas_msg);
       break;
 
-    case MME_APP_HANDOVER_REQUEST:
+    case MME_APP_HANDOVER_REQUEST: {
       bdestroy_wrapper(
           &message_p->ittiMsg.mme_app_handover_request.src_tgt_container);
-      break;
+      for (int i = 0; i < BEARERS_PER_UE; i++) {
+        bdestroy_wrapper(
+            &(message_p->ittiMsg.mme_app_handover_request.e_rab_list.item[i]
+                  .transport_layer_address));
+      }
+    } break;
+
     case MME_APP_HANDOVER_COMMAND:
       bdestroy_wrapper(
           &message_p->ittiMsg.mme_app_handover_command.tgt_src_container);
