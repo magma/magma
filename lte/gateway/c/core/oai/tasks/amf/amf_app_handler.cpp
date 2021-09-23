@@ -28,38 +28,24 @@ extern "C" {
 #include "conversions.h"
 #include "include/amf_pdu_session_configs.h"
 #include "include/amf_session_manager_pco.h"
-#include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
 #include "amf_sap.h"
 #include "amf_recv.h"
 #include "amf_app_state_manager.h"
 #include "M5gNasMessage.h"
-#include "dynamic_memory_check.h"
 #include "n11_messages_types.h"
 #include "amf_app_timer_management.h"
-
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+#include "amf_common.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
-//----------------------------------------------------------------------------
-static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
-  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-  IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_report_location(imsi_str);
-  OAILOG_DEBUG_UE(LOG_AMF_APP, imsi, " Reported UE location to directoryd\n");
-}
-
 //------------------------------------------------------------------------------
 void amf_ue_context_update_coll_keys(
-    amf_ue_context_t* const amf_ue_context_p,
-    ue_m5gmm_context_s* const ue_context_p,
+    amf_ue_context_t* const amf_ue_context_p, ue_m5gmm_context_s* ue_context_p,
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
@@ -100,10 +86,10 @@ void amf_ue_context_update_coll_keys(
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
       h_rc = hashtable_ts_remove(
           amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-          (void**) &ue_context_p);
+          reinterpret_cast<void**>(&ue_context_p));
       h_rc = hashtable_ts_insert(
           amf_state_ue_id_ht, (const hash_key_t) amf_ue_ngap_id,
-          (void*) ue_context_p);
+          reinterpret_cast<void*>(ue_context_p));
 
       if (HASH_TABLE_OK != h_rc) {
         OAILOG_ERROR(
@@ -112,6 +98,7 @@ void amf_ue_context_update_coll_keys(
             "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
             amf_ue_ngap_id);
       }
+
       ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
   } else {
@@ -140,8 +127,6 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  amf_directoryd_report_location(
-      ue_context_p->amf_context.imsi64, ue_context_p->amf_context.imsi.length);
   h_rc = hashtable_uint64_ts_remove(
       amf_ue_context_p->tun11_ue_context_htbl,
       (const hash_key_t) ue_context_p->amf_teid_n11);
@@ -169,7 +154,7 @@ void amf_ue_context_update_coll_keys(
   if (guti_p) {
     if ((guti_p->guamfi.amf_set_id !=
          ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
-        (guti_p->guamfi.amf_set_id !=
+        (guti_p->guamfi.amf_regionid !=
          ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
         (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (guti_p->guamfi.plmn.mcc_digit1 !=
@@ -178,7 +163,7 @@ void amf_ue_context_update_coll_keys(
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
         (guti_p->guamfi.plmn.mcc_digit3 !=
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
-        (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id)) {
+        (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
       h_rc = obj_hashtable_uint64_ts_remove(
           amf_ue_context_p->guti_ue_context_htbl,
           &ue_context_p->amf_context.m5_guti, sizeof(*guti_p));
@@ -308,8 +293,9 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
     if (ue_context) {
       return ue_context;
     }
+  }
 
-  } else {
+  if (!ue_context) {
     OAILOG_WARNING(
         LOG_AMF_APP, "No GUTI hashtable for GUTI Hash %x", guti_p->m_tmsi);
     ue_context = ue_context_loopkup_by_guti(guti_p->m_tmsi);
@@ -346,6 +332,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   guti_m5_t guti                    = {0};
   plmn_t plmn                       = {0};
   s_tmsi_m5_t s_tmsi                = {0};
+  amf_ue_ngap_id_t amf_ue_ngap_id   = INVALID_AMF_UE_NGAP_ID;
 
   if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     OAILOG_ERROR(
@@ -405,26 +392,25 @@ imsi64_t amf_app_handle_initial_ue_message(
 
         /* remove amf_ngap_ud_id entry from ue context */
         amf_remove_ue_context(ue_context_p);
-        ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
 
         // Update AMF UE context with new gnb_ue_ngap_id
         ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
 
         AMF_APP_GNB_NGAP_ID_KEY(
-            ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
-            initial_pP->gnb_ue_ngap_id);
+            gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
 
         // generate new amf_ngap_ue_id
-        ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+        amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
             &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
+        amf_ue_context_update_coll_keys(
+            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
+            amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+            ue_context_p->amf_teid_n11, &guti);
 
         amf_insert_ue_context(
             ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
             ue_context_p);
-        amf_ue_context_update_coll_keys(
-            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-            ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
-            ue_context_p->amf_teid_n11, &guti);
         imsi64 = ue_context_p->amf_context.imsi64;
       }
     } else {
@@ -489,7 +475,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         "Creating new ue_m5gmm_context: [%p]"
-        "for amf_ue_ngap_id: [%u]\n",
+        "for amf_ue_ngap_id: [" AMF_UE_NGAP_ID_FMT "]",
         ue_context_p, ue_context_p->amf_ue_ngap_id);
 
     AMF_APP_GNB_NGAP_ID_KEY(
@@ -517,7 +503,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         " Sending nas establishment indication to nas for ue_id = "
-        "(%d)\n",
+        "(" AMF_UE_NGAP_ID_FMT ")",
         ue_context_p->amf_ue_ngap_id);
   }
   is_mm_ctx_new = true;
@@ -525,7 +511,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   OAILOG_DEBUG(
       LOG_AMF_APP,
       " Sending NAS Establishment Indication to NAS for ue_id = "
-      "(%d)\n",
+      "(" AMF_UE_NGAP_ID_FMT ")",
       ue_context_p->amf_ue_ngap_id);
   nas_proc_establish_ind(
       ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
@@ -566,7 +552,9 @@ int amf_app_handle_uplink_nas_message(
     rc                                   = amf_sap_send(&amf_sap);
   } else {
     OAILOG_WARNING(
-        LOG_NAS, "Received NAS message in uplink is NULL for ue_id = (%u)\n",
+        LOG_NAS,
+        "Received NAS message in uplink is NULL for for UE "
+        "ID: " AMF_UE_NGAP_ID_FMT,
         amf_app_desc_p->amf_app_ue_ngap_id_generator);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -597,7 +585,7 @@ void amf_app_handle_pdu_session_response(
   smf_context_t* smf_ctx;
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
-  uint32_t ue_id = 0;
+  uint64_t ue_id = 0;
   int rc         = RETURNerror;
 
   imsi64_t imsi64;
@@ -647,8 +635,8 @@ void amf_app_handle_pdu_session_response(
 
   if (REGISTERED_IDLE == ue_context->mm_state) {
     // pdu session state
-    smf_ctx->pdu_session_state = ACTIVE;
-    amf_sap_t amf_sap;
+    smf_ctx->pdu_session_state            = ACTIVE;
+    amf_sap_t amf_sap                     = {};
     amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
     amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
     amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
@@ -662,7 +650,7 @@ void amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
-      ue_context->mm_state == REGISTERED_CONNECTED;
+      ue_context->mm_state = REGISTERED_CONNECTED;
     }
   } else {
     OAILOG_DEBUG(
@@ -704,7 +692,7 @@ void amf_app_handle_pdu_session_response(
  **                                                                        **
  ***************************************************************************/
 int amf_app_handle_pdu_session_accept(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
   DLNASTransportMsg* encode_msg;
@@ -721,14 +709,18 @@ int amf_app_handle_pdu_session_accept(
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
-    OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
+        ue_id);
     return M5G_AS_FAILURE;
   }
 
   smf_ctx = amf_smf_context_exists_pdu_session_id(
       ue_context, pdu_session_resp->pdu_session_id);
   if (!smf_ctx) {
-    OAILOG_ERROR(LOG_AMF_APP, "Smf context is not exist UE ID: %d", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT,
+        ue_id);
     return M5G_AS_FAILURE;
   }
   // updating session state
@@ -759,7 +751,8 @@ int amf_app_handle_pdu_session_accept(
   // SmfMsg
   encode_msg->payload_container_type.type_val = N1_SM_INFO;
   encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
-  encode_msg->pdu_session_identity.iei        = PDU_SESSION_IDENTITY;
+  encode_msg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
   encode_msg->pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
 
@@ -899,7 +892,8 @@ void amf_app_handle_resource_setup_response(
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context == NULL) {
       OAILOG_ERROR(
-          LOG_AMF_APP, "UE context not found for the ue_id=%u\n", ue_id);
+          LOG_AMF_APP,
+          "UE context not found for the ue_id = " AMF_UE_NGAP_ID_FMT, ue_id);
       return;
     }
 
@@ -927,18 +921,20 @@ void amf_app_handle_resource_setup_response(
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     // Handling of ue context
     if (!ue_context) {
-      OAILOG_ERROR(LOG_AMF_APP, "UE context not found for UE ID: %d", ue_id);
+      OAILOG_ERROR(
+          LOG_AMF_APP, "UE context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
+          ue_id);
     }
 
     // Store gNB ip and TEID in respective smf_context
     memset(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
         sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
-    memcpy(
-        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
-        &session_seup_resp.pduSessionResource_setup_list.item[0]
-             .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
-        4);
+
+    smf_ctx->gtp_tunnel_id
+        .gnb_gtp_teid = htonl(*(reinterpret_cast<unsigned int*>(
+        session_seup_resp.pduSessionResource_setup_list.item[0]
+            .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID)));
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
         &session_seup_resp.pduSessionResource_setup_list.item[0]
@@ -947,16 +943,13 @@ void amf_app_handle_resource_setup_response(
         4);  // time being 4 byte is copying.
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "gnb_gtp_teid_ipaddr: [%02x %02x %02x %02x]  and gnb_gtp_teid [%02x "
-        "%02x %02x %02x ]\n",
+        "gnb_gtp_teid_ipaddr: [%02x %02x %02x %02x]  and gnb_gtp_teid "
+        "[" GNB_GTP_TEID_FMT "]\n",
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[3],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[0],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[1],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[0],
-        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[3]);
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid);
     // Incrementing the  pdu session version
     smf_ctx->pdu_session_version++;
     /*Copy respective gNB fields to amf_smf_establish_t compartible to gRPC
@@ -1035,7 +1028,9 @@ void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req) {
   int rc = RETURNerror;
   OAILOG_DEBUG(
-      LOG_AMF_APP, " Handling UL UE context release for CM-idle for ue id %d\n",
+      LOG_AMF_APP,
+      " Handling UL UE context release for CM-idle for UE "
+      "ID: " AMF_UE_NGAP_ID_FMT,
       cm_idle_req.amf_ue_ngap_id);
   /* Currently only one PDU session is considered.
    * for multiple PDU session context (smf_context_t) will be part of vector
@@ -1075,7 +1070,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       OAILOG_WARNING(
           LOG_AMF_APP,
           " UE in registered_connected state, but cause from NGAP"
-          " is wrong for UE ID %d and return\n",
+          " is wrong for UE ID: " AMF_UE_NGAP_ID_FMT " and return",
           cm_idle_req.amf_ue_ngap_id);
       return;
     }
@@ -1088,7 +1083,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         " UE in REGISTERED_IDLE or CM-idle state, nothing to do"
-        " for UE ID %d\n",
+        " for UE ID: " AMF_UE_NGAP_ID_FMT,
         cm_idle_req.amf_ue_ngap_id);
     return;
   }
@@ -1108,7 +1103,7 @@ void ue_context_release_command(
   OAILOG_DEBUG(
       LOG_AMF_APP,
       "preparing for context release command to NGAP "
-      "for ue_id %d\n",
+      "for ue_id " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
 
   message_p =
@@ -1159,8 +1154,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "T3513: timer has expired for ue id: %d with timer id: %d,"
-        "Sending Paging request again\n",
+        "T3513: timer has expired for UE ID: " AMF_UE_NGAP_ID_FMT
+        " with timer id: %d, Sending Paging request again",
         ue_id, timer_id);
     /*
      * Increment the retransmission counter
@@ -1209,6 +1204,8 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
     OAILOG_INFO(LOG_AMF_APP, "T3513: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    if (rc != RETURNok)
+      OAILOG_ERROR(LOG_AMF_APP, "Could not send msg to task\n");
     //    amf_paging_request(paging_ctx);
   } else {
     /*
@@ -1218,7 +1215,6 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         LOG_AMF_APP,
         "T3513: Maximum retires done hence Abort the Paging Request "
         "procedure\n");
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
@@ -1255,7 +1251,8 @@ int amf_app_handle_notification_received(
       paging_ctx = &ue_context->paging_context;
 
       OAILOG_INFO(
-          LOG_AMF_APP, "T3513: Starting PAGING Timer for ue id: %d\n",
+          LOG_AMF_APP,
+          "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT,
           ue_context->amf_ue_ngap_id);
       paging_ctx->paging_retx_count = 0;
       /* Start Paging Timer T3513 */
@@ -1265,7 +1262,8 @@ int amf_app_handle_notification_received(
       // Fill the itti msg based on context info produced in amf core
       OAILOG_INFO(
           LOG_AMF_APP,
-          "T3513: Starting PAGING Timer for ue id: %u and timer id: %ld\n",
+          "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT
+          " and timer id: %ld",
           ue_context->amf_ue_ngap_id, paging_ctx->m5_paging_response_timer.id);
 
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -1319,7 +1317,7 @@ void amf_app_handle_initial_context_setup_rsp(
 
   if (!ue_context) {
     OAILOG_ERROR(
-        LOG_AMF_APP, " Ue context not found for the id %u\n",
+        LOG_AMF_APP, " Ue context not found for the id " AMF_UE_NGAP_ID_FMT,
         initial_context_rsp->ue_id);
     return;
   }
@@ -1337,12 +1335,12 @@ void amf_app_handle_initial_context_setup_rsp(
         amf_smf_establish_t amf_smf_grpc_ies;
 
         // gnb tunnel info
-        memcpy(
-            smf_context->gtp_tunnel_id.gnb_gtp_teid,
-            pdu_list->item[index]
-                .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
-            4);
 
+        smf_context->gtp_tunnel_id.gnb_gtp_teid =
+            htonl(*(reinterpret_cast<unsigned int*>(
+                pdu_list->item[index]
+                    .PDU_Session_Resource_Setup_Response_Transfer.tunnel
+                    .gTP_TEID)));
         memcpy(
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
             pdu_list->item[index]
@@ -1352,16 +1350,12 @@ void amf_app_handle_initial_context_setup_rsp(
 
         OAILOG_DEBUG(
             LOG_AMF_APP,
-            "IP address %02x %02x %02x %02x  and TEID %02x "
-            "%02x %02x %02x \n",
+            "IP address %02x %02x %02x %02x  and TEID" GNB_GTP_TEID_FMT "\n",
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
             smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[3],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[0],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[1],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[0],
-            smf_context->gtp_tunnel_id.gnb_gtp_teid[3]);
+            smf_context->gtp_tunnel_id.gnb_gtp_teid);
 
         smf_context->pdu_session_version++;
         /*Copy respective gNB fields to amf_smf_establish_t compartible to gRPC

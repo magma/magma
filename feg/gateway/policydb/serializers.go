@@ -16,11 +16,11 @@ package policydb
 import (
 	"fmt"
 
+	"github.com/golang/protobuf/proto"
+
 	"magma/feg/gateway/object_store"
 	lteProtos "magma/lte/cloud/go/protos"
 	orc8rProtos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/proto"
 )
 
 func getRedisStateSerializer(serializer object_store.Serializer) object_store.Serializer {

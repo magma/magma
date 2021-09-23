@@ -557,15 +557,19 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   qos.bitRatesPresent    = 0;
   qos.bitRatesExtPresent = 0;
   //#pragma message "Some work to do here about qos"
-  qos.qci                          = msg_pP->qci;
-  qos.bitRates.maxBitRateForUL     = msg_pP->qos.mbrUL;
-  qos.bitRates.maxBitRateForDL     = msg_pP->qos.mbrDL;
-  qos.bitRates.guarBitRateForUL    = msg_pP->qos.gbrUL;
-  qos.bitRates.guarBitRateForDL    = msg_pP->qos.gbrDL;
-  qos.bitRatesExt.maxBitRateForUL  = 0;
-  qos.bitRatesExt.maxBitRateForDL  = 0;
-  qos.bitRatesExt.guarBitRateForUL = 0;
-  qos.bitRatesExt.guarBitRateForDL = 0;
+  qos.qci                           = msg_pP->qci;
+  qos.bitRates.maxBitRateForUL      = msg_pP->qos.mbrUL;
+  qos.bitRates.maxBitRateForDL      = msg_pP->qos.mbrDL;
+  qos.bitRates.guarBitRateForUL     = msg_pP->qos.gbrUL;
+  qos.bitRates.guarBitRateForDL     = msg_pP->qos.gbrDL;
+  qos.bitRatesExt.maxBitRateForUL   = 0;
+  qos.bitRatesExt.maxBitRateForDL   = 0;
+  qos.bitRatesExt.guarBitRateForUL  = 0;
+  qos.bitRatesExt.guarBitRateForDL  = 0;
+  qos.bitRatesExt2.maxBitRateForUL  = 0;
+  qos.bitRatesExt2.maxBitRateForDL  = 0;
+  qos.bitRatesExt2.guarBitRateForUL = 0;
+  qos.bitRatesExt2.guarBitRateForDL = 0;
 
   int def_bearer_index = EBI_TO_INDEX(msg_pP->ebi);
   pdn_cid_t pdn_cid =
@@ -1031,7 +1035,7 @@ static int emm_cn_cs_domain_mm_information_req(
     }
 
     if (ue_context_p->sgs_context->sgs_state == SGS_ASSOCIATED) {
-      if ((rc = emm_proc_emm_informtion(ue_context_p)) != RETURNok) {
+      if ((rc = emm_proc_emm_information(ue_context_p)) != RETURNok) {
         OAILOG_WARNING(
             LOG_NAS_EMM,
             "Failed to send Emm Information Reqest for " IMSI_64_FMT "\n",

@@ -14,16 +14,17 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
-
-	"magma/orc8r/cloud/go/services/magmad"
-	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/jsonpb"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/spf13/cobra"
+
+	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/lib/go/protos"
 )
 
 func init() {
@@ -49,7 +50,7 @@ func genericCommandCmd(cmd *cobra.Command, args []string) {
 		Params:  &paramsStruct,
 	}
 
-	response, err := magmad.GatewayGenericCommand(networkId, gatewayId, &genericCommandParams)
+	response, err := magmad.GatewayGenericCommand(context.Background(), networkId, gatewayId, &genericCommandParams)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

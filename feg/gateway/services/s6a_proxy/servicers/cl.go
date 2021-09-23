@@ -17,13 +17,13 @@ limitations under the License.
 package servicers
 
 import (
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/s6a_proxy"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/s6a_proxy"
 )
 
 const (

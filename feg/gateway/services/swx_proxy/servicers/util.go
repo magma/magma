@@ -14,11 +14,11 @@ limitations under the License.
 package servicers
 
 import (
-	"magma/feg/gateway/plmn_filter"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/feg/gateway/plmn_filter"
 )
 
 func (s *swxProxy) sendDiameterMsg(msg *diam.Message, retryCount uint) error {

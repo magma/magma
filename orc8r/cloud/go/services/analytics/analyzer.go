@@ -18,15 +18,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/golang/glog"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/robfig/cron/v3"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/robfig/cron/v3"
 )
 
 // Analyzer generic interface to schedule any analysis to run.

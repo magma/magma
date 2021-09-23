@@ -14,10 +14,10 @@
 package models
 
 import (
-	"magma/orc8r/cloud/go/models"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+
+	"magma/orc8r/cloud/go/models"
 )
 
 func NewDefaultDNSConfig() *NetworkDNSConfig {
@@ -44,12 +44,6 @@ func NewDefaultSentryConfig() *NetworkSentryConfig {
 	}
 }
 
-func NewDefaultStateConfig() *StateConfig {
-	return &StateConfig{
-		SyncInterval: uint32(60),
-	}
-}
-
 func NewDefaultFeaturesConfig() *NetworkFeatures {
 	return &NetworkFeatures{Features: map[string]string{"foo": "bar"}}
 }
@@ -63,7 +57,6 @@ func NewDefaultNetwork(networkID string, name string, description string) *Netwo
 		DNS:          NewDefaultDNSConfig(),
 		Features:     NewDefaultFeaturesConfig(),
 		SentryConfig: NewDefaultSentryConfig(),
-		StateConfig:  NewDefaultStateConfig(),
 	}
 }
 

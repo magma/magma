@@ -36,7 +36,6 @@
 #include "assertions.h"
 #include "conversions.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
 #include "s1ap_common.h"

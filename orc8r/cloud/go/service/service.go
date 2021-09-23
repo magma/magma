@@ -22,7 +22,11 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service/middleware/unary"
@@ -30,11 +34,6 @@ import (
 	"magma/orc8r/lib/go/registry"
 	platform_service "magma/orc8r/lib/go/service"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 )
 
 const (

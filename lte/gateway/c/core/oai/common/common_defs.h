@@ -40,6 +40,8 @@
 
 #include <string.h>  // memcpy
 #include <arpa/inet.h>
+
+#define GNB_GTP_TEID_FMT "%08x"
 //------------------------------------------------------------------------------
 #define STOLEN_REF
 #define CLONE_REF
@@ -138,6 +140,10 @@ typedef enum {
   vALUE = ntohl(vALUE);                                                        \
   sIZE += sizeof(uint32_t)
 
+#define DESERIALIZE_N2HBO_U32(bUFFER, vALUE)                                   \
+  memcpy((unsigned char*) &vALUE, bUFFER, sizeof(uint32_t));                   \
+  vALUE = ntohl(vALUE);
+
 #if (BYTE_ORDER == LITTLE_ENDIAN)
 #define DECODE_LENGTH_U16(bUFFER, vALUE, sIZE)                                 \
   vALUE = ((*(bUFFER)) << 8) | (*((bUFFER) + 1));                              \
@@ -171,6 +177,17 @@ typedef enum {
     uint32_t n_value = htonl(value);                                           \
     memcpy(buffer, (unsigned char*) &n_value, sizeof(uint32_t));               \
     size += sizeof(uint32_t);                                                  \
+  } while (0)
+
+#define SERIALIZE_H2NBO_U32(buffer, value)                                     \
+  do {                                                                         \
+    uint32_t n_value = htonl(value);                                           \
+    memcpy(buffer, (unsigned char*) &n_value, sizeof(uint32_t));               \
+  } while (0)
+
+#define SERIALIZE_U32(buffer, value)                                           \
+  do {                                                                         \
+    memcpy(buffer, (unsigned char*) &value, sizeof(uint32_t));                 \
   } while (0)
 
 #define IPV4_STR_ADDR_TO_INADDR(AdDr_StR, InAdDr, MeSsAgE)                     \

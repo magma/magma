@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -160,13 +160,7 @@ func TestConfiguratorService(t *testing.T) {
 	_, err = configurator.CreateEntities(context.Background(), networkID1, []configurator.NetworkEntity{entity1, entity2}, entitySerdes)
 	assert.NoError(t, err)
 
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID1,
-		nil, nil, nil,
-		[]storage.TypeAndKey{entityID1, entityID2},
-		fullEntityLoad,
-		entitySerdes,
-	)
+	entities, entitiesNotFound, err := configurator.LoadEntities(context.Background(), networkID1, nil, nil, nil, []storage.TypeAndKey{entityID1, entityID2}, fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, 0, len(entitiesNotFound))
@@ -174,7 +168,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "fooboo", entities[1].Name)
 
 	// LoadAllPerType
-	entities, _, err = configurator.LoadAllEntitiesOfType(networkID1, "foo", fullEntityLoad, entitySerdes)
+	entities, _, err = configurator.LoadAllEntitiesOfType(context.Background(), networkID1, "foo", fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, "foobar", entities[0].Name)
@@ -183,14 +177,14 @@ func TestConfiguratorService(t *testing.T) {
 	// Load paginated entities
 	paginatedEntityLoad := fullEntityLoad
 	paginatedEntityLoad.PageSize = 1
-	paginatedEntities, nextPageToken, err := configurator.LoadAllEntitiesOfType(networkID1, "foo", paginatedEntityLoad, entitySerdes)
+	paginatedEntities, nextPageToken, err := configurator.LoadAllEntitiesOfType(context.Background(), networkID1, "foo", paginatedEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(paginatedEntities))
 	assert.Equal(t, "foobar", paginatedEntities[0].Name)
 	assert.Equal(t, "CgNiYXI=", nextPageToken)
 
 	paginatedEntityLoad.PageToken = nextPageToken
-	paginatedEntities, nextPageToken, err = configurator.LoadAllEntitiesOfType(networkID1, "foo", paginatedEntityLoad, entitySerdes)
+	paginatedEntities, nextPageToken, err = configurator.LoadAllEntitiesOfType(context.Background(), networkID1, "foo", paginatedEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(paginatedEntities))
 	assert.Equal(t, "fooboo", paginatedEntities[0].Name)
@@ -207,13 +201,7 @@ func TestConfiguratorService(t *testing.T) {
 
 	_, err = configurator.UpdateEntities(context.Background(), networkID1, []configurator.EntityUpdateCriteria{entityUpdateCriteria}, entitySerdes)
 	assert.NoError(t, err)
-	entities, entitiesNotFound, err = configurator.LoadEntities(
-		networkID1,
-		strPointer("foo"),
-		nil, nil, nil,
-		fullEntityLoad,
-		entitySerdes,
-	)
+	entities, entitiesNotFound, err = configurator.LoadEntities(context.Background(), networkID1, strPointer("foo"), nil, nil, nil, fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, 0, len(entitiesNotFound))
@@ -237,13 +225,7 @@ func TestConfiguratorService(t *testing.T) {
 	}, entitySerdes)
 	assert.NoError(t, err)
 
-	entities, _, err = configurator.LoadEntities(
-		networkID1,
-		swag.String("foo"), nil,
-		nil, nil,
-		fullEntityLoad,
-		entitySerdes,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), networkID1, swag.String("foo"), nil, nil, nil, fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntities{
 		{
@@ -276,13 +258,7 @@ func TestConfiguratorService(t *testing.T) {
 	// Delete, Load
 	err = configurator.DeleteEntities(context.Background(), networkID1, []storage.TypeAndKey{entityID2})
 	assert.NoError(t, err)
-	entities, entitiesNotFound, err = configurator.LoadEntities(
-		networkID1,
-		strPointer("foo"),
-		nil, nil, nil,
-		fullEntityLoad,
-		entitySerdes,
-	)
+	entities, entitiesNotFound, err = configurator.LoadEntities(context.Background(), networkID1, strPointer("foo"), nil, nil, nil, fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, 0, len(entitiesNotFound))

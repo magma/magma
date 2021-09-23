@@ -55,7 +55,6 @@
 #undef CHECK_PROTOTYPE_ONLY
 
 #include "signals.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "shared_ts_log.h"
 #include "log.h"
@@ -497,6 +496,11 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
         ITTI_DEBUG_ISSUES, " Some threads are still running, force exit\n");
     return;
   }
+}
+
+void itti_free_desc_threads() {
+  free_wrapper((void**) &itti_desc.threads);
+  return;
 }
 
 void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx) {

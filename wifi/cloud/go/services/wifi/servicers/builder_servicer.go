@@ -16,6 +16,8 @@ package servicers
 import (
 	"context"
 
+	"github.com/golang/protobuf/proto"
+
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -24,8 +26,6 @@ import (
 	"magma/wifi/cloud/go/serdes"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/golang/protobuf/proto"
 )
 
 type builderServicer struct{}

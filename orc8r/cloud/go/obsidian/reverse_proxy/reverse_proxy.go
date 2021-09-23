@@ -19,12 +19,12 @@ import (
 	"net/url"
 	"strings"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/lib/go/registry"
 )
 
 // ReverseProxyHandler tracks registered paths to their associated proxy

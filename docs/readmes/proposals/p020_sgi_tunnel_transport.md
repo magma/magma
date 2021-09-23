@@ -10,7 +10,6 @@ hide_title: true
 *Reviewers: Magma team*\
 *Last Updated: 2021-8-15*
 
-
 ## **Objective**
 
 Add support for tunnel from AGW (SGi interface) to aggregator host.
@@ -46,7 +45,6 @@ over IPSec tunnels
 So the plan is to implement `wireguard` based tunnel first and then implement
 IPSec. This doc covers both tunnel implementation.
 
-
 ## **Wireguard Design**
 
 This feature has two important aspects
@@ -65,7 +63,6 @@ AGW need following configuration for WireGuard tunnel
    1. Peer Public IP address
    2. Peer Public Key.
    3. AGW `wireguard` interface IP
-
 
 ### **Datapath Programming for WireGuard Tunnel**
 
@@ -105,13 +102,11 @@ Magma data path programming for WireGuard Tunnel will involve the following step
 5. Ingress packet: Linux router would take care of forwarding the ingress traffic
    to respective processing next element. either OVS or to AGW management application.
 
-
 ## **Testing Plan**
 
 I am planning on writing integration tests to verify this in a vagrant
 development environment. This would done by creating `wireguard` tunnel between
 AGW and trfserver.
-
 
 ## IPSec based tunnel
 
@@ -152,7 +147,5 @@ This is the scope for version 1.
    skb-mark.
 6. IPSec would be only supported on ubuntu and kernel (> 4.14).
 
-[1] https://www.`wireguard`.com/performance/
-    https://core.ac.uk/download/pdf/322886318.pdf
-
-
+[1] <https://www>.`wireguard`.com/performance/
+    <https://core.ac.uk/download/pdf/322886318.pdf>

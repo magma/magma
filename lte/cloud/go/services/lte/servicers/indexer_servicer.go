@@ -17,6 +17,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_api "magma/lte/cloud/go/services/lte"
@@ -26,11 +31,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const (
@@ -97,7 +97,7 @@ func setEnodebState(ctx context.Context, networkID string, states state_types.St
 			stateErrors[id] = fmt.Errorf("error serializing EnodebState for deviceID %s", id.DeviceID)
 			continue
 		}
-		gwEnt, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+		gwEnt, err := configurator.LoadEntityForPhysicalID(ctx, st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 		if err != nil {
 			stateErrors[id] = errors.Wrap(err, "error loading gatewayID")
 			continue

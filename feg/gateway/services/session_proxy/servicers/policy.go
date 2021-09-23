@@ -18,13 +18,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/golang/glog"
 )
 
 // sendInitialGxRequestOrGenerateEmptyResponse generates an empty response in case Gx is disabled.

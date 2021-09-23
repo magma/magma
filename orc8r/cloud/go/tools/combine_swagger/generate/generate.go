@@ -18,10 +18,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/swaggergen/generate"
-
-	"github.com/pkg/errors"
 )
 
 // GenerateStandaloneSpecs generates standalone specs for all Swagger specs in

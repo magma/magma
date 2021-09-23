@@ -20,6 +20,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -42,11 +47,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/key"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -1047,15 +1047,10 @@ func TestCreateGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
@@ -1115,15 +1110,10 @@ func TestCreateGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g3"},
-			{Type: lte.CellularGatewayEntityType, Key: "g3"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: "g3"},
+		{Type: lte.CellularGatewayEntityType, Key: "g3"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	// the device should get created regardless
 	actualDevice, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
@@ -1473,16 +1463,11 @@ func TestUpdateGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
@@ -1581,16 +1566,11 @@ func TestDeleteGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.Nil(t, actualDevice)
@@ -1762,11 +1742,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 		},
 	}
 
-	entities, _, err := configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err := configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1800,11 +1776,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 2,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1836,11 +1808,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 3,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1888,11 +1856,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 4,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1928,11 +1892,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1972,11 +1932,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -2012,11 +1968,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -2048,11 +2000,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 8,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 }
@@ -2318,7 +2266,7 @@ func TestCreateEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdef", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "abcdef", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2419,7 +2367,7 @@ func TestCreateEnodeb(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
-	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	_, err = configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 }
 
@@ -2500,7 +2448,7 @@ func TestUpdateEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2650,7 +2598,7 @@ func TestDeleteEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	_, err = configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.EqualError(t, err, "Not found")
 }
 
@@ -2738,7 +2686,7 @@ func TestCreateApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "foo", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.APNEntityType, "foo", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2980,7 +2928,7 @@ func TestUpdateApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.APNEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -3047,7 +2995,7 @@ func TestDeleteApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -3287,7 +3235,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms old APN resource was deleted
-	exists, err := configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res0")
+	exists, err := configurator.DoesEntityExist(context.Background(), "n0", lte.APNResourceEntityType, "res0")
 	assert.NoError(t, err)
 	assert.False(t, exists)
 
@@ -3327,12 +3275,12 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms APN resource was deleted
-	exists, err = configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res1")
+	exists, err = configurator.DoesEntityExist(context.Background(), "n0", lte.APNResourceEntityType, "res1")
 	assert.NoError(t, err)
 	assert.False(t, exists)
 
 	// Configurator confirms all APN resources are now deleted
-	ents, _, err := configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ents, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, ents)
 
@@ -3349,7 +3297,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gw's APN resources exist again
-	ents, _, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
+	ents, _, err = configurator.LoadAllEntitiesOfType(context.Background(), "n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 2)
 	assert.ElementsMatch(t, []string{"res1", "res2"}, []string{ents[0].Key, ents[1].Key})
@@ -3367,17 +3315,13 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gateway now has only 1 apn_resource assoc
-	gwEnt, err := configurator.LoadEntity(
-		"n0", lte.CellularGatewayEntityType, "gw0",
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	gwEnt, err := configurator.LoadEntity(context.Background(), "n0", lte.CellularGatewayEntityType, "gw0", configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, gwEnt.Associations.Filter(lte.APNResourceEntityType), 1)
 	assert.Equal(t, "res2", gwEnt.Associations.Filter(lte.APNResourceEntityType).Keys()[0])
 
 	// Configurator confirms APN resource was deleted due to cascading delete
-	ents, _, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ents, _, err = configurator.LoadAllEntitiesOfType(context.Background(), "n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 1)
 	assert.Equal(t, "res2", ents[0].Key)

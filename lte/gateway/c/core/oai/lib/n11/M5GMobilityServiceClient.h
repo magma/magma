@@ -23,9 +23,8 @@ class M5GMobilityServiceClient {
   virtual ~M5GMobilityServiceClient() {}
   virtual int allocate_ipv4_address(
       const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
-      uint8_t pti, uint32_t pdu_session_type, uint8_t* gnb_gtp_teid,
-      uint8_t gnb_gtp_teid_len, uint8_t* gnb_gtp_teid_ip_addr,
-      uint8_t gnb_gtp_teid_ip_addr_len) = 0;
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) = 0;
 
   virtual int release_ipv4_address(
       const char* subscriber_id, const char* apn,
@@ -36,9 +35,8 @@ class AsyncM5GMobilityServiceClient : public M5GMobilityServiceClient {
  public:
   int allocate_ipv4_address(
       const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
-      uint8_t pti, uint32_t pdu_session_type, uint8_t* gnb_gtp_teid,
-      uint8_t gnb_gtp_teid_len, uint8_t* gnb_gtp_teid_ip_addr,
-      uint8_t gnb_gtp_teid_ip_addr_len);
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
 
   int release_ipv4_address(
       const char* subscriber_id, const char* apn, const struct in_addr* addr);

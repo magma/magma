@@ -396,7 +396,7 @@ class S1ApUtil(object):
             assert s1ap_types.tfwCmd.UE_CTX_REL_IND.value == response.msg_type
 
         with self._lock:
-            del self._ue_ip_map[ue_id]
+            self._ue_ip_map.pop(ue_id, 0)
 
     def _verify_dl_flow(self, dl_flow_rules=None):
         # try at least 5 times before failing as gateway

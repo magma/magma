@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // SSCMode IE Class
 class SSCModeMsg {
@@ -27,5 +26,12 @@ class SSCModeMsg {
       SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
   int DecodeSSCModeMsg(
       SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len);
+  void copy(const SSCModeMsg& s) {
+    iei      = s.iei;
+    mode_val = s.mode_val;
+  }
+  bool isEqual(const SSCModeMsg& s) {
+    return ((iei == s.iei) && (mode_val == s.mode_val));
+  }
 };
 }  // namespace magma5g

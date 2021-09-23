@@ -20,7 +20,6 @@
 #include "M5GUESecurityCapability.h"
 #include "M5GIMEISVRequest.h"
 
-using namespace std;
 namespace magma5g {
 // SecurityModeCommand Message Class
 class SecurityModeCommandMsg {

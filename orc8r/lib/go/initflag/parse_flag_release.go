@@ -1,3 +1,4 @@
+//go:build !debug_build
 // +build !debug_build
 
 /*

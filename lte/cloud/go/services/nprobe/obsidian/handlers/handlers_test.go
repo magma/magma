@@ -18,6 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
@@ -28,10 +32,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -79,7 +79,7 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeTaskEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context2.Background(), "n1", lte.NetworkProbeTaskEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -284,7 +284,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeTaskEntityType, "IMSI1234", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context2.Background(), "n1", lte.NetworkProbeTaskEntityType, "IMSI1234", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -341,7 +341,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeTaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context2.Background(), "n1", lte.NetworkProbeTaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -392,7 +392,7 @@ func TestCreateNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeDestinationEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context2.Background(), "n1", lte.NetworkProbeDestinationEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -577,7 +577,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeDestinationEntityType, "1111-2222-3333", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context2.Background(), "n1", lte.NetworkProbeDestinationEntityType, "1111-2222-3333", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -636,7 +636,7 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeDestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context2.Background(), "n1", lte.NetworkProbeDestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{

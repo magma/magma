@@ -14,10 +14,14 @@
 package models
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
@@ -25,9 +29,6 @@ import (
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	orc8rProtos "magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
 )
 
 // TODO(8/21/20): provide entity-wise namespacing support from configurator
@@ -402,8 +403,8 @@ func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network)
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, m), nil
 }
 
-func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error {
-	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key, EntitySerdes)
+func (m *PolicyQosProfile) FromBackendModels(ctx context.Context, networkID string, key string) error {
+	config, err := configurator.LoadEntityConfig(ctx, networkID, lte.PolicyQoSProfileEntityType, key, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -411,12 +412,12 @@ func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error
 	return nil
 }
 
-func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *PolicyQosProfile) ToUpdateCriteria(ctx context.Context, networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
 	if key != m.ID {
 		return nil, errors.New("id field is read-only")
 	}
 
-	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, key)
+	exists, err := configurator.DoesEntityExist(ctx, networkID, lte.PolicyQoSProfileEntityType, key)
 	if err != nil {
 		return nil, err
 	}

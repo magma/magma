@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/golang/glog"
+	"github.com/spf13/cobra"
+
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/cloud/go/services/dispatcher/gw_client_apis/service303"
 	"magma/orc8r/lib/go/service/client"
-
-	"github.com/golang/glog"
-	"github.com/spf13/cobra"
 )
 
 func init() {

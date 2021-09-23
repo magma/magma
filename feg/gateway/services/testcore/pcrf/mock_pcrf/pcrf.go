@@ -19,13 +19,6 @@ import (
 	"net"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/session_proxy/credit_control/gx"
-	"magma/feg/gateway/services/testcore/mock_driver"
-	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/lib/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -33,6 +26,13 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/session_proxy/credit_control/gx"
+	"magma/feg/gateway/services/testcore/mock_driver"
+	lteprotos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // This is a temporary struct to handle unsupported AVP Charging-Rule-Report in go-diameter

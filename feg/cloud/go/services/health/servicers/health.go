@@ -17,6 +17,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/health/metrics"
@@ -26,11 +31,6 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type HealthStatus int
@@ -120,6 +120,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	// the number of gateways, which gateway is active, and gateway health
 	magmadGatewayTypeVal := orc8r.MagmadGatewayType
 	gateways, _, err := configurator.LoadEntities(
+		ctx,
 		networkID, &magmadGatewayTypeVal, nil, nil, nil,
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,

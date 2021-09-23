@@ -16,6 +16,9 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+
 	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -31,9 +34,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 )
 
 func (m *FegNetwork) ValidateModel(context.Context) error {
@@ -223,9 +223,7 @@ func (m *MutableFederationGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}}
 }
 
-func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
-	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
-) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var ret []configurator.EntityWriteOperation
 	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: string(m.ID)}]
 	if !ok {
@@ -256,8 +254,8 @@ func (m *FederatedNetworkConfigs) ToUpdateCriteria(network configurator.Network)
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, feg.FederatedNetworkType, m), nil
 }
 
-func (m *GatewayFederationConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	federationConfig, err := configurator.LoadEntityConfig(networkID, feg.FegGatewayType, gatewayID, EntitySerdes)
+func (m *GatewayFederationConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
+	federationConfig, err := configurator.LoadEntityConfig(ctx, networkID, feg.FegGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -265,7 +263,7 @@ func (m *GatewayFederationConfigs) FromBackendModels(networkID string, gatewayID
 	return nil
 }
 
-func (m *GatewayFederationConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayFederationConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
 			Type: feg.FegGatewayType, Key: gatewayID,

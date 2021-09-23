@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -31,10 +35,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 const (
@@ -175,13 +175,15 @@ func getGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
+	reqCtx := c.Request().Context()
 
-	magmadModel, nerr := handlers.LoadMagmadGateway(c.Request().Context(), nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(reqCtx, nid, gid)
 	if nerr != nil {
 		return nerr
 	}
 
 	ent, err := configurator.LoadEntity(
+		reqCtx,
 		nid, lte.CellularGatewayEntityType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -210,7 +212,7 @@ func getGateway(c echo.Context) error {
 		case lte.CellularEnodebEntityType:
 			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
 		case lte.APNResourceEntityType:
-			e, err := configurator.LoadEntity(nid, tk.Type, tk.Key, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
+			e, err := configurator.LoadEntity(reqCtx, nid, tk.Type, tk.Key, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 			if err != nil {
 				return errors.Wrap(err, "error loading apn resource entity")
 			}
@@ -244,6 +246,7 @@ func deleteGateway(c echo.Context) error {
 
 	reqCtx := c.Request().Context()
 	gw, err := configurator.LoadEntity(
+		reqCtx,
 		nid, lte.CellularGatewayEntityType, gid,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -307,6 +310,7 @@ func listEnodebs(c echo.Context) error {
 	}
 
 	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		nid,
 		lte.CellularEnodebEntityType,
 		configurator.EntityLoadCriteria{
@@ -322,7 +326,7 @@ func listEnodebs(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	count, err := configurator.CountEntitiesOfType(nid, lte.CellularEnodebEntityType)
+	count, err := configurator.CountEntitiesOfType(c.Request().Context(), nid, lte.CellularEnodebEntityType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -383,6 +387,7 @@ func getEnodeb(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		nid, lte.CellularEnodebEntityType, eid,
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -454,7 +459,7 @@ func getEnodebState(c echo.Context) error {
 	}
 	enodebState := st.ReportedState.(*lte_models.EnodebState)
 	enodebState.TimeReported = st.TimeMs
-	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ent, err := configurator.LoadEntityForPhysicalID(reqCtx, st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err == nil {
 		enodebState.ReportingGatewayID = ent.Key
 	}
@@ -522,6 +527,7 @@ func listApns(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.APNEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -575,7 +581,7 @@ func getApnConfiguration(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
+	ent, err := configurator.LoadEntity(c.Request().Context(), networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -602,7 +608,7 @@ func updateApnConfiguration(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.LoadEntity(networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{}, serdes.Entity)
+	_, err := configurator.LoadEntity(reqCtx, networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{}, serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -625,6 +631,7 @@ func deleteApnConfiguration(c echo.Context) error {
 	reqCtx := c.Request().Context()
 
 	ent, err := configurator.LoadEntity(
+		reqCtx,
 		networkID, lte.APNEntityType, apnName,
 		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 		serdes.Entity,
@@ -787,7 +794,7 @@ func listGatewayPoolsHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gatewayPoolEnts, _, err := configurator.LoadAllEntitiesOfType(nid, lte.CellularGatewayPoolEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	gatewayPoolEnts, _, err := configurator.LoadAllEntitiesOfType(c.Request().Context(), nid, lte.CellularGatewayPoolEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -830,6 +837,7 @@ func getGatewayPoolHandler(c echo.Context) error {
 		return nerr
 	}
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID,
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -867,7 +875,7 @@ func updateGatewayPoolHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	// 404 if pool doesn't exist
-	exists, err := configurator.DoesEntityExist(networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID)
+	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Error while checking if gateway pool exists"), http.StatusInternalServerError)
 	}
@@ -887,7 +895,7 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 		return nerr
 	}
 	reqCtx := c.Request().Context()
-	poolEnt, err := configurator.LoadEntity(networkID, lte.CellularGatewayPoolEntityType, poolID, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	poolEnt, err := configurator.LoadEntity(reqCtx, networkID, lte.CellularGatewayPoolEntityType, poolID, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

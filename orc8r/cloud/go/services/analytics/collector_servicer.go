@@ -15,12 +15,13 @@ package analytics
 
 import (
 	"context"
+
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
 )
 
 // collectorServicer implements the operations of collecting the metrics from CWF service

@@ -18,6 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -42,10 +46,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	stateTypes "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateSubscriber(t *testing.T) {
@@ -94,11 +94,7 @@ func TestCreateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -138,11 +134,7 @@ func TestCreateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI0987654321",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	_, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI0987654321", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.EqualError(t, err, "Not found")
 
 	// nonexistent sub profile should be 400
@@ -1667,11 +1659,7 @@ func TestUpdateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID:    "n1",
@@ -1742,11 +1730,7 @@ func TestDeleteSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType(
-		"n1", lte.SubscriberEntityType,
-		configurator.EntityLoadCriteria{},
-		serdes.Entity,
-	)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n1", lte.SubscriberEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actual))
 }
@@ -1800,11 +1784,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -1813,11 +1793,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tc.Handler = deactivateSubscriber
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "INACTIVE"
 	expected.Version = 2
@@ -1825,11 +1801,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	// deactivate deactivated sub
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "INACTIVE"
 	expected.Version = 3
@@ -1839,11 +1811,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tc.URL = testURLRoot + "/activate"
 	tc.Handler = activateSubscriber
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "ACTIVE"
 	expected.Version = 4
@@ -1936,11 +1904,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
@@ -1971,11 +1935,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",

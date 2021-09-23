@@ -1,3 +1,4 @@
+//go:build !with_profiler
 // +build !with_profiler
 
 /*
@@ -19,7 +20,6 @@ package profile
 import "os"
 
 // empty stubs for disabled profiler builds
-
 // MemWrite stub
 func MemWrite() error {
 	return nil

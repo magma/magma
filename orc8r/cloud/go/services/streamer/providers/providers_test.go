@@ -17,6 +17,13 @@ import (
 	context2 "context"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -30,13 +37,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"golang.org/x/net/context"
 )
 
 func TestMconfigStreamer_Configurator(t *testing.T) {

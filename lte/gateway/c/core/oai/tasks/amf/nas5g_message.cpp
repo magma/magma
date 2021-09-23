@@ -26,6 +26,7 @@ extern "C" {
 #include "amf_fsm.h"
 #include "amf_recv.h"
 #include "M5GDLNASTransport.h"
+#include "amf_common.h"
 namespace magma5g {
 
 #define NAS5G_MESSAGE_SECURITY_HEADER_SIZE 7
@@ -76,7 +77,6 @@ static uint32_t _nas5g_message_get_mac(
     int const direction, amf_security_context_t* const amf_security_context);
 
 std::string get_message_type_str(uint8_t type);
-std::string uint8_to_hex_string(const uint8_t* v, const size_t s);
 
 /****************************************************************************
  *                                                                           *
@@ -616,6 +616,10 @@ int _nas5g_message_plain_encode(
     bytes = amf_msg_test.M5gNasMessageEncodeMsg(
         (AmfMsg*) &msg->amf, (uint8_t*) buffer, length);
 
+    if (bytes < 0) {
+      OAILOG_WARNING(LOG_AMF_APP, "Encoding Message Failed");
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
+    }
     OAILOG_DEBUG(
         LOG_AMF_APP, "[%s] Msg plain encode bytes[0-%d]\n%s",
         get_message_type_str(msg->amf.header.message_type).c_str(), bytes,
@@ -667,7 +671,7 @@ static int _nas5g_message_protected_encode(
      */
     int size = _nas5g_message_plain_encode(
         plain_msg, &msg->header, &msg->plain, length);
-    if (size > 0) {
+    if (size > 0 && security) {
       /*
        * Encrypt the encoded plain NAS message
        */
@@ -677,6 +681,7 @@ static int _nas5g_message_protected_encode(
           amf_security_context->direction_encode, size, amf_security_context);
     }
   }
+  free(plain_msg);
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
 }
@@ -992,6 +997,9 @@ std::string get_message_type_str(uint8_t type) {
     case M5G_SERVICE_ACCEPT:
       msgtype_str = "M5G_SERVICE_ACCEPT";
       break;
+    case M5G_SERVICE_REJECT:
+      msgtype_str = "M5G_SERVICE_REJECT";
+      break;
     case M5G_IDENTITY_REQUEST:
       msgtype_str = "M5G_IDENTITY_REQUEST";
       break;
@@ -1031,11 +1039,14 @@ std::string get_message_type_str(uint8_t type) {
   }
   return msgtype_str;
 }
+
 std::string uint8_to_hex_string(const uint8_t* v, const size_t s) {
   std::stringstream ss;
 
+  if (!v || (0 == s)) return ss.str();
+
   ss << std::hex << std::setfill('0');
-  for (int i = 0; i < s; i++) {
+  for (unsigned int i = 0; i < s; i++) {
     ss << std::hex << std::setw(2) << static_cast<int>(v[i]) << " ";
     if ((i + 1) % 8 == 0) ss << " ";
     if ((i + 1) % 16 == 0) ss << "\n";

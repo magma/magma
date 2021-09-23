@@ -19,6 +19,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
@@ -29,9 +32,6 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
 
 // CentralSessionController acts as the gRPC server for accepting calls from

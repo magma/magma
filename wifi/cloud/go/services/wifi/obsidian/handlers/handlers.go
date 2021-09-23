@@ -18,6 +18,9 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -30,9 +33,6 @@ import (
 	"magma/wifi/cloud/go/serdes"
 	wifimodels "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -151,6 +151,7 @@ func getGateway(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		nid, wifi.WifiGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -193,7 +194,7 @@ func deleteGateway(c echo.Context) error {
 	}
 	reqCtx := c.Request().Context()
 
-	gwEnt, err := configurator.LoadEntity(nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{}, serdes.Entity)
+	gwEnt, err := configurator.LoadEntity(reqCtx, nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil && err != merrors.ErrNotFound {
 		return obsidian.HttpError(err)
 	}
@@ -283,7 +284,7 @@ func getMesh(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	ent, err := configurator.LoadEntity(c.Request().Context(), nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -313,7 +314,7 @@ func updateMesh(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "mesh ID in body must match mesh_id in path")
 	}
 
-	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	ent, err := configurator.LoadEntity(reqCtx, nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -347,7 +348,7 @@ func deleteMesh(c echo.Context) error {
 	}
 	reqCtx := c.Request().Context()
 
-	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	ent, err := configurator.LoadEntity(reqCtx, nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound

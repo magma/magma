@@ -17,15 +17,15 @@ import (
 	"context"
 	"time"
 
-	lteProtos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/smsd/storage"
-	"magma/lte/cloud/go/sms_ll"
-	"magma/orc8r/cloud/go/identity"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	lteProtos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/smsd/storage"
+	"magma/lte/cloud/go/sms_ll"
+	"magma/orc8r/cloud/go/identity"
 )
 
 const defaultTimeout = 6 * time.Minute

@@ -63,7 +63,6 @@
 #include "service303.h"
 #include "shared_ts_log.h"
 #include "grpc_service.h"
-#include "timer.h"
 
 static void send_timer_recovery_message(void);
 
@@ -115,7 +114,6 @@ int main(int argc, char* argv[]) {
   // only 1 thread
   initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
 
-  CHECK_INIT_RETURN(timer_init());
   // Could not be launched before ITTI initialization
   shared_log_itti_connect();
   OAILOG_ITTI_CONNECT();

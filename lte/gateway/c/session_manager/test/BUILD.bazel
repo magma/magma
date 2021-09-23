@@ -150,6 +150,7 @@ cc_test(
     size = "small",
     srcs = ["test_cloud_reporter.cpp"],
     flaky = True,
+    tags = ["exclusive"],
     deps = [
         ":sessiond_mocks",
         "//lte/gateway/c/session_manager:session_reporter",
@@ -176,6 +177,10 @@ cc_test(
     size = "small",
     srcs = ["test_sessiond_integ.cpp"],
     flaky = True,
+    # This test unfortunately brings up a test server that collides with another test (cloud_reporter)
+    # Marking it as exclusive so that the test is not run in parallel with other tests
+    # See https://docs.bazel.build/versions/4.2.1/test-encyclopedia.html#tag-conventions
+    tags = ["exclusive"],
     deps = [
         ":consts",
         ":matchers",

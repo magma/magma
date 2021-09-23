@@ -24,26 +24,25 @@ namespace magma {
  * RedisMap stores objects using the redis hash structure. This map requires a
  * serializer and deserializer to store objects as strings in the redis store
  */
-template <typename ObjectType>
+template<typename ObjectType>
 class RedisMap : public ObjectMap<ObjectType> {
-public:
+ public:
   RedisMap(
-    std::shared_ptr<cpp_redis::client> client,
-    const std::string& hash,
-    std::function<bool(const ObjectType&, std::string&, uint64_t&)> serializer,
-    std::function<bool(const std::string&, ObjectType&)> deserializer)
-    : client_(client),
-      hash_(hash),
-      serializer_(serializer),
-      deserializer_(deserializer) {}
+      std::shared_ptr<cpp_redis::client> client, const std::string& hash,
+      std::function<bool(const ObjectType&, std::string&, uint64_t&)>
+          serializer,
+      std::function<bool(const std::string&, ObjectType&)> deserializer)
+      : client_(client),
+        hash_(hash),
+        serializer_(serializer),
+        deserializer_(deserializer) {}
 
   /**
    * set serializes the object passed into a string and stores it at the key.
    * Returns false if the operation was unsuccessful
    */
   ObjectMapResult set(
-      const std::string& key,
-      const ObjectType& object) override {
+      const std::string& key, const ObjectType& object) override {
     uint64_t version;
     auto res = this->get_version(key, version);
     if (res != SUCCESS) {
@@ -85,8 +84,8 @@ public:
       return INCORRECT_VALUE_TYPE;
     }
     if (!deserializer_(reply.as_string(), object_out)) {
-      MLOG(MERROR) << "Failed to deserialize key " << key
-        << " with value " << reply.as_string();
+      MLOG(MERROR) << "Failed to deserialize key " << key << " with value "
+                   << reply.as_string();
       return DESERIALIZE_FAIL;
     }
     return SUCCESS;
@@ -96,7 +95,7 @@ public:
    * getall returns all values stored in the hash
    */
   ObjectMapResult getall(std::vector<ObjectType>& values_out) override {
-      return getall(values_out, nullptr);
+    return getall(values_out, nullptr);
   }
 
   /**
@@ -104,8 +103,8 @@ public:
    * that failed to be deserialized.
    */
   ObjectMapResult getall(
-    std::vector<ObjectType>& values_out,
-    std::vector<std::string>* failed_keys) {
+      std::vector<ObjectType>& values_out,
+      std::vector<std::string>* failed_keys) {
     auto hgetall_future = client_->hgetall(hash_);
     client_->sync_commit();
     auto reply = hgetall_future.get();
@@ -123,8 +122,8 @@ public:
         // this should essentially never happen
         MLOG(MERROR) << "Non string key found";
       }
-      auto key = key_reply.as_string();
-      auto value_reply = array[i+1];
+      auto key         = key_reply.as_string();
+      auto value_reply = array[i + 1];
       if (!value_reply.is_string()) {
         MLOG(MERROR) << "Non string value found";
         if (failed_keys != nullptr) failed_keys->push_back(key);
@@ -141,14 +140,14 @@ public:
     return SUCCESS;
   }
 
-private:
+ private:
   /*
    * Return the version of the value for key *key*. Returns 0 if
    * key is not in the map
    */
   ObjectMapResult get_version(const std::string& key, uint64_t& version) {
     auto redis_state = RedisState();
-    auto res = this->get_redis_state(key, redis_state);
+    auto res         = this->get_redis_state(key, redis_state);
     if (res == KEY_NOT_FOUND) {
       version = (uint64_t) 0u;
       return SUCCESS;
@@ -163,8 +162,7 @@ private:
    * Gets the RedisState result that stores the actual value we want
    */
   ObjectMapResult get_redis_state(
-      const std::string& key,
-      RedisState& redis_state) {
+      const std::string& key, RedisState& redis_state) {
     auto hget_future = client_->hget(hash_, key);
     client_->sync_commit();
     auto reply = hget_future.get();
@@ -179,8 +177,8 @@ private:
       return INCORRECT_VALUE_TYPE;
     }
     if (!redis_state.ParseFromString(reply.as_string())) {
-      MLOG(MERROR) << "Failed to deserialize key " << key
-                   << " with value " << reply.as_string();
+      MLOG(MERROR) << "Failed to deserialize key " << key << " with value "
+                   << reply.as_string();
       return DESERIALIZE_FAIL;
     }
     return SUCCESS;
@@ -192,4 +190,4 @@ private:
   std::function<bool(const std::string&, ObjectType&)> deserializer_;
 };
 
-}
+}  // namespace magma

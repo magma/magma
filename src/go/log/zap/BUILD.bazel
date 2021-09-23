@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "zap",
+    srcs = [
+        "zap.go",
+        "zap_windows.go",
+    ],
+    importpath = "github.com/magma/magma/log/zap",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/log",
+        "@com_github_pkg_errors//:errors",
+        "@org_uber_go_zap//:zap",
+        "@org_uber_go_zap//zapcore",
+    ],
+)
+
+go_test(
+    name = "zap_test",
+    srcs = [
+        "zap_integ_test.go",
+        "zap_test.go",
+    ],
+    embed = [":zap"],
+    deps = [
+        "//src/go/internal/testutil",
+        "@com_github_stretchr_testify//assert",
+        "@org_uber_go_zap//:zap",
+        "@org_uber_go_zap//zapcore",
+        "@org_uber_go_zap//zaptest",
+    ],
+)

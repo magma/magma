@@ -44,6 +44,7 @@
 #include "nas_procedures.h"
 #include "mme_app_defs.h"
 #include "mme_app_timer.h"
+#include "mme_app_statistics.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -143,11 +144,6 @@ status_code_e mme_app_handle_detach_t3422_expiry(
     emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id, data->detach_type);
   } else {
     // Abort the detach procedure and perform implicit detach
-    if (data) {
-      // Free timer argument
-      free_wrapper((void**) &data);
-      emm_ctx->t3422_arg = NULL;
-    }
     if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       /*
@@ -158,11 +154,30 @@ status_code_e mme_app_handle_detach_t3422_expiry(
       emm_detach_request_params.type       = 0;
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
     }
+    if (data) {
+      // Free timer argument
+      free_wrapper((void**) &data);
+      emm_ctx->t3422_arg = NULL;
+    }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
-void _clear_emm_ctxt(emm_context_t* emm_context) {
+status_code_e release_esm_pdn_context(
+    emm_context_t* emm_context, mme_ue_s1ap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  esm_sap_t esm_sap = {0};
+  esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
+  esm_sap.ue_id     = ue_id;
+  esm_sap.ctx       = emm_context;
+  esm_sap.data.eps_bearer_context_deactivate.ebi[0] = ESM_SAP_ALL_EBI;
+  esm_sap.data.eps_bearer_context_deactivate.is_pcrf_initiated = false;
+
+  status_code_e rc = esm_sap_send(&esm_sap);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+void clear_emm_ctxt(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!emm_context) {
     return;
@@ -174,18 +189,6 @@ void _clear_emm_ctxt(emm_context_t* emm_context) {
   nas_delete_all_emm_procedures(emm_context);
   // Stop T3489 timer
   free_esm_context_content(&emm_context->esm_ctx);
-  esm_sap_t esm_sap = {0};
-  /*
-   * Release ESM PDN and bearer context
-   */
-
-  esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
-  esm_sap.ue_id     = ue_id;
-  esm_sap.ctx       = emm_context;
-  esm_sap.data.eps_bearer_context_deactivate.ebi[0] = ESM_SAP_ALL_EBI;
-  esm_sap.data.eps_bearer_context_deactivate.is_pcrf_initiated = false;
-
-  esm_sap_send(&esm_sap);
 
   if (emm_context->esm_msg) {
     bdestroy(emm_context->esm_msg);
@@ -203,6 +206,7 @@ void _clear_emm_ctxt(emm_context_t* emm_context) {
   emm_ctx_clear_auth_vectors(emm_context);
   emm_ctx_clear_security(emm_context);
   emm_ctx_clear_non_current_security(emm_context);
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
 /*
@@ -363,9 +367,14 @@ status_code_e emm_proc_detach_request(
       " (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       emm_detach_type_str[params->type], params->type, ue_id);
   /*
-   * Get the UE emm context
+   * Get the UE context and emm context
    */
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
+  ue_mm_context_t* ue_context_p = NULL;
+  ue_context_p                  = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_context_t* emm_ctx        = NULL;
+  if (ue_context_p) {
+    emm_ctx = &ue_context_p->emm_context;
+  }
 
   if (emm_ctx == NULL) {
     OAILOG_WARNING(
@@ -383,6 +392,9 @@ status_code_e emm_proc_detach_request(
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_not_sent");
     detach_success_event(emm_ctx->_imsi64, "detach_accept_not_sent");
+    if (ue_context_p->ecm_state == ECM_CONNECTED) {
+      update_mme_app_stats_connected_ue_sub();
+    }
     rc = RETURNok;
   } else {
     /*

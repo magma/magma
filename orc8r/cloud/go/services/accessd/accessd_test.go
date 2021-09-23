@@ -17,13 +17,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	accessd_test_service "magma/orc8r/cloud/go/services/accessd/test_init"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAccessManager(t *testing.T) {

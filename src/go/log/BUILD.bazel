@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "log",
+    srcs = ["log.go"],
+    importpath = "github.com/magma/magma/log",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "log_test",
+    srcs = [
+        "log_test.go",
+        "mock_logger_test.go",
+    ],
+    embed = [":log"],
+    deps = [
+        "@com_github_golang_mock//gomock",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

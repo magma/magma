@@ -53,8 +53,7 @@ static magma::mconfig::MME get_default_mconfig() {
 
 static magma::mconfig::MME load_mconfig() {
   magma::mconfig::MME mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {
     std::cout << "[ERROR] Unable to load mconfig for mme, using default";
     return get_default_mconfig();
   }

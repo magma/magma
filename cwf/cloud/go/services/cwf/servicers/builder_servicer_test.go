@@ -16,6 +16,10 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
 	"magma/cwf/cloud/go/serdes"
@@ -31,10 +35,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	orc8r_mconfig "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build(t *testing.T) {

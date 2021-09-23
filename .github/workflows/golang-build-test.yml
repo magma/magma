@@ -1,0 +1,126 @@
+---
+name: Golang Build & Test
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  pre_job_src_go_determinator:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '[".github/workflows/golang-build-test.yml", "src/go/**"]'
+
+  build_src_go:
+    needs: pre_job_src_go_determinator
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd src/go/
+          go build ./...
+
+  test_src_go:
+    needs: pre_job_src_go_determinator
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Setup gotestsum
+        uses: autero1/action-gotestsum@v1.0.0
+        with:
+          gotestsum_version: 1.7.0
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd src/go/
+          gotestsum --format=testname --junitfile test_src_go.xml -- -race ./...
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "${{ github.workspace }}/src/go/test_src_go.xml"
+
+  test_src_go_qemu:
+    needs: pre_job_src_go_determinator
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        arch: [386, arm, arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Install QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup gotestsum
+        uses: autero1/action-gotestsum@v1.0.0
+        with:
+          gotestsum_version: 1.7.0
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run tests via qemu/binfmt
+        run: |
+          cd src/go/
+          gotestsum --format=testname --junitfile test_src_go.xml -- ./...
+        env:
+          GOARCH: ${{ matrix.arch }}
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results arm64
+          path: "${{ github.workspace }}/src/go/test_src_go.xml"
+
+
+  codecov_src_go:
+    needs: pre_job_src_go_determinator
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd src/go/
+          go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Codecov.io Upload
+        uses: codecov/codecov-action@v2
+        with:
+          flags: src_go
+          fail_ci_if_error: true
+          verbose: true

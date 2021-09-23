@@ -27,6 +27,9 @@ RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linu
     tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
+# Install goimports
+# RUN go get golang.org/x/tools/cmd/goimports
+
 # Protobuf compiler
 # Apt has 2.x but we need 3.x
 # See: https://grpc.io/docs/protoc-installation/
@@ -90,7 +93,7 @@ RUN apt-get update && apt-get install -y \
 
 # Swagger UI
 # See: https://github.com/swagger-api/swagger-ui
-ARG SWAGGER_UI_VERSION="3.1.7"
+ARG SWAGGER_UI_VERSION="3.52.2"
 RUN cd /tmp && \
   wget "https://github.com/swagger-api/swagger-ui/archive/v$SWAGGER_UI_VERSION.zip" && \
   unzip "v$SWAGGER_UI_VERSION.zip" -d swagger-ui && \

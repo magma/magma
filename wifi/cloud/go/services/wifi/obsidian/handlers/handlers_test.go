@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	models3 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -33,10 +37,6 @@ import (
 	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
 	models2 "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListNetworks(t *testing.T) {
@@ -520,12 +520,7 @@ func TestListGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -593,15 +588,10 @@ func TestListGateways(t *testing.T) {
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: gID},
-			{Type: wifi.WifiGatewayType, Key: gID},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: gID},
+		{Type: wifi.WifiGatewayType, Key: gID},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 }
@@ -621,12 +611,7 @@ func TestCreateGateway(t *testing.T) {
 
 	// Initially empty
 	seedNetworks(t)
-	actualEnts, _, err := configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -703,12 +688,7 @@ func TestCreateGateway(t *testing.T) {
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 
@@ -977,12 +957,7 @@ func TestUpdateGateway(t *testing.T) {
 			Version:            1,
 		},
 	}
-	actualEnts, _, err := configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 }
@@ -1026,17 +1001,12 @@ func TestDeleteGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: gID},
-			{Type: wifi.WifiGatewayType, Key: gID},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-			{Type: wifi.MeshEntityType, Key: mID},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: gID},
+		{Type: wifi.WifiGatewayType, Key: gID},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		{Type: wifi.MeshEntityType, Key: mID},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 
 	_, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
@@ -1187,12 +1157,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1231,12 +1196,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1278,12 +1238,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1325,12 +1280,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1366,12 +1316,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator ents should not have changed
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1463,12 +1408,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1525,12 +1465,7 @@ func TestListMeshes(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -1558,12 +1493,7 @@ func TestListMeshes(t *testing.T) {
 			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(
-		"n1", swag.String(wifi.MeshEntityType), nil, nil,
-		nil,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", swag.String(wifi.MeshEntityType), nil, nil, nil, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 }
@@ -1583,12 +1513,7 @@ func TestCreateMesh(t *testing.T) {
 
 	// Initially empty
 	seedNetworks(t)
-	actualEnts, _, err := configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -1664,12 +1589,7 @@ func TestCreateMesh(t *testing.T) {
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 
@@ -1867,12 +1787,7 @@ func TestUpdateMesh(t *testing.T) {
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err := configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 }
@@ -1980,17 +1895,12 @@ func TestDeleteMesh(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: gID},
-			{Type: wifi.WifiGatewayType, Key: gID},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-			{Type: wifi.MeshEntityType, Key: mID},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+		{Type: orc8r.MagmadGatewayType, Key: gID},
+		{Type: wifi.WifiGatewayType, Key: gID},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		{Type: wifi.MeshEntityType, Key: mID},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -2135,12 +2045,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -2189,12 +2094,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		nID, nil, nil, nil,
-		[]storage.TypeAndKey{},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 

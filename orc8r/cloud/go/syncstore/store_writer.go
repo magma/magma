@@ -19,18 +19,18 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
 )
 
 type syncStore struct {

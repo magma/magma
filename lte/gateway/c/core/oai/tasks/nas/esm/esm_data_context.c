@@ -45,7 +45,7 @@ void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
       free_traffic_flow_template(&esm_ebr_context->tft);
     }
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
-      esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
+      esm_ebr_timer_data_t* esm_ebr_timer_data = esm_ebr_context->args;
       nas_timer_stop(&(esm_ebr_context->timer));
       /*
        * Release the retransmisison timer parameters

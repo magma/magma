@@ -16,11 +16,11 @@ package main
 import (
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/radiusd/collection"
 	"magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
 )
 
 func main() {

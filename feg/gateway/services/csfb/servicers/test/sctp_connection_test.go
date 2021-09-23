@@ -18,11 +18,11 @@ import (
 	"time"
 	"unsafe"
 
-	"magma/feg/gateway/services/csfb/servicers"
-	"magma/feg/gateway/services/csfb/test_init"
-
 	"github.com/ishidawataru/sctp"
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/services/csfb/servicers"
+	"magma/feg/gateway/services/csfb/test_init"
 )
 
 func TestSend(t *testing.T) {

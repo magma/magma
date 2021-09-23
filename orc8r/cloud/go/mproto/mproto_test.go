@@ -18,11 +18,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/mproto"
-	"magma/orc8r/cloud/go/mproto/test"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/mproto"
+	"magma/orc8r/cloud/go/mproto/test"
 )
 
 const (

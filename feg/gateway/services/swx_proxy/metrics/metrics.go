@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+
 	mconfigprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	service_health_metrics "magma/feg/gateway/service_health/metrics"
 	"magma/gateway/mconfig"
-
-	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 const DefaultRequestFailureThreshold = 0.50

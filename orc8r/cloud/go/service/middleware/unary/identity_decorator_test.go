@@ -19,6 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/metadata"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
@@ -32,11 +37,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
 )
 
 const testAgHwID = "Test-AGW-Hw-Id"

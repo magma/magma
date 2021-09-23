@@ -88,11 +88,13 @@ Deregistration accept (UE terminated) */
 // A.3 Causes related to PLMN specific network failures and
 //	   congestion/authentication failures
 //-------------------------------------------------------------------------------
+#define AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED 9
 #define AMF_CAUSE_SMF_FAILURE 19  // need to check
 #define AMF_CAUSE_MAC_FAILURE 20
 #define AMF_CAUSE_SYNCH_FAILURE 21
 #define AMF_CAUSE_CONGESTION 22
 #define AMF_CAUSE_NGKSI_ALREADY_INUSE 71
+#define AMF_CAUSE_CONDITIONAL_IE_MISSING 101
 #define AMF_UE_SECURITY_CAPABILITIES_MISMATCH                                  \
   23  // UE security capabilities mismatch
 #define AMF_SECURITY_MODE_REJECT 24

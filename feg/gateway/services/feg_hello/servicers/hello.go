@@ -17,12 +17,12 @@ import (
 	"context"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/http2"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/feg/cloud/go/protos"
+	"magma/orc8r/cloud/go/http2"
 )
 
 type helloServer struct{}

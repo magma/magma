@@ -37,7 +37,7 @@ func TestAugmentedNetworkAccounting(t *testing.T) {
 	tests.SetupNetworks(t)
 
 	// Test mapping of provider & consume from CTX
-	ctx, _, _, err := unary.SetIdentityFromContext(getIncomingContextWithCertificate(t, tests.AgwHwId), nil, nil)
+	ctx, _, _, _ := unary.SetIdentityFromContext(getIncomingContextWithCertificate(t, tests.AgwHwId), nil, nil)
 	session := &protos.AcctSession{
 		User:      &protos.AcctSession_IMSI{IMSI: tests.NhImsi},
 		SessionId: testSessionId,

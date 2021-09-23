@@ -3,10 +3,9 @@
 package mocks
 
 import (
-	indexer "magma/orc8r/cloud/go/services/state/indexer"
-
 	mock "github.com/stretchr/testify/mock"
 
+	indexer "magma/orc8r/cloud/go/services/state/indexer"
 	types "magma/orc8r/cloud/go/services/state/types"
 )
 

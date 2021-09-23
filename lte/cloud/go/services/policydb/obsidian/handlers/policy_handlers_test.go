@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
@@ -27,10 +31,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 // Basic API workflow tests
@@ -1221,11 +1221,7 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *policyModels.PolicyRule, expectedEnt configurator.NetworkEntity) {
 	expectedEnt.Config = getExpectedRuleConfig(expectedModel)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.PolicyRuleEntityType, string(expectedModel.ID),
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context2.Background(), "n1", lte.PolicyRuleEntityType, string(expectedModel.ID), configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
 	tc := tests.Test{
@@ -1252,11 +1248,7 @@ func getExpectedRuleConfig(m *policyModels.PolicyRule) *policyModels.PolicyRuleC
 }
 
 func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expectedModel *policyModels.BaseNameRecord, expectedEnt configurator.NetworkEntity) {
-	actual, err := configurator.LoadEntity(
-		"n1", lte.BaseNameEntityType, string(expectedModel.Name),
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context2.Background(), "n1", lte.BaseNameEntityType, string(expectedModel.Name), configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
 	tc := tests.Test{

@@ -45,6 +45,8 @@ orc8r/cloud/swagger/specs
 
 # Node
 node_modules/
+orc8r/cloud/package.json
+orc8r/cloud/yarn.lock
 
 # Docusaurus
 docs/docusaurus/build/
@@ -104,3 +106,4 @@ bazel-magma
 bazel-out
 bazel-testlogs
 help
+compile_commands.json

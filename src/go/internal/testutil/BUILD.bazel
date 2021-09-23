@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "testutil",
+    srcs = [
+        "fs.go",
+        "log.go",
+        "testutil.go",
+    ],
+    importpath = "github.com/magma/magma/internal/testutil",
+    visibility = ["//src/go:__subpackages__"],
+    deps = [
+        "//src/go/log",
+        "//src/go/log/zap",
+        "@org_uber_go_zap//:zap",
+        "@org_uber_go_zap//zapcore",
+        "@org_uber_go_zap//zaptest",
+    ],
+)

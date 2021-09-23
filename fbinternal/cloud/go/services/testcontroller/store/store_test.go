@@ -17,12 +17,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
 type mockClock struct {

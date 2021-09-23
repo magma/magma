@@ -47,6 +47,7 @@
 #include "NwGtpv2cPrivate.h"
 #include "NwGtpv2cIe.h"
 #include "NwGtpv2cMsg.h"
+#include "common_defs.h"
 #include "log.h"
 
 #ifdef __cplusplus
@@ -74,6 +75,7 @@ nw_rc_t nwGtpv2cMsgNew(
   if (gpGtpv2cMsgPool) {
     pMsg            = gpGtpv2cMsgPool;
     gpGtpv2cMsgPool = gpGtpv2cMsgPool->next;
+    memset(pMsg, 0, sizeof(nw_gtpv2c_msg_t));
   } else {
     NW_GTPV2C_MALLOC(pStack, sizeof(nw_gtpv2c_msg_t), pMsg, nw_gtpv2c_msg_t*);
     OAILOG_DEBUG(LOG_GTPV2C, "ALLOCATED NEW MESSAGE %p!\n", pMsg);
@@ -107,6 +109,7 @@ nw_rc_t nwGtpv2cMsgFromBufferNew(
   if (gpGtpv2cMsgPool) {
     pMsg            = gpGtpv2cMsgPool;
     gpGtpv2cMsgPool = gpGtpv2cMsgPool->next;
+    memset(pMsg, 0, sizeof(nw_gtpv2c_msg_t));
   } else {
     NW_GTPV2C_MALLOC(pStack, sizeof(nw_gtpv2c_msg_t), pMsg, nw_gtpv2c_msg_t*);
   }
@@ -122,7 +125,7 @@ nw_rc_t nwGtpv2cMsgFromBufferNew(
     pBuf += 3;
 
     if (pMsg->teidPresent) {
-      pMsg->teid = ntohl(*((uint32_t*) (pBuf)));
+      DESERIALIZE_N2HBO_U32(pBuf, pMsg->teid)
       pBuf += 4;
     }
 
@@ -371,12 +374,13 @@ nw_rc_t nwGtpv2cMsgAddIeFteid(
 
   fteidBuf[0] = (ifType & 0x1F);
   pFteidBuf++;
-  *((uint32_t*) (pFteidBuf)) = htonl((teidOrGreKey));
+  SERIALIZE_H2NBO_U32(pFteidBuf, teidOrGreKey);
   pFteidBuf += 4;
 
   if (ipv4Addr) {
     fteidBuf[0] |= (0x01 << 7);
-    *((uint32_t*) (pFteidBuf)) = ipv4Addr->s_addr;
+    // ipv4Addr->s_addr is in network byte order
+    SERIALIZE_U32(pFteidBuf, ipv4Addr->s_addr);
     pFteidBuf += 4;
   }
 

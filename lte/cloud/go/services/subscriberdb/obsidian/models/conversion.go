@@ -19,6 +19,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/lte"
 	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	subscriberdb_state "magma/lte/cloud/go/services/subscriberdb/state"
@@ -28,10 +32,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
 
 func (m *MutableSubscriber) ToSubscriber() *Subscriber {

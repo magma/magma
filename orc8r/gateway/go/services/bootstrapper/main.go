@@ -34,7 +34,7 @@ Examples:
     $> %s
 
     The command will run Bootstrapper service which will periodically 
-    check the gateway certificats and update them when needed
+    check the gateway certificates and update them when needed
 
   2. Show the gateway information needed for the gateway registration and exit:
 

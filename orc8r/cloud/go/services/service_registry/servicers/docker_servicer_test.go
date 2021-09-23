@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/docker/docker/api/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func TestDockerListAllServices(t *testing.T) {

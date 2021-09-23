@@ -18,6 +18,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -25,9 +28,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -48,6 +48,7 @@ func ListBaseNames(c echo.Context) error {
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
 		baseNames, _, err := configurator.LoadAllEntitiesOfType(
+			reqCtx,
 			networkID, lte.BaseNameEntityType,
 			configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
 			serdes.Entity,
@@ -85,7 +86,7 @@ func CreateBaseName(c echo.Context) error {
 
 	// Verify that subscribers and policies exist
 	parents := bnr.GetParentAssocs()
-	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, parents)
+	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(reqCtx, networkID, parents)
 	if !doAssignedAssocsExist {
 		return obsidian.HttpError(errors.New("failed to create base name: one or more subscribers or policies do not exist"), http.StatusInternalServerError)
 	}
@@ -120,6 +121,7 @@ func GetBaseName(c echo.Context) error {
 	}
 
 	ret, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, lte.BaseNameEntityType, baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -151,6 +153,7 @@ func UpdateBaseName(c echo.Context) error {
 
 	// 404 if the entity doesn't exist
 	oldEnt, err := configurator.LoadEntity(
+		reqCtx,
 		networkID, lte.BaseNameEntityType, baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -164,7 +167,7 @@ func UpdateBaseName(c echo.Context) error {
 
 	// Verify that associated subscribers and policies exist
 	parents := bnr.GetParentAssocs()
-	assocsExist, _ := configurator.DoEntitiesExist(networkID, parents)
+	assocsExist, _ := configurator.DoEntitiesExist(reqCtx, networkID, parents)
 	if !assocsExist {
 		return obsidian.HttpError(errors.New("failed to update base name: one or more subscribers or policies do not exist"), http.StatusInternalServerError)
 	}
@@ -226,6 +229,7 @@ func ListRules(c echo.Context) error {
 	reqCtx := c.Request().Context()
 	if strings.ToLower(view) == "full" {
 		rules, _, err := configurator.LoadAllEntitiesOfType(
+			reqCtx,
 			networkID, lte.PolicyRuleEntityType,
 			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 			serdes.Entity,
@@ -270,7 +274,7 @@ func CreateRule(c echo.Context) error {
 	var allAssocs storage.TKs
 	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
 	allAssocs = append(allAssocs, rule.GetAssocs()...)
-	assocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	assocsExist, _ := configurator.DoEntitiesExist(reqCtx, networkID, allAssocs)
 	if !assocsExist {
 		return obsidian.HttpError(errors.New("failed to create policy: one or more subscribers or QoS profiles do not exist"), http.StatusInternalServerError)
 	}
@@ -304,6 +308,7 @@ func GetRule(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, lte.PolicyRuleEntityType, ruleID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -340,6 +345,7 @@ func UpdateRule(c echo.Context) error {
 
 	// 404 if the rule doesn't exist
 	oldEnt, err := configurator.LoadEntity(
+		reqCtx,
 		networkID, lte.PolicyRuleEntityType, ruleID,
 		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 		serdes.Entity,
@@ -355,7 +361,7 @@ func UpdateRule(c echo.Context) error {
 	var allAssocs storage.TKs
 	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
 	allAssocs = append(allAssocs, rule.GetAssocs()...)
-	assocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	assocsExist, _ := configurator.DoEntitiesExist(reqCtx, networkID, allAssocs)
 	if !assocsExist {
 		return obsidian.HttpError(errors.New("failed to create policy: one or more subscribers or QoS profiles do not exist"), http.StatusInternalServerError)
 	}
@@ -416,6 +422,7 @@ func getQoSProfiles(c echo.Context) error {
 	}
 
 	profiles, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.PolicyQoSProfileEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -447,7 +454,7 @@ func createQoSProfile(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, profile.ID)
+	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.PolicyQoSProfileEntityType, profile.ID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

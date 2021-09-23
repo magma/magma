@@ -56,6 +56,7 @@ RUN echo "Install general purpose packages" && \
         g++-9 \
         gcc-9 \
         lcov \
+        gdb \
         git \
         gnupg \
         golang \
@@ -84,6 +85,14 @@ RUN echo "Install general purpose packages" && \
         update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y clangd-12
+
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -186,9 +195,8 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
-RUN wget --progress=dot:giga https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
-    tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
-    cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
+RUN git clone https://github.com/liblfds/liblfds.git && \
+    cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
     make -j"$(nproc)" && \
     make ar_install && \
     cd / && \

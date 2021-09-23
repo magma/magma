@@ -16,16 +16,16 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -39,6 +39,7 @@ func ListRatingGroups(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -84,6 +85,7 @@ func GetRatingGroup(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, lte.RatingGroupEntityType, ratingGroupID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -118,7 +120,7 @@ func UpdateRatingGroup(c echo.Context) error {
 	}
 
 	// 404 if rating group doesn't exist
-	exists, err := configurator.DoesEntityExist(networkID, lte.RatingGroupEntityType, ratingGroupID)
+	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to check if rating group exists"), http.StatusInternalServerError)
 	}

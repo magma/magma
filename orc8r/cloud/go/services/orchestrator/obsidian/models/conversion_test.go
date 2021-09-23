@@ -16,12 +16,12 @@ package models_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	models1 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_Conversions(t *testing.T) {
@@ -34,7 +34,6 @@ func Test_Conversions(t *testing.T) {
 			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
-			orc8r.StateConfig:           models.NewDefaultStateConfig(),
 		},
 	}
 	generatedSNetwork := (&models.Network{}).FromConfiguratorNetwork(cNetwork)
@@ -46,7 +45,6 @@ func Test_Conversions(t *testing.T) {
 		Features:     models.NewDefaultFeaturesConfig(),
 		DNS:          models.NewDefaultDNSConfig(),
 		SentryConfig: models.NewDefaultSentryConfig(),
-		StateConfig:  models.NewDefaultStateConfig(),
 	}
 	generatedCNetwork := sNetwork.ToConfiguratorNetwork()
 

@@ -42,7 +42,7 @@ bool generator_ngap_pdusession_resource_setup_req(bstring& stream) {
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = 2;
+  asn_uint642INTEGER(&ie->value.choice.AMF_UE_NGAP_ID, 256);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -247,7 +247,7 @@ static int _pdusession_resource_setup_stream(
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = ue_ref->amf_ue_ngap_id;
+  asn_uint642INTEGER(&ie->value.choice.AMF_UE_NGAP_ID, ue_ref->amf_ue_ngap_id);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -564,7 +564,7 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
   ie->criticality = Ngap_Criticality_reject;
   ie->value.present =
       Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = 1;
+  asn_uint642INTEGER(&ie->value.choice.AMF_UE_NGAP_ID, 1);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */

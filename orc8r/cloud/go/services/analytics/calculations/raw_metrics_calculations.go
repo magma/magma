@@ -16,11 +16,12 @@ package calculations
 import (
 	"bytes"
 	"fmt"
-	"magma/orc8r/cloud/go/services/analytics/protos"
-	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"text/template"
 
 	"github.com/golang/glog"
+
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
 )
 
 // RawMetricsCalculation params for querying existing prometheus metrics.

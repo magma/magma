@@ -16,13 +16,13 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/labstack/echo"
 )
 
 const (
@@ -35,7 +35,6 @@ const (
 	ManageNetworkDescriptionPath       = ManageNetworkPath + obsidian.UrlSep + "description"
 	ManageNetworkFeaturesPath          = ManageNetworkPath + obsidian.UrlSep + "features"
 	ManageNetworkSentryPath            = ManageNetworkPath + obsidian.UrlSep + "sentry"
-	ManageNetworkStatePath             = ManageNetworkPath + obsidian.UrlSep + "state"
 	ManageNetworkDNSPath               = ManageNetworkPath + obsidian.UrlSep + "dns"
 	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
 	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
@@ -122,7 +121,6 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig, serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkSentryPath, &models2.NetworkSentryConfig{}, "", serdes.Network)...)
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkStatePath, &models2.StateConfig{}, "", serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType, serdes.Network)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(models2.NetworkDNSRecords), "", serdes.Network)...)
 

@@ -17,19 +17,18 @@ import (
 	"context"
 	"testing"
 
-	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
-	lteprotos "magma/lte/cloud/go/protos"
-
-	definitions "magma/feg/gateway/services/swx_proxy/servicers"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/stretchr/testify/assert"
+
+	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	definitions "magma/feg/gateway/services/swx_proxy/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
+	lteprotos "magma/lte/cloud/go/protos"
 )
 
 func TestNewSAA_SuccessfulRegistration(t *testing.T) {

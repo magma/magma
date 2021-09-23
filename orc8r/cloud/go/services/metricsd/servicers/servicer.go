@@ -16,17 +16,17 @@ package servicers
 import (
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	prom_proto "github.com/prometheus/client_model/go"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	prom_proto "github.com/prometheus/client_model/go"
-	"golang.org/x/net/context"
 )
 
 // MetricsControllerServer implements a handler to the gRPC server run by the
@@ -73,7 +73,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 		glog.Errorf("Expected %s, but found %s as Hardware ID", checkID.HardwareId, hardwareID)
 		hardwareID = checkID.HardwareId
 	}
-	networkID, gatewayID, err := getNetworkAndEntityIDForPhysicalID(hardwareID)
+	networkID, gatewayID, err := getNetworkAndEntityIDForPhysicalID(ctx, hardwareID)
 	if err != nil {
 		return new(protos.Void), err
 	}
@@ -214,11 +214,11 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func getNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, error) {
+func getNetworkAndEntityIDForPhysicalID(ctx context.Context, physicalID string) (string, string, error) {
 	if len(physicalID) == 0 {
 		return "", "", errors.New("Empty Hardware ID")
 	}
-	entity, err := configurator.LoadEntityForPhysicalID(physicalID, configurator.EntityLoadCriteria{}, serdes.Entity)
+	entity, err := configurator.LoadEntityForPhysicalID(ctx, physicalID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return "", "", err
 	}
