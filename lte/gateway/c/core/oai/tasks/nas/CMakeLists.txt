@@ -197,8 +197,6 @@ set(libnas_mme_esm_sap_OBJS
     )
 
 add_library(TASK_NAS
-    nas_if_s1.c
-    nas_if_s6a.c
     nas_network.c
     nas_proc.c
     nas_procedures.c

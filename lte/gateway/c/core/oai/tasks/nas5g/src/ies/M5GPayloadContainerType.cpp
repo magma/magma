@@ -16,7 +16,6 @@
 #include "M5GPayloadContainerType.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 PayloadContainerTypeMsg::PayloadContainerTypeMsg(){};
 PayloadContainerTypeMsg::~PayloadContainerTypeMsg(){};
@@ -29,8 +28,8 @@ int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(
 
   payload_container_type->type_val = (*buffer & 0x0f);
   decoded++;
-  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << hex
-               << int(payload_container_type->type_val) << endl;
+  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << std::hex
+               << int(payload_container_type->type_val) << std::endl;
 
   return (decoded);
 };
@@ -42,8 +41,8 @@ int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(
   int encoded = 0;
 
   *buffer = payload_container_type->type_val & 0x0f;
-  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << hex
-               << int(*buffer) << endl;
+  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << std::hex
+               << int(*buffer) << std::endl;
   encoded++;
 
   return (encoded);

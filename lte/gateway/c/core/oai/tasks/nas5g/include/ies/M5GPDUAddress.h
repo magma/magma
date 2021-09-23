@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 #define TYPE_VAL_IPV4 1
 #define IPV4_ADDRESS_LENGTH 4

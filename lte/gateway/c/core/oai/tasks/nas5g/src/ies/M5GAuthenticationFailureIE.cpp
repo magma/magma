@@ -14,7 +14,6 @@
 #include "M5GAuthenticationFailureIE.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 M5GAuthenticationFailureIE::M5GAuthenticationFailureIE(){};
 M5GAuthenticationFailureIE::~M5GAuthenticationFailureIE(){};
@@ -29,8 +28,8 @@ int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
   if (iei > 0) {
     m5g_auth_failure_ie->iei = *(buffer + decoded);
     CHECK_IEI_DECODER((unsigned char) iei, m5g_auth_failure_ie->iei);
-    MLOG(MDEBUG) << "In DecodeM5GAuthenticationFailureIE: iei = " << dec
-                 << int(m5g_auth_failure_ie->iei) << endl;
+    MLOG(MDEBUG) << "In DecodeM5GAuthenticationFailureIE: iei = " << std::hex
+                 << int(m5g_auth_failure_ie->iei) << std::endl;
     decoded++;
   }
 

@@ -56,6 +56,7 @@ RUN echo "Install general purpose packages" && \
         g++-9 \
         gcc-9 \
         lcov \
+        gdb \
         git \
         gnupg \
         golang \
@@ -84,6 +85,14 @@ RUN echo "Install general purpose packages" && \
         update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y clangd-12
+
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \

@@ -11,30 +11,29 @@ Affected components: AGW, enodeb, Orchestrator
 
 ## Connectivity
 
-1.  Login to the AGW by running below the command in terminal:
+1. Login to the AGW by running below the command in terminal:
 
     `ssh magma@<IP of AGW>`
 
-2.  Checking Magma interfaces. Make sure eth0 and eth1 are UP.
+2. Checking Magma interfaces. Make sure eth0 and eth1 are UP.
 
     `ip addr`
 
 ## Enodeb Connection
 
-
-1.  Check S1 and SGi interfaces can ping eNodeB(s) and internet respectively.
+1. Check S1 and SGi interfaces can ping eNodeB(s) and internet respectively.
 
     `ping google.com -I eth0`
 
     `ping <enodeB IP> -I eth1`
 
-2.  For managed eNB check status of eNodeB(s) attached to gateway using the cli(skip this step for unmanaged eNB):
+2. For managed eNB check status of eNodeB(s) attached to gateway using the cli(skip this step for unmanaged eNB):
 
     `sudo enodebd_cli.py get_all_status`
 
     An eNodeB in good state, looks similar to the below:
 
-    ```
+    ```sh
     magma@magma:~$ enodebd_cli.py get_all_status
     --- eNodeB Serial: 120200004917CNJ0028 ---
     IP Address..................10.0.2.243
@@ -51,13 +50,13 @@ Affected components: AGW, enodeb, Orchestrator
     FSM State...............Completed provisioning eNB. Awaiting new Inform.
     ```
 
-3.  Check eNodeB at SCTP level by taking a TCP dump. There should be a heartbeat messaging between eNB and AGW IP.
+3. Check eNodeB at SCTP level by taking a TCP dump. There should be a heartbeat messaging between eNB and AGW IP.
 
     `sudo tcpdump -i any sctp`
 
     A sctp association in good state looks similar as below:
 
-    ```
+    ```sh
     magma@magma:~$ sudo tcpdump -i any sctp
     tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
     listening on any, link-type LINUX_SLL (Linux cooked), capture size 262144 bytes
@@ -69,8 +68,7 @@ Affected components: AGW, enodeb, Orchestrator
 
 ## Magma Services
 
-
-1.  Check all gateway services and their status by running below commands.
+1. Check all gateway services and their status by running below commands.
 
     `sudo service magma@* status`
 
@@ -97,11 +95,11 @@ Affected components: AGW, enodeb, Orchestrator
             └─7854 /usr/local/bin/mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
     ```
 
-2.  Check the status of OVS module with `sudo ovs-vsctl show`. Make sure the “is_connected” states are “true” and there are any port errors.
+2. Check the status of OVS module with `sudo ovs-vsctl show`. Make sure the “is_connected” states are “true” and there are any port errors.
 
     OVS in good state looks similar to the below:
 
-    ```
+    ```sh
     magma-dev:~$ sudo ovs-vsctl show
     e2bf2cb0-7bbe-48ef-a489-3341731685e1
         Manager "ptcp:6640"
@@ -121,12 +119,11 @@ Affected components: AGW, enodeb, Orchestrator
                 is_connected: true
     ```
 
-
 For further debuging steps, you can follow the [AGW Datapath debugging guide](datapath_connectivity.md).
 
 ## Orchestrator Interface
 
-1.  Verify connectivity with Orchestrator by running below command: `checkin_cli.py`.
+1. Verify connectivity with Orchestrator by running below command: `checkin_cli.py`.
 
     An AGW connection with Orc8r in good state, looks similar to the below:
 
@@ -147,10 +144,9 @@ For further debuging steps, you can follow the [AGW Datapath debugging guide](da
 
 For further debuging steps, you can follow the [AGW Unable to checkin to Orc8r](agw_unable_to_checkin.md).
 
-
 ## Subscribers
 
-1.  Check subscribers attached using the below command.
+1. Check subscribers attached using the below command.
 
     `sudo mobility_cli.py get_subscriber_table`
 
@@ -158,40 +154,35 @@ For further debuging steps, you can follow the [AGW Unable to checkin to Orc8r](
 
 2. Check if subscribers are not dropping packets due to Magma. Follow the [AGW Datapath debugging guide](datapath_connectivity.md).
 
-
 ## Performance
 
+1. Check CPU utilization. `top`. If it is high, check which process is utilizing CPU more from output of the same command. All processes are listed there.
 
-1.  Check CPU utilization. `top`. If it is high, check which process is utilizing CPU more from output of the same command. All processes are listed there.
-
-
-2.  Check memory utilization by running the same command as above. You can also verify by service using the command
+2. Check memory utilization by running the same command as above. You can also verify by service using the command
     `ps -o pid,user,%mem,command ax | sort -b -k3 -r`
-
 
 ## Metrics
 
 Login to NMS UI. From the left side menu options, select  “Metrics”.  Check various metrics that are available. Look  for any sudden spike or degradation that may indicate issues with the system.
 
-  - Number of Connected eNBs (Grafana -> Dashboards -> Networks)
-  - Network of Connected UE (Grafana -> Dashboards -> Networks)
-  - Network of Registered UE (Grafana -> Dashboards -> Networks)
-  - Attach/ Reg attempts (Grafana -> Dashboards -> Networks)
-  - Attach Success Rate (Grafana -> Dashboards -> Networks)
-  - S6a Authentication Success Rate (Grafana -> Dashboards -> Networks)
-  - Service Request Success Rate (Grafana -> Dashboards -> Networks)
-  - Session Create Success Rate (Grafana -> Dashboards -> Networks)
-  - Upload/Download Throughput (Grafana -> Dashboards -> Gateway)
+- Number of Connected eNBs (Grafana -> Dashboards -> Networks)
+- Network of Connected UE (Grafana -> Dashboards -> Networks)
+- Network of Registered UE (Grafana -> Dashboards -> Networks)
+- Attach/ Reg attempts (Grafana -> Dashboards -> Networks)
+- Attach Success Rate (Grafana -> Dashboards -> Networks)
+- S6a Authentication Success Rate (Grafana -> Dashboards -> Networks)
+- Service Request Success Rate (Grafana -> Dashboards -> Networks)
+- Session Create Success Rate (Grafana -> Dashboards -> Networks)
+- Upload/Download Throughput (Grafana -> Dashboards -> Gateway)
 
 Note: Number of sites(enodeb) down, users affected, and outage duration are key indicators of service impact.
-
 
 ## Optional Features
 
 Make sure you test any other feature that is applicable to your network
 
--   X2 Handover
--   S1-Flex
--   Inbound Roaming
--   External DHCP
--   UE Bridge Mode
+- X2 Handover
+- S1-Flex
+- Inbound Roaming
+- External DHCP
+- UE Bridge Mode

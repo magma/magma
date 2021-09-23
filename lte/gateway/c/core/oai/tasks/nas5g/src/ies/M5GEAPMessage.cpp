@@ -15,7 +15,6 @@
 #include "M5GEAPMessage.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 EAPMessageMsg::EAPMessageMsg(){};
 EAPMessageMsg::~EAPMessageMsg(){};
@@ -51,7 +50,7 @@ int EAPMessageMsg::EncodeEAPMessageMsg(
 
   MLOG(MDEBUG) << "EncodeEAPMessage : ";
   IES_ENCODE_U16(buffer, encoded, eap_message->len);
-  MLOG(MDEBUG) << "Length = " << hex << int(eap_message->len);
+  MLOG(MDEBUG) << "Length = " << std::hex << int(eap_message->len);
   std::copy(eap_message->eap.begin(), eap_message->eap.end(), buffer + encoded);
   BUFFER_PRINT_LOG(buffer + encoded, eap_message->eap.length());
   encoded = encoded + eap_message->eap.length();

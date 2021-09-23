@@ -18,6 +18,8 @@ services:
       context: /tmp/magma_orc8r_build
       dockerfile: $PWD/controller/Dockerfile
       target: src
+    volumes:
+      - $PWD/../../../nms/packages/magmalte:/src/magma/nms/packages/magmalte
     depends_on:
       - postgres_test
     working_dir: /src/magma/orc8r/cloud

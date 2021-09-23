@@ -35,9 +35,11 @@ typedef struct {
 typedef struct {
   uint8_t bitRatesPresent : 1;
   uint8_t bitRatesExtPresent : 1;
+  uint8_t bitRatesExt2Present : 1;
   uint8_t qci;
   EpsQoSBitRates bitRates;
   EpsQoSBitRates bitRatesExt;
+  EpsQoSBitRates bitRatesExt2;
 } EpsQualityOfService;
 
 int encode_eps_quality_of_service(
@@ -50,6 +52,7 @@ int decode_eps_quality_of_service(
 
 int eps_qos_bit_rate_value(uint8_t br);
 int eps_qos_bit_rate_ext_value(uint8_t br);
+int eps_qos_bit_rate_ext2_value(uint8_t br);
 int qos_params_to_eps_qos(
     const qci_t qci, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
     const bitrate_t gbr_dl, const bitrate_t gbr_ul,

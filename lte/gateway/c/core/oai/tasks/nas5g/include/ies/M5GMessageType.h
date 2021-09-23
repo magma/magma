@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // MessageType IE Class
 class MessageTypeMsg {
@@ -26,5 +25,8 @@ class MessageTypeMsg {
       MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len);
   int DecodeMessageTypeMsg(
       MessageTypeMsg* message_type, uint8_t iei, uint8_t* buffer, uint32_t len);
+
+  void copy(const MessageTypeMsg& m) { msg_type = m.msg_type; }
+  bool isEqual(const MessageTypeMsg& m) { return (msg_type == m.msg_type); }
 };
 }  // namespace magma5g

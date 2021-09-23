@@ -21,5 +21,5 @@
  table=202, priority=12,dl_src=5e:cc:cc:b1:49:4b actions=set_field:0x48c2739fd9c3->metadata,resubmit(,203),set_field:0->reg0,set_field:0->reg3
  table=202, priority=12,dl_dst=5e:cc:cc:b1:49:4b actions=set_field:0x48c2739fd9c3->metadata,resubmit(,203),set_field:0->reg0,set_field:0->reg3
  cookie=0xc, table=202, priority=0 actions=resubmit(,203),set_field:0->reg0,set_field:0->reg3
- table=203, priority=12,metadata=0x48c2739fd9c3 actions=sample(probability=65535,collector_set_id=1,obs_domain_id=1,obs_point_id=1,pdp_start_epoch=145,msisdn=magma_is_awesome,apn_name=apn_name123456789g15,sampling_port=32768)
- table=203, priority=10 actions=sample(probability=65535,collector_set_id=1,obs_domain_id=1,obs_point_id=1,pdp_start_epoch=1,msisdn=defau,apn_name=default,sampling_port=32768)
+ table=203, priority=12,metadata=0x48c2739fd9c3 actions=sample(probability=65535,collector_set_id=1,obs_domain_id=1,obs_point_id=1,pdp_start_epoch=9502720,apn_mac_addr=6d:65:00:00:00:00,msisdn=magma_is_awesome)
+ table=203, priority=10 actions=sample(probability=65535,collector_set_id=1,obs_domain_id=1,obs_point_id=1,pdp_start_epoch=65536,msisdn=defau)

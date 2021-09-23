@@ -14,7 +14,6 @@
 #include "M5GSIdentityType.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 M5GSIdentityTypeMsg::M5GSIdentityTypeMsg(){};
 M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg(){};
@@ -28,7 +27,8 @@ int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
   MLOG(MDEBUG) << "   DecodeM5GSIdentityTypeMsg : ";
   m5gs_identity_type->toi = *(buffer + decoded) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << " Type of Identity = " << dec << int(m5gs_identity_type->toi);
+  MLOG(MDEBUG) << " Type of Identity = " << std::dec
+               << int(m5gs_identity_type->toi);
   return (decoded);
 };
 
@@ -40,7 +40,8 @@ int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
 
   MLOG(MDEBUG) << " EncodeM5GSIdentityTypeMsg : ";
   *(buffer + encoded) = (m5gs_identity_type->toi) & 0x7;
-  MLOG(MDEBUG) << " Type of identity = 0x" << hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << " Type of identity = 0x" << std::hex
+               << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

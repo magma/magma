@@ -18,8 +18,8 @@
 #include "M5GPayloadContainerType.h"
 #include "M5GPayloadContainer.h"
 #include "M5GPDUSessionIdentity.h"
+#include "M5GMMCause.h"
 
-using namespace std;
 namespace magma5g {
 // DLNASTransport Message Class
 class DLNASTransportMsg {
@@ -31,6 +31,8 @@ class DLNASTransportMsg {
   PayloadContainerTypeMsg payload_container_type;
   PayloadContainerMsg payload_container;
   PDUSessionIdentityMsg pdu_session_identity;
+  // optional parameters
+  M5GMMCauseMsg m5gmm_cause;
 #define DL_NAS_TRANSPORT_MINIMUM_LENGTH 7
 
   DLNASTransportMsg();

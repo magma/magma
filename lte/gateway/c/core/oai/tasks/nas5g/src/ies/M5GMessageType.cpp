@@ -15,7 +15,6 @@
 #include "M5GMessageType.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 MessageTypeMsg::MessageTypeMsg(){};
 MessageTypeMsg::~MessageTypeMsg(){};
@@ -28,7 +27,7 @@ int MessageTypeMsg::DecodeMessageTypeMsg(
   MLOG(MDEBUG) << "   DecodeMessageTypeMsg : ";
   message_type->msg_type = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " msg_type = 0x" << hex << int(message_type->msg_type);
+  MLOG(MDEBUG) << " msg_type = 0x" << std::hex << int(message_type->msg_type);
   return (decoded);
 };
 
@@ -39,7 +38,7 @@ int MessageTypeMsg::EncodeMessageTypeMsg(
 
   MLOG(MDEBUG) << " EncodeMessageTypeMsg : ";
   *(buffer + encoded) = message_type->msg_type;
-  MLOG(MDEBUG) << "Message type = 0x" << hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "Message type = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

@@ -39,6 +39,7 @@ jobs:
             amf
             ci
             cloud
+            connectiond
             control_proxy
             csfb
             ctraced

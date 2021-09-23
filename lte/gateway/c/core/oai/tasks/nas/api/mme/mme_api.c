@@ -282,7 +282,6 @@ status_code_e mme_api_new_guti(
   imsi64_t imsi64                = imsi_to_imsi64(imsi);
   bool is_plmn_equal             = false;
   partial_list_t* par_tai_list   = NULL;
-  uint8_t itr                    = 0;
 
   ue_context =
       mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
@@ -324,103 +323,14 @@ status_code_e mme_api_new_guti(
         TAI_ARG(originating_tai));
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
-  if (!par_tai_list->plmn) {
-    OAILOG_ERROR_UE(LOG_NAS, imsi64, "config PLMN is NULL\n");
+  if (update_tai_list_to_emm_context(imsi64, *guti, par_tai_list, tai_list) !=
+      RETURNok) {
+    OAILOG_ERROR_UE(
+        LOG_NAS, imsi64,
+        "Updating of TAI list to emm context failed for TAI!" TAI_FMT "\n",
+        TAI_ARG(originating_tai));
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
-  if (!par_tai_list->tac) {
-    OAILOG_ERROR_UE(LOG_NAS, imsi64, "config TAC is NULL\n");
-    OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
-  }
-
-  OAILOG_INFO(
-      LOG_NAS,
-      "Matching partial list for originating TAI found! typeOfList=%d\n",
-      par_tai_list->list_type);
-  /* Comparing PLMN of mme configuration with PLMN of GUMMEI_LIST.
-   * If PLMN matches, TAI_LIST in emm_context gets updated with TAI_LIST
-   * values from mme configuration file
-   */
-  switch (par_tai_list->list_type) {
-    case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti->gummei.plmn)) {
-        tai_list->partial_tai_list[0].numberofelements =
-            par_tai_list->nb_elem - 1;
-        tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
-        COPY_PLMN(
-            tai_list->partial_tai_list[0]
-                .u.tai_one_plmn_non_consecutive_tacs.plmn,
-            guti->gummei.plmn);
-
-        // par_tai_list is sorted
-        for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
-          tai_list->partial_tai_list[0]
-              .u.tai_one_plmn_non_consecutive_tacs.tac[itr] =
-              par_tai_list->tac[itr];
-        }
-      } else {
-        OAILOG_ERROR_UE(
-            LOG_NAS, imsi64,
-            "GUTI PLMN does not match with mme configuration tai list\n");
-      }
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti->gummei.plmn)) {
-        tai_list->partial_tai_list[0].numberofelements =
-            par_tai_list->nb_elem - 1;
-        tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
-
-        COPY_PLMN(
-            tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.plmn,
-            guti->gummei.plmn);
-
-        tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.tac =
-            par_tai_list->tac[0];
-      } else {
-        OAILOG_ERROR_UE(
-            LOG_NAS, imsi64,
-            "GUTI PLMN does not match with mme configuration tai list\n");
-      }
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
-      /* Include all the TAIs as we do not support equivalent PLMN list.
-       * Once equivalent PLMN list is supported,check if the TAI PLMNs are
-       * present in equivalent PLMN list
-       */
-      tai_list->partial_tai_list[0].numberofelements =
-          par_tai_list->nb_elem - 1;
-      tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
-
-      for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
-        COPY_PLMN(
-            tai_list->partial_tai_list[0].u.tai_many_plmn[itr].plmn,
-            par_tai_list->plmn[itr]);
-
-        // partial tai_list is sorted
-        tai_list->partial_tai_list[0].u.tai_many_plmn[itr].tac =
-            par_tai_list->tac[itr];
-      }
-      break;
-    default:
-      OAILOG_ERROR_UE(
-          imsi64, LOG_NAS,
-          "BAD TAI list configuration, unknown TAI list type %u",
-          par_tai_list->list_type);
-  }
-
-  /* TS 124.301 V15.4.0 Section 9.9.3.33:
-   * "The Tracking area identity list is a type 4 information element,
-   * with a minimum length of 8 octets and a maximum length of 98 octets.
-   * The list can contain a maximum of 16 different tracking area identities."
-   * We will limit the number to 1 partial list which can have maximum of 16
-   * TAIs.
-   */
-  tai_list->numberoflists = 1;
-  OAILOG_INFO(
-      LOG_NAS,
-      "UE " MME_UE_S1AP_ID_FMT "  Got GUTI " GUTI_FMT
-      ". The number of TAI partial lists: %d",
-      ue_context->mme_ue_s1ap_id, GUTI_ARG(guti), tai_list->numberoflists);
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
 }
 

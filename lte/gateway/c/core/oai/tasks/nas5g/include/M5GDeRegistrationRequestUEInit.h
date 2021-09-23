@@ -19,7 +19,6 @@
 #include "M5GSMobileIdentity.h"
 #include "M5GSpareHalfOctet.h"
 
-using namespace std;
 namespace magma5g {
 class DeRegistrationRequestUEInitMsg {
  public:

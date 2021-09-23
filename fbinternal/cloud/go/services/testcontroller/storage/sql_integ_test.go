@@ -17,14 +17,14 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func TestNewSQLTestcontrollerStorage_Integration(t *testing.T) {

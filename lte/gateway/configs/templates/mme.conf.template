@@ -152,8 +152,9 @@ MME :
     # AMF code DEFAULT  size = 8 bits
     # AMF GROUP ID size = 16 bits
     GUAMFI_LIST = (
-     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amfRegionId }}" ; AMF_SET_ID="{{ amfSetId }}"; AMF_POINTER="{{ amfPointer }}"}
+     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amf_region_id }}" ; AMF_SET_ID="{{ amf_set_id }}"; AMF_POINTER="{{ amf_pointer }}"}
     );
+
 
     NAS :
     {
@@ -337,6 +338,7 @@ MME :
      {% endfor %}
    );
 
+   ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB = "{{ accept_combined_attach_tau_wo_csfb }}";
    SENTRY_CONFIG = {
      {% if sentry_config %}
        # Sentry.io configuration sent from the Orc8r
@@ -352,4 +354,8 @@ NGAP :
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    AMF_NAME = "{{ amf_name }}";
+    PLMN_SUPPORT_LIST = (
+       { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; DEFAULT_SLICE_SERVICE_TYPE="{{ default_slice_service_type }}" ; DEFAULT_SLICE_DIFFERENTIATOR="{{ default_slice_differentiator }}"; }
+    );
 };

@@ -21,7 +21,6 @@
 #include "M5GUplinkDataStatus.h"
 #include "M5GPDUSessionStatus.h"
 
-using namespace std;
 namespace magma5g {
 // ServiceRequest Message Class
 class ServiceRequestMsg {

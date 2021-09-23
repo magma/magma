@@ -17,7 +17,6 @@ limitations under the License.
 #include "M5GSpareHalfOctet.h"
 #include "bstrlib.h"
 
-using namespace std;
 namespace magma5g {
 class RegistrationCompleteMsg {
  public:
