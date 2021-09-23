@@ -103,4 +103,49 @@ grpc::Status S8ServiceImpl::CreateBearer(
   return grpc::Status::OK;
 }
 
+static void convert_proto_msg_to_itti_delete_bearer_req(
+    const DeleteBearerRequestPgw* request,
+    s8_delete_bearer_request_t* itti_msg_db_req) {
+  itti_msg_db_req->sequence_number      = request->sequence_number();
+  itti_msg_db_req->context_teid         = request->c_agw_teid();
+  itti_msg_db_req->linked_eps_bearer_id = request->linked_bearer_id();
+  itti_msg_db_req->eps_bearer_id        = request->eps_bearer_id();
+  get_pco_from_proto_msg(
+      request->protocol_configuration_options(), &itti_msg_db_req->pco);
+}
+
+grpc::Status S8ServiceImpl::DeleteBearerRequest(
+    ServerContext* context, const DeleteBearerRequestPgw* request,
+    Void* response) {
+  OAILOG_INFO(
+      LOG_SGW_S8,
+      " Received Delete Bearer Request from roaming network's PGW"
+      " for context teid: " TEID_FMT "\n",
+      request->c_agw_teid());
+
+  MessageDef* message_p              = NULL;
+  s8_delete_bearer_request_t* db_req = NULL;
+  message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_DELETE_BEARER_REQ);
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_SGW_S8,
+        "Failed to allocate memory for S8_DELETE_BEARER_REQ for "
+        "context_teid" TEID_FMT "\n",
+        request->c_agw_teid());
+    return grpc::Status::CANCELLED;
+  }
+
+  db_req = &message_p->ittiMsg.s8_delete_bearer_req;
+  convert_proto_msg_to_itti_delete_bearer_req(request, db_req);
+  if ((send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SGW_S8, message_p)) !=
+      RETURNok) {
+    OAILOG_ERROR(
+        LOG_SGW_S8,
+        "Failed to send Delete bearer request to sgw_s8 task for"
+        "context_teid " TEID_FMT "\n",
+        request->c_agw_teid());
+  }
+  return grpc::Status::OK;
+}
+
 }  // namespace magma

@@ -20,6 +20,7 @@ limitations under the License.
 #define S8_CREATE_SESSION_RSP(mSGpTR) (mSGpTR)->ittiMsg.s8_create_session_rsp
 #define S8_DELETE_SESSION_RSP(mSGpTR) (mSGpTR)->ittiMsg.s8_delete_session_rsp
 #define S8_CREATE_BEARER_REQ(mSGpTR) (mSGpTR)->ittiMsg.s8_create_bearer_req
+#define S8_DELETE_BEARER_REQ(mSGpTR) (mSGpTR)->ittiMsg.s8_delete_bearer_req
 
 typedef struct s8_bearer_context_s {
   ebi_t eps_bearer_id;
@@ -57,3 +58,14 @@ typedef struct s8_create_bearer_request_s {
   s8_bearer_context_t bearer_context[BEARERS_PER_UE];
   indication_flags_t indication_flags;
 } s8_create_bearer_request_t;
+
+typedef struct s8_delete_bearer_request_s {
+  uint32_t sequence_number;
+  char* pgw_cp_address;
+  teid_t context_teid;
+  ebi_t linked_eps_bearer_id;
+  protocol_configuration_options_t pco;
+  ebi_t eps_bearer_id;  // List of eps bearer IDs to
+                        // deactivate
+} s8_delete_bearer_request_t;
+

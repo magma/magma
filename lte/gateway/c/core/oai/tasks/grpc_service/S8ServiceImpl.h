@@ -41,6 +41,10 @@ class S8ServiceImpl final : public S8ProxyResponder::Service {
   grpc::Status CreateBearer(
       grpc::ServerContext* context, const CreateBearerRequestPgw* request,
       Void* response) override;
+
+  grpc::Status DeleteBearerRequest(
+      grpc::ServerContext* context, const DeleteBearerRequestPgw* request,
+      Void* response) override;
 };
 
 }  // namespace magma

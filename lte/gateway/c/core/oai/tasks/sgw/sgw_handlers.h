@@ -126,4 +126,9 @@ void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
 
+int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+    imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
+    ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
+    teid_t mme_teid_S11, log_proto_t module);
+
 #endif /* FILE_SGW_HANDLERS_SEEN */

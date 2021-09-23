@@ -613,3 +613,47 @@ void send_s8_create_bearer_response(
       [&](grpc::Status status, magma::orc8r::Void void_response) { return; });
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
+
+static void fill_s8_delete_bearer_response(
+    const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg,
+    magma::feg::DeleteBearerResponsePgw* proto_db_rsp, teid_t pgw_s8_teid,
+    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  proto_db_rsp->Clear();
+  proto_db_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+  proto_db_rsp->set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
+  proto_db_rsp->set_sequence_number(sequence_number);
+  proto_db_rsp->set_c_pgw_teid(pgw_s8_teid);
+  proto_db_rsp->set_linked_bearer_id(*(itti_msg->lbi));
+  convert_pco_to_proto_msg(
+      itti_msg->pco, proto_db_rsp->mutable_protocol_configuration_options());
+  proto_db_rsp->set_cause(itti_msg->cause.cause_value);
+
+  proto_db_rsp->mutable_bearer_context()->set_cause(
+      itti_msg->bearer_contexts.bearer_contexts[0].cause.cause_value);
+  proto_db_rsp->mutable_bearer_context()->set_id(
+      itti_msg->bearer_contexts.bearer_contexts[0].eps_bearer_id);
+
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+void send_s8_delete_bearer_response(
+    const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
+    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  magma::feg::DeleteBearerResponsePgw proto_db_rsp;
+
+  OAILOG_INFO(
+      LOG_SGW_S8,
+      "Sending delete bearer response for context_tied " TEID_FMT "\n",
+      pgw_s8_teid);
+
+  fill_s8_delete_bearer_response(
+      itti_msg, &proto_db_rsp, pgw_s8_teid, sequence_number, pgw_cp_address,
+      imsi);
+
+  magma::S8Client::s8_delete_bearer_response(
+      proto_db_rsp,
+      [&](grpc::Status status, magma::orc8r::Void void_response) { return; });
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}

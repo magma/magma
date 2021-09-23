@@ -25,9 +25,15 @@ void send_s8_delete_session_request(
     imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
     ebi_t bearer_id,
     const itti_s11_delete_session_request_t* const delete_session_req_p);
+
 void send_s8_create_bearer_response(
     const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
     uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi);
+
+void send_s8_delete_bearer_response(
+    const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
+    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi);
+
 #ifdef __cplusplus
 }
 #endif

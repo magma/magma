@@ -223,6 +223,7 @@ message DeleteBearerRequestPgw {
     // control plane TEID given by AGW during CreateSession
     uint32 c_agw_teid = 3;
     uint32 linked_bearer_id = 4;
+    uint32 eps_bearer_id = 5;
     ProtocolConfigurationOptions protocol_configuration_options = 6;
 }
 
@@ -234,6 +235,7 @@ message DeleteBearerResponsePgw {
     // control plane TEID given by PGW during CreateSession
     uint32 c_pgw_teid = 4;
     uint32 linked_bearer_id = 5;
+    BearerContext bearer_context = 6;
     ProtocolConfigurationOptions protocol_configuration_options = 7;
     uint32 cause = 8;
 }
