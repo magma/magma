@@ -22,7 +22,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@master
         with:
           # Only run the main job for changes including the following paths
-         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]'
+         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]'
 
   bazel_build_and_test:
     needs:
