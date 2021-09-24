@@ -15,31 +15,31 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   pre_job_go_determinator:
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/reviewdog-workflow.yml", "src/go/**"]
+          # Only run the main job for changes including the following paths
+          paths: '[".github/workflows/reviewdog-workflow.yml", "src/go/**"]'
 
   pre_job_c_cpp_determinator:
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/reviewdog-workflow.yml", "lte/gateway/c/**", "orc8r/gateway/c/**"]
+          # Only run the main job for changes including the following paths
+          paths: '[".github/workflows/reviewdog-workflow.yml", "lte/gateway/c/**", "orc8r/gateway/c/**"]'
 
   cpplint:
     needs: pre_job_c_cpp_determinator
-    if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.pre_job_c_cpp_determinator.outputs.should_skip == 'false' }}
     ##
     #  Cpplint aims to lint to the Google Style guide. For detailed
     #  rationale on each linting rule, see
@@ -75,7 +75,7 @@ jobs:
 
   golangci-lint:
     needs: pre_job_go_determinator
-    if: ${{ needs.pre_job_go_determinator.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.pre_job_go_determinator.outputs.should_skip == 'false' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory

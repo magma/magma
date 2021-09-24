@@ -15,17 +15,16 @@ jobs:
     runs-on: ubuntu-latest
     # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/cwf-operator.yml", "cwf/**", "k8s/**"]
+          # Only run the main job for changes including the following paths
+          paths: '["cwf/**", "k8s/**"]'
   cwf-operator-precommit:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwf operator pre-commit job
     runs-on: ubuntu-latest
     env:
@@ -69,7 +68,7 @@ jobs:
     needs:
       - path_filter
       - cwf-operator-precommit
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: cwf operator build job
     runs-on: ubuntu-latest
     env:

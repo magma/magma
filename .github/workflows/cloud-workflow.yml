@@ -13,21 +13,21 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   path_filter:
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**", "wifi/cloud/**"]
+          # Only run the main job for changes including the following paths
+          paths: '["cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**", "wifi/cloud/**"]'
 
   # Fail if checked-in generated code doesn't match output from
   # generation command.
   insync-checkin:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
     name: insync checkin job
     runs-on: ubuntu-latest
     env:
@@ -67,7 +67,7 @@ jobs:
   # Ensure all Helm chart values are in-sync across Orc8r deployment mechanisms
   deploy-sync-checkin:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
     name: deploy sync job
     runs-on: ubuntu-latest
     env:
@@ -101,7 +101,7 @@ jobs:
   # Upload test coverage statistics.
   cloud-lint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
     name: cloud lint job
     runs-on: ubuntu-latest
     env:
@@ -142,7 +142,7 @@ jobs:
           SLACK_FOOTER: ' '
   cloud-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
     name: cloud test job
     runs-on: ubuntu-latest
     env:
@@ -183,7 +183,7 @@ jobs:
           SLACK_FOOTER: ' '
   cloud-upload:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' && github.ref == 'refs/heads/master' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' && github.ref == 'refs/heads/master' }}
     name: cloud upload job
     runs-on: ubuntu-latest
     steps:
@@ -221,7 +221,7 @@ jobs:
       - deploy-sync-checkin
       - cloud-lint
       - cloud-test
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: orc8r build job
     runs-on: ubuntu-latest
     env:
