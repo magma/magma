@@ -84,7 +84,7 @@ void ambr_calculation_pdu_session(
  */
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t* smf_context) {
+    smf_context_t* smf_context, bstring nas_msg) {
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
   MessageDef* message_p                                             = nullptr;
@@ -144,6 +144,8 @@ int pdu_session_resource_setup_request(
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
       .PDU_Session_Resource_Setup_Request_Transfer =
       amf_pdu_ses_setup_transfer_req;
+
+  ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
 
   // Send message to NGAP task
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);

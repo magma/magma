@@ -21,6 +21,7 @@
 #include "M5GNSSAI.h"
 #include "M5GGprsTimer3.h"
 #include "M5GTAIList.h"
+#include "M5GNetworkFeatureSupport.h"
 
 namespace magma5g {
 class RegistrationAcceptMsg {
@@ -34,6 +35,7 @@ class RegistrationAcceptMsg {
   UESecurityCapabilityMsg security_capability;
   TAIListMsg tai_list;
   NSSAIMsg nssai;
+  NetworkFeatureSupportMsg feat_support;
   GPRSTimer3Msg gprs_timer;
 #define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
 

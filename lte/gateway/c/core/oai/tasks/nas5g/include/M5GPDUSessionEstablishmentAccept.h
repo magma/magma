@@ -22,6 +22,7 @@
 #include "M5GSessionAMBR.h"
 #include "M5GPDUAddress.h"
 #include "M5GDNN.h"
+#include "M5GNSSAI.h"
 #include "M5GProtocolConfigurationOptions.h"
 
 namespace magma5g {
@@ -39,6 +40,7 @@ class PDUSessionEstablishmentAcceptMsg {
   SessionAMBRMsg session_ambr;
   PDUAddressMsg pdu_address;
   ProtocolConfigurationOptions protocolconfigurationoptions;
+  NSSAIMsg nssai;
   DNNMsg dnn;
 
   PDUSessionEstablishmentAcceptMsg();

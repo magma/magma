@@ -781,7 +781,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t*);
+    smf_context_t*, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(

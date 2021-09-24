@@ -114,6 +114,13 @@ int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(
     return encoded_result;
   else
     encoded += encoded_result;
+
+  if ((encoded_result = reg_accept->feat_support.EncodeNetworkFeatureSupportMsg(
+           &reg_accept->feat_support, 0x21, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+
   if ((encoded_result = reg_accept->gprs_timer.EncodeGPRSTimer3Msg(
            &reg_accept->gprs_timer, 0x5E, buffer + encoded, len - encoded)) < 0)
     return encoded_result;

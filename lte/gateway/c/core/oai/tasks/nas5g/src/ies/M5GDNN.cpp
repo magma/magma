@@ -53,6 +53,7 @@ int DNNMsg::EncodeDNNMsg(
   MLOG(MDEBUG) << "EncodeDNN : ";
   IES_ENCODE_U8(buffer, encoded, dnn_message->len);
   MLOG(MDEBUG) << "Length = " << std::hex << int(dnn_message->len);
+  IES_ENCODE_U8(buffer, encoded, dnn_message->dnn.length());
   std::copy(dnn_message->dnn.begin(), dnn_message->dnn.end(), buffer + encoded);
   BUFFER_PRINT_LOG(buffer + encoded, dnn_message->dnn.length());
   encoded = encoded + dnn_message->dnn.length();

@@ -688,7 +688,7 @@ void ngap_handle_conn_est_cnf(
       (Ngap_AllowedNSSAI_Item_t*) calloc(1, sizeof(Ngap_AllowedNSSAI_Item_t));
   nssai_item->s_NSSAI.sST.size   = 1;
   nssai_item->s_NSSAI.sST.buf    = (uint8_t*) calloc(1, sizeof(uint8_t));
-  nssai_item->s_NSSAI.sST.buf[0] = 0x1;
+  nssai_item->s_NSSAI.sST.buf[0] = _SST_eMBB;
 
   ASN_SEQUENCE_ADD(&ie->value.choice.AllowedNSSAI.list, nssai_item);
 
@@ -807,7 +807,7 @@ void ngap_handle_conn_est_cnf(
       /*NSSAI*/
       session_context->s_NSSAI.sST.size = 1;
       session_context->s_NSSAI.sST.buf  = (uint8_t*) calloc(1, sizeof(uint8_t));
-      session_context->s_NSSAI.sST.buf[0] = 0x11;
+      session_context->s_NSSAI.sST.buf[0] = _SST_eMBB;
 
       Ngap_PDUSessionResourceSetupRequestTransfer_t*
           pduSessionResourceSetupRequestTransferIEs =
@@ -1197,6 +1197,19 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
             1, sizeof(Ngap_PDUSessionResourceSetupItemSUReq_t));
 
     ngap_pdusession_setup_item_ies->pDUSessionID = session_item->Pdu_Session_ID;
+
+    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU =
+         calloc(1, sizeof(Ngap_NAS_PDU_t));
+    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size  =
+         blength(pdusession_resource_setup_req->nas_pdu);
+
+    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf =
+         calloc(blength(pdusession_resource_setup_req->nas_pdu),
+                sizeof(uint8_t));
+
+   memcpy(ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf,
+          bdata(pdusession_resource_setup_req->nas_pdu),
+          ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size);
 
     /*NSSAI*/
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.size = 1;

@@ -490,6 +490,16 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .timervalue = 6;
 
+  // Adding 5G feature set
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.
+      feat_support.iei = 0x21;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.
+      feat_support.len = 2;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.
+      feat_support.feature_list = 0x01;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.
+      feat_support.spare = 0x00;
+
   size += MOBILE_IDENTITY_MAX_LENGTH;
   size += 20;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);

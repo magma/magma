@@ -658,16 +658,6 @@ void amf_app_handle_pdu_session_response(
         "Sending message to gNB for PDUSessionResourceSetupRequest "
         "**n_active_pdus=%d **\n",
         smf_ctx->n_active_pdus);
-    amf_rc = pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx);
-    if (amf_rc != RETURNok) {
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "Failure in sending message to gNB for "
-          "PDUSessionResourceSetupRequest\n");
-      /* TODO: in future add negative case handling, send pdu reject
-       * command to UE and release message to SMF
-       */
-    }
 
     amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
     /*Execute PDU establishement accept from AMF to gnodeb */
@@ -832,6 +822,27 @@ int amf_app_handle_pdu_session_accept(
       PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len;
   len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len;
 
+  smf_msg->msg.pdu_session_estab_accept.nssai.iei = 0x22;
+  smf_msg->msg.pdu_session_estab_accept.nssai.len = 1;
+  smf_msg->msg.pdu_session_estab_accept.nssai.nssaival[0] = 0x01;
+
+  encode_msg->payload_container.len +=
+         2*sizeof(uint8_t) + smf_msg->msg.pdu_session_estab_accept.nssai.len;
+  len += 2*sizeof(uint8_t) + smf_msg->msg.pdu_session_estab_accept.nssai.len;
+
+  // DNN Name
+  smf_msg->msg.pdu_session_estab_accept.dnn.iei = 0x25;
+  smf_msg->msg.pdu_session_estab_accept.dnn.dnn = "internet";
+  smf_msg->msg.pdu_session_estab_accept.dnn.len =
+            smf_msg->msg.pdu_session_estab_accept.dnn.dnn.length() +
+            sizeof(uint8_t);
+
+  encode_msg->payload_container.len += 2 *sizeof(uint8_t) +
+            smf_msg->msg.pdu_session_estab_accept.dnn.len;
+
+  len += 2*sizeof(uint8_t) +
+         smf_msg->msg.pdu_session_estab_accept.dnn.len;
+
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
    */
@@ -854,7 +865,8 @@ int amf_app_handle_pdu_session_accept(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
     buffer->slen = bytes;
-    amf_app_handle_nas_dl_req(ue_id, buffer, rc);
+    //amf_app_handle_nas_dl_req(ue_id, buffer, rc);
+    pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
