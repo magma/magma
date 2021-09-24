@@ -638,6 +638,166 @@ TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
   EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
 }
 
+TEST(test_optional_pdu, test_pdu_establish) {
+  DLNASTransportMsg* dlmsg = nullptr;
+  uint32_t bytes           = 0;
+  uint32_t container_len   = 0;
+  bstring buffer;
+  amf_nas_message_t msg = {};
+
+  /* build uplinknastransport */
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
+                     0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
+                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
+                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01, 0x25, 0x09, 0x08,
+                     0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+  uint32_t len    = sizeof(pdu) / sizeof(uint8_t);
+
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, true);
+  /* build uplinknastransport */
+  EXPECT_EQ(1, pdu_sess_est_req.nssai.sst);
+  std::string dnn("internet");
+  EXPECT_EQ(dnn, pdu_sess_est_req.dnn.dnn);
+
+  ULNASTransportMsg* ulmsg = &pdu_sess_est_req;
+
+  // Message construction for PDU Establishment Reject
+  // NAS-5GS (NAS) PDU
+  msg.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.plain.amf.header.message_type          = DLNASTRANSPORT;
+  msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.message_type                    = DLNASTRANSPORT;
+  msg.header.sequence_number                 = 1;
+
+  dlmsg = &msg.plain.amf.msg.downlinknas5gtransport;
+
+  // AmfHeader
+  dlmsg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  dlmsg->spare_half_octet.spare  = 0x00;
+  dlmsg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  dlmsg->message_type.msg_type = DLNASTRANSPORT;
+  dlmsg->payload_container.iei = PAYLOAD_CONTAINER;
+
+  // SmfMsg
+  dlmsg->payload_container_type.iei      = 0;
+  dlmsg->payload_container_type.type_val = N1_SM_INFO;
+
+  dlmsg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
+  dlmsg->pdu_session_identity.pdu_session_id =
+      ulmsg->payload_container.smf_msg.header.pdu_session_id;
+
+  //----------
+  SmfMsg* smf_msg    = &dlmsg->payload_container.smf_msg;
+
+  smf_msg->header.extended_protocol_discriminator =      M5G_SESSION_MANAGEMENT_MESSAGES;
+  smf_msg->header.pdu_session_id           = 1;
+  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
+  smf_msg->header.procedure_transaction_id = 10;
+  smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
+      .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
+  smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
+      1;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti =
+      10;
+  smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
+      PDU_SESSION_ESTABLISHMENT_ACCEPT;
+  smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
+
+  memset(
+      &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
+  uint8_t address_info[12] = {};
+  for (int i = 0; i < PDU_ADDR_IPV4_LEN; i++) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info[i] =
+        address_info[i];
+  }
+  smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val = PDU_ADDR_TYPE;
+
+  /* QOSrules are hardcoded as it is not exchanged in AMF-SMF
+   * gRPC calls as of now, handled in upcoming PR
+   * TODO: get the rules for the session from SMF and use it here
+   */
+  smf_msg->msg.pdu_session_estab_accept.qos_rules.length = 0x9;
+  QOSRule qos_rule;
+  qos_rule.qos_rule_id         = 0x1;
+  qos_rule.len                 = 0x6;
+  qos_rule.rule_oper_code      = 0x1;
+  qos_rule.dqr_bit             = 0x1;
+  qos_rule.no_of_pkt_filters   = 0x1;
+  qos_rule.qos_rule_precedence = 0xff;
+  qos_rule.spare               = 0x0;
+  qos_rule.segregation         = 0x0;
+  qos_rule.qfi = 0x5;
+  NewQOSRulePktFilter new_qos_rule_pkt_filter;
+  new_qos_rule_pkt_filter.spare          = 0x0;
+  new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;
+  new_qos_rule_pkt_filter.pkt_filter_id  = 0x1;
+  new_qos_rule_pkt_filter.len            = 0x1;
+  uint8_t contents                       = 0x1;
+  memcpy(
+      new_qos_rule_pkt_filter.contents, &contents, new_qos_rule_pkt_filter.len);
+  memcpy(
+      qos_rule.new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
+      1 * sizeof(NewQOSRulePktFilter));
+  memcpy(
+      smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
+      1 * sizeof(QOSRule));
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =  64;
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =  64;
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr = 1;
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr = 1;
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
+  
+  //----------
+ 
+  smf_msg->msg.pdu_session_estab_accept.nssai.iei = static_cast<uint8_t>(M5GIei::S_NSSA);
+	  smf_msg->msg.pdu_session_estab_accept.nssai.len = 1;
+  smf_msg->msg.pdu_session_estab_accept.nssai.sst = 1;
+  //3
+  smf_msg->msg.pdu_session_estab_accept.dnn.iei = static_cast<uint8_t>(M5GIei::DNN);
+	  smf_msg->msg.pdu_session_estab_accept.dnn.len = 9;
+  smf_msg->msg.pdu_session_estab_accept.dnn.dnn = "internet";
+
+  dlmsg->payload_container.len =
+      PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + 14 ;
+  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + 14;
+
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(buffer->data, &msg, len, nullptr);
+  EXPECT_GT(bytes, 0);
+
+#if 0
+  amf_nas_message_t decode_msg                  = {0};
+  amf_nas_message_decode_status_t decode_status = {};
+  int status                                    = RETURNerror;
+  status                                        = nas5g_message_decode(
+      buffer->data, &decode_msg, bytes, nullptr, &decode_status);
+
+  EXPECT_EQ(true, dlmsg->payload_container.isEqual(ulmsg->payload_container));
+  EXPECT_EQ(
+      dlmsg->m5gmm_cause.m5gmm_cause,
+      static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED));
+#endif
+  bdestroy(buffer);
+}
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

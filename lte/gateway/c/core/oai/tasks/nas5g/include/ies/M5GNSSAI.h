@@ -16,9 +16,12 @@ class NSSAIMsg {
  public:
   uint8_t iei;
   uint8_t len;
-  const int NSSAI_VAL_MAX    = 74;
-  const int NSSAI_MIN_LENGTH = 4;
-  uint8_t nssaival[2];
+
+  uint8_t sst;
+  uint8_t sd[3];
+  uint8_t hplmn_sst;
+  uint8_t hplmn_sd[3];
+  
   NSSAIMsg();
   ~NSSAIMsg();
   int EncodeNSSAIMsg(

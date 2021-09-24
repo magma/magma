@@ -828,6 +828,15 @@ int amf_app_handle_pdu_session_accept(
 
   auto pco_len = sm_process_pco_request(&(smf_ctx->pco), msg_accept_pco);
 
+  
+  smf_msg->msg.pdu_session_estab_accept.nssai.iei = static_cast<uint8_t>(M5GIei::S_NSSA);
+          smf_msg->msg.pdu_session_estab_accept.nssai.len = 1;
+  smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+  //3
+  smf_msg->msg.pdu_session_estab_accept.dnn.iei = static_cast<uint8_t>(M5GIei::DNN);
+          smf_msg->msg.pdu_session_estab_accept.dnn.len = smf_ctx->dnn.length() + 1;
+  smf_msg->msg.pdu_session_estab_accept.dnn.dnn = smf_ctx->dnn;
+
   encode_msg->payload_container.len =
       PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len;
   len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len;

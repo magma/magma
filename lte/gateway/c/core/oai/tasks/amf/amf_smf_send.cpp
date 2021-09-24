@@ -448,6 +448,8 @@ int amf_smf_send(
             amf_cause);
         return rc;
       }
+	  smf_ctx->dnn = msg->dnn.dnn;
+	  smf_ctx->sst = msg->nssai.sst;
       set_amf_smf_context(
           &(msg->payload_container.smf_msg.msg.pdu_session_estab_request),
           smf_ctx);

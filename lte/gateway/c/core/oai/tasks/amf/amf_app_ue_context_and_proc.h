@@ -265,6 +265,9 @@ typedef struct smf_context_s {
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
+  std::string dnn;
+  uint8_t sst ;
+ 
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;

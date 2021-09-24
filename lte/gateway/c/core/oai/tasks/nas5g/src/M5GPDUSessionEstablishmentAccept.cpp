@@ -13,6 +13,8 @@
 #include "M5GPDUSessionEstablishmentAccept.h"
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
+#include "M5GDNN.h"
+#include "M5GNSSAI.h"
 
 namespace magma5g {
 PDUSessionEstablishmentAcceptMsg::PDUSessionEstablishmentAcceptMsg(){};
@@ -118,6 +120,28 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
   } else {
     encoded += encoded_result;
   }
+    if ((uint32_t) pdu_session_estab_accept->dnn.len) {
+    if ((encoded_result = pdu_session_estab_accept->dnn.EncodeDNNMsg(
+             &pdu_session_estab_accept->dnn,
+             static_cast<uint8_t>(M5GIei::DNN), buffer + encoded,
+             len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
+
+  if ((uint32_t) pdu_session_estab_accept->nssai.len) {
+  if ((encoded_result = pdu_session_estab_accept->nssai.EncodeNSSAIMsg(
+		   &pdu_session_estab_accept->nssai,
+		   static_cast<uint8_t>(M5GIei::S_NSSA), buffer + encoded,
+		   len - encoded)) < 0) {
+	return encoded_result;
+  } else {
+	encoded += encoded_result;
+  } 	
+  	}
+  
 
   return encoded;
 }

@@ -476,6 +476,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[2] = 0x01;
 
+#if 0
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai.iei =
       0x15;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai.len = 2;
@@ -483,6 +484,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
       .nssaival[0] = 0x01;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai
       .nssaival[1] = 0x01;
+#endif
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .len = 1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
