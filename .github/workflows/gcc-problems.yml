@@ -21,19 +21,20 @@ env:
 jobs:
   path_filter:
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/gcc-problems.yml", "orc8r/gateway/c/**", "lte/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]
+          # Only run the main job for changes including the following paths
+          paths: '[".github/workflows/gcc-problems.yml", "orc8r/gateway/c/**", "lte/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]'
+
   build_oai:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: build oai job
     runs-on: ubuntu-latest
     steps:
@@ -79,7 +80,7 @@ jobs:
   build_session_manager:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: build session manager job
     runs-on: ubuntu-latest
     steps:

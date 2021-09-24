@@ -14,18 +14,18 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   path_filter:
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/agw-workflow.yml", "orc8r/**", "lte/**"]
+          # Only run the main job for changes including the following paths
+          paths: '["orc8r/**", "lte/**"]'
   lte-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: lte test job
     runs-on: ubuntu-latest
     env:
@@ -106,7 +106,7 @@ jobs:
 
   session_manager_test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: session manager test job
     runs-on: ubuntu-latest
     env:
@@ -146,7 +146,7 @@ jobs:
 
   li_agent_test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: li agent test job
     runs-on: ubuntu-latest
     env:
@@ -187,7 +187,7 @@ jobs:
 
   connection-tracker-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: connection tracker test job
     runs-on: ubuntu-latest
     env:
@@ -231,7 +231,7 @@ jobs:
 
   mme_test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: mme test job
     runs-on: ubuntu-latest
     env:
@@ -280,7 +280,7 @@ jobs:
 
   mme-clang-tidy:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: mme clang tidy job
     runs-on: ubuntu-latest
     env:
@@ -317,7 +317,7 @@ jobs:
 
   mme-clang-warnings:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: mme clang warnings job
     runs-on: ubuntu-latest
     env:
@@ -354,7 +354,7 @@ jobs:
 
   c-cpp-codecov:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: c-cpp code coverage job
     runs-on: ubuntu-latest
     env:

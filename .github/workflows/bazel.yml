@@ -14,20 +14,20 @@ env:
 jobs:
   path_filter:
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
         with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]
+          # Only run the main job for changes including the following paths
+         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]'
 
   bazel_build_and_test:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
