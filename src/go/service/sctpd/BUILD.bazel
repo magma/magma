@@ -7,7 +7,7 @@ go_library(
         "proxy_uplink_server.go",
         "sctpd.go",
     ],
-    importpath = "github.com/magma/magma/service/sctpd",
+    importpath = "github.com/magma/magma/src/go/service/sctpd",
     visibility = ["//visibility:public"],
     deps = [
         "//src/go/log",
@@ -23,11 +23,11 @@ go_test(
         "proxy_uplink_server_integ_test.go",
     ],
     deps = [
+        ":sctpd",
         "//src/go/internal/testutil",
         "//src/go/protos/magma/sctpd",
         "//src/go/protos/magma/sctpd/mock_sctpd",
         "//src/go/service",
-        "//src/go/service/sctpd",
         "@com_github_golang_mock//gomock",
         "@com_github_stretchr_testify//assert",
     ],

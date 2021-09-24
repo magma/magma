@@ -23,8 +23,8 @@ import (
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/protos/magma/mconfig"
+	"github.com/magma/magma/src/go/log"
+	"github.com/magma/magma/src/go/protos/magma/mconfig"
 )
 
 func TestLogLevel(t *testing.T) {

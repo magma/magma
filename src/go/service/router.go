@@ -12,7 +12,7 @@
 package service
 
 import (
-	"github.com/magma/magma/protos/magma/sctpd"
+	"github.com/magma/magma/src/go/protos/magma/sctpd"
 )
 
 // A Router is responsible for providing clients, where the connection to

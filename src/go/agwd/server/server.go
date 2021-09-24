@@ -17,11 +17,11 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
-	"github.com/magma/magma/agwd/config"
-	"github.com/magma/magma/log"
-	sctpdpb "github.com/magma/magma/protos/magma/sctpd"
-	"github.com/magma/magma/service"
-	"github.com/magma/magma/service/sctpd"
+	"github.com/magma/magma/src/go/agwd/config"
+	"github.com/magma/magma/src/go/log"
+	sctpdpb "github.com/magma/magma/src/go/protos/magma/sctpd"
+	"github.com/magma/magma/src/go/service"
+	"github.com/magma/magma/src/go/service/sctpd"
 )
 
 func newServiceRouter(cfgr config.Configer) service.Router {

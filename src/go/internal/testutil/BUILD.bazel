@@ -7,7 +7,7 @@ go_library(
         "log.go",
         "testutil.go",
     ],
-    importpath = "github.com/magma/magma/internal/testutil",
+    importpath = "github.com/magma/magma/src/go/internal/testutil",
     visibility = ["//src/go:__subpackages__"],
     deps = [
         "//src/go/log",
