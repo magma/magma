@@ -10,19 +10,19 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   pre_job_src_go_determinator:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '[".github/workflows/golang-build-test.yml", "src/go/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/golang-build-test.yml", "src/go/**"]
 
   build_src_go:
     needs: pre_job_src_go_determinator
-    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
         go-version: [1.17.x]
@@ -42,7 +42,7 @@ jobs:
 
   test_src_go:
     needs: pre_job_src_go_determinator
-    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
         go-version: [1.17.x]
@@ -71,7 +71,7 @@ jobs:
 
   test_src_go_qemu:
     needs: pre_job_src_go_determinator
-    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
         go-version: [1.17.x]
@@ -105,7 +105,7 @@ jobs:
 
   codecov_src_go:
     needs: pre_job_src_go_determinator
-    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Install Go

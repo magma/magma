@@ -13,19 +13,19 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   path_filter:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '["docs/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/docs-workflow.yml", "docs/**"]
   # Fail if Markdown doesn't pass linter
   markdown-lint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: markdown lint job
     runs-on: ubuntu-latest
     env:

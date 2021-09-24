@@ -10,19 +10,19 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   pre_job:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '["**/*.py"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/python-workflow.yml", "**/*.py"]
 
   run-formatters-and-check-for-errors:
     needs: pre_job
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    if: ${{ needs.pre_job.outputs.should_not_skip == 'true' }}
     name: Python Format Check
     runs-on: ubuntu-latest
     steps:
