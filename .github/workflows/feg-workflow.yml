@@ -14,18 +14,21 @@ on:
 jobs:
   path_filter:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '["orc8r/**", "lte/**", "feg/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
   feg-lint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: feg lint job
     runs-on: ubuntu-latest
     env:
@@ -78,7 +81,7 @@ jobs:
           SLACK_FOOTER: ' '
   feg-precommit:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: feg pre-commit job
     runs-on: ubuntu-latest
     env:
@@ -131,7 +134,7 @@ jobs:
     needs:
       - path_filter
       - feg-precommit
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: feg-build
     runs-on: ubuntu-latest
     env:
