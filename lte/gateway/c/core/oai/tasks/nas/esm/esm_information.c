@@ -184,8 +184,8 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Deactivate EPS Bearer Ctx Request T3489 Timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+    OAILOG_ERROR(
+        LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -204,7 +204,7 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(
      */
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING_UE(
-        LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
+        LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-PROC  - T3489 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
         "), "
         "retransmission counter = %d\n",

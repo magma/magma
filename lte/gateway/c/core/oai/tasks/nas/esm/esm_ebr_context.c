@@ -100,7 +100,7 @@ ebi_t esm_ebr_context_create(
   if (pid < MAX_APN_PER_UE) {
     if (ue_mm_context->pdn_contexts[pid] == NULL) {
       OAILOG_ERROR_UE(
-          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - PDN connection %d has not been "
           "allocated for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
           pid, ue_mm_context->mme_ue_s1ap_id);
@@ -110,7 +110,7 @@ ebi_t esm_ebr_context_create(
      */
     else if (esm_ctx->n_active_ebrs > BEARERS_PER_UE) {
       OAILOG_WARNING_UE(
-          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - The total number of active EPS"
           "bearers is exceeded for ue id " MME_UE_S1AP_ID_FMT "\n",
           ue_mm_context->mme_ue_s1ap_id);
@@ -126,7 +126,7 @@ ebi_t esm_ebr_context_create(
           (ESM_EBR_INACTIVE !=
            ue_mm_context->bearer_contexts[bidx]->esm_ebr_context.status)) {
         OAILOG_WARNING_UE(
-            LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+            LOG_NAS_ESM, emm_context->_imsi64,
             "ESM-PROC  - A EPS bearer context "
             "is already allocated\n");
         OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);

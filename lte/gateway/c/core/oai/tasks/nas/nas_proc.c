@@ -350,7 +350,7 @@ status_code_e nas_proc_authentication_info_answer(
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
 
   OAILOG_DEBUG_UE(
-      LOG_NAS_EMM, imsi64 , "Handling imsi " IMSI_64_FMT "\n", imsi64);
+      LOG_NAS_EMM, imsi64, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   ue_mm_context_p = mme_ue_context_exists_imsi(
       &mme_app_desc_p->mme_ue_contexts, (const hash_key_t) imsi64);
@@ -360,14 +360,14 @@ status_code_e nas_proc_authentication_info_answer(
 
   if (!(emm_ctxt_p)) {
     OAILOG_ERROR_UE(
-        LOG_NAS_EMM, emm_ctxt_p->_imsi64,
+        imsi64, LOG_NAS_EMM,
         "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context_p->mme_ue_s1ap_id;
   OAILOG_INFO_UE(
-      LOG_NAS_EMM, ue_mm_context_p->emm_context._imsi64,
+      LOG_NAS_EMM, emm_ctxt_p->_imsi64,
       "Received Authentication Information Answer from S6A for"
       " ue_id = " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
@@ -392,8 +392,7 @@ status_code_e nas_proc_authentication_info_answer(
         aia->auth_info.eutran_vector);
   } else {
     OAILOG_ERROR_UE(
-        LOG_NAS_EMM, (uint64_t*) aia->imsi,
-        "INFORMING NAS ABOUT AUTH RESP ERROR CODE\n");
+        LOG_NAS_EMM, imsi64, "INFORMING NAS ABOUT AUTH RESP ERROR CODE\n");
     increment_counter(
         "ue_attach", 1, 2, "result", "failure", "cause",
         "auth_info_failure_from_hss");
@@ -401,8 +400,8 @@ status_code_e nas_proc_authentication_info_answer(
      * Inform NAS layer with the right failure
      */
     if (aia->result.present == S6A_RESULT_BASE) {
-      OAILOG_ERROR_UE(
-          LOG_NAS_EMM, aia->imsi,
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
           "Auth info Rsp failure for imsi " IMSI_64_FMT
           ", base_error_code %d \n",
           imsi64, aia->result.choice.base);
@@ -590,7 +589,7 @@ status_code_e nas_proc_downlink_unitdata(
 
   if (!(ctxt)) {
     OAILOG_ERROR_UE(
-        LOG_NAS_EMM, ctxt->_imsi64,
+        LOG_NAS_EMM, imsi64,
         "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }

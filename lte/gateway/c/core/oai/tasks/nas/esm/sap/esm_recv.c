@@ -490,7 +490,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
               ->pdn_cx_id;
     if (pid >= MAX_APN_PER_UE) {
       OAILOG_ERROR_UE(
-          LOG_NAS_ESM, ue_mm_context_p->emm_context._imsi64,
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - No PDN connection found (lbi=%u) for ue "
           "id " MME_UE_S1AP_ID_FMT "\n",
           msg->linkedepsbeareridentity, ue_mm_context_p->mme_ue_s1ap_id);
@@ -510,7 +510,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     if (msg->linkedepsbeareridentity !=
         ue_mm_context_p->pdn_contexts[pid]->default_ebi) {
       OAILOG_ERROR_UE(
-          LOG_NAS_ESM, ue_mm_context_p->emm_context._imsi64,
+          LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-PROC  - Cannot perform PDN disconnect for dedicated bearer "
           "(lbi=%u) " MME_UE_S1AP_ID_FMT "\n",
           msg->linkedepsbeareridentity, ue_mm_context_p->mme_ue_s1ap_id);
