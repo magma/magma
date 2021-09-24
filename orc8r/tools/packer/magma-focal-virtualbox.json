@@ -81,7 +81,7 @@
         ]
       ],
       "virtualbox_version_file": ".vbox_version",
-      "vm_name": "magma_dev_focal_vb"
+      "vm_name": "magmaDevFocalVb"
     }
   ],
   "post-processors": [

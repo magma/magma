@@ -421,7 +421,7 @@
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
 
 - name: Install requirements for VSCode <-> Bazel integration
-  when: full_provision
+  when: preburn
   apt:
     state: present
     pkg:
