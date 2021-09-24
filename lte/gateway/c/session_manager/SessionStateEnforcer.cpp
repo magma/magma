@@ -626,11 +626,11 @@ void SessionStateEnforcer::prepare_response_to_access(
   /* This flag is used for sending defult qos value or getting from policy
    *  value to AMF.
    */
-  bool flag_set      = false;
+  bool flag_set = false;
   for (auto& val : pending_activation) {
     if (val.rule.qos().max_req_bw_dl() && val.rule.qos().max_req_bw_ul()) {
       MLOG(MDEBUG) << "value set for pending_activation"
-                  << val.rule.qos().max_req_bw_ul();
+                   << val.rule.qos().max_req_bw_ul();
       rsp->mutable_session_ambr()->set_max_bandwidth_dl(
           val.rule.qos().max_req_bw_dl());
       rsp->mutable_session_ambr()->set_max_bandwidth_ul(

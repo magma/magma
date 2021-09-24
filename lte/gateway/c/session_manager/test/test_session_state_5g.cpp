@@ -121,8 +121,8 @@ TEST_F(SessionStateTest5G, test_process_static_rule_installs) {
   // For 5g verification
   EXPECT_TRUE(session_state->is_5g_session());
   session_state->process_static_rule_installs(
-      rule_installs, &pending_activation, &pending_deactivation, &pending_bearer_setup,
-      &pending_scheduling, &update_criteria);
+      rule_installs, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, &pending_scheduling, &update_criteria);
   EXPECT_EQ(2, pending_activation.size());
   EXPECT_EQ("static-2", pending_activation[0].rule.id());
   EXPECT_EQ(1, pending_activation[0].version);
@@ -172,8 +172,8 @@ TEST_F(SessionStateTest5G, test_process_dynamic_rule_installs) {
   // For 5g verification
   EXPECT_TRUE(session_state->is_5g_session());
   session_state->process_dynamic_rule_installs(
-      rule_installs, &pending_activation, &pending_deactivation, &pending_bearer_setup,
-      &pending_scheduling, &update_criteria);
+      rule_installs, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, &pending_scheduling, &update_criteria);
   EXPECT_EQ(4, pending_activation.size());
   EXPECT_EQ("dynamic-1", pending_activation[0].rule.id());
   EXPECT_EQ(2, pending_activation[0].version);
@@ -187,7 +187,6 @@ TEST_F(SessionStateTest5G, test_process_dynamic_rule_installs) {
   // For 5g verification
   EXPECT_EQ(0, pending_activation[0].teids.agw_teid());
   EXPECT_EQ(0, pending_activation[0].teids.enb_teid());
-
 
   EXPECT_EQ(update_criteria.dynamic_rules_to_install.size(), 4);
   EXPECT_EQ("dynamic-1", update_criteria.dynamic_rules_to_install[0].id());
@@ -229,7 +228,8 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
   EXPECT_TRUE(session_state->is_5g_session());
   session_state->process_rules_to_install(
       static_rule_installs, dynamic_rule_installs, &pending_activation,
-      &pending_deactivation, &pending_bearer_setup, &pending_scheduling, &update_criteria);
+      &pending_deactivation, &pending_bearer_setup, &pending_scheduling,
+      &update_criteria);
 
   EXPECT_EQ(4, pending_activation.size());
 

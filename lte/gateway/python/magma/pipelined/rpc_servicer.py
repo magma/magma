@@ -1106,6 +1106,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 rule_ids,
             )
 
+
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[

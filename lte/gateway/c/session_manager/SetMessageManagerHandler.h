@@ -111,7 +111,6 @@ class SetMessageManagerHandler : public SetMessageManager {
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
   SessionReporter* reporter_;
   SessionIDGenerator id_gen_;
-
 };  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma
