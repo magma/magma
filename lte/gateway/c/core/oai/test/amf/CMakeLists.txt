@@ -30,6 +30,7 @@ add_library(AMF_TASK_TEST_LIB
     util_nas5g_auth_fail_pkt.cpp
     util_nas5g_ul_nas_pdu_decode.cpp
     util_nas5g_service_request_pkt.cpp
+    util_nas5g_security_mode_reject_pkt.cpp
     )
 link_directories(${PROJECT_SOURCE_DIR}/tasks/amf)
 target_link_libraries(AMF_TASK_TEST_LIB

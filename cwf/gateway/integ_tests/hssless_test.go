@@ -1,3 +1,4 @@
+//go:build hssless
 // +build hssless
 
 /*Copyright 2020 The Magma Authors.
