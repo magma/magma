@@ -281,8 +281,8 @@ bool SessionStateEnforcer::m5g_release_session(
 void SessionStateEnforcer::m5g_start_session_termination(
     SessionMap& session_map, const std::unique_ptr<SessionState>& session,
     const uint32_t& pdu_id, SessionStateUpdateCriteria* session_uc) {
-  const auto session_id   = session->get_session_id();
-  const std::string& imsi = session->get_imsi();
+  const auto session_id     = session->get_session_id();
+  const std::string& imsi   = session->get_imsi();
   const auto previous_state = session->get_state();
 
   /* update respective session's state and return from here before timeout
@@ -302,7 +302,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
      * and inform to UPF
      */
     MLOG(MDEBUG) << "Will be removing all associated rules of session id "
-               << session->get_session_id();
+                 << session->get_session_id();
     m5g_pdr_rules_change_and_update_upf(session, PdrState::REMOVE);
     if (session_map[imsi].size() == 0) {
       // delete the rules
