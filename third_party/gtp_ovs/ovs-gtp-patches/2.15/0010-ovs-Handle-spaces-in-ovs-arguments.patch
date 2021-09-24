@@ -1,7 +1,7 @@
-From 709fb8e5138c1078a32cd0c15fccad5d0ab7926d Mon Sep 17 00:00:00 2001
+From 52c549f139e2f9141f2378e80864f0296c530c6b Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 13 Mar 2020 19:18:40 +0000
-Subject: [PATCH 10/17] ovs: Handle spaces in ovs arguments
+Subject: [PATCH 10/19] ovs: Handle spaces in ovs arguments
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
@@ -154,5 +154,5 @@ index 7a8e18f41..69565c9a9 100644
 +char *str_quotify(const char *s, int len, char *d);
  #endif /* string.h wrapper */
 -- 
-2.17.1
+2.25.1
 

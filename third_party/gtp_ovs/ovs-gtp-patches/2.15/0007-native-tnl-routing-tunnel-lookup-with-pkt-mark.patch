@@ -1,7 +1,7 @@
-From 31b7aa6c8846e7d75e05871859f40b4bf8dfd5e7 Mon Sep 17 00:00:00 2001
+From 4fb9b98f8fb611bebb88f5366e3c3dd000462030 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 27 Sep 2020 19:46:24 +0000
-Subject: [PATCH 07/17] native-tnl: routing: tunnel lookup with pkt-mark
+Subject: [PATCH 07/19] native-tnl: routing: tunnel lookup with pkt-mark
 
 In case of zero packet mark ignore packet mark in lookup.
 
@@ -108,5 +108,5 @@ index 6dacc2954..6d6e648a5 100644
  AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [dnl
  User: 2001:db8:babe::/64 dev br0 GW 2001:db8:cafe::2 SRC 2001:db8:cafe::1
 -- 
-2.17.1
+2.25.1
 

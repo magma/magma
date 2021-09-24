@@ -1,7 +1,7 @@
-From 909886e0e4dd16cd439374ae200930c591b14523 Mon Sep 17 00:00:00 2001
+From 71df5b7b8e5b9477b2972ab355750f7161527b46 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:29:56 +0000
-Subject: [PATCH 02/17] userspace: IPFIX: Add tunnel type GTP
+Subject: [PATCH 02/19] userspace: IPFIX: Add tunnel type GTP
 
 Add support for ingress/egress tunnel type GTP
 in IPFIX.
@@ -181,7 +181,7 @@ index 864c136b5..4bb8f0b59 100644
          ipproto = IPPROTO_UDP;
  
 diff --git a/tests/tunnel-push-pop.at b/tests/tunnel-push-pop.at
-index a87b6777c..530752444 100644
+index f297a0222..4883807d1 100644
 --- a/tests/tunnel-push-pop.at
 +++ b/tests/tunnel-push-pop.at
 @@ -442,7 +442,7 @@ AT_CHECK([ovs-ofctl add-flow int-br "actions=9"])
@@ -194,5 +194,5 @@ index a87b6777c..530752444 100644
  AT_CHECK([ovs-ofctl del-flows int-br])
  
 -- 
-2.17.1
+2.25.1
 

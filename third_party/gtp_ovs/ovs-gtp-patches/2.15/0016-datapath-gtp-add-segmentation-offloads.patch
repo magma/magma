@@ -1,7 +1,7 @@
-From 958303ea5c68f8a4dbe2f3d33429f9bbbd5ad1a4 Mon Sep 17 00:00:00 2001
+From d8635ccdba42b228202006bba3f817d621f20b7b Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Tue, 8 Jun 2021 01:44:33 +0000
-Subject: [PATCH 16/17] datapath: gtp: add segmentation offloads
+Subject: [PATCH 16/19] datapath: gtp: add segmentation offloads
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
@@ -86,5 +86,5 @@ index 90a330281..7fcc785cb 100644
  
  OVS_TRAFFIC_VSWITCHD_STOP
 -- 
-2.17.1
+2.25.1
 
