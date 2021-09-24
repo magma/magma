@@ -138,11 +138,12 @@ class SgwS8Config : public ::testing::Test {
 
 sgw_state_t* SgwS8Config::create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel) {
   sgw_state_init(false, config);
-  sgw_state_t* sgw_state          = get_sgw_state(false);
-  sgw_s11_tunnel->local_teid      = sgw_s8_generate_new_cp_teid();
+  sgw_state_t* sgw_state     = get_sgw_state(false);
+  sgw_s11_tunnel->local_teid = sgw_s8_generate_new_cp_teid();
   sgw_update_teid_in_ue_context(sgw_state, imsi64, sgw_s11_tunnel->local_teid);
   return sgw_state;
 }
+
 /* TC validates creation of ue context, pdn context and bearer context
  * on reception of Create Session Req
  */
@@ -165,7 +166,7 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
           reinterpret_cast<void**>(&ue_context_p)),
       HASH_TABLE_OK);
 
-  sgw_s11_teid_t* s11_teid_p = NULL;
+  sgw_s11_teid_t* s11_teid_p        = NULL;
   bool sgw_local_teid_present_in_ue = false;
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
     if ((s11_teid_p) &&
@@ -180,7 +181,7 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_s11_tunnel.local_teid);
   EXPECT_TRUE(sgw_pdn_session != nullptr);
-  sgw_pdn_session                                               = nullptr;
+  sgw_pdn_session                = nullptr;
   hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
   EXPECT_EQ(
       hashtable_ts_get(
@@ -199,15 +200,14 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
       RETURNok);
 
   // Validates whether MME's control plane teid is set within pdn session
-  EXPECT_TRUE(
-      sgw_pdn_session->mme_teid_S11 == session_req.sender_fteid_for_cp.teid);
-  EXPECT_TRUE(
-      strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "internet") == 0);
+  EXPECT_EQ(
+      sgw_pdn_session->mme_teid_S11, session_req.sender_fteid_for_cp.teid);
+  EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "internet"), 0);
   EXPECT_EQ(
       sgw_pdn_session->pdn_connection.default_bearer, session_req.default_ebi);
 
   // Validates whether bearer is created within pdn session
-  bool bearer_id_inserted     = false;
+  bool bearer_id_inserted                  = false;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
   for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
     eps_bearer_ctxt_p =
@@ -222,8 +222,8 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
   }
   EXPECT_EQ(bearer_id_inserted, true);
   // Validates whether userplane teids are created for s1-u and s8-u interfaces
-  EXPECT_TRUE(eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up > 0);
-  EXPECT_TRUE(eps_bearer_ctxt_p->s_gw_teid_S5_S8_up > 0);
+  EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, 0);
+  EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S5_S8_up, 0);
   sgw_state_exit();
 }
 
@@ -242,8 +242,7 @@ TEST_F(SgwS8Config, update_pdn_session_on_cs_rsp) {
   sgw_update_bearer_context_information_on_csreq(
       sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
 
-  EXPECT_TRUE(
-      strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN") == 0);
+  EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
   EXPECT_TRUE(
       (sgw_get_sgw_eps_bearer_context(sgw_s11_tunnel.local_teid)) != nullptr);
 
