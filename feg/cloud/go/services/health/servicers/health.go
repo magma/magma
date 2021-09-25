@@ -14,11 +14,11 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	"context"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
@@ -31,7 +32,6 @@ import (
 	"github.com/emakeev/snowflake"
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 
 	"magma/gateway/config"

@@ -28,9 +28,9 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"context"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

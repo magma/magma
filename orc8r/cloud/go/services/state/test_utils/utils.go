@@ -14,10 +14,10 @@ limitations under the License.
 package test_utils
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 
 	"magma/orc8r/cloud/go/identity"

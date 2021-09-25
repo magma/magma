@@ -28,8 +28,8 @@ import (
 
 	"magma/cwf/gateway/services/uesim/servicers"
 
+	"context"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const (
