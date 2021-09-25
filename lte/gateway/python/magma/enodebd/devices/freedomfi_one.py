@@ -233,7 +233,8 @@ class StatusParameters(object):
         success_str = "SUCCESS"  # String constant returned by radio
         insync_str = "INSYNC"
 
-        if name_to_val[cls.DEFAULT_GW].upper() != success_str:
+        if name_to_val[cls.DEFAULT_GW] \
+                and name_to_val[cls.DEFAULT_GW].upper() != success_str:
             # Nothing will proceed if the eNB doesn't have an IP on the WAN
             serial_num = "unknown"
             if device_cfg.has_parameter(ParameterName.SERIAL_NUMBER):
@@ -266,7 +267,8 @@ class StatusParameters(object):
             )
             return
 
-        if name_to_val[cls.SAS_STATUS].upper() == success_str:
+        if name_to_val[cls.SAS_STATUS] \
+                and name_to_val[cls.SAS_STATUS].upper() == success_str:
             device_cfg.set_parameter(
                 param_name=ParameterName.RF_TX_STATUS,
                 value=True,
@@ -279,17 +281,23 @@ class StatusParameters(object):
                 value=False,
             )
 
-        if name_to_val[cls.GPS_SCAN_STATUS].upper() == success_str:
+        if name_to_val[cls.GPS_SCAN_STATUS] \
+                and name_to_val[cls.GPS_SCAN_STATUS].upper() == success_str:
             device_cfg.set_parameter(
                 param_name=ParameterName.GPS_STATUS,
                 value=True,
             )
             # Time comes through GPS so can only be insync with GPS is
             # in sync, we use PTP_STATUS field to overload timer is in Sync.
-            if name_to_val[cls.SYNC_STATUS].upper() == insync_str:
+            if name_to_val[cls.SYNC_STATUS] \
+                    and name_to_val[cls.SYNC_STATUS].upper() == insync_str:
                 device_cfg.set_parameter(
                     param_name=ParameterName.PTP_STATUS,
                     value=True,
+                )
+            else:
+                device_cfg.set_parameter(
+                    param_name=ParameterName.PTP_STATUS, value=False,
                 )
         else:
             device_cfg.set_parameter(
@@ -301,7 +309,8 @@ class StatusParameters(object):
                 value=False,
             )
 
-        if name_to_val[cls.DEFAULT_GW].upper() == success_str:
+        if name_to_val[cls.DEFAULT_GW] \
+                and name_to_val[cls.DEFAULT_GW].upper() == success_str:
             device_cfg.set_parameter(
                 param_name=ParameterName.MME_STATUS,
                 value=True,
@@ -312,7 +321,8 @@ class StatusParameters(object):
                 value=False,
             )
 
-        if name_to_val[cls.ENB_STATUS].upper() == success_str:
+        if name_to_val[cls.ENB_STATUS] \
+                and name_to_val[cls.ENB_STATUS].upper() == success_str:
             device_cfg.set_parameter(
                 param_name=ParameterName.OP_STATE,
                 value=True,
