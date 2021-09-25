@@ -69,8 +69,12 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
 
   // Allocate the local mme state
   create_state();
-
+#if !MME_UNIT_TEST
+  OAILOG_DEBUG(LOG_MME_APP, "MME_UNIT_TEST Flag is Disabled");
   redis_client = std::make_unique<RedisClient>(persist_state_enabled);
+#else
+  redis_client = std::make_unique<RedisClient>(false);
+#endif
   int rc       = read_state_from_db();
   read_ue_state_from_db();
   create_mme_ueip_imsi_map();
@@ -212,6 +216,7 @@ void MmeNasStateManager::free_state() {
 }
 
 status_code_e MmeNasStateManager::read_ue_state_from_db() {
+#if !MME_UNIT_TEST
   if (persist_state_enabled) {
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
     for (const auto& key : keys) {
@@ -240,10 +245,12 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
       }
     }
   }
+#endif
   return RETURNok;
 }
 
 void MmeNasStateManager::create_mme_ueip_imsi_map() {
+#if !MME_UNIT_TEST
   if (!persist_state_enabled) {
     OAILOG_ERROR(log_task, "persist_state_enabled is not enabled \n");
     return;
@@ -253,6 +260,7 @@ void MmeNasStateManager::create_mme_ueip_imsi_map() {
 
   MmeNasStateConverter::mme_app_proto_to_ueip_imsi_map(
       ueip_proto, ueip_imsi_map);
+#endif
   return;
 }
 

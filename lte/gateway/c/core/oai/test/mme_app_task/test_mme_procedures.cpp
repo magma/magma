@@ -60,7 +60,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     // initialize mme config
     mme_config_init(&mme_config);
     create_partial_lists(&mme_config);
-    mme_config.use_stateless                              = false;
+    mme_config.use_stateless                              = true;
     mme_config.nas_config.prefered_integrity_algorithm[0] = EIA2_128_ALG_ID;
 
     task_id_t task_id_list[10] = {
