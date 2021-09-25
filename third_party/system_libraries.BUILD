@@ -46,7 +46,7 @@ cc_library(
 
 cc_library(
     name = "libtins",
-    srcs = ["usr/local/lib/libtins.so"],
+    srcs = ["usr/lib/libtins.so"],
     linkopts = ["-ltins"],
 )
 
