@@ -14,11 +14,11 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"

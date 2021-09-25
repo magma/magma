@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 

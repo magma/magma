@@ -14,13 +14,12 @@ limitations under the License.
 package servicers_test
 
 import (
-	context2 "context"
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	"magma/orc8r/cloud/go/services/streamer"
@@ -34,7 +33,7 @@ type mockStreamProvider struct {
 	retErr error
 }
 
-func (m *mockStreamProvider) GetUpdates(ctx context2.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	return m.retVal, m.retErr
 }
 
