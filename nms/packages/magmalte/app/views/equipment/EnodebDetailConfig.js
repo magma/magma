@@ -236,9 +236,10 @@ function EnodebManagedRanConfig({
     ],
     [
       {
-        category: 'X2 Enable',
-        value:
-          enbInfo.enb.enodeb_config?.managed_config?.x2_enable_disable ?? '-',
+        category: 'X2 Enable/Disable',
+        value: enbInfo.enb.enodeb_config?.managed_config?.x2_enable_disable
+          ? 'Enabled'
+          : 'Disabled',
       },
     ],
     [

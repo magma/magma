@@ -165,6 +165,9 @@ generic_command_config:
     - name: configure_stateless
       command: "magmad_cli.py config_stateless {}"
       allow_params: True
+    - name: factory_reset_enodeb
+      command: "enodebd_cli.py factory_reset_enodeb {}"
+      allow_params: True
 
 # Services for which magmad grpc status check restart recovery is enabled
 services_to_restart:

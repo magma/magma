@@ -46,6 +46,8 @@ from magma.enodebd.state_machines.enb_acs_states import (
     WaitInformState,
     WaitRebootResponseState,
     WaitSetParameterValuesState,
+    WaitFactoryResetResponseState,
+    SendFactoryResetState,
 )
 
 
@@ -59,6 +61,9 @@ class BaicellsRTSHandler(BasicEnodebAcsStateMachine):
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
+
+    def factory_reset_asap(self) -> None:
+        self.transition('factory_reset')
 
     def is_enodeb_connected(self) -> bool:
         return not isinstance(self.state, WaitInformState)
@@ -84,6 +89,8 @@ class BaicellsRTSHandler(BasicEnodebAcsStateMachine):
             'reboot': EnbSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty_post_reboot', when_timeout='wait_inform_post_reboot'),
+            'factory_reset': SendFactoryResetState(self, when_done='wait_factory_reset'),
+            'wait_factory_reset': WaitFactoryResetResponseState(self, when_done='wait_inform_post_reboot'),
             'wait_inform_post_reboot': WaitInformState(self, when_done='wait_empty_post_reboot', when_boot=None),
             'wait_empty_post_reboot': WaitEmptyMessageState(self, when_done='get_transient_params', when_missing='check_optional_params'),
             # The states below are entered when an unexpected message type is
