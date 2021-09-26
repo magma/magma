@@ -1212,6 +1212,99 @@ class WaitInformMRebootState(EnodebAcsState):
     def state_description(self) -> str:
         return 'Waiting for M Reboot code from Inform'
 
+class SendFactoryResetState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.prev_msg_was_inform = False
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        This state can be transitioned into through user command.
+        All messages received by enodebd will be ignored in this state.
+        """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(
+                message, self.acs.data_model,
+                self.acs.device_cfg,
+            )
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logger.info('Sending factory reset request to eNB')
+        request = models.FactoryReset()
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    def state_description(self) -> str:
+        return 'Running Factory Reset eNB'
+
+class WaitFactoryResetDelayState(EnodebAcsState):
+    """
+        After receiving the Inform notifying us that the eNodeB has successfully
+        FactoryReset, wait a short duration to prevent unspecified race conditions
+        that may occur w.r.t reboot
+    """
+
+    SHORT_CONFIG_DELAY = 15
+
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.config_timer = None
+        self.timer_handle = None
+
+    def enter(self):
+        self.config_timer = StateMachineTimer(self.SHORT_CONFIG_DELAY)
+
+        def check_timer() -> None:
+            if self.config_timer.is_done():
+                self.acs.transition(self.done_transition)
+
+        self.timer_handle = \
+            self.acs.event_loop.call_later(
+                self.SHORT_CONFIG_DELAY,
+                check_timer,
+            )
+
+    def exit(self):
+        self.timer_handle.cancel()
+        self.config_timer = None
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        return AcsMsgAndTransition(models.DummyInput(), None)
+    def state_description(self) -> str:
+        return 'Waiting after eNB  to prevent race conditions'
+
+class WaitFactoryResetResponseState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.FactoryResetResponse):
+            return AcsReadMsgResult(False, None)
+        return AcsReadMsgResult(True, None)
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """ Reply with empty message """
+        return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
+    def state_description(self) -> str:
+        return 'Running FactoryReset eNB'
 
 class WaitRebootDelayState(EnodebAcsState):
     """

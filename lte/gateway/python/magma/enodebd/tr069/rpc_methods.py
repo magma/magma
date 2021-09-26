@@ -37,6 +37,7 @@ CPE_RPC_METHODS = [
     'DeleteObject',
     'Download',
     'Reboot',
+    'FactoryReset',
 ]
 CPE_RPC_RESPONSES = [method + 'Response' for method in CPE_RPC_METHODS]
 # ACS RPC methods that are not explicitly described by the spec (hence shouldn't
@@ -287,6 +288,16 @@ class AutoConfigServer(ServiceBase):
         _operation_name="DownloadResponse",
     )
     def download_response(ctx, response):
+        return AutoConfigServer._handle_tr069_message(ctx, response)
+
+    @rpc(
+        models.FactoryResetResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="FactoryResetResponse",
+    )
+    def factory_reset_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
     @rpc(
