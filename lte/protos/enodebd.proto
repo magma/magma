@@ -117,6 +117,9 @@ service Enodebd {
   // Reboot every connected eNodeB
   rpc RebootAll (magma.orc8r.Void) returns (magma.orc8r.Void);
 
+  // factorySet eNodeB
+  rpc FactoryReset (EnodebIdentity) returns (magma.orc8r.Void);
+
   // Get current status
   rpc GetStatus (magma.orc8r.Void) returns (magma.orc8r.ServiceStatus);
 

@@ -126,6 +126,13 @@ class EnodebdRpcServicer(EnodebdServicer):
             handler = self._get_handler(enb_serial)
             handler.reboot_asap()
 
+    @return_void
+    def FactoryReset(self, request: EnodebIdentity, context=None) -> None:
+        """ Factory reset eNodeB """
+        print(request.device_serial)
+        handler = self._get_handler(request.device_serial)
+        handler.factory_reset_asap()
+
     def GetStatus(self, _=None, context=None) -> ServiceStatus:
         """
         Get eNodeB status

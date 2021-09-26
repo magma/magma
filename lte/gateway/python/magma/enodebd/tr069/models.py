@@ -315,6 +315,13 @@ class RebootResponse(Tr069ComplexModel):
     _type_info["DummyField"] = UnsignedInteger
 
 
+class FactoryReset(Tr069ComplexModel):
+    pass
+
+class FactoryResetResponse(Tr069ComplexModel):
+    _type_info = odict()
+    _type_info["DummyField"] = UnsignedInteger
+
 # ACS messages
 
 
