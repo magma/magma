@@ -2254,7 +2254,7 @@ void sgw_process_release_access_bearer_request(
         rv = gtpv1u_del_s8_tunnel(
             enb, pgw, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt->enb_teid_S1u, NULL);
+            eps_bearer_ctxt->s_gw_teid_S5_S8_up);
       }
 
       // TODO Need to add handling on failing to delete s1-u tunnel rules from
