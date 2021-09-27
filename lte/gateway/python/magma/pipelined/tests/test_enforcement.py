@@ -19,12 +19,7 @@ from typing import List
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import VersionedPolicy
-from lte.protos.policydb_pb2 import (
-    FlowDescription,
-    FlowMatch,
-    HeaderEnrichment,
-    PolicyRule,
-)
+from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 from magma.pipelined.app import he
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools

@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import Dict, List, Optional
+from typing import List, Optional
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 

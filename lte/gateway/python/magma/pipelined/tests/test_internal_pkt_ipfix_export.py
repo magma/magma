@@ -19,7 +19,6 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import FlowRequest
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.app.dpi import DPIController
-from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.start_pipelined import (
