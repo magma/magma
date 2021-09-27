@@ -23,6 +23,7 @@
 
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"
+#include "magma_logging.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
@@ -85,6 +86,7 @@ std::string get_snowflake() {
 
 void initialize_sentry(
     const char* service_tag, const sentry_config_t* sentry_config) {
+  MLOG(MINFO) << "initializing sentry!";
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
   auto op_sentry_url =

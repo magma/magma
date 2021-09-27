@@ -149,3 +149,11 @@ new_local_repository(
     path = "/",
 )
 ### Folly dependencies ###
+
+http_archive(
+    name = "sentry_native",
+    build_file = "//third_party:sentry_native.BUILD",
+    sha256 = "11fda9e754d31b78f857aaee3ac5f03bfd9b6ad67eb8090f604842c6e088807f",
+    strip_prefix = "sentry-native-0.4.12",
+    url = "https://github.com/getsentry/sentry-native/archive/refs/tags/0.4.12.tar.gz",
+)

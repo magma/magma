@@ -212,6 +212,7 @@ int main(int argc, char* argv[]) {
   strncpy(
       sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
       MAX_URL_LENGTH);
+  MLOG(MINFO) << "GOING TO TRY CALLING initializing sentry";
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool enable_5g_features        = false;

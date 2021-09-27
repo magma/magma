@@ -478,6 +478,8 @@ cc_binary(
     srcs = ["sessiond_main.cpp"],
     copts = [
         "-DLOG_WITH_GLOG",
+        # TODO(@themarwhal): Enable build in Sentry by default for all builds
+        "-DSENTRY_ENABLED",
     ],
     # Make the binary as static as possible to allow for more reliable behavior when moving binaries around
     # From bazel doc: this flag makes it so all user libraries are linked statically (if a static version is available),
@@ -490,5 +492,6 @@ cc_binary(
         ":session_manager_server",
         ":stats_poller",
         "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
     ],
 )

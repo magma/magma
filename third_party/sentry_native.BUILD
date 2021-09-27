@@ -9,18 +9,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
-    name = "sentry_wrapper",
-    srcs = ["SentryWrapper.cpp"],
-    hdrs = ["includes/SentryWrapper.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/orc8r/gateway/c/common/sentry",
-    deps = [
-        "//orc8r/gateway/c/common/config:service_config_loader",
-        "@sentry_native//:sentry",
-        "@yaml-cpp//:yaml-cpp",
-    ],
-    copts = ["-DSENTRY_ENABLED"],
+    name = "sentry",
+    srcs = glob([
+        "src/**/*.cpp",
+    ]) + glob([
+        "src/**/*.c",
+    ]),
+    hdrs = glob([
+        "include/**/*.h",
+    ]),
+    copts= ["-DSENTRY_BUILD_SHARED_LIBS=1"],
+    includes = ["include"],
+    strip_include_prefix = "sentry-native-0.4.12",
+    visibility = ["//visibility:public"],
 )

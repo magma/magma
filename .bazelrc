@@ -4,6 +4,8 @@ build --announce_rc
 build --color=yes
 build --cxxopt=-std=c++14
 build --cxxopt=-g2
+build --cxxopt=-DSENTRY_ENABLED
+build --copt=-DSENTRY_ENABLED
 
 # For building with Bazel inside the Magma-Builder Docker container
 build:docker --disk_cache=/magma/.bazel-cache

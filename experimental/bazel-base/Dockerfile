@@ -82,4 +82,14 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     # symlink to /usr/lib to match Magma VM
     ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
+# TODO(@themarwhal): Investigate building sentry from scratch in Bazel
+# RUN wget https://github.com/getsentry/sentry-native/archive/refs/tags/0.4.12.tar.gz && \
+#     mkdir -p /tmp && \
+#     tar -xvf 0.4.12.tar.gz -C /tmp && \
+#     cd /tmp/sentry-native-0.4.12 && \
+#     cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCURL_LIBRARY=/usr/lib/x86_64-linux-gnu/ -DCURL_INCLUDE_DIR=/usr/lib/x86_64-linux-gnu/ && \
+#     cmake --build build --parallel && \
+#     cmake --install build --prefix install --config RelWithDebInfo && \
+#     cd build && make install
+
 WORKDIR /magma
