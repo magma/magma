@@ -7,7 +7,7 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-9fe32d6"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-72b1f20"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
