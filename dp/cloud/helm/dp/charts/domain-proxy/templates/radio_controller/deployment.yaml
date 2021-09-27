@@ -11,7 +11,7 @@
 # limitations under the License.
 */}}
 
-{{- if .Values.radio_controller.enabled -}}
+{{- if and .Values.create .Values.radio_controller.enabled -}}
 apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -65,6 +65,9 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.radio_controller.resources | nindent 12 }}
+          envFrom:
+          - secretRef:
+              name: {{ include "domain-proxy.radio_controller.fullname" . }}
       {{- with .Values.radio_controller.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

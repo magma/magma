@@ -323,3 +323,7 @@ cloudwatch:
 # logging sub-chart configuration.
 logging:
   enabled: true
+
+# Domain proxy sub-chart configuration. Set true to enable.
+dp:
+  enabled: true

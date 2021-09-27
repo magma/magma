@@ -1,4 +1,4 @@
-{{- if .Values.protocol_controller.enabled -}}
+{{- if and .Values.create .Values.protocol_controller.enabled -}}
 apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
 kind: Deployment
 metadata:

@@ -1,4 +1,4 @@
-{{- if and .Values.protocol_controller.autoscaling.enabled .Values.protocol_controller.enabled }}
+{{- if and .Values.create .Values.protocol_controller.autoscaling.enabled .Values.protocol_controller.enabled }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

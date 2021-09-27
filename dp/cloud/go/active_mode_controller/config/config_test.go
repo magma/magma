@@ -8,8 +8,6 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/config"
 
 	"github.com/stretchr/testify/suite"
-
-	"magma/dp/cloud/go/active_mode_controller/config"
 )
 
 const (

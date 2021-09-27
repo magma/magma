@@ -1,4 +1,4 @@
-{{- if and .Values.radio_controller.enabled .Values.radio_controller.podDisruptionBudget.enabled -}}
+{{- if and .Values.create .Values.radio_controller.enabled .Values.radio_controller.podDisruptionBudget.enabled -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:

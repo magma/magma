@@ -1,4 +1,4 @@
-{{- if .Values.protocol_controller.httpproxy.enabled -}}
+{{- if and .Values.create .Values.protocol_controller.httpproxy.enabled -}}
 {{- $fullName := include "domain-proxy.protocol_controller.fullname" . -}}
 {{- $svcPort := .Values.protocol_controller.service.port -}}
 {{- $caSecret := printf "%s/%s-pc-ca" .Release.Namespace (include "domain-proxy.fullname" .) -}}

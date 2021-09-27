@@ -1,4 +1,4 @@
-{{- if and .Values.configuration_controller.autoscaling.enabled  .Values.configuration_controller.enabled }}
+{{- if and .Values.create .Values.configuration_controller.autoscaling.enabled  .Values.configuration_controller.enabled }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

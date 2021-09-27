@@ -1,4 +1,4 @@
-{{- if and .Values.protocol_controller.enabled .Values.protocol_controller.podDisruptionBudget.enabled -}}
+{{- if and .Values.create .Values.protocol_controller.enabled .Values.protocol_controller.podDisruptionBudget.enabled -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:

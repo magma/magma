@@ -11,7 +11,7 @@
 # limitations under the License.
 */}}
 
-{{- if .Values.active_mode_controller.enabled -}}
+{{- if and .Values.create .Values.active_mode_controller.enabled -}}
 apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
 kind: Deployment
 metadata:

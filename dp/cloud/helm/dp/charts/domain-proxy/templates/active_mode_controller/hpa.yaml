@@ -11,7 +11,7 @@
 # limitations under the License.
 */}}
 
-{{- if .Values.active_mode_controller.enabled -}}
+{{- if and .Values.create .Values.active_mode_controller.enabled -}}
 {{- if .Values.active_mode_controller.autoscaling.enabled }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler

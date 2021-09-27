@@ -1,4 +1,4 @@
-{{- if .Values.db_service.enabled -}}
+{{- if and .Values.create .Values.db_service.enabled -}}
 apiVersion: {{ template "domain-proxy.job.apiVersion" . }}
 kind: Job
 metadata:
@@ -23,6 +23,9 @@ spec:
           - name: {{ $key }}
             value: {{ $value }}
           {{- end }}
+        envFrom:
+          - secretRef:
+              name: {{ include "domain-proxy.db_service.fullname" . }}
       restartPolicy: Never
       initContainers:
       - name: {{ .Values.db_service.name }}-init
@@ -35,6 +38,9 @@ spec:
           - name: {{ $key }}
             value: {{ $value }}
           {{- end }}
+        envFrom:
+          - secretRef:
+              name: {{ include "domain-proxy.db_service.fullname" . }}
         command: ["alembic"]
         args: ["upgrade","head"]
   backoffLimit: 10

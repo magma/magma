@@ -1,4 +1,5 @@
 ---
+create: true
 nameOverride: ""
 fullnameOverride: ""
 
@@ -9,6 +10,8 @@ configuration_controller:
   enabled: true
   name: configuration-controller
   sasEndpointUrl: "https://fake-sas-service/v1.2"
+
+  database: {}
 
   image:
     repository: configuration-controller
@@ -131,6 +134,8 @@ protocol_controller:
     virtualhost:
       fqdn: domain-proxy
       path: "/sas/v1"
+      tls: {}
+      tls: {}
 
   resources:
     limits:
@@ -164,6 +169,8 @@ protocol_controller:
 
 radio_controller:
 
+  database: {}
+
   nameOverride: ""
   fullnameOverride: ""
   enabled: true
@@ -193,7 +200,7 @@ radio_controller:
 
   service:
     enable: true
-    port: 50053
+    port: 9180
 
   resources:
     limits:
@@ -271,6 +278,8 @@ active_mode_controller:
   affinity: {}
 
 db_service:
+
+  database: {}
 
   enabled: true
   nameOverride: ""

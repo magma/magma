@@ -1,4 +1,4 @@
-{{- if .Values.radio_controller.enabled -}}
+{{- if and .Values.create .Values.radio_controller.enabled -}}
 {{- if .Values.radio_controller.service.enable -}}
 apiVersion: v1
 kind: Service
@@ -12,6 +12,10 @@ spec:
       targetPort: 50053
       protocol: TCP
       name: http
+    - port: 50053
+      targetPort: 50053
+      protocol: TCP
+      name: grpc
   selector:
     {{- include "domain-proxy.radio_controller.matchLabels" . | nindent 4 }}
 {{- end }}

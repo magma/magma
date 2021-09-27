@@ -213,3 +213,67 @@ nms:
 
 logging:
   enabled: false
+
+dp:
+  enabled: true
+
+  configuration_controller:
+    enabled: true
+    sasEndpointUrl: "${dp_sas_endpoint_url}"
+    image:
+      repository: "${docker_registry}/configuration-controller"
+      tag: "${docker_tag}"
+    tlsConfig:
+      paths:
+        cert: ""
+        key: ""
+        ca: ""
+
+    database:
+      driver: postgres
+      db: ${orc8r_db_name}
+      host: ${orc8r_db_host}
+      port: ${orc8r_db_port}
+      user: ${orc8r_db_user}
+      pass: ${orc8r_db_pass}
+
+  protocol_controller:
+    enabled: true
+    image:
+      repository: "${docker_registry}/protocol-controller"
+      tag: "${docker_tag}"
+
+  radio_controller:
+    enabled: true
+    image:
+      repository: "${docker_registry}/radio-controller"
+      tag: "${docker_tag}"
+
+    database:
+      driver: postgres
+      db: ${orc8r_db_name}
+      host: ${orc8r_db_host}
+      port: ${orc8r_db_port}
+      user: ${orc8r_db_user}
+      pass: ${orc8r_db_pass}
+
+
+  active_mode_controller:
+    enabled: true
+    image:
+      repository: "${docker_registry}/radio-controller"
+      tag: "${docker_tag}"
+
+  db_service:
+    enabled: true
+    image:
+      repository: "${docker_registry}/radio-controller"
+      tag: "${docker_tag}"
+
+    database:
+      driver: postgres
+      db: ${orc8r_db_name}
+      host: ${orc8r_db_host}
+      port: ${orc8r_db_port}
+      user: ${orc8r_db_user}
+      pass: ${orc8r_db_pass}

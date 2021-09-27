@@ -452,3 +452,26 @@ variable "cloudwatch_exporter_enabled" {
   default     = false
   type        = bool
 }
+
+
+##############################################################################
+# Domain proxy variables
+##############################################################################
+
+variable "dp_enabled" {
+  description = "Enable domain proxy"
+  type        = bool
+  default     = false
+}
+
+variable "dp_sas_endpoint_url" {
+  description = "Sas endpoint url where to connect DP to."
+  type        = string
+  default     = "https://fake-sas-service/v1.2"
+}
+
+variable "dp_api_prefix" {
+  description = "Protocol controller api prefix."
+  type        = string
+  default     = "/sas/v1"
+}

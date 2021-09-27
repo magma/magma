@@ -1,4 +1,5 @@
 ---
+create: true
 nameOverride: ""
 fullnameOverride: ""
 
@@ -189,7 +190,7 @@ radio_controller:
 
   service:
     enable: true
-    port: 50053
+    port: 9180
 
   resources:
     limits:

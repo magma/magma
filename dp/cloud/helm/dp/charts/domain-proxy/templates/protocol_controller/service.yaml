@@ -1,4 +1,4 @@
-{{- if .Values.protocol_controller.service.enable -}}
+{{- if and .Values.create .Values.protocol_controller.service.enable -}}
 apiVersion: v1
 kind: Service
 metadata:

@@ -1,4 +1,4 @@
-{{- if .Values.configuration_controller.enabled -}}
+{{- if and .Values.create .Values.configuration_controller.enabled -}}
 apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -56,6 +56,8 @@ spec:
               readOnly: true
           envFrom:
           - configMapRef:
+              name: {{ include "domain-proxy.configuration_controller.fullname" . }}
+          - secretRef:
               name: {{ include "domain-proxy.configuration_controller.fullname" . }}
       volumes:
         - name: tls

@@ -1,4 +1,4 @@
-{{- if and .Values.configuration_controller.enabled .Values.configuration_controller.podDisruptionBudget.enabled -}}
+{{- if and .Values.create .Values.configuration_controller.enabled .Values.configuration_controller.podDisruptionBudget.enabled -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:

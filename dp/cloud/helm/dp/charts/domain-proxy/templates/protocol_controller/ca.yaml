@@ -1,3 +1,4 @@
+{{- if .Values.create -}}
 {{- $fullName := include "domain-proxy.fullname" . -}}
 {{- if .Values.protocol_controller.tlsConfig.paths.ca -}}
 {{- if (empty (lookup "v1" "Secret" .Release.Namespace "${fullName}-pc-ca")) -}}
@@ -12,3 +13,4 @@ data:
 {{ (.Files.Get $pathca) | b64enc | indent 4 }}
 {{- end }}
 {{- end -}}
+{{- end }}

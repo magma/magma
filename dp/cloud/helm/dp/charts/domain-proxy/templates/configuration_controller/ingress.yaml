@@ -1,4 +1,4 @@
-{{- if .Values.configuration_controller.ingress.enabled -}}
+{{- if and .Values.create .Values.configuration_controller.ingress.enabled -}}
 {{- $fullName := include "domain-proxy.configuration_controller.fullname" . -}}
 {{- $svcPort := .Values.configuration_controller.service.port -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}

@@ -218,6 +218,7 @@ else
     update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
     update_and_send_to_artifactory "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
     update_and_send_to_artifactory "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
+    update_and_send_to_artifactory "$MAGMA_ROOT/dp/cloud/helm/dp/charts/domain-proxy"
   fi
 
   # Refresh index.yaml

@@ -1,4 +1,4 @@
-{{- if and .Values.active_mode_controller.enabled .Values.active_mode_controller.podDisruptionBudget.enabled -}}
+{{- if and .Values.create .Values.active_mode_controller.enabled .Values.active_mode_controller.podDisruptionBudget.enabled -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
