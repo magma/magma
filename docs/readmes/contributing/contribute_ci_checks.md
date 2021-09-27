@@ -28,6 +28,7 @@ Merge blocking CI checks are listed below.
 | Semantic PR            | PR format checker                             | any maintainer         | [PR guidelines](contribute_workflow#guidelines)                              |
 | mergefreeze            | Stop merges during a code freeze              | themarwhal             | N/A                                                                          |
 | orc8r-build            | Validate Orc8r builds                         | approvers-orc8r        | [Orc8r build](../basics/quick_start_guide#terminal-tab-2-build-orchestrator) |
+| Bazel Build & Test     | Validate healthy Bazel And Bazel Test         | smoeller, themarwhal   | [Bazel docs](../experimental/bazel)
 | cloud-test             | Run Orc8r unit tests                          | approvers-orc8r        | [Orc8r tests](../orc8r/dev_testing)                                          |
 | cloud_lint             | Check Orc8r changes satisfy golint            | approvers-orc8r        | [Orc8r tests](../orc8r/dev_testing)                                          |
 | insync-checkin         | Ensure generated files are committed          | approvers-orc8r        | [Orc8r tests](../orc8r/dev_testing)                                          |
