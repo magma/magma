@@ -15,6 +15,7 @@ cc_library(
     name = "sentry_wrapper",
     srcs = ["SentryWrapper.cpp"],
     hdrs = ["includes/SentryWrapper.h"],
+    copts = ["-DSENTRY_ENABLED"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/sentry",
     deps = [
@@ -22,5 +23,4 @@ cc_library(
         "@sentry_native//:sentry",
         "@yaml-cpp//:yaml-cpp",
     ],
-    copts = ["-DSENTRY_ENABLED"],
 )
