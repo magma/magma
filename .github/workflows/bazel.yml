@@ -31,7 +31,7 @@ jobs:
     needs:
       - path_filter
     # Only run workflow if this is a scheduled run on master branch,
-    # or a push_request that skip-duplicate-action wants to run again.
+    # or a pull_request that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == `schedule` && github.ref == 'refs/heads/master')
         || ${{ needs.path_filter.outputs.should_skip == 'false' }}
