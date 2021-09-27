@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>C++ Migration · Magma Documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Proposal: C++ Migration"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="C++ Migration · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Proposal: C++ Migration"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="proposal-c-migration"></a><a href="#proposal-c-migration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: C++ Migration</h1>
+<p>Author(s): [@alexrod, @electronjoe, @kozat, @lionelgo]</p>
+<p>Last updated: 09/15/2021</p>
+<p>Discussion at
+<a href="https://github.com/magma/magma/issues/4074">https://github.com/magma/magma/issues/4074</a>.</p>
+<h2><a class="anchor" aria-hidden="true" id="abstract"></a><a href="#abstract" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Abstract</h2>
+<p>This document describes the steps to migrate progressively, from C to C++, the MME core.</p>
+<h2><a class="anchor" aria-hidden="true" id="background"></a><a href="#background" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Background</h2>
+<p>Initially and historically, the development of MME magma was done only in C.</p>
+<p>Many third party libraries and features that were integrated and or developed around the MME core are written in C++.</p>
+<p>We are now to the point where, for an easier and cleaner way of integrating new C++ libraries, for the ease of the maintenance of the code, a C to C++ migration seems unavoidable.</p>
+<h2><a class="anchor" aria-hidden="true" id="proposal"></a><a href="#proposal" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal</h2>
+<p>The proposal is constrained by a lack of performance of the current context serialization library (protobuf).</p>
+<p>Because the replacement libraries may have a big impact on the MME core code, this library migration will be studied first.</p>
+<h3><a class="anchor" aria-hidden="true" id="state-serialization"></a><a href="#state-serialization" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>State Serialization</h3>
+<p>The serialization performance of protobuf is insufficient, so a serialization library that allows better performance must be selected.</p>
+<p>The bad performance is due to the global serialization process (translation, memory allocation, copy).</p>
+<p>The replacement libraries considered are &quot;cap'n proto&quot; and &quot;Flat buffers”, they support C/C++ standard API, binary output format and do not need memory copy (zero copy).</p>
+<p>The states that have to be serialized are:</p>
+<ul>
+<li>S1AP, S1AP_IMSI_MAP, S1AP_UE</li>
+<li>MME_UE, MME_NAS</li>
+<li>SGW, SGW_UE, SPGW, SPGW_UE</li>
+<li>S11/GTPV2-C</li>
+<li>NGAP, NGAP_IMSI_MAP, NGAP_UE</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="s1ap-mme_app-nas-migration"></a><a href="#s1ap-mme_app-nas-migration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>S1AP, MME_APP, NAS migration</h4>
+<p>S1AP seems to have no state dependency with other tasks.</p>
+<p>Should be an opportunity to start doing a first migration with S1AP.</p>
+<p>MME_APP and NAS tasks have contexts in common.</p>
+<h3><a class="anchor" aria-hidden="true" id="3gpp-protocols-oai"></a><a href="#3gpp-protocols-oai" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3GPP protocols (OAI)</h3>
+<p>This work is necessary only for the deployment of Magma MME with 3GPP compliant S11 over GTPV2-C and S6a over freeDiameter interfaces.</p>
+<p>S6a Interface implemented in C should be migrated to C++.
+A C++ port of S6a interface is already available in OAI HSS repo (<a href="https://github.com/OPENAIRINTERFACE/openair-hss">https://github.com/OPENAIRINTERFACE/openair-hss</a>) could serve as a basis.</p>
+<p>S11 Interface and its GTPV2-C protocol implemented in C should be migrated to C++.
+A C++ port of S11 and GTPV2-C interface done in OAI SPGW-C repo (<a href="https://github.com/OPENAIRINTERFACE/openair-spgwc">https://github.com/OPENAIRINTERFACE/openair-spgwc</a>) could serve as a basis.</p>
+<h2><a class="anchor" aria-hidden="true" id="rationale"></a><a href="#rationale" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Rationale</h2>
+<h3><a class="anchor" aria-hidden="true" id="getset-state-attributes"></a><a href="#getset-state-attributes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get/Set state attributes</h3>
+<p>For a progressive migration, and a decoupling of MME core code from the serialization library, macros, inline, helpers functions/C++ patterns may be used instead of directly using serialization library API in MME core code.</p>
+<p>Some MM and NAS IEs, for the ease of their manipulation (comparison operators, etc) could be migrated with wrapper classes.</p>
+<p>[A discussion of alternate approaches and the trade offs, advantages, and
+disadvantages of the specified approach.]</p>
+<h2><a class="anchor" aria-hidden="true" id="compatibility"></a><a href="#compatibility" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Compatibility</h2>
+<p>Endianness: Whatever is the HW platform, endianness is fixed.</p>
+<p>Backward compatibility of the new serialization library with protobuf is not envisioned.</p>
+<h2><a class="anchor" aria-hidden="true" id="implementation"></a><a href="#implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implementation</h2>
+<p>Description of steps in the C++ migration:</p>
+<ul>
+<li><p>Serialization library selection</p>
+<ul>
+<li>Build 2 realistics Prototypes with MME_APP, NAS protos (cap’n proto, Flat buffers)
+<ul>
+<li>Migrate hashtables (find functions)</li>
+</ul></li>
+<li>Get measurements and evaluate performances, maintainability.</li>
+<li>Select library</li>
+</ul></li>
+<li><p>MME_APP/NAS Serialization migration</p>
+<ul>
+<li>Write proto</li>
+<li>Write redis client libraries</li>
+<li>Design classes for wrapping generated POD classes (?)
+Not all context attribute need to be serialized</li>
+<li>Migrate states (update core code with C++ patterns)</li>
+<li>Write Unit tests</li>
+</ul></li>
+<li><p>Migrate MME_APP/NAS hash tables (find functions, evaluate performance)</p>
+<p>List of hash tables with (Key,Value) types:</p>
+<ul>
+<li>state_ue_ht            (mme_ue_s1ap_id_t, ue_mm_context_t*)</li>
+<li>UeIpImsiMap            (std::string/ue_ip, vector&lt;imsi64_t&gt;)</li>
+<li>guti_ue_context_htbl   (guti_t, mme_ue_s1ap_id_t)</li>
+<li>enb_ue_s1ap_id_ue_context_htbl (enb_s1ap_id_key_t, mme_ue_s1ap_id_t)</li>
+<li>tun11_ue_context_htbl  (teid_t/mme_teid_s11, mme_ue_s1ap_id_t)</li>
+<li>imsi_mme_ue_id_htbl    (imsi64_t, mme_ue_s1ap_id_t)</li>
+</ul></li>
+<li><p>S1AP Serialization migration</p>
+<ul>
+<li>Write proto</li>
+<li>Write redis client libraries</li>
+<li>Design classes for wrapping generated POD classes
+Not all context attribute need to be serialized</li>
+<li>Migrate states (update core code)</li>
+<li>Write Unit tests</li>
+</ul></li>
+<li><p>Migrate S1AP hash tables (find functions, evaluate performance)</p>
+<p>List of hash tables with (Key,Value) types:</p>
+<ul>
+<li>enbs                   (sctp_assoc_id_t, enb_description_t*)</li>
+<li>mmeid2associd          (mme_ue_s1ap_id_t, sctp_assoc_id_t)</li>
+<li>state_ue_ht            (comp_s1ap_id, ue_description_t*)</li>
+<li>mme_ue_id_imsi_htbl    (mme_ue_s1ap_id_t, imsi64_t)</li>
+<li>ue_id_coll             (mme_ue_s1ap_id_t, uint32_t/comp_s1ap_id)</li>
+</ul></li>
+<li><p>Migrate SPGW hash tables (find functions, evaluate performance)</p>
+<p>List of hash tables with (Key,Value) types:</p>
+<ul>
+<li>state_teid_ht_         (s_gw_teid_S11_S4, s_plus_p_gw_eps_bearer_context_information_t*)</li>
+<li>state_ue_ht            (imsi64, spgw_ue_context_t*)</li>
+</ul></li>
+<li><p>Intertask Messaging migration</p>
+<ul>
+<li>Study message copy avoidance</li>
+</ul></li>
+<li><p>S6a migration (OAI only)</p></li>
+<li><p>S11 migration (OAI only)</p></li>
+</ul>
+<p>[A description of the steps in the implementation, who will do them, and when.] TODO</p>
+<h2><a class="anchor" aria-hidden="true" id="open-issues-if-applicable"></a><a href="#open-issues-if-applicable" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Open issues (if applicable)</h2>
+<p>[A discussion of issues relating to this proposal for which the author does not
+know the solution. This section may be omitted if there are none.]</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#abstract">Abstract</a></li><li><a href="#background">Background</a></li><li><a href="#proposal">Proposal</a><ul class="toc-headings"><li><a href="#state-serialization">State Serialization</a></li><li><a href="#3gpp-protocols-oai">3GPP protocols (OAI)</a></li></ul></li><li><a href="#rationale">Rationale</a><ul class="toc-headings"><li><a href="#getset-state-attributes">Get/Set state attributes</a></li></ul></li><li><a href="#compatibility">Compatibility</a></li><li><a href="#implementation">Implementation</a></li><li><a href="#open-issues-if-applicable">Open issues (if applicable)</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
