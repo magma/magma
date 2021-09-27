@@ -42,6 +42,7 @@
 #include "mme_app_defs.h"
 #include "mme_app_state.h"
 #include "nas_procedures.h"
+#include "nas_proc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -206,6 +207,7 @@ int emm_proc_identification_complete(
   int rc                 = RETURNerror;
   emm_sap_t emm_sap      = {0};
   emm_context_t* emm_ctx = NULL;
+  bool notify            = true;
 
   OAILOG_INFO(
       LOG_NAS_EMM,
@@ -257,7 +259,35 @@ int emm_proc_identification_complete(
 
       if (imsi) {
         imsi64_t imsi64 = imsi_to_imsi64(imsi);
-        int emm_cause   = check_plmn_restriction(*imsi);
+        // If context already exists for this IMSI ,perform implicit detach
+        mme_app_desc_t* mme_app_desc_p      = get_mme_nas_state(false);
+        ue_mm_context_t* old_imsi_ue_mm_ctx = mme_ue_context_exists_imsi(
+            &mme_app_desc_p->mme_ue_contexts, imsi64);
+        if ((emm_ctx->emm_context_state == UNKNOWN_GUTI) &&
+            old_imsi_ue_mm_ctx) {
+          OAILOG_INFO_UE(
+              LOG_NAS_EMM, imsi64,
+              "EMMAS-SAP - UE context already exists for for ue_id "
+              "=." MME_UE_S1AP_ID_FMT " Triggering implicit detach\n",
+              ue_id);
+          nas_emm_attach_proc_t* attach_proc =
+              get_nas_specific_procedure_attach(emm_ctx);
+          if (!attach_proc) {
+            OAILOG_ERROR_UE(
+                LOG_NAS_EMM, imsi64,
+                "EMMAS-SAP - Attach procedure does not exist for ue_id "
+                "=" MME_UE_S1AP_ID_FMT "\n",
+                ue_id);
+            OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+          }
+          create_new_attach_info(
+              &old_imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
+              attach_proc->ies, true);
+          emm_ctx->emm_context_state = NEW_EMM_CONTEXT_CREATED;
+          nas_proc_implicit_detach_ue_ind(old_imsi_ue_mm_ctx->mme_ue_s1ap_id);
+          notify = false;
+        }
+        int emm_cause = check_plmn_restriction(*imsi);
         if (emm_cause != EMM_CAUSE_SUCCESS) {
           OAILOG_ERROR_UE(
               LOG_NAS_EMM, imsi64,
@@ -296,9 +326,11 @@ int emm_proc_identification_complete(
         /*
          * Update the GUTI
          */
-        Fatal(
-            "TODO, should not happen because this type of identity is not "
-            "requested by MME");
+        OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "EMMAS-SAP - Received TMSI in Identication rsp for ue_id "
+            "=" MME_UE_S1AP_ID_FMT ", This case is not handled!\n",
+            ue_id);
       }
 
       /*
@@ -307,7 +339,7 @@ int emm_proc_identification_complete(
       emm_sap.primitive                      = EMMREG_COMMON_PROC_CNF;
       emm_sap.u.emm_reg.ue_id                = ue_id;
       emm_sap.u.emm_reg.ctx                  = emm_ctx;
-      emm_sap.u.emm_reg.notify               = true;
+      emm_sap.u.emm_reg.notify               = notify;
       emm_sap.u.emm_reg.free_proc            = true;
       emm_sap.u.emm_reg.u.common.common_proc = &ident_proc->emm_com_proc;
       emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =

@@ -162,10 +162,6 @@ static int emm_attach_update(
 
 static int emm_attach_accept_retx(emm_context_t* emm_context);
 
-static void create_new_attach_info(
-    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new);
-
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -208,6 +204,7 @@ int emm_proc_attach_request(
   ue_mm_context_t ue_ctx;
   emm_fsm_state_t fsm_state       = EMM_DEREGISTERED;
   bool clear_emm_ctxt             = false;
+  bool is_unknown_guti            = false;
   ue_mm_context_t* ue_mm_context  = NULL;
   ue_mm_context_t* guti_ue_mm_ctx = NULL;
   ue_mm_context_t* imsi_ue_mm_ctx = NULL;
@@ -335,7 +332,13 @@ int emm_proc_attach_request(
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
     // Allocate new context and process the new request as fresh attach request
-    clear_emm_ctxt = true;
+    clear_emm_ctxt  = true;
+    is_unknown_guti = true;
+    OAILOG_INFO(
+        LOG_NAS_EMM,
+        "EMM-PROC - Received Attach Request with unknown GUTI for ue_id "
+        "= " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
   }
   if (ies->imsi) {
     imsi_ue_mm_ctx =
@@ -615,6 +618,10 @@ int emm_proc_attach_request(
       new_emm_ctx->volte_params.presencemask |=
           VOICE_DOMAIN_PREF_UE_USAGE_SETTING;
     }
+  }
+  if (is_unknown_guti) {
+    is_unknown_guti                = false;
+    new_emm_ctx->emm_context_state = UNKNOWN_GUTI;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
     emm_proc_create_procedure_attach_request(ue_mm_context, ies);
@@ -1237,7 +1244,6 @@ static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
       LOG_NAS_EMM, emm_context->_imsi64,
       "ATTACH - Identification procedure failed!\n");
 
-  Fatal("Cannot happen...\n");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -2678,10 +2684,47 @@ void proc_new_attach_req(
     }
   }
 
-  /* Proceed with new attach request */
+  // Proceed with new attach request
   ue_mm_context_t* ue_mm_context =
       mme_ue_context_exists_mme_ue_s1ap_id(attach_info.mme_ue_s1ap_id);
   emm_context_t* new_emm_ctx = &ue_mm_context->emm_context;
+  /* In case of GUTI attach with unknown GUTI, attach procedure is already
+     created and identification procedure is also completed.
+     So invoke authentication procedure
+  */
+  if (new_emm_ctx &&
+      (new_emm_ctx->emm_context_state == NEW_EMM_CONTEXT_CREATED)) {
+    nas_emm_attach_proc_t* attach_proc =
+        get_nas_specific_procedure_attach(new_emm_ctx);
+    if (attach_proc) {
+      /* Upsert IMSI stored in emm context into the hashtable
+       * as it will be deleted during implicit detach
+       */
+      emm_context_upsert_imsi(&_emm_data, new_emm_ctx);
+      OAILOG_INFO(
+          LOG_NAS_EMM,
+          "EMM-PROC  - Triggering authentication for ue_id "
+          "= " MME_UE_S1AP_ID_FMT "\n",
+          ue_mm_context->mme_ue_s1ap_id);
+      if (emm_start_attach_proc_authentication(new_emm_ctx, attach_proc) !=
+          RETURNok) {
+        OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "EMM-PROC  - Failed to start authentication procedure for ue_id "
+            "= " MME_UE_S1AP_ID_FMT "\n",
+            ue_mm_context->mme_ue_s1ap_id);
+      }
+    } else {
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "EMM-PROC  - Attach procedure does not exist for ue_id "
+          "= " MME_UE_S1AP_ID_FMT "\n",
+          ue_mm_context->mme_ue_s1ap_id);
+    }
+    new_emm_ctx->emm_context_state = NEW_EMM_CONTEXT_NOT_CREATED;
+    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  }
+
   bdestroy(new_emm_ctx->esm_msg);
   emm_init_context(new_emm_ctx, true);
 
@@ -2707,16 +2750,5 @@ void proc_new_attach_req(
     emm_proc_create_procedure_attach_request(ue_mm_context, attach_info.ies);
   }
   emm_attach_run_procedure(&ue_mm_context->emm_context);
-  OAILOG_FUNC_OUT(LOG_NAS_EMM);
-}
-
-static void create_new_attach_info(
-    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_p->new_attach_info = calloc(1, sizeof(new_attach_info_t));
-  emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
-  emm_context_p->new_attach_info->ies            = ies;
-  emm_context_p->new_attach_info->is_mm_ctx_new  = is_mm_ctx_new;
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
