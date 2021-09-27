@@ -753,9 +753,7 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     response.power_control.pa = parseInt(optConfig.pa);
   }
   if (optConfig.pb !== '') {
-    response.power_control.pb = parseInt(
-      optConfig.pb,
-    );
+    response.power_control.pb = parseInt(optConfig.pb);
   }
 
   return response;
