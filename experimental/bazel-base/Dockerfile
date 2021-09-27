@@ -14,6 +14,8 @@ RUN apt-get update && \
         build-essential \
         ca-certificates \
         curl \
+        # dependency of @sentry_native//:sentry
+        libcurl4-openssl-dev \
         gcc \
         git \
         gnupg2 \
@@ -37,7 +39,7 @@ RUN apt-get install -y --no-install-recommends cmake
 ## Install Fmt (Folly Dep)
 RUN git clone https://github.com/fmtlib/fmt.git && cd fmt && \
     mkdir _build && cd _build && \
-    cmake .. && \
+    cmake .. -DFMT_TEST=0 && \
     make -j"$(nproc)" && \
     make install && \
     cd / && \
