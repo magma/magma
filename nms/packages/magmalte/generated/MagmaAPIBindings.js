@@ -1212,8 +1212,8 @@ export type policy_rule_config = {
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
 };
 export type power_control = {
-    pa ? : -600 | -477 | -300 | -177 | 0 | 100 | 200 | 300,
-    pb ? : 0 | 1 | 2 | 3,
+    pa ? : number,
+    pb ? : number,
     power_class ? : number,
     reference_signal_power ? : number,
 };

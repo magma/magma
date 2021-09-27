@@ -10926,24 +10926,10 @@ definitions:
     description: Config power control for enodeB.
     properties:
       pa:
-        enum:
-        - -600
-        - -477
-        - -300
-        - -177
-        - 0
-        - 100
-        - 200
-        - 300
         example: 0
         format: int32
         type: integer
       pb:
-        enum:
-        - 0
-        - 1
-        - 2
-        - 3
         example: 0
         format: uint32
         type: integer
