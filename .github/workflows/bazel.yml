@@ -6,6 +6,9 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
+  schedule:
+    # Run once a day to build bazel cache at 0200 hours
+    - cron: '0 2 * * *'
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-72b1f20"
   BAZEL_CACHE: bazel-cache
@@ -27,7 +30,11 @@ jobs:
   bazel_build_and_test:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    # Only run workflow if this is a scheduled run on master branch,
+    # or a push_request that skip-duplicate-action wants to run again.
+    if: |
+      (github.event_name == `schedule` && github.ref == 'refs/heads/master')
+        || ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +61,7 @@ jobs:
               cd /workspaces/magma
               bazel build ... --config=devcontainer
         - name: Bazel Test
+          if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
