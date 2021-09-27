@@ -11,35 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import subprocess
-import threading
 import unittest
 import unittest.mock
 import warnings
 from concurrent import futures
-from typing import List
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 import grpc
 from lte.protos import session_manager_pb2_grpc
-from lte.protos.session_manager_pb2 import UPFNodeState
 from lte.protos.session_manager_pb2_grpc import SetInterfaceForUserPlaneStub
-from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ng_manager.node_state_manager import NodeStateManager
-from magma.pipelined.set_interface_client import (
-    send_node_state_association_request,
-)
-from magma.pipelined.tests.app.start_pipelined import (
-    PipelinedController,
-    TestSetup,
-)
-from magma.pipelined.tests.pipelined_test_util import (
-    create_service_manager,
-    start_ryu_app_thread,
-    stop_ryu_app_thread,
-    wait_after_send,
-)
 from orc8r.protos.common_pb2 import Void
 from ryu.lib import hub
 

@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ipaddress
-import os
 import socket
 import unittest
 import warnings
@@ -20,8 +18,7 @@ from concurrent.futures import Future
 from unittest.mock import MagicMock
 
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.pipelined_pb2 import IPFlowDL, UESessionSet, UESessionState
-from magma.pipelined.app.classifier import Classifier
+from lte.protos.pipelined_pb2 import IPFlowDL
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
@@ -29,11 +26,9 @@ from magma.pipelined.tests.app.start_pipelined import (
 )
 from magma.pipelined.tests.pipelined_test_util import (
     SnapshotVerifier,
-    assert_bridge_snapshot_match,
     create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    wait_after_send,
 )
 
 
