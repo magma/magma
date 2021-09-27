@@ -18,6 +18,8 @@ concurrency:
 
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
 
 jobs:
   path_filter:
@@ -424,7 +426,11 @@ jobs:
         run: |
             docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
             ci_env=$(bash <(curl -s https://codecov.io/env))
-            docker run $ci_env --env CI=true --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+            docker run $ci_env --env CI=true --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;cp /build/c/coverage.info /magma/"
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v1
+        with:
+          flags: c_cpp
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.event_name == 'push'
@@ -438,6 +444,62 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action c-cpp-codecov failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  c-cpp-codecov-bazel:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: c-cpp code coverage job powered by bazel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Run coverage with Bazel
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel coverage //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+            # copy out coverage information into magma so that it's accessible from the CI node
+            cp bazel-out/_coverage/_coverage_report.dat .
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v1
+        with:
+          flags: c_cpp_bazel
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.event_name == 'push'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action c-cpp-codecov-bazel failed"
           SLACK_USERNAME: "AGW workflow"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
