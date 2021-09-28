@@ -285,6 +285,33 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
       session_state->get_dynamic_rules().remove_rule("dynamic-2", &dynamic_2));
 }
 
+TEST_F(SessionStateTest5G, test_marshal_unmarshal) {
+  session_state->set_config(cfg, nullptr);
+  // For 5g verification
+  EXPECT_TRUE(session_state->is_5g_session());
+  EXPECT_EQ(update_criteria.static_rules_to_install.size(), 0);
+  activate_rule(1, "m1", "rule1", STATIC, 0, 0);
+  EXPECT_EQ(session_state->is_static_rule_installed("rule1"), true);
+  EXPECT_EQ(true, session_state->active_monitored_rules_exist());
+  EXPECT_EQ(update_criteria.static_rules_to_install.size(), 1);
+
+  std::time_t activation_time =
+      static_cast<std::time_t>(std::stoul("2020:04:15 09:10:11"));
+  std::time_t deactivation_time =
+      static_cast<std::time_t>(std::stoul("2020:04:15 09:10:12"));
+
+  EXPECT_EQ(update_criteria.new_rule_lifetimes.size(), 1);
+  schedule_rule(1, "m1", "rule2", DYNAMIC, activation_time, deactivation_time);
+  EXPECT_EQ(session_state->is_dynamic_rule_installed("rule2"), false);
+  EXPECT_EQ(update_criteria.static_rules_to_install.size(), 1);
+
+  session_state->increment_rule_stats("rule1", nullptr);
+  auto marshaled   = session_state->marshal();
+  auto unmarshaled = SessionState::unmarshal(marshaled, *rule_store);
+  EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
+  EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;

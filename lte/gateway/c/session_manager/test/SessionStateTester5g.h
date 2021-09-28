@@ -124,6 +124,26 @@ class SessionStateTest5G : public ::testing::Test {
     return count;
   }
 
+  void schedule_rule(
+      uint32_t rating_group, const std::string& m_key,
+      const std::string& rule_id, PolicyType rule_type,
+      std::time_t activation_time, std::time_t deactivation_time) {
+    PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
+    RuleLifetime lifetime(activation_time, deactivation_time);
+    switch (rule_type) {
+      case STATIC:
+        // insert into list of existing rules
+        rule_store->insert_rule(rule);
+        // mark the rule as scheduled in the session
+        session_state->schedule_static_rule(
+            rule_id, lifetime, &update_criteria);
+        break;
+      case DYNAMIC:
+        session_state->schedule_dynamic_rule(rule, lifetime, &update_criteria);
+        break;
+    }
+  }
+
  protected:
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionState> session_state;
