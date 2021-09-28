@@ -302,8 +302,8 @@ commands:
       - run:
           name: Upload debug artifacts for an executable to Sentry.io
           command: |
-            # The assumption here is that packages.tar.gz was tarred in
-            # $MAGMA_ROOT/circleci in the magma_integ_test step
+            # The assumption here is that packages.tar.gz was copied out and untarred
+            # in $MAGMA_ROOT/circleci in the magma_integ_test step
             cd circleci/executables
 
             SENTRY_ORG="lf-9c"
@@ -337,7 +337,10 @@ commands:
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
-            COMMIT_HASH_WITH_VERSION="1.7.0-${CIRCLE_SHA1:0:8}"
+            # The assumption here is that the magma version is copied out
+            # into /home/circleci/project/circleci in the magma_integ_test step
+            COMMIT_HASH_WITH_VERSION=$(cat circleci/magma_version)
+            echo ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
