@@ -10,34 +10,16 @@ on:  # yamllint disable-line rule:truthy
       - completed
 
 jobs:
-  on-failure:
+  comment_pr:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
+      WORKFLOW_NAME: "${{ github.event.workflow.name }}"
+      WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"
+      COMMIT_ID: "${{ github.event.workflow_run.pull_requests[0].head.sha }}"
+      COMMIT_ID_URL: "${{ github.event.repository.html_url }}/commit/${{ github.event.workflow_run.pull_requests[0].head.sha }}"
     steps:
       # Retrieve PR number from triggering workflow artifacts
-      - name: 'Download artifact'
-        uses: actions/github-script@v3.1.0
-        with:
-          script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{github.event.workflow_run.id }},
-            });
-            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "pr"
-            })[0];
-            var download = await github.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
-            });
-            var fs = require('fs');
-            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
-      - run: unzip pr.zip
       - name: DCO comment message
         if: ${{ github.event.workflow.name == 'DCO check' }}
         run: |
@@ -68,12 +50,48 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var issue_number = Number(fs.readFileSync('./NR'));
-            const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
+            const msg = fs.readFileSync('./msg',{encoding: 'utf8'});
+            var issue_number = ${{ github.event.workflow_run.pull_requests[0].number }};
+            var commentId = 0;
+            var oldMsg = '';
+            var updMsg = '';
+            var newMsg = '';
+            var shortCommitId = process.env.COMMIT_ID.substr(0,8);
 
-            github.issues.createComment({
-              issue_number: issue_number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: msg,
-            })
+            const commentsList = await github.issues.listComments({
+                                        owner: context.repo.owner,
+                                        repo: context.repo.repo,
+                                        issue_number: issue_number,
+                                      });
+
+            for (const c of commentsList['data']) {
+              oldMsg = c.body;
+              if( oldMsg.includes('Oops! Looks like you failed the ') && oldMsg.includes(process.env.WORKFLOW_NAME) ) {
+                  commentId = c.id;
+                  if( process.env.WORKFLOW_STATUS == 'failure' )  {
+                      updMsg = ":recycle: Updated: :x: The check is still failing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
+                  }
+                  else  {
+                      updMsg = ":recycle: Updated: :white_check_mark: The check is passing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
+                  }
+                  newMsg = oldMsg + "\n\n" + updMsg;
+                  console.log("UPDATING comment=" + newMsg);
+                  github.issues.updateComment({
+                                owner: context.repo.owner,
+                                repo: context.repo.repo,
+                                comment_id: commentId,
+                                body: newMsg,
+                              });
+                  break;
+              } // end of if block
+            } // end of for loop on commentsList
+
+            if( (commentId == 0) && (process.env.WORKFLOW_STATUS == 'failure') ) {
+              console.log("CREATING comment=" + msg);
+              github.issues.createComment({
+                            issue_number: issue_number,
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            body: msg,
+                          });
+            }
