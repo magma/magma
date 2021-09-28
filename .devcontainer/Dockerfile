@@ -304,3 +304,8 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install && \
     cd / && \
     rm -rf freediameter
+
+#### Update shared library configuration
+RUN ldconfig -v
+
+WORKDIR /workspaces/magma
