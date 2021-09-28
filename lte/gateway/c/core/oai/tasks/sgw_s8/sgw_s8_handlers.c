@@ -842,9 +842,7 @@ static int sgw_s8_add_gtp_up_tunnel(
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u,
           eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
-          eps_bearer_ctxt_p->p_gw_teid_S5_S8_up, imsi, &dlflow,
-          eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[i]
-              .eval_precedence);
+          eps_bearer_ctxt_p->p_gw_teid_S5_S8_up, imsi);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SGW_S8, sgw_context_p->imsi64,
@@ -1318,7 +1316,7 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
         bc_cbrsp->eps_bearer_id, s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_create_bearer_response(
         sgw_context_p, s11_actv_bearer_rsp->cause.cause_value, imsi64, bc_cbrsp,
-        LOG_SGW_S8);
+        NULL, LOG_SGW_S8);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
@@ -1425,6 +1423,7 @@ void sgw_s8_handle_s11_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   uint32_t msg_bearer_index                               = 0;
+  sgw_eps_bearer_ctxt_t dedicated_bearer_ctxt             = {0};
   bearer_context_within_create_bearer_response_t bc_cbrsp = {0};
 
   if (!s11_actv_bearer_rsp) {
@@ -1462,10 +1461,11 @@ void sgw_s8_handle_s11_create_bearer_response(
         bc_cbrsp.eps_bearer_id, s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_create_bearer_response(
         sgw_context_p, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        &bc_cbrsp, LOG_SGW_S8);
+        &bc_cbrsp, &dedicated_bearer_ctxt, LOG_SGW_S8);
     sgw_s8_send_failed_create_bearer_response(
-        sgw_state, 0, 0, s11_actv_bearer_rsp->cause.cause_value,
-        sgw_context_p->imsi);
+        sgw_state, dedicated_bearer_ctxt.sgw_sequence_number,
+        dedicated_bearer_ctxt.pgw_cp_ip_port,
+        s11_actv_bearer_rsp->cause.cause_value, sgw_context_p->imsi);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   sgw_s8_proc_s11_create_bearer_rsp(

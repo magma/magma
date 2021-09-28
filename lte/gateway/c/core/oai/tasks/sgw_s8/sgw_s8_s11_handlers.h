@@ -51,3 +51,7 @@ imsi64_t sgw_s8_handle_create_bearer_request(
 void sgw_s8_handle_s11_create_bearer_response(
     sgw_state_t* sgw_state,
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64);
+
+void sgw_s8_send_failed_create_bearer_response(
+    sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
+    gtpv2c_cause_value_t cause_value, Imsi_t imsi);

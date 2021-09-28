@@ -552,7 +552,9 @@ static void fill_s8_create_bearer_response(
     uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   if (itti_msg->cause.cause_value != REQUEST_ACCEPTED) {
-    proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+    if (pgw_cp_address) {
+      proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+    }
     proto_cb_rsp->set_sequence_number(sequence_number);
     proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);
     proto_cb_rsp->mutable_bearer_context()->set_cause(

@@ -1524,7 +1524,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
-        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
         LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
@@ -1548,7 +1548,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
-        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
         LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
@@ -1561,7 +1561,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
-        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
         LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
@@ -1919,7 +1919,7 @@ void handle_failed_create_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     gtpv2c_cause_value_t cause, imsi64_t imsi64,
     bearer_context_within_create_bearer_response_t* bearer_context,
-    log_proto_t module) {
+    sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
