@@ -418,7 +418,9 @@
   when: preburn
   patch:
     src: patches/multipath-conf.patch
-    dest: /etc/multipath.conf
+    dest: /etc/multipath.
+  become: yes
+  ignore_errors: true
 
 - name: Copy Interface file.
   copy:
