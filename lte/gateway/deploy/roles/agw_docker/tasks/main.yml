@@ -13,34 +13,31 @@
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
+  tags:
+    - agwc
 
-- name: Install dependencies
-  apt:
-    name: "{{ packages }}"
-    state: present
-    update_cache: yes
-  vars:
-    packages:
-    - apt-transport-https
-    - ca-certificates
-    - curl
-    - software-properties-common
-    - gnupg-agent
- 
 - name: Install aptitude using apt
   apt: name=aptitude state=latest force_apt_get=yes
+  tags:
+    - agwc
 
 - name: Add Docker GPG apt Key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
+  tags:
+    - agwc
 
 - name: Add Docker Repository
   apt_repository:
     repo: deb https://download.docker.com/linux/ubuntu focal stable
     state: present
+  tags:
+    - agwc
 
 - name: Install Docker
+  tags:
+    - agwc
   apt:
     name: "{{ packages }}"
     state: present
@@ -56,16 +53,24 @@
     url : https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
     dest: ~/docker-compose
     mode: '+x'
+  tags:
+    - agwc
 
 - name: Check docker-compose exists
   stat: path=~/docker-compose
   register: docker_compose
+  tags:
+    - agwc
 
 - name: Move docker-compose to /usr/local/bin/docker-compose
   command: mv ~/docker-compose /usr/local/bin/docker-compose
   when: docker_compose.stat.exists
+  tags:
+    - agwc
 
 - name: create directories for magma configs and files
+  tags:
+    - agwc
   file:
     path: "{{ item }}"
     state: directory
@@ -81,14 +86,22 @@
 - name: Enable IP forwarding
   become: true
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+  tags:
+    - agwc
 
 - name: touch snowflake
   shell: touch /etc/snowflake
+  tags:
+    - agwc
 
 - name: start docker service
   systemd: name=docker state=started enabled=yes
+  tags:
+    - agwc
 
 - name: create the env file
+  tags:
+    - agwc
   template:
     src: env.j2
     dest: /var/opt/magma/docker/.env
@@ -96,25 +109,41 @@
 
 - name: copy the config files for magma
   shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
+  tags:
+    - agwc
 
 - name: copy the config files for orchestrator
   shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
+  tags:
+    - agwc
 
 - name: copy docker compose config file
-  shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yml /var/opt/magma/docker/
+  shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yaml /var/opt/magma/docker/
+  tags:
+    - agwc
+
+- name: update nat interface
+  shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
+  tags:
+    - agwc
 
 - name: docker login
   shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
   args:
-   chdir: "/var/opt/magma/docker/"
+    chdir: "/var/opt/magma/docker/"
   when: docker_pass != ""
+  tags:
+    - agwc
 
 - name: copy the recreate script
   copy:
-   src: agw_upgrade.sh
-   dest: /var/opt/magma/docker/
-   mode: '0755'
+    src: agw_upgrade.sh
+    dest: /var/opt/magma/docker/
+    mode: '0755'
+  tags:
+    - agwc
 
 - name: bring up the containers.
   script: agw_upgrade.sh
-
+  tags:
+    - agwc

@@ -13,4 +13,5 @@
 - name: Install host
   hosts: agw_docker
   roles:
+    - role: magma_deploy
     - role: agw_docker

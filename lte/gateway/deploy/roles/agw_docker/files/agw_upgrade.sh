@@ -29,7 +29,7 @@ fi
 cd /var/opt/magma/docker || exit
 
 # Validate docker-compose file
-CONFIG=$(docker-compose -f docker-compose.yml config)
+CONFIG=$(docker-compose -f docker-compose.yaml config)
 if [ -z "$CONFIG" ]; then
   echo "docker-compose.yml is not valid"
   exit

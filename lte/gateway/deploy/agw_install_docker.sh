@@ -10,7 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MAGMA_VERSION="master"
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
 MAGMA_VERSION="${MAGMA_VERSION:-v1.6}"
@@ -37,20 +36,15 @@ if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
 
-# unlink resolv.conf to avoid overrides by systemd-resolved
-cp /etc/resolv.conf /etc/resolv.conf.bak
-rm -f /etc/resolv.conf && mv /etc/resolv.conf.bak /etc/resolv.conf
-
 ROOTCA="/var/opt/magma/certs/rootCA.pem"
 if [ ! -f "$ROOTCA" ]; then
-
   echo "Upload rootCA to $ROOTCA"
   exit 1
 fi
 
 echo "Install Magma"
-apt-get update
-apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
+apt-get update -y
+apt-get install curl zip python3-pip -y
 
 alias python=python3
 pip3 install ansible
@@ -66,13 +60,9 @@ cp -f $DEPLOY_PATH/roles/magma/files/magma_modules_load /etc/modules-load.d/magm
 
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
-127.0.0.1 ansible_connection=local
-[magma_deploy]
 127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
 # install magma and its dependencies including OVS.
-su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_deploy.yml"
-su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_docker.yml"
+su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
 
-echo "Cleanup temp files"
 cd /root || exit
