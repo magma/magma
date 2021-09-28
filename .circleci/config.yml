@@ -803,7 +803,7 @@ jobs:
   session_manager_test:
     machine:
       image: ubuntu-2004:202010-01
-      docker_layer_caching: true
+      docker_layer_caching: false
     resource_class: large
     environment:
       MAGMA_ROOT: /home/circleci/project
