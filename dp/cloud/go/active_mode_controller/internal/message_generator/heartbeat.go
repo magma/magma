@@ -1,8 +1,9 @@
 package message_generator
 
 import (
-	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"strings"
+
+	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
 type heartbeatRequest struct {

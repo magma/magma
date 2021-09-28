@@ -2,9 +2,10 @@ package message_generator
 
 import (
 	"encoding/json"
+	"time"
+
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-	"time"
 )
 
 func GenerateMessages(now clock, state *active_mode.State) []*requests.RequestPayload {

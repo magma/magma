@@ -1,10 +1,11 @@
 package config_test
 
 import (
-	"magma/dp/cloud/go/active_mode_controller/config"
 	"os"
 	"testing"
 	"time"
+
+	"magma/dp/cloud/go/active_mode_controller/config"
 
 	"github.com/stretchr/testify/suite"
 )

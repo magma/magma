@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
+	"time"
+
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-	"net"
-	"time"
 
 	"google.golang.org/grpc"
 )

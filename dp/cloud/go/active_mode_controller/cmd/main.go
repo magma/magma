@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/app"
 	"magma/dp/cloud/go/active_mode_controller/internal/signal"
 	"magma/dp/cloud/go/active_mode_controller/internal/time"
-	"os"
 )
 
 func main() {

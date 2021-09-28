@@ -2,11 +2,12 @@ package signal_test
 
 import (
 	"context"
-	"magma/dp/cloud/go/active_mode_controller/internal/signal"
 	"os"
 	"syscall"
 	"testing"
 	"time"
+
+	"magma/dp/cloud/go/active_mode_controller/internal/signal"
 
 	"github.com/stretchr/testify/assert"
 )

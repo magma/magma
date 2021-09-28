@@ -2,10 +2,11 @@ package message_generator_test
 
 import (
 	"fmt"
+	"testing"
+
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
