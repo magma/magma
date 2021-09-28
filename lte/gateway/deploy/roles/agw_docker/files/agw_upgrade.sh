@@ -39,7 +39,7 @@ fi
 /usr/local/bin/docker-compose pull
 
 CONTAINERS=$(docker ps -a -q)
-[[ -z "$CONTAINERS" ]] || docker stop $CONTAINERS
+[[ -z "$CONTAINERS" ]] || docker stop "$CONTAINERS"
 
 # Bring containers up
 /usr/local/bin/docker-compose up -d
