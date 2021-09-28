@@ -19,7 +19,6 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import IPFlowDL
 from magma.pipelined.app.classifier import Classifier
-from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery

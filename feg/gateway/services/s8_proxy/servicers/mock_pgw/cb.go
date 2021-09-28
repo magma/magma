@@ -91,6 +91,7 @@ func (mPgw *MockPgw) CreateBearerRequest(req CreateBearerRequest) (chan CBReq, e
 			return
 		}
 		fmt.Printf("mockPGW received CreateBearerResponse: %s\n", cbRspFromSGW.String())
+
 		out <- CBReq{
 			Res: cbRspFromSGW,
 			Err: nil,

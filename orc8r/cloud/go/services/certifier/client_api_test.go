@@ -22,7 +22,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
-	context2 "golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -40,7 +39,7 @@ func TestCertifier(t *testing.T) {
 	// create and sign csr
 	csrMsg, err := certifier_test_utils.CreateCSR(time.Hour*24*365, "cn", "cn")
 	assert.NoError(t, err)
-	certMsg, err := certifier.SignCSR(context2.Background(), csrMsg)
+	certMsg, err := certifier.SignCSR(context.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
 
 	firstCertDer := certMsg.CertDer
@@ -54,15 +53,15 @@ func TestCertifier(t *testing.T) {
 	}
 
 	// test get identity
-	certInfoMsg, err := certifier.GetIdentity(context2.Background(), snMsg)
+	certInfoMsg, err := certifier.GetIdentity(context.Background(), snMsg)
 	assert.NoError(t, err, "Error getting identity")
 	fmt.Printf("%+v\n", certInfoMsg)
 	assert.True(t, proto.Equal(certInfoMsg.Id, csrMsg.Id))
 
 	// test revoke cert
-	err = certifier.RevokeCertificate(context2.Background(), snMsg)
+	err = certifier.RevokeCertificate(context.Background(), snMsg)
 	assert.NoError(t, err, "Failed to revoke cert")
-	_, err = certifier.GetIdentity(context2.Background(), snMsg)
+	_, err = certifier.GetIdentity(context.Background(), snMsg)
 	assert.Error(t, err, "Error: no error getting revoked identity")
 
 	// test collect garbage
@@ -70,7 +69,7 @@ func TestCertifier(t *testing.T) {
 
 	csrMsg, err = certifier_test_utils.CreateCSR(time.Duration(0), "cn", "cn")
 	assert.NoError(t, err)
-	certMsg, err = certifier.SignCSR(context2.Background(), csrMsg)
+	certMsg, err = certifier.SignCSR(context.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
 	cert, err = x509.ParseCertificates(certMsg.CertDer)
 	assert.NoError(t, err, "Failed to parse cert")
@@ -78,9 +77,9 @@ func TestCertifier(t *testing.T) {
 		Sn: security_cert.SerialToString(cert[0].SerialNumber),
 	}
 
-	err = certifier.CollectGarbage(context2.Background())
+	err = certifier.CollectGarbage(context.Background())
 	assert.NoError(t, err, "Failed to collect garbage")
-	_, err = certifier.GetIdentity(context2.Background(), snMsg)
+	_, err = certifier.GetIdentity(context.Background(), snMsg)
 	assert.Equal(t, grpc.Code(err), codes.NotFound)
 
 	oper := protos.NewOperatorIdentity("testOperator")
@@ -88,26 +87,26 @@ func TestCertifier(t *testing.T) {
 		certifier.AddCertificate(context.Background(), oper, firstCertDer),
 		"Failed to Add Existing Cert")
 
-	certInfoMsg, err = certifier.GetCertificateIdentity(context2.Background(), security_cert.SerialToString(firstCertSN))
+	certInfoMsg, err = certifier.GetCertificateIdentity(context.Background(), security_cert.SerialToString(firstCertSN))
 	assert.NoError(t, err, "Error getting added cert identity")
 	if err == nil {
 		assert.Equal(t, oper.HashString(), certInfoMsg.Id.HashString())
 	}
 
-	sns, err := certifier.ListCertificates(context2.Background())
+	sns, err := certifier.ListCertificates(context.Background())
 	assert.NoError(t, err, "Error Listing Certificates")
 	assert.Equal(t, 1, len(sns))
 
 	csrMsg, err = certifier_test_utils.CreateCSR(time.Hour*2, "cn1", "cn1")
 	assert.NoError(t, err)
-	_, err = certifier.SignCSR(context2.Background(), csrMsg)
+	_, err = certifier.SignCSR(context.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
 
-	sns, err = certifier.ListCertificates(context2.Background())
+	sns, err = certifier.ListCertificates(context.Background())
 	assert.NoError(t, err, "Error Listing Certificates")
 	assert.Equal(t, 2, len(sns))
 
-	operSNs, err := certifier.FindCertificates(context2.Background(), oper)
+	operSNs, err := certifier.FindCertificates(context.Background(), oper)
 	assert.NoError(t, err, "Error Finding Operator Certificates")
 	assert.Equal(t, 1, len(operSNs))
 	if len(operSNs) > 0 {

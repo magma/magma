@@ -14,11 +14,10 @@ limitations under the License.
 package servicers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
@@ -41,7 +40,7 @@ func TestCallTraceServicer(t *testing.T) {
 	testGwLogicalId := "g1"
 
 	// Initialize network
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
 	assert.NoError(t, err)
 
 	// Create a call trace
@@ -58,7 +57,7 @@ func TestCallTraceServicer(t *testing.T) {
 			CallTraceEnding:    false,
 		},
 	}
-	_, err = configurator.CreateEntity(context2.Background(), testNetworkId, configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), testNetworkId, configurator.NetworkEntity{
 		Type:   orc8r.CallTraceEntityType,
 		Key:    "CallTrace1",
 		Config: testTrace,
@@ -86,7 +85,7 @@ func TestCallTraceServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that the call trace has ended
-	ent, err := configurator.LoadEntity(context2.Background(), testNetworkId, orc8r.CallTraceEntityType, "CallTrace1", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	ent, err := configurator.LoadEntity(context.Background(), testNetworkId, orc8r.CallTraceEntityType, "CallTrace1", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	testCallTrace := (&models.CallTrace{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, true, testCallTrace.State.CallTraceAvailable)

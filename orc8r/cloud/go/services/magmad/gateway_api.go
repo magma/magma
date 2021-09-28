@@ -15,11 +15,11 @@ limitations under the License.
 package magmad
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"

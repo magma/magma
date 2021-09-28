@@ -14,12 +14,12 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	prom_proto "github.com/prometheus/client_model/go"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"

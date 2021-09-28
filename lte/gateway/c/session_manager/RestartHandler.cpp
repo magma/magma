@@ -165,8 +165,8 @@ void RestartHandler::terminate_previous_session(
             DeleteRecordRequest del_request;
             del_request.set_id(response.sid());
             directoryd_client_->delete_directoryd_record(
-                del_request, [this, &del_request, &termination_res, sid](
-                                 Status status, const Void&) {
+                del_request,
+                [&termination_res, sid](Status status, const Void&) {
                   if (!status.ok()) {
                     MLOG(MERROR) << "DirectoryD DeleteRecord failed to remove "
                                  << "subscriber " << sid << " from DirectoryD";

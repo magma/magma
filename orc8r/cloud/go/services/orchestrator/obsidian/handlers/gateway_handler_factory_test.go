@@ -14,7 +14,7 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"fmt"
 	"testing"
 
@@ -62,13 +62,13 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, serdes.Network))
+	assert.NoError(t, configurator.CreateNetwork(context.Background(), network, serdes.Network))
 	gateway := configurator.NetworkEntity{
 		Key:  "gw1",
 		Type: orc8r.MagmadGatewayType,
 		Name: "gateway 1",
 	}
-	_, err := configurator.CreateEntity(context2.Background(), networkID, gateway, serdes.Entity)
+	_, err := configurator.CreateEntity(context.Background(), networkID, gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -113,13 +113,13 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, serdes.Network))
+	assert.NoError(t, configurator.CreateNetwork(context.Background(), network, serdes.Network))
 	Gateway := configurator.NetworkEntity{
 		Key:  "test_gateway_1",
 		Type: orc8r.MagmadGatewayType,
 		Name: "Gateway 1",
 	}
-	_, err := configurator.CreateEntity(context2.Background(), networkID, Gateway, serdes.Entity)
+	_, err := configurator.CreateEntity(context.Background(), networkID, Gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	// validation failure
@@ -146,7 +146,7 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	Gateway, err = configurator.LoadEntity(context2.Background(), networkID, orc8r.MagmadGatewayType, "test_gateway_1", configurator.EntityLoadCriteria{LoadMetadata: true}, serdes.Entity)
+	Gateway, err = configurator.LoadEntity(context.Background(), networkID, orc8r.MagmadGatewayType, "test_gateway_1", configurator.EntityLoadCriteria{LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, "updated Name!", Gateway.Name)
 }
@@ -194,7 +194,7 @@ type testName struct {
 	Name string
 }
 
-func (m *testName) ValidateModel(context2.Context) error {
+func (m *testName) ValidateModel(context.Context) error {
 	if m == nil {
 		return fmt.Errorf("Cannot be nil")
 	}
@@ -204,7 +204,7 @@ func (m *testName) ValidateModel(context2.Context) error {
 	return nil
 }
 
-func (m *testName) FromBackendModels(ctx context2.Context, networkID string, gatewayID string) error {
+func (m *testName) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	entity, err := configurator.LoadEntity(
 		ctx,
 		networkID, orc8r.MagmadGatewayType, gatewayID,
@@ -218,7 +218,7 @@ func (m *testName) FromBackendModels(ctx context2.Context, networkID string, gat
 	return nil
 }
 
-func (m *testName) ToUpdateCriteria(ctx context2.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *testName) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	exists, err := configurator.DoesEntityExist(ctx, networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
 		return nil, err

@@ -33,7 +33,6 @@ require (
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
 	google.golang.org/grpc v1.31.0
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
