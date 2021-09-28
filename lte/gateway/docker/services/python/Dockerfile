@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as builder
+FROM ubuntu:focal as builder
 
 ENV PYTHON_BUILD=/build
 ENV MAGMA_ROOT=/magma
@@ -43,13 +43,13 @@ WORKDIR /magma/lte/gateway/python
 
 RUN make buildenv
 
-FROM ubuntu:20.04 AS gateway_python
+FROM ubuntu:focal AS gateway_python
 
 ENV VIRTUAL_ENV=/build
 ARG JSONPOINTER_VERSION=1.13
 
 RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-venv virtualenv git python3-eventlet python3-pystemd python3-jinja2 python3-pystemd nghttp2-proxy net-tools inetutils-ping redis-server wget ethtool linux-headers-`uname -r`\
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-venv virtualenv git python3-eventlet python3-pystemd python3-jinja2 python3-pystemd nghttp2-proxy net-tools inetutils-ping redis-server wget ethtool linux-headers-`uname -r` iptables iproute2 \
   && cd /usr/local/bin \
   && ln -s /usr/bin/python3 python
 RUN python3 -m venv $VIRTUAL_ENV

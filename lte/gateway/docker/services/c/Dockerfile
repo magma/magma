@@ -191,6 +191,8 @@ RUN apt-get -y update && apt-get -y install \
   net-tools \
   tshark \
   tzdata \
+  iproute2 \
+  iptables \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
