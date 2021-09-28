@@ -208,7 +208,7 @@ void clear_amf_smf_context(smf_context_t* smf_ctx) {
 
 int pdu_session_release_request_process(
     ue_m5gmm_context_s* ue_context, smf_context_t* smf_ctx,
-    amf_ue_ngap_id_t amf_ue_ngap_id) {
+    amf_ue_ngap_id_t amf_ue_ngap_id, bool retransmit) {
   int rc                = 1;
   amf_smf_t amf_smf_msg = {};
   // amf_cause = amf_smf_handle_pdu_release_request(
@@ -223,8 +223,8 @@ int pdu_session_release_request_process(
   OAILOG_DEBUG(
       LOG_AMF_APP, "sending PDU session resource release request to gNB \n");
 
-  rc =
-      pdu_session_resource_release_request(ue_context, amf_ue_ngap_id, smf_ctx);
+  rc = pdu_session_resource_release_request(
+      ue_context, amf_ue_ngap_id, smf_ctx, retransmit);
 
   if (rc != RETURNok) {
     OAILOG_DEBUG(
@@ -332,7 +332,15 @@ static int pdu_session_resource_release_t3592_handler(
   if (smf_ctx->retransmission_count < REGISTRATION_COUNTER_MAX) {
     /* Send entity Registration accept message to the UE */
 
-    pdu_session_release_request_process(ue_context, smf_ctx, amf_ue_ngap_id);
+    ue_pdu_id_t id = {amf_ue_ngap_id, pdu_session_id};
+
+    pdu_session_release_request_process(
+        ue_context, smf_ctx, amf_ue_ngap_id, true);
+
+    smf_ctx->T3592.id = amf_pdu_start_timer(
+        PDUE_SESSION_RELEASE_TIMER_MSECS, TIMER_REPEAT_ONCE,
+        pdu_session_resource_release_t3592_handler, id);
+
   } else {
     /* Abort the registration procedure */
     OAILOG_ERROR(
@@ -483,8 +491,8 @@ int amf_smf_send(
       smf_ctx->smf_proc_data.pti.pti = msg->payload_container.smf_msg.msg
                                            .pdu_session_release_request.pti.pti;
       smf_ctx->retransmission_count = 0;
-      if (RETURNok ==
-          pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {
+      if (RETURNok == pdu_session_release_request_process(
+                          ue_context, smf_ctx, ue_id, false)) {
         OAILOG_INFO(
             LOG_AMF_APP,
             "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
