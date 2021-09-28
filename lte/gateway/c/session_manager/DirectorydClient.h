@@ -25,6 +25,7 @@
 
 namespace magma {
 using namespace orc8r;
+using grpc::Status;
 
 /**
  * DirectorydClient is the base class for managing interactions with DirectoryD.

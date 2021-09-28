@@ -14,6 +14,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/golang/glog"
@@ -33,7 +34,7 @@ func init() {
 }
 
 func rebootCmd(cmd *cobra.Command, args []string) {
-	err := magmad.GatewayReboot(networkId, gatewayId)
+	err := magmad.GatewayReboot(context.Background(), networkId, gatewayId)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

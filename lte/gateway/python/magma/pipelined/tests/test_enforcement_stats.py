@@ -46,14 +46,12 @@ from magma.pipelined.tests.app.table_isolation import (
     RyuForwardFlowArgsBuilder,
 )
 from magma.pipelined.tests.pipelined_test_util import (
-    FlowTest,
     SnapshotVerifier,
     create_service_manager,
     fake_controller_setup,
     get_enforcement_stats,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    wait_after_send,
     wait_for_enforcement_stats,
 )
 from scapy.all import IP

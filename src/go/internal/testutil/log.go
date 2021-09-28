@@ -18,14 +18,14 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/log/zap"
+	"github.com/magma/magma/src/go/log"
+	"github.com/magma/magma/src/go/log/zap"
 )
 
 // NewTestLogger returns a logger that logs to the returned buffer. Timestamps,
 // caller, and stacktraces are disabled to make it easier to validate log
 // output. Test coverage for timestamp, caller, and stacktrace output can be
-// found in github.com/magma/magma/log/zap/zap_integ_test.go.
+// found in github.com/magma/magma/src/go/log/zap/zap_integ_test.go.
 func NewTestLogger() (log.Logger, *bytes.Buffer) {
 	ec := uber_zap.NewDevelopmentEncoderConfig()
 	ec.TimeKey = ""

@@ -764,6 +764,7 @@ void amf_app_state_free_ue_context(void** ue_context_node);
 int amf_proc_security_mode_control(
     amf_context_t* amf_ctx, nas_amf_specific_proc_t* amf_specific_proc,
     ksi_t ksi, success_cb_t success, failure_cb_t failure);
+int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id);
 void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies);
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);

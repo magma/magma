@@ -14,7 +14,7 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 	"time"
 
@@ -22,7 +22,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/serdes"
@@ -182,7 +181,7 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork(context2.Background(), "n1", true, true, serdes.Network)
+	actualN1, err := configurator.LoadNetwork(context.Background(), "n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -829,7 +828,7 @@ func TestCwfHaPairs(t *testing.T) {
 // n1, n3 are cwf networks, n2, n5 are not
 func seedCwfNetworks(t *testing.T) {
 	fegNetworkID := "n5"
-	_, err := configurator.CreateNetworks(context2.Background(), []configurator.Network{
+	_, err := configurator.CreateNetworks(context.Background(), []configurator.Network{
 		{
 			ID:          fegNetworkID,
 			Type:        feg.FederationNetworkType,
@@ -843,7 +842,7 @@ func seedCwfNetworks(t *testing.T) {
 		},
 	}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateNetworks(context2.Background(), []configurator.Network{
+	_, err = configurator.CreateNetworks(context.Background(), []configurator.Network{
 		{
 			ID:          "n1",
 			Type:        cwf.CwfNetworkType,
@@ -985,7 +984,7 @@ func seedCwfGateway(t *testing.T, id string, hwId string) {
 
 func seedCwfTier(t *testing.T, networkID string) {
 	// setup fixtures in backend
-	_, err := configurator.CreateEntities(context2.Background(), networkID, []configurator.NetworkEntity{
+	_, err := configurator.CreateEntities(context.Background(), networkID, []configurator.NetworkEntity{
 		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 	}, serdes.Entity)
 	assert.NoError(t, err)

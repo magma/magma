@@ -32,7 +32,7 @@ from lte.protos.mobilityd_pb2_grpc import (
     add_MobilityServiceServicer_to_server,
 )
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.common.rpc_utils import print_grpc, return_void
+from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .ip_address_man import (

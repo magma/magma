@@ -18,13 +18,9 @@ from collections import namedtuple
 from concurrent.futures import Future
 from enum import Enum
 
-from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.app.base import MagmaController
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
-from magma.pipelined.rule_mappers import RuleIDToNumMapper
-from magma.pipelined.tests.app.exceptions import (
-    BadConfigError,
-    ServiceRunningError,
-)
+from magma.pipelined.tests.app.exceptions import ServiceRunningError
 from ryu.base.app_manager import AppManager
 from ryu.lib import hub
 

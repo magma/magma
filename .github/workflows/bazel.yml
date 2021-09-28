@@ -6,8 +6,11 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
+  schedule:
+    # Run once a day to build bazel cache at 0200 hours
+    - cron: '0 2 * * *'
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-9fe32d6"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-72b1f20"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
@@ -22,12 +25,16 @@ jobs:
         uses: fkirc/skip-duplicate-actions@master
         with:
           # Only run the main job for changes including the following paths
-         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]'
+         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]'
 
   bazel_build_and_test:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    # Only run workflow if this is a scheduled run on master branch,
+    # or a pull_request that skip-duplicate-action wants to run again.
+    if: |
+      (github.event_name == `schedule` && github.ref == 'refs/heads/master')
+        || ${{ needs.path_filter.outputs.should_skip == 'false' }}
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
@@ -38,16 +45,12 @@ jobs:
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
         - name: Bazel Cache Repo
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
-            restore-keys: |
-              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
         - name: Bazel Build
           uses: addnab/docker-run-action@v2
           with:
@@ -58,6 +61,7 @@ jobs:
               cd /workspaces/magma
               bazel build ... --config=devcontainer
         - name: Bazel Test
+          if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}

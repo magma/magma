@@ -14,7 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 	"time"
 
@@ -85,10 +85,10 @@ func TestIndexerEnodebState(t *testing.T) {
 	errs, err = idx.Index(networkID, stateGw2)
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
-	gotA, err := lte_service.GetEnodebState(context2.Background(), networkID, gatewayID1, enbSN)
+	gotA, err := lte_service.GetEnodebState(context.Background(), networkID, gatewayID1, enbSN)
 	assert.NoError(t, err)
 	assert.Equal(t, enbState1, gotA)
-	gotB, err := lte_service.GetEnodebState(context2.Background(), networkID, gatewayID2, enbSN)
+	gotB, err := lte_service.GetEnodebState(context.Background(), networkID, gatewayID2, enbSN)
 	assert.NoError(t, err)
 	assert.Equal(t, enbState2, gotB)
 
@@ -100,18 +100,18 @@ func TestIndexerEnodebState(t *testing.T) {
 	errs, err = idx.Index(networkID, states)
 	assert.NoError(t, err)
 	assert.Error(t, errs[id3])
-	gotC, err := lte_service.GetEnodebState(context2.Background(), networkID, gatewayID1, enbSN)
+	gotC, err := lte_service.GetEnodebState(context.Background(), networkID, gatewayID1, enbSN)
 	assert.NoError(t, err)
 	assert.Equal(t, enbState2, gotC)
 }
 
 func seedNetwork(t *testing.T, networkID string) {
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: networkID}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: networkID}, serdes.Network)
 	assert.NoError(t, err)
 }
 
 func seedGateway(t *testing.T, networkID string, gatewayID string, hwID string) {
-	_, err := configurator.CreateEntity(context2.Background(), networkID, configurator.NetworkEntity{
+	_, err := configurator.CreateEntity(context.Background(), networkID, configurator.NetworkEntity{
 		Type:         orc8r.MagmadGatewayType,
 		Key:          gatewayID,
 		Config:       &models2.MagmadGatewayConfigs{},
@@ -123,7 +123,7 @@ func seedGateway(t *testing.T, networkID string, gatewayID string, hwID string) 
 
 func seedTier(t *testing.T, networkID string) {
 	// setup fixtures in backend
-	_, err := configurator.CreateEntities(context2.Background(), networkID, []configurator.NetworkEntity{
+	_, err := configurator.CreateEntities(context.Background(), networkID, []configurator.NetworkEntity{
 		{Type: orc8r.UpgradeTierEntityType, Key: "t0"},
 	}, serdes.Entity)
 	assert.NoError(t, err)

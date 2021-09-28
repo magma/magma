@@ -14,6 +14,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -233,9 +234,7 @@ func (m *MutableLteGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return loads
 }
 
-func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
-	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
-) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var writes []configurator.EntityWriteOperation
 
 	existingGateway, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}]
@@ -243,7 +242,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 		return writes, merrors.ErrNotFound
 	}
 
-	apnResourceWrites, newAPNResourceTKs, err := m.getAPNResourceChanges(existingGateway, loadedEntities)
+	apnResourceWrites, newAPNResourceTKs, err := m.getAPNResourceChanges(ctx, existingGateway, loadedEntities)
 	if err != nil {
 		return nil, err
 	}
@@ -272,13 +271,14 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 // getAPNResourceChanges returns required writes, as well as the TKs of the
 // new entities.
 func (m *MutableLteGateway) getAPNResourceChanges(
+	ctx context.Context,
 	existingGateway configurator.NetworkEntity,
 	loaded map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, []storage.TypeAndKey, error) {
 	var writes []configurator.EntityWriteOperation
 
 	oldIDs := existingGateway.Associations.Filter(lte.APNResourceEntityType).Keys()
-	oldByAPN, err := LoadAPNResources(existingGateway.NetworkID, oldIDs)
+	oldByAPN, err := LoadAPNResources(ctx, existingGateway.NetworkID, oldIDs)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "error loading existing APN resources")
 	}
@@ -304,8 +304,8 @@ func (m *MutableLteGateway) getAPNResourceChanges(
 	return writes, newTKs, nil
 }
 
-func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayEntityType, gatewayID, EntitySerdes)
+func (m *GatewayCellularConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
+	cellularConfig, err := configurator.LoadEntityConfig(ctx, networkID, lte.CellularGatewayEntityType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID s
 	return nil
 }
 
-func (m *GatewayCellularConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayCellularConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
 			Type: lte.CellularGatewayEntityType, Key: gatewayID,
@@ -322,9 +322,9 @@ func (m *GatewayCellularConfigs) ToUpdateCriteria(networkID string, gatewayID st
 	}, nil
 }
 
-func (m *GatewayEpcConfigs) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayEpcConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	gatewayConfig := &GatewayCellularConfigs{}
-	err := gatewayConfig.FromBackendModels(networkID, gatewayID)
+	err := gatewayConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -332,19 +332,19 @@ func (m *GatewayEpcConfigs) FromBackendModels(networkID string, gatewayID string
 	return nil
 }
 
-func (m *GatewayEpcConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayEpcConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 	cellularConfig.Epc = m
-	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 
-func (m *GatewayRanConfigs) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayRanConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -352,19 +352,19 @@ func (m *GatewayRanConfigs) FromBackendModels(networkID string, gatewayID string
 	return nil
 }
 
-func (m *GatewayRanConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayRanConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 	cellularConfig.Ran = m
-	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 
-func (m *GatewayNonEpsConfigs) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayNonEpsConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -372,19 +372,19 @@ func (m *GatewayNonEpsConfigs) FromBackendModels(networkID string, gatewayID str
 	return nil
 }
 
-func (m *GatewayNonEpsConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayNonEpsConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 	cellularConfig.NonEpsService = m
-	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 
-func (m *GatewayDNSConfigs) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayDNSConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -394,19 +394,19 @@ func (m *GatewayDNSConfigs) FromBackendModels(networkID string, gatewayID string
 	return nil
 }
 
-func (m *GatewayDNSConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayDNSConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 	cellularConfig.DNS = m
-	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 
-func (m *GatewayDNSRecords) FromBackendModels(networkID string, gatewayID string) error {
+func (m *GatewayDNSRecords) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -416,18 +416,19 @@ func (m *GatewayDNSRecords) FromBackendModels(networkID string, gatewayID string
 	return nil
 }
 
-func (m *GatewayDNSRecords) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayDNSRecords) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 	cellularConfig.DNS.Records = *m
-	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 
-func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) error {
+func (m *EnodebSerials) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularGatewayEntity, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.CellularGatewayEntityType, gatewayID,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		EntitySerdes,
@@ -445,7 +446,7 @@ func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) er
 	return nil
 }
 
-func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *EnodebSerials) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	enodebSerials := storage.TKs{}
 	for _, enodebSerial := range *m {
 		enodebSerials = append(enodebSerials, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enodebSerial})
@@ -509,13 +510,14 @@ func (m *Apn) FromBackendModels(ent configurator.NetworkEntity) *Apn {
 	return m
 }
 
-func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
+func LoadAPNResources(ctx context.Context, networkID string, ids []string) (ApnResources, error) {
 	ret := ApnResources{}
 	if len(ids) == 0 {
 		return ret, nil
 	}
 
 	ents, notFound, err := configurator.LoadEntities(
+		ctx,
 		networkID,
 		nil, nil, nil,
 		storage.MakeTKs(lte.APNResourceEntityType, ids),
@@ -693,9 +695,9 @@ func (m *MutableCellularGatewayPool) ToEntityUpdateCriteria() configurator.Entit
 	return update
 }
 
-func (m *CellularGatewayPoolRecords) FromBackendModels(networkID string, gatewayID string) error {
+func (m *CellularGatewayPoolRecords) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
-	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -703,9 +705,10 @@ func (m *CellularGatewayPoolRecords) FromBackendModels(networkID string, gateway
 	return nil
 }
 
-func (m *CellularGatewayPoolRecords) ToUpdateCriteria(networkID, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *CellularGatewayPoolRecords) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	updates := []configurator.EntityUpdateCriteria{}
 	gatewayEnt, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.CellularGatewayEntityType, gatewayID,
 		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 		EntitySerdes,
@@ -721,7 +724,7 @@ func (m *CellularGatewayPoolRecords) ToUpdateCriteria(networkID, gatewayID strin
 	for _, record := range *m {
 		newPoolIds = append(newPoolIds, record.GatewayPoolID)
 	}
-	err = validateNewGatewayPools(networkID, newPoolIds)
+	err = validateNewGatewayPools(ctx, networkID, newPoolIds)
 	if err != nil {
 		return nil, err
 	}
@@ -744,12 +747,12 @@ func (m *CellularGatewayPoolRecords) ToUpdateCriteria(networkID, gatewayID strin
 		updates = append(updates, addNewPoolAssoc)
 	}
 	cellularConfig := &GatewayCellularConfigs{}
-	err = cellularConfig.FromBackendModels(networkID, gatewayID)
+	err = cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 	cellularConfig.Pooling = *m
-	configUpdates, err := cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	configUpdates, err := cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 	if err != nil {
 		return nil, err
 	}
@@ -757,10 +760,10 @@ func (m *CellularGatewayPoolRecords) ToUpdateCriteria(networkID, gatewayID strin
 	return updates, nil
 }
 
-func validateNewGatewayPools(networkID string, ids []GatewayPoolID) error {
+func validateNewGatewayPools(ctx context.Context, networkID string, ids []GatewayPoolID) error {
 	var mmeGroupID uint32
 	for i, id := range ids {
-		ent, err := configurator.LoadEntity(networkID, lte.CellularGatewayPoolEntityType, string(id),
+		ent, err := configurator.LoadEntity(ctx, networkID, lte.CellularGatewayPoolEntityType, string(id),
 			configurator.EntityLoadCriteria{LoadConfig: true}, EntitySerdes)
 		if err == merrors.ErrNotFound {
 			return fmt.Errorf("Gateway pool %s does not exist", id)

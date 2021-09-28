@@ -14,12 +14,12 @@
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"

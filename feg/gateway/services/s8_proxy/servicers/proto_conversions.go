@@ -185,8 +185,16 @@ func parseDeleteBearerRequest(msg message.Message, senderAddr net.Addr) (*protos
 	}
 	dbReq.CAgwTeid = dbReqGtp.TEID()
 
+	// default bearer id
 	if linkedEBI := dbReqGtp.LinkedEBI; linkedEBI != nil {
 		dbReq.LinkedBearerId = uint32(linkedEBI.MustEPSBearerID())
+	} else {
+		return nil, errorIeMissing(ie.EPSBearerID), nil
+	}
+
+	// dedicated bearer id
+	if epsBearerId := dbReqGtp.EBI; epsBearerId != nil {
+		dbReq.EpsBearerId = uint32(epsBearerId.MustEPSBearerID())
 	} else {
 		return nil, errorIeMissing(ie.EPSBearerID), nil
 	}

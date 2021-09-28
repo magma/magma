@@ -14,10 +14,10 @@ package main
 import (
 	"flag"
 
-	"github.com/magma/magma/agwd/config"
-	"github.com/magma/magma/agwd/server"
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/log/zap"
+	"github.com/magma/magma/src/go/agwd/config"
+	"github.com/magma/magma/src/go/agwd/server"
+	"github.com/magma/magma/src/go/log"
+	"github.com/magma/magma/src/go/log/zap"
 )
 
 func main() {
