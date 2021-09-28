@@ -78,7 +78,7 @@ grpc::Status S8ServiceImpl::CreateBearer(
       " for context teid: " TEID_FMT "\n",
       request->c_agw_teid());
 
-  MessageDef* message_p = NULL;
+  MessageDef* message_p              = NULL;
   s8_create_bearer_request_t* cb_req = NULL;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_CREATE_BEARER_REQ);
   if (!message_p) {

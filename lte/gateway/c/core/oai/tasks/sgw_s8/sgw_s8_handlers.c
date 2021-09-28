@@ -1362,7 +1362,7 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
             bc_cbrsp->cause.cause_value = REQUEST_REJECTED;
           }
           bc_cbrsp->cause.cause_value = REQUEST_ACCEPTED;
-          sequence_number = eps_bearer_ctxt_p->sgw_sequence_number;
+          sequence_number             = eps_bearer_ctxt_p->sgw_sequence_number;
         }
       }
       // Remove the temporary spgw entry

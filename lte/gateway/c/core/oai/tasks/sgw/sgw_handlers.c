@@ -1928,7 +1928,7 @@ void handle_failed_create_bearer_response(
 
   if (sgw_context_p) {
     default_bearer_id = sgw_context_p->pdn_connection.default_bearer;
-    pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
+    pgw_ni_cbr_proc   = pgw_get_procedure_create_bearer(sgw_context_p);
     if (((pgw_ni_cbr_proc) &&
          (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
       sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
