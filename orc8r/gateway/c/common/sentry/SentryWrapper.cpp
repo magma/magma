@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
+#include <unistd.h>
 
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"
@@ -84,6 +85,7 @@ std::string get_snowflake() {
 }
 
 void initialize_sentry(
+    char node_name[50]
     const char* service_tag, const sentry_config_t* sentry_config) {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
@@ -105,7 +107,9 @@ void initialize_sentry(
     }
 
     sentry_init(options);
-
+    if (gethostname(node_name, sizeof(node_name)) == 0) {
+      sentry_set_tag(HOSTNAME, node_name);
+    }
     sentry_set_tag(SERVICE_NAME, service_tag);
     sentry_set_tag(HWID, get_snowflake().c_str());
   }
