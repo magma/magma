@@ -38,6 +38,7 @@ func (m *Network) ToConfiguratorNetwork() configurator.Network {
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
 			orc8r.NetworkSentryConfig:   m.SentryConfig,
+			orc8r.StateConfig:           m.StateConfig,
 		},
 	}
 }
@@ -47,14 +48,29 @@ func (m *Network) FromConfiguratorNetwork(n configurator.Network) *Network {
 	m.Type = models.NetworkType(n.Type)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
-	if cfg, exists := n.Configs[orc8r.DnsdNetworkType]; exists && cfg != nil {
-		m.DNS = cfg.(*NetworkDNSConfig)
+	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
+		dns := cfg.(*NetworkDNSConfig)
+		if dns != nil {
+			m.DNS = dns
+		}
 	}
-	if cfg, exists := n.Configs[orc8r.NetworkFeaturesConfig]; exists && cfg != nil {
-		m.Features = cfg.(*NetworkFeatures)
+	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
+		features := cfg.(*NetworkFeatures)
+		if features != nil {
+			m.Features = features
+		}
 	}
-	if cfg, exists := n.Configs[orc8r.NetworkSentryConfig]; exists && cfg != nil {
-		m.SentryConfig = cfg.(*NetworkSentryConfig)
+	if cfg := n.Configs[orc8r.NetworkSentryConfig]; cfg != nil {
+		sentryConfig := cfg.(*NetworkSentryConfig)
+		if sentryConfig != nil {
+			m.SentryConfig = sentryConfig
+		}
+	}
+	if cfg := n.Configs[orc8r.StateConfig]; cfg != nil {
+		stateConfig := cfg.(*StateConfig)
+		if stateConfig != nil {
+			m.StateConfig = stateConfig
+		}
 	}
 	return m
 }
@@ -69,6 +85,7 @@ func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
 			orc8r.NetworkSentryConfig:   m.SentryConfig,
+			orc8r.StateConfig:           m.StateConfig,
 		},
 	}
 }
@@ -87,6 +104,14 @@ func (m *NetworkSentryConfig) GetFromNetwork(network configurator.Network) inter
 
 func (m *NetworkSentryConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.NetworkSentryConfig, m), nil
+}
+
+func (m *StateConfig) GetFromNetwork(network configurator.Network) interface{} {
+	return GetNetworkConfig(network, orc8r.StateConfig)
+}
+
+func (m *StateConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.StateConfig, m), nil
 }
 
 func (m *NetworkDNSConfig) GetFromNetwork(network configurator.Network) interface{} {

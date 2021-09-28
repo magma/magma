@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/magma/magma/log"
+	"github.com/magma/magma/src/go/log"
 )
 
 func TestPrinter_Print(t *testing.T) {
@@ -66,7 +66,7 @@ func TestNewLogger(t *testing.T) {
 		assert.NotNil(t, l.printers[level])
 	}
 
-	// compiler ensures github.com/magma/magma/log/zap.Logger is a log.Logger
+	// compiler ensures github.com/magma/magma/src/go/log/zap.Logger is a log.Logger
 	var logger log.Logger = l
 
 	assert.Same(t, logger.Error(), l.printers[log.ErrorLevel])

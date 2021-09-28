@@ -1,12 +1,12 @@
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/duration"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

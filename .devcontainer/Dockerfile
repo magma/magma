@@ -259,6 +259,7 @@ RUN cd /usr/src/googletest && \
     ldconfig -v
 
 #### libtins is required to build the connection_tracker
+# TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
 RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     cd libtins && \
     mkdir build && \
@@ -267,7 +268,9 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     make -j"$(nproc)" && \
     make install && \
     cd / && \
-    rm -rf libtins
+    rm -rf libtins && \
+    # symlink to /usr/lib to match Magma VM
+    ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
 ###### Install Include What You Use for c/cpp header include fixup tooling
 # Tag 0.15 tracks Clang 11.0 per https://github.com/include-what-you-use/include-what-you-use/tags

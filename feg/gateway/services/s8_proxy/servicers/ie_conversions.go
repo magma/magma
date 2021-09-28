@@ -147,13 +147,19 @@ func buildCreateBearerResMsg(res *protos.CreateBearerResponsePgw) (message.Messa
 }
 
 func buildDeleteBearerResMsg(res *protos.DeleteBearerResponsePgw) (message.Message, error) {
-	bearer := ie.NewBearerContext(
-		ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0),
-		ie.NewCause(uint8(res.Cause), 0, 0, 0, nil),
-	)
+	if res.BearerContext == nil {
+		return nil, fmt.Errorf("DeleteBearerResponse could not be sent. Missing Bearer Contex")
+	}
+
+	// TODO: handle more than one bearer
+	bearerCause := ie.NewCause(uint8(res.BearerContext.Cause), 0, 0, 0, nil)
+	bearerId := ie.NewEPSBearerID(uint8(res.BearerContext.Id))
+	bearer := ie.NewBearerContext(bearerId, bearerCause)
+
 	return message.NewDeleteBearerResponse(
 		res.CPgwTeid, res.SequenceNumber,
-		ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+		ie.NewCause(uint8(res.Cause), 0, 0, 0, nil),
+		ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0),
 		bearer,
 		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
 	), nil

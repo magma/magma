@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mock_sctpd",
     srcs = ["mock_sctpd_grpc.pb.go"],
-    importpath = "github.com/magma/magma/protos/magma/sctpd/mock_sctpd",
+    importpath = "github.com/magma/magma/src/go/protos/magma/sctpd/mock_sctpd",
     visibility = ["//visibility:public"],
     deps = [
         "//src/go/protos/magma/sctpd",

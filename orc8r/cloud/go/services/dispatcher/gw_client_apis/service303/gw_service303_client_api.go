@@ -14,11 +14,11 @@ limitations under the License.
 package service303
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"

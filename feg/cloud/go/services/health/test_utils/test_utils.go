@@ -16,7 +16,7 @@ limitations under the License.
 package test_utils
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 	"time"
 
@@ -102,7 +102,7 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 }
 
 func RegisterNetwork(t *testing.T, networkID string) {
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{
 		ID:   TestFegNetwork,
 		Type: feg.FegNetworkType,
 	}, serdes.Network)

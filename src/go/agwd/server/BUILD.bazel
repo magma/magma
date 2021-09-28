@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "server",
     srcs = ["server.go"],
-    importpath = "github.com/magma/magma/agwd/server",
+    importpath = "github.com/magma/magma/src/go/agwd/server",
     visibility = ["//visibility:public"],
     deps = [
         "//src/go/agwd/config",

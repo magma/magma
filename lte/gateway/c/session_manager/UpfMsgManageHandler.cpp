@@ -193,12 +193,21 @@ void UpfMsgManageHandler::get_session_from_imsi(
     MLOG(MINFO) << "IDLE_MODE::: Session found in SendingPaging "
                    "Request of imsi: "
                 << imsi << "  session_id: " << session->get_session_id();
-    // Generate Paging trigget to AMF.
-    conv_enforcer_->handle_state_update_to_amf(
-        *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, UE_PAGING_NOTIFY);
-    MLOG(MINFO) << "UPF Paging notification forwarded to AMF of imsi:" << imsi;
-    response_callback(Status::OK, SmContextVoid());
+    /* Generate Paging notification to AMF, only if session is in INACTIVE
+     * state.
+     */
+    if (session->get_state() == INACTIVE) {
+      conv_enforcer_->handle_state_update_to_amf(
+          *session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
+          UE_PAGING_NOTIFY);
+      MLOG(MDEBUG) << "UPF Paging notification forwarded to AMF of imsi:"
+                   << imsi;
+      response_callback(Status::OK, SmContextVoid());
+    } else {
+      MLOG(MDEBUG) << "Can not Trigger Paging notification to AMF, as session "
+                      "is not an INACTIVE state.";
+      return;
+    }
   });
-  return;
 }
 }  // end namespace magma
