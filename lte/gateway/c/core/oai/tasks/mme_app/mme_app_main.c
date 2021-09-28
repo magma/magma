@@ -74,6 +74,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
   bool is_task_state_same = false;
+  bool force_ue_write     = false;
 
   mme_app_last_msg_latency =
       ITTI_MSG_LATENCY(received_message_p);  // microseconds
@@ -109,6 +110,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           MME_APP_UL_DATA_IND(received_message_p).tai,
           MME_APP_UL_DATA_IND(received_message_p).cgi,
           &MME_APP_UL_DATA_IND(received_message_p).nas_msg);
+      force_ue_write     = true;
       is_task_state_same = true;
     } break;
 
@@ -180,6 +182,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
           mme_app_handle_ue_offload(ue_context_p);
         }
+        force_ue_write = true;
       }
     } break;
 
@@ -501,7 +504,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_mme_ue_state(mme_app_desc_p, imsi64);
+  put_mme_ue_state(mme_app_desc_p, imsi64, force_ue_write);
 
   if (!is_task_state_same) {
     put_mme_nas_state();
