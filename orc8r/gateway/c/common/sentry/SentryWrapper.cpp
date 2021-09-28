@@ -34,6 +34,7 @@
 #define MME_LOG_PATH "/var/log/mme.log"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
+#define HOSTNAME "hostname"
 #define SERVICE_NAME "service_name"
 #define DEFAULT_SAMPLE_RATE 0.5f
 
