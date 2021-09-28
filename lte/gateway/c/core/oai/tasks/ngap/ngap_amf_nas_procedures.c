@@ -59,9 +59,6 @@
 #include "ngap_amf_handlers.h"
 #include "ngap_common.h"
 
-int ngap_fill_pdu_session_resource_setup_request_transfer(
-    const pdu_session_resource_setup_request_transfer_t* session_transfer,
-    Ngap_PDUSessionResourceSetupRequestTransfer_t* transfer_request);
 //------------------------------------------------------------------------------
 status_code_e ngap_amf_handle_initial_ue_message(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
