@@ -634,7 +634,7 @@ void sgw_s8_handle_modify_bearer_request(
         // delete GTPv1-U tunnel
         gtpv1u_del_s8_tunnel(
             enb, pgw, ue_ipv4, ue_ipv6, bearer_ctx_p->s_gw_teid_S1u_S12_S4_up,
-            bearer_ctx_p->enb_teid_S1u, NULL);
+            bearer_ctx_p->s_gw_teid_S5_S8_up);
       }
       populate_sgi_end_point_update(
           sgi_rsp_idx, idx, modify_bearer_pP, bearer_ctx_p,
@@ -812,7 +812,7 @@ static int sgw_s8_add_gtp_up_tunnel(
         ue_ipv4, ue_ipv6, vlan, enb, pgw,
         eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
         eps_bearer_ctxt_p->enb_teid_S1u, eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
-        eps_bearer_ctxt_p->p_gw_teid_S5_S8_up, imsi, NULL, DEFAULT_PRECEDENCE);
+        eps_bearer_ctxt_p->p_gw_teid_S5_S8_up, imsi);
     if (rv < 0) {
       OAILOG_ERROR_UE(
           LOG_SGW_S8, sgw_context_p->imsi64,
@@ -923,7 +923,7 @@ static void delete_userplane_tunnels(
       // Delete S1-U tunnel and S8-U tunnel
       rv = gtpv1u_del_s8_tunnel(
           enb, pgw, ue_ipv4, ue_ipv6, bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          bearer_ctxt_p->enb_teid_S1u, NULL);
+          bearer_ctxt_p->s_gw_teid_S5_S8_up);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, sgw_context_p->imsi64,
