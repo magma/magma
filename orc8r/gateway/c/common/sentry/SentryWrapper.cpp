@@ -107,7 +107,7 @@ void initialize_sentry(
     }
 
     sentry_init(options);
-    char node_name[HOST_NAME_MAX]
+    char node_name[HOST_NAME_MAX];
     if (gethostname(node_name, HOST_NAME_MAX) == 0) {
       sentry_set_tag(HOSTNAME, node_name);
     }
