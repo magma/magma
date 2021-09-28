@@ -108,7 +108,6 @@ add_library(TASK_GRPC_SERVICE
     amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
-    GrpcMagmaUtils.cpp
     S8ServiceImpl.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
