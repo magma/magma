@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Dict
 
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
@@ -10,6 +10,7 @@ from magma.db_service.models import (
     DBCbsdState,
     DBChannel,
     DBGrant,
+    DBRequest,
     DBResponse,
 )
 from magma.db_service.session_manager import Session
@@ -35,11 +36,21 @@ def process_registration_response(obj: ResponseDBProcessor, response: DBResponse
     if response.response_code == ResponseCodes.DEREGISTER.value:
         _terminate_all_grants_from_response(obj, response, session)
     elif response.response_code == ResponseCodes.SUCCESS.value and cbsd_id:
-        _change_cbsd_state(cbsd_id, session, CbsdStates.REGISTERED.value)
+        payload = response.request.payload
+        cbsd = _find_cbsd_from_registration_request(session, payload)
+        cbsd.cbsd_id = cbsd_id
+        _change_cbsd_state(cbsd, session, CbsdStates.REGISTERED.value)
 
 
-def _change_cbsd_state(cbsd_id: str, session: Session, new_state: str) -> None:
-    cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+def _find_cbsd_from_registration_request(session: Session, payload: Dict) -> DBCbsd:
+    return session.query(DBCbsd).filter(
+        DBCbsd.fcc_id == payload["fccId"],
+        DBCbsd.user_id == payload["userId"],
+        DBCbsd.cbsd_serial_number == payload["cbsdSerialNumber"],
+    ).scalar()
+
+
+def _change_cbsd_state(cbsd: DBCbsd, session: Session, new_state: str) -> None:
     state = session.query(DBCbsdState).filter(DBCbsdState.name == new_state).scalar()
     cbsd.state = state
 
@@ -149,7 +160,8 @@ def process_deregistration_response(obj: ResponseDBProcessor, response: DBRespon
         _terminate_all_grants_from_response(obj, response, session)
     cbsd_id = response.payload.get("cbsdId", None)
     if cbsd_id:
-        _change_cbsd_state(cbsd_id, session, CbsdStates.UNREGISTERED.value)
+        cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+        _change_cbsd_state(cbsd, session, CbsdStates.UNREGISTERED.value)
 
 
 def _get_or_create_grant_from_response(obj: ResponseDBProcessor,

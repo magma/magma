@@ -158,7 +158,15 @@ class DBCbsd(Base):
     active_mode_config = relationship("DBActiveModeConfig", back_populates="cbsd")
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}(id='{self.id}', cbsd_id='{self.cbsd_id}')>"
+        return f"<{self.__class__.__name__}(id='{self.id}', " \
+               f"state='{self.state.name}', " \
+               f"cbsd_id='{self.cbsd_id}', " \
+               f"user_id='{self.user_id}', " \
+               f"fcc_id='{self.fcc_id}', " \
+               f"cbsd_serial_number='{self.cbsd_serial_number}', " \
+               f"eirp_capability='{self.eirp_capability}', " \
+               f"created_date='{self.created_date}' " \
+               f"updated_date='{self.updated_date}')>"
 
 
 class DBChannel(Base):

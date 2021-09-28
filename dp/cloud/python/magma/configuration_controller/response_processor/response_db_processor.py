@@ -17,12 +17,8 @@ logger = logging.getLogger(__name__)
 class ResponseDBProcessor:
     def __init__(self,
                  response_type: str,
-                 request_map_key_func: Callable,
-                 response_map_key_func: Callable,
                  process_responses_func: Callable):
         self.response_type = response_type
-        self.request_map_key_func = request_map_key_func
-        self.response_map_key_func = response_map_key_func
         self.process_responses_func = process_responses_func
         self.grant_states_map = dict()
         self.request_states_map = dict()
@@ -59,22 +55,19 @@ class ResponseDBProcessor:
             sas_response: Response,
             session: Session) -> None:
 
-        requests_map = {self.request_map_key_func(req.payload): req for req in requests}
         response_json_list = sas_response.json().get(self.response_type, [])
         logger.debug(f"[{self.response_type}] requests json list: {response_json_list}")
 
-        for response_json in sas_response.json().get(self.response_type, []):
-            map_key = self.response_map_key_func(response_json)
-            if not map_key or map_key not in requests_map:
-                logger.warning(f"[{self.response_type}] Did not find {map_key} in request map {requests_map}.")
-                continue
-            db_request = requests_map[map_key]
+        if len(response_json_list) != len(requests):
+            logger.warning(f"[{self.response_type}] not equal number of"
+                           f" requests ({len(requests)}) and responses ({len(response_json_list)})")
+        for response_json, db_request in zip(response_json_list, requests):
             db_response = DBResponse(
                 response_code=int(response_json["response"]["responseCode"]),
                 payload=response_json,
                 request=db_request,
             )
-            logger.info(f"[{self.response_type}] Adding Response: {db_response} for Request {requests_map[map_key]}")
+            logger.info(f"[{self.response_type}] Adding Response: {db_response} for Request {db_request}")
             session.add(db_response)
             self._process_request(db_request)
             self._process_response(db_response, session)

@@ -72,8 +72,6 @@ def run():
         )
         processor = ResponseDBProcessor(
             response_type=response_type,
-            request_map_key_func=processor_strategies[req_type]["request_map_key"],
-            response_map_key_func=processor_strategies[req_type]["response_map_key"],
             process_responses_func=processor_strategies[req_type]["process_responses"],
         )
         scheduler.add_job(

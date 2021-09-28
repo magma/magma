@@ -53,6 +53,7 @@ from parameterized import parameterized
 
 CBSD_SERIAL_NR = "cbsdSerialNumber"
 FCC_ID = "fccId"
+USER_ID = "userId"
 CBSD_ID = "cbsdId"
 GRANT_ID = "grantId"
 TEST_STATE = "test_state"
@@ -340,24 +341,21 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
 
         processor = ResponseDBProcessor(
             response_type_name,
-            request_map_key_func=processor_strategy["request_map_key"],
-            response_map_key_func=processor_strategy["response_map_key"],
             process_responses_func=processor_strategy["process_responses"],
         )
         return response, processor
 
     def _generate_cbsd_from_request_json(self, request_payload: Dict, cbsd_state: DBCbsdState):
-        cbsd_id = request_payload.get(CBSD_ID, "")
+        cbsd_id = request_payload.get(CBSD_ID)
         fcc_id = request_payload.get(FCC_ID)
+        user_id = request_payload.get(USER_ID)
         serial_number = request_payload.get(CBSD_SERIAL_NR)
-        combined_cbsd_id = f'{fcc_id}/{serial_number}'
-        cbsd_id = cbsd_id or combined_cbsd_id
 
         cbsd = DBCbsd(
             cbsd_id=cbsd_id,
             fcc_id=fcc_id,
             cbsd_serial_number=serial_number,
-            user_id=f"test_user",
+            user_id=user_id,
             eirp_capability=1.1,
             state=cbsd_state,
         )
@@ -400,6 +398,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     def _get_request_type_from_fixture(fixture):
         return next(iter(fixture[0].keys()))
 
+    # FIXME this function assumes flat structure
     def _create_db_requests_from_fixture(self, request_state, request_type, fixture, cbsd_state):
         request_type_name = self._get_request_type_from_fixture(fixture)
         reqs = [
@@ -415,8 +414,9 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     @staticmethod
     def _create_response_payload_from_db_requests(response_type_name, db_requests, sas_response_code=0):
         response_payload = {response_type_name: []}
-        for db_request in db_requests:
-            response_json = {"response": {"responseCode": sas_response_code}, "cbsdId": db_request.cbsd.cbsd_id}
+        for i, db_request in enumerate(db_requests):
+            cbsd_id = db_request.cbsd.cbsd_id or str(i)
+            response_json = {"response": {"responseCode": sas_response_code}, "cbsdId": cbsd_id}
             if db_request.payload.get(GRANT_ID, ""):
                 response_json[GRANT_ID] = db_request.payload.get(GRANT_ID)
             elif response_type_name == request_response[RequestTypes.GRANT.value]:

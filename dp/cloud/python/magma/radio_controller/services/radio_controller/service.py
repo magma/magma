@@ -13,7 +13,7 @@ from magma.db_service.models import (
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.types import CbsdStates, RequestStates
 from magma.radio_controller.services.radio_controller.strategies.strategies_mapping import (
-    get_cbsd_id_strategies,
+    get_cbsd_filter_strategies,
 )
 from dp.protos.requests_pb2 import (
     RequestDbId,
@@ -25,8 +25,6 @@ from dp.protos.requests_pb2_grpc import RadioControllerServicer
 
 logger = logging.getLogger(__name__)
 
-CBSD_SERIAL_NR = "cbsdSerialNumber"
-FCC_ID = "fccId"
 CBSD_ID = "cbsdId"
 
 
@@ -86,17 +84,18 @@ class RadioControllerService(RadioControllerServicer):
             return ResponsePayload(payload=json.dumps(response.payload))
 
     def _get_or_create_cbsd(self, session: Session, request_type: str, request_json: Dict) -> Optional[DBCbsd]:
-        cbsd_id = self._get_cbsd_id(request_type, request_json)
-        cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).first()
+        filters = self._get_cbsd_filters(request_type, request_json)
+        cbsd = session.query(DBCbsd).filter(*filters).first()
+        cbsd_id = request_json.get(CBSD_ID)
         return cbsd if cbsd else self._create_cbsd(session, request_json, cbsd_id)
 
     @staticmethod
-    def _get_cbsd_id(request_name: str, request_payload: Dict):
-        return get_cbsd_id_strategies[request_name](request_payload)
+    def _get_cbsd_filters(request_name: str, request_payload: Dict) -> List:
+        return get_cbsd_filter_strategies[request_name](request_payload)
 
     @staticmethod
-    def _create_cbsd(session: Session, request_payload: Dict, cbsd_id: str):
-        logging.info(f"Creating new CBSD with cbsdId {cbsd_id}")
+    # TODO extract this so it can be used by other grpc services
+    def _create_cbsd(session: Session, request_payload: Dict, cbsd_id: Optional[str]):
         cbsd_state = session.query(DBCbsdState).filter(DBCbsdState.name == CbsdStates.UNREGISTERED.value).scalar()
         user_id = request_payload.get("userId", None)
         fcc_id = request_payload.get("fccId", None)
@@ -114,5 +113,5 @@ class RadioControllerService(RadioControllerServicer):
             eirp_capability=eirp_capability,
         )
         session.add(cbsd)
-        logging.info(f"New CBSD with cbsdId {cbsd_id} created")
+        logging.info(f"New CBSD with cbsdId {cbsd_id} and serial {cbsd_serial_number} created")
         return cbsd
