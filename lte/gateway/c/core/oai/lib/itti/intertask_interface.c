@@ -35,15 +35,11 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
-#include <signal.h>
 #include <malloc.h>
 #include <stdint.h>
-#include <sys/time.h>
 
 #include "assertions.h"
 #include "intertask_interface.h"
-#include "intertask_interface_conf.h"
 #include "common_defs.h"
 
 /* Includes "intertask_interface_init.h" to check prototype coherence, but

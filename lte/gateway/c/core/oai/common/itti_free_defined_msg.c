@@ -161,7 +161,10 @@ void itti_free_msg_content(MessageDef* const message_p) {
       free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_ack
                        .ue_to_reset_list);
       break;
-    case S1AP_UE_CAPABILITIES_IND:
+    case S1AP_UE_CAPABILITIES_IND: {
+        free_wrapper((void**) &message_p->ittiMsg.s1ap_ue_cap_ind.radio_capabilities);
+        break;
+    }
     case S1AP_ENB_DEREGISTERED_IND:
     case S1AP_UE_CONTEXT_RELEASE_REQ:
     case S1AP_UE_CONTEXT_RELEASE_COMMAND:

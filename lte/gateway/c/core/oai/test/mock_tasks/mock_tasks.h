@@ -45,6 +45,16 @@ class MockS1apHandler {
   MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
 };
 
+class MockMmeAppHandler {
+ public:
+  MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
+};
+
+class MockSctpdHandler {
+public:
+    MOCK_METHOD0(sctpd_send_dl, void());
+};
+
 class MockS6aHandler {
  public:
   MOCK_METHOD0(s6a_viface_authentication_info_req, void());
@@ -65,6 +75,8 @@ class MockService303Handler {
 
 void start_mock_ha_task();
 void start_mock_s1ap_task(std::shared_ptr<MockS1apHandler>);
+void start_mock_sctp_task(std::shared_ptr<MockSctpdHandler>);
+void start_mock_mme_app_task(std::shared_ptr<MockMmeAppHandler>);
 void start_mock_s6a_task(std::shared_ptr<MockS6aHandler>);
 void start_mock_s11_task();
 void start_mock_service303_task(std::shared_ptr<MockService303Handler>);
