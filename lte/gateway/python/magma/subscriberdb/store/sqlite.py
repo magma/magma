@@ -216,13 +216,20 @@ class SqliteStore(BaseStore):
     def delete_subscriber(self, subscriber_id) -> None:
         """
         Delete a subscriber, if present.
+
+        Deleting a subscriber also deletes all digest information.
+        This is because deleting a subscriber invalidates the root digest
+        and changes the leaf digests. However, because deleting a subscriber
+        only happens during testing or debugging, it's easier to just blow
+        away all digest data.
         """
         db_location = self._db_locations[self._sid2bucket(subscriber_id)]
         conn = sqlite3.connect(db_location, uri=True)
         try:
+            self.clear_digests()
             with conn:
                 conn.execute(
-                    "DELETE FROM subscriberdb WHERE " "subscriber_id = ?",
+                    "DELETE FROM subscriberdb WHERE subscriber_id = ?",
                     (subscriber_id,),
                 )
         finally:
@@ -236,6 +243,7 @@ class SqliteStore(BaseStore):
         for db_location in self._db_locations:
             conn = sqlite3.connect(db_location, uri=True)
             try:
+                self.clear_digests()
                 with conn:
                     conn.execute("DELETE FROM subscriberdb")
             finally:
@@ -429,6 +437,13 @@ class SqliteStore(BaseStore):
         finally:
             conn.close()
         self._on_digests_ready.update_leaf_digests(new_digests)
+
+    def clear_digests(self):
+        """
+        Clear all subscriber digest info.
+        """
+        self.update_root_digest("")
+        self.update_leaf_digests([])
 
     async def on_ready(self):
         return await self._on_ready.event.wait()
