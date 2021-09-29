@@ -333,6 +333,12 @@ int emm_proc_identification_complete(
             ue_id);
       }
 
+      // Helper ident proc ptr to avoid double free from unknown GUTI attach
+      // processing.
+      nas_emm_ident_proc_t* ident_proc_p =
+          calloc(1, sizeof(nas_emm_ident_proc_t));
+      memcpy(ident_proc_p, ident_proc, sizeof(nas_emm_ident_proc_t));
+
       /*
        * Notify EMM that the identification procedure successfully completed
        */
@@ -341,9 +347,9 @@ int emm_proc_identification_complete(
       emm_sap.u.emm_reg.ctx                  = emm_ctx;
       emm_sap.u.emm_reg.notify               = notify;
       emm_sap.u.emm_reg.free_proc            = true;
-      emm_sap.u.emm_reg.u.common.common_proc = &ident_proc->emm_com_proc;
+      emm_sap.u.emm_reg.u.common.common_proc = &ident_proc_p->emm_com_proc;
       emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-          ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
+          ident_proc_p->emm_com_proc.emm_proc.previous_emm_fsm_state;
       rc = emm_sap_send(&emm_sap);
 
     }  // else ignore the response if procedure not found
