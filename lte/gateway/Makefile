@@ -181,8 +181,9 @@ clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning st
 build_sctpd:
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
-build_session_manager: build_common ## Build session manager
-	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
+build_session_manager: stop
+	bazel build --config=vm //lte/gateway/c/session_manager:sessiond
+	sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/session_manager/sessiond /home/vagrant/build/c/session_manager/sessiond
 
 build_li_agent: ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
@@ -223,6 +224,8 @@ test_common: ## Run all tests in magma_common
 test_li_agent:
 	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
 
+test_session_manager:
+	bazel test --config=vm //lte/gateway/c/session_manager/...:all
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
