@@ -29,15 +29,14 @@
 #include "pgw_procedures.h"
 
 //------------------------------------------------------------------------------
-void pgw_delete_procedures(
-    s_plus_p_gw_eps_bearer_context_information_t* const ctx_p) {
-  if (ctx_p->sgw_eps_bearer_context_information.pending_procedures) {
+void delete_pending_procedures(
+    sgw_eps_bearer_context_information_t* const ctx_p) {
+  if (ctx_p->pending_procedures) {
     pgw_base_proc_t* base_proc1 = NULL;
     pgw_base_proc_t* base_proc2 = NULL;
 
     base_proc1 =
-        LIST_FIRST(ctx_p->sgw_eps_bearer_context_information
-                       .pending_procedures); /* Faster List Deletion. */
+        LIST_FIRST(ctx_p->pending_procedures); /* Faster List Deletion. */
     while (base_proc1) {
       base_proc2 = LIST_NEXT(base_proc1, entries);
       if (PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST ==
@@ -46,9 +45,8 @@ void pgw_delete_procedures(
       }  // else ...
       base_proc1 = base_proc2;
     }
-    LIST_INIT(ctx_p->sgw_eps_bearer_context_information.pending_procedures);
-    free_wrapper(
-        (void**) &ctx_p->sgw_eps_bearer_context_information.pending_procedures);
+    LIST_INIT(ctx_p->pending_procedures);
+    free_wrapper((void**) &ctx_p->pending_procedures);
   }
 }
 //------------------------------------------------------------------------------
@@ -115,6 +113,10 @@ void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
         entries) {
       if (eps_bearer_entry_wrapper) {
         LIST_REMOVE(eps_bearer_entry_wrapper, entries);
+        if (eps_bearer_entry_wrapper->sgw_eps_bearer_entry->pgw_cp_ip_port) {
+          free_wrapper((void**) &eps_bearer_entry_wrapper->sgw_eps_bearer_entry
+                           ->pgw_cp_ip_port);
+        }
         free_wrapper((void**) &eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
         free_wrapper((void**) &eps_bearer_entry_wrapper);
         if (LIST_EMPTY((*ni_cbr_proc)->pending_eps_bearers)) {

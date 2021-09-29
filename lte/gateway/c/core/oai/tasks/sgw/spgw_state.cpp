@@ -91,7 +91,8 @@ void spgw_free_s11_bearer_context_information(
         &(*context_p)->sgw_eps_bearer_context_information.pdn_connection);
     clear_protocol_configuration_options(
         &(*context_p)->sgw_eps_bearer_context_information.saved_message.pco);
-    pgw_delete_procedures(*context_p);
+    delete_pending_procedures(
+        &(*context_p)->sgw_eps_bearer_context_information);
     if ((*context_p)->pgw_eps_bearer_context_information.apns) {
       obj_hashtable_ts_destroy(
           (*context_p)->pgw_eps_bearer_context_information.apns);
@@ -115,6 +116,9 @@ void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
 
 void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
   if (*sgw_eps_bearer_ctxt) {
+    if ((*sgw_eps_bearer_ctxt)->pgw_cp_ip_port) {
+      free_wrapper((void**) &(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port);
+    }
     free_wrapper((void**) sgw_eps_bearer_ctxt);
   }
 }

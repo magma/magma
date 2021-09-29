@@ -1182,7 +1182,7 @@ teid_t sgw_s8_generate_new_cp_teid(void) {
   OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }
 
-static int update_pgw_info_to_temp_dedicated_bearer_context(
+int update_pgw_info_to_temp_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_context_p, teid_t s1_u_sgw_fteid,
     s8_bearer_context_t* bc_cbreq, sgw_state_t* sgw_state,
     char* pgw_cp_ip_port) {
@@ -1203,7 +1203,7 @@ static int update_pgw_info_to_temp_dedicated_bearer_context(
          spgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
     if (s1_u_sgw_fteid == spgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                               ->s_gw_teid_S1u_S12_S4_up) {
-      // update PGW teid and ip adress
+      // update PGW teid and ip address
       spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->p_gw_teid_S5_S8_up =
           bc_cbreq->pgw_s8_up.teid;
       spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->p_gw_address_in_use_up
@@ -1211,14 +1211,16 @@ static int update_pgw_info_to_temp_dedicated_bearer_context(
           bc_cbreq->pgw_s8_up.ipv4_address.s_addr;
       spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S5_S8_up =
           sgw_get_new_s5s8u_teid(sgw_state);
-      uint8_t pgw_ip_port_len = strlen(pgw_cp_ip_port);
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->pgw_cp_ip_port =
-          calloc(1, pgw_ip_port_len + 1);
-      memcpy(
-          spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->pgw_cp_ip_port,
-          pgw_cp_ip_port, pgw_ip_port_len);
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry
-          ->pgw_cp_ip_port[pgw_ip_port_len] = '\0';
+      if (pgw_cp_ip_port) {
+        uint8_t pgw_ip_port_len = strlen(pgw_cp_ip_port);
+        spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->pgw_cp_ip_port =
+            calloc(1, pgw_ip_port_len + 1);
+        memcpy(
+            spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->pgw_cp_ip_port,
+            pgw_cp_ip_port, pgw_ip_port_len);
+        spgw_eps_bearer_entry_p->sgw_eps_bearer_entry
+            ->pgw_cp_ip_port[pgw_ip_port_len] = '\0';
+      }
       break;
     }
     spgw_eps_bearer_entry_p = LIST_NEXT(spgw_eps_bearer_entry_p, entries);
@@ -1318,7 +1320,7 @@ imsi64_t sgw_s8_handle_create_bearer_request(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p->imsi64);
 }
 
-static void sgw_s8_proc_s11_create_bearer_rsp(
+void sgw_s8_proc_s11_create_bearer_rsp(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     bearer_context_within_create_bearer_response_t* bc_cbrsp,
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64,
@@ -1329,7 +1331,6 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   uint32_t sequence_number                                      = 0;
   pgw_ni_cbr_proc      = pgw_get_procedure_create_bearer(sgw_context_p);
-  char* pgw_cp_ip_port = NULL;
 
   if (!pgw_ni_cbr_proc) {
     OAILOG_ERROR_UE(
@@ -1403,42 +1404,6 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
     free_wrapper((void**) &pgw_ni_cbr_proc->pending_eps_bearers);
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
   }
-
-  for (uint8_t idx = 0;
-       idx < s11_actv_bearer_rsp->bearer_contexts.num_bearer_context; idx++) {
-    bearer_context_within_create_bearer_response_t* bc_cbresp_msg =
-        &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[idx];
-    sgw_eps_bearer_ctxt_t* dedicated_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
-        &sgw_context_p->pdn_connection, bc_cbresp_msg->eps_bearer_id);
-    if (!dedicated_bearer_ctx_p) {
-      OAILOG_ERROR_UE(
-          LOG_SGW_S8, sgw_context_p->imsi64,
-          "Failed to get dedicated eps bearer context for context "
-          "teid " TEID_FMT "and bearer_id :%u \n",
-          s11_actv_bearer_rsp->sgw_s11_teid, bc_cbrsp->eps_bearer_id);
-      OAILOG_FUNC_OUT(LOG_SGW_S8);
-    }
-    bc_cbresp_msg->s5_s8_u_sgw_fteid.teid =
-        dedicated_bearer_ctx_p->s_gw_teid_S5_S8_up;
-    bc_cbresp_msg->s5_s8_u_sgw_fteid.ipv4 = 1;
-    bc_cbresp_msg->s5_s8_u_sgw_fteid.ipv4_address =
-        sgw_state->sgw_ip_address_S5S8_up;
-    memcpy(
-        &bc_cbresp_msg->bearer_level_qos,
-        &dedicated_bearer_ctx_p->eps_bearer_qos, sizeof(bearer_qos_t));
-    pgw_cp_ip_port = dedicated_bearer_ctx_p->pgw_cp_ip_port;
-
-    bc_cbresp_msg->s5_s8_u_pgw_fteid.teid =
-        dedicated_bearer_ctx_p->p_gw_teid_S5_S8_up;
-    bc_cbresp_msg->s5_s8_u_pgw_fteid.ipv4 = 1;
-    bc_cbresp_msg->s5_s8_u_pgw_fteid.ipv4_address =
-        dedicated_bearer_ctx_p->p_gw_address_in_use_up.address.ipv4_address;
-  }
-
-  send_s8_create_bearer_response(
-      s11_actv_bearer_rsp, sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
-      sequence_number, pgw_cp_ip_port, sgw_context_p->imsi);
-  free_wrapper((void**) &pgw_cp_ip_port);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -1492,6 +1457,45 @@ void sgw_s8_handle_s11_create_bearer_response(
   }
   sgw_s8_proc_s11_create_bearer_rsp(
       sgw_context_p, &bc_cbrsp, s11_actv_bearer_rsp, imsi64, sgw_state);
+
+  char* pgw_cp_ip_port = NULL;
+  sgw_eps_bearer_ctxt_t* dedicated_bearer_ctx_p = NULL;
+  for (uint8_t idx = 0;
+       idx < s11_actv_bearer_rsp->bearer_contexts.num_bearer_context; idx++) {
+    bearer_context_within_create_bearer_response_t* bc_cbresp_msg =
+        &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[idx];
+    dedicated_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+        &sgw_context_p->pdn_connection, bc_cbresp_msg->eps_bearer_id);
+    if (!dedicated_bearer_ctx_p) {
+      OAILOG_ERROR_UE(
+          LOG_SGW_S8, sgw_context_p->imsi64,
+          "Failed to get dedicated eps bearer context for context "
+          "teid " TEID_FMT "and bearer_id :%u \n",
+          s11_actv_bearer_rsp->sgw_s11_teid, bc_cbrsp.eps_bearer_id);
+      OAILOG_FUNC_OUT(LOG_SGW_S8);
+    }
+    bc_cbresp_msg->s5_s8_u_sgw_fteid.teid =
+        dedicated_bearer_ctx_p->s_gw_teid_S5_S8_up;
+    bc_cbresp_msg->s5_s8_u_sgw_fteid.ipv4 = 1;
+    bc_cbresp_msg->s5_s8_u_sgw_fteid.ipv4_address =
+        sgw_state->sgw_ip_address_S5S8_up;
+    memcpy(
+        &bc_cbresp_msg->bearer_level_qos,
+        &dedicated_bearer_ctx_p->eps_bearer_qos, sizeof(bearer_qos_t));
+    pgw_cp_ip_port = dedicated_bearer_ctx_p->pgw_cp_ip_port;
+
+    bc_cbresp_msg->s5_s8_u_pgw_fteid.teid =
+        dedicated_bearer_ctx_p->p_gw_teid_S5_S8_up;
+    bc_cbresp_msg->s5_s8_u_pgw_fteid.ipv4 = 1;
+    bc_cbresp_msg->s5_s8_u_pgw_fteid.ipv4_address =
+        dedicated_bearer_ctx_p->p_gw_address_in_use_up.address.ipv4_address;
+  }
+
+  send_s8_create_bearer_response(
+      s11_actv_bearer_rsp, sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
+      dedicated_bearer_ctx_p->sgw_sequence_number, pgw_cp_ip_port,
+      sgw_context_p->imsi);
+  free_wrapper((void**) &pgw_cp_ip_port);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 

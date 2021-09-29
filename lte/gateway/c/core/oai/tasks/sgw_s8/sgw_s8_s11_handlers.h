@@ -77,3 +77,16 @@ int sgw_update_bearer_context_information_on_csreq(
     sgw_eps_bearer_context_information_t* new_sgw_eps_context,
     mme_sgw_tunnel_t sgw_s11_tunnel,
     itti_s11_create_session_request_t* session_req_pP, imsi64_t imsi64);
+
+uint32_t sgw_get_new_s1u_teid(sgw_state_t* state);
+
+int update_pgw_info_to_temp_dedicated_bearer_context(
+    sgw_eps_bearer_context_information_t* sgw_context_p, teid_t s1_u_sgw_fteid,
+    s8_bearer_context_t* bc_cbreq, sgw_state_t* sgw_state,
+    char* pgw_cp_ip_port);
+
+void sgw_s8_proc_s11_create_bearer_rsp(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    bearer_context_within_create_bearer_response_t* bc_cbrsp,
+    itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64,
+    sgw_state_t* sgw_state);
