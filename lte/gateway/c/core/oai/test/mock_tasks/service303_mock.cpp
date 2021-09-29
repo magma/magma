@@ -44,7 +44,8 @@ void stop_mock_service303_task() {
   pthread_exit(NULL);
 }
 
-void start_mock_service303_task(std::shared_ptr<MockService303Handler> service303_handler) {
+void start_mock_service303_task(
+    std::shared_ptr<MockService303Handler> service303_handler) {
   service303_handler_ = service303_handler;
   init_task_context(
       TASK_SERVICE303, nullptr, 0, handle_message, &task_zmq_ctx_service303);

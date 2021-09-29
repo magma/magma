@@ -63,7 +63,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     mme_hss_associated = false;
-    mme_sctp_bounded = false;
+    mme_sctp_bounded   = false;
     s1ap_handler       = std::make_shared<MockS1apHandler>();
     s6a_handler        = std::make_shared<MockS6aHandler>();
     spgw_handler       = std::make_shared<MockSpgwHandler>();
@@ -126,13 +126,12 @@ class MmeAppProcedureTest : public ::testing::Test {
 };
 
 TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
-  plmn_t plmn = {
-      .mcc_digit2 = 0,
-      .mcc_digit1 = 0,
-      .mnc_digit3 = 0x0f,
-      .mcc_digit3 = 1,
-      .mnc_digit2 = 1,
-      .mnc_digit1 = 0};
+  plmn_t plmn = {.mcc_digit2 = 0,
+                 .mcc_digit1 = 0,
+                 .mnc_digit3 = 0x0f,
+                 .mcc_digit3 = 1,
+                 .mnc_digit2 = 1,
+                 .mnc_digit1 = 0};
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
 
@@ -150,13 +149,12 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
-  plmn_t plmn = {
-      .mcc_digit2 = 0,
-      .mcc_digit1 = 0,
-      .mnc_digit3 = 0x0f,
-      .mcc_digit3 = 1,
-      .mnc_digit2 = 1,
-      .mnc_digit1 = 0};
+  plmn_t plmn      = {.mcc_digit2 = 0,
+                 .mcc_digit1 = 0,
+                 .mnc_digit3 = 0x0f,
+                 .mcc_digit3 = 1,
+                 .mnc_digit2 = 1,
+                 .mnc_digit1 = 0};
   std::string imsi = "001010000000001";
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
@@ -258,13 +256,12 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
-  plmn_t plmn = {
-      .mcc_digit2 = 0,
-      .mcc_digit1 = 0,
-      .mnc_digit3 = 0x0f,
-      .mcc_digit3 = 1,
-      .mnc_digit2 = 1,
-      .mnc_digit1 = 0};
+  plmn_t plmn      = {.mcc_digit2 = 0,
+                 .mcc_digit1 = 0,
+                 .mnc_digit3 = 0x0f,
+                 .mcc_digit3 = 1,
+                 .mnc_digit2 = 1,
+                 .mnc_digit1 = 0};
   std::string imsi = "001010000000001";
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);

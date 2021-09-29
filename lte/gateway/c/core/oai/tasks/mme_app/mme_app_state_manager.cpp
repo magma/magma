@@ -75,7 +75,7 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
 #else
   redis_client = std::make_unique<RedisClient>(false);
 #endif
-  int rc       = read_state_from_db();
+  int rc = read_state_from_db();
   read_ue_state_from_db();
   create_mme_ueip_imsi_map();
   is_initialized = true;
