@@ -166,7 +166,7 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
       gtp_port_create, sizeof(gtp_port_create),
       "sudo ovs-vsctl --may-exist add-port gtp_br0 %s -- set Interface %s "
       "type=%s "
-      "options:remote_ip=%s options:key=flow "
+      "options:remote_ip=%s options:key=flow options:csum=true "
       "bfd:enable=%s "
       "bfd:min_tx=5000 bfd:min_rx=5000",
       port_name, port_name, ovs_gtp_type, inet_ntoa(enb_addr), gtp_echo);
