@@ -2350,6 +2350,14 @@ definitions:
         type: integer
         format: int32
         example: 51
+      LTE_INTER_ANR_A5_THRESHOLD_1_RSRP:
+        type: integer
+        format: int32
+        example: 55
+      LTE_INTER_ANR_A5_THRESHOLD_2_RSRP:
+        type: integer
+        format: int32
+        example: 50
       b2_threshold1_rsrp:
         type: integer
         format: uint32
@@ -2390,10 +2398,6 @@ definitions:
         type: integer
         format: uint32
         example: 8
-      x2_enable_disable:
-        type: boolean
-        example: false
-        default: false
       ciphering_algorithm:
         type: string
         example: "128-EEA1,128-EEA2"

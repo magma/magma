@@ -9138,6 +9138,14 @@ definitions:
   ho_algorithm_configuration:
     description: ho algorithm configuration for enodeb configuration.
     properties:
+      LTE_INTER_ANR_A5_THRESHOLD_1_RSRP:
+        example: 55
+        format: int32
+        type: integer
+      LTE_INTER_ANR_A5_THRESHOLD_2_RSRP:
+        example: 50
+        format: int32
+        type: integer
       a1_threshold_rsrp:
         example: 50
         format: uint32
@@ -9235,10 +9243,6 @@ definitions:
       time_to_trigger:
         example: ms480
         type: string
-      x2_enable_disable:
-        default: false
-        example: false
-        type: boolean
     type: object
   hss:
     description: HSS configuration

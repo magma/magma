@@ -97,9 +97,10 @@ message EnodebD {
             int32 qrxlevmin_sib3 = 21;
             uint32 reselection_priority = 22;
             uint32 threshservinglow = 23;
-            bool x2_enable_disable = 24;
-            string ciphering_algorithm = 25;
-            string integrity_algorithm = 26;
+            string ciphering_algorithm = 24;
+            string integrity_algorithm = 25;
+            int32 lte_inter_anr_a5_threshold_1_rsrp = 26;
+            int32 lte_inter_anr_a5_threshold_2_rsrp = 27;
         }
     }
 

@@ -400,7 +400,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
 			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
-            getHoAlgorithmConfig(enbMconfig,cellularEnbConfig)
+			getHoAlgorithmConfig(enbMconfig, cellularEnbConfig)
 			// override zero values with network/gateway configs
 			if enbMconfig.Earfcndl == 0 {
 				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
@@ -675,8 +675,8 @@ func (s *builderServicer) getRandomizedSyncInterval(gwKey string, nwEpc *lte_mod
 }
 
 // get Ho HoAlgorithm parameters
-func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularEnbConfig *lte_models.EnodebConfiguration ) {
-    cellHoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
+func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig, cellularEnbConfig *lte_models.EnodebConfiguration) {
+	cellHoAlgorithmConfig := cellularEnbConfig.HoAlgorithmConfig
 	if cellHoAlgorithmConfig != nil {
 		enbHoAlgorithmConfig := &lte_mconfig.EnodebD_EnodebConfig_HoAlgorithmConfig{}
 		enbHoAlgorithmConfig.A1ThresholdRsrp = cellHoAlgorithmConfig.A1ThresholdRsrp
@@ -692,6 +692,8 @@ func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularE
 		enbHoAlgorithmConfig.A4ThresholdRsrp = cellHoAlgorithmConfig.A4ThresholdRsrp
 		enbHoAlgorithmConfig.LteIntraA5Threshold_1Rsrp = cellHoAlgorithmConfig.LteIntraA5Threshold1Rsrp
 		enbHoAlgorithmConfig.LteIntraA5Threshold_2Rsrp = cellHoAlgorithmConfig.LteIntraA5Threshold2Rsrp
+		enbHoAlgorithmConfig.LteInterAnrA5Threshold_1Rsrp = cellHoAlgorithmConfig.LTEINTERANRA5THRESHOLD1RSRP
+		enbHoAlgorithmConfig.LteInterAnrA5Threshold_2Rsrp = cellHoAlgorithmConfig.LTEINTERANRA5THRESHOLD2RSRP
 		enbHoAlgorithmConfig.B2Threshold1Rsrp = cellHoAlgorithmConfig.B2Threshold1Rsrp
 		enbHoAlgorithmConfig.B2Threshold2Rsrp = cellHoAlgorithmConfig.B2Threshold2Rsrp
 		enbHoAlgorithmConfig.B2GeranIratThreshold = cellHoAlgorithmConfig.B2GeranIratThreshold
@@ -702,7 +704,6 @@ func getHoAlgorithmConfig(enbMconfig *lte_mconfig.EnodebD_EnodebConfig,cellularE
 		enbHoAlgorithmConfig.QrxlevminSib3 = cellHoAlgorithmConfig.QrxlevminSib3
 		enbHoAlgorithmConfig.ReselectionPriority = cellHoAlgorithmConfig.ReselectionPriority
 		enbHoAlgorithmConfig.Threshservinglow = cellHoAlgorithmConfig.Threshservinglow
-		enbHoAlgorithmConfig.X2EnableDisable = swag.BoolValue(cellHoAlgorithmConfig.X2EnableDisable)
 		enbHoAlgorithmConfig.CipheringAlgorithm = cellHoAlgorithmConfig.CipheringAlgorithm
 		enbHoAlgorithmConfig.IntegrityAlgorithm = cellHoAlgorithmConfig.IntegrityAlgorithm
 		enbMconfig.HoAlgorithmConfig = enbHoAlgorithmConfig

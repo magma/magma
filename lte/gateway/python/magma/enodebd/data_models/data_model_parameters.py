@@ -99,6 +99,8 @@ class ParameterName():
     A4_THRESHOLD_RSRP = 'a4 threshold rsrp'
     LTE_INTRA_A5_THRESHOLD_1_RSRP = 'lte intra a5 threshold1 rsrp'
     LTE_INTRA_A5_THRESHOLD_2_RSRP = 'lte intra a5 threshold2 rsrp'
+    LTE_INTER_ANR_A5_THRESHOLD_1_RSRP = 'lte inter anra5 threshold1 rsrp'
+    LTE_INTER_ANR_A5_THRESHOLD_2_RSRP = 'lte inter anra5 threshold2 rsrp'
     B2_THRESHOLD1_RSRP = 'b2 threshold1 rsrp'
     B2_THRESHOLD2_RSRP = 'b2 threshold2 rsrp'
     B2_GERAN_IRAT_THRESHOLD = 'b2 geran irat threshold'
@@ -109,7 +111,6 @@ class ParameterName():
     QRXLEVMIN_SIB3 = 'qrxlevmin sib3'
     RESELECTION_PRIORITY = 'reselection priority'
     THRESHSERVINGLOW = 'threshservinglow'
-    X2_ENABLE_DISABLE = 'x2 enable disable'
     CIPHERING_ALGORITHM = 'ciphering algorithm'
     INTEGRITY_ALGORITHM = 'integrity algorithm'
 

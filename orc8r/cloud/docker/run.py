@@ -21,7 +21,8 @@ import sys
 from typing import List
 
 HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
-DO_NOT_COMMIT = '# DO NOT COMMIT THIS CHANGE'
+#DO_NOT_COMMIT = '# DO NOT COMMIT THIS CHANGE'
+DO_NOT_COMMIT = ''
 
 
 def main() -> None:

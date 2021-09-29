@@ -250,6 +250,208 @@ function EnodebManagedRanConfig({
             ?.a1_threshold_rsrp ?? '-',
       },
     ],
+    [
+      {
+        category: 'lte a1 threshold rsrq',
+        value:
+          enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+            ?.lte_a1_threshold_rsrq ?? '-',
+      },
+    ],
+    [
+      {
+          category: 'hysteresis',
+          value:
+            enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+              ?.hysteresis ?? '-',
+      },
+   ],
+    [
+      {
+          category: 'time to trigger',
+          value:
+            enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+              ?.time_to_trigger ?? '-',
+      },
+    ],
+    [
+        {
+            category: 'a2 threshold rsrp',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.a2_threshold_rsrp ?? '-',
+        },
+    ],
+    [
+       {
+           category: 'lte a2 threshold rsrq',
+           value:
+             enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+               ?.lte_a2_threshold_rsrq ?? '-',
+       },
+    ],
+    [
+       {
+           category: 'lte a2 threshold rsrp irat volte',
+           value:
+             enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+               ?.lte_a2_threshold_rsrp_irat_volte ?? '-',
+       },
+    ],
+    [
+       {
+            category: 'lte a2 threshold rsrq irat volte',
+            value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                ?.lte_a2_threshold_rsrq_irat_volte ?? '-',
+       },
+    ],
+    [
+       {
+            category: 'a3_offset',
+            value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                ?.a3_offset ?? '-',
+       },
+    ],
+    [
+       {
+            ategory: 'a3 offset anr',
+            value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                ?.a3_offset_anr ?? '-',
+       },
+    ],
+    [
+       {
+            category: 'a4 threshold rsrp',
+            value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                ?.a4_threshold_rsrp ?? '-',
+       },
+    ],
+    [
+        {
+            category: 'lte intraa5 threshold1 rsrp',
+            value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                ?.lte_intra_a5_threshold_1_rsrp ?? '-',
+        },
+    ],
+    [
+       {
+            category: 'lte intraa5 threshold2 rsrp',
+            value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                ?.lte_intra_a5_threshold_2_rsrp ?? '-',
+       },
+    ],
+    [
+      {
+          category: 'lte inter anra5 threshold1 rsrp',
+          value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                  ?.lte_inter_anr_a5_threshold_1_rsrp ?? '-',
+      },
+    ],
+    [
+      {
+          category: 'lte intraa5 threshold2 rsrp',
+          value:
+              enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                  ?.lte_inter_anr_a5_threshold_2_rsrp ?? '-',
+      },
+    ],
+
+    [
+        {
+            category: 'b2 threshold1 rsrp',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.b2_threshold1_rsrp ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'b2 threshold2 rsrp',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.b2_threshold2_rsrp ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'b2 geran irat threshold',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.b2_geran_irat_threshold ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'qrxlevmin sib1',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.qrxlevmin_sib1 ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'qrxlevminoffset',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.qrxlevminoffset ?? '-',
+        },
+    ],
+    [
+        {
+            category: 's intrasearch',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.s_intrasearch ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'qrxlevmin sib3',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.qrxlevmin_sib3 ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'reselection priority',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.reselection_priority ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'threshservinglow',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.threshservinglow ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'ciphering algorithm',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.ciphering_algorithm ?? '-',
+        },
+    ],
+    [
+        {
+            category: 'integrity algorithm',
+            value:
+                enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
+                    ?.integrity_algorithm?? '-',
+        },
+    ],
+
   ];
   return <DataGrid data={managedConfig} testID="ran" />;
 }

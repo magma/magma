@@ -354,12 +354,12 @@ export type enodeb_configuration = {
     cell_id: number,
     device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
     earfcndl ? : number,
+    ho_algorithm_config ? : ho_algorithm_configuration,
     pci ? : number,
     special_subframe_pattern ? : number,
     subframe_assignment ? : number,
     tac ? : number,
     transmit_enabled: boolean,
-    ho_algorithm: ho_algorithm,
 };
 export type enodeb_serials = Array < string >
 ;
@@ -676,6 +676,35 @@ export type health = {
     request_failure_threshold ? : number,
     update_failure_threshold ? : number,
     update_interval_secs ? : number,
+};
+export type ho_algorithm_configuration = {
+    LTE_INTER_ANR_A5_THRESHOLD_1_RSRP ? : number,
+    LTE_INTER_ANR_A5_THRESHOLD_2_RSRP ? : number,
+    a1_threshold_rsrp ? : number,
+    a2_threshold_rsrp ? : number,
+    a3_offset ? : number,
+    a3_offset_anr ? : number,
+    a4_threshold_rsrp ? : number,
+    b2_geran_irat_threshold ? : number,
+    b2_threshold1_rsrp ? : number,
+    b2_threshold2_rsrp ? : number,
+    ciphering_algorithm ? : string,
+    hysteresis ? : number,
+    integrity_algorithm ? : string,
+    lte_a1_threshold_rsrq ? : number,
+    lte_a2_threshold_rsrp_irat_volte ? : number,
+    lte_a2_threshold_rsrq ? : number,
+    lte_a2_threshold_rsrq_irat_volte ? : number,
+    lte_intra_a5_threshold_1_rsrp ? : number,
+    lte_intra_a5_threshold_2_rsrp ? : number,
+    qrxlevmin_sib1 ? : number,
+    qrxlevmin_sib3 ? : number,
+    qrxlevminoffset ? : number,
+    reselection_priority ? : number,
+    s_intrasearch ? : number,
+    s_nonintrasearch ? : number,
+    threshservinglow ? : number,
+    time_to_trigger ? : string,
 };
 export type hss = {
     default_sub_profile ? : subscription_profile,
@@ -1541,10 +1570,6 @@ export type wifi_network = {
     id: network_id,
     name: network_name,
     wifi: network_wifi_configs,
-};
-
-export type ho_algorithm = {
-    a1_threshold_rsrp: number,
 };
 
 export default class MagmaAPIBindings {
