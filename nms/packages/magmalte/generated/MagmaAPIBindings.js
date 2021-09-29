@@ -946,7 +946,7 @@ export type network_epc_configs = {
     cloud_subscriberdb_enabled ? : boolean,
     congestion_control_enabled ? : boolean,
     default_rule_id ? : string,
-    enable_converged_core ? : boolean,
+    enable5g_features ? : boolean,
     gx_gy_relay_enabled: boolean,
     hss_relay_enabled: boolean,
     lte_auth_amf: string,
@@ -972,6 +972,7 @@ export type network_epc_configs = {
     },
     network_services ? : Array < "dpi" | "policy_enforcement" >
         ,
+    node_identifier ? : string,
     restricted_imeis ? : Array < imei >
         ,
     restricted_plmns ? : Array < plmn_config >

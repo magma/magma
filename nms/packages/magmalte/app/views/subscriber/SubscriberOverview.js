@@ -13,10 +13,14 @@
  * @flow strict-local
  * @format
  */
-import AddSubscriberButton from './SubscriberAddDialog';
+import AddSubscriberButton, {
+  BulkEditSubscriberButton,
+  validateSubscriberInfo,
+} from './SubscriberAddDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -27,14 +31,18 @@ import SubscriberDetail from './SubscriberDetail';
 import SubscriberStateTable from './SubscriberStateTable';
 import SubscriberTable from './SubscriberTable';
 import TopBar from '../../components/TopBar';
-
-import {Redirect, Route, Switch} from 'react-router-dom';
-import {useContext, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import type {SubscriberInfo} from './SubscriberAddDialog';
 import type {
   mutable_subscriber,
+  mutable_subscribers,
   subscriber,
 } from '../../../generated/MagmaAPIBindings';
+
+import {Redirect, Route, Switch} from 'react-router-dom';
+import {hexToBase64, isValidHex} from '@fbcnms/util/strings';
+import {useContext, useRef, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const TITLE = 'Subscribers';
 
@@ -74,6 +82,145 @@ type Props = {
   onClose?: () => void,
   imsi: string,
 };
+type refreshProps = {
+  refreshContext: () => void,
+};
+const SUBSCRIBERS_CHUNK_SIZE = 1000;
+
+function SubscriberActions(props: refreshProps) {
+  const [_error, setError] = useState('');
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(SubscriberContext);
+  const successCountRef = useRef(0);
+  const [open, setOpen] = useState(false);
+
+  const saveSubscribers = async (
+    subscribers: Array<SubscriberInfo>,
+    edit: boolean,
+  ) => {
+    let addedSubscribers = [];
+    let subscriberErrors = '';
+    for (const [i, subscriber] of subscribers.entries()) {
+      try {
+        const err = validateSubscriberInfo(subscriber, ctx.state);
+        if (err.length > 0) {
+          throw err;
+        }
+        const authKey =
+          subscriber.authKey && isValidHex(subscriber.authKey)
+            ? hexToBase64(subscriber.authKey)
+            : '';
+
+        const authOpc =
+          subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
+            ? hexToBase64(subscriber.authOpc)
+            : '';
+        const newSubscriber = {
+          active_apns: subscriber.apns,
+          active_policies: subscriber.policies,
+          id: subscriber.imsi,
+          name: subscriber.name,
+          lte: {
+            auth_algo: 'MILENAGE',
+            auth_key: authKey,
+            auth_opc: authOpc,
+            state: subscriber.state,
+            sub_profile: subscriber.dataPlan,
+          },
+        };
+        if (edit) {
+          ctx.setState?.(subscriber.imsi, newSubscriber);
+        } else {
+          addedSubscribers.push(newSubscriber);
+          // bulk add chunked subscribers
+          if (
+            addedSubscribers.length == SUBSCRIBERS_CHUNK_SIZE ||
+            i == subscribers.length - 1
+          ) {
+            const success = await bulkAdd(addedSubscribers, subscriberErrors);
+            if (success) {
+              successCountRef.current =
+                successCountRef.current + addedSubscribers.length;
+              addedSubscribers = [];
+            } else {
+              enqueueSnackbar('Saving subscribers to the api failed: ', {
+                variant: 'error',
+              });
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        subscriberErrors +=
+          'error saving ' + subscriber.imsi + ' : ' + errMsg + '\n';
+        //report saved errors if we reach end of loop without calling bulkadd.
+        if (i == subscribers.length - 1) {
+          setError(subscriberErrors);
+          enqueueSnackbar('Saving subscribers to the api failed: ', {
+            variant: 'error',
+          });
+          return;
+        }
+      }
+    }
+    enqueueSnackbar(
+      ` Subscriber${successCountRef.current > 1 ? 's' : ''} saved successfully`,
+      {
+        variant: 'success',
+      },
+    );
+    setOpen(false);
+    props.refreshContext();
+  };
+  const bulkAdd = async (
+    addedSubscribers: mutable_subscribers,
+    subscriberErrors: string,
+  ) => {
+    let success = true;
+    try {
+      if (subscriberErrors.length > 0) {
+        setError(subscriberErrors);
+        return false;
+      }
+      await ctx.setState?.('', addedSubscribers);
+      return success;
+    } catch (e) {
+      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      setError('error saving subscribers: ' + errMsg);
+      success = false;
+      return success;
+    }
+  };
+  return (
+    <Grid container alignItems="center" spacing={1}>
+      <Grid item>
+        <BulkEditSubscriberButton
+          onClose={() => {
+            props.refreshContext();
+          }}
+          onSave={subscribers => {
+            saveSubscribers(subscribers, true);
+          }}
+        />
+      </Grid>
+      <Grid item>
+        <AddSubscriberButton
+          onClose={() => {
+            props.refreshContext();
+          }}
+          onSave={subscribers => {
+            saveSubscribers(subscribers, false);
+          }}
+          isOpen={open}
+          handleOpen={isOpen => {
+            setOpen(isOpen);
+          }}
+        />
+      </Grid>
+    </Grid>
+  );
+}
 
 export function SubscribersOverview() {
   const {relativePath, relativeUrl} = useRouter();
@@ -89,11 +236,7 @@ export function SubscribersOverview() {
             to: '/config',
             icon: SettingsIcon,
             filters: (
-              <AddSubscriberButton
-                onClose={() => {
-                  setRefresh(!refresh);
-                }}
-              />
+              <SubscriberActions refreshContext={() => setRefresh(!refresh)} />
             ),
           },
           {

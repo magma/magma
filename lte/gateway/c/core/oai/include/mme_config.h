@@ -82,7 +82,7 @@
 #define MME_CONFIG_STRING_STATS_TIMER "STATS_TIMER_SEC"
 
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
-#define MME_CONFIG_STRING_ENABLE_CONVERGED_CORE "ENABLE_CONVERGED_CORE"
+#define MME_CONFIG_STRING_ENABLE5G_FEATURES "ENABLE5G_FEATURES"
 #define MME_CONFIG_STRING_FULL_NETWORK_NAME "FULL_NETWORK_NAME"
 #define MME_CONFIG_STRING_SHORT_NETWORK_NAME "SHORT_NETWORK_NAME"
 #define MME_CONFIG_STRING_DAYLIGHT_SAVING_TIME "DAYLIGHT_SAVING_TIME"
@@ -437,7 +437,7 @@ typedef struct mme_config_s {
   bool use_stateless;
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
-  bool enable_converged_core;
+  bool enable5g_features;
   bool accept_combined_attach_tau_wo_csfb;
 
   bool enable_congestion_control;

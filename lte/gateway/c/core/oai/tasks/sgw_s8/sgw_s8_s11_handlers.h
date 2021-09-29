@@ -55,3 +55,25 @@ void sgw_s8_handle_s11_create_bearer_response(
 void sgw_s8_send_failed_create_bearer_response(
     sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
     gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
+teid_t sgw_s8_generate_new_cp_teid(void);
+
+uint32_t sgw_get_new_s5s8u_teid(sgw_state_t* state);
+
+status_code_e sgw_update_teid_in_ue_context(
+    sgw_state_t* sgw_state, imsi64_t imsi64, teid_t teid);
+
+sgw_eps_bearer_context_information_t*
+sgw_create_bearer_context_information_in_collection(teid_t teid);
+
+sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
+    teid_t teid);
+
+int sgw_update_bearer_context_information_on_csrsp(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    const s8_create_session_response_t* const session_rsp_p);
+
+int sgw_update_bearer_context_information_on_csreq(
+    sgw_state_t* sgw_state,
+    sgw_eps_bearer_context_information_t* new_sgw_eps_context,
+    mme_sgw_tunnel_t sgw_s11_tunnel,
+    itti_s11_create_session_request_t* session_req_pP, imsi64_t imsi64);

@@ -124,7 +124,7 @@
         "label": "Access Gateway",
         "ids": [
           "lte/configure_agw_ha",
-          "lte/integrate_sentry"
+          "lte/configure_sentry"
         ]
       },
       {
