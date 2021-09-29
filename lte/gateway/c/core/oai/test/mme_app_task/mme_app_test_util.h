@@ -15,6 +15,10 @@ extern "C" {}
 namespace magma {
 namespace lte {
 
+void send_sctp_mme_server_initialized();
+
+void send_activate_message_to_mme_app();
+
 void send_mme_app_initial_ue_msg(
     uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
 
