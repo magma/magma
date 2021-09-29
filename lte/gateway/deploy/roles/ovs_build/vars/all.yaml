@@ -1,2 +1,0 @@
-# Working directory where ovs will be clone and patch applied
-WORK_DIR: "~/build-ovs"
