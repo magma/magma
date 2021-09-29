@@ -38,6 +38,7 @@ func (m *Network) ToConfiguratorNetwork() configurator.Network {
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
 			orc8r.NetworkSentryConfig:   m.SentryConfig,
+			orc8r.StateConfig:           m.StateConfig,
 		},
 	}
 }
@@ -47,14 +48,29 @@ func (m *Network) FromConfiguratorNetwork(n configurator.Network) *Network {
 	m.Type = models.NetworkType(n.Type)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
-	if cfg, exists := n.Configs[orc8r.DnsdNetworkType]; exists && cfg != nil {
-		m.DNS = cfg.(*NetworkDNSConfig)
+	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
+		dns := cfg.(*NetworkDNSConfig)
+		if dns != nil {
+			m.DNS = dns
+		}
 	}
-	if cfg, exists := n.Configs[orc8r.NetworkFeaturesConfig]; exists && cfg != nil {
-		m.Features = cfg.(*NetworkFeatures)
+	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
+		features := cfg.(*NetworkFeatures)
+		if features != nil {
+			m.Features = features
+		}
 	}
-	if cfg, exists := n.Configs[orc8r.NetworkSentryConfig]; exists && cfg != nil {
-		m.SentryConfig = cfg.(*NetworkSentryConfig)
+	if cfg := n.Configs[orc8r.NetworkSentryConfig]; cfg != nil {
+		sentryConfig := cfg.(*NetworkSentryConfig)
+		if sentryConfig != nil {
+			m.SentryConfig = sentryConfig
+		}
+	}
+	if cfg := n.Configs[orc8r.StateConfig]; cfg != nil {
+		stateConfig := cfg.(*StateConfig)
+		if stateConfig != nil {
+			m.StateConfig = stateConfig
+		}
 	}
 	return m
 }
@@ -69,6 +85,7 @@ func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
 			orc8r.NetworkSentryConfig:   m.SentryConfig,
+			orc8r.StateConfig:           m.StateConfig,
 		},
 	}
 }
@@ -87,6 +104,14 @@ func (m *NetworkSentryConfig) GetFromNetwork(network configurator.Network) inter
 
 func (m *NetworkSentryConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.NetworkSentryConfig, m), nil
+}
+
+func (m *StateConfig) GetFromNetwork(network configurator.Network) interface{} {
+	return GetNetworkConfig(network, orc8r.StateConfig)
+}
+
+func (m *StateConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.StateConfig, m), nil
 }
 
 func (m *NetworkDNSConfig) GetFromNetwork(network configurator.Network) interface{} {
@@ -140,12 +165,12 @@ func (m *MagmadGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEnt
 }
 
 func (m *MagmadGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
-	return []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}}
+	return storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}}
 }
 
-func (m *MagmadGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
+func (m *MagmadGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TK]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var ret []configurator.EntityWriteOperation
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}]
+	existingEnt, ok := loadedEntities[storage.TK{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -171,7 +196,7 @@ func (m *MagmadGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedE
 			ret,
 			configurator.EntityUpdateCriteria{
 				Type: orc8r.UpgradeTierEntityType, Key: oldTierTK.Key,
-				AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+				AssociationsToDelete: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
 			},
 		)
 
@@ -179,7 +204,7 @@ func (m *MagmadGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedE
 			ret,
 			configurator.EntityUpdateCriteria{
 				Type: orc8r.UpgradeTierEntityType, Key: string(m.Tier),
-				AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+				AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
 			},
 		)
 	}
@@ -242,7 +267,7 @@ func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkE
 			ret,
 			configurator.EntityUpdateCriteria{
 				Type: orc8r.UpgradeTierEntityType, Key: oldTierTK.Key,
-				AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+				AssociationsToDelete: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
 			},
 		)
 
@@ -250,7 +275,7 @@ func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkE
 			ret,
 			configurator.EntityUpdateCriteria{
 				Type: orc8r.UpgradeTierEntityType, Key: string(m.Tier),
-				AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+				AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
 			},
 		)
 	}
@@ -338,7 +363,7 @@ func (m *TierID) ToUpdateCriteria(ctx context.Context, networkID string, gateway
 		deleteCurrentTierAssoc := configurator.EntityUpdateCriteria{
 			Type:                 tierTK.Type,
 			Key:                  tierTK.Key,
-			AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+			AssociationsToDelete: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
 		}
 		updateCriteria = append(updateCriteria, deleteCurrentTierAssoc)
 	}
@@ -347,7 +372,7 @@ func (m *TierID) ToUpdateCriteria(ctx context.Context, networkID string, gateway
 	addNewTierAssoc := configurator.EntityUpdateCriteria{
 		Type:              orc8r.UpgradeTierEntityType,
 		Key:               tierID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+		AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
 	}
 	updateCriteria = append(updateCriteria, addNewTierAssoc)
 	return updateCriteria, nil
@@ -494,14 +519,14 @@ func (m *TierGateways) ToUpdateCriteria(ctx context.Context, networkID string, k
 func (m *TierGateways) ToAddGatewayUpdateCriteria(tierID, gatewayID string) configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type: orc8r.UpgradeTierEntityType, Key: tierID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+		AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
 	}
 }
 
 func (m *TierGateways) ToDeleteGatewayUpdateCriteria(tierID, gatewayID string) configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type: orc8r.UpgradeTierEntityType, Key: tierID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+		AssociationsToDelete: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
 	}
 }
 
@@ -555,18 +580,18 @@ func (m *GatewayVpnConfigs) FromBackendModels(ctx context.Context, networkID str
 	return nil
 }
 
-func getGatewayTKs(gateways []models.GatewayID) []storage.TypeAndKey {
+func getGatewayTKs(gateways []models.GatewayID) storage.TKs {
 	return funk.Map(
 		gateways,
-		func(gw models.GatewayID) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(gw)}
-		}).([]storage.TypeAndKey)
+		func(gw models.GatewayID) storage.TK {
+			return storage.TK{Type: orc8r.MagmadGatewayType, Key: string(gw)}
+		}).([]storage.TK)
 }
 
-func getGatewayIDs(gatewayTKs []storage.TypeAndKey) []models.GatewayID {
+func getGatewayIDs(gatewayTKs storage.TKs) []models.GatewayID {
 	return funk.Map(
 		gatewayTKs,
-		func(tk storage.TypeAndKey) models.GatewayID {
+		func(tk storage.TK) models.GatewayID {
 			return models.GatewayID(tk.Key)
 		}).([]models.GatewayID)
 }

@@ -55,7 +55,7 @@ func (b *blobstoreStore) GetTenant(tenantID int64) (*protos.Tenant, error) {
 	}
 	defer store.Rollback()
 
-	tenantTypeAndKey := storage.TypeAndKey{
+	tenantTypeAndKey := storage.TK{
 		Type: tenants.TenantInfoType,
 		Key:  strconv.FormatInt(tenantID, 10),
 	}
@@ -82,9 +82,9 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 		return nil, err
 	}
 
-	keysAndTypes := make([]storage.TypeAndKey, 0)
+	keysAndTypes := make(storage.TKs, 0)
 	for _, key := range keys {
-		keysAndTypes = append(keysAndTypes, storage.TypeAndKey{Key: key, Type: tenants.TenantInfoType})
+		keysAndTypes = append(keysAndTypes, storage.TK{Key: key, Type: tenants.TenantInfoType})
 	}
 
 	tenantBlobs, err := store.GetMany(networkWildcard, keysAndTypes)
@@ -136,7 +136,7 @@ func (b *blobstoreStore) DeleteTenant(tenantID int64) error {
 	}
 	defer store.Rollback()
 
-	tenantTypeAndKey := []storage.TypeAndKey{{
+	tenantTypeAndKey := storage.TKs{{
 		Type: tenants.TenantInfoType,
 		Key:  strconv.FormatInt(tenantID, 10),
 	}}

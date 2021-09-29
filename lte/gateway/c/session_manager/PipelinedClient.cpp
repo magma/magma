@@ -469,8 +469,8 @@ void AsyncPipelinedClient::set_upf_session_rpc(
   auto local_resp = new AsyncLocalResponse<UPFSessionContextState>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(
-      stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::setup_default_controllers_rpc(
@@ -479,8 +479,8 @@ void AsyncPipelinedClient::setup_default_controllers_rpc(
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncSetupDefaultControllers(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(stub_->AsyncSetupDefaultControllers(
+      local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::setup_policy_rpc(
@@ -489,8 +489,8 @@ void AsyncPipelinedClient::setup_policy_rpc(
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncSetupPolicyFlows(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(stub_->AsyncSetupPolicyFlows(
+      local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::setup_ue_mac_rpc(
@@ -499,8 +499,8 @@ void AsyncPipelinedClient::setup_ue_mac_rpc(
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncSetupUEMacFlows(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncSetupUEMacFlows(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::deactivate_flows_rpc(
@@ -509,8 +509,8 @@ void AsyncPipelinedClient::deactivate_flows_rpc(
   auto local_resp = new AsyncLocalResponse<DeactivateFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncDeactivateFlows(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncDeactivateFlows(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::activate_flows_rpc(
@@ -519,8 +519,8 @@ void AsyncPipelinedClient::activate_flows_rpc(
   auto local_resp = new AsyncLocalResponse<ActivateFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(
-      stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::add_ue_mac_flow_rpc(
@@ -529,8 +529,8 @@ void AsyncPipelinedClient::add_ue_mac_flow_rpc(
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(
-      stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::update_ipfix_flow_rpc(
@@ -539,8 +539,8 @@ void AsyncPipelinedClient::update_ipfix_flow_rpc(
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncUpdateIPFIXFlow(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncUpdateIPFIXFlow(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::delete_ue_mac_flow_rpc(
@@ -549,8 +549,8 @@ void AsyncPipelinedClient::delete_ue_mac_flow_rpc(
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncDeleteUEMacFlow(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncDeleteUEMacFlow(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
@@ -559,9 +559,8 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(
-      std::move(stub_->AsyncUpdateSubscriberQuotaState(
-          local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(stub_->AsyncUpdateSubscriberQuotaState(
+      local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::poll_stats_rpc(
@@ -570,8 +569,8 @@ void AsyncPipelinedClient::poll_stats_rpc(
   auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(
-      stub_->AsyncGetStats(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncGetStats(local_resp->get_context(), request, &queue_));
 }
 
 uint32_t AsyncPipelinedClient::get_next_teid() {

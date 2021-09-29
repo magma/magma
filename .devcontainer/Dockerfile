@@ -118,6 +118,8 @@ RUN echo "Install 3rd party dependencies" && \
     libyaml-cpp-dev nlohmann-json3-dev && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
+    echo "Install dependencies for Sentry Native" && \
+    apt-get install -y libcurl4-openssl-dev && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
@@ -304,3 +306,8 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install && \
     cd / && \
     rm -rf freediameter
+
+#### Update shared library configuration
+RUN ldconfig -v
+
+WORKDIR /workspaces/magma

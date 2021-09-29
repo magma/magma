@@ -159,10 +159,10 @@ OAI_DEPS=(
 # OVS runtime dependencies
 OVS_DEPS=(
       "magma-libfluid >= 0.1.0.6"
-      "libopenvswitch >= 2.15.2-1"
-      "openvswitch-switch >= 2.15.2-1"
-      "openvswitch-common >= 2.15.2-1"
-      "openvswitch-datapath-dkms >= 2.15.2-1"
+      "libopenvswitch >= 2.15.2-5"
+      "openvswitch-switch >= 2.15.2-5"
+      "openvswitch-common >= 2.15.2-5"
+      "openvswitch-datapath-dkms >= 2.15.2-5"
       )
 
 # generate string for FPM

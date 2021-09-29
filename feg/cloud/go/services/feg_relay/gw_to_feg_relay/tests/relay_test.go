@@ -196,11 +196,11 @@ func TestNHRouting(t *testing.T) {
 			Name: "nh_feg_gateway", Description: "neutral host federation gateway",
 			PhysicalID:   nhFegHwId,
 			Config:       &models.MagmadGatewayConfigs{},
-			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: nhFegId}},
+			Associations: storage.TKs{{Type: feg.FegGatewayType, Key: nhFegId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: nhFegId},
 			},
 		},

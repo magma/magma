@@ -915,6 +915,7 @@ export type network = {
     id: network_id,
     name: network_name,
     sentry_config ? : network_sentry_config,
+    state_config ? : state_config,
     type ? : network_type,
 };
 export type network_carrier_wifi_configs = {
@@ -945,7 +946,7 @@ export type network_epc_configs = {
     cloud_subscriberdb_enabled ? : boolean,
     congestion_control_enabled ? : boolean,
     default_rule_id ? : string,
-    enable_converged_core ? : boolean,
+    enable5g_features ? : boolean,
     gx_gy_relay_enabled: boolean,
     hss_relay_enabled: boolean,
     lte_auth_amf: string,
@@ -971,6 +972,7 @@ export type network_epc_configs = {
     },
     network_services ? : Array < "dpi" | "policy_enforcement" >
         ,
+    node_identifier ? : string,
     restricted_imeis ? : Array < imei >
         ,
     restricted_plmns ? : Array < plmn_config >
@@ -1391,6 +1393,9 @@ export type sms_message = {
     status: "Waiting" | "Delivered" | "Failed",
     time_created: string,
     time_last_attempted ? : string,
+};
+export type state_config = {
+    sync_interval ? : number,
 };
 export type sub_profile = string;
 export type subscriber = {
@@ -9209,6 +9214,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['networkSentryConfig'] !== undefined) {
             body = parameters['networkSentryConfig'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getNetworksByNetworkIdState(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < state_config >
+        {
+            let path = '/networks/{network_id}/state';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putNetworksByNetworkIdState(
+        parameters: {
+            'networkId': string,
+            'stateConfig': state_config,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/state';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['stateConfig'] === undefined) {
+            throw new Error('Missing required  parameter: stateConfig');
+        }
+
+        if (parameters['stateConfig'] !== undefined) {
+            body = parameters['stateConfig'];
         }
 
         return await this.request(path, 'PUT', query, body);

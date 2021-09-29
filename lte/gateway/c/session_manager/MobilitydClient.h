@@ -24,7 +24,6 @@ using grpc::Status;
 
 namespace magma {
 using namespace lte;
-using std::experimental::optional;
 
 /**
  * MobilitydClient is the base class for managing interactions with MobilityD.

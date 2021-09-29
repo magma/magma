@@ -43,3 +43,26 @@ void sgw_s8_handle_s11_delete_session_request(
     sgw_state_t* sgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64);
+
+teid_t sgw_s8_generate_new_cp_teid(void);
+
+uint32_t sgw_get_new_s5s8u_teid(sgw_state_t* state);
+
+status_code_e sgw_update_teid_in_ue_context(
+    sgw_state_t* sgw_state, imsi64_t imsi64, teid_t teid);
+
+sgw_eps_bearer_context_information_t*
+sgw_create_bearer_context_information_in_collection(teid_t teid);
+
+sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
+    teid_t teid);
+
+int sgw_update_bearer_context_information_on_csrsp(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    const s8_create_session_response_t* const session_rsp_p);
+
+int sgw_update_bearer_context_information_on_csreq(
+    sgw_state_t* sgw_state,
+    sgw_eps_bearer_context_information_t* new_sgw_eps_context,
+    mme_sgw_tunnel_t sgw_s11_tunnel,
+    itti_s11_create_session_request_t* session_req_pP, imsi64_t imsi64);

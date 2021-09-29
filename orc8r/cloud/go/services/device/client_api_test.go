@@ -68,7 +68,7 @@ func TestDeviceService(t *testing.T) {
 	updateDevicesAssertNoError(t, networkID, bundle1)
 
 	// Test deletion
-	err := device.DeleteDevices(context.Background(), networkID, []storage.TypeAndKey{{Type: bundle1.deviceType, Key: bundle1.deviceKey}})
+	err := device.DeleteDevices(context.Background(), networkID, storage.TKs{{Type: bundle1.deviceType, Key: bundle1.deviceKey}})
 	assert.NoError(t, err)
 	assertDevicesNotRegistered(t, bundle1)
 	assertDevicesAreRegistered(t, bundle2)

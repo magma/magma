@@ -116,7 +116,7 @@ func seedGateway(t *testing.T, networkID string, gatewayID string, hwID string) 
 		Key:          gatewayID,
 		Config:       &models2.MagmadGatewayConfigs{},
 		PhysicalID:   hwID,
-		Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t0"}},
+		Associations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t0"}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 }

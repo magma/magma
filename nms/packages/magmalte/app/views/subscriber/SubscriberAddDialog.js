@@ -13,10 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {
-  mutable_subscribers,
-  subscriber,
-} from '../../../generated/MagmaAPIBindings';
+import type {subscriber} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';
@@ -119,9 +116,8 @@ const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
 const SUBSCRIBER_TITLE = 'Subscriber';
 const TRAFFIC_TITLE = 'Traffic Policy';
 const STATIC_IPS_TITLE = 'APNs Static IPs';
-const SUBSCRIBERS_CHUNK_SIZE = 1000;
 
-type SubscriberInfo = {
+export type SubscriberInfo = {
   name: string,
   imsi: string,
   authKey: string,
@@ -205,22 +201,126 @@ function parseSubscriberFile(fileObj: File) {
     reader.readAsText(fileObj);
   });
 }
+type SubscriberActionType = {
+  onClose: () => void,
+  onSave: (subscribers: Array<SubscriberInfo>) => void,
+  isOpen?: boolean,
+  handleOpen?: boolean => void,
+};
 
-export default function AddSubscriberButton(props: {onClose: () => void}) {
+export default function AddSubscriberButton(props: SubscriberActionType) {
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
-
   return (
     <>
       <AddSubscriberDialog
-        open={open}
+        open={props.isOpen ?? false}
         onClose={() => {
-          setOpen(false);
+          props.handleOpen?.(false);
           props.onClose();
         }}
+        onSave={subscribers => {
+          props.onSave(subscribers || []);
+        }}
       />
-      <Button onClick={() => setOpen(true)} className={classes.appBarBtn}>
+      <Button
+        onClick={() => props.handleOpen?.(true)}
+        className={classes.appBarBtn}>
         {'Add Subscriber'}
+      </Button>
+    </>
+  );
+}
+
+export function BulkEditSubscriberButton(props: SubscriberActionType) {
+  const classes = useStyles();
+  const successCountRef = useRef(0);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(SubscriberContext);
+
+  const fileInput = useRef(null);
+  const saveSubscribers = async (subscribers: Array<SubscriberInfo>) => {
+    successCountRef.current = 0;
+    for (const subscriber of subscribers) {
+      try {
+        const err = validateSubscriberInfo(subscriber, ctx.state, true);
+        if (err.length > 0) {
+          enqueueSnackbar(err, {
+            variant: 'error',
+          });
+          throw err;
+        }
+        const authKey =
+          subscriber.authKey && isValidHex(subscriber.authKey)
+            ? hexToBase64(subscriber.authKey)
+            : '';
+
+        const authOpc =
+          subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
+            ? hexToBase64(subscriber.authOpc)
+            : '';
+
+        await ctx.setState?.(subscriber.imsi, {
+          active_apns: subscriber.apns,
+          active_policies: subscriber.policies,
+          id: subscriber.imsi,
+          name: subscriber.name,
+          lte: {
+            auth_algo: 'MILENAGE',
+            auth_key: authKey,
+            auth_opc: authOpc,
+            state: subscriber.state,
+            sub_profile: subscriber.dataPlan,
+          },
+        });
+        successCountRef.current = successCountRef.current + 1;
+      } catch (e) {
+        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        enqueueSnackbar('error saving ' + subscriber.imsi + ' : ' + errMsg, {
+          variant: 'error',
+        });
+        return;
+      }
+    }
+    enqueueSnackbar(
+      ` Subscriber${successCountRef.current > 1 ? 's' : ''} saved successfully`,
+      {
+        variant: 'success',
+      },
+    );
+    props.onClose();
+  };
+  return (
+    <>
+      <input
+        type="file"
+        ref={fileInput}
+        accept={'.csv'}
+        style={{display: 'none'}}
+        onChange={async () => {
+          if (fileInput.current) {
+            try {
+              const newSubscribers = await parseSubscriberFile(
+                fileInput.current.files[0],
+              );
+              saveSubscribers(newSubscribers);
+            } catch (e) {
+              enqueueSnackbar(e, {
+                variant: 'error',
+              });
+            }
+          }
+        }}
+      />
+      <Button
+        component="button"
+        variant="text"
+        className={classes.appBarBtn}
+        onClick={() => {
+          if (fileInput.current) {
+            fileInput.current.click();
+          }
+        }}>
+        {'Edit Subscribers'}
       </Button>
     </>
   );
@@ -260,6 +360,7 @@ type DialogProps = {
   open: boolean,
   onClose: () => void,
   editProps?: EditProps,
+  onSave?: (subscribers: Array<SubscriberInfo>) => void,
 };
 
 function AddSubscriberDialog(props: DialogProps) {
@@ -520,99 +621,6 @@ function AddSubscriberDetails(props: DialogProps) {
   const policies = Array.from(
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
-  const bulkAdd = async (
-    addedSubscribers: mutable_subscribers,
-    subscriberErrors: string,
-  ) => {
-    let success = true;
-    try {
-      if (subscriberErrors.length > 0) {
-        setError(subscriberErrors);
-        return false;
-      }
-      await ctx.setState?.('', addedSubscribers);
-      return success;
-    } catch (e) {
-      const errMsg = e.response?.data?.message ?? e.message ?? e;
-      setError('error saving subscribers: ' + errMsg);
-      success = false;
-      return success;
-    }
-  };
-
-  const saveSubscribers = async () => {
-    let addedSubscribers = [];
-    let subscriberErrors = '';
-    for (const [i, subscriber] of subscribers.entries()) {
-      try {
-        const err = validateSubscriberInfo(subscriber, ctx.state);
-        if (err.length > 0) {
-          throw err;
-        }
-        const authKey =
-          subscriber.authKey && isValidHex(subscriber.authKey)
-            ? hexToBase64(subscriber.authKey)
-            : '';
-
-        const authOpc =
-          subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
-            ? hexToBase64(subscriber.authOpc)
-            : '';
-        const newSubscriber = {
-          active_apns: subscriber.apns,
-          active_policies: subscriber.policies,
-          id: subscriber.imsi,
-          name: subscriber.name,
-          lte: {
-            auth_algo: 'MILENAGE',
-            auth_key: authKey,
-            auth_opc: authOpc,
-            state: subscriber.state,
-            sub_profile: subscriber.dataPlan,
-          },
-        };
-        addedSubscribers.push(newSubscriber);
-        // bulk add chunked subscribers
-        if (
-          addedSubscribers.length == SUBSCRIBERS_CHUNK_SIZE ||
-          i == subscribers.length - 1
-        ) {
-          const success = await bulkAdd(addedSubscribers, subscriberErrors);
-          if (success) {
-            successCountRef.current =
-              successCountRef.current + addedSubscribers.length;
-            addedSubscribers = [];
-          } else {
-            enqueueSnackbar('Saving subscribers to the api failed: ', {
-              variant: 'error',
-            });
-            return;
-          }
-        }
-      } catch (e) {
-        const errMsg = e.response?.data?.message ?? e.message ?? e;
-        subscriberErrors +=
-          'error saving ' + subscriber.imsi + ' : ' + errMsg + '\n';
-        //report saved errors if we reach end of loop without calling bulkadd.
-        if (i == subscribers.length - 1) {
-          setError(subscriberErrors);
-          enqueueSnackbar('Saving subscribers to the api failed: ', {
-            variant: 'error',
-          });
-          return;
-        }
-      }
-    }
-    enqueueSnackbar(
-      ` Subscriber${
-        successCountRef.current > 0 ? 's ' : ''
-      } saved successfully`,
-      {
-        variant: 'success',
-      },
-    );
-    props.onClose();
-  };
 
   return (
     <>
@@ -859,7 +867,11 @@ function AddSubscriberDetails(props: DialogProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}> Cancel </Button>
-        <Button data-testid="saveSubscriber" onClick={saveSubscribers}>
+        <Button
+          data-testid="saveSubscriber"
+          onClick={() => {
+            props.onSave?.(subscribers);
+          }}>
           {'Save and Add Subscribers'}
         </Button>
       </DialogActions>
@@ -867,14 +879,15 @@ function AddSubscriberDetails(props: DialogProps) {
   );
 }
 
-function validateSubscriberInfo(
+export function validateSubscriberInfo(
   info: SubscriberInfo,
   subscribers: {[string]: subscriber},
+  edit?: boolean,
 ) {
   if (!info.imsi.match(/^(IMSI\d{10,15})$/)) {
     return "imsi invalid, should match '^(IMSId{10,15})$'";
   }
-  if (info.imsi in subscribers) {
+  if (info.imsi in subscribers && !(edit ?? false)) {
     return 'imsi already exists';
   }
   if (info.authKey && !isValidHex(info.authKey)) {

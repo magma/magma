@@ -39,15 +39,14 @@ from magma.pipelined.tests.pipelined_test_util import (
     stop_ryu_app_thread,
     wait_after_send,
 )
-from scapy.arch import get_if_addr, get_if_hwaddr
+from scapy.arch import get_if_hwaddr
 from scapy.layers.inet6 import (
     ICMPv6ND_NS,
     ICMPv6ND_RS,
-    ICMPv6NDOptPrefixInfo,
     ICMPv6NDOptSrcLLAddr,
     IPv6,
 )
-from scapy.layers.l2 import ARP, Dot1Q, Ether
+from scapy.layers.l2 import Ether
 
 
 class IPV6RouterSolicitationTableTest(unittest.TestCase):

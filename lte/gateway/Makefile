@@ -204,6 +204,9 @@ scan_oai: ## Scan OAI
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
+test_sudo_python: stop ## Run Python tests that require sudo (datapath, etc.)
+	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
+
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS))
 

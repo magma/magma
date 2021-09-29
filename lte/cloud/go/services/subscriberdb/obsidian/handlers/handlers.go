@@ -866,7 +866,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 		return err
 	}
 
-	var deletes []storage.TypeAndKey
+	var deletes storage.TKs
 	deletes = append(deletes, sub.ToTK())
 	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
 

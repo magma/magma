@@ -281,10 +281,10 @@ void LocalEnforcer::increment_all_policy_versions(SessionMap& session_map) {
       auto session_info = session->get_session_info_for_setup();
       SessionStateUpdateCriteria& uc =
           session_update[session_info.imsi][session->get_session_id()];
-      for (const magma::RuleToProcess val : session_info.gx_rules) {
+      for (const magma::RuleToProcess& val : session_info.gx_rules) {
         session->increment_rule_stats(val.rule.id(), &uc);
       }
-      for (const magma::RuleToProcess val : session_info.gy_dynamic_rules) {
+      for (const magma::RuleToProcess& val : session_info.gy_dynamic_rules) {
         session->increment_rule_stats(val.rule.id(), &uc);
       }
     }

@@ -82,4 +82,7 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     # symlink to /usr/lib to match Magma VM
     ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
+#### Update shared library configuration
+RUN ldconfig -v
+
 WORKDIR /magma
