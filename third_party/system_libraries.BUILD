@@ -21,7 +21,7 @@ config_setting(
 cc_library(
     name = "folly",
     srcs = select({
-        ":use_folly_so": ["usr/local/lib/libfolly.so"],
+        ":use_folly_so": [],
         "//conditions:default": [
             "usr/local/lib/libfolly.a",
             "usr/local/lib/libfmt.a",
@@ -29,6 +29,8 @@ cc_library(
     }),
     linkopts = select({
         ":use_folly_so": [
+            "-L/usr/local/lib",
+            "-lfolly",
             "-ldl",
             "-levent",
             "-ldouble-conversion",
