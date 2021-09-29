@@ -1353,33 +1353,12 @@ workflows:
 
   release:
     jobs:
-      - release-hold:
-          <<: *only_release
-          type: approval
-      - lte-agw-deploy-release:
-          <<: *only_release
-          requires:
-            - release-hold
-      - cwag-deploy:
-          <<: *only_release
-          requires:
-            - release-hold
-      - cwf-operator-build:
-          <<: *only_release
-          requires:
-            - release-hold
-      - feg-build:
-          <<: *only_release
-          requires:
-            - release-hold
-      - orc8r-build:
-          <<: *only_release
-          requires:
-            - release-hold
-      - nms-build:
-          <<: *only_release
-          requires:
-            - release-hold
+      - lte-agw-deploy-release
+      - cwag-deploy
+      - cwf-operator-build
+      - feg-build
+      - orc8r-build
+      - nms-build
 
 
   feg:
