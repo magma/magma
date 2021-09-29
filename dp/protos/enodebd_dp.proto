@@ -1,9 +1,4 @@
-
 syntax = "proto3";
-
-import "dp/protos/common.proto";
-
-option go_package = "magma/dp/cloud/go/protos";
 
 message CBSDStateRequest {
   string user_id = 1;
@@ -12,11 +7,16 @@ message CBSDStateRequest {
 }
 
 message CBSDStateResult {
-  magma.dp.FrequencyRange frequency_range = 1; // Hz
-  float max_eirp = 2; // dB/MHz
-  magma.dp.GrantState grant_state = 3;
+  optional LteChannel channel = 1;
+  bool radio_enabled = 2;
 }
 
-service TR069DPService {
+message LteChannel {
+  int64 low_freq_hz = 1;
+  int64 high_freq_hz = 2;
+  float max_eirp_dbm_mhz = 3;
+}
+
+service DPService {
     rpc GetCBSDState (CBSDStateRequest) returns (CBSDStateResult) {}
 }

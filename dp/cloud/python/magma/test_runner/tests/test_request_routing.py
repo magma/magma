@@ -30,7 +30,6 @@ config = TestConfig()
 
 
 class RequestRoutingTestCase(DBTestCase):
-
     def setUp(self):
         super().setUp()
         DBInitializer(SessionManager(self.engine)).initialize()

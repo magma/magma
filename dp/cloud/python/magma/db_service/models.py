@@ -99,6 +99,7 @@ class DBGrant(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     state_id = Column(Integer, ForeignKey("grant_state.id"))
     cbsd_id = Column(Integer, ForeignKey("cbsd.id"))
+    channel_id = Column(Integer, ForeignKey("channel.id"))
     grant_id = Column(String, nullable=False)
     grant_expire_time = Column(DateTime(timezone=True))
     transmit_expire_time = Column(DateTime(timezone=True))
@@ -111,6 +112,7 @@ class DBGrant(Base):
     state = relationship("DBGrantState", back_populates="grants")
     responses = relationship("DBResponse", back_populates="grant")
     cbsd = relationship("DBCbsd", back_populates="grants")
+    channel = relationship("DBChannel", back_populates="grants")
 
     def __repr__(self):
         return f"<{self.__class__.__name__}(id='{self.id}', " \
@@ -168,6 +170,17 @@ class DBCbsd(Base):
                f"created_date='{self.created_date}' " \
                f"updated_date='{self.updated_date}')>"
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}(id='{self.id}', " \
+               f"state='{self.state.name}', " \
+               f"cbsd_id='{self.cbsd_id}', " \
+               f"user_id='{self.user_id}', " \
+               f"fcc_id='{self.fcc_id}', " \
+               f"cbsd_serial_number='{self.cbsd_serial_number}', " \
+               f"eirp_capability='{self.eirp_capability}', " \
+               f"created_date='{self.created_date}' " \
+               f"updated_date='{self.updated_date}')>"
+
 
 class DBChannel(Base):
     __tablename__ = "channel"
@@ -183,6 +196,7 @@ class DBChannel(Base):
     updated_date = Column(DateTime(timezone=True), server_default=now(), onupdate=now())
 
     cbsd = relationship("DBCbsd", back_populates="channels")
+    grants = relationship("DBGrant", back_populates="channel")
 
     def __repr__(self):
         return f"<{self.__class__.__name__}(id='{self.id}', cbsd_id='{self.cbsd_id}')>"

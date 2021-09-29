@@ -29,6 +29,7 @@ GRANT_EXPIRE_TIME = "grantExpireTime"
 HEARTBEAT_INTERVAL = "heartbeatInterval"
 TRANSMIT_EXPIRE_TIME = "transmitExpireTime"
 CHANNEL_TYPE = "channelType"
+OPERATION_PARAM = "operationParam"
 
 
 def process_registration_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
@@ -89,7 +90,10 @@ def _create_channels(response: DBResponse, session: Session):
 def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     grant = _get_or_create_grant_from_response(obj, response, session)
     _update_grant_from_response(response, grant)
-    _update_max_eirp_of_channel_related_to_grant(response, session)
+    channel = _get_channel_related_to_grant(response, session)
+    if channel:
+        channel.last_used_max_eirp = response.request.payload[OPERATION_PARAM]["maxEirp"]
+        grant.channel = channel
 
     # Grant response codes worth considering here also are:
     # 400 - INTERFERENCE
@@ -103,17 +107,16 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     grant.state = new_state
 
 
-def _update_max_eirp_of_channel_related_to_grant(response: DBResponse, session: Session) -> None:
+def _get_channel_related_to_grant(response: DBResponse, session: Session) -> DBChannel:
     payload = response.request.payload
-    operation_param = payload["operationParam"]
+    operation_param = payload[OPERATION_PARAM]
     frequency_range = operation_param["operationFrequencyRange"]
     channel = session.query(DBChannel).join(DBCbsd).filter(
         DBCbsd.cbsd_id == payload["cbsdId"],
         DBChannel.low_frequency == frequency_range["lowFrequency"],
         DBChannel.high_frequency == frequency_range["highFrequency"],
     ).scalar()
-    if channel:
-        channel.last_used_max_eirp = operation_param["maxEirp"]
+    return channel
 
 
 def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:

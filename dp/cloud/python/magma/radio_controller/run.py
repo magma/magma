@@ -10,11 +10,17 @@ from magma.radio_controller.config import Config
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
 )
+from magma.radio_controller.services.dp.service import (
+    DPService,
+)
 from magma.radio_controller.services.radio_controller.service import (
     RadioControllerService,
 )
 from dp.protos.active_mode_pb2_grpc import (
     add_ActiveModeControllerServicer_to_server,
+)
+from dp.protos.enodebd_dp_pb2_grpc import (
+    add_DPServiceServicer_to_server,
 )
 from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
 from sqlalchemy import create_engine
@@ -37,6 +43,7 @@ def run():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     add_RadioControllerServicer_to_server(RadioControllerService(session_manager=session_manager), server)
     add_ActiveModeControllerServicer_to_server(ActiveModeControllerService(session_manager=session_manager), server)
+    add_DPServiceServicer_to_server(DPService(session_manager=session_manager), server)
     server.add_insecure_port(f"[::]:{config.GRPC_PORT}")
     server.start()
     logger.info(f"GRPC Server started on port {config.GRPC_PORT}")

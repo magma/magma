@@ -19,11 +19,15 @@ class DBTestCase(unittest.TestCase):
             echo=False,
             future=config.SQLALCHEMY_FUTURE
         )
-        self.session = Session()
         Base.metadata.bind = self.engine
         Base.metadata.create_all()
+        self.session = Session()
 
     def tearDown(self):
         self.session.rollback()
         self.session.close()
+        self.drop_all()
+
+    @staticmethod
+    def drop_all():
         Base.metadata.drop_all()

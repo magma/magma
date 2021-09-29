@@ -279,11 +279,25 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
 
     @responses.activate
     def test_max_eirp_set_on_channel_on_grant_response(self):
+        max_eirp = 3
+        channel = self._setup_channel_and_process_grant_response(max_eirp)
+
+        # Then
+        self.assertEqual(max_eirp, channel.last_used_max_eirp)
+
+    @responses.activate
+    def test_assign_channel_to_grant_on_grant_response(self):
+        channel = self._setup_channel_and_process_grant_response()
+
+        # Then
+        count = self.session.query(DBGrant).filter(DBGrant.channel_id == channel.id).count()
+        self.assertEqual(1, count)
+
+    def _setup_channel_and_process_grant_response(self, max_eirp=None):
         # Given
         cbsd_id = "foo"
         low_frequency = 1
         high_frequency = 2
-        max_eirp = 3
 
         fixture = self._build_grant_request(cbsd_id, low_frequency, high_frequency, max_eirp)
         db_requests = self._create_db_requests_from_fixture(
@@ -309,8 +323,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         processor.process_response(db_requests, response, self.session)
         self.session.commit()
 
-        # Then
-        self.assertEqual(max_eirp, channel.last_used_max_eirp)
+        return channel
 
     def _get_db_requests_and_response_payload(
             self, request_type_name, response_type_name, requests_fixtures, cbsd_state):

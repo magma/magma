@@ -168,11 +168,13 @@ _ci_ingress_tests_nginx: _install_skaffold_ci _nginx_install _generate_ci_certif
 
 .PHONY: migration
 migration:
-	@docker run -d -p 5432:5432 --name db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dp postgres \
+	docker rm -f db
+	@docker run -d -p 8080:5432 --name db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dp postgres \
 	2> /dev/null || true
 	@sleep 5
-	export DB_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/dp; \
-	cd db_service/migrations; \
+	export SQLALCHEMY_DB_URI=postgresql+psycopg2://postgres:postgres@localhost:8080/dp; \
+	export PYTHONPATH=$(SRC)/dp/cloud/python; \
+	cd cloud/python/magma/db_service/migrations; \
 	alembic -c ./alembic.ini upgrade head; \
 	alembic -c ./alembic.ini revision --autogenerate
 	docker rm -f db

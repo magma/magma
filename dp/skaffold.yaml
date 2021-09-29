@@ -79,19 +79,20 @@ profiles:
       - op: add
         path: /deploy/helm/releases/0/setValueTemplates
         value:
+          active_mode_controller:
+            extraEnv:
+              POLLING_INTERVAL: "1s"
           configuration_controller:
             extraEnv:
               APP_CONFIG: "TestConfig"
+              REQUEST_PROCESSING_INTERVAL: "'1'" # bug in helm: https://github.com/helm/helm/issues/4775
               #SQLALCHEMY_DATABASE_URI: "{{ .MYVAR }}"
           radio_controller:
             extraEnv:
               APP_CONFIG: "TestConfig"
               #SQLALCHEMY_DATABASE_URI: "{{ .MYVAR }}"
           db_service:
-            extraEnv:
-              APP_CONFIG: "TestConfig"
-              #SQLALCHEMY_DATABASE_URI: "{{ .MYVAR }}"
-
+            enabled: false
       - op: add
         path: /deploy/kubectl
         value:
