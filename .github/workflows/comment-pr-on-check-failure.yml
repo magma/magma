@@ -66,15 +66,15 @@ jobs:
 
             for (const c of commentsList['data']) {
               oldMsg = c.body;
-              if( oldMsg.includes('Oops! Looks like you failed the ') && oldMsg.includes(process.env.WORKFLOW_NAME) ) {
+              if( oldMsg.includes('Oops! Looks like you failed the `' + process.env.WORKFLOW_NAME) ) {
                   commentId = c.id;
                   if( process.env.WORKFLOW_STATUS == 'failure' )  {
                       updMsg = ":recycle: Updated: :x: The check is still failing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
                   }
-                  else  {
+                  else if( process.env.WORKFLOW_STATUS == 'success' ) {
                       updMsg = ":recycle: Updated: :white_check_mark: The check is passing the " + process.env.WORKFLOW_NAME + " on last commit id: [" + shortCommitId + "](" + process.env.COMMIT_ID_URL + ")";
                   }
-                  newMsg = oldMsg + "\n\n" + updMsg;
+                  newMsg = msg + "\n\n" + updMsg;
                   console.log("UPDATING comment=" + newMsg);
                   github.issues.updateComment({
                                 owner: context.repo.owner,
