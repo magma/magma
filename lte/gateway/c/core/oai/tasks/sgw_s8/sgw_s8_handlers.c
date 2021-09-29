@@ -1330,7 +1330,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                      = NULL;
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   uint32_t sequence_number                                      = 0;
-  pgw_ni_cbr_proc      = pgw_get_procedure_create_bearer(sgw_context_p);
+  pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
 
   if (!pgw_ni_cbr_proc) {
     OAILOG_ERROR_UE(
@@ -1458,7 +1458,7 @@ void sgw_s8_handle_s11_create_bearer_response(
   sgw_s8_proc_s11_create_bearer_rsp(
       sgw_context_p, &bc_cbrsp, s11_actv_bearer_rsp, imsi64, sgw_state);
 
-  char* pgw_cp_ip_port = NULL;
+  char* pgw_cp_ip_port                          = NULL;
   sgw_eps_bearer_ctxt_t* dedicated_bearer_ctx_p = NULL;
   for (uint8_t idx = 0;
        idx < s11_actv_bearer_rsp->bearer_contexts.num_bearer_context; idx++) {

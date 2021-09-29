@@ -111,29 +111,10 @@ TEST_F(SgwS8Config, dedicated_bearer_invalid_lbi) {
 
 // TC validates updation of bearer context on reception of Create Session Rsp
 TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
-  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
-  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
-  int argc                        = 5;
-#define MAX_PATH_LEN 255
-  char** argv                     = nullptr;
-#if 0
-  // struct amf_config_s amf_config  = {};
-  // mme_config_t mme_config         = {};
-  // mme_config.rw_lock              = PTHREAD_RWLOCK_INITIALIZER;
-  for (int idx = 0; idx < argc; idx++) {
-    argv[idx] = (char*) calloc(1, MAX_PATH_LEN);
-  }
-  memcpy(argv[0], "/usr/local/bin/mme", strlen("/usr/local/bin/mme"));
-  memcpy(argv[1], "-c", strlen("-c"));
-  memcpy(
-      argv[2], "/var/opt/magma/tmp/mme.conf",
-      strlen("/var/opt/magma/tmp/mme.conf"));
-  memcpy(argv[3], "-s", strlen("-s"));
-  memcpy(
-      argv[4], "/var/opt/magma/tmp/spgw.conf",
-      strlen("/var/opt/magma/tmp/spgw.conf"));
-#endif
-  spgw_config.pgw_config.enable_nat                 = false;
+  mme_sgw_tunnel_t sgw_s11_tunnel   = {0};
+  sgw_state_t* sgw_state            = create_ue_context(&sgw_s11_tunnel);
+  int argc                          = 5;
+  spgw_config.pgw_config.enable_nat = false;
   spgw_config.sgw_config.ovs_config.uplink_port_num = 2;
 
   spgw_config.sgw_config.ovs_config.uplink_mac =
@@ -142,10 +123,9 @@ TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
   spgw_config.sgw_config.ovs_config.mtr_port_num                  = 15577;
   spgw_config.sgw_config.ovs_config.internal_sampling_port_num    = 15578;
   spgw_config.sgw_config.ovs_config.internal_sampling_fwd_tbl_num = 201;
-  // mme_config_embedded_spgw_parse_opt_line(
-  //  argc, argv, &mme_config, &amf_config, &spgw_config);
   sgw_initialize_gtpv1u();
   bdestroy_wrapper(&spgw_config.sgw_config.ovs_config.uplink_mac);
+#if 0
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_s11_tunnel.local_teid);
@@ -187,8 +167,9 @@ TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
       sgw_pdn_session, &s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0],
       &s11_actv_bearer_rsp, imsi64, sgw_state);
   EXPECT_EQ(sgw_pdn_session->pending_procedures, nullptr);
+
   free_wrapper((void**) &cb_req.pgw_cp_address);
+#endif
   sgw_uninitialize_gtpv1u();
   sgw_state_exit();
 }
-

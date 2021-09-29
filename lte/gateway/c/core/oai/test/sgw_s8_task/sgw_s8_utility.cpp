@@ -89,14 +89,14 @@ void fill_create_bearer_request(
     s8_create_bearer_request_t* cb_req, uint32_t teid,
     uint8_t default_eps_bearer_id) {
 #define IPV4_LEN 4
-  cb_req->sequence_number = 10;
-  cb_req->context_teid    = teid;
-  cb_req->linked_eps_bearer_id                       = default_eps_bearer_id;
-  cb_req->pgw_cp_address = (char*) calloc(1, IPV4_LEN + 1);
-  cb_req->bearer_context[0].eps_bearer_id            = 0;
-  cb_req->bearer_context[0].pgw_s8_up.ipv4           = 1;
-  cb_req->bearer_context[0].pgw_s8_up.interface_type = S5_S8_PGW_GTP_U;
-  cb_req->bearer_context[0].pgw_s8_up.teid           = 20;
+  cb_req->sequence_number                  = 10;
+  cb_req->context_teid                     = teid;
+  cb_req->linked_eps_bearer_id             = default_eps_bearer_id;
+  cb_req->pgw_cp_address                   = (char*) calloc(1, IPV4_LEN + 1);
+  cb_req->bearer_context[0].eps_bearer_id  = 0;
+  cb_req->bearer_context[0].pgw_s8_up.ipv4 = 1;
+  cb_req->bearer_context[0].pgw_s8_up.interface_type      = S5_S8_PGW_GTP_U;
+  cb_req->bearer_context[0].pgw_s8_up.teid                = 20;
   cb_req->bearer_context[0].pgw_s8_up.ipv4_address.s_addr = 0xac101496;
   cb_req->bearer_context[0].tft.tftoperationcode =
       TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
@@ -126,8 +126,8 @@ void fill_create_bearer_request(
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
     uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid) {
-  cb_response->cause.cause_value = REQUEST_ACCEPTED;
-  cb_response->sgw_s11_teid      = teid;
+  cb_response->cause.cause_value                  = REQUEST_ACCEPTED;
+  cb_response->sgw_s11_teid                       = teid;
   cb_response->bearer_contexts.num_bearer_context = 1;
   bearer_context_within_create_bearer_response_t* bc_context =
       &(cb_response->bearer_contexts.bearer_contexts[0]);
@@ -148,7 +148,7 @@ void SgwS8Config::sgw_initialize_gtpv1u(void) {
   int fd0          = 2;
   int fd1          = 5;
   int mtu          = 1024;
-  gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
+  gtp_tunnel_ops   = gtp_tunnel_ops_init_openflow();
   if (gtp_tunnel_ops == NULL) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");
     return;
@@ -165,7 +165,6 @@ void SgwS8Config::sgw_initialize_gtpv1u(void) {
   gtp_tunnel_ops->init(&netaddr, netmask, mtu, &fd0, &fd1, false);
 
   // END-GTP quick integration only for evaluation purpose
-
 
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface: DONE\n");
   return;

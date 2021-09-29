@@ -53,7 +53,7 @@ class SgwS8Config : public ::testing::Test {
  protected:
   sgw_config_t* config =
       reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
-  uint64_t imsi64 = 1010000000001;
+  uint64_t imsi64               = 1010000000001;
   uint8_t default_eps_bearer_id = 5;
   virtual void SetUp() {
     config->itti_config.queue_size     = 0;
@@ -83,4 +83,3 @@ class SgwS8Config : public ::testing::Test {
     free(config);
   }
 };
-
