@@ -240,19 +240,23 @@ def _get_congestion_control_config(service_mconfig):
 
 
 def _get_converged_core_config(service_mconfig: object) -> bool:
+    """Retrieve enable5g_features config value. If it does not exist it defaults to False. It gives precedence to the service_mconfig file.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns: 
+        enable_m5gfeatures.
     """
-    Retrieves enable_converged_core config value,If it does not exist
-    it defaults to False. It gives precedence to the local mme.yml file.
-    """
-    enable_converged_core = get_service_config_value(
-        'mme', 'enable_converged_core', None,
+    enable_m5gfeatures = get_service_config_value(
+        'mme', 'enable5g_features', None,
     )
 
-    if enable_converged_core is not None:
-        return enable_converged_core
+    if enable_m5gfeatures is not None:
+        return enable_m5gfeatures
 
-    if service_mconfig.enable_converged_core is not None:
-        return service_mconfig.enable_converged_core
+    if service_mconfig.enable5g_features is not None:
+        return service_mconfig.enable5g_features
 
     return False
 
@@ -417,7 +421,7 @@ def _get_context():
         "service_area_map": _get_service_area_maps(mme_service_config),
         "accept_combined_attach_tau_wo_csfb": get_service_config_value("mme", "accept_combined_attach_tau_wo_csfb", ""),
         "sentry_config": mme_service_config.sentry_config,
-        "enable_converged_core": _get_converged_core_config(mme_service_config),
+        "enable5g_features": _get_converged_core_config(mme_service_config),
         "default_slice_service_type": _get_default_slice_service_type_config(
             mme_service_config,
         ),
