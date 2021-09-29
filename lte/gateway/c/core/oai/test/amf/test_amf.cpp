@@ -101,22 +101,18 @@ uint8_t NAS5GPktSnapShot::security_mode_reject[4] = {0x7e, 0x00, 0x5f, 0x24};
 
 class AmfNas5GTest : public ::testing::Test {
  protected:
-  NAS5GPktSnapShot* nas5g_pkt_snap;
-  RegistrationRequestMsg reg_request;
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  RegistrationRequestMsg reg_request = {};
   bool decode_res;
-  virtual void SetUp() {
-    nas5g_pkt_snap = new NAS5GPktSnapShot();
-    decode_res     = false;
-    memset(&reg_request, 0, sizeof(RegistrationRequestMsg));
-  }
-  virtual void TearDown() { delete nas5g_pkt_snap; }
+  virtual void SetUp() { decode_res = false; }
+  virtual void TearDown() {}
 };
 
 TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
-  uint32_t len = nas5g_pkt_snap->get_reg_req_buffer_len();
+  uint32_t len = nas5g_pkt_snap.get_reg_req_buffer_len();
 
   decode_res = decode_registration_request_msg(
-      &reg_request, nas5g_pkt_snap->reg_req_buffer, len);
+      &reg_request, nas5g_pkt_snap.reg_req_buffer, len);
 
   EXPECT_EQ(decode_res, true);
 
@@ -153,10 +149,10 @@ TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
 }
 
 TEST_F(AmfNas5GTest, test_amf_ue_guti_register_req_msg) {
-  uint32_t len = nas5g_pkt_snap->get_guti_based_registration_len();
+  uint32_t len = nas5g_pkt_snap.get_guti_based_registration_len();
 
   decode_res = decode_registration_request_msg(
-      &reg_request, nas5g_pkt_snap->guti_based_registration, len);
+      &reg_request, nas5g_pkt_snap.guti_based_registration, len);
 
   EXPECT_EQ(decode_res, true);
 }
