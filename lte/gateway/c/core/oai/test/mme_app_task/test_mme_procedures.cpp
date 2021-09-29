@@ -13,6 +13,9 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <stdio.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
 #include "../mock_tasks/mock_tasks.h"
@@ -31,10 +34,20 @@ extern "C" {
 using ::testing::_;
 using ::testing::Return;
 
+extern bool mme_hss_associated;
+extern bool mme_sctp_bounded;
+
 namespace magma {
 namespace lte {
 
+ACTION_P(ReturnFromAsyncTask, cv) {
+  cv->notify_all();
+}
+
 task_zmq_ctx_t task_zmq_ctx_main;
+
+#define END_OF_TEST_SLEEP_MS 500
+#define STATE_MAX_WAIT_MS 1000
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
@@ -49,10 +62,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
-    s1ap_handler = std::make_shared<MockS1apHandler>();
-    s6a_handler  = std::make_shared<MockS6aHandler>();
-    spgw_handler = std::make_shared<MockSpgwHandler>();
-
+    mme_hss_associated = false;
+    mme_sctp_bounded = false;
+    s1ap_handler       = std::make_shared<MockS1apHandler>();
+    s6a_handler        = std::make_shared<MockS6aHandler>();
+    spgw_handler       = std::make_shared<MockSpgwHandler>();
+    service303_handler = std::make_shared<MockService303Handler>();
     itti_init(
         TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
         NULL);
@@ -73,7 +88,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     std::thread task_s1ap(start_mock_s1ap_task, s1ap_handler);
     std::thread task_s6a(start_mock_s6a_task, s6a_handler);
     std::thread task_s11(start_mock_s11_task);
-    std::thread task_service303(start_mock_service303_task);
+    std::thread task_service303(start_mock_service303_task, service303_handler);
     std::thread task_sgs(start_mock_sgs_task);
     std::thread task_sgw_s8(start_mock_sgw_s8_task);
     std::thread task_sms_orc8r(start_mock_sms_orc8r_task);
@@ -89,6 +104,10 @@ class MmeAppProcedureTest : public ::testing::Test {
     task_spgw.detach();
 
     mme_app_init(&mme_config);
+    // Fake initialize sctp server.
+    // We can then send activate messages in each test
+    // whenever we need to read mme_app state.
+    send_sctp_mme_server_initialized();
   }
 
   virtual void TearDown() {
@@ -103,15 +122,17 @@ class MmeAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockS1apHandler> s1ap_handler;
   std::shared_ptr<MockS6aHandler> s6a_handler;
   std::shared_ptr<MockSpgwHandler> spgw_handler;
+  std::shared_ptr<MockService303Handler> service303_handler;
 };
 
 TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
-  plmn_t plmn = {.mcc_digit2 = 0,
-                 .mcc_digit1 = 0,
-                 .mnc_digit3 = 0x0f,
-                 .mcc_digit3 = 1,
-                 .mnc_digit2 = 1,
-                 .mnc_digit1 = 0};
+  plmn_t plmn = {
+      .mcc_digit2 = 0,
+      .mcc_digit1 = 0,
+      .mnc_digit3 = 0x0f,
+      .mcc_digit3 = 1,
+      .mnc_digit2 = 1,
+      .mnc_digit1 = 0};
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
 
@@ -125,19 +146,21 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
   send_mme_app_initial_ue_msg(&nas_msg[0], nas_msg_length, plmn);
 
   // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
+  plmn_t plmn = {
+      .mcc_digit2 = 0,
+      .mcc_digit1 = 0,
+      .mnc_digit3 = 0x0f,
+      .mcc_digit3 = 1,
+      .mnc_digit2 = 1,
+      .mnc_digit1 = 0};
+  std::string imsi = "001010000000001";
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
-  std::string imsi = "001010000000001";
-  plmn_t plmn      = {.mcc_digit2 = 0,
-                 .mcc_digit1 = 0,
-                 .mnc_digit3 = 0x0f,
-                 .mcc_digit3 = 1,
-                 .mnc_digit2 = 1,
-                 .mnc_digit1 = 0};
+  std::condition_variable cv;
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
@@ -147,6 +170,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   uint8_t nas_msg[]       = {0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00,
@@ -194,8 +220,10 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
 
   // Check MME state after attach complete
-  // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -218,27 +246,29 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
-  // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
   // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
+  plmn_t plmn = {
+      .mcc_digit2 = 0,
+      .mcc_digit1 = 0,
+      .mnc_digit3 = 0x0f,
+      .mcc_digit3 = 1,
+      .mnc_digit2 = 1,
+      .mnc_digit1 = 0};
+  std::string imsi = "001010000000001";
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
-  std::string imsi = "001010000000001";
-  plmn_t plmn      = {.mcc_digit2 = 0,
-                 .mcc_digit1 = 0,
-                 .mnc_digit3 = 0x0f,
-                 .mcc_digit3 = 1,
-                 .mnc_digit2 = 1,
-                 .mnc_digit1 = 0};
+  std::condition_variable cv;
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(4);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
@@ -248,6 +278,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   uint8_t nas_msg0[] = {0x07, 0x41, 0x71, 0x0b, 0xf6, 0x00, 0x00, 0x00, 0x00,
@@ -301,8 +334,10 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
 
   // Check MME state after attach complete
-  // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -325,15 +360,16 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
-  // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  // Sleep briefly to ensure processing by mme_app
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
   // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 }  // namespace lte

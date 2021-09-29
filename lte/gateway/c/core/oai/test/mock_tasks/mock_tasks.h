@@ -58,11 +58,16 @@ class MockSpgwHandler {
   MOCK_METHOD0(sgw_handle_delete_session_request, void());
 };
 
+class MockService303Handler {
+ public:
+  MOCK_METHOD0(service303_set_application_health, void());
+};
+
 void start_mock_ha_task();
 void start_mock_s1ap_task(std::shared_ptr<MockS1apHandler>);
 void start_mock_s6a_task(std::shared_ptr<MockS6aHandler>);
 void start_mock_s11_task();
-void start_mock_service303_task();
+void start_mock_service303_task(std::shared_ptr<MockService303Handler>);
 void start_mock_sgs_task();
 void start_mock_sgw_s8_task();
 void start_mock_sms_orc8r_task();
