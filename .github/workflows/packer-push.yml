@@ -21,24 +21,25 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Install Latest Packer
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install packer
       - name: Init
-        uses: hashicorp/packer-github-actions@master
-        with:
-          command: init
-          target: orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+        run: packer init orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
         env:
           PACKER_LOG: 1
       - name: Validate Template
-        uses: hashicorp/packer-github-actions@master
-        with:
-          command: validate
-          target: orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+        run: |
+          cd orc8r/tools/packer/
+          packer validate magma-focal-virtualbox.pkr.hcl
+        env:
+          PACKER_LOG: 1
       - name: Build
-        uses: hashicorp/packer-github-actions@master
-        with:
-          command: build
-          arguments: "-color=false -on-error=abort"
-          target: orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+        run: |
+          cd orc8r/tools/packer/
+          packer build magma-focal-virtualbox.pkr.hcl
         env:
           PACKER_LOG: 1
           PKR_ATLAS_TOKEN: "BOBS_BUNNY"
