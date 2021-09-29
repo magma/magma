@@ -396,12 +396,10 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
   smf_context_t* smf_ctx = nullptr;
-  int j                  = 0;
 
   for (auto it = ue_context_p->amf_context.smf_ctxt_vector.begin();
-       it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++, j++) {
-    smf_ctx = ue_context_p->amf_context.smf_ctxt_vector.data() + j;
-    smf_ctx->pdu_session_state = INACTIVE;
+       it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++) {
+    it->pdu_session_state = INACTIVE;
   }
 
   amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);

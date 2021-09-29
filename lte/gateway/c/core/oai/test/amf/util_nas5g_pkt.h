@@ -33,6 +33,7 @@ class NAS5GPktSnapShot {
   static uint8_t guti_based_registration[91];
   static uint8_t pdu_session_est_req_type1[131];
   static uint8_t pdu_session_est_req_type2[47];
+  static uint8_t pdu_session_est_req_type3[20];
   static uint8_t pdu_session_release_complete[12];
   static uint8_t deregistrarion_request[17];
   static uint8_t service_request[37];
@@ -57,6 +58,10 @@ class NAS5GPktSnapShot {
 
   uint32_t get_pdu_session_est_type2_len() {
     return sizeof(pdu_session_est_req_type2) / sizeof(unsigned char);
+  }
+
+  uint32_t get_pdu_session_est_type3_len() {
+    return sizeof(pdu_session_est_req_type3) / sizeof(unsigned char);
   }
 
   uint32_t get_pdu_session_release_complete_len() {

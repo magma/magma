@@ -101,7 +101,6 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
           decoded += decoded_result;
         }
         break;
-
       case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE:
         if ((decoded_result =
                  pdu_session_estab_request->protocolconfigurationoptions
@@ -118,7 +117,10 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
       case REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
         type_len = sizeof(uint8_t);
         DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
-        decoded += decoded_result;
+        decoded += decoded_result - type_len;
+        MLOG(MDEBUG)
+            << " Encode "
+               "REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE : ";
         break;
       case REQUEST_5GSM_CAPABILITY_TYPE:
       case REQUEST_ALWAYS_ON_PDU_SESSION_REQUESTED_TYPE:
