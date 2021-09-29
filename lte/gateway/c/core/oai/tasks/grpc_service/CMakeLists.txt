@@ -94,6 +94,7 @@ generate_grpc_protos("${S8SRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${SGW_S8_INCLUDES})
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
 
+if (EMBEDDED_SGW)
 add_library(TASK_GRPC_SERVICE
     AmfServiceImpl.cpp
     SpgwServiceImpl.cpp
@@ -112,6 +113,25 @@ add_library(TASK_GRPC_SERVICE
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
+else (EMBEDDED_SGW)
+add_library(TASK_GRPC_SERVICE
+    AmfServiceImpl.cpp
+    SpgwServiceImpl.cpp
+    S6aGatewayImpl.cpp
+    S6aServiceImpl.cpp
+    CSFBGatewayServiceImpl.cpp
+    SMSOrc8rGatewayServiceImpl.cpp
+    S1apServiceImpl.cpp
+    HaServiceImpl.cpp
+    AmfServiceImpl.cpp
+    spgw_service_handler.c
+    amf_service_handler.c
+    proto_msg_to_itti_msg.cpp
+    grpc_service.cpp
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
+    )
+endif (EMBEDDED_SGW)
 
 target_link_libraries(TASK_GRPC_SERVICE
     COMMON

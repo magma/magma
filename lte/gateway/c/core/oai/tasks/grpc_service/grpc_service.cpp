@@ -56,7 +56,9 @@ static CSFBGatewayServiceImpl sgs_service;
 static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static S1apServiceImpl s1ap_service;
 static HaServiceImpl ha_service;
+#if EMBEDDED_SGW
 static S8ServiceImpl s8_service;
+#endif
 static std::unique_ptr<Server> server;
 
 // TODO Candidate: GRPC service may be evolved into a
@@ -88,7 +90,9 @@ void start_grpc_service(bstring server_address) {
     builder.RegisterService(&ha_service);
   }
 
+#if EMBEDDED_SGW
   builder.RegisterService(&s8_service);
+#endif
   server = builder.BuildAndStart();
 }
 
