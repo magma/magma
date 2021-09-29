@@ -49,6 +49,20 @@ class PagingApplication : public Application {
       fluid_base::OFConnection* ofconn, uint8_t* data,
       const OpenflowMessenger& messenger);
 
+
+   /**
+   * Handles downlink data intended for a UE in idle mode, then forwards the
+   * paging request to SPGW. After initiating the paging process, it also clamps
+   * on the destination IP, to prevent multiple packet-in messages
+   *
+   * @param ofconn (in) - given connection to OVS switch
+   * @param data (in) - the ethernet packet received by the switch
+   */
+  void handle_paging_ipv6_message(
+    fluid_base::OFConnection* ofconn, uint8_t* data,
+    const OpenflowMessenger& messenger);  
+
+
   /**
    * Creates exact paging flow, which sends a packet intended for an
    * idle UE to this application
