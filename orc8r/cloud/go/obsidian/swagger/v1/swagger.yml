@@ -9982,7 +9982,7 @@ definitions:
       default_rule_id:
         example: default_rule_1
         type: string
-      enable_converged_core:
+      enable5g_features:
         default: false
         description: Enables 5G Standalone (SA) at a network level
         example: true
@@ -10081,6 +10081,11 @@ definitions:
           type: string
         type: array
         x-omitempty: true
+      node_identifier:
+        description: Node Identifier for 5G Standalone (SA) at a network level
+        example: 192.168.200.1
+        format: ipv4
+        type: string
       restricted_imeis:
         description: List of IMEIs restricted in the network
         items:
