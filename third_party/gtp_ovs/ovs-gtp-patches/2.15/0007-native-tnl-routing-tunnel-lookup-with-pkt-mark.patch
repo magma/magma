@@ -1,7 +1,7 @@
-From 4fb9b98f8fb611bebb88f5366e3c3dd000462030 Mon Sep 17 00:00:00 2001
+From 5a1b78f3e8020df32ce3e793bc4b2f255e512d39 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 27 Sep 2020 19:46:24 +0000
-Subject: [PATCH 07/19] native-tnl: routing: tunnel lookup with pkt-mark
+Subject: [PATCH 07/22] native-tnl: routing: tunnel lookup with pkt-mark
 
 In case of zero packet mark ignore packet mark in lookup.
 

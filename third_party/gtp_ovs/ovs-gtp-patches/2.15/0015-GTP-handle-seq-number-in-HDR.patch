@@ -1,7 +1,7 @@
-From b4891f1fc1a3485e6cddee076c778813c0bf1a0b Mon Sep 17 00:00:00 2001
+From e9fccd67641cf3c614b2cad33cd7c42530c384d5 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 28 May 2021 16:06:54 +0000
-Subject: [PATCH 15/19] GTP: handle seq number in HDR
+Subject: [PATCH 15/22] GTP: handle seq number in HDR
 
 ---
  datapath/linux/compat/gtp.c | 11 ++++++++---

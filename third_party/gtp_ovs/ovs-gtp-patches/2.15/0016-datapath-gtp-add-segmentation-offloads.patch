@@ -1,7 +1,7 @@
-From d8635ccdba42b228202006bba3f817d621f20b7b Mon Sep 17 00:00:00 2001
+From 952699ac1cce6919208a1c7b9db077e13f953c40 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Tue, 8 Jun 2021 01:44:33 +0000
-Subject: [PATCH 16/19] datapath: gtp: add segmentation offloads
+Subject: [PATCH 16/22] datapath: gtp: add segmentation offloads
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---

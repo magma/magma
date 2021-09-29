@@ -1,7 +1,7 @@
-From 48d5dc0dad9941ca71cc1da9f2e85907ecadc8fb Mon Sep 17 00:00:00 2001
+From 0e0113efbbc79d739ed5915da4dbc519182c1a4b Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 9 May 2021 06:11:10 +0000
-Subject: [PATCH 14/19] datapath: GTP: cleanup
+Subject: [PATCH 14/22] datapath: GTP: cleanup
 
 Get rid of pdp based GTP dev interface.
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
