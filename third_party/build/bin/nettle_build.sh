@@ -19,7 +19,7 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
-PKGVERSION=3.6
+PKGVERSION=2.5
 ITERATION=1
 VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=oai-nettle
@@ -53,7 +53,7 @@ cd ${WORK_DIR}
 wget https://ftp.gnu.org/gnu/nettle/nettle-$PKGVERSION.tar.gz
 tar xf nettle-$PKGVERSION.tar.gz
 cd nettle-$PKGVERSION/
-./configure --disable-openssl --enable-shared --prefix=/usr
+./configure --disable-openssl --enable-shared --prefix=/usr --build=arm-linux-gnu
 make -j`nproc`
 make install DESTDIR=${WORK_DIR}/install/
 

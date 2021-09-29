@@ -14,14 +14,12 @@
 # -----------------------------------------------------------------------------
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
-# ubuntu bionic image
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
 ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/
 ARG CLANG_VERSION=3.8
 ARG FEATURES=mme_oai
 
-# Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG OS_DIST
 ARG OS_RELEASE
@@ -46,7 +44,7 @@ RUN apt-key add /tmp/jfrog.pub && \
     apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
 
 # Install dependencies required for building
-RUN apt-get -y update && apt-get -y install \
+RUN apt-get update && apt-get install -y \
   sudo \
   curl \
   wget \
@@ -177,9 +175,12 @@ ENV TZ=Europe/Paris
 # Install runtime dependencies
 RUN apt-get -y update && apt-get -y install \
   apt-utils \
+  apt-transport-https \
+  ca-certificates \
   wget \
   gnupg \
   sudo \
+  netcat \
   libyaml-cpp-dev \
   libgoogle-glog-dev \
   libprotoc-dev \
@@ -192,8 +193,9 @@ RUN apt-get -y update && apt-get -y install \
   tshark \
   tzdata \
   iproute2 \
-  iptables \
-  && rm -rf /var/lib/apt/lists/*
+  iptables
+
+#&& rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -

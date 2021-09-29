@@ -57,19 +57,16 @@ services:
     container_name: directoryd
     depends_on:
       - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50067"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.directoryd.main
 
   subscriberdb:
     <<: *pyservice
     container_name: subscriberdb
     command: /usr/bin/env python3 -m magma.subscriberdb.main
-
-  policydb:
-    <<: *pyservice
-    container_name: policydb
-    depends_on:
-      - redis
-    command: /usr/bin/env python3 -m magma.policydb.main
 
   enodebd:
     <<: *pyservice
@@ -83,6 +80,17 @@ services:
       - redis
     command: /usr/bin/env python3 -m magma.state.main
 
+  policydb:
+    <<: *pyservice
+    container_name: policydb
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50068"]
+      timeout: "4s"
+      retries: 3
+    command: /usr/bin/env python3 -m magma.policydb.main
+
   eventd:
     <<: *pyservice
     container_name: eventd
@@ -91,6 +99,8 @@ services:
   health:
     <<: *pyservice
     container_name: health
+    # Needed in order to enable/disable ICMP
+    privileged: true
     command: /usr/bin/env python3 -m magma.health.main
 
   monitord:
@@ -162,6 +172,10 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50063"]
+      timeout: "4s"
+      retries: 3
     command: >
       bash -c "/usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set &&
         /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
@@ -182,6 +196,8 @@ services:
     privileged: true
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 1
+    depends_on:
+      - directoryd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost","50065"]
       timeout: "4s"
@@ -194,7 +210,7 @@ services:
   mobilityd:
     <<: *pyservice
     container_name: mobilityd
-    command: /usr/bin/env python2 -m magma.mobilityd.main
+    command: /usr/bin/env python3 -m magma.mobilityd.main
 
   connectiond:
     <<: *ltecservice
