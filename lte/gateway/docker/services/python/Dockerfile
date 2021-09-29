@@ -89,7 +89,7 @@ ENV TZ=Europe/Paris
 ARG JSONPOINTER_VERSION=1.13
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -y update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
   netcat \
@@ -110,9 +110,9 @@ RUN apt-get -y update && apt-get install -y \
   iptables \
   iproute2
 
-RUN cd /usr/local/bin && ln -s /usr/bin/python3 python
+RUN cd /usr/local/bin && ln -s /usr/bin/python3 pytho && \
+  python3 -m venv $VIRTUAL_ENV
 
-RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 
 RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
@@ -121,7 +121,7 @@ RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/ke
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
 
-RUN apt-get -y update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
   td-agent-bit \
   libopenvswitch \
   openvswitch-datapath-dkms \
@@ -140,10 +140,7 @@ COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_service_config.
 COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_fluent_bit_config.py /usr/local/bin/generate_fluent_bit_config.py
 COPY --from=builder /magma/lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
 
-RUN chmod -R +x /usr/local/bin/generate* \
-  /usr/local/bin/set_irq_affinity
-
-RUN dpkg -i /var/tmp/python3-aioeventlet*
-
-RUN mkdir -p /var/opt/magma/
-RUN pip install jsonpointer>$JSONPOINTER_VERSION
+RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity && \
+  dpkg -i /var/tmp/python3-aioeventlet* && \
+  pip install jsonpointer>$JSONPOINTER_VERSION && \
+  mkdir -p /var/opt/magma/

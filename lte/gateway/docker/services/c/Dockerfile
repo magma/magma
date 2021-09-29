@@ -125,11 +125,10 @@ RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_T
 RUN make -C $MAGMA_ROOT/lte/gateway/ build_sctpd BUILD_TYPE="${BUILD_TYPE}"
 RUN make -C $MAGMA_ROOT/lte/gateway/ build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
 RUN make -C $MAGMA_ROOT/lte/gateway/ build_li_agent BUILD_TYPE="${BUILD_TYPE}"
-RUN echo $FEATURES && make -C $MAGMA_ROOT/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
+RUN make -C $MAGMA_ROOT/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
 COPY lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
-#RUN mkdir -p $MAGMA_ROOT/lte/gateway/build/configs/
 RUN apt-get install -y python3-pip && \
     pip3 install jinja2-cli && \
     cd $MAGMA_ROOT/lte/gateway/docker/configs/ && \
@@ -159,7 +158,6 @@ RUN apt-get install -y python3-pip && \
     > mme_vars.json && \
     jinja2 ../../configs/templates/mme.conf.template mme_vars.json --format=json  > mme-gen.conf
 
-
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
@@ -173,7 +171,7 @@ ENV C_BUILD /build/c
 ENV TZ=Europe/Paris
 
 # Install runtime dependencies
-RUN apt-get -y update && apt-get -y install \
+RUN apt-get update && apt-get install -y \
   apt-utils \
   apt-transport-https \
   ca-certificates \
@@ -193,9 +191,8 @@ RUN apt-get -y update && apt-get -y install \
   tshark \
   tzdata \
   iproute2 \
-  iptables
-
-#&& rm -rf /var/lib/apt/lists/*
+  iptables \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
