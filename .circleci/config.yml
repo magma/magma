@@ -1137,7 +1137,7 @@ jobs:
 
   lte-test:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     environment:
       MAGMA_ROOT: /home/circleci/project
       PYTHON_BUILD: ${MAGMA_ROOT}/build
@@ -1148,23 +1148,24 @@ jobs:
       SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
-      - python/set_version
+      - run: pyenv install 3.8.5
+      - python/set_version:
+          python_version: "3.8.5"
       - build/determinator:
           <<: *lte_build_verify
+      - apt-focal-install-aioeventlet
       - run: mkdir -p /var/tmp/test_results
       - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
-      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip net-tools
+      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-requests python3-pip python-protobuf
       - run: pip3 install setuptools==49.6.0
       - run:
           command: |
-            sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+            sudo curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
             sudo unzip protoc3.zip -d protoc3
             sudo mv protoc3/bin/protoc /bin/protoc
             sudo chmod a+rx /bin/protoc
-            sudo mv protoc3/include/google /usr/include/
-            sudo chmod -R a+Xr /usr/include/google
             sudo rm -rf protoc3.zip protoc3
             mkdir ${CODEGEN_ROOT}
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
