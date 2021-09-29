@@ -21,6 +21,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <limits.h>
+#include <unistd.h>
 
 #include "magma_logging_init.h"
 #include "sentry.h"
@@ -31,6 +33,7 @@
 #define SENTRY_NATIVE_URL "sentry_url_native"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
+#define HOSTNAME "hostname"
 #define SERVICE_NAME "service_name"
 
 using std::experimental::optional;
@@ -71,6 +74,10 @@ void initialize_sentry() {
     sentry_init(options);
     sentry_set_tag(SERVICE_NAME, "SessionD");
     sentry_set_tag(HWID, get_snowflake().c_str());
+    char node_name[HOST_NAME_MAX];
+    if (gethostname(node_name, HOST_NAME_MAX) == 0) {
+      sentry_set_tag(HOSTNAME, node_name);
+    }
   }
 }
 

@@ -21,6 +21,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <limits.h>
+#include <unistd.h>
 
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"
@@ -32,6 +34,7 @@
 #define MME_LOG_PATH "/var/log/mme.log"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
+#define HOSTNAME "hostname"
 #define SERVICE_NAME "service_name"
 
 using std::experimental::optional;
@@ -79,6 +82,10 @@ void initialize_sentry() {
     sentry_init(options);
 
     sentry_set_tag(SERVICE_NAME, "MME");
+    char node_name[HOST_NAME_MAX];
+    if (gethostname(node_name, HOST_NAME_MAX) == 0) {
+      sentry_set_tag(HOSTNAME, node_name);
+    }
     sentry_set_tag(HWID, get_snowflake().c_str());
   }
 }
