@@ -1,0 +1,66 @@
+
+variable "cloud_token" {
+  type    = string
+  default = "${env("PKR_ATLAS_TOKEN")}"
+}
+
+locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
+
+locals {
+  version = "1.0.${local.timestamp}"
+}
+
+source "virtualbox-iso" "ubuntu-2004" {
+  boot_command            = ["<esc><wait>", "<esc><wait>", "<enter><wait>", "/install/vmlinuz<wait>", " auto<wait>", " console-setup/ask_detect=false<wait>", " console-setup/layoutcode=us<wait>", " console-setup/modelcode=pc105<wait>", " debconf/frontend=noninteractive<wait>", " debian-installer=en_US.UTF-8<wait>", " fb=false<wait>", " initrd=/install/initrd.gz<wait>", " kbd-chooser/method=us<wait>", " keyboard-configuration/layout=USA<wait>", " keyboard-configuration/variant=USA<wait>", " locale=en_US.UTF-8<wait>", " netcfg/get_domain=magma.com<wait>", " netcfg/get_hostname={{ .Name }}<wait>", " grub-installer/bootdev=/dev/sda<wait>", " noapic<wait>", " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>", " -- <wait>", "<enter><wait>"]
+  boot_wait               = "5s"
+  guest_additions_mode    = "upload"
+  guest_os_type           = "ubuntu-64"
+  headless                = true
+  http_directory          = "http"
+  iso_checksum            = "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2"
+  iso_url                 = "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04.1/release/ubuntu-20.04.1-legacy-server-amd64.iso"
+  memory                  = 2048
+  shutdown_command        = "echo 'vagrant'|sudo -S shutdown -P now"
+  ssh_handshake_attempts  = "20"
+  ssh_password            = "vagrant"
+  ssh_timeout             = "64206s"
+  ssh_username            = "vagrant"
+  vboxmanage              = [["modifyvm", "{{ .Name }}", "--memory", "2048"], ["modifyvm", "{{ .Name }}", "--cpus", "2"]]
+  virtualbox_version_file = ".vbox_version"
+  vm_name                 = "packer-ubuntu-20.04-amd64"
+}
+
+build {
+  sources = ["source.virtualbox-iso.ubuntu-2004"]
+
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | sudo -S env {{ .Vars }} {{ .Path }}"
+    script          = "scripts/ubuntu_setup.sh"
+  }
+
+  provisioner "shell" {
+    expect_disconnect = true
+    inline            = ["sudo reboot"]
+  }
+
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | sudo -S env {{ .Vars }} {{ .Path }}"
+    script          = "scripts/vagrant_key.sh"
+  }
+
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | {{ .Vars }} sudo -S -E bash '{{ .Path }}'"
+    script          = "scripts/setup.sh"
+  }
+
+  provisioner "ansible-local" {
+    extra_arguments  = ["--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"]
+    inventory_groups = "dev"
+    playbook_file    = "../../../lte/gateway/deploy/magma_dev_focal.yml"
+    role_paths       = ["../../../orc8r/tools/ansible/roles/apt_cache", "../../../orc8r/tools/ansible/roles/distro_snapshot", "../../../orc8r/tools/ansible/roles/docker", "../../../orc8r/tools/ansible/roles/fluent_bit", "../../../orc8r/tools/ansible/roles/gateway_dev", "../../../orc8r/tools/ansible/roles/gateway_services", "../../../orc8r/tools/ansible/roles/golang", "../../../orc8r/tools/ansible/roles/pkgrepo", "../../../orc8r/tools/ansible/roles/python_dev", "../../../orc8r/tools/ansible/roles/resolv_conf", "../../../orc8r/tools/ansible/roles/test_certs", "../../../lte/gateway/deploy/roles/envoy", "../../../lte/gateway/deploy/roles/stretch_snapshot", "../../../lte/gateway/deploy/roles/dev_common", "../../../lte/gateway/deploy/roles/magma", "../../../lte/gateway/deploy/roles/dev_common", "../../../lte/gateway/deploy/roles/focal_hacks", "../../../lte/gateway/deploy/roles/magma", "../../../lte/gateway/deploy/roles/magma_test", "../../../lte/gateway/deploy/roles/ovs_build", "../../../lte/gateway/deploy/roles/ovs_deploy", "../../../lte/gateway/deploy/roles/ovs_prepare", "../../../lte/gateway/deploy/roles/pyvenv", "../../../lte/gateway/deploy/roles/stretch_snapshot", "../../../lte/gateway/deploy/roles/trfserver", "../../../lte/gateway/deploy/roles/uselocalpkgrepo"]
+  }
+
+  post-processor "vagrant" {
+    output = "builds/magma_dev_focal_<no value>.box"
+  }
+}

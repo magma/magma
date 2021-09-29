@@ -1,0 +1,44 @@
+---
+name: "Packer Push"
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+  # TODO(uncomment before commit)
+  # push:
+    # branches:
+    #   -master
+    paths:
+      - orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+      - lte/gateway/deploy/magma_dev_focal.yml
+      - lte/gateway/configs/**
+      - .github/workflows/packer-push.yml
+  schedule:
+    # Run four times a day (hours zero, six, twelve and eighteen)
+    - cron:  '0 0,6,12,18 * * *'
+
+jobs:
+  build_magma_dev_stacker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Init
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: init
+          target: orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+        env:
+          PACKER_LOG: 1
+      - name: Validate Template
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: validate
+          target: orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+      - name: Build
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: build
+          arguments: "-color=false -on-error=abort"
+          target: orc8r/tools/packer/magma-focal-virtualbox.pkr.hcl
+        env:
+          PACKER_LOG: 1
+          PKR_ATLAS_TOKEN: "BOBS_BUNNY"
