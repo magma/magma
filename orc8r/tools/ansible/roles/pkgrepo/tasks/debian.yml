@@ -16,6 +16,18 @@
   apt_key:
     url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
     state: present
+    
+- name: Remove deprecated Getenvoy.io repo
+  apt_repository:
+    repo: "deb https://dl.bintray.com/tetrate/getenvoy-deb stretch Release"
+    state: absent
+  debugger: true
+
+- name: Remove deprecated Getenvoy.io repo
+  file:
+    path: /etc/apt/sources.list.d/dl_bintray_com_tetrate_getenvoy_deb.list
+    state: absent
+  debugger: true
 
 - name: Add apt-transport-https
   apt: pkg=apt-transport-https state=present update_cache=yes
