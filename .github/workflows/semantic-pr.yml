@@ -93,14 +93,4 @@ jobs:
           # merge commit, and it's easy to commit this by mistake. Enable this option
           # to also validate the commit message for one commit PRs.
           validateSingleCommit: true
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
-        if: failure()
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: pr
-          path: pr/
+
