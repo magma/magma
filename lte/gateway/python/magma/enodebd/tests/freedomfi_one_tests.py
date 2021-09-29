@@ -651,6 +651,8 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             EnodebConfigBuilder.get_mconfig(),
             service_cfg, cfg_desired,
         )
+        print(cfg_desired.mock_calls)
+        print(type(cfg_desired.mock_calls))
         self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
 
     @patch('magma.configuration.service_configs.CONFIG_DIR', SRC_CONFIG_DIR)
@@ -667,3 +669,137 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             SASParameters.SAS_CERT_SUBJECT
         ] = "INVALID_CERT_SUBJECT"
         self.assertEqual(service_cfg, service_cfg_1)
+
+    def test_status_nodes(self):
+        """ Test that the status of the node is valid"""
+        status = StatusParameters()
+
+        # Happy path
+        n1 = {
+            StatusParameters.DEFAULT_GW: "SUCCESS",
+            StatusParameters.SYNC_STATUS: "InSync",
+            StatusParameters.ENB_STATUS: "Success",
+            StatusParameters.SAS_STATUS: "Success",
+            StatusParameters.GPS_SCAN_STATUS: "SUCCESS",
+            ParameterName.GPS_LONG: "1",
+            ParameterName.GPS_LAT: "1",
+        }
+        deviceConfig = Mock()
+        status.set_magma_device_cfg(n1, deviceConfig)
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=True),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', '1'),
+        ]
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        n2 = n1.copy()
+        # Verify we can handle specific none params
+        n2[StatusParameters.DEFAULT_GW] = None
+        n3 = n1.copy()
+        n3[StatusParameters.SYNC_STATUS] = None
+        n4 = n1.copy()
+        n4[StatusParameters.ENB_STATUS] = None
+        n5 = n1.copy()
+        n5[StatusParameters.SAS_STATUS] = None
+        n6 = n1.copy()
+        n6[StatusParameters.GPS_SCAN_STATUS] = None
+        n7 = n1.copy()
+        n7[ParameterName.GPS_LONG] = None
+        n8 = n1.copy()
+        n8[ParameterName.GPS_LAT] = None
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=True),
+            call.set_parameter(param_name='MME status', value=False),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', '1'),
+        ]
+        status.set_magma_device_cfg(n2, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=False),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', '1'),
+        ]
+        status.set_magma_device_cfg(n3, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=True),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=False),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', '1'),
+        ]
+        status.set_magma_device_cfg(n4, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=False),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=True),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', '1'),
+        ]
+        status.set_magma_device_cfg(n5, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=False),
+            call.set_parameter(param_name='PTP status', value=False),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', '1'),
+        ]
+        status.set_magma_device_cfg(n6, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=True),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', '1'),
+            call.set_parameter('GPS long', None),
+        ]
+        status.set_magma_device_cfg(n7, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
+
+        deviceConfig = Mock()
+        expected = [
+            call.set_parameter(param_name='RF TX status', value=True),
+            call.set_parameter(param_name='GPS status', value=True),
+            call.set_parameter(param_name='PTP status', value=True),
+            call.set_parameter(param_name='MME status', value=True),
+            call.set_parameter(param_name='Opstate', value=True),
+            call.set_parameter('GPS lat', None),
+            call.set_parameter('GPS long', '1'),
+        ]
+        status.set_magma_device_cfg(n8, deviceConfig)
+        self.assertEqual(expected, deviceConfig.mock_calls)
