@@ -1941,6 +1941,10 @@ void handle_failed_create_bearer_response(
                 policy_rule_name, POLICY_RULE_NAME_MAXLEN + 1, "%s",
                 sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
           }
+          memcpy(
+              dedicated_bearer_ctxt_p,
+              sgw_eps_bearer_entry_p->sgw_eps_bearer_entry,
+              sizeof(sgw_eps_bearer_ctxt_t));
           // Remove the temporary spgw entry
           LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {

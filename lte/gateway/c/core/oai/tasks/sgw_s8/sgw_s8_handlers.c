@@ -1447,9 +1447,6 @@ void sgw_s8_handle_s11_create_bearer_response(
         LOG_SGW_S8, imsi64,
         "Failed to retrieve sgw_context from sgw_s11_teid " TEID_FMT "\n",
         s11_actv_bearer_rsp->sgw_s11_teid);
-    Imsi_t imsi = {0};
-    sgw_s8_send_failed_create_bearer_response(
-        sgw_state, 0, 0, s11_actv_bearer_rsp->cause.cause_value, imsi);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   // If UE did not accept the request send reject to NW
@@ -1465,7 +1462,8 @@ void sgw_s8_handle_s11_create_bearer_response(
     sgw_s8_send_failed_create_bearer_response(
         sgw_state, dedicated_bearer_ctxt.sgw_sequence_number,
         dedicated_bearer_ctxt.pgw_cp_ip_port,
-        s11_actv_bearer_rsp->cause.cause_value, sgw_context_p->imsi);
+        s11_actv_bearer_rsp->cause.cause_value, sgw_context_p->imsi,
+        sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   sgw_s8_proc_s11_create_bearer_rsp(
@@ -1475,7 +1473,7 @@ void sgw_s8_handle_s11_create_bearer_response(
 
 void sgw_s8_send_failed_create_bearer_response(
     sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
-    gtpv2c_cause_value_t cause_value, Imsi_t imsi) {
+    gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   itti_s11_nw_init_actv_bearer_rsp_t s11_actv_bearer_rsp = {0};
   s11_actv_bearer_rsp.cause.cause_value                  = cause_value;
@@ -1483,6 +1481,6 @@ void sgw_s8_send_failed_create_bearer_response(
   s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].cause.cause_value =
       cause_value;
   send_s8_create_bearer_response(
-      &s11_actv_bearer_rsp, 0, sequence_number, pgw_cp_address, imsi);
+      &s11_actv_bearer_rsp, pgw_s8_teid, sequence_number, pgw_cp_address, imsi);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

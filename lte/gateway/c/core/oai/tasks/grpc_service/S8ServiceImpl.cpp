@@ -19,7 +19,6 @@ extern "C" {
 #include "common_defs.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
-#include "GrpcMagmaUtils.h"
 #include "S8ServiceImpl.h"
 #include "s8_itti_proto_conversion.h"
 #include "spgw_state_converter.h"

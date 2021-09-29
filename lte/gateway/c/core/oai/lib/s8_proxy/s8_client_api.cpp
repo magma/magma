@@ -551,21 +551,20 @@ static void fill_s8_create_bearer_response(
     magma::feg::CreateBearerResponsePgw* proto_cb_rsp, teid_t pgw_s8_teid,
     uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
+
+  proto_cb_rsp->set_cause(itti_msg->cause.cause_value);
+  proto_cb_rsp->set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
+  if (pgw_cp_address) {
+    proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+  }
+  proto_cb_rsp->set_sequence_number(sequence_number);
+  proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);
   if (itti_msg->cause.cause_value != REQUEST_ACCEPTED) {
-    if (pgw_cp_address) {
-      proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
-    }
-    proto_cb_rsp->set_sequence_number(sequence_number);
-    proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);
     proto_cb_rsp->mutable_bearer_context()->set_cause(
         itti_msg->bearer_contexts.bearer_contexts[0].cause.cause_value);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
-  proto_cb_rsp->set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
-  proto_cb_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
-  proto_cb_rsp->set_sequence_number(sequence_number);
-  proto_cb_rsp->set_c_pgw_teid(pgw_s8_teid);
   char pgw_s8_up_ip[INET_ADDRSTRLEN];
   inet_ntop(
       AF_INET,
@@ -578,7 +577,6 @@ static void fill_s8_create_bearer_response(
 
   convert_serving_network_to_proto_msg(
       proto_cb_rsp->mutable_serving_network(), itti_msg->serving_network);
-  proto_cb_rsp->set_cause(itti_msg->cause.cause_value);
   convert_uli_to_proto_msg(proto_cb_rsp->mutable_uli(), itti_msg->uli);
 
   if (itti_msg->bearer_contexts.num_bearer_context) {

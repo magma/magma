@@ -54,4 +54,4 @@ void sgw_s8_handle_s11_create_bearer_response(
 
 void sgw_s8_send_failed_create_bearer_response(
     sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
-    gtpv2c_cause_value_t cause_value, Imsi_t imsi);
+    gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
