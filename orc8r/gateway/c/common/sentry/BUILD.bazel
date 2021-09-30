@@ -15,7 +15,13 @@ cc_library(
     name = "sentry_wrapper",
     srcs = ["SentryWrapper.cpp"],
     hdrs = ["includes/SentryWrapper.h"],
+    # TODO(@themarwhal): Enable Sentry by default - GH9302
+    copts = ["-DSENTRY_ENABLED"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/sentry",
-    # TODO(@themarwhal): Add dependency for sentry-native
+    deps = [
+        "//orc8r/gateway/c/common/config:service_config_loader",
+        "@sentry_native//:sentry",
+        "@yaml-cpp//:yaml-cpp",
+    ],
 )
