@@ -145,39 +145,55 @@ class MmeAppProcedureTest : public ::testing::Test {
   const uint8_t nas_msg_detach_req[21]  = {
       0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07, 0x45, 0x09, 0x0b, 0xf6,
       0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
-};
-
-TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
-  plmn_t plmn = {.mcc_digit2 = 0,
-                 .mcc_digit1 = 0,
-                 .mnc_digit3 = 0x0f,
-                 .mcc_digit3 = 1,
-                 .mnc_digit2 = 1,
-                 .mnc_digit1 = 0};
-
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
-
-  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  // The following buffer just includes an attach request
-  uint8_t nas_msg[]       = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
-                       0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
-                       0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
-                       0x04, 0x00, 0x02, 0x1c, 0x00};
-  uint32_t nas_msg_length = 29;
-  send_mme_app_initial_ue_msg(&nas_msg[0], nas_msg_length, plmn);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
-}
-
-TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
+  std::string imsi = "001010000000001";
   plmn_t plmn      = {.mcc_digit2 = 0,
                  .mcc_digit1 = 0,
                  .mnc_digit3 = 0x0f,
                  .mcc_digit3 = 1,
                  .mnc_digit2 = 1,
                  .mnc_digit1 = 0};
-  std::string imsi = "001010000000001";
+};
+
+TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(1)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  // The following buffer just includes an attach request
+  uint8_t nas_msg_faulty[29] = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
+                                0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
+                                0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
+                                0x04, 0x00, 0x02, 0x1c, 0x00};
+  send_mme_app_initial_ue_msg(nas_msg_faulty, sizeof(nas_msg_faulty), plmn);
+
+  // Check MME state: at this point, MME should be sending
+  // EMM_STATUS NAS message and holding onto the UE context
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -199,7 +215,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
       nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi);
+  send_authentication_info_resp(imsi, true);
 
   send_mme_app_uplink_data_ind(
       nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
@@ -262,13 +278,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
-  plmn_t plmn      = {.mcc_digit2 = 0,
-                 .mcc_digit1 = 0,
-                 .mnc_digit3 = 0x0f,
-                 .mcc_digit3 = 1,
-                 .mnc_digit2 = 1,
-                 .mnc_digit1 = 0};
-  std::string imsi = "001010000000001";
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -294,7 +303,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
       nas_msg_ident_resp, sizeof(nas_msg_ident_resp), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
-  send_authentication_info_resp(imsi);
+  send_authentication_info_resp(imsi, true);
 
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
   send_mme_app_uplink_data_ind(
@@ -346,7 +355,57 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
-  // Sleep briefly to ensure processing by mme_app
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // Sending AIA to mme_app mimicing negative S6A response for AIR
+  send_authentication_info_resp(imsi, false);
+
+  // Check MME state: at this point, MME should be sending attach reject
+  // as well as context release request
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check if the context is properly released
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);

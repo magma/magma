@@ -25,7 +25,7 @@ void send_mme_app_initial_ue_msg(
 void send_mme_app_uplink_data_ind(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
 
-void send_authentication_info_resp(const std::string& imsi);
+void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi);
 

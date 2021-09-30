@@ -72,36 +72,40 @@ void send_mme_app_uplink_data_ind(
   return;
 }
 
-void send_authentication_info_resp(const std::string& imsi) {
+void send_authentication_info_resp(const std::string& imsi, bool success) {
   MessageDef* message_p = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
   s6a_auth_info_ans_t* itti_msg = &message_p->ittiMsg.s6a_auth_info_ans;
   strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
-  itti_msg->imsi_length        = imsi.size();
-  itti_msg->result.present     = S6A_RESULT_BASE;
-  itti_msg->result.choice.base = DIAMETER_SUCCESS;
-  magma::feg::AuthenticationInformationAnswer aia;
-  magma::feg::AuthenticationInformationAnswer::EUTRANVector eutran_vector;
-  uint8_t xres_buf[XRES_LENGTH_MAX]      = {0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93,
-                                       0xf1, 0x5a, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00};
-  uint8_t rand_buf[RAND_LENGTH_OCTETS]   = {0x68, 0x16, 0xa1, 0x0c, 0x0f, 0xeb,
-                                          0x44, 0xa5, 0x00, 0x5c, 0x9c, 0x9c,
-                                          0x3c, 0x6f, 0xd6, 0x15};
-  uint8_t autn_buf[AUTN_LENGTH_OCTETS]   = {0x4a, 0xe4, 0xe0, 0xd9, 0xaa, 0x4b,
-                                          0x80, 0x00, 0xc4, 0x80, 0xa1, 0x97,
-                                          0x70, 0x4b, 0x7b, 0x8f};
-  uint8_t kasme_buf[KASME_LENGTH_OCTETS] = {
-      0xc3, 0x5f, 0x03, 0x8f, 0x5f, 0xbe, 0xcc, 0x23, 0xc4, 0xd1, 0xa7,
-      0xd6, 0x8a, 0xf7, 0x05, 0x32, 0xf2, 0x37, 0xf6, 0x40, 0x47, 0xdd,
-      0x29, 0x6e, 0x7d, 0x0e, 0xf6, 0xe9, 0x26, 0x5f, 0x24, 0x39};
-  eutran_vector.set_rand((const void*) rand_buf, RAND_LENGTH_OCTETS);
-  eutran_vector.set_xres((const void*) xres_buf, XRES_LENGTH_MAX);
-  eutran_vector.set_autn((const void*) autn_buf, AUTN_LENGTH_OCTETS);
-  eutran_vector.set_kasme((const void*) kasme_buf, KASME_LENGTH_OCTETS);
-  aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
-  auto eutran_vectors = aia.mutable_eutran_vectors();
-  eutran_vectors->Add()->CopyFrom(eutran_vector);
-  magma::convert_proto_msg_to_itti_s6a_auth_info_ans(aia, itti_msg);
+  itti_msg->imsi_length    = imsi.size();
+  itti_msg->result.present = S6A_RESULT_BASE;
+  if (success) {
+    itti_msg->result.choice.base = DIAMETER_SUCCESS;
+    magma::feg::AuthenticationInformationAnswer aia;
+    magma::feg::AuthenticationInformationAnswer::EUTRANVector eutran_vector;
+    uint8_t xres_buf[XRES_LENGTH_MAX]    = {0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93,
+                                         0xf1, 0x5a, 0x00, 0x00, 0x00, 0x00,
+                                         0x00, 0x00, 0x00, 0x00};
+    uint8_t rand_buf[RAND_LENGTH_OCTETS] = {0x68, 0x16, 0xa1, 0x0c, 0x0f, 0xeb,
+                                            0x44, 0xa5, 0x00, 0x5c, 0x9c, 0x9c,
+                                            0x3c, 0x6f, 0xd6, 0x15};
+    uint8_t autn_buf[AUTN_LENGTH_OCTETS] = {0x4a, 0xe4, 0xe0, 0xd9, 0xaa, 0x4b,
+                                            0x80, 0x00, 0xc4, 0x80, 0xa1, 0x97,
+                                            0x70, 0x4b, 0x7b, 0x8f};
+    uint8_t kasme_buf[KASME_LENGTH_OCTETS] = {
+        0xc3, 0x5f, 0x03, 0x8f, 0x5f, 0xbe, 0xcc, 0x23, 0xc4, 0xd1, 0xa7,
+        0xd6, 0x8a, 0xf7, 0x05, 0x32, 0xf2, 0x37, 0xf6, 0x40, 0x47, 0xdd,
+        0x29, 0x6e, 0x7d, 0x0e, 0xf6, 0xe9, 0x26, 0x5f, 0x24, 0x39};
+    eutran_vector.set_rand((const void*) rand_buf, RAND_LENGTH_OCTETS);
+    eutran_vector.set_xres((const void*) xres_buf, XRES_LENGTH_MAX);
+    eutran_vector.set_autn((const void*) autn_buf, AUTN_LENGTH_OCTETS);
+    eutran_vector.set_kasme((const void*) kasme_buf, KASME_LENGTH_OCTETS);
+    aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
+    auto eutran_vectors = aia.mutable_eutran_vectors();
+    eutran_vectors->Add()->CopyFrom(eutran_vector);
+    magma::convert_proto_msg_to_itti_s6a_auth_info_ans(aia, itti_msg);
+  } else {
+    itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
+  }
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
