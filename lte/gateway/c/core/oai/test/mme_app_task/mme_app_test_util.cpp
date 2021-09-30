@@ -41,7 +41,7 @@ void send_activate_message_to_mme_app() {
 }
 
 void send_mme_app_initial_ue_msg(
-    uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
@@ -58,7 +58,7 @@ void send_mme_app_initial_ue_msg(
 }
 
 void send_mme_app_uplink_data_ind(
-    uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
   ITTI_MSG_LASTHOP_LATENCY(message_p)     = 0;

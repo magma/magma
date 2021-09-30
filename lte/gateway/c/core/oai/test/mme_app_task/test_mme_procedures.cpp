@@ -123,6 +123,28 @@ class MmeAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockS6aHandler> s6a_handler;
   std::shared_ptr<MockSpgwHandler> spgw_handler;
   std::shared_ptr<MockService303Handler> service303_handler;
+  const uint8_t nas_msg_imsi_attach_req[31] = {
+      0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40,
+      0x08, 0x04, 0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
+  const uint8_t nas_msg_guti_attach_req[34] = {
+      0x07, 0x41, 0x71, 0x0b, 0xf6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02, 0x01, 0xd0, 0x11,
+      0x40, 0x08, 0x04, 0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
+  const uint8_t nas_msg_auth_resp[19] = {
+      0x07, 0x53, 0x10, 0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93, 0xf1,
+      0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  const uint8_t nas_msg_smc_resp[19] = {
+      0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07, 0x5e, 0x23, 0x09,
+      0x33, 0x08, 0x45, 0x86, 0x34, 0x12, 0x31, 0x71, 0xf2};
+  const uint8_t nas_msg_ident_resp[11]  = {0x07, 0x56, 0x08, 0x09, 0x10, 0x10,
+                                          0x00, 0x00, 0x00, 0x00, 0x10};
+  const uint8_t nas_msg_attach_comp[13] = {0x27, 0xb6, 0x28, 0x5a, 0x49,
+                                           0x01, 0x07, 0x43, 0x00, 0x03,
+                                           0x52, 0x00, 0xc2};
+  const uint8_t nas_msg_detach_req[21]  = {
+      0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07, 0x45, 0x09, 0x0b, 0xf6,
+      0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
 };
 
 TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
@@ -173,29 +195,18 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  uint8_t nas_msg[]       = {0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00,
-                       0x00, 0x00, 0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00,
-                       0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04,
-                       0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
-  uint32_t nas_msg_length = 31;
-  send_mme_app_initial_ue_msg(&nas_msg[0], nas_msg_length, plmn);
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi);
 
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  uint8_t nas_msg2[] = {0x07, 0x53, 0x10, 0x66, 0xff, 0x47, 0x2d,
-                        0xd4, 0x93, 0xf1, 0x5a, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00};
-  nas_msg_length     = 19;
-  send_mme_app_uplink_data_ind(&nas_msg2[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
 
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  uint8_t nas_msg3[] = {0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07,
-                        0x5e, 0x23, 0x09, 0x33, 0x08, 0x45, 0x86,
-                        0x34, 0x12, 0x31, 0x71, 0xf2};
-  nas_msg_length     = 19;
-  send_mme_app_uplink_data_ind(&nas_msg3[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi);
@@ -212,10 +223,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  uint8_t nas_msg4[] = {0x27, 0xb6, 0x28, 0x5a, 0x49, 0x01, 0x07,
-                        0x43, 0x00, 0x03, 0x52, 0x00, 0xc2};
-  nas_msg_length     = 13;
-  send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
 
   // Check MME state after attach complete
   send_activate_message_to_mme_app();
@@ -229,11 +238,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  uint8_t nas_msg5[] = {0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07,
-                        0x45, 0x09, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                        0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
-  nas_msg_length     = 21;
-  send_mme_app_uplink_data_ind(&nas_msg5[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -280,35 +286,23 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  uint8_t nas_msg0[] = {0x07, 0x41, 0x71, 0x0b, 0xf6, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xe0, 0xe0,
-                        0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04,
-                        0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
-  uint32_t nas_msg_length = 34;
-  send_mme_app_initial_ue_msg(&nas_msg0[0], nas_msg_length, plmn);
+  send_mme_app_initial_ue_msg(
+      nas_msg_guti_attach_req, sizeof(nas_msg_guti_attach_req), plmn);
 
   // Constructing and sending Identity Response to mme_app mimicing S1AP
-  uint8_t nas_msg1[] = {0x07, 0x56, 0x08, 0x09, 0x10, 0x10,
-                        0x00, 0x00, 0x00, 0x00, 0x10};
-  nas_msg_length     = 11;
-  send_mme_app_uplink_data_ind(&nas_msg1[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_ident_resp, sizeof(nas_msg_ident_resp), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi);
 
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  uint8_t nas_msg2[] = {0x07, 0x53, 0x10, 0x66, 0xff, 0x47, 0x2d,
-                        0xd4, 0x93, 0xf1, 0x5a, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00};
-  nas_msg_length     = 19;
-  send_mme_app_uplink_data_ind(&nas_msg2[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
 
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  uint8_t nas_msg3[] = {0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07,
-                        0x5e, 0x23, 0x09, 0x33, 0x08, 0x45, 0x86,
-                        0x34, 0x12, 0x31, 0x71, 0xf2};
-  nas_msg_length     = 19;
-  send_mme_app_uplink_data_ind(&nas_msg3[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi);
@@ -325,10 +319,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  uint8_t nas_msg4[] = {0x27, 0xb6, 0x28, 0x5a, 0x49, 0x01, 0x07,
-                        0x43, 0x00, 0x03, 0x52, 0x00, 0xc2};
-  nas_msg_length     = 13;
-  send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
 
   // Check MME state after attach complete
   send_activate_message_to_mme_app();
@@ -342,11 +334,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  uint8_t nas_msg5[] = {0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07,
-                        0x45, 0x09, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                        0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
-  nas_msg_length     = 21;
-  send_mme_app_uplink_data_ind(&nas_msg5[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
