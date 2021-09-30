@@ -107,11 +107,16 @@ jobs:
              } // end of switch case
             } // end of for loop
 
-            let uniqLbls = Array.from(lbls);
+            if( lbls.size == 0 )  {
+              console.log("No components changed in this PR");
+            }
+            else  {
+              let uniqLbls = Array.from(lbls);
 
-            github.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: uniqLbls,
-            })
+              github.issues.setLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: uniqLbls,
+              });
+            }
