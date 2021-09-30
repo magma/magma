@@ -433,8 +433,8 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		for _, sub := range allSubs {
 			apns := funk.
 				Chain(sub.Associations).
-				Filter(func(tk storage.TypeAndKey) bool { return tk.Type == apnEntType }).
-				Map(func(tk storage.TypeAndKey) string { return tk.Key }).
+				Filter(func(tk storage.TK) bool { return tk.Type == apnEntType }).
+				Map(func(tk storage.TK) string { return tk.Key }).
 				Value().([]string)
 
 			if len(apns) == 0 {

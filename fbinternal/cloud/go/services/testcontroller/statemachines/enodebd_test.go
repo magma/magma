@@ -813,7 +813,7 @@ func RegisterAGW(t *testing.T) {
 			Key:          "g1",
 			Config:       &models2.MagmadGatewayConfigs{},
 			PhysicalID:   "hw1",
-			Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 		},
 		{
 			Type:       lte.CellularEnodebEntityType,

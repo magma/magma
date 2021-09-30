@@ -110,10 +110,10 @@ func (m *BaseNameRecord) GetAssocs() storage.TKs {
 	return m.RuleNames.ToTKs()
 }
 
-func (m *BaseNameRecord) GetParentAssocs() []storage.TypeAndKey {
+func (m *BaseNameRecord) GetParentAssocs() storage.TKs {
 	var parents storage.TKs
 	for _, sid := range m.AssignedSubscribers {
-		parents = append(parents, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		parents = append(parents, storage.TK{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
 	return parents
 }
@@ -158,17 +158,17 @@ func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria 
 }
 
 func (m *PolicyRule) GetParentAssocs() storage.TKs {
-	var parents []storage.TypeAndKey
+	var parents storage.TKs
 	for _, sid := range m.AssignedSubscribers {
-		parents = append(parents, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		parents = append(parents, storage.TK{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
 	return parents
 }
 
 func (m *PolicyRule) GetAssocs() storage.TKs {
-	var children []storage.TypeAndKey
+	var children storage.TKs
 	if m.QosProfile != "" {
-		children = append(children, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
+		children = append(children, storage.TK{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
 	}
 	return children
 }
@@ -211,10 +211,10 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	return m
 }
 
-func (m PolicyIdsByApn) ToTKs(subscriberID string) []storage.TypeAndKey {
-	var tks []storage.TypeAndKey
+func (m PolicyIdsByApn) ToTKs(subscriberID string) storage.TKs {
+	var tks storage.TKs
 	for apnName := range m {
-		tks = append(tks, storage.TypeAndKey{Type: lte.APNPolicyProfileEntityType, Key: makeAPNPolicyKey(subscriberID, apnName)})
+		tks = append(tks, storage.TK{Type: lte.APNPolicyProfileEntityType, Key: makeAPNPolicyKey(subscriberID, apnName)})
 	}
 	return tks
 }
@@ -244,11 +244,11 @@ func makeAPNPolicyKey(subscriberID, apnName string) string {
 	return subscriberID + magicNamespaceSeparator + apnName
 }
 
-func getAPNPolicyAssocs(apnName string, policyIDs PolicyIds) []storage.TypeAndKey {
-	var assocs []storage.TypeAndKey
-	assocs = append(assocs, storage.TypeAndKey{Type: lte.APNEntityType, Key: apnName})
+func getAPNPolicyAssocs(apnName string, policyIDs PolicyIds) storage.TKs {
+	var assocs storage.TKs
+	assocs = append(assocs, storage.TK{Type: lte.APNEntityType, Key: apnName})
 	for _, policyID := range policyIDs {
-		assocs = append(assocs, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+		assocs = append(assocs, storage.TK{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
 	}
 	return assocs
 }
@@ -471,18 +471,18 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 	return proto
 }
 
-func (m PolicyIds) ToTKs() []storage.TypeAndKey {
-	var tks []storage.TypeAndKey
+func (m PolicyIds) ToTKs() storage.TKs {
+	var tks storage.TKs
 	for _, policyID := range m {
-		tks = append(tks, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+		tks = append(tks, storage.TK{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
 	}
 	return tks
 }
 
-func (m BaseNames) ToTKs() []storage.TypeAndKey {
-	var tks []storage.TypeAndKey
+func (m BaseNames) ToTKs() storage.TKs {
+	var tks storage.TKs
 	for _, baseName := range m {
-		tks = append(tks, storage.TypeAndKey{Type: lte.BaseNameEntityType, Key: string(baseName)})
+		tks = append(tks, storage.TK{Type: lte.BaseNameEntityType, Key: string(baseName)})
 	}
 	return tks
 }

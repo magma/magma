@@ -206,7 +206,7 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnCreate() []configurator.
 		configurator.EntityUpdateCriteria{
 			Type:              orc8r.MagmadGatewayType,
 			Key:               string(m.ID),
-			AssociationsToAdd: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}},
+			AssociationsToAdd: storage.TKs{{Type: feg.FegGatewayType, Key: string(m.ID)}},
 		},
 	}
 }
@@ -220,12 +220,12 @@ func (m *MutableFederationGateway) GetAdditionalLoadsOnLoad(gateway configurator
 }
 
 func (m *MutableFederationGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
-	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}}
+	return storage.TKs{{Type: feg.FegGatewayType, Key: string(m.ID)}}
 }
 
-func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TK]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var ret []configurator.EntityWriteOperation
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: string(m.ID)}]
+	existingEnt, ok := loadedEntities[storage.TK{Type: feg.FegGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}

@@ -79,7 +79,7 @@ type MagmadEncompassingGateway interface {
 	// during an update.
 	// The writes are performed in the same backend transaction with the update
 	// of the Magmad gateway.
-	GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error)
+	GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TK]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error)
 }
 
 // MakeTypedGateways is passed the loaded ents and additional objects,
@@ -216,7 +216,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 	writes = append(writes, configurator.EntityUpdateCriteria{
 		Type:              orc8r.UpgradeTierEntityType,
 		Key:               string(mdGateway.Tier),
-		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(mdGateway.ID)}},
+		AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(mdGateway.ID)}},
 	})
 	// These type switches aren't great but it's the best I could think of
 	switch payload.(type) {
@@ -306,7 +306,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	var entsToLoad []storage.TypeAndKey
+	var entsToLoad storage.TKs
 	entsToLoad = append(entsToLoad, mdGateway.GetAdditionalLoadsOnUpdate()...)
 	switch payload.(type) {
 	case *models.MagmadGateway:
@@ -398,7 +398,7 @@ func DeleteMagmadGateway(ctx context.Context, networkID, gatewayID string, addit
 	}
 
 	var deletes storage.TKs
-	deletes = append(deletes, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: gatewayID})
+	deletes = append(deletes, storage.TK{Type: orc8r.MagmadGatewayType, Key: gatewayID})
 	deletes = append(deletes, additionalDeletes...)
 
 	err = configurator.DeleteEntities(ctx, networkID, deletes)

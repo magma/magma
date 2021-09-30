@@ -208,7 +208,7 @@ func (l *syncStore) GetLastResync(network string, gateway string) (int64, error)
 	}
 	defer store.Rollback()
 
-	blob, err := store.Get(network, storage.TypeAndKey{Type: lastResyncBlobstoreType, Key: gateway})
+	blob, err := store.Get(network, storage.TK{Type: lastResyncBlobstoreType, Key: gateway})
 	if err == merrors.ErrNotFound {
 		// If this gw has never been resynced, return 0 to enforce first resync
 		return int64(0), nil

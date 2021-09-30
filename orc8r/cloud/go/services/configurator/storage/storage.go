@@ -131,11 +131,11 @@ const internalNetworkDescription = "Internal network to hold non-network entitie
 // FullNetworkLoadCriteria is a utility variable to specify a full network load
 var FullNetworkLoadCriteria = NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}
 
-func (m *EntityID) ToTypeAndKey() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
+func (m *EntityID) ToTypeAndKey() storage.TK {
+	return storage.TK{Type: m.Type, Key: m.Key}
 }
 
-func (m *EntityID) FromTypeAndKey(tk storage.TypeAndKey) *EntityID {
+func (m *EntityID) FromTypeAndKey(tk storage.TK) *EntityID {
 	m.Type = tk.Type
 	m.Key = tk.Key
 	return m
@@ -157,13 +157,13 @@ func (m *NetworkEntity) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (m *NetworkEntity) GetTypeAndKey() storage.TypeAndKey {
+func (m *NetworkEntity) GetTypeAndKey() storage.TK {
 	return m.GetID().ToTypeAndKey()
 }
 
 func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
 	myID := m.GetID()
-	existingAssocs := map[storage.TypeAndKey]bool{}
+	existingAssocs := map[storage.TK]bool{}
 
 	edges := make([]*GraphEdge, 0, len(m.Associations))
 	for _, assoc := range m.Associations {
@@ -179,7 +179,7 @@ func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
 
 type EntitiesByPK map[string]*NetworkEntity
 
-type EntitiesByTK map[storage.TypeAndKey]*NetworkEntity
+type EntitiesByTK map[storage.TK]*NetworkEntity
 
 func (e EntitiesByTK) ByPK() EntitiesByPK {
 	byPK := make(map[string]*NetworkEntity, len(e))
@@ -223,8 +223,8 @@ func (m *EntityUpdateCriteria) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
+func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TK {
+	return storage.TK{Type: m.Type, Key: m.Key}
 }
 
 func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {

@@ -514,9 +514,9 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	// If we were given duplicate edges, get rid of those
 	if funk.NotEmpty(createdEnt.Associations) {
 		createdEnt.Associations = funk.Chain(createdEnt.Associations).
-			Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
+			Map(func(id *EntityID) storage.TK { return id.ToTypeAndKey() }).
 			Uniq().
-			Map(func(tk storage.TypeAndKey) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
+			Map(func(tk storage.TK) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
 			Value().([]*EntityID)
 	}
 

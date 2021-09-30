@@ -131,7 +131,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, createdTypedLteNetworks, networks)
 
 	// Test Basic Entity Interface
-	entityID1 := storage.TypeAndKey{Type: "foo", Key: "bar"}
+	entityID1 := storage.TK{Type: "foo", Key: "bar"}
 	entity1 := configurator.NetworkEntity{
 		Type:        "foo",
 		Key:         "bar",
@@ -140,7 +140,7 @@ func TestConfiguratorService(t *testing.T) {
 		PhysicalID:  "1234",
 		Config:      "hello",
 	}
-	entityID2 := storage.TypeAndKey{Type: "foo", Key: "boo"}
+	entityID2 := storage.TK{Type: "foo", Key: "boo"}
 	entity2 := configurator.NetworkEntity{
 		Type:        "foo",
 		Key:         "boo",
@@ -160,7 +160,7 @@ func TestConfiguratorService(t *testing.T) {
 	_, err = configurator.CreateEntities(context.Background(), networkID1, []configurator.NetworkEntity{entity1, entity2}, entitySerdes)
 	assert.NoError(t, err)
 
-	entities, entitiesNotFound, err := configurator.LoadEntities(context.Background(), networkID1, nil, nil, nil, []storage.TypeAndKey{entityID1, entityID2}, fullEntityLoad, entitySerdes)
+	entities, entitiesNotFound, err := configurator.LoadEntities(context.Background(), networkID1, nil, nil, nil, storage.TKs{entityID1, entityID2}, fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, 0, len(entitiesNotFound))
@@ -196,7 +196,7 @@ func TestConfiguratorService(t *testing.T) {
 		Type:              entityID1.Type,
 		Key:               entityID1.Key,
 		NewPhysicalID:     &newPhysID,
-		AssociationsToAdd: []storage.TypeAndKey{entityID2},
+		AssociationsToAdd: storage.TKs{entityID2},
 	}
 
 	_, err = configurator.UpdateEntities(context.Background(), networkID1, []configurator.EntityUpdateCriteria{entityUpdateCriteria}, entitySerdes)
@@ -220,7 +220,7 @@ func TestConfiguratorService(t *testing.T) {
 		configurator.NetworkEntity{Type: "foo", Key: "baz"},
 		configurator.EntityUpdateCriteria{
 			Type: entityID2.Type, Key: entityID2.Key,
-			AssociationsToAdd: []storage.TypeAndKey{{Type: "foo", Key: "baz"}},
+			AssociationsToAdd: storage.TKs{{Type: "foo", Key: "baz"}},
 		},
 	}, entitySerdes)
 	assert.NoError(t, err)
@@ -234,13 +234,13 @@ func TestConfiguratorService(t *testing.T) {
 			PhysicalID:   "4321",
 			Config:       "hello",
 			GraphID:      "2",
-			Associations: []storage.TypeAndKey{entityID2},
+			Associations: storage.TKs{entityID2},
 			Version:      2,
 		},
 		{
 			NetworkID: networkID1, Type: "foo", Key: "baz",
 			GraphID:            "2",
-			ParentAssociations: []storage.TypeAndKey{entityID2},
+			ParentAssociations: storage.TKs{entityID2},
 		},
 		{
 			NetworkID: networkID1, Type: entityID2.Type, Key: entityID2.Key,
@@ -248,15 +248,15 @@ func TestConfiguratorService(t *testing.T) {
 			PhysicalID:         "5678",
 			Config:             "bye",
 			GraphID:            "2",
-			Associations:       []storage.TypeAndKey{{Type: "foo", Key: "baz"}},
-			ParentAssociations: []storage.TypeAndKey{entityID1},
+			Associations:       storage.TKs{{Type: "foo", Key: "baz"}},
+			ParentAssociations: storage.TKs{entityID1},
 			Version:            1,
 		},
 	}
 	assert.Equal(t, expected, entities)
 
 	// Delete, Load
-	err = configurator.DeleteEntities(context.Background(), networkID1, []storage.TypeAndKey{entityID2})
+	err = configurator.DeleteEntities(context.Background(), networkID1, storage.TKs{entityID2})
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(context.Background(), networkID1, strPointer("foo"), nil, nil, nil, fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)

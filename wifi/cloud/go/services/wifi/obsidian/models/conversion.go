@@ -116,7 +116,7 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnCreate() []configurator.Entity
 		configurator.EntityUpdateCriteria{
 			Type:              orc8r.MagmadGatewayType,
 			Key:               string(m.ID),
-			AssociationsToAdd: []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}},
+			AssociationsToAdd: storage.TKs{{Type: wifi.WifiGatewayType, Key: string(m.ID)}},
 		},
 	}
 	for _, meshUpdate := range GetMeshUpdates(string(m.ID), "", m.Wifi.MeshID) {
@@ -134,12 +134,12 @@ func (m *MutableWifiGateway) GetAdditionalLoadsOnLoad(gateway configurator.Netwo
 }
 
 func (m *MutableWifiGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
-	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
+	return storage.TKs{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
 }
 
-func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TK]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var ret []configurator.EntityWriteOperation
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: wifi.WifiGatewayType, Key: string(m.ID)}]
+	existingEnt, ok := loadedEntities[storage.TK{Type: wifi.WifiGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -223,9 +223,9 @@ func (m *WifiMesh) FromBackendModels(ent configurator.NetworkEntity) *WifiMesh {
 func (m *WifiMesh) ToUpdateCriteria() []configurator.EntityUpdateCriteria {
 	// TODO: update gateway mesh id if it is added or deleted here. For now,
 	// don't allow gatewayids to be updated (this logic is in handlers.go)
-	gwIds := []storage.TypeAndKey{}
+	gwIds := storage.TKs{}
 	for _, gwId := range m.GatewayIds {
-		gwIds = append(gwIds, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(gwId)})
+		gwIds = append(gwIds, storage.TK{Type: orc8r.MagmadGatewayType, Key: string(gwId)})
 	}
 	return []configurator.EntityUpdateCriteria{
 		{

@@ -69,22 +69,22 @@ func TestBuilder_Build(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultEnodebConfig(),
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
@@ -315,14 +315,14 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newGatewayConfigNonNat("", "", ""),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
@@ -481,7 +481,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newGatewayConfigNonNat("30", "", ""),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
@@ -513,7 +513,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newGatewayConfigNonNat("44", "1.2.3.4", ""),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
@@ -546,7 +546,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1"),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
@@ -589,7 +589,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -607,7 +607,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 
 	graph := configurator.EntityGraph{
@@ -727,7 +727,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -736,7 +736,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 
 	graph := configurator.EntityGraph{
@@ -810,7 +810,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -828,7 +828,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 
 	graph := configurator.EntityGraph{
@@ -960,17 +960,17 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
@@ -982,7 +982,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 				TransmitEnabled: swag.Bool(true),
 			},
 		},
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
@@ -1107,22 +1107,22 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultUnmanagedEnodebConfig(),
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
@@ -1241,22 +1241,22 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultUnmanagedEnodebConfig(),
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
@@ -1381,7 +1381,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -1402,10 +1402,10 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             lteGatewayConfigs,
-		Associations:       []storage.TypeAndKey{},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey(), lteGatewayPool.GetTypeAndKey()},
+		Associations:       storage.TKs{},
+		ParentAssociations: storage.TKs{gw.GetTypeAndKey(), lteGatewayPool.GetTypeAndKey()},
 	}
-	lteGatewayPool.Associations = []storage.TypeAndKey{lteGW.GetTypeAndKey()}
+	lteGatewayPool.Associations = storage.TKs{lteGW.GetTypeAndKey()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGatewayPool, lteGW, gw},

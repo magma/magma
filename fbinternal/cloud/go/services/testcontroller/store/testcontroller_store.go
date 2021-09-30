@@ -159,7 +159,7 @@ func (s *TestControllerStore) isMinimumWaitTimeElapsed(timestamp int64, minimumW
 }
 
 func (s *TestControllerStore) get(networkID string) (string, int64, error) {
-	typeAndKey := storage.TypeAndKey{
+	typeAndKey := storage.TK{
 		Type: DBType,
 		Key:  "gateway_version",
 	}
@@ -193,7 +193,7 @@ func (s *TestControllerStore) put(networkID string, version string, timestamp in
 }
 
 func (s *TestControllerStore) incrementVersion(networkID string) error {
-	typeAndKey := storage.TypeAndKey{
+	typeAndKey := storage.TK{
 		Type: DBType,
 		Key:  "gateway_version",
 	}

@@ -989,7 +989,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 
 			assocs := []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}}
 			assocsWithDuplicate := []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}, {Type: "bar", Key: "baz"}}
-			edgesByTk := map[orc8r_storage.TypeAndKey]expectedEntQueryResult{
+			edgesByTk := map[orc8r_storage.TK]expectedEntQueryResult{
 				{Type: "bar", Key: "baz"}: {"bar", "baz", "42", "", "1", 1},
 				{Type: "baz", Key: "quz"}: {"baz", "quz", "43", "", "3", 2},
 			}
@@ -1256,7 +1256,7 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			expectEdgeQueries(
 				m,
 				[]*storage.EntityID{{Type: "quz", Key: "baz"}, {Type: "baz", Key: "bar"}},
-				map[orc8r_storage.TypeAndKey]expectedEntQueryResult{
+				map[orc8r_storage.TK]expectedEntQueryResult{
 					{Type: "quz", Key: "baz"}: getBasicQueryExpect("quz", "baz"),
 					{Type: "baz", Key: "bar"}: getBasicQueryExpect("baz", "bar"),
 				},
@@ -1666,10 +1666,10 @@ func getTestCaseForEntityUpdate(
 
 	edgeLoadsByTk := funk.Map(
 		expectedEdgeLoads,
-		func(e expectedEntQueryResult) (orc8r_storage.TypeAndKey, expectedEntQueryResult) {
-			return orc8r_storage.TypeAndKey{Type: e.entType, Key: e.key}, e
+		func(e expectedEntQueryResult) (orc8r_storage.TK, expectedEntQueryResult) {
+			return orc8r_storage.TK{Type: e.entType, Key: e.key}, e
 		},
-	).(map[orc8r_storage.TypeAndKey]expectedEntQueryResult)
+	).(map[orc8r_storage.TK]expectedEntQueryResult)
 
 	if !funk.IsEmpty(update.AssociationsToAdd) {
 		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
@@ -1812,7 +1812,7 @@ func expectMergeGraphs(m sqlmock.Sqlmock, graphIDChanges [][2]string) {
 	}
 }
 
-func expectEdgeQueries(m sqlmock.Sqlmock, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TypeAndKey]expectedEntQueryResult) {
+func expectEdgeQueries(m sqlmock.Sqlmock, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TK]expectedEntQueryResult) {
 	expectedLoads := funk.Map(
 		assocs,
 		func(id *storage.EntityID) expectedEntQueryResult { return edgeLoadsByTk[id.ToTypeAndKey()] },
@@ -1841,7 +1841,7 @@ func getBasicQueryExpect(entType string, entKey string) expectedEntQueryResult {
 	return expectedEntQueryResult{entType, entKey, entType + entKey, "", "g1", 0}
 }
 
-func assocsToEdges(entPk string, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TypeAndKey]expectedEntQueryResult) [][2]string {
+func assocsToEdges(entPk string, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TK]expectedEntQueryResult) [][2]string {
 	return funk.Map(
 		assocs,
 		func(id *storage.EntityID) [2]string {
