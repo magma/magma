@@ -17,8 +17,8 @@ limitations under the License.
 #include "M5GMaxNumOfSupportedPacketFilters.h"
 
 namespace magma5g {
-M5GMaxNumOfSupportedPacketFilters::M5GMaxNumOfSupportedPacketFilters(){};
-M5GMaxNumOfSupportedPacketFilters::~M5GMaxNumOfSupportedPacketFilters(){};
+M5GMaxNumOfSupportedPacketFilters::M5GMaxNumOfSupportedPacketFilters() {}
+M5GMaxNumOfSupportedPacketFilters::~M5GMaxNumOfSupportedPacketFilters() {}
 
 int M5GMaxNumOfSupportedPacketFilters::EncodeMaxNumOfSupportedPacketFilters(
     M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
