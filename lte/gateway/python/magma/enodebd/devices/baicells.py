@@ -61,6 +61,7 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
     def reboot_asap(self) -> None:
         self.transition('reboot')
 
+
     def is_enodeb_connected(self) -> bool:
         return not isinstance(self.state, WaitInformState)
 

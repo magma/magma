@@ -211,6 +211,13 @@ class EnodebAcsStateMachine(ABC):
         """
         pass
 
+    def factory_reset_asap(self) -> None:
+        """
+        Impl to send a request to factoryRest the eNodeB ASAP
+        The eNB will factory reset from this method.
+        """
+        self.transition('factory_reset')
+
     @abstractmethod
     def is_enodeb_connected(self) -> bool:
         pass

@@ -2460,6 +2460,45 @@ definitions:
           - 'NuRAN Cavium OC-LTE'
           - 'FreedomFi One'
         x-nullable: false
+      x2_enable_disable:
+        description: X2 status.
+        type: boolean
+        example: false
+        default: false
+      power_control:
+        $ref: '#/definitions/power_control'
+
+  power_control:
+    description: Config power control for enodeB.
+    type: object
+    properties:
+      reference_signal_power:
+        description: specified in dBm, with a numeric range between -60 and 50 inclusive.
+        type: integer
+        format: int32
+        minimum: -60
+        maximum: 50
+        example: 30
+      pa:
+        description: the value from -600, -477, -300, -177, 0, 100, 200, or 300.
+        type: integer
+        format: int32
+        example: 0
+      pb:
+        description: the parameter pb will set from 0,1,2,3
+        type: integer
+        format: uint32
+        example: 0
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+      power_class:
+        description: the power level.
+        type: integer
+        format: uint32
+        example: 20
 
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.
