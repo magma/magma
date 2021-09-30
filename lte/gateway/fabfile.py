@@ -464,6 +464,16 @@ def load_test(gateway_host=None, destroy_vm=True):
 
 
 def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='False'):
+    """
+    Build Magma AGW and starts magma
+    Args:
+        gateway_host: name of host in case is not Vagrant
+        destroy_vm: if set to True it will destroy Magma Vagrant VM
+        provision_vm: if set to true it will reprovision Magma VM
+
+    Returns:
+
+    """
     provision_vm = bool(strtobool(provision_vm))
     destroy_vm = bool(strtobool(destroy_vm))
     if gateway_host:
@@ -499,7 +509,7 @@ def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
     if not test_host:
-        vagrant_setup('magma_trfserver', destroy_vm, force_provision=provision_vm)
+        vagrant_setup('magma', destroy_vm, force_provision=provision_vm)
     else:
         ansible_setup(test_host, "test", "magma_test.yml")
     sudo('service magma@magmad start')
@@ -527,7 +537,9 @@ def _dist_upgrade():
 
 
 def _build_magma():
-    """ Builds ma_build_magmagma """
+    """
+    Build magma on AGW
+    """
     with cd(AGW_ROOT):
         run('make')
 
@@ -576,22 +588,22 @@ def _start_trfserver():
         ' sh -c "sudo ethtool --offload eth1 rx off tx off; '
         '";'
         % (key, host, port),
-        )
+    )
     local(
         'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
         ' sh -c "sudo ethtool --offload eth2 rx off tx off; '
         'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
         % (key, host, port),
-        )
+    )
     local(
         'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
         ' sh -c "'
         'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
         % (key, host, port),
-        )
-    #local(
+    )
+    # local(
     #    'stty cbreak'
     #    )
 

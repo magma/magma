@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
+import subprocess
 import sys
 from typing import Any, List
 
@@ -27,6 +27,8 @@ NIDS_BY_TYPE = {
     LTE_NETWORK_TYPE: 'test',
     FEG_LTE_NETWORK_TYPE: 'feg_lte_test',
 }
+
+FEG_FAB_PATH = '../../feg/gateway/'
 
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -102,21 +104,37 @@ def register_federated_vm():
 
 
 def deregister_agw():
-    dev_utils.delete_agw_certs('magma')
+    """
+    Remove AGW gateway from orc8r and remove certs from FEG gateway
+    """
+    dev_utils.delete_gateway_certs_from_vagrant('magma')
     _deregister_agw(LTE_NETWORK_TYPE)
 
 
 def deregister_federated_agw():
-    dev_utils.delete_agw_certs('magma')
+    """
+    Remove AGW gateway from orc8r and remove certs from FEG gateway
+    """
+    dev_utils.delete_gateway_certs_from_vagrant('magma')
     _deregister_agw(FEG_LTE_NETWORK_TYPE)
 
 
-def register_feg_on_magma_vm():
-    os.system('fab -f ../../feg/gateway/fabfile.py register_feg')
+def register_feg_gw():
+    """
+    Registers FEG AGW gateway on orc8r
+    """
+    subprocess.check_call(
+        'fab register_feg_gw', shell=True, cwd=FEG_FAB_PATH,
+    )
 
 
-def deregister_feg_gw_on_magma_vm():
-    os.system('fab -f ../../feg/gateway/fabfile.py deregister_feg_gw:magma')
+def deregister_feg_gw():
+    """
+    Remove FEG gateway from orc8r and remove certs from FEG gateway
+    """
+    subprocess.check_call(
+        'fab deregister_feg_gw', shell=True, cwd=FEG_FAB_PATH,
+    )
 
 
 def _register_network(network_type: str, payload: Any):
@@ -129,7 +147,7 @@ def _register_network(network_type: str, payload: Any):
 
 def _register_agw(network_type: str):
     network_id = NIDS_BY_TYPE[network_type]
-    hw_id = dev_utils.get_hardware_id_from_vagrant(vm_name='magma')
+    hw_id = dev_utils.get_gateway_hardware_id_from_vagrant(vm_name='magma')
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         network_id, hw_id,
     )
@@ -164,23 +182,23 @@ def _register_agw(network_type: str):
 
 def _deregister_agw(network_type: str):
     network_id = NIDS_BY_TYPE[network_type]
-    hw_id = dev_utils.get_hardware_id_from_vagrant(vm_name='magma')
+    hw_id = dev_utils.get_gateway_hardware_id_from_vagrant(vm_name='magma')
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         network_id, hw_id,
     )
     if not already_registered:
         print()
-        print(f'===========================================')
+        print('===========================================')
         print(f'VM is not registered (hwid: {hw_id} )')
-        print(f'===========================================')
+        print('===========================================')
         return
 
     dev_utils.cloud_delete(f'lte/{network_id}/gateways/{registered_as}')
     print()
-    print(f'=========================================')
+    print('=========================================')
     print(f'AGW Gateway {registered_as} successfully removed!')
     print(f'(restart AGW services on magma vm)')
-    print(f'=========================================')
+    print('=========================================')
 
 
 class NetworkTDDConfig:

@@ -15,26 +15,28 @@ import subprocess
 import sys
 from distutils.util import strtobool
 
-from fabric.api import cd, env, execute, hide, run
+from fabric.api import execute
 
 sys.path.append('../../../../../orc8r')
 
 
 magma_path = "../../../../../"
 orc8_docker_path = magma_path + "orc8r/cloud/docker/"
+agw_path = magma_path + "lte/gateway/"
 feg_path = magma_path + "feg/gateway/"
 feg_docker_path = feg_path + "docker/"
-agw_path = magma_path + "lte/gateway/"
+feg_docker_integ_test_path = agw_path + "python/integ_tests/federated_tests/docker/"
+
 
 vagrant_agw_path = "~/lte/gateway"
 
 
 def build_all(clear_orc8r='False', provision_vm='False'):
-    """ Builds AGW, FEG and Orc8r and starts them
-
+    """
+    Build, start and configure AGW, FEG and Orc8r
+    Args:
         clear_orc8r: removes all contents from orc8r database like gw configs
-
-        force_provision: forces the reprovision of the magma VM
+        provision_vm: forces the reprovision of the magma VM
     """
 
     clear_orc8r = bool(strtobool(clear_orc8r))
@@ -54,48 +56,64 @@ def build_all(clear_orc8r='False', provision_vm='False'):
 
 
 def build_orc8r():
-    """build_orc8r builds orc8r locally on the host VM"""
+    """
+    build orc8r locally on the host VM
+    """
     subprocess.check_call('./build.py -a', shell=True, cwd=orc8_docker_path)
 
 
 def start_orc8r():
+    """
+    start orc8r locally on the host VM
+    """
     subprocess.check_call(['./run.py'], shell=True, cwd=orc8_docker_path)
 
 
 def configure_orc8r():
-    print(f'#### Configuring orc8r ####')
+    """
+    configure orc8r with a federated AGW and FEG
+    """
+    print('#### Configuring orc8r ####')
     subprocess.check_call(
         'fab --fabfile=dev_tools.py register_federated_vm',
         shell=True, cwd=agw_path,
     )
     subprocess.check_call(
-        'fab --fabfile=dev_tools.py register_feg_on_magma_vm', shell=True, cwd=agw_path,
+        'fab register_feg_gw', shell=True, cwd=feg_path,
     )
 
 
-def reconfigure_orc8r():
-    print(f'#### Removing VMs from orc8r ####')
+def clear_gateways():
+    """
+    delete AGW and FEG gateways from orc8r
+    """
+    print('#### Removing federated agw from orc8r and deleting certs ####')
     subprocess.check_call(
-        'fab --fabfile=dev_tools.py deregister_federated_agw', shell=True, cwd=agw_path,
-    )
-    subprocess.check_call(
-        'fab --fabfile=dev_tools.py deregister_feg_gw_on_magma_vm',
+        'fab --fabfile=dev_tools.py deregister_federated_agw',
         shell=True, cwd=agw_path,
     )
-    execute(configure_orc8r)
+    print('#### Removing feg gw from orc8r and deleting certs####')
+    subprocess.check_call('fab deregister_feg_gw', shell=True, cwd=feg_path)
 
 
 def clear_orc8r():
-    print(f'#### Clearing swagger database from Orc8r ####')
-    subprocess.check_call(['./run.py --clear_db'], shell=True, cwd=orc8_docker_path)
+    """
+    delete orc8r database. Requieres orc8r to be stopped
+    """
+    print('#### Clearing swagger database from Orc8r ####')
+    subprocess.check_call(['./run.py --clear-db'], shell=True, cwd=orc8_docker_path)
     print(
-        f'#### Remember you may need to delete '
-        f'gateway certs from the AGW and FEG ####',
+        '#### Remember you may need to delete '
+        'gateway certs from the AGW and FEG ####',
     )
 
 
 def build_agw(provision_vm='False'):
-    print(f'#### Building AGW ####')
+    """build magma on AGW on magma Vagrant VM
+
+       provision_vm: forces the reprovision of the magma VM
+    """
+    print('#### Building AGW ####')
     subprocess.check_call('vagrant up magma', shell=True, cwd=agw_path)
     subprocess.check_call(
         'fab build_and_start_magma:provision_vm=%s'
@@ -103,24 +121,27 @@ def build_agw(provision_vm='False'):
     )
 
 
-def build_feg(provision_vm='False'):
-    print(f'#### Building FEG ####')
+def build_feg():
+    """
+    build FEG on current Host using local docker
+    """
+    print('#### Building FEG ####')
     subprocess.check_call(
         'docker-compose down', shell=True,
-        cwd=feg_docker_path,
+        cwd=feg_docker_integ_test_path,
     )
     subprocess.check_call(
         'docker-compose build', shell=True,
-        cwd=feg_docker_path,
+        cwd=feg_docker_integ_test_path,
     )
     subprocess.check_call(
         'docker-compose up -d', shell=True,
-        cwd=feg_docker_path,
+        cwd=feg_docker_integ_test_path,
     )
 
 
 def build_test_vm(provision_vm='False'):
-    print(f'#### Building test vm ####')
+    print('#### Building test vm ####')
     subprocess.check_call('vagrant up magma_test', shell=True, cwd=agw_path)
     subprocess.check_call(
         'fab make_integ_tests:provision_vm=%s'
@@ -129,7 +150,7 @@ def build_test_vm(provision_vm='False'):
 
 
 def build_magma_trf(provision_vm='False'):
-    print(f'#### Building Traffic vm ####')
+    print('#### Building Traffic vm ####')
     subprocess.check_call('vagrant up magma_trf', shell=True, cwd=agw_path)
     subprocess.check_call(
         'fab build_and_start_magma_trf:provision_vm=%s'
@@ -138,8 +159,13 @@ def build_magma_trf(provision_vm='False'):
 
 
 def start_all(provision_vm='False'):
+    """
+    start AGW, FEG and Orc8r
+    Args:
+        provision_vm: forces the reprovision of the magma VM
+    """
     subprocess.check_call(['./run.py'], shell=True, cwd=orc8_docker_path)
-    subprocess.check_call('docker-compose up', shell=True, cwd=feg_docker_path)
+    subprocess.check_call('docker-compose up -d', shell=True, cwd=feg_docker_integ_test_path)
     subprocess.check_call(
         'fab start_magma:provision_vm=%s' % provision_vm,
         shell=True, cwd=agw_path,
@@ -147,13 +173,16 @@ def start_all(provision_vm='False'):
 
 
 def stop_all():
+    """
+    stop AGW, FEG and Orc8r
+    """
     subprocess.check_call(
         ['./run.py --down'], shell=True,
         cwd=orc8_docker_path,
     )
     subprocess.check_call(
         'docker-compose down', shell=True,
-        cwd=feg_docker_path,
+        cwd=feg_docker_integ_test_path,
     )
     subprocess.check_call(
         'vagrant halt magma', shell=True,

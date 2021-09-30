@@ -12,11 +12,13 @@ limitations under the License.
 """
 
 import json
+import os
+import subprocess
 from typing import Any, Dict
 
 import jsonpickle
 import requests
-from fabric.api import hide, run, settings
+from fabric.api import hide, lcd, local, run, settings
 from fabric.context_managers import cd
 from fabric.operations import sudo
 from tools.fab import types, vagrant
@@ -46,7 +48,7 @@ def register_generic_gateway(
         cloud_post('networks', network_payload, admin_cert=admin_cert)
 
     create_tier_if_not_exists(network_id, 'default')
-    hw_id = get_hardware_id_from_vagrant(vm_name=vm_name)
+    hw_id = get_gateway_hardware_id_from_vagrant(vm_name=vm_name)
     already_registered, registered_as = is_hw_id_registered(network_id, hw_id)
     if already_registered:
         print(f'VM is already registered as {registered_as}')
@@ -180,9 +182,9 @@ def create_tier_if_not_exists(
     )
 
 
-def get_hardware_id_from_vagrant(vm_name: str) -> str:
+def get_gateway_hardware_id_from_vagrant(vm_name: str) -> str:
     """
-    Get the magmad hardware ID from vagrant
+    Get the hardware ID of a gateway running on Vagrant VM
 
     Args:
         vm_name: Name of the vagrant machine to use
@@ -196,56 +198,65 @@ def get_hardware_id_from_vagrant(vm_name: str) -> str:
     return str(hardware_id)
 
 
-def get_hardware_id_from_docker_on_vagrant(vm_name: str) -> str:
+def get_gateway_hardware_id_from_docker(location_docker_compose: str) -> str:
     """
-    Get the magmad hardware ID from magma running on docker from Vagrant
+    Get the hardware ID of a gateway running on Docker
 
     Args:
-        vm_name: Name of the vagrant machine to use
-
+        location_docker_compose: location of docker compose used to run FEG
+        by default feg/gateway/docker
     Returns:
         Hardware snowflake from the VM
     """
-    with hide('output', 'running', 'warnings'), \
-            cd('/home/vagrant/magma/feg/gateway/docker/'):
-        vagrant.setup_env_vagrant(vm_name)
-        hardware_id = run('docker-compose exec magmad bash -c "cat /etc/snowflake"')
+    with lcd('docker'), hide('output', 'running', 'warnings'), \
+            cd(location_docker_compose):
+        hardware_id = local(
+            'docker-compose exec magmad bash -c "cat /etc/snowflake"',
+        capture=True,
+        )
     return str(hardware_id)
 
 
-def delete_agw_certs(vm_name: str):
+def delete_gateway_certs_from_vagrant(vm_name: str):
     """
-    Delete certificates and gw_challenge from AGW
+    Delete certificates and gw_challenge of a gateway running on Vagrant VM
 
     Args:
         vm_name: Name of the vagrant machine to use
-    """
-    _delete_certs(vm_name, '/var/opt/magma/certs')
-
-
-def delete_feg_certs(vm_name: str):
-    """
-    Get the magmad hardware ID from magma running on docker from Vagrant
-
-    Args:
-        vm_name: Name of the vagrant machine to use
-    """
-    _delete_certs(vm_name, '/var/lib/docker/volumes/feg_gwcerts/_data/')
-
-
-def _delete_certs(vm_name: str, location: str):
-    """
-    Delete certificates and gw_challenge from a gateway
-
-    Args:
-        vm_name: Name of the vagrant machine to use
-        location: location of the certs
     """
     with settings(warn_only=True), hide('output', 'running', 'warnings'), \
-            cd(location):
+            cd('/var/opt/magma/certs'):
         vagrant.setup_env_vagrant(vm_name)
         sudo('rm gateway.*')
         sudo('rm gw_challenge.key')
+
+
+def delete_gateway_certs_from_docker(location_docker_compose: str):
+    """
+        Delete certificates and gw_challenge of a gateway running on Docker
+
+    Args:
+        location_docker_compose: location of docker compose used to run FEG
+    """
+    print("delete_feg_certs is running on directory %s" % os.getcwd())
+
+    subprocess.check_call(
+        [
+            'docker-compose exec magmad bash -c '
+            '"rm -f /var/opt/magma/certs/gateway.*"',
+        ],
+        shell=True,
+        cwd=location_docker_compose,
+    )
+
+    subprocess.check_call(
+        [
+            'docker-compose exec magmad bash -c '
+            '"rm -f /var/opt/magma/certs/gw_challenge.key    "',
+        ],
+        shell=True,
+        cwd=location_docker_compose,
+    )
 
 
 def is_hw_id_registered(
@@ -282,7 +293,7 @@ def is_hw_id_registered(
 
 def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
     """
-    Setup the gateway VM to connect to the cloud
+    Setup the gateway Vagrant VM to connect to the cloud
     Path to control_proxy.yml and rootCA.pem could be specified to use
     non-default control proxy setting and certificates
     """

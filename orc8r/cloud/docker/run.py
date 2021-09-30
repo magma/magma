@@ -54,7 +54,7 @@ def main() -> None:
         try:
             cmd = ['docker-compose', 'down']
             subprocess.run(cmd, check=True)
-            cmd = ['docker', 'volume', 'rm', '-f', 'orc8r_pgdata']
+            cmd = ['docker', 'volume', 'rm', '--force', 'orc8r_pgdata']
             subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as err:
             exit(err.returncode)
@@ -138,9 +138,9 @@ def _parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        '--clear_db', '-b',
+        '--clear-db',
         action='store_true',
-        help='Clear contents of pgdata database (swagger api)',
+        help='Clear all content on the database',
     )
 
     args = parser.parse_args()

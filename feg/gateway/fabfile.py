@@ -22,18 +22,31 @@ import tools.fab.types as types
 
 SNOWFLAKE_FEG_FILE = '../../.cache/feg/snowflake'
 NETWORK_ID = 'feg_test'
+FEG_DOCKER_LOCATION = 'docker/'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def register_feg():
+def register_feg_gw(location_docker_compose: str = FEG_DOCKER_LOCATION):
+    """
+    Add FEG gateway to orc8r
+    Args:
+        location_docker_compose: location of docker compose. Default set to
+        FEG_DOCKER_LOCATION
+    """
     _register_federation_network()
-    _register_feg()
+    _register_feg(location_docker_compose)
 
 
-def deregister_feg_gw(vm_name='feg'):
-    dev_utils.delete_feg_certs(vm_name)
-    _deregister_feg_gw(vm_name)
+def deregister_feg_gw(location_docker_compose: str = FEG_DOCKER_LOCATION):
+    """
+    Remove FEG gateway from orc8r and remove certs from FEG gateway
+    Args:
+        location_docker_compose: location of docker compose. Default set to
+        FEG_DOCKER_LOCATION
+    """
+    _deregister_feg_gw(location_docker_compose)
+    dev_utils.delete_gateway_certs_from_docker(location_docker_compose)
 
 
 class RadiusConfig:
@@ -225,7 +238,7 @@ class HssConfigs:
 class S6aConfigs:
     def __init__(
         self,
-        plmn_ids: List[str] = [],
+        plmn_ids: List[str] = list(),
         server: DiamServerConfig = DiamServerConfig(),
     ):
         if plmn_ids is None:
@@ -340,22 +353,23 @@ def _register_federation_network(payload: FederationNetwork = FederationNetwork(
     dev_utils.create_tier_if_not_exists(nid, 'default')
 
 
-def _register_feg():
-
+def _register_feg(location_docker_compose: str):
     with open(SNOWFLAKE_FEG_FILE) as f:
         hw_id = f.read().rstrip('\n')
     if not hw_id:
         print(f'Could not open test feg snowflake {SNOWFLAKE_FEG_FILE}')
-        hw_id = dev_utils.get_hardware_id_from_docker_on_vagrant(vm_name='feg')
+        hw_id = dev_utils.get_gateway_hardware_id_from_docker(
+            location_docker_compose=location_docker_compose,
+        )
 
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         NETWORK_ID, hw_id,
     )
     if already_registered:
         print()
-        print(f'============================================')
+        print('============================================')
         print(f'Feg is already registered as {registered_as}')
-        print(f'============================================')
+        print('============================================')
         return
 
     gw_id = dev_utils.get_next_available_gateway_id(NETWORK_ID)
@@ -400,17 +414,19 @@ def _register_feg():
     )
     dev_utils.cloud_post(f'feg/{NETWORK_ID}/gateways', gw_payload)
     print()
-    print(f'=====================================')
+    print('=====================================')
     print(f'Feg {gw_id} successfully provisioned!')
-    print(f'=====================================')
+    print('=====================================')
 
 
-def _deregister_feg_gw(vm_name: str):
+def _deregister_feg_gw(location_docker_compose: str):
     with open(SNOWFLAKE_FEG_FILE) as f:
         hw_id = f.read().rstrip('\n')
     if not hw_id:
         print(f'Could not open test feg snowflake {SNOWFLAKE_FEG_FILE}')
-        hw_id = dev_utils.get_hardware_id_from_docker_on_vagrant(vm_name=vm_name)
+        hw_id = dev_utils.get_gateway_hardware_id_from_docker(
+            location_docker_compose=location_docker_compose,
+        )
 
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         NETWORK_ID, hw_id,
@@ -418,14 +434,13 @@ def _deregister_feg_gw(vm_name: str):
 
     if not already_registered:
         print()
-        print(f'===========================================')
-        print(f'VM is not registered')
-        print(f'===========================================')
+        print('===========================================')
+        print('VM is not registered')
+        print('===========================================')
         return
 
     dev_utils.cloud_delete(f'feg/{NETWORK_ID}/gateways/{registered_as}')
     print()
-    print(f'=========================================')
+    print('=========================================')
     print(f'Feg Gateway {registered_as} successfully removed!')
-    print(f'(restart docker FEG on {vm_name} vm)')
-    print(f'=========================================')
+    print('=========================================')
