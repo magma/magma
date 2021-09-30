@@ -160,9 +160,7 @@ func (m *MutableCwfGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: string(m.ID)}}
 }
 
-func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
-	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
-) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var ret []configurator.EntityWriteOperation
 	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: cwf.CwfGatewayType, Key: string(m.ID)}]
 	if !ok {
@@ -185,8 +183,8 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 	return ret, nil
 }
 
-func (m *GatewayCwfConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	carrierWifi, err := configurator.LoadEntityConfig(networkID, cwf.CwfGatewayType, gatewayID, EntitySerdes)
+func (m *GatewayCwfConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
+	carrierWifi, err := configurator.LoadEntityConfig(ctx, networkID, cwf.CwfGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -194,7 +192,7 @@ func (m *GatewayCwfConfigs) FromBackendModels(networkID string, gatewayID string
 	return nil
 }
 
-func (m *GatewayCwfConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *GatewayCwfConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
 			Type: cwf.CwfGatewayType, Key: gatewayID,

@@ -96,7 +96,7 @@ bool AsyncAAAClient::add_sessions(const magma::lte::SessionMap& session_map) {
                 << "sessions found";
     return true;
   }
-  add_sessions_rpc(req, [this](Status status, acct_resp resp) {
+  add_sessions_rpc(req, [](Status status, acct_resp resp) {
     if (status.ok()) {
       MLOG(MINFO) << "Successfully added all existing sessions to AAA server";
     } else {
@@ -112,8 +112,8 @@ void AsyncAAAClient::add_sessions_rpc(
     std::function<void(Status, acct_resp)> callback) {
   auto local_resp = new magma::AsyncLocalResponse<acct_resp>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(
-      stub_->Asyncadd_sessions(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->Asyncadd_sessions(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncAAAClient::terminate_session_rpc(
@@ -121,8 +121,8 @@ void AsyncAAAClient::terminate_session_rpc(
     std::function<void(Status, acct_resp)> callback) {
   auto local_resp = new magma::AsyncLocalResponse<acct_resp>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub_->Asyncterminate_session(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(stub_->Asyncterminate_session(
+      local_resp->get_context(), request, &queue_));
 }
 
 }  // namespace aaa

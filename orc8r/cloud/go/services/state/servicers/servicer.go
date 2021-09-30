@@ -14,12 +14,12 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

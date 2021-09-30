@@ -26,6 +26,20 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main;
 
+void send_sctp_mme_server_initialized() {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
+  SCTP_MME_SERVER_INITIALIZED(message_p).successful = true;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_activate_message_to_mme_app() {
+  MessageDef* message_p = itti_alloc_new_message(TASK_MAIN, ACTIVATE_MESSAGE);
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
 void send_mme_app_initial_ue_msg(
     uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
   MessageDef* message_p =

@@ -28,7 +28,6 @@
 #include "SessionStateEnforcer.h"
 #include "SessionID.h"
 
-using grpc::Server;
 using grpc::ServerContext;
 using grpc::Status;
 namespace magma {

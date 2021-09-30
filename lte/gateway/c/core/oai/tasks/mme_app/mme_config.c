@@ -686,9 +686,9 @@ int mme_config_parse_string(
     }
 
     if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_ENABLE_CONVERGED_CORE,
+            setting_mme, MME_CONFIG_STRING_ENABLE5G_FEATURES,
             (const char**) &astring))) {
-      config_pP->enable_converged_core = parse_bool(astring);
+      config_pP->enable5g_features = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
@@ -1899,8 +1899,8 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
   OAILOG_INFO(
-      LOG_CONFIG, "- enable_converged_core .......: %s\n\n",
-      config_pP->enable_converged_core ? "true" : "false");
+      LOG_CONFIG, "- enable5g_features .......: %s\n\n",
+      config_pP->enable5g_features ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
       LOG_CONFIG,

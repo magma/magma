@@ -213,11 +213,17 @@ def is_hw_id_registered(
         (True, gw_id) if the HWID is already registered, (False, '') otherwise
     """
     # gateways is a dict mapping gw ID to full resource
+<<<<<<< HEAD
     gateways = cloud_get(
         #f'networks/{network_id}/gateways',
         f'lte/{network_id}/gateways',
+=======
+    paginated_gateways = cloud_get(
+        f'networks/{network_id}/gateways',
+>>>>>>> 4a23bfd8204acb95e9a64d26531205b271d82e04
         admin_cert=admin_cert,
     )
+    gateways = paginated_gateways['gateways']
     for gw in gateways.values():
         if gw['device']['hardware_id'] == hw_id:
             return True, gw['id']

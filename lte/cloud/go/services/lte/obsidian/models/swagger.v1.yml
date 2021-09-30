@@ -1754,11 +1754,16 @@ definitions:
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
-      enable_converged_core:
+      enable5g_features:
         description: Enables 5G Standalone (SA) at a network level
         type: boolean
         example: true
         default: false
+      node_identifier:
+        type: string
+        description: Node Identifier for 5G Standalone (SA) at a network level
+        format: ipv4
+        example: '192.168.200.1'
       congestion_control_enabled:
         description: Network configuration flag for congestion control on EPC
         type: boolean

@@ -45,7 +45,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
 	github.com/warthog618/sms v0.3.0
-	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0

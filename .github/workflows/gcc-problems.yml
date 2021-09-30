@@ -15,7 +15,7 @@ on:
       - reopened
       - synchronize
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-b435783"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-340b46f"
 
 # See [Example Sharing Container Between Jobs](https://github.com/docker/build-push-action/issues/225)
 jobs:

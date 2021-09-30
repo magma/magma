@@ -146,7 +146,7 @@ build_oai: ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
@@ -203,6 +203,9 @@ scan_oai: ## Scan OAI
 
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
+
+test_sudo_python: stop ## Run Python tests that require sudo (datapath, etc.)
+	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
 
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS))

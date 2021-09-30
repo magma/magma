@@ -24,8 +24,8 @@ import (
 )
 
 type DeleteBearerRequest struct {
-	Imsi           string
-	LinkedBearerId uint8
+	Imsi        string
+	EpsBearerId uint8
 }
 
 type DBReq struct {
@@ -90,7 +90,9 @@ func (mPgw *MockPgw) DeleteBearerRequest(req DeleteBearerRequest) (chan DBReq, e
 
 func buildDeleteBearerRequestIEs(session *gtpv2.Session, req DeleteBearerRequest) ([]*ie.IE, error) {
 	ies := []*ie.IE{
-		ie.NewEPSBearerID(req.LinkedBearerId).WithInstance(0),
+		ie.NewEPSBearerID(session.GetDefaultBearer().EBI).WithInstance(0),
+		// dedicated bearers
+		ie.NewEPSBearerID(req.EpsBearerId).WithInstance(1),
 	}
 	return ies, nil
 }
@@ -104,6 +106,62 @@ func (mPgw *MockPgw) getHandleDeleteBearerResponse() gtpv2.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("Mock PGW could not hanlde DeleteBearerRequest: %s", err)
 		}
+		dbResFromSGW := msg.(*message.DeleteBearerResponse)
+
+		// check Cause value first.
+		if causeIE := dbResFromSGW.Cause; causeIE != nil {
+			cause, err := causeIE.Cause()
+			if err != nil {
+				return fmt.Errorf("Delete Bearer Request couldn't check cause of %s: %s", msg.MessageTypeName(), err)
+			}
+			if cause != gtpv2.CauseRequestAccepted {
+				return fmt.Errorf("Delete Bearer Request not accepcted. Cause: %d", cause)
+			}
+		} else {
+			return fmt.Errorf("Create Bearer Request has missing cause")
+		}
+
+		if linkedEBI := dbResFromSGW.LinkedEBI; linkedEBI != nil {
+			lEBI, err := linkedEBI.EPSBearerID()
+			if err != nil {
+				return fmt.Errorf("Create Bearer Request can't parse EBI")
+			}
+			if session.GetDefaultBearer().EBI != lEBI {
+				return fmt.Errorf(
+					"Create Bearer Request LinkedEBI different than Default Bearer id")
+			}
+		} else {
+			return fmt.Errorf("Create Bearer Request has missing linked EBI")
+		}
+
+		// collect bearer
+		var dCause uint8
+		var dEBI uint8
+		if brCtxIE := dbResFromSGW.BearerContexts; brCtxIE != nil {
+			for _, childIE := range brCtxIE.ChildIEs {
+				switch childIE.Type {
+				case ie.EPSBearerID:
+					dEBI, err = childIE.EPSBearerID()
+					if err != nil {
+						return err
+					}
+				case ie.Cause:
+					dCause, err = childIE.Cause()
+					if err != nil {
+						return err
+					}
+				}
+			}
+			if dCause == 0 || dCause != gtpv2.CauseRequestAccepted {
+				return fmt.Errorf("Create Beaerer Reuqest has a bad default bearer cause %d", dCause)
+			}
+			if dEBI == 0 {
+				return fmt.Errorf("Create Beaerer Reuqest has a bad default bearer EBI")
+			}
+		} else {
+			return &gtpv2.RequiredIEMissingError{Type: ie.BearerContext}
+		}
+
 		// pass message to same session
 		if err = gtpv2.PassMessageTo(session, msg, mPgw.GtpTimeout); err != nil {
 			return fmt.Errorf("Mock PGW could not pass the DeleteBererRequest %s", err)

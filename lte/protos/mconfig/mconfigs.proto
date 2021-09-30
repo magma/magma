@@ -202,6 +202,10 @@ message PipelineD {
     }
     HEConfig he_config = 17;
 
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 18;
+    string upf_node_identifier = 19;
+
     // DEPRECATED
     reserved 4, 11;
 }
@@ -389,7 +393,8 @@ message MME {
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 45;
 
-    bool enable_converged_core = 46;
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 46;
 
     // AMF Slice Service Type (SST)
     string default_slice_service_type = 47;
@@ -454,6 +459,9 @@ message SubscriberDB {
 
     // Interval in seconds between gateway and cloud sync
     uint32 sync_interval = 7;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 8;
 }
 
 //------------------------------------------------------------------------------

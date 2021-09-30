@@ -12,6 +12,9 @@
  */
 #pragma once
 
+#include <string>
+#include <vector>
+
 namespace magma {
 
 enum ObjectMapResult {

@@ -1,3 +1,4 @@
+//go:build all || gx
 // +build all gx
 
 /*

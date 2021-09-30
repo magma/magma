@@ -1,3 +1,4 @@
+//go:build all || gy
 // +build all gy
 
 /*

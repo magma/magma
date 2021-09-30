@@ -72,10 +72,22 @@ class GTPApplication : public Application {
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
 
   /*
+   * Add uplink flow for s* tunnel.
+   */
+  void add_down_link_s8_tunnel_flow(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
+
+  /*
    * Remove uplink tunnel flow on disconnect
    * @param ev - DeleteGTPTunnelEvent containing ue ip, and inbound tei
    */
   void delete_uplink_tunnel_flow(
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
+
+  /*
+   * Delete s8 flow from pgw.
+   */
+  void delete_down_link_s8_tunnel_flow(
       const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
 
   /*
