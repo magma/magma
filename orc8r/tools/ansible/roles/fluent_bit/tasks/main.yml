@@ -10,18 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Add fluent bit apt signing key
-  apt_key:
-    url: https://packages.fluentbit.io/fluentbit.key
-    state: present
-  when: preburn
-
-- name: Add fluent bit repo to /etc/apt/sources.list
-  apt_repository:
-    repo: deb https://packages.fluentbit.io/{{ ansible_distribution|lower}}/{{ ansible_distribution_release }} {{ ansible_distribution_release }} main
-    state: present
-  when: preburn
-
 - name: Create directories for the fluent-bit DB
   file:
     path: /var/opt/magma/fluent-bit

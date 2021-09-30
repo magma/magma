@@ -14,6 +14,10 @@
   fail: msg="distribution is undefined for the pkgrepo role"
   when: distribution is undefined
 
+- name: remove fluentbit repo as its broken
+  shell: rm -rf /etc/apt/sources.list.d/packages_fluentbit_io_ubuntu_focal.list
+  become: yes
+
 - name: Set up debian style repository
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   include_tasks: debian.yml
