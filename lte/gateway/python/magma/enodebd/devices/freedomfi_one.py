@@ -97,7 +97,8 @@ class SASParameters(object):
             is_optional=False,
         ),
         SAS_UID: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.UserContactInformation', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.UserContactInformation',
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         ),
         SAS_CATEGORY: TrParam(
@@ -106,7 +107,8 @@ class SASParameters(object):
             is_optional=False,
         ),
         SAS_CHANNEL_TYPE: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.ProtectionLevel', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.ProtectionLevel',
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         ),
         SAS_CERT_SUBJECT: TrParam(
@@ -135,11 +137,13 @@ class SASParameters(object):
         ),
         FREQ_BAND_1: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.FreqBandIndicator',
-            is_invasive=False, type=TrParameterType.UNSIGNED_INT, is_optional=False,
+            is_invasive=False, type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
         ),
         FREQ_BAND_2: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_FreqBandIndicator2',
-            is_invasive=False, type=TrParameterType.UNSIGNED_INT, is_optional=False,
+            is_invasive=False, type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
         ),
         TX_POWER_CONFIG: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_TxPowerConfig',
@@ -224,8 +228,8 @@ class StatusParameters(object):
 
     @classmethod
     def set_magma_device_cfg(
-        cls, name_to_val: Dict,
-        device_cfg: EnodebConfiguration,
+            cls, name_to_val: Dict,
+            device_cfg: EnodebConfiguration,
     ):
         """
         Convert FreedomFiOne name_to_val representation to magma device_cfg
@@ -233,8 +237,10 @@ class StatusParameters(object):
         success_str = "SUCCESS"  # String constant returned by radio
         insync_str = "INSYNC"
 
-        if name_to_val.get(cls.DEFAULT_GW) \
-                and name_to_val[cls.DEFAULT_GW].upper() != success_str:
+        if (
+            name_to_val.get(cls.DEFAULT_GW)
+            and name_to_val[cls.DEFAULT_GW].upper() != success_str
+        ):
             # Nothing will proceed if the eNB doesn't have an IP on the WAN
             serial_num = "unknown"
             if device_cfg.has_parameter(ParameterName.SERIAL_NUMBER):
@@ -267,8 +273,10 @@ class StatusParameters(object):
             )
             return
 
-        if name_to_val.get(cls.SAS_STATUS) \
-                and name_to_val[cls.SAS_STATUS].upper() == success_str:
+        if (
+            name_to_val.get(cls.SAS_STATUS)
+            and name_to_val[cls.SAS_STATUS].upper() == success_str
+        ):
             device_cfg.set_parameter(
                 param_name=ParameterName.RF_TX_STATUS,
                 value=True,
@@ -281,16 +289,20 @@ class StatusParameters(object):
                 value=False,
             )
 
-        if name_to_val.get(cls.GPS_SCAN_STATUS) \
-                and name_to_val[cls.GPS_SCAN_STATUS].upper() == success_str:
+        if (
+            name_to_val.get(cls.GPS_SCAN_STATUS)
+            and name_to_val[cls.GPS_SCAN_STATUS].upper() == success_str
+        ):
             device_cfg.set_parameter(
                 param_name=ParameterName.GPS_STATUS,
                 value=True,
             )
             # Time comes through GPS so can only be insync with GPS is
             # in sync, we use PTP_STATUS field to overload timer is in Sync.
-            if name_to_val.get(cls.SYNC_STATUS) \
-                    and name_to_val[cls.SYNC_STATUS].upper() == insync_str:
+            if (
+                name_to_val.get(cls.SYNC_STATUS)
+                and name_to_val[cls.SYNC_STATUS].upper() == insync_str
+            ):
                 device_cfg.set_parameter(
                     param_name=ParameterName.PTP_STATUS,
                     value=True,
@@ -309,8 +321,10 @@ class StatusParameters(object):
                 value=False,
             )
 
-        if name_to_val.get(cls.DEFAULT_GW) \
-                and name_to_val[cls.DEFAULT_GW].upper() == success_str:
+        if (
+            name_to_val.get(cls.DEFAULT_GW)
+            and name_to_val[cls.DEFAULT_GW].upper() == success_str
+        ):
             device_cfg.set_parameter(
                 param_name=ParameterName.MME_STATUS,
                 value=True,
@@ -321,8 +335,10 @@ class StatusParameters(object):
                 value=False,
             )
 
-        if name_to_val.get(cls.ENB_STATUS) \
-                and name_to_val[cls.ENB_STATUS].upper() == success_str:
+        if (
+            name_to_val.get(cls.ENB_STATUS)
+            and name_to_val[cls.ENB_STATUS].upper() == success_str
+        ):
             device_cfg.set_parameter(
                 param_name=ParameterName.OP_STATE,
                 value=True,
@@ -359,15 +375,18 @@ class FreedomFiOneMiscParameters(object):
 
     MISC_PARAMETERS = {
         WEB_UI_ENABLE: TrParam(
-            'Device.X_000E8F_DeviceFeature.X_000E8F_WebServerEnable', is_invasive=False,
+            'Device.X_000E8F_DeviceFeature.X_000E8F_WebServerEnable',
+            is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         ),
         CARRIER_AGG_ENABLE: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_CA_Enable', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_CA_Enable',
+            is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         ),
         CARRIER_NUMBER: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_Cell_Number', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_Cell_Number',
+            is_invasive=False,
             type=TrParameterType.INT, is_optional=False,
         ),
         CONTIGUOUS_CC: TrParam(
@@ -377,7 +396,8 @@ class FreedomFiOneMiscParameters(object):
             type=TrParameterType.INT, is_optional=False,
         ),
         TUNNEL_REF: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.Tunnel.1.TunnelRef', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.Tunnel.1.TunnelRef',
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         ),
         PRIM_SOURCE: TrParam(
@@ -558,20 +578,24 @@ class FreedomFiOneTrDataModel(DataModel):
 
         # RF-related parameters
         ParameterName.EARFCNDL: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.EARFCNDL', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.EARFCNDL',
+            is_invasive=False,
             type=TrParameterType.INT,
             is_optional=False,
         ),
         ParameterName.DL_BANDWIDTH: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.DLBandwidth', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.DLBandwidth',
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         ),
         ParameterName.UL_BANDWIDTH: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ULBandwidth', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ULBandwidth',
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         ),
         ParameterName.PCI: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.PhyCellID', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.PhyCellID',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
@@ -585,7 +609,8 @@ class FreedomFiOneTrDataModel(DataModel):
             is_optional=False,
         ),
         ParameterName.CELL_ID: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity',
+            is_invasive=False,
             type=TrParameterType.UNSIGNED_INT, is_optional=False,
         ),
 
@@ -623,11 +648,13 @@ class FreedomFiOneTrDataModel(DataModel):
         ),
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
-            DEVICE_PATH + 'ManagementServer.PeriodicInformEnable', is_invasive=False,
+            DEVICE_PATH + 'ManagementServer.PeriodicInformEnable',
+            is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         ),
         ParameterName.PERIODIC_INFORM_INTERVAL: TrParam(
-            DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', is_invasive=False,
+            DEVICE_PATH + 'ManagementServer.PeriodicInformInterval',
+            is_invasive=False,
             type=TrParameterType.INT, is_optional=False,
         ),
 
@@ -654,16 +681,19 @@ class FreedomFiOneTrDataModel(DataModel):
     NUM_PLMNS_IN_CONFIG = 1
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
         PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i, is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i,
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i,
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i,
             is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i,
+            is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
@@ -671,7 +701,8 @@ class FreedomFiOneTrDataModel(DataModel):
             is_invasive=False, type=TrParameterType.BOOLEAN, is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i,
+            is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         )
 
@@ -760,8 +791,8 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
         self.acs = acs
 
     def postprocess(
-        self, mconfig: Any, service_cfg: Any,
-        desired_cfg: EnodebConfiguration,
+            self, mconfig: Any, service_cfg: Any,
+            desired_cfg: EnodebConfiguration,
     ) -> None:
         # TODO: Get this config from the domain proxy
         # TODO @amarpad, set these when DProxy integration is done.
@@ -846,7 +877,10 @@ class FreedomFiOneSendGetTransientParametersState(EnodebAcsState):
             self.acs.device_cfg,
         )
 
-        return AcsReadMsgResult(msg_handled=True, next_state=self.done_transition)
+        return AcsReadMsgResult(
+            msg_handled=True,
+            next_state=self.done_transition,
+        )
 
     def state_description(self) -> str:
         return 'Getting transient read-only parameters'
@@ -893,7 +927,10 @@ class FreedomFiOneGetInitState(EnodebAcsState):
         # message, in this case transition to the next state. We consider
         # this phase as "initialized"
         if isinstance(message, models.DummyInput):
-            return AcsReadMsgResult(msg_handled=True, next_state=self.done_transition)
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.done_transition,
+            )
         if not isinstance(message, models.GetRPCMethods):
             # Unexpected, just don't die, ignore message.
             logging.error("Ignoring message %s", str(type(message)))
@@ -934,8 +971,8 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
         self.skip_transition = when_skip
 
     def get_params_to_get(
-        self,
-        data_model: DataModel,
+            self,
+            data_model: DataModel,
     ) -> List[ParameterName]:
         names = []
 
@@ -1061,7 +1098,10 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                 msg_handled=True,
                 next_state=self.set_params_transition,
             )
-        return AcsReadMsgResult(msg_handled=True, next_state=self.skip_transition)
+        return AcsReadMsgResult(
+            msg_handled=True,
+            next_state=self.skip_transition,
+        )
 
     def state_description(self) -> str:
         return 'Getting well known parameters'
