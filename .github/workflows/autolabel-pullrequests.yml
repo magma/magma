@@ -108,7 +108,7 @@ jobs:
             } // end of for loop
 
             if( lbls.size == 0 )  {
-              console.log("No components changed in this PR");
+              console.log("No components changed in this PR: " + context.issue.number);
             }
             else  {
               let uniqLbls = Array.from(lbls);
