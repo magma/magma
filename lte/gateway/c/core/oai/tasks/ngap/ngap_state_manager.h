@@ -113,4 +113,6 @@ class NgapStateManager
   ngap_imsi_map_t* ngap_imsi_map_;
   std::size_t ngap_imsi_map_hash_;
 };
+
+void free_ngap_state(ngap_state_t* state_cache_p);
 }  // namespace magma5g

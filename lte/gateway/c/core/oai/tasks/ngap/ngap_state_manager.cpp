@@ -84,15 +84,7 @@ void NgapStateManager::create_state() {
   create_ngap_imsi_map();
 }
 
-void NgapStateManager::free_state() {
-  AssertFatal(
-      is_initialized,
-      "NgapStateManager init() function should be called to initialize state.");
-
-  if (state_cache_p == nullptr) {
-    return;
-  }
-
+void free_ngap_state(ngap_state_t* state_cache_p) {
   int i;
   hashtable_rc_t ht_rc;
   hashtable_key_array_t* keys;
@@ -107,6 +99,12 @@ void NgapStateManager::free_state() {
       assoc_id = (sctp_assoc_id_t) keys->keys[i];
       ht_rc    = hashtable_ts_get(
           &state_cache_p->gnbs, (hash_key_t) assoc_id, (void**) &gnb);
+      if (ht_rc != HASH_TABLE_OK) {
+        OAILOG_ERROR(LOG_NGAP, "gNB entry not found in gNB NGP state");
+      } else {
+        hashtable_uint64_ts_destroy(&gnb->ue_id_coll);
+      }
+
       AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
@@ -118,10 +116,25 @@ void NgapStateManager::free_state() {
   if (hashtable_ts_destroy(&state_cache_p->amfid2associd) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
   }
+
+  free(state_cache_p);
+}
+
+void NgapStateManager::free_state() {
+  AssertFatal(
+      is_initialized,
+      "NgapStateManager init() function should be called to initialize state.");
+
+  if (state_cache_p == nullptr) {
+    return;
+  }
+
+  free_ngap_state(state_cache_p);
+  state_cache_p = nullptr;
+
   if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
   }
-  free_wrapper((void**) &state_cache_p);
 
   clear_ngap_imsi_map();
 }

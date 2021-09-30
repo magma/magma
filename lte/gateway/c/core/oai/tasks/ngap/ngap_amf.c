@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -45,6 +44,7 @@
 #include "amf_app_messages_types.h"
 #include "amf_default_values.h"
 
+#include "include/ngap_client_enforcer.h"
 #include "ngap_messages_types.h"
 #include "ngap_amf.h"
 
@@ -377,5 +377,5 @@ status_code_e ngap_send_msg_to_task(
       itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
       ITTI_MSG_NAME(message));
 
-  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
+  return send_message_to_amf(task_zmq_ctx_p, destination_task_id, message);
 }
