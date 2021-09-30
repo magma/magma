@@ -17,6 +17,7 @@
 - name: remove fluentbit repo as its broken
   shell: rm -rf /etc/apt/sources.list.d/packages_fluentbit_io_ubuntu_focal.list
   become: yes
+  ignore_errors: yes
 
 - name: Set up debian style repository
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
