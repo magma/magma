@@ -1,9 +1,7 @@
 """
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +27,6 @@ def register_generic_gateway(
 ) -> None:
     """
     Register a generic magmad gateway.
-
     Args:
         network_id: Network to register inside
         vm_name: Vagrant VM name to pull HWID from
@@ -57,17 +54,15 @@ def register_generic_gateway(
 
 
 def construct_magmad_gateway_payload(
-    gateway_id: str,
-    hardware_id: str,
+        gateway_id: str,
+        hardware_id: str,
 ) -> types.Gateway:
     """
     Returns a default development magmad gateway entity given a desired gateway
     ID and a hardware ID pulled from the hardware secrets.
-
     Args:
         gateway_id: Desired gateway ID
         hardware_id: Hardware ID pulled from the VM
-
     Returns:
         Gateway object with fields filled in with reasonable default values
     """
@@ -104,11 +99,9 @@ def get_next_available_gateway_id(
     """
     Returns the next available gateway ID in the sequence gwN for the given
     network.
-
     Args:
         network_id: Network to check for available gateways
         admin_cert: Client cert to use with the API
-
     Returns:
         Next available gateway ID in the form gwN
     """
@@ -138,7 +131,6 @@ def does_network_exist(
     Args:
         network_id: Network to check
         admin_cert: Cert for API access
-
     Returns:
         True if the network exists, False otherwise
     """
@@ -156,7 +148,6 @@ def create_tier_if_not_exists(
     """
     Create a placeholder tier on Orchestrator if the specified one doesn't
     already exist.
-
     Args:
         network_id: Network the tier belongs to
         tier_id: ID for the tier
@@ -179,10 +170,8 @@ def create_tier_if_not_exists(
 def get_hardware_id_from_vagrant(vm_name: str) -> str:
     """
     Get the magmad hardware ID from vagrant
-
     Args:
         vm_name: Name of the vagrant machine to use
-
     Returns:
         Hardware snowflake from the VM
     """
@@ -203,23 +192,16 @@ def is_hw_id_registered(
     Check if a hardware ID is already registered for a given network. Note that
     this is not a true guarantee that a VM is not already registered, as the
     HW ID could be taken on another network.
-
     Args:
         network_id: Network to check
         hw_id: HW ID to check
         admin_cert: Cert for API access
-
     Returns:
         (True, gw_id) if the HWID is already registered, (False, '') otherwise
     """
     # gateways is a dict mapping gw ID to full resource
-<<<<<<< HEAD
-    gateways = cloud_get(
-        f'lte/{network_id}/gateways',
-=======
     paginated_gateways = cloud_get(
         f'networks/{network_id}/gateways',
->>>>>>> 4a23bfd8204acb95e9a64d26531205b271d82e04
         admin_cert=admin_cert,
     )
     gateways = paginated_gateways['gateways']
@@ -242,7 +224,7 @@ def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
         run(
             "sudo cp " + control_proxy_setting_path
             + " /var/opt/magma/configs/control_proxy.yml",
-        )
+            )
 
     # Copy certs which will be used by the bootstrapper
     run("sudo rm -rf /var/opt/magma/certs")
@@ -266,7 +248,6 @@ def cloud_get(
     Args:
         resource: URI to request
         admin_cert: API client certificate
-
     Returns:
         JSON-encoded response content
     """
@@ -277,7 +258,7 @@ def cloud_get(
         raise Exception(
             'Received a %d response: %s' %
             (resp.status_code, resp.text),
-        )
+            )
     return resp.json()
 
 
@@ -292,7 +273,6 @@ def cloud_post(
 ):
     """
     Send a POST request to an API URI
-
     Args:
         resource: URI to request
         data: JSON-serializable payload
@@ -306,9 +286,9 @@ def cloud_post(
         headers={'content-type': 'application/json'},
         verify=False,
         cert=admin_cert,
-    )
+        )
     if resp.status_code not in [200, 201, 204]:
         raise Exception(
             'Received a %d response: %s' %
             (resp.status_code, resp.text),
-        )
+            )
