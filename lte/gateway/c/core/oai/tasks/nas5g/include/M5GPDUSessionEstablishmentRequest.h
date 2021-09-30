@@ -20,6 +20,7 @@
 #include "M5GPDUSessionType.h"
 #include "M5GSSCMode.h"
 #include "M5GProtocolConfigurationOptions.h"
+#include "M5GMaxNumOfSupportedPacketFilters.h"
 
 namespace magma5g {
 // PDUSessionEstablishmentRequest Message Class
@@ -34,6 +35,7 @@ class PDUSessionEstablishmentRequestMsg {
   IntegrityProtMaxDataRateMsg integrity_prot_max_data_rate;
   PDUSessionTypeMsg pdu_session_type;
   SSCModeMsg ssc_mode;
+  M5GMaxNumOfSupportedPacketFilters maxNumOfSuppPacketFilters;
   ProtocolConfigurationOptions protocolconfigurationoptions;
 
   PDUSessionEstablishmentRequestMsg();

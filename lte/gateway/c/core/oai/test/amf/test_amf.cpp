@@ -78,9 +78,10 @@ uint8_t NAS5GPktSnapShot::pdu_session_est_req_type2[47] = {
     0x00, 0x0d, 0x00, 0x12, 0x01, 0x81, 0x22, 0x04, 0x01, 0x00, 0x00, 0x01,
     0x25, 0x09, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
 
-uint8_t NAS5GPktSnapShot::pdu_session_est_req_type3[20] = {
-    0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01, 0xc1,
-    0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x55, 0x02, 0x20};
+uint8_t NAS5GPktSnapShot::pdu_session_est_req_type3[34] = {
+    0x7e, 0x00, 0x67, 0x01, 0x00, 0x0e, 0x2e, 0x05, 0x01, 0xc1, 0xff, 0xff,
+    0x91, 0xa4, 0x28, 0x01, 0x01, 0x55, 0x02, 0x20, 0x12, 0x05, 0x81, 0x25,
+    0x09, 0x08, 0x49, 0x4e, 0x54, 0x45, 0x52, 0x4e, 0x45, 0x54};
 
 uint8_t NAS5GPktSnapShot::pdu_session_release_complete[12] = {
     0x7e, 0x00, 0x67, 0x01, 0x00, 0x04, 0x2e, 0x05, 0x01, 0xd4, 0x12, 0x05};
@@ -307,9 +308,10 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type3_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
-  bool decode_res      = false;
-  uint8_t buffer[1024] = {};
-  uint16_t buf_len     = 1024;
+  PDUSessionEstablishmentRequestMsg* pduSessEstReq = nullptr;
+  bool decode_res                                  = false;
+  uint8_t buffer[1024] = {}, encode_bufffer[1024] = {};
+  uint16_t buf_len = 1024, encoded_len = 0;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type3_len();
 
@@ -319,6 +321,25 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type3_msg) {
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type3, len);
 
   EXPECT_EQ(decode_res, true);
+  pduSessEstReq =
+      &pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request;
+  EXPECT_EQ(
+      pduSessEstReq->extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_SESSION_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(pduSessEstReq->pdu_session_identity.pdu_session_id, 0x05);
+  EXPECT_EQ(pduSessEstReq->pti.pti, 0x01);
+  EXPECT_EQ(
+      pduSessEstReq->message_type.msg_type, PDU_SESSION_ESTABLISHMENT_REQUEST);
+  EXPECT_EQ(pduSessEstReq->integrity_prot_max_data_rate.max_uplink, 0xFF);
+  EXPECT_EQ(pduSessEstReq->integrity_prot_max_data_rate.max_downlink, 0xFF);
+  EXPECT_EQ(pduSessEstReq->pdu_session_type.type_val, 0x01);
+  EXPECT_EQ(pduSessEstReq->ssc_mode.mode_val, 0x04);
+  EXPECT_EQ(
+      pduSessEstReq->maxNumOfSuppPacketFilters.iei,
+      MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE);
+  EXPECT_EQ(
+      pduSessEstReq->maxNumOfSuppPacketFilters.maxNumOfSuppPktFilters, 0x0220);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_release_complete_msg) {
