@@ -310,8 +310,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type3_msg) {
   ULNASTransportMsg pdu_sess_est_req;
   PDUSessionEstablishmentRequestMsg* pduSessEstReq = nullptr;
   bool decode_res                                  = false;
-  uint8_t buffer[1024] = {}, encode_bufffer[1024] = {};
-  uint16_t buf_len = 1024, encoded_len = 0;
+  uint8_t buffer[1024] = {};
+  uint16_t buf_len = 1024;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type3_len();
 
