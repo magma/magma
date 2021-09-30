@@ -293,25 +293,46 @@ commands:
               fi
             done
 
-  sentry-upload:
+  sentry-create-artifacts:
     parameters:
       executable_name:
         description: Name of executable that should be pushed to sentry
         type: string
     steps:
       - run:
-          name: Upload debug artifacts for an executable to Sentry.io
+          name: Create debug artifacts to be uploaded to Sentry.io
           command: |
             # The assumption here is that packages.tar.gz was copied out and untarred
             # in $MAGMA_ROOT/circleci in the magma_integ_test step
             cd circleci/executables
 
-            SENTRY_ORG="lf-9c"
-            NATIVE_PROJECT="lab-agws-native"
             EXEC="<< parameters.executable_name >>"
             objcopy --only-keep-debug "$EXEC" "$EXEC".debug
             objcopy --strip-debug --strip-unneeded "$EXEC"
             objcopy --add-gnu-debuglink="$EXEC".debug "$EXEC"
+
+  sentry-upload:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+      project:
+        description: Name of Sentry project that the symbols should be uploaded to
+        type: string
+      org:
+        description: Name of Sentry organization that the symbols should be uploaded to
+        type: string
+    steps:
+      - run:
+          name: Upload debug artifacts for an executable to Sentry.io
+          command: |
+            # The assumption here is that debug artifacts already exist for this executable
+            # This should be true if sentry-create-artifacts was run before this
+            cd circleci/executables
+
+            SENTRY_ORG="<< parameters.org >>"
+            NATIVE_PROJECT="<< parameters.project >>"
+            EXEC="<< parameters.executable_name >>"
 
             # [Optional] Log included debug information
             sentry-cli difutil check "$EXEC"
@@ -330,10 +351,18 @@ commands:
           command: |
             echo export SENTRY_ENVIRONMENT="staging" >> $BASH_ENV
             echo export SENTRY_ORG="lf-9c" >> $BASH_ENV
+      - sentry-create-artifacts:
+          executable_name: sessiond
+      - sentry-create-artifacts:
+          executable_name: mme
       - sentry-upload:
           executable_name: sessiond
+          project: lab-agws-native
+          org: lf-9c
       - sentry-upload:
           executable_name: mme
+          project: lab-agws-native
+          org: lf-9c
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
