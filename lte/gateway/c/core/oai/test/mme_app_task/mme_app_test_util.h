@@ -20,12 +20,12 @@ void send_sctp_mme_server_initialized();
 void send_activate_message_to_mme_app();
 
 void send_mme_app_initial_ue_msg(
-    uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
 
 void send_mme_app_uplink_data_ind(
-    uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
 
-void send_authentication_info_resp(const std::string& imsi);
+void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi);
 
