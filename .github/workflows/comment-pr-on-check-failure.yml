@@ -89,13 +89,13 @@ jobs:
 
             for (const c of commentsList['data']) {
               oldMsg = c.body;
-              if( oldMsg.includes('Oops! Looks like you failed the ') && oldMsg.includes(process.env.WORKFLOW_NAME) ) {
+              if( oldMsg.includes('Oops! Looks like you failed the `' + process.env.WORKFLOW_NAME) ) {
                   commentId = c.id;
                   if( process.env.WORKFLOW_STATUS == 'failure' )  {
-                      updMsg = ":recycle: Updated: :x: The check is still failing the " + process.env.WORKFLOW_NAME + " after the last commit id";
+                      updMsg = ":recycle: Updated: :x: The check is still failing the " + process.env.WORKFLOW_NAME + " after the last commit.";
                   }
                   else if( process.env.WORKFLOW_STATUS == 'success' ) {
-                      updMsg = ":recycle: Updated: :white_check_mark: The check is passing the " + process.env.WORKFLOW_NAME + " after the last commit id";
+                      updMsg = ":recycle: Updated: :white_check_mark: The check is passing the " + process.env.WORKFLOW_NAME + " after the last commit.";
                   }
                   newMsg = msg + "\n\n" + updMsg;
                   console.log("UPDATING comment=" + newMsg);
