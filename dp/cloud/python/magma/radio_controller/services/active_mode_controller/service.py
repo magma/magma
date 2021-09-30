@@ -23,6 +23,7 @@ from dp.protos.active_mode_pb2 import (
     ActiveModeConfig,
     Cbsd,
     Channel,
+    FrequencyRange,
     GetStateRequest,
     Grant,
     State,
@@ -30,7 +31,6 @@ from dp.protos.active_mode_pb2 import (
     ToggleActiveModeResponse,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
-from dp.protos.common_pb2 import FrequencyRange
 from sqlalchemy.orm import joinedload
 
 logger = logging.getLogger(__name__)

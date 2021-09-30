@@ -1,6 +1,9 @@
 syntax = "proto3";
 
-import "dp/protos/common.proto";
+// TODO change names to avoid conflicts
+// TODO move toogle active mode to another sevice
+// since this one is meant to be used only by
+// active mode controller
 
 option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode";
 
@@ -39,15 +42,25 @@ message Cbsd {
 
 message Grant {
   string id = 1;
-  magma.dp.GrantState state = 2;
+  GrantState state = 2;
   int64 heartbeat_interval_sec = 3;
   int64 last_heartbeat_timestamp = 4;
 }
 
+enum GrantState {
+  Granted = 0;
+  Authorized = 1;
+}
+
 message Channel {
-  magma.dp.FrequencyRange frequency_range = 1;
+  FrequencyRange frequency_range = 1;
   optional float max_eirp = 2;
   optional float last_eirp = 3;
+}
+
+message FrequencyRange {
+  int64 low = 1;
+  int64 high = 2;
 }
 
 enum Switch {

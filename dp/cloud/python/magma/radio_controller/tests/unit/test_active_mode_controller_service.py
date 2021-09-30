@@ -26,15 +26,17 @@ from magma.radio_controller.services.active_mode_controller.service import (
 )
 from dp.protos.active_mode_pb2 import (
     ActiveModeConfig,
+    Authorized,
     Cbsd,
     Channel,
+    FrequencyRange,
     GetStateRequest,
     Grant,
+    Granted,
     Registered,
     State,
     Unregistered,
 )
-from dp.protos.common_pb2 import Authorized, FrequencyRange, Granted
 from google.protobuf.json_format import MessageToDict
 
 

@@ -1,6 +1,5 @@
 from magma.mappings.types import CbsdStates, GrantStates, Switch
-from dp.protos.active_mode_pb2 import Off, On, Registered, Unregistered
-from dp.protos.common_pb2 import Authorized, Granted
+from dp.protos.active_mode_pb2 import Authorized, Granted, Off, On, Registered, Unregistered
 
 cbsd_state_mapping = {
     CbsdStates.UNREGISTERED.value: Unregistered,
