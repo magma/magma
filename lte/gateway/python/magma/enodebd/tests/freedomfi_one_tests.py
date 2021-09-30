@@ -684,8 +684,8 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             ParameterName.GPS_LONG: "1",
             ParameterName.GPS_LAT: "1",
         }
-        deviceConfig = Mock()
-        status.set_magma_device_cfg(n1, deviceConfig)
+        device_config = Mock()
+        status.set_magma_device_cfg(n1, device_config)
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=True),
@@ -695,7 +695,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', '1'),
         ]
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        self.assertEqual(expected, device_config.mock_calls)
 
         n2 = n1.copy()
         # Verify we can handle specific none params
@@ -713,7 +713,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         n8 = n1.copy()
         n8[ParameterName.GPS_LAT] = None
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=True),
@@ -723,10 +723,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', '1'),
         ]
-        status.set_magma_device_cfg(n2, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n2, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=True),
@@ -736,10 +736,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', '1'),
         ]
-        status.set_magma_device_cfg(n3, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n3, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=True),
@@ -749,10 +749,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', '1'),
         ]
-        status.set_magma_device_cfg(n4, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n4, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=False),
             call.set_parameter(param_name='GPS status', value=True),
@@ -762,10 +762,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', '1'),
         ]
-        status.set_magma_device_cfg(n5, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n5, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=False),
@@ -775,10 +775,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', '1'),
         ]
-        status.set_magma_device_cfg(n6, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n6, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=True),
@@ -788,10 +788,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', '1'),
             call.set_parameter('GPS long', None),
         ]
-        status.set_magma_device_cfg(n7, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n7, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
 
-        deviceConfig = Mock()
+        device_config = Mock()
         expected = [
             call.set_parameter(param_name='RF TX status', value=True),
             call.set_parameter(param_name='GPS status', value=True),
@@ -801,5 +801,5 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('GPS lat', None),
             call.set_parameter('GPS long', '1'),
         ]
-        status.set_magma_device_cfg(n8, deviceConfig)
-        self.assertEqual(expected, deviceConfig.mock_calls)
+        status.set_magma_device_cfg(n8, device_config)
+        self.assertEqual(expected, device_config.mock_calls)
