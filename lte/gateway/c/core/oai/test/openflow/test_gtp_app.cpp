@@ -187,7 +187,7 @@ TEST_F(GTPApplicationTest, TestAddTunnel) {
   char imsi[]      = "001010000000013";
   int vlan         = 0;
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, in_tei, out_tei, imsi, 0);
+      ue_ip, NULL, vlan, enb_ip, NULL, in_tei, out_tei, imsi, 0);
   // Uplink
   EXPECT_CALL(
       *messenger,
@@ -316,7 +316,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow,
+      ue_ip, NULL, vlan, enb_ip, NULL, in_tei, out_tei, imsi, &dl_flow,
       dl_flow_precedence, 0);
   // Uplink
   EXPECT_CALL(
@@ -469,7 +469,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowGtpPort) {
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow,
+      ue_ip, NULL, vlan, enb_ip, NULL, in_tei, out_tei, imsi, &dl_flow,
       dl_flow_precedence, 10);
   // Uplink
   EXPECT_CALL(
@@ -610,7 +610,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelIpv6) {
   inet_pton(AF_INET6, "::7", &ue_ipv6);
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, &ue_ipv6, vlan, enb_ip, in_tei, out_tei, imsi, 0);
+      ue_ip, &ue_ipv6, vlan, enb_ip, NULL, in_tei, out_tei, imsi, 0);
   // Uplink
   EXPECT_CALL(
       *messenger,
@@ -754,7 +754,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowIpv6) {
   struct in_addr ue_ip;
   ue_ip.s_addr = inet_addr("0.0.0.1");
   struct in_addr enb_ip;
-  enb_ip.s_addr    = inet_addr("0.0.0.2");
+  enb_ip.s_addr = inet_addr("0.0.0.2");
   uint32_t in_tei  = 1;
   uint32_t out_tei = 2;
   char imsi[]      = "001010000000013";
@@ -772,7 +772,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowIpv6) {
       SRC_IPV6 | DST_IPV6 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow,
+      ue_ip, NULL, vlan, enb_ip, NULL, in_tei, out_tei, imsi, &dl_flow,
       dl_flow_precedence, 0);
   // Uplink
   EXPECT_CALL(
@@ -923,7 +923,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelS8) {
   int pgw_port = 200;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, pgw_ip, in_tei, out_tei, pgw_in_tei,
+      ue_ip, NULL, vlan, enb_ip, NULL, pgw_ip, NULL, in_tei, out_tei, pgw_in_tei,
       pgw_out_tei, imsi, enb_port, pgw_port);
   // Uplink
   EXPECT_CALL(
@@ -1038,7 +1038,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelS8DlFlowGtpPort) {
   int pgw_port                = 200;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, pgw_ip, in_tei, out_tei, pgw_in_tei,
+      ue_ip, NULL, vlan, enb_ip, NULL, pgw_ip, NULL, in_tei, out_tei, pgw_in_tei,
       pgw_out_tei, imsi, enb_port, pgw_port);
 
   // Uplink

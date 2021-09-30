@@ -489,10 +489,15 @@ void sgw_populate_mbr_bearer_contexts_removed(
 static void sgw_add_gtp_tunnel(
     imsi64_t imsi64, sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p) {
-  int rv             = RETURNok;
-  struct in_addr enb = {.s_addr = 0};
+  int rv                    = RETURNok;
+  struct in_addr enb        = {.s_addr = 0};
+  struct in6_addr* enb_ipv6 = NULL;
   enb.s_addr =
       eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+  if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+      (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+    enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+  }
 
   struct in_addr ue_ipv4   = {.s_addr = 0};
   struct in6_addr* ue_ipv6 = NULL;
@@ -543,7 +548,7 @@ static void sgw_add_gtp_tunnel(
       }
 
       rv = gtpv1u_add_tunnel(
-          ue_ipv4, ue_ipv6, vlan, enb,
+          ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
       if (rv < 0) {
@@ -572,7 +577,7 @@ static void sgw_add_gtp_tunnel(
             eps_bearer_ctxt_p->enb_teid_S1u);
 
         rv = gtpv1u_add_tunnel(
-            ue_ipv4, ue_ipv6, vlan, enb,
+            ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
             eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, &dlflow,
             eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
@@ -748,12 +753,18 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
         }
       }
       // delete GTPv1-U tunnel
-      struct in_addr enb = {.s_addr = 0};
+      struct in_addr enb        = {.s_addr = 0};
+      struct in6_addr* enb_ipv6 = NULL;
       enb.s_addr =
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+      if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+          (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+        enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+      }
 
       rv = gtp_tunnel_ops->del_tunnel(
-          enb, ue_ipv4, ue_ipv6, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          enb, enb_ipv6, ue_ipv4, ue_ipv6,
+          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
@@ -944,7 +955,12 @@ status_code_e sgw_handle_modify_bearer_request(
       } else {  // eps_bearer_ctxt_p found
         enb.s_addr =
             eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-
+        struct in6_addr* enb_ipv6 = NULL;
+        if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+            (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+          enb_ipv6 =
+              &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+        }
         // Send end marker to eNB and then delete the tunnel if enb_ip is
         // different
         if (does_bearer_context_hold_valid_enb_ip(
@@ -971,7 +987,8 @@ status_code_e sgw_handle_modify_bearer_request(
           gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
           // delete GTPv1-U tunnel
           rv = gtp_tunnel_ops->del_tunnel(
-              enb, ue_ipv4, ue_ipv6, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              enb, enb_ipv6, ue_ipv4, ue_ipv6,
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
         }
         populate_sgi_end_point_update(
@@ -1083,6 +1100,13 @@ status_code_e sgw_handle_delete_session_request(
             struct in_addr enb = {.s_addr = 0};
             enb.s_addr         = eps_bearer_ctxt_p->enb_ip_address_S1u.address
                              .ipv4_address.s_addr;
+            struct in6_addr* enb_ipv6 = NULL;
+            if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+                (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type ==
+                 IPv4_AND_v6)) {
+              enb_ipv6 =
+                  &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+            }
             struct in6_addr* ue_ipv6 = NULL;
             if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
                 (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
@@ -1090,7 +1114,7 @@ status_code_e sgw_handle_delete_session_request(
             }
 
             rv = gtp_tunnel_ops->del_tunnel(
-                enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_p->enb_teid_S1u, NULL);
             if (rv < 0) {
@@ -1679,6 +1703,12 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           struct in_addr enb = {.s_addr = 0};
           enb.s_addr =
               eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+          struct in6_addr* enb_ipv6 = NULL;
+          if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+              (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+            enb_ipv6 =
+                &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+          }
           struct in6_addr* ue_ipv6 = NULL;
           if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
@@ -1686,7 +1716,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           }
 
           rc = gtp_tunnel_ops->del_tunnel(
-              enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+              enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
           if (rc != RETURNok) {
@@ -1763,9 +1793,14 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           struct in_addr enb = {.s_addr = 0};
           enb.s_addr =
               eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-
+          struct in6_addr* enb_ipv6 = NULL;
+          if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+              (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+            enb_ipv6 =
+                &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+          }
           rc = gtp_tunnel_ops->del_tunnel(
-              enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+              enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
           if (rc != RETURNok) {
@@ -2095,9 +2130,16 @@ static void add_tunnel_helper(
   struct in_addr enb = {.s_addr = 0};
   char* apn          = (char*) spgw_context->sgw_eps_bearer_context_information
                   .pdn_connection.apn_in_use;
+  struct in6_addr* enb_ipv6 = NULL;
 
   enb.s_addr =
       eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+  if ((eps_bearer_ctxt_entry_p->enb_ip_address_S1u.pdn_type == IPv6) ||
+      (eps_bearer_ctxt_entry_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+    enb_ipv6 =
+        &eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv6_address;
+  }
   struct in_addr ue_ipv4   = {.s_addr = 0};
   ue_ipv4.s_addr           = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
   struct in6_addr* ue_ipv6 = NULL;
@@ -2118,7 +2160,7 @@ static void add_tunnel_helper(
         ue_ipv4.s_addr, ue_ipv6, &dlflow);
 
     rc = gtpv1u_add_tunnel(
-        ue_ipv4, ue_ipv6, vlan, enb,
+        ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
         eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
         eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
         eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
@@ -2226,9 +2268,14 @@ void sgw_process_release_access_bearer_request(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
         sgw_context->pdn_connection.sgw_eps_bearers_array[ebx];
     if (eps_bearer_ctxt) {
-      struct in_addr enb = {.s_addr = 0};
+      struct in_addr enb        = {.s_addr = 0};
+      struct in6_addr* enb_ipv6 = NULL;
       enb.s_addr =
           eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr;
+      if ((eps_bearer_ctxt->enb_ip_address_S1u.pdn_type == IPv6) ||
+          (eps_bearer_ctxt->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+        enb_ipv6 = &eps_bearer_ctxt->enb_ip_address_S1u.address.ipv6_address;
+      }
 
       struct in6_addr* ue_ipv6 = NULL;
       if ((eps_bearer_ctxt->paa.pdn_type == IPv6) ||
@@ -2240,6 +2287,12 @@ void sgw_process_release_access_bearer_request(
       struct in_addr pgw     = {.s_addr = 0};
       pgw.s_addr =
           eps_bearer_ctxt->p_gw_address_in_use_up.address.ipv4_address.s_addr;
+      struct in6_addr* pgw_ipv6 = NULL;
+      if ((eps_bearer_ctxt->p_gw_address_in_use_up.pdn_type == IPv6) ||
+          (eps_bearer_ctxt->p_gw_address_in_use_up.pdn_type == IPv4_AND_v6)) {
+        pgw_ipv6 =
+            &eps_bearer_ctxt->p_gw_address_in_use_up.address.ipv6_address;
+      }
       OAILOG_DEBUG_UE(
           module, imsi64,
           "Deleting tunnel for bearer_id %u ue addr %x enb_ip %x "
@@ -2255,13 +2308,13 @@ void sgw_process_release_access_bearer_request(
           eps_bearer_ctxt->s_gw_teid_S5_S8_up);
       if (module == LOG_SPGW_APP) {
         rv = gtp_tunnel_ops->del_tunnel(
-            enb, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
+            enb, enb_ipv6, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt->enb_teid_S1u, NULL);
       } else if (module == LOG_SGW_S8) {
         rv = gtpv1u_del_s8_tunnel(
-            enb, pgw, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
-            eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
+            enb, enb_ipv6, pgw, pgw_ipv6, eps_bearer_ctxt->paa.ipv4_address,
+            ue_ipv6, eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt->s_gw_teid_S5_S8_up);
       }
 

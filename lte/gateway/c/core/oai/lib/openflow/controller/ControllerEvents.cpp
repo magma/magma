@@ -137,8 +137,9 @@ const int UeNetworkInfo::get_vlan() const {
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-    const struct in_addr enb_ip, const uint32_t in_tei, const uint32_t out_tei,
-    const char* imsi, uint32_t enb_gtp_port)
+    const struct in_addr enb_ip, struct in6_addr* enb_ipv6,
+    const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+    uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6, vlan),
       enb_ip_(enb_ip),
       pgw_ip_(INADDR_ZERO),
@@ -152,14 +153,22 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       dl_flow_precedence_(DEFAULT_PRECEDENCE),
       ExternalEvent(EVENT_ADD_GTP_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
-      pgw_gtp_port_(0) {}
+      pgw_gtp_port_(0) {
+  if (enb_ipv6) {
+    enb_ipv6_ = *enb_ipv6;
+  } else {
+    enb_ipv6_ = in6addr_any;
+  }
+  pgw_ipv6_ = in6addr_any;
+}
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-    const struct in_addr enb_ip, const uint32_t in_tei, const uint32_t out_tei,
-    const char* imsi, const struct ip_flow_dl* dl_flow,
-    const uint32_t dl_flow_precedence, uint32_t enb_gtp_port)
-    : ue_info_(ue_ip, vlan),
+    const struct in_addr enb_ip, struct in6_addr* enb_ipv6,
+    const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+    const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
+    uint32_t enb_gtp_port)
+    : ue_info_(ue_ip, ue_ipv6, vlan),
       enb_ip_(enb_ip),
       pgw_ip_(INADDR_ZERO),
       in_tei_(in_tei),
@@ -172,11 +181,19 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       dl_flow_precedence_(dl_flow_precedence),
       ExternalEvent(EVENT_ADD_GTP_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
-      pgw_gtp_port_(0) {}
+      pgw_gtp_port_(0) {
+  if (enb_ipv6) {
+    enb_ipv6_ = *enb_ipv6;
+  } else {
+    enb_ipv6_ = in6addr_any;
+  }
+  pgw_ipv6_ = in6addr_any;
+}
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-    const struct in_addr enb_ip, const struct in_addr pgw_ip,
+    const struct in_addr enb_ip, struct in6_addr* enb_ipv6,
+    const struct in_addr pgw_ip, struct in6_addr* pgw_ipv6,
     const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
     const uint32_t pgw_out_tei, const char* imsi, uint32_t enb_gtp_port,
     uint32_t pgw_gtp_port)
@@ -193,7 +210,18 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       dl_flow_precedence_(DEFAULT_PRECEDENCE),
       ExternalEvent(EVENT_ADD_GTP_S8_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
-      pgw_gtp_port_(pgw_gtp_port) {}
+      pgw_gtp_port_(pgw_gtp_port) {
+  if (enb_ipv6) {
+    enb_ipv6_ = *enb_ipv6;
+  } else {
+    enb_ipv6_ = in6addr_any;
+  }
+  if (pgw_ipv6) {
+    pgw_ipv6_ = *pgw_ipv6;
+  } else {
+    pgw_ipv6_ = in6addr_any;
+  }
+}
 
 const struct in_addr& AddGTPTunnelEvent::get_ue_ip() const {
   return ue_info_.get_ip();
@@ -207,8 +235,16 @@ const struct in_addr& AddGTPTunnelEvent::get_enb_ip() const {
   return enb_ip_;
 }
 
+const struct in6_addr& AddGTPTunnelEvent::get_enb_ipv6() const {
+  return enb_ipv6_;
+}
+
 const struct in_addr& AddGTPTunnelEvent::get_pgw_ip() const {
   return pgw_ip_;
+}
+
+const struct in6_addr& AddGTPTunnelEvent::get_pgw_ipv6() const {
+  return pgw_ipv6_;
 }
 
 const uint32_t AddGTPTunnelEvent::get_in_tei() const {

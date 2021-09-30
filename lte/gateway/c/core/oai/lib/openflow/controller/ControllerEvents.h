@@ -174,29 +174,33 @@ class AddGTPTunnelEvent : public ExternalEvent {
  public:
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const uint32_t in_tei,
-      const uint32_t out_tei, const char* imsi,
+      const struct in_addr enb_ip, struct in6_addr* enb_ipv6,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
       const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
       uint32_t enb_gtp_port);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const uint32_t in_tei,
-      const uint32_t out_tei, const char* imsi, uint32_t enb_gtp_port);
+      const struct in_addr enb_ip, struct in6_addr* enb_ipv6,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+      uint32_t enb_gtp_port);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip, const struct in_addr pgw_ip,
+      const struct in_addr enb_ip, struct in6_addr* enb_ipv6,
+      const struct in_addr pgw_ip, struct in6_addr* pgw_ipv6,
       const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
       const uint32_t pgw_out_tei, const char* imsi, uint32_t enb_gtp_port,
       uint32_t pgw_gtp_port);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
-  const struct in_addr& get_ue_ipv6() const;
+  const struct in6_addr* get_ue_ipv6() const;
 
   const struct in_addr& get_enb_ip() const;
+  const struct in6_addr& get_enb_ipv6() const;
   const struct in_addr& get_pgw_ip() const;
+  const struct in6_addr& get_pgw_ipv6() const;
 
   const uint32_t get_in_tei() const;
   const uint32_t get_out_tei() const;
@@ -213,7 +217,9 @@ class AddGTPTunnelEvent : public ExternalEvent {
  private:
   const UeNetworkInfo ue_info_;
   const struct in_addr enb_ip_;
+  struct in6_addr enb_ipv6_;
   const struct in_addr pgw_ip_;
+  struct in6_addr pgw_ipv6_;
   const uint32_t in_tei_;
   const uint32_t out_tei_;
   const uint32_t pgw_in_tei_;
