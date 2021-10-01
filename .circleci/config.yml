@@ -1619,8 +1619,6 @@ workflows:
           requires:
             - insync-checkin
             - deploy-sync-checkin
-            - cloud_lint
-            - cloud-test
 
   lib_gateway:
     jobs:
