@@ -5,6 +5,7 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.6
     paths:
       - 'cwf/cloud/**'
       - 'fbinternal/cloud/**'
