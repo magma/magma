@@ -135,6 +135,8 @@ def package(
 
         with cd('release'):
             mirrored_packages_file = 'mirrored_packages'
+            if os == "ubuntu":
+                mirrored_packages_file += '_focal'
             if vm and vm.startswith('magma_'):
                 mirrored_packages_file += vm[5:]
 
