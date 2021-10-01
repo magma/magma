@@ -1524,7 +1524,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
-        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
         LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
@@ -1548,7 +1548,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
-        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
         LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
@@ -1561,7 +1561,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         &spgw_context->sgw_eps_bearer_context_information,
-        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
         LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
@@ -1919,7 +1919,7 @@ void handle_failed_create_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     gtpv2c_cause_value_t cause, imsi64_t imsi64,
     bearer_context_within_create_bearer_response_t* bearer_context,
-    log_proto_t module) {
+    sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
@@ -1928,7 +1928,7 @@ void handle_failed_create_bearer_response(
 
   if (sgw_context_p) {
     default_bearer_id = sgw_context_p->pdn_connection.default_bearer;
-    pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
+    pgw_ni_cbr_proc   = pgw_get_procedure_create_bearer(sgw_context_p);
     if (((pgw_ni_cbr_proc) &&
          (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
       sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
@@ -1941,6 +1941,10 @@ void handle_failed_create_bearer_response(
                 policy_rule_name, POLICY_RULE_NAME_MAXLEN + 1, "%s",
                 sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
           }
+          memcpy(
+              dedicated_bearer_ctxt_p,
+              sgw_eps_bearer_entry_p->sgw_eps_bearer_entry,
+              sizeof(sgw_eps_bearer_ctxt_t));
           // Remove the temporary spgw entry
           LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
@@ -2254,7 +2258,7 @@ void sgw_process_release_access_bearer_request(
         rv = gtpv1u_del_s8_tunnel(
             enb, pgw, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt->enb_teid_S1u, NULL);
+            eps_bearer_ctxt->s_gw_teid_S5_S8_up);
       }
 
       // TODO Need to add handling on failing to delete s1-u tunnel rules from

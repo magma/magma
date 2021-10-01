@@ -14,7 +14,6 @@
 #include "M5GSessionAMBR.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 SessionAMBRMsg::SessionAMBRMsg(){};
 SessionAMBRMsg::~SessionAMBRMsg(){};
@@ -39,7 +38,7 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, session_ambr->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeSessionAMBRMsg: iei" << hex << int(*buffer);
+    MLOG(MDEBUG) << "In EncodeSessionAMBRMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
 

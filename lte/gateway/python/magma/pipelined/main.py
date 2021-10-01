@@ -30,6 +30,7 @@ from magma.pipelined.app.he import PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.datapath_setup import (
+    configure_tso,
     setup_masquerade_rule,
     setup_sgi_tunnel,
     tune_datapath,
@@ -124,6 +125,7 @@ def main():
     service.config['he_enabled'] = he_enabled
 
     # tune datapath according to config
+    configure_tso(service.config)
     setup_sgi_tunnel(service.config, service.loop)
     tune_datapath(service.config)
     setup_masquerade_rule(service.config, service.loop)

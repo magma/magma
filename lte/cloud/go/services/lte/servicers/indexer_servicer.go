@@ -97,7 +97,7 @@ func setEnodebState(ctx context.Context, networkID string, states state_types.St
 			stateErrors[id] = fmt.Errorf("error serializing EnodebState for deviceID %s", id.DeviceID)
 			continue
 		}
-		gwEnt, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+		gwEnt, err := configurator.LoadEntityForPhysicalID(ctx, st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 		if err != nil {
 			stateErrors[id] = errors.Wrap(err, "error loading gatewayID")
 			continue

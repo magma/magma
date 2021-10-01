@@ -14,6 +14,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -49,7 +50,7 @@ func genericCommandCmd(cmd *cobra.Command, args []string) {
 		Params:  &paramsStruct,
 	}
 
-	response, err := magmad.GatewayGenericCommand(networkId, gatewayId, &genericCommandParams)
+	response, err := magmad.GatewayGenericCommand(context.Background(), networkId, gatewayId, &genericCommandParams)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

@@ -420,6 +420,7 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		// All subscribers have an APN
 
 		allSubs, _, err := configurator.LoadAllEntitiesOfType(
+			context.Background(),
 			nid, subscriberEntType,
 			configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 			serdes,
@@ -449,6 +450,7 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		// Default APN and its subscribers have same graph ID
 
 		defaultAPN, err := configurator.LoadEntity(
+			context.Background(),
 			nid, apnEntType, types.DefaultAPNName,
 			configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 			serdes,

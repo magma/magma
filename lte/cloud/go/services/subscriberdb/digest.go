@@ -14,6 +14,8 @@ limitations under the License.
 package subscriberdb
 
 import (
+	"context"
+
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -139,6 +141,7 @@ func getSubscribersDigest(network string) (string, error) {
 // in a network.
 func getApnResourcesDigest(network string) (string, error) {
 	apnResourceEnts, _, err := configurator.LoadAllEntitiesOfType(
+		context.Background(),
 		network, lte.APNResourceEntityType,
 		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,

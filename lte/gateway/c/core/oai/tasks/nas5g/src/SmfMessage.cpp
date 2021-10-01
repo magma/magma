@@ -15,7 +15,6 @@
 #include "M5gNasMessage.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 SMsg_u::SMsg_u(){};
 SMsg_u::~SMsg_u(){};
@@ -27,25 +26,25 @@ int SmfMsg::SmfMsgDecodeHeaderMsg(
     SmfMsgHeader* hdr, uint8_t* buffer, uint32_t len) {
   int size = 0;
 
-  MLOG(MDEBUG) << "SmfMsgDecodeHeaderMsg:" << endl;
+  MLOG(MDEBUG) << "SmfMsgDecodeHeaderMsg:" << std::endl;
   if (len > 0 || buffer != NULL) {
     DECODE_U8(buffer + size, hdr->extended_protocol_discriminator, size);
     DECODE_U8(buffer + size, hdr->pdu_session_id, size);
     DECODE_U8(buffer + size, hdr->procedure_transaction_id, size);
     DECODE_U8(buffer + size, hdr->message_type, size);
-    MLOG(MDEBUG) << "epd = 0x" << hex
+    MLOG(MDEBUG) << "epd = 0x" << std::hex
                  << int(hdr->extended_protocol_discriminator)
-                 << "pdu session id = 0x" << hex << int(hdr->pdu_session_id)
-                 << " procedure_transaction_id = 0x" << hex
-                 << int(hdr->procedure_transaction_id) << " message_type = 0x"
-                 << hex << int(hdr->message_type);
+                 << "pdu session id = 0x" << std::hex
+                 << int(hdr->pdu_session_id) << " procedure_transaction_id = 0x"
+                 << std::hex << int(hdr->procedure_transaction_id)
+                 << " message_type = 0x" << std::hex << int(hdr->message_type);
   } else {
-    MLOG(MERROR) << "Error : Buffer is Empty" << endl;
+    MLOG(MERROR) << "Error : Buffer is Empty" << std::endl;
     return (RETURNerror);
   }
 
   if (hdr->extended_protocol_discriminator != M5G_SESSION_MANAGEMENT_MESSAGES) {
-    MLOG(MERROR) << "Error : TLV not supported" << endl;
+    MLOG(MERROR) << "Error : TLV not supported" << std::endl;
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
   return (size);
@@ -62,12 +61,12 @@ int SmfMsg::SmfMsgEncodeHeaderMsg(
     ENCODE_U8(buffer + size, hdr->pdu_session_id, size);
     ENCODE_U8(buffer + size, hdr->procedure_transaction_id, size);
     ENCODE_U8(buffer + size, hdr->message_type, size);
-    MLOG(MDEBUG) << " epd = 0x" << hex
+    MLOG(MDEBUG) << " epd = 0x" << std::hex
                  << int(hdr->extended_protocol_discriminator)
-                 << " pdu session id = 0x" << hex << int(hdr->pdu_session_id)
-                 << " procedure_transaction_id = 0x" << hex
-                 << int(hdr->procedure_transaction_id) << " message_type = 0x"
-                 << hex << int(hdr->message_type);
+                 << " pdu session id = 0x" << std::hex
+                 << int(hdr->pdu_session_id) << " procedure_transaction_id = 0x"
+                 << std::hex << int(hdr->procedure_transaction_id)
+                 << " message_type = 0x" << std::hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);
@@ -85,9 +84,9 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int decode_result = 0;
   int header_result = 0;
 
-  MLOG(MDEBUG) << "SmfMsgDecodeMsg:" << endl;
+  MLOG(MDEBUG) << "SmfMsgDecodeMsg:" << std::endl;
   if (len <= 0 || buffer == NULL) {
-    MLOG(MERROR) << "Error : Buffer is Empty" << endl;
+    MLOG(MERROR) << "Error : Buffer is Empty" << std::endl;
     return (RETURNerror);
   }
 
@@ -127,7 +126,11 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int encode_result = 0;
   int header_result = 0;
 
-  MLOG(MDEBUG) << " SmfMsgEncodeMsg : " << endl;
+  MLOG(MDEBUG) << " SmfMsgEncodeMsg : " << std::endl;
+  if (len <= 0 || buffer == NULL) {
+    MLOG(MERROR) << "Error : Buffer is Empty";
+    return (RETURNerror);
+  }
 
   header_result = msg->SmfMsgEncodeHeaderMsg(&msg->header, buffer, len);
   if (header_result <= 0) {

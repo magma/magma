@@ -16,7 +16,6 @@
 #include "M5GPDUSessionType.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 PDUSessionTypeMsg::PDUSessionTypeMsg(){};
 PDUSessionTypeMsg::~PDUSessionTypeMsg(){};
@@ -30,14 +29,14 @@ int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
   // Store the IEI Information
   if (iei > 0) {
     pdu_session_type->iei = (*buffer & 0xf0) >> 4;
-    MLOG(MDEBUG) << "In DecodePDUSessionTypeMsg: iei" << hex
-                 << int(pdu_session_type->iei) << endl;
+    MLOG(MDEBUG) << "In DecodePDUSessionTypeMsg: iei" << std::hex
+                 << int(pdu_session_type->iei) << std::endl;
     decoded++;
   }
 
   pdu_session_type->type_val = (*buffer & 0x07);
-  MLOG(MDEBUG) << "DecodePDUSessionTypeMsg: type_val = " << hex
-               << int(pdu_session_type->type_val) << endl;
+  MLOG(MDEBUG) << "DecodePDUSessionTypeMsg: type_val = " << std::hex
+               << int(pdu_session_type->type_val) << std::endl;
 
   return (decoded);
 };
@@ -50,19 +49,18 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
 
   // CHECKING IEI
   MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: pdu_session_type"
-               << pdu_session_type->type_val << endl;
-
+               << pdu_session_type->type_val << std::endl;
   if (iei > 0) {
     *buffer = (pdu_session_type->iei & 0x0f) << 4;
     CHECK_IEI_ENCODER(
         (uint8_t) iei, (uint8_t)((pdu_session_type->iei & 0x0f) << 4));
-    MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: iei" << hex << int(*buffer)
-                 << endl;
+    MLOG(MDEBUG) << "In EncodePDUSessionTypeMsg: iei" << std::hex
+                 << int(*buffer) << std::endl;
   }
 
   *buffer = 0x00 | (*buffer & 0xf0) | (pdu_session_type->type_val & 0x07);
-  MLOG(MDEBUG) << "EncodePDUSessionTypeMsg: type_val = " << hex
-               << int(*(buffer)) << endl;
+  MLOG(MDEBUG) << "EncodePDUSessionTypeMsg: type_val = " << std::hex
+               << int(*(buffer)) << std::endl;
   encoded++;
 
   return (encoded);

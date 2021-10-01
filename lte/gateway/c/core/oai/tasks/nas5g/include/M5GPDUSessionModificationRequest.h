@@ -16,7 +16,6 @@
 #include "M5GPTI.h"
 #include "M5GMessageType.h"
 
-using namespace std;
 namespace magma5g {
 // PDUSessionModificationRequest Message Class
 class PDUSessionModificationRequestMsg {

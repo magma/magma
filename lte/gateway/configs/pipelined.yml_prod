@@ -184,3 +184,6 @@ sgi_tunnel:
  - wg_local_ip: 172.168.100.1/24
    peer_pub_key: 'VQT+tLY6/xF+k1WqrXeQzlfb8hWMVLcPdtCPvwIUNU0='
    peer_pub_ip: 1.2.3.4
+
+dp_tso:
+  gtp_tso_enable: false

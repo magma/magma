@@ -14,7 +14,6 @@
 #include "M5GAuthenticationRequest.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 AuthenticationRequestMsg::AuthenticationRequestMsg(){};
 AuthenticationRequestMsg::~AuthenticationRequestMsg(){};

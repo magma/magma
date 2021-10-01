@@ -64,4 +64,25 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     cd / && \
     rm -rf folly
 
+#### libtins is required to build the connection_tracker
+RUN apt-get install -y --no-install-recommends \
+    libpcap-dev \
+    libmnl-dev
+
+# TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
+RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
+    cd libtins && \
+    mkdir build && \
+    cd build && \
+    cmake ../ -DLIBTINS_ENABLE_CXX11=1 && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf libtins && \
+    # symlink to /usr/lib to match Magma VM
+    ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
+
+#### Update shared library configuration
+RUN ldconfig -v
+
 WORKDIR /magma

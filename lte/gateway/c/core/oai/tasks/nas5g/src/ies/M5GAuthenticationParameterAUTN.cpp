@@ -15,7 +15,6 @@
 #include "M5GAuthenticationParameterAUTN.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg(){};
 AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg(){};
@@ -42,7 +41,7 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, autn->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << hex
+    MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << std::hex
                  << int(*buffer);
     encoded++;
   }

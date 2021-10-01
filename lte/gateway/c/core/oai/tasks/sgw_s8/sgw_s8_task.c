@@ -109,7 +109,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       if (imsi64 == INVALID_IMSI64) {
         sgw_s8_send_failed_create_bearer_response(
             sgw_state, cb_req->sequence_number, cb_req->pgw_cp_address,
-            cause_value, imsi);
+            cause_value, imsi, cb_req->bearer_context[0].pgw_s8_up.teid);
       }
     } break;
     case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {

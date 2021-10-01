@@ -20,7 +20,6 @@
 #include "M5GPDUSessionIdentity.h"
 #include "M5GMMCause.h"
 
-using namespace std;
 namespace magma5g {
 // DLNASTransport Message Class
 class DLNASTransportMsg {

@@ -22,6 +22,7 @@
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
 #include "3gpp_24.008.h"
+#include "M5GSecurityModeReject.h"
 
 namespace magma5g {
 
@@ -36,6 +37,7 @@ class NAS5GPktSnapShot {
   static uint8_t deregistrarion_request[17];
   static uint8_t service_request[37];
   static uint8_t registration_reject[4];
+  static uint8_t security_mode_reject[4];
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);
@@ -69,6 +71,10 @@ class NAS5GPktSnapShot {
     return sizeof(deregistrarion_request) / sizeof(unsigned char);
   }
 
+  uint32_t get_security_mode_reject_len() {
+    return sizeof(security_mode_reject) / sizeof(unsigned char);
+  }
+
   NAS5GPktSnapShot() {}
 };
 
@@ -99,5 +105,8 @@ bool decode_service_request_msg(
 void gen_ipcp_pco_options(protocol_configuration_options_t* const pco_resp);
 
 int gen_dns_pco_options(protocol_configuration_options_t* const pco_resp);
+
+bool decode_security_mode_reject_msg(
+    SecurityModeRejectMsg* sm_reject, const uint8_t* buffer, uint32_t len);
 
 }  // namespace magma5g

@@ -91,7 +91,8 @@ void spgw_free_s11_bearer_context_information(
         &(*context_p)->sgw_eps_bearer_context_information.pdn_connection);
     clear_protocol_configuration_options(
         &(*context_p)->sgw_eps_bearer_context_information.saved_message.pco);
-    pgw_delete_procedures(*context_p);
+    delete_pending_procedures(
+        &(*context_p)->sgw_eps_bearer_context_information);
     if ((*context_p)->pgw_eps_bearer_context_information.apns) {
       obj_hashtable_ts_destroy(
           (*context_p)->pgw_eps_bearer_context_information.apns);

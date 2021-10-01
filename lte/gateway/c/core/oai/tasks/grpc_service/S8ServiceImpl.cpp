@@ -19,7 +19,6 @@ extern "C" {
 #include "common_defs.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
-#include "GrpcMagmaUtils.h"
 #include "S8ServiceImpl.h"
 #include "s8_itti_proto_conversion.h"
 #include "spgw_state_converter.h"
@@ -47,7 +46,7 @@ static void convert_proto_msg_to_itti_create_bearer_req(
     s8_create_bearer_request_t* itti_msg) {
   auto ip                  = request->pgwaddrs();
   itti_msg->pgw_cp_address = (char*) calloc(1, (ip.size() + 1));
-  strcpy(itti_msg->pgw_cp_address, ip.c_str());
+  snprintf(itti_msg->pgw_cp_address, (ip.size() + 1), ip.c_str());
   itti_msg->context_teid         = request->c_agw_teid();
   itti_msg->sequence_number      = request->sequence_number();
   itti_msg->linked_eps_bearer_id = request->linked_bearer_id();
@@ -78,7 +77,7 @@ grpc::Status S8ServiceImpl::CreateBearer(
       " for context teid: " TEID_FMT "\n",
       request->c_agw_teid());
 
-  MessageDef* message_p = NULL;
+  MessageDef* message_p              = NULL;
   s8_create_bearer_request_t* cb_req = NULL;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_CREATE_BEARER_REQ);
   if (!message_p) {

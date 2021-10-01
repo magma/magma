@@ -819,7 +819,7 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 
 	// ------------------------
 	// ---- Delete Bearer ----
-	outDBR, err := mockPgw.DeleteBearerRequest(mock_pgw.DeleteBearerRequest{Imsi: IMSI1, LinkedBearerId: DEDICATEDBEARER})
+	outDBR, err := mockPgw.DeleteBearerRequest(mock_pgw.DeleteBearerRequest{Imsi: IMSI1, EpsBearerId: DEDICATEDBEARER})
 	assert.NoError(t, err)
 
 	// wait for mock feg_relay to process the request
@@ -827,7 +827,8 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 
 	dbReqReceived := fegRelayTestSrv.ReceivedDeleteBearerRequest
 	assert.NotEmpty(t, dbReqReceived)
-	assert.Equal(t, DEDICATEDBEARER, int(dbReqReceived.LinkedBearerId))
+	assert.Equal(t, BEARER, int(dbReqReceived.LinkedBearerId))
+	assert.Equal(t, DEDICATEDBEARER, int(dbReqReceived.EpsBearerId))
 	assert.Equal(t, AGWTeidC, dbReqReceived.CAgwTeid)
 
 	// send the response from agw to feg
@@ -836,9 +837,13 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 		Imsi:                         IMSI1,
 		SequenceNumber:               dbReqReceived.SequenceNumber,
 		CPgwTeid:                     PgwTEIDc,
-		LinkedBearerId:               DEDICATEDBEARER,
+		LinkedBearerId:               BEARER,
 		ProtocolConfigurationOptions: nil,
 		Cause:                        uint32(gtpv2.CauseRequestAccepted),
+		BearerContext: &protos.BearerContext{
+			Id:    DEDICATEDBEARER,
+			Cause: uint32(gtpv2.CauseRequestAccepted),
+		},
 	}
 
 	_, err = s8p.DeleteBearerResponse(context.Background(), dbResGrpc)

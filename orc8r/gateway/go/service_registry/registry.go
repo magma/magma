@@ -14,7 +14,7 @@ limitations under the License.
 package service_registry
 
 import (
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/grpc"
 
 	platform_registry "magma/orc8r/lib/go/registry"

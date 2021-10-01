@@ -18,7 +18,6 @@
 #include "M5GNASKeySetIdentifier.h"
 #include "M5GEAPMessage.h"
 
-using namespace std;
 namespace magma5g {
 class AuthenticationResultMsg {
  public:

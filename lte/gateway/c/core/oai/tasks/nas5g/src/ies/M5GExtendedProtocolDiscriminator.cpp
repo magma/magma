@@ -14,7 +14,6 @@
 #include "M5GExtendedProtocolDiscriminator.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg(){};
 ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
@@ -30,7 +29,7 @@ int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
       *(buffer + decoded);
   decoded++;
   MLOG(MDEBUG)
-      << " epd = " << hex
+      << " epd = " << std::hex
       << int(extended_protocol_discriminator->extended_proto_discriminator);
   return (decoded);
 };
@@ -44,7 +43,7 @@ int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
   MLOG(MDEBUG) << " EncodeExtendedProtocolDiscriminatorMsg : ";
   *(buffer + encoded) =
       extended_protocol_discriminator->extended_proto_discriminator;
-  MLOG(MDEBUG) << "epd = 0x" << hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "epd = 0x" << std::hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
 };

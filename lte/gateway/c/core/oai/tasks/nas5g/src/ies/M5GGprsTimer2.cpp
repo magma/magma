@@ -26,15 +26,17 @@ int GPRSTimer2Msg::DecodeGPRSTimer2Msg(
 
   if (iei > 0) {
     gprstimer->iei = *buffer;
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: iei = " << hex << int(gprstimer->iei);
+    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: iei = " << std::hex
+                 << int(gprstimer->iei);
     decoded++;
 
     gprstimer->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: len = " << hex << int(gprstimer->len);
+    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: len = " << std::hex
+                 << int(gprstimer->len);
     decoded++;
 
     gprstimer->timervalue = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: timervalue = " << hex
+    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: timervalue = " << std::hex
                  << int(gprstimer->timervalue);
     decoded++;
   }

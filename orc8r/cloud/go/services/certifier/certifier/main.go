@@ -14,12 +14,12 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"math/rand"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"

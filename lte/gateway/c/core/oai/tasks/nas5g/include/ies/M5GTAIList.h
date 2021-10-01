@@ -11,7 +11,6 @@ limitations under the License.
 #pragma once
 #include <sstream>
 #include <cstdint>
-using namespace std;
 namespace magma5g {
 class TAIListMsg {
  public:

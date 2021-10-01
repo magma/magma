@@ -120,7 +120,7 @@ void handle_failed_create_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     gtpv2c_cause_value_t cause, imsi64_t imsi64,
     bearer_context_within_create_bearer_response_t* bearer_context,
-    log_proto_t module);
+    sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module);
 
 void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,

@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mock_service",
+    srcs = ["mock_router.go"],
+    importpath = "github.com/magma/magma/src/go/service/mock_service",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/protos/magma/sctpd",
+        "@com_github_golang_mock//gomock",
+    ],
+)

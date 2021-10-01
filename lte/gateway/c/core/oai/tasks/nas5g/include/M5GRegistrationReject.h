@@ -17,7 +17,6 @@
 #include "M5GSpareHalfOctet.h"
 #include "M5GMMCause.h"
 
-using namespace std;
 namespace magma5g {
 class RegistrationRejectMsg {
  public:

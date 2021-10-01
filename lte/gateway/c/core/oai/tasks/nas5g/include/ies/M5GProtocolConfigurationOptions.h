@@ -21,7 +21,6 @@ extern "C" {
 };
 #endif
 
-using namespace std;
 namespace magma5g {
 
 // Protocol Configuration Options IE Class

@@ -25,8 +25,6 @@
 #include "CreditKey.h"
 #include "includes/GRPCReceiver.h"
 
-using grpc::Status;
-
 namespace magma {
 using namespace lte;
 /**

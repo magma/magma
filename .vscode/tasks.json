@@ -1,0 +1,48 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "(Bazel) Refresh Compilation Database And Restart Clangd",
+            "type": "shell",
+            "command": "echo 'Regenerated compilation database and restarted clangd!'",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "bsv.cc.compdb.generate",
+                "clangd.restart"
+            ],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "(Bazel) Build All",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "--config=${env:VSCODE_BAZEL_BUILD_CONFIG}",
+                "-c",
+                "dbg",
+                "..."
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "(Bazel) Build SessionD Unit Tests",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "--config=${env:VSCODE_BAZEL_BUILD_CONFIG}",
+                "-c",
+                "dbg",
+                "//lte/gateway/c/session_manager/test:all"
+            ],
+            "group": "build"
+        }
+    ]
+}

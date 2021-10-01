@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // PDUSessionType Class
 class PDUSessionTypeMsg {

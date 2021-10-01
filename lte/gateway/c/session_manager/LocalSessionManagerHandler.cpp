@@ -259,60 +259,59 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   set_sentry_transaction("CreateSession");
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  enforcer_->get_event_base().runInEventBaseThread(
-      [this, context, response_callback, request_cpy]() {
-        SessionConfig cfg(request_cpy);
-        const std::string& imsi           = cfg.get_imsi();
-        const CommonSessionContext common = cfg.common_context;
+  enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
+                                                    request_cpy]() {
+    SessionConfig cfg(request_cpy);
+    const std::string& imsi           = cfg.get_imsi();
+    const CommonSessionContext common = cfg.common_context;
 
-        log_create_session(cfg);
-        auto status = validate_create_session_request(cfg);
-        if (!status.ok()) {
-          send_local_create_session_response(status, "", response_callback);
-          return;
-        }
+    log_create_session(cfg);
+    auto status = validate_create_session_request(cfg);
+    if (!status.ok()) {
+      send_local_create_session_response(status, "", response_callback);
+      return;
+    }
 
-        const auto& session_id = id_gen_.gen_session_id(imsi);
-        auto session_map       = session_store_.read_sessions({imsi});
-        SessionActionOrStatus action;
-        switch (common.rat_type()) {
-          case TGPP_WLAN:
-            action = handle_create_session_cwf(session_map, session_id, cfg);
-            break;
-          case TGPP_LTE:
-            action = handle_create_session_lte(session_map, session_id, cfg);
-            break;
-          default:
-            // this should be handled above
-            MLOG(MERROR) << "RAT type " << common.rat_type()
-                         << " is not supported";
-            return;
-        }
-        if (action.end_existing_session) {
-          // Assumption here is that sessions are unique by IMSI+APN
-          end_session(
-              session_map, common.sid(), common.apn(),
-              [&](grpc::Status status, LocalEndSessionResponse response) {});
-        }
-        if (action.create_new_session) {
-          bool success = initialize_session(
-              session_map, action.session_id_to_send_back, cfg);
-          if (success) {
-            send_create_session(
-                session_map, action.session_id_to_send_back, cfg,
-                response_callback);
-          } else {
-            // abort and send back a failure response to access
-            action.set_status(
-                Status(grpc::ABORTED, "Failed to update SessionStore"));
-          }
-        }
-        if (action.status_back_to_access) {
-          send_local_create_session_response(
-              *(action.status_back_to_access), action.session_id_to_send_back,
-              response_callback);
-        }
-      });
+    const auto& session_id = id_gen_.gen_session_id(imsi);
+    auto session_map       = session_store_.read_sessions({imsi});
+    SessionActionOrStatus action;
+    switch (common.rat_type()) {
+      case TGPP_WLAN:
+        action = handle_create_session_cwf(session_map, session_id, cfg);
+        break;
+      case TGPP_LTE:
+        action = handle_create_session_lte(session_map, session_id, cfg);
+        break;
+      default:
+        // this should be handled above
+        MLOG(MERROR) << "RAT type " << common.rat_type() << " is not supported";
+        return;
+    }
+    if (action.end_existing_session) {
+      // Assumption here is that sessions are unique by IMSI+APN
+      end_session(
+          session_map, common.sid(), common.apn(),
+          [&](grpc::Status status, LocalEndSessionResponse response) {});
+    }
+    if (action.create_new_session) {
+      bool success =
+          initialize_session(session_map, action.session_id_to_send_back, cfg);
+      if (success) {
+        send_create_session(
+            session_map, action.session_id_to_send_back, cfg,
+            response_callback);
+      } else {
+        // abort and send back a failure response to access
+        action.set_status(
+            Status(grpc::ABORTED, "Failed to update SessionStore"));
+      }
+    }
+    if (action.status_back_to_access) {
+      send_local_create_session_response(
+          *(action.status_back_to_access), action.session_id_to_send_back,
+          response_callback);
+    }
+  });
 }
 
 bool LocalSessionManagerHandlerImpl::initialize_session(
@@ -507,7 +506,7 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
   MLOG(MINFO) << "Sending a request to DirectoryD to register sessiond ID: "
               << session_id << " msisdn: " << msisdn;
   directoryd_client_->update_directoryd_record(
-      request, [this, imsi](Status status, Void) {
+      request, [imsi](Status status, Void) {
         if (!status.ok()) {
           MLOG(MERROR) << "Could not add session_id to directory record for "
                           "subscriber "

@@ -19,7 +19,6 @@
 #include "M5GPayloadContainer.h"
 #include "M5GRequestType.h"
 
-using namespace std;
 namespace magma5g {
 // ULNASTransport Message Class
 class ULNASTransportMsg {
