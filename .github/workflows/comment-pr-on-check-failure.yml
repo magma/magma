@@ -19,7 +19,6 @@ jobs:
     steps:
       # Retrieve PR number from triggering workflow artifacts
       - name: 'Download artifact'
-        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
         uses: actions/github-script@v3.1.0
         with:
           script: |
@@ -39,9 +38,7 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
-      - name: Unzip the pr zip file
-        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-        run: unzip pr.zip
+      - run: unzip pr.zip
       - name: DCO comment message
         if: ${{ github.event.workflow.name == 'DCO check' }}
         run: |
