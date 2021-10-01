@@ -12,6 +12,7 @@
  */
 
 #include "sgw_s8_utility.h"
+#include "ControllerMain.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 void fill_imsi(char* imsi) {
@@ -159,6 +160,14 @@ void SgwS8Config::sgw_initialize_gtpv1u(void) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR clean existing gtp states.\n");
     return;
   }
+  // The command configures the switch with ip and port, the same port is
+  // used for mme service
+
+  bstring system_cmd = bformat(
+      "ovs-vsctl set-controller gtp_br0 tcp:%s:%d", CONTROLLER_ADDR,
+      CONTROLLER_PORT);
+  system((const char*) system_cmd->data);
+  bdestroy(system_cmd);
   netaddr.s_addr = INADDR_ANY;
   netmask        = 0;
   // Init GTP device, using the same MTU as SGi.
@@ -166,6 +175,8 @@ void SgwS8Config::sgw_initialize_gtpv1u(void) {
 
   // END-GTP quick integration only for evaluation purpose
 
+  // Add route to avoid updating routing during UE attach.
+  add_route_for_ue_block(netaddr, netmask);
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface: DONE\n");
   return;
 }

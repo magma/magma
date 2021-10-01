@@ -181,4 +181,6 @@ int gtpv1u_add_s8_tunnel(
 int gtpv1u_del_s8_tunnel(
     struct in_addr enb, struct in_addr pgw, struct in_addr ue,
     struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t pgw_in_tei);
+
+void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask);
 #endif /* FILE_GTPV1_U_SEEN */

@@ -1329,7 +1329,6 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                      = NULL;
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
-  uint32_t sequence_number                                      = 0;
   pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
 
   if (!pgw_ni_cbr_proc) {
@@ -1387,7 +1386,6 @@ void sgw_s8_proc_s11_create_bearer_rsp(
             bc_cbrsp->cause.cause_value = REQUEST_REJECTED;
           }
           bc_cbrsp->cause.cause_value = REQUEST_ACCEPTED;
-          sequence_number             = eps_bearer_ctxt_p->sgw_sequence_number;
         }
       }
       // Remove the temporary spgw entry
