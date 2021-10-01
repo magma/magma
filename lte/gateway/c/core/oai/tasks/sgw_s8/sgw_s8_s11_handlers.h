@@ -100,3 +100,5 @@ void sgw_s8_proc_s11_create_bearer_rsp(
     bearer_context_within_create_bearer_response_t* bc_cbrsp,
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64,
     sgw_state_t* sgw_state);
+
+void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers);

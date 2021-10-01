@@ -46,7 +46,7 @@ static void convert_proto_msg_to_itti_create_bearer_req(
     s8_create_bearer_request_t* itti_msg) {
   auto ip                  = request->pgwaddrs();
   itti_msg->pgw_cp_address = (char*) calloc(1, (ip.size() + 1));
-  snprintf(itti_msg->pgw_cp_address, (ip.size() + 1), ip.c_str());
+  snprintf(itti_msg->pgw_cp_address, (ip.size() + 1), "%s", ip.c_str());
   itti_msg->context_teid         = request->c_agw_teid();
   itti_msg->sequence_number      = request->sequence_number();
   itti_msg->linked_eps_bearer_id = request->linked_bearer_id();
