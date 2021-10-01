@@ -15,6 +15,7 @@
 # sync_interval is set in mconfig. it can be overridden here
 
 print_grpc_payload: false
+log_level: INFO
 
 #state_protos:
 #  - proto_file:  - file to load proto from
