@@ -129,26 +129,6 @@ resource "helm_release" "fbinternal-orc8r" {
   }
 }
 
-resource "helm_release" "wifi-orc8r" {
-  count = var.orc8r_deployment_type == "all" ? 1 : 0
-
-  name                = "wifi-orc8r"
-  namespace           = kubernetes_namespace.orc8r.metadata[0].name
-  repository          = var.helm_repo
-  repository_username = var.helm_user
-  repository_password = var.helm_pass
-  chart               = "wifi-orc8r"
-  version             = var.wifi_orc8r_chart_version
-  keyring             = ""
-  timeout             = 600
-  values              = [data.template_file.orc8r_values.rendered]
-
-  set_sensitive {
-    name  = "controller.spec.database.pass"
-    value = var.orc8r_db_pass
-  }
-}
-
 
 data "template_file" "orc8r_values" {
   template = file("${path.module}/templates/orc8r-values.tpl")

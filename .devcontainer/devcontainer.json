@@ -24,7 +24,7 @@
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
 			"**/.bazel-cache-repo/**": true,
-		},		
+		},
 		"bsv.bazel.buildFlags": [
 			"--config=devcontainer",
 		],
