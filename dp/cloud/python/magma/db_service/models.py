@@ -97,7 +97,7 @@ class DBGrantState(Base):
 class DBGrant(Base):
     __tablename__ = "grant"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    state_id = Column(Integer, ForeignKey("grant_state.id"))
+    state_id = Column(Integer, ForeignKey("grant_state.id"), nullable=False)
     cbsd_id = Column(Integer, ForeignKey("cbsd.id"))
     channel_id = Column(Integer, ForeignKey("channel.id"))
     grant_id = Column(String, nullable=False)
@@ -144,7 +144,7 @@ class DBCbsdState(Base):
 class DBCbsd(Base):
     __tablename__ = "cbsd"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    state_id = Column(Integer, ForeignKey("cbsd_state.id"))
+    state_id = Column(Integer, ForeignKey("cbsd_state.id"), nullable=False)
     cbsd_id = Column(String)
     user_id = Column(String)
     fcc_id = Column(String)
