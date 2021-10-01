@@ -2158,6 +2158,14 @@ static int emm_as_establish_cnf(
   if (msg->nas_info == EMM_AS_NAS_INFO_ATTACH) {
     bdestroy_wrapper(&(emm_msg->attach_accept.esmmessagecontainer));
   }
+  if (msg->nas_info == EMM_AS_NAS_INFO_TAU) {
+    OAILOG_INFO(
+       LOG_NAS_ESM, "Freeing memory for tau_accept_eps_ber_cntx_status %p \n", msg->eps_bearer_context_status);
+    free_wrapper((void**) &msg->eps_bearer_context_status);
+    ue_mm_context_t* ue_mm_context =
+        mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
+
+  }
 
   if (bytes > 0) {
     as_msg->err_code = AS_SUCCESS;

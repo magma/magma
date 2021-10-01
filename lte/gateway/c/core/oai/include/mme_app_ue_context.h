@@ -460,7 +460,8 @@ typedef struct ue_mm_context_s {
   /* Storing activate_dedicated_bearer_req messages received
    * when UE is in ECM_IDLE state*/
   emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];
-  bool lcl_deact_due_to_eps_bearer_cxt_sts;
+  eps_bearer_context_status_t *tau_accept_eps_ber_cntx_status;
+  uint8_t nb_delete_sessions;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 
@@ -622,6 +623,8 @@ void proc_new_attach_req(
 
 int eps_bearer_release(
     emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
+
+status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_context);
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */

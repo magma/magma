@@ -433,6 +433,11 @@ void mme_app_handle_conn_est_cnf(
     if (bc) {
       establishment_cnf_p->e_rab_id[j] =
           bc->ebi;  //+ EPS_BEARER_IDENTITY_FIRST;
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, emm_context_p->_imsi64,
+              "In ICS Adding EBI=%d " MME_UE_S1AP_ID_FMT "\n",
+              bc->ebi,nas_conn_est_cnf_p->ue_id);
+
       establishment_cnf_p->e_rab_level_qos_qci[j] = bc->qci;
       establishment_cnf_p->e_rab_level_qos_priority_level[j] =
           bc->priority_level;
@@ -951,8 +956,19 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  if (ue_context_p->lcl_deact_due_to_eps_bearer_cxt_sts) {
-    ue_context_p->lcl_deact_due_to_eps_bearer_cxt_sts = false;
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "In handle_delete_session_rsp tau_accept_eps_ber_cntx_status addr=%p ",
+      ue_context_p->tau_accept_eps_ber_cntx_status);
+
+  if (ue_context_p->tau_accept_eps_ber_cntx_status) {
+      ue_context_p->nb_delete_sessions --;
+      OAILOG_INFO_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Freeing the bearers as tau_accept_eps_ber_cntx_status is set for "
+          "ue_id " MME_UE_S1AP_ID_FMT " and lbi=%u\n",
+          ue_context_p->mme_ue_s1ap_id, delete_sess_resp_pP->lbi);
+
     int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
     eps_bearer_release(
         &ue_context_p->emm_context, delete_sess_resp_pP->lbi, &pid,
@@ -961,15 +977,13 @@ void mme_app_handle_delete_session_rsp(
       mme_app_free_pdn_context(
           &ue_context_p->pdn_contexts[pid], ue_context_p->emm_context._imsi64);
     }
-    if (ue_context_p->nb_active_pdn_contexts == 0) {
-      // Send NW initiated detach
-      OAILOG_INFO_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Sending NW initiated detach as the last PDN lbi:%u is deleted for "
-          "ue_id " MME_UE_S1AP_ID_FMT "\n",
-          pdn_disconnect_rsp.lbi, ue_context_p->mme_ue_s1ap_id);
-      mme_app_handle_nw_initiated_detach_request(
-          ue_context_p->mme_ue_s1ap_id, MME_INITIATED_EPS_DETACH);
+    // Free bearer context entry
+    if (ue_context_p->bearer_contexts[bearer_idx]) {
+      free_wrapper((void**) &ue_context_p->bearer_contexts[bearer_idx]);
+    }
+
+    if (ue_context_p->nb_delete_sessions == 0) {
+      send_tau_accept_with_eps_bearer_ctx_status(ue_context_p);
     }
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
