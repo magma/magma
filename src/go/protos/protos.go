@@ -22,3 +22,11 @@ package protos
 //go:generate protoc --go_out=. --go_opt=Mcommon.proto=magma/orc8r;orc8r -I ../../../orc8r/protos common.proto
 //go:generate protoc --go_out=. --go_opt=Mmconfigs.proto=magma/mconfig;mconfig --go_opt=Morc8r/protos/common.proto=github.com/magma/magma/src/go/protos/magma/orc8r -I ../../../lte/protos/mconfig -I ../../../ mconfigs.proto
 //go:generate protoc --go-grpc_out=. --go-grpc_opt=Mmconfigs.proto=magma/mconfig;mconfig -I ../../../lte/protos/mconfig -I ../../../ mconfigs.proto
+
+//go:generate protoc --go_out=. --go_opt=Mmetrics.proto=magma/metrics;metrics --go_opt=Morc8r/protos/common.proto=github.com/magma/magma/src/go/protos/magma/orc8r -I ../../../orc8r/protos/prometheus -I ../../../ metrics.proto
+//go:generate protoc --go-grpc_out=. --go-grpc_opt=Mmetrics.proto=magma/metrics;metrics -I ../../../orc8r/protos/prometheus metrics.proto
+
+//go:generate protoc --go_out=. --go_opt=Mmetricsd.proto=magma/metricsd;metricsd --go_opt=Morc8r/protos/common.proto=github.com/magma/magma/src/go/protos/magma/orc8r -I ../../../orc8r/protos -I ../../../ -I ../../../orc8r/protos/prometheus metricsd.proto
+//go:generate protoc --go-grpc_out=. --go-grpc_opt=Mmetricsd.proto=magma/metricsd;metricsd --go-grpc_opt=Morc8r/protos/common.proto=github.com/magma/magma/src/go/protos/magma/orc8r -I ../../../orc8r/protos -I ../../../ -I ../../../orc8r/protos/prometheus metricsd.proto
+
+//go:generate go run github.com/golang/mock/mockgen -source magma/metricsd/metricsd_grpc.pb.go -destination magma/metricsd/mock_metricsd/mock_metricsd_grpc.pb.go

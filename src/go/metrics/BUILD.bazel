@@ -1,0 +1,44 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "metrics",
+    srcs = [
+        "collector.go",
+        "const.go",
+        "gauge.go",
+        "sender.go",
+    ],
+    importpath = "github.com/magma/magma/src/go/metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/protos/magma/metrics",
+        "//src/go/protos/magma/metricsd",
+        "//src/go/protos/magma/orc8r",
+        "@com_github_benbjohnson_clock//:clock",
+        "@com_github_pkg_errors//:errors",
+        "@com_github_prometheus_client_model//go",
+        "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_test(
+    name = "metrics_test",
+    srcs = [
+        "collector_test.go",
+        "gauge_test.go",
+        "mock_sender_test.go",
+        "sender_test.go",
+    ],
+    embed = [":metrics"],
+    deps = [
+        "//src/go/protos/magma/metrics",
+        "//src/go/protos/magma/metricsd",
+        "//src/go/protos/magma/orc8r",
+        "@com_github_benbjohnson_clock//:clock",
+        "@com_github_golang_mock//gomock",
+        "@com_github_pkg_errors//:errors",
+        "@com_github_prometheus_client_model//go",
+        "@com_github_stretchr_testify//assert",
+        "@org_golang_google_protobuf//proto",
+    ],
+)
