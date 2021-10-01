@@ -123,9 +123,11 @@ TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
   spgw_config.sgw_config.ovs_config.mtr_port_num                  = 15577;
   spgw_config.sgw_config.ovs_config.internal_sampling_port_num    = 15578;
   spgw_config.sgw_config.ovs_config.internal_sampling_fwd_tbl_num = 201;
+  char ovs_bridge_name[]                                          = "gtp_br0";
+  spgw_config.sgw_config.ovs_config.bridge_name = bfromcstr(ovs_bridge_name);
+
   sgw_initialize_gtpv1u();
   bdestroy_wrapper(&spgw_config.sgw_config.ovs_config.uplink_mac);
-#if 0
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_s11_tunnel.local_teid);
@@ -169,7 +171,6 @@ TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
   EXPECT_EQ(sgw_pdn_session->pending_procedures, nullptr);
 
   free_wrapper((void**) &cb_req.pgw_cp_address);
-#endif
   sgw_uninitialize_gtpv1u();
   sgw_state_exit();
 }
