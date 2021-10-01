@@ -898,9 +898,8 @@ status_code_e nas_proc_pdn_disconnect_rsp(
   int rc            = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  OAILOG_DEBUG_UE(
-      LOG_NAS_EMM, emm_sap.u.emm_esm.ctx->_imsi64,
-      "Received pdn_disconnect_rsp for ue id %u\n",
+  OAILOG_DEBUG(
+      LOG_NAS_EMM, "Received pdn_disconnect_rsp for ue id %u\n",
       emm_cn_pdn_disconnect_rsp->ue_id);
   emm_sap.primitive                            = EMMCN_PDN_DISCONNECT_RES;
   emm_sap.u.emm_cn.u.emm_cn_pdn_disconnect_rsp = emm_cn_pdn_disconnect_rsp;

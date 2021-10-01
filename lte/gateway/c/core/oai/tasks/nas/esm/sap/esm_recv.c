@@ -431,9 +431,8 @@ esm_cause_t esm_recv_pdn_disconnect_request(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
   if (!ue_mm_context_p) {
-    OAILOG_WARNING_UE(
-        LOG_NAS_ESM, emm_context->_imsi64,
-        "Failed to find ue context from emm context \n");
+    OAILOG_WARNING(
+        LOG_NAS_ESM, "Failed to find ue context from emm context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
@@ -650,8 +649,8 @@ status_code_e erab_setup_rsp_tmr_exp_handler(
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
       ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+    OAILOG_ERROR(
+        LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);

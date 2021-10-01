@@ -358,8 +358,8 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
     ue_mm_context_t* ue_context_p =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     if (!ue_context_p) {
-      OAILOG_ERROR_UE(
-          LOG_NAS_ESM, emm_context->_imsi64,
+      OAILOG_ERROR(
+          LOG_NAS_ESM,
           "ESM-PROC  - ue_context_p is NULL for ue_id" MME_UE_S1AP_ID_FMT
           ", ebi %u\n",
           ue_id, ebi);
@@ -422,8 +422,8 @@ status_code_e esm_proc_default_eps_bearer_context_failure(
         "failure (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
   } else {
-    OAILOG_WARNING_UE(
-        LOG_NAS_ESM, emm_context->_imsi64,
+    OAILOG_WARNING(
+        LOG_NAS_ESM,
         "ESM-PROC  - Default EPS bearer context activation "
         "failure (context is NULL) for ue id " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
@@ -496,8 +496,8 @@ status_code_e default_eps_bearer_activate_t3485_handler(
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
       ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+    OAILOG_ERROR(
+        LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);

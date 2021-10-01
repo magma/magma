@@ -86,8 +86,7 @@ ebi_t esm_ebr_context_create(
   ue_mm_context_t* ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_ESM, emm_context->_imsi64, "ESM-PROC  - ue_mm_context null\n ");
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-PROC  - ue_mm_context null\n ");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   OAILOG_INFO_UE(

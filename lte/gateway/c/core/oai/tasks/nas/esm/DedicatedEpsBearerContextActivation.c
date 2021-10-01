@@ -427,8 +427,8 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
       ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
   if (ue_mm_context == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+    OAILOG_ERROR(
+        LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
