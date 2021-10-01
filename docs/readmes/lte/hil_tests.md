@@ -1,13 +1,6 @@
----
-id: HIL_AGW_tests
-title: Hardware In Loop Testing
-hide_title: true
----
-
 <p align="center">
     <a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL AGW Last Stable"></a>
 </p>
-
 
 # Hardware In Loop Tests
 
