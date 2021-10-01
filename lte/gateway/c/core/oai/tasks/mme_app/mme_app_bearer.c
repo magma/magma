@@ -956,11 +956,6 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "In handle_delete_session_rsp tau_accept_eps_ber_cntx_status addr=%p ",
-      ue_context_p->tau_accept_eps_ber_cntx_status);
-
   if (ue_context_p->tau_accept_eps_ber_cntx_status) {
       ue_context_p->nb_delete_sessions --;
       OAILOG_INFO_UE(

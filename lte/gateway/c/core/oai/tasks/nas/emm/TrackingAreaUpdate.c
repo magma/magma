@@ -202,9 +202,9 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
   pdn_cid_t pid      = 0;
   bool is_ebi_active = false;
 
-  ue_mm_context->tau_accept_eps_ber_cntx_status = calloc(1,sizeof(eps_bearer_context_status_t));
+  //ue_mm_context->tau_accept_eps_ber_cntx_status = calloc(1,sizeof(eps_bearer_context_status_t));
   OAILOG_INFO(
-       LOG_NAS_ESM, "Memory allocated for tau_accept_eps_ber_cntx_status %p \n", ue_mm_context->tau_accept_eps_ber_cntx_status);
+       LOG_NAS_ESM, "handle_and_fill_eps_bearer_cntxt_status tau_accept_eps_ber_cntx_status %d \n", ue_mm_context->tau_accept_eps_ber_cntx_status);
   for (itrn = 0; itrn < BEARERS_PER_UE; itrn++) {
     bearer_context_t* bearer_context =
         mme_app_get_bearer_context(ue_mm_context, itrn);
@@ -252,7 +252,7 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
             LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
       } else {
         // Set the status of active bearers to be sent in TAU Accept
-        *(ue_mm_context->tau_accept_eps_ber_cntx_status) |= 1 << pos;
+        (ue_mm_context->tau_accept_eps_ber_cntx_status) |= 1 << pos;
       }
     }
   }
@@ -801,26 +801,9 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
 
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
-      // if (tau_proc->ies->eps_bearer_context_status) {
-      /*tau_proc->ies->eps_bearer_context_status =
-          calloc(1, sizeof(eps_bearer_context_status_t));
-      *tau_proc->ies->eps_bearer_context_status = 8192;
-      emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
-        calloc(1, sizeof(eps_bearer_context_status_t));
-
-      handle_and_fill_eps_bearer_cntxt_status(
-          emm_sap.u.emm_as.u.establish.eps_bearer_context_status,
-          tau_proc->ies->eps_bearer_context_status, ue_mm_context);*/
-      /*emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
-          tau_proc->ies->eps_bearer_context_status;*/
-      //}
-
       if (tau_proc->ies->eps_bearer_context_status && ue_mm_context->tau_accept_eps_ber_cntx_status) {
         emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
-          calloc(1, sizeof(eps_bearer_context_status_t));
-        *emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
-          *ue_mm_context->tau_accept_eps_ber_cntx_status;
-        free_wrapper((void**) &ue_mm_context->tau_accept_eps_ber_cntx_status);
+         &ue_mm_context->tau_accept_eps_ber_cntx_status;
       }
       // TODO Reminder
       emm_sap.u.emm_as.u.establish.location_area_identification = NULL;
@@ -925,29 +908,8 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           &emm_sap.u.emm_as.u.data.tai_list, &emm_context->_tai_list,
           sizeof(tai_list_t));
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
-      /*if (tau_proc->ies->eps_bearer_context_status) {
-        emm_as->eps_bearer_context_status =
-            tau_proc->ies->eps_bearer_context_status;
-      }*/
-      /*tau_proc->ies->eps_bearer_context_status =
-          calloc(1, sizeof(eps_bearer_context_status_t));
-      *tau_proc->ies->eps_bearer_context_status = 8192;
-
-      emm_as->eps_bearer_context_status =
-        calloc(1, sizeof(eps_bearer_context_status_t));
-      handle_and_fill_eps_bearer_cntxt_status(
-          emm_as->eps_bearer_context_status,
-          tau_proc->ies->eps_bearer_context_status, ue_mm_context);
-
-      emm_sap.u.emm_as.u.data.eps_network_feature_support =
-          (eps_network_feature_support_t*) &_emm_data.conf
-              .eps_network_feature_support;*/
       if (tau_proc->ies->eps_bearer_context_status && ue_mm_context->tau_accept_eps_ber_cntx_status) {
-        emm_as->eps_bearer_context_status =
-          calloc(1, sizeof(eps_bearer_context_status_t));
-        *emm_as->eps_bearer_context_status =
-          *ue_mm_context->tau_accept_eps_ber_cntx_status;
-        free_wrapper((void**) &ue_mm_context->tau_accept_eps_ber_cntx_status);
+        emm_as->eps_bearer_context_status = &ue_mm_context->tau_accept_eps_ber_cntx_status;
       }
 
       /*If CSFB is enabled,store LAI,Mobile Identity and
@@ -1283,7 +1245,7 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_con
     free_emm_tau_request_ies(&tau_proc->ies);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  free_wrapper((void**) &ue_context->tau_accept_eps_ber_cntx_status);
+  ue_context->tau_accept_eps_ber_cntx_status = 0;
   increment_counter(
       "tracking_area_update_req", 1, 1, "result", "success");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

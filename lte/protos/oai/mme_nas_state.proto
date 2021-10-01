@@ -133,6 +133,8 @@ message UeContext {
   uint32 cs_fallback_indicator = 101;
   SgsContext sgs_context = 102;
 
+  uint32 tau_accept_eps_ber_cntx_status = 103;
+
   Timer mobile_reachability_timer = 200;
   Timer implicit_detach_timer = 201;
   Timer initial_context_setup_rsp_timer =202;

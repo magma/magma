@@ -460,7 +460,7 @@ typedef struct ue_mm_context_s {
   /* Storing activate_dedicated_bearer_req messages received
    * when UE is in ECM_IDLE state*/
   emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];
-  eps_bearer_context_status_t *tau_accept_eps_ber_cntx_status;
+  eps_bearer_context_status_t tau_accept_eps_ber_cntx_status;
   uint8_t nb_delete_sessions;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
