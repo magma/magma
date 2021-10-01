@@ -27,7 +27,7 @@ void send_mme_app_uplink_data_ind(
 
 void send_authentication_info_resp(const std::string& imsi, bool success);
 
-void send_s6a_ula(const std::string& imsi);
+void send_s6a_ula(const std::string& imsi, bool success);
 
 void send_create_session_resp();
 

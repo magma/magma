@@ -217,6 +217,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
 
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
   send_mme_app_uplink_data_ind(
       nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
 
@@ -225,7 +226,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
       nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi);
+  send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp();
@@ -314,7 +315,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
       nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
-  send_s6a_ula(imsi);
+  send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp();
@@ -389,6 +390,68 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
 
   // Sending AIA to mme_app mimicing negative S6A response for AIR
   send_authentication_info_resp(imsi, false);
+
+  // Check MME state: at this point, MME should be sending attach reject
+  // as well as context release request
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check if the context is properly released
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing negative S6A response for ULR
+  send_s6a_ula(imsi, false);
 
   // Check MME state: at this point, MME should be sending attach reject
   // as well as context release request
