@@ -6,7 +6,9 @@ hide_title: true
 
 # Hardware In Loop Tests
 
-<a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL AGW Last Stable"></a>
+<p align="center">
+    <a href="http://automation.fbmagma.ninja"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg" alt="HIL AGW Last Stable"></a>
+</p>
 
 Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and performance tests. HIL is focusing on Magma AGW.
 HIL tests can be run with virtual or physical gateway. However, for now the automated runs are using physical [SUT-HW](https://protectli.com/vault-4-port) box.
