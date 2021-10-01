@@ -11,6 +11,9 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types: [opened, reopened, synchronize]
 
+env:
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-375f28a"
+
 jobs:
   path_filter:
     runs-on: ubuntu-latest
@@ -123,6 +126,7 @@ jobs:
         run: |
             docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
       - name: Run session_manager tests
+        timeout-minutes: 10
         run: |
             docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
       - name: Extract commit title
@@ -153,19 +157,25 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-      - name: Build the base c/c++ container
-        run: |
-            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
       - name: Run common tests
-        # yamllint disable rule:line-length
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_common
       - name: Run li agent tests
         timeout-minutes: 5
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_li_agent
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.ref == 'refs/heads/master'
@@ -194,22 +204,26 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-      - name: Build the base c/c++ container
-        run: |
-            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
       - name: Build connection tracker with BUILD_TYPE=Debug
         timeout-minutes: 5
-        # yamllint disable rule:line-length
-        run: |
-            # TODO run unit tests once we write some tests
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make build_connection_tracker BUILD_TYPE=Debug
       - name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
         timeout-minutes: 5
-        run: |
-            # TODO run unit tests once we write some tests
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make build_connection_tracker BUILD_TYPE=RelWithDebInfo
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.ref == 'refs/heads/master'
@@ -238,27 +252,51 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-      - name: Build the base c/c++ container
-        run: |
-            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
       - name: Run common tests
-        # yamllint disable rule:line-length
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_common
       - name: Run sctpd tests with Debug build type
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=Debug;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_sctpd BUILD_TYPE=Debug
       - name: Run sctpd tests with RelWithDebInfo build type
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=RelWithDebInfo;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_sctpd BUILD_TYPE=RelWithDebInfo
       - name: Run mme tests with Debug build type
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=Debug;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_oai BUILD_TYPE=Debug;
       - name: Run mme tests with RelWithDebInfo build type
-        run: |
-            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=RelWithDebInfo;"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_oai BUILD_TYPE=RelWithDebInfo;
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.ref == 'refs/heads/master'
