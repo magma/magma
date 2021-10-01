@@ -433,11 +433,6 @@ void mme_app_handle_conn_est_cnf(
     if (bc) {
       establishment_cnf_p->e_rab_id[j] =
           bc->ebi;  //+ EPS_BEARER_IDENTITY_FIRST;
-          OAILOG_ERROR_UE(
-              LOG_MME_APP, emm_context_p->_imsi64,
-              "In ICS Adding EBI=%d " MME_UE_S1AP_ID_FMT "\n",
-              bc->ebi,nas_conn_est_cnf_p->ue_id);
-
       establishment_cnf_p->e_rab_level_qos_qci[j] = bc->qci;
       establishment_cnf_p->e_rab_level_qos_priority_level[j] =
           bc->priority_level;
@@ -958,9 +953,9 @@ void mme_app_handle_delete_session_rsp(
 
   if (ue_context_p->tau_accept_eps_ber_cntx_status) {
       ue_context_p->nb_delete_sessions --;
-      OAILOG_INFO_UE(
+      OAILOG_DEBUG_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Freeing the bearers as tau_accept_eps_ber_cntx_status is set for "
+          "Freeing the bearer context as tau_accept_eps_ber_cntx_status flag is set for "
           "ue_id " MME_UE_S1AP_ID_FMT " and lbi=%u\n",
           ue_context_p->mme_ue_s1ap_id, delete_sess_resp_pP->lbi);
 

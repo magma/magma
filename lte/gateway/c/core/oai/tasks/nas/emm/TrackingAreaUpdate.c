@@ -202,9 +202,6 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
   pdn_cid_t pid      = 0;
   bool is_ebi_active = false;
 
-  //ue_mm_context->tau_accept_eps_ber_cntx_status = calloc(1,sizeof(eps_bearer_context_status_t));
-  OAILOG_INFO(
-       LOG_NAS_ESM, "handle_and_fill_eps_bearer_cntxt_status tau_accept_eps_ber_cntx_status %d \n", ue_mm_context->tau_accept_eps_ber_cntx_status);
   for (itrn = 0; itrn < BEARERS_PER_UE; itrn++) {
     bearer_context_t* bearer_context =
         mme_app_get_bearer_context(ue_mm_context, itrn);
@@ -246,7 +243,7 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
           mme_app_send_delete_session_request(
               ue_mm_context, ebi, pid, true /*no_delete_gtpv2c_tunnel*/);
         } else {
-          // Deactivate dedicated bearer
+          // TBD-Deactivate dedicated bearer
         }
         OAILOG_INFO(
             LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
@@ -453,12 +450,6 @@ status_code_e emm_proc_tracking_area_update_request(
               sizeof(voice_domain_preference_and_ue_usage_setting_t));
         }
         /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
-        // if (tau_proc->ies->eps_bearer_context_status) {
-        /*tau_proc->ies->eps_bearer_context_status =
-            calloc(1, sizeof(eps_bearer_context_status_t));*/
-        //*tau_proc->ies->eps_bearer_context_status = 8192;//0x2000-5 is active;
-        //*tau_proc->ies->eps_bearer_context_status = 24576;//0x6000 5 and 6 are active;
-
         if (tau_proc->ies->eps_bearer_context_status) {
           if (*tau_proc->ies->eps_bearer_context_status > 0) {
           if (handle_and_fill_eps_bearer_cntxt_status(
@@ -470,8 +461,12 @@ status_code_e emm_proc_tracking_area_update_request(
                 ue_id);
             OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
           } else {
-            // Send TAU accept after receiving delete session rsp from spgw
-            OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+            if (ue_mm_context->nb_delete_sessions) {
+              /* If delete_session request is sent wait for delete session rsp
+               * from spgw and the send TAU accept
+               */
+              OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+            }
           }
         } else {
           OAILOG_WARNING_UE(

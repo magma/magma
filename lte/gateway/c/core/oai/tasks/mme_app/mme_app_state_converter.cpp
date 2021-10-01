@@ -617,7 +617,8 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->sgs_context, ue_context_proto->mutable_sgs_context());
   ue_context_proto->set_tau_accept_eps_ber_cntx_status(
       state_ue_context->tau_accept_eps_ber_cntx_status);
-  OAILOG_INFO(LOG_MME_APP, "Writing tau_accept_eps_ber_cntx_status %x", state_ue_context->tau_accept_eps_ber_cntx_status);
+  ue_context_proto->set_nb_delete_sessions(
+      state_ue_context->nb_delete_sessions);
   mme_app_timer_to_proto(
       state_ue_context->mobile_reachability_timer,
       ue_context_proto->mutable_mobile_reachability_timer());
@@ -725,7 +726,7 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   proto_to_sgs_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
   state_ue_mm_context->tau_accept_eps_ber_cntx_status = ue_context_proto.tau_accept_eps_ber_cntx_status();
-  OAILOG_INFO(LOG_MME_APP, "Reading tau_accept_eps_ber_cntx_status %x", state_ue_mm_context->tau_accept_eps_ber_cntx_status);
+  state_ue_mm_context->nb_delete_sessions = ue_context_proto.nb_delete_sessions();
 
   proto_to_mme_app_timer(
       ue_context_proto.mobile_reachability_timer(),

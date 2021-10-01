@@ -134,6 +134,7 @@ message UeContext {
   SgsContext sgs_context = 102;
 
   uint32 tau_accept_eps_ber_cntx_status = 103;
+  uint32 nb_delete_sessions = 104;
 
   Timer mobile_reachability_timer = 200;
   Timer implicit_detach_timer = 201;
