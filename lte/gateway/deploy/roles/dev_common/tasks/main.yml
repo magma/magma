@@ -418,7 +418,7 @@
   when: preburn
   patch:
     src: patches/multipath-conf.patch
-    dest: /etc/multipath.
+    dest: /etc/multipath.conf
   become: yes
   ignore_errors: true
 
