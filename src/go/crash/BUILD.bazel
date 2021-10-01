@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "crash",
+    srcs = ["crash.go"],
+    importpath = "github.com/magma/magma/src/go/crash",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "crash_test",
+    srcs = ["crash_test.go"],
+    embed = [":crash"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)
