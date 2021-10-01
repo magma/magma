@@ -11,6 +11,11 @@ hide_title: true
 Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and performance tests. HIL is focusing on Magma AGW.
 HIL tests can be run with virtual or physical gateway. However, for now the automated runs are using physical [SUT-HW](https://protectli.com/vault-4-port) box.
 
+## Dashboard
+
+All test results are available to compare on [dashboard](http://automation.fbmagma.ninja/). Please use `username:magma` and `password:magma`.
+We can retrieve log and Grafana metrics for each run by clicking on test run result table.
+
 ## Lab Setup
 
 Spirent test emulation hardware is hosted in FB lab emulating eNODEB, UE and traffic host elements. Magma AGW is also hosted in same lab. All tests are
@@ -36,11 +41,6 @@ Current Test categories supported are:
 1. Verify 400 UEs across 12 eNodeBs with 500k data per UE
 1. Verify 600 UEs across 12 eNodeBs with 500k data per UE
 1. Verify 30 UEs across 12 eNodeBs with 500K data changing state from active-idle-active-idle
-
-### Dashboard
-
-All test results are available to compare on [dashboard](http://automation.fbmagma.ninja/). Please use `username:magma` and `password:magma`.
-We can retrieve log and Grafana metrics for each run by clicking on test run result table.
 
 ### Notification
 
