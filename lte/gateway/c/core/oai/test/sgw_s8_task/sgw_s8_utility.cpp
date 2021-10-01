@@ -164,9 +164,11 @@ void SgwS8Config::sgw_initialize_gtpv1u(void) {
   // used for mme service
 
   bstring system_cmd = bformat(
-      "ovs-vsctl set-controller gtp_br0 tcp:%s:%d", CONTROLLER_ADDR,
+      "/usr/bin/ovs-vsctl set-controller gtp_br0 tcp:%s:%d", CONTROLLER_ADDR,
       CONTROLLER_PORT);
   system((const char*) system_cmd->data);
+  // TODO Rashmi remove below print
+  printf("Rashmi ovscmd:%s\n", system_cmd->data);
   bdestroy(system_cmd);
   netaddr.s_addr = INADDR_ANY;
   netmask        = 0;
