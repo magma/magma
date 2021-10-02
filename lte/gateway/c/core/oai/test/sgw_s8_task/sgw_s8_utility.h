@@ -41,7 +41,7 @@ void fill_create_bearer_request(
 
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
-    uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid);
+    uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid, gtpv2c_cause_value_t cause);
 
 // Initialize config params
 class SgwS8Config : public ::testing::Test {

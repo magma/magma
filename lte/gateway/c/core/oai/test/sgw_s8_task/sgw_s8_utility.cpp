@@ -126,14 +126,14 @@ void fill_create_bearer_request(
 
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
-    uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid) {
-  cb_response->cause.cause_value                  = REQUEST_ACCEPTED;
+    uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid, gtpv2c_cause_value_t cause) {
+  cb_response->cause.cause_value                  = cause;
   cb_response->sgw_s11_teid                       = teid;
   cb_response->bearer_contexts.num_bearer_context = 1;
   bearer_context_within_create_bearer_response_t* bc_context =
       &(cb_response->bearer_contexts.bearer_contexts[0]);
   bc_context->eps_bearer_id                     = 6;
-  bc_context->cause.cause_value                 = REQUEST_ACCEPTED;
+  bc_context->cause.cause_value                 = cause;
   bc_context->s1u_enb_fteid.ipv4                = 1;
   bc_context->s1u_enb_fteid.interface_type      = S1_U_ENODEB_GTP_U;
   bc_context->s1u_enb_fteid.teid                = 30;

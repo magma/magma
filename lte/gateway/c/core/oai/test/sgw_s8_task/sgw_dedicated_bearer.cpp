@@ -109,25 +109,12 @@ TEST_F(SgwS8Config, dedicated_bearer_invalid_lbi) {
   sgw_state_exit();
 }
 
-// TC validates updation of bearer context on reception of Create Session Rsp
-TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
+// TC validates temporary contexts are deleted reception of failed create
+// bearer response
+TEST_F(SgwS8Config, check_failed_to_create_dedicated_bearer) {
   mme_sgw_tunnel_t sgw_s11_tunnel   = {0};
   sgw_state_t* sgw_state            = create_ue_context(&sgw_s11_tunnel);
   int argc                          = 5;
-  spgw_config.pgw_config.enable_nat = false;
-  spgw_config.sgw_config.ovs_config.uplink_port_num = 2;
-
-  spgw_config.sgw_config.ovs_config.uplink_mac =
-      bfromcstr_with_str_len("ff:ff:ff:ff:ff:ff", strlen("ff:ff:ff:ff:ff:ff"));
-  spgw_config.sgw_config.ovs_config.gtp_port_num                  = 32768;
-  spgw_config.sgw_config.ovs_config.mtr_port_num                  = 15577;
-  spgw_config.sgw_config.ovs_config.internal_sampling_port_num    = 15578;
-  spgw_config.sgw_config.ovs_config.internal_sampling_fwd_tbl_num = 201;
-  char ovs_bridge_name[]                                          = "gtp_br0";
-  spgw_config.sgw_config.ovs_config.bridge_name = bfromcstr(ovs_bridge_name);
-
-  sgw_initialize_gtpv1u();
-  bdestroy_wrapper(&spgw_config.sgw_config.ovs_config.uplink_mac);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_s11_tunnel.local_teid);
@@ -164,13 +151,13 @@ TEST_F(SgwS8Config, check_dedicated_bearer_creation_response) {
   memset(&s11_actv_bearer_rsp, 0, sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
   fill_create_bearer_response(
       &s11_actv_bearer_rsp, sgw_s11_tunnel.local_teid, default_eps_bearer_id,
-      s1_u_sgw_fteid);
-  sgw_s8_proc_s11_create_bearer_rsp(
-      sgw_pdn_session, &s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0],
-      &s11_actv_bearer_rsp, imsi64, sgw_state);
+      s1_u_sgw_fteid, REQUEST_REJECTED);
+  handle_failed_create_bearer_response(
+      sgw_pdn_session, s11_actv_bearer_rsp.cause.cause_value, imsi64,
+      &s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0], NULL,
+      LOG_SGW_S8);
   EXPECT_EQ(sgw_pdn_session->pending_procedures, nullptr);
 
   free_wrapper((void**) &cb_req.pgw_cp_address);
-  sgw_uninitialize_gtpv1u();
   sgw_state_exit();
 }
