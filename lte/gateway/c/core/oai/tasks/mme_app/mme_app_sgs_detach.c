@@ -152,7 +152,7 @@ status_code_e mme_app_handle_sgs_eps_detach_timer_expiry(
   if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs eps detach timer");
@@ -161,7 +161,7 @@ status_code_e mme_app_handle_sgs_eps_detach_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -169,7 +169,7 @@ status_code_e mme_app_handle_sgs_eps_detach_timer_expiry(
         "SGS EPS Detach Timer expired but no associated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   /*
@@ -212,7 +212,7 @@ status_code_e mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
   if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "sgs implicit eps detach timer");
@@ -221,7 +221,7 @@ status_code_e mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   if (ue_context_p->sgs_context == NULL) {
@@ -230,7 +230,7 @@ status_code_e mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
         "SGS EPS Detach Timer expired but no associated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   /*
    * Increment the retransmission counter
@@ -353,7 +353,7 @@ status_code_e mme_app_handle_sgs_imsi_detach_timer_expiry(
   if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs imsi detach timer");
@@ -362,7 +362,7 @@ status_code_e mme_app_handle_sgs_imsi_detach_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -370,7 +370,7 @@ status_code_e mme_app_handle_sgs_imsi_detach_timer_expiry(
         "SGS EPS Detach Timer expired but no associated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   /*
@@ -436,7 +436,7 @@ status_code_e mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
   if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "sgs implicit imsi detach timer");
@@ -445,7 +445,7 @@ status_code_e mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -454,7 +454,7 @@ status_code_e mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
         "for"
         " ue_id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   /*
