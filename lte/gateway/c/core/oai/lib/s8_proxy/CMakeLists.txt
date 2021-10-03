@@ -19,6 +19,7 @@ generate_grpc_protos("${S8C_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
 
 generate_cpp_protos("${S8C_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
 add_library(LIB_S8_PROXY
     S8Client.cpp
     s8_client_api.cpp

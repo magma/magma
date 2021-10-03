@@ -29,7 +29,6 @@ class CreateBearerRequestPgw;
 
 namespace magma {
 using namespace feg;
-using namespace orc8r;
 
 class S8ServiceImpl final : public S8ProxyResponder::Service {
  public:
@@ -40,7 +39,7 @@ class S8ServiceImpl final : public S8ProxyResponder::Service {
    */
   grpc::Status CreateBearer(
       grpc::ServerContext* context, const CreateBearerRequestPgw* request,
-      Void* response) override;
+      orc8r::Void* response) override;
 };
 
 }  // namespace magma

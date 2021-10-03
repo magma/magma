@@ -81,7 +81,7 @@ TEST_F(SgwS8Config, check_dedicated_bearer_creation_request) {
   EXPECT_EQ(
       sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->p_gw_teid_S5_S8_up,
       cb_req.bearer_context[0].pgw_s8_up.teid);
-  free_wrapper((void**) &cb_req.pgw_cp_address);
+  free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }
 
@@ -105,16 +105,16 @@ TEST_F(SgwS8Config, dedicated_bearer_invalid_lbi) {
   EXPECT_EQ(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
       INVALID_IMSI64);
-  free_wrapper((void**) &cb_req.pgw_cp_address);
+  free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }
 
 // TC validates temporary contexts are deleted reception of failed create
 // bearer response
 TEST_F(SgwS8Config, check_failed_to_create_dedicated_bearer) {
-  mme_sgw_tunnel_t sgw_s11_tunnel   = {0};
-  sgw_state_t* sgw_state            = create_ue_context(&sgw_s11_tunnel);
-  int argc                          = 5;
+  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
+  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+  int argc                        = 5;
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_s11_tunnel.local_teid);
@@ -158,6 +158,6 @@ TEST_F(SgwS8Config, check_failed_to_create_dedicated_bearer) {
       LOG_SGW_S8);
   EXPECT_EQ(sgw_pdn_session->pending_procedures, nullptr);
 
-  free_wrapper((void**) &cb_req.pgw_cp_address);
+  free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }
