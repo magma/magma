@@ -47,8 +47,6 @@ void fill_create_bearer_response(
 class SgwS8Config : public ::testing::Test {
  public:
   sgw_state_t* create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel);
-  void sgw_initialize_gtpv1u(void);
-  void sgw_uninitialize_gtpv1u(void);
 
  protected:
   sgw_config_t* config =

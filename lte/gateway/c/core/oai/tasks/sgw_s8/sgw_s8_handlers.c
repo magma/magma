@@ -856,11 +856,6 @@ static int sgw_s8_add_gtp_up_tunnel(
           pgw.s_addr, eps_bearer_ctxt_p->p_gw_teid_S5_S8_up);
     }
     for (int i = 0; i < eps_bearer_ctxt_p->tft.numberofpacketfilters; ++i) {
-      struct ip_flow_dl dlflow = {0};
-      generate_dl_flow(
-          &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[i]
-                .packetfiltercontents),
-          ue_ipv4.s_addr, ue_ipv6, &dlflow);
       rv = gtpv1u_add_s8_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb, pgw,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
