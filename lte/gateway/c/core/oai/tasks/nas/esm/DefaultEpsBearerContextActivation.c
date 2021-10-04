@@ -481,6 +481,22 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
    */
   esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
+  ue_mm_context_t* ue_context_p =
+      mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
+  bearer_context_t* bc =
+      mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
+  if (bc) {
+    bc->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+  } else {
+    OAILOG_WARNING(
+        LOG_NAS_ESM,
+        "ESM-PROC  - T3485 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
+        ", ebi=%d), "
+        "but bearer context is already deleted.\n",
+        esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+    OAILOG_FUNC_OUT(LOG_NAS_ESM);
+  }
+
   if (esm_ebr_timer_data) {
     /*
      * Increment the retransmission counter
@@ -507,11 +523,6 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
        * If PDN connectivity is received along with attach req send
        * activate default eps bearer req message in ICS req
        */
-      ue_mm_context_t* ue_context_p = PARENT_STRUCT(
-          ((emm_context_t*) esm_ebr_timer_data->ctx), struct ue_mm_context_s,
-          emm_context);
-      bearer_context_t* bc =
-          mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
       if (((emm_context_t*) esm_ebr_timer_data->ctx)
               ->esm_ctx.pending_standalone &&
           (!(bc->enb_fteid_s1u.teid))) {
