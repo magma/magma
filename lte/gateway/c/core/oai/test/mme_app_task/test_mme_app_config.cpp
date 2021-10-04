@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include "bstrlib.h"
 
 extern "C" {
 #include "include/mme_config.h"
@@ -18,6 +19,21 @@ extern "C" {
 
 namespace magma {
 namespace lte {
+
+const char* kEmptyConfig =
+    R"libconfig(MME :
+{
+};)libconfig";
+
+const char* kConfigMissingUpstreamSock =
+    R"libconfig(MME :
+{
+    SCTP :
+    {
+        # Path to sctpd up and downstream unix domain sockets
+        SCTP_DOWNSTREAM_SOCK = "unix:///tmp/sctpd_downstream_test.sock";
+    };
+};)libconfig";
 
 const char* kHealthyConfig =
     R"libconfig(MME :
@@ -71,9 +87,9 @@ const char* kHealthyConfig =
     # ------- SCTP definitions
     SCTP :
     {
-        # Number of streams to use in input/output
-        SCTP_INSTREAMS  = 8;
-        SCTP_OUTSTREAMS = 8;
+        # Path to sctpd up and downstream unix domain sockets
+        SCTP_UPSTREAM_SOCK = "unix:///tmp/sctpd_upstream_test.sock";
+        SCTP_DOWNSTREAM_SOCK = "unix:///tmp/sctpd_downstream_test.sock";
     };
 
     # ------- S1AP definitions
@@ -839,6 +855,46 @@ TEST(MMEConfigTest, TestMixedParTaiLists) {
 TEST(MMEConfigTest, TestParseHealthyConfig) {
   mme_config_t mme_config = {0};
   EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+  free_mme_config(&mme_config);
+}
+
+TEST(MMEConfigTest, TestMissingSctpdConfig) {
+  mme_config_t mme_config = {0};
+  EXPECT_EQ(mme_config_parse_string(kEmptyConfig, &mme_config), 0);
+  EXPECT_EQ(
+      std::string(bdata(mme_config.sctp_config.upstream_sctp_sock)),
+      "unix:///tmp/sctpd_upstream.sock");
+  EXPECT_EQ(
+      std::string(bdata(mme_config.sctp_config.downstream_sctp_sock)),
+      "unix:///tmp/sctpd_downstream.sock");
+
+  free_mme_config(&mme_config);
+}
+
+TEST(MMEConfigTest, TestMissingSctpdUpstreamSockConfig) {
+  mme_config_t mme_config = {0};
+  EXPECT_EQ(
+      mme_config_parse_string(kConfigMissingUpstreamSock, &mme_config), 0);
+  EXPECT_EQ(
+      std::string(bdata(mme_config.sctp_config.upstream_sctp_sock)),
+      "unix:///tmp/sctpd_upstream.sock");
+  EXPECT_EQ(
+      std::string(bdata(mme_config.sctp_config.downstream_sctp_sock)),
+      "unix:///tmp/sctpd_downstream_test.sock");
+
+  free_mme_config(&mme_config);
+}
+
+TEST(MMEConfigTest, TestHealthySctpdConfig) {
+  mme_config_t mme_config = {0};
+  EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+  EXPECT_EQ(
+      std::string(bdata(mme_config.sctp_config.upstream_sctp_sock)),
+      "unix:///tmp/sctpd_upstream_test.sock");
+  EXPECT_EQ(
+      std::string(bdata(mme_config.sctp_config.downstream_sctp_sock)),
+      "unix:///tmp/sctpd_downstream_test.sock");
+
   free_mme_config(&mme_config);
 }
 
