@@ -16,26 +16,35 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	orchestrator_test_init.StartTestService(t)
+	syncInterval := uint32(500)
+	expectedDefaultJitteredSyncIntervalGW1 := uint32(71)
+	expectedJitteredSyncIntervalGW1 := uint32(592)
+	expectedJitteredSyncIntervalGW2 := uint32(568)
 
 	t.Run("no tier", func(t *testing.T) {
-		nw := configurator.Network{ID: "n1"}
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType,
 			Key:  "gw1",
@@ -76,6 +85,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				LogLevel:       protos.LogLevel_INFO,
 				EventVerbosity: -1,
 			},
+			"state": &mconfig_protos.State{
+				SyncInterval: expectedJitteredSyncIntervalGW1,
+				LogLevel:     protos.LogLevel_INFO,
+			},
 		}
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
@@ -85,7 +98,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 	// Put a tier in the graph
 	t.Run("tiers work correctly", func(t *testing.T) {
-		nw := configurator.Network{ID: "n1"}
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType,
 			Key:  "gw1",
@@ -144,6 +161,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				LogLevel:       protos.LogLevel_INFO,
 				EventVerbosity: -1,
 			},
+			"state": &mconfig_protos.State{
+				SyncInterval: expectedJitteredSyncIntervalGW1,
+				LogLevel:     protos.LogLevel_INFO,
+			},
 		}
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
@@ -156,7 +177,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		testThrottleWindow := uint32(808)
 		testThrottleRate := uint32(305)
 
-		nw := configurator.Network{ID: "n1"}
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType,
 			Key:  "gw1",
@@ -231,6 +256,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				LogLevel:       protos.LogLevel_INFO,
 				EventVerbosity: 0,
 			},
+			"state": &mconfig_protos.State{
+				SyncInterval: expectedJitteredSyncIntervalGW1,
+				LogLevel:     protos.LogLevel_INFO,
+			},
 		}
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
@@ -239,7 +268,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	})
 
 	t.Run("check default values for log throttling", func(t *testing.T) {
-		nw := configurator.Network{ID: "n1"}
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{}}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType,
 			Key:  "gw1",
@@ -311,10 +340,152 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				LogLevel:       protos.LogLevel_INFO,
 				EventVerbosity: -1,
 			},
+			"state": &mconfig_protos.State{
+				SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
+				LogLevel:     protos.LogLevel_INFO,
+			},
 		}
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+	})
+
+	// Test sync interval jitter
+	t.Run("sync interval jitter works correctly", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
+		gw := configurator.NetworkEntity{
+			Type: orc8r.MagmadGatewayType,
+			Key:  "gw2",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         60,
+				CheckinTimeout:          10,
+				DynamicServices:         []string{},
+				FeatureFlags:            map[string]bool{},
+			},
+		}
+		tier := configurator.NetworkEntity{
+			Type: orc8r.UpgradeTierEntityType,
+			Key:  "default",
+			Config: &models.Tier{
+				Name:    "default",
+				Version: "1.0.0-0",
+				Images: []*models.TierImage{
+					{Name: swag.String("Image1"), Order: swag.Int64(42)},
+					{Name: swag.String("Image2"), Order: swag.Int64(1)},
+				},
+			},
+		}
+		graph := configurator.EntityGraph{
+			Entities: []configurator.NetworkEntity{gw, tier},
+			Edges: []configurator.GraphEdge{
+				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+			},
+		}
+
+		expected := map[string]proto.Message{
+			"control_proxy": &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO},
+			"magmad": &mconfig_protos.MagmaD{
+				LogLevel:                protos.LogLevel_INFO,
+				CheckinInterval:         60,
+				CheckinTimeout:          10,
+				AutoupgradeEnabled:      true,
+				AutoupgradePollInterval: 300,
+				PackageVersion:          "1.0.0-0",
+				Images: []*mconfig_protos.ImageSpec{
+					{Name: "Image1", Order: 42},
+					{Name: "Image2", Order: 1},
+				},
+				DynamicServices: nil,
+				FeatureFlags:    nil,
+			},
+			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
+			"td-agent-bit": &mconfig_protos.FluentBit{
+				ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw2"},
+				ThrottleRate:     1000,
+				ThrottleWindow:   5,
+				ThrottleInterval: "1m",
+			},
+			"eventd": &mconfig_protos.EventD{
+				LogLevel:       protos.LogLevel_INFO,
+				EventVerbosity: -1,
+			},
+			"state": &mconfig_protos.State{
+				SyncInterval: expectedJitteredSyncIntervalGW2,
+				LogLevel:     protos.LogLevel_INFO,
+			},
+		}
+
+		actual, err := buildBaseOrchestrator(&nw, &graph, "gw2")
+		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+	})
+}
+
+func TestGetStateMconfig(t *testing.T) {
+	syncInterval := uint32(30)
+	expectedJitteredSyncIntervalGW1 := uint32(35)
+	expectedJitteredSyncIntervalGW3 := uint32(32)
+	expectedDefaultJitteredSyncIntervalGW1 := uint32(71)
+
+	t.Run("interval set in net config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
+		gwKey := "gw1"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedJitteredSyncIntervalGW1,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("test jitter", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
+		gwKey := "gw3"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedJitteredSyncIntervalGW3,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("interval not set in state config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{}}
+		gwKey := "gw1"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("failed to cast state config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": nil,
+		}}
+		gwKey := "gw1"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
 		assert.Equal(t, expected, actual)
 	})
 }
@@ -343,6 +514,7 @@ func buildBaseOrchestrator(network *configurator.Network, graph *configurator.En
 	ret := map[string]proto.Message{
 		"control_proxy": configs["control_proxy"],
 		"metricsd":      configs["metricsd"],
+		"state":         configs["state"],
 	}
 	_, ok := configs["magmad"]
 	if ok {

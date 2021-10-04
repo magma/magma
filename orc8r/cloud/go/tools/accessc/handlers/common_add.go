@@ -26,6 +26,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
@@ -33,8 +35,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/key"
-
-	"github.com/golang/protobuf/ptypes"
 )
 
 // Common to several add... handlers definitions & functions

@@ -17,11 +17,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"magma/orc8r/cloud/go/models"
-
 	"github.com/golang/protobuf/jsonpb"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/models"
 )
 
 func TestJSONMapToProtobufStruct(t *testing.T) {

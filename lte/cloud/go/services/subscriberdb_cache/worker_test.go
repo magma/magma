@@ -14,10 +14,13 @@ limitations under the License.
 package subscriberdb_cache_test
 
 import (
-	context2 "context"
+	"context"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -38,10 +41,6 @@ import (
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestSubscriberdbCacheWorker(t *testing.T) {
@@ -65,7 +64,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.Empty(t, subProtos)
 	assert.Empty(t, nextToken)
 
-	err = configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, store)
@@ -81,7 +80,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	rootDigestExpected := digestTree.RootDigest.GetMd5Base64Digest()
 
 	// Detect outdated digests and update
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.APNEntityType, Key: "apn1",
 			Config: &lte_models.ApnConfiguration{},
@@ -195,7 +194,7 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: "apn1", Config: &lte_models.ApnConfiguration{}},
 		{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
 		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
@@ -218,7 +217,7 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 
 	// If the generated root digest matches the one in store, the update for cached subscribers wouldn't be triggered
 	err = configurator.DeleteEntities(
-		context2.Background(),
+		context.Background(),
 		"n1",
 		storage2.MakeTKs(lte.SubscriberEntityType, []string{"IMSI00001", "IMSI00002", "IMSI00003"}),
 	)

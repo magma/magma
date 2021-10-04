@@ -21,7 +21,7 @@ from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
 from magma.pipelined.qos.qos_meter_impl import MeterManager
-from magma.pipelined.qos.qos_tc_impl import TrafficClass, argSplit, run_cmd
+from magma.pipelined.qos.qos_tc_impl import TrafficClass, run_cmd
 from magma.pipelined.qos.types import (
     QosInfo,
     get_data,
@@ -118,8 +118,8 @@ class TestQosManager(unittest.TestCase):
     ):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
-        mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False)
-        mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False)
+        mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False, default_gbr='80Kbit')
+        mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False, default_gbr='80Kbit')
 
     def verifyTcCleanRestart(self, prior_qids, mock_traffic_cls):
         for qid_tuple in prior_qids[self.ul_intf]:

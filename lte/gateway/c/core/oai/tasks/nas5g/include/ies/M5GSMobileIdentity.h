@@ -12,7 +12,6 @@ limitations under the License.
 #pragma once
 #include <sstream>
 #include <cstdint>
-using namespace std;
 
 namespace magma5g {
 // 5GS mobile identity information element for type of identity "5G-GUTI" SPEC :

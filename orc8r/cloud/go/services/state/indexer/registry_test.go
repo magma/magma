@@ -17,10 +17,10 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRegisterRemote(t *testing.T) {

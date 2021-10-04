@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-	magmaerrors "magma/orc8r/lib/go/errors"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
+	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
 const (
@@ -123,8 +123,8 @@ func (store *sqlBlobStorage) Rollback() error {
 	return err
 }
 
-func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
-	multiRet, err := store.GetMany(networkID, []storage.TypeAndKey{id})
+func (store *sqlBlobStorage) Get(networkID string, id storage.TK) (Blob, error) {
+	multiRet, err := store.GetMany(networkID, storage.TKs{id})
 	if err != nil {
 		return Blob{}, err
 	}
@@ -134,7 +134,7 @@ func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob,
 	return multiRet[0], nil
 }
 
-func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error) {
+func (store *sqlBlobStorage) GetMany(networkID string, ids storage.TKs) (Blobs, error) {
 	if err := store.validateTx(); err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter)
 	return scannedKeys, nil
 }
 
-func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
+func (store *sqlBlobStorage) Delete(networkID string, ids storage.TKs) error {
 	if err := store.validateTx(); err != nil {
 		return err
 	}
@@ -315,7 +315,7 @@ func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) 
 	return err
 }
 
-func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
+func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TK) error {
 	if err := store.validateTx(); err != nil {
 		return err
 	}
@@ -342,7 +342,7 @@ func (store *sqlBlobStorage) validateTx() error {
 	return nil
 }
 
-func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange map[storage.TypeAndKey]blobChange) error {
+func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange map[storage.TK]blobChange) error {
 	// Let squirrel cache prepared statements for us (there should only be 1)
 	sc := sq.NewStmtCache(store.tx)
 	defer sqorc.ClearStatementCacheLogOnError(sc, "updateExistingBlobs")
@@ -387,7 +387,7 @@ func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs Blobs) error
 	return nil
 }
 
-func getWhereCondition(networkID string, ids []storage.TypeAndKey) sq.Or {
+func getWhereCondition(networkID string, ids storage.TKs) sq.Or {
 	whereConditions := make(sq.Or, 0, len(ids))
 	for _, id := range ids {
 		// Use explicit sq.And to preserve ordering of clauses for testing
@@ -400,10 +400,10 @@ func getWhereCondition(networkID string, ids []storage.TypeAndKey) sq.Or {
 	return whereConditions
 }
 
-func getBlobIDs(blobs Blobs) []storage.TypeAndKey {
-	ret := make([]storage.TypeAndKey, 0, len(blobs))
+func getBlobIDs(blobs Blobs) storage.TKs {
+	ret := make(storage.TKs, 0, len(blobs))
 	for _, blob := range blobs {
-		ret = append(ret, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
+		ret = append(ret, storage.TK{Type: blob.Type, Key: blob.Key})
 	}
 	return ret
 }
@@ -415,18 +415,18 @@ type blobChange struct {
 
 type blobsToCreateAndChange struct {
 	blobsToCreate Blobs
-	blobsToChange map[storage.TypeAndKey]blobChange
+	blobsToChange map[storage.TK]blobChange
 }
 
 func partitionBlobsToCreateAndChange(blobsToUpdate Blobs, existingBlobs Blobs) blobsToCreateAndChange {
 	ret := blobsToCreateAndChange{
 		blobsToCreate: Blobs{},
-		blobsToChange: map[storage.TypeAndKey]blobChange{},
+		blobsToChange: map[storage.TK]blobChange{},
 	}
 	existingBlobsByID := existingBlobs.ByTK()
 
 	for _, blob := range blobsToUpdate {
-		blobID := storage.TypeAndKey{Type: blob.Type, Key: blob.Key}
+		blobID := storage.TK{Type: blob.Type, Key: blob.Key}
 		oldBlob, exists := existingBlobsByID[blobID]
 		if exists {
 			ret.blobsToChange[blobID] = blobChange{old: oldBlob, new: blob}
@@ -437,8 +437,8 @@ func partitionBlobsToCreateAndChange(blobsToUpdate Blobs, existingBlobs Blobs) b
 	return ret
 }
 
-func getSortedTypeAndKeys(blobsToChange map[storage.TypeAndKey]blobChange) []storage.TypeAndKey {
-	ret := make([]storage.TypeAndKey, 0, len(blobsToChange))
+func getSortedTypeAndKeys(blobsToChange map[storage.TK]blobChange) storage.TKs {
+	ret := make(storage.TKs, 0, len(blobsToChange))
 	for k := range blobsToChange {
 		ret = append(ret, k)
 	}

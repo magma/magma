@@ -62,8 +62,8 @@ void SessionReporterImpl::report_updates(
 
   auto controller_response = new AsyncEvbResponse<UpdateSessionResponse>(
       base_, callback, RESPONSE_TIMEOUT);
-  controller_response->set_response_reader(std::move(stub_->AsyncUpdateSession(
-      controller_response->get_context(), request, &queue_)));
+  controller_response->set_response_reader(stub_->AsyncUpdateSession(
+      controller_response->get_context(), request, &queue_));
 }
 
 void SessionReporterImpl::report_create_session(
@@ -72,8 +72,8 @@ void SessionReporterImpl::report_create_session(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   auto controller_response = new AsyncEvbResponse<CreateSessionResponse>(
       base_, callback, RESPONSE_TIMEOUT);
-  controller_response->set_response_reader(std::move(stub_->AsyncCreateSession(
-      controller_response->get_context(), request, &queue_)));
+  controller_response->set_response_reader(stub_->AsyncCreateSession(
+      controller_response->get_context(), request, &queue_));
 }
 
 void SessionReporterImpl::report_terminate_session(

@@ -5,14 +5,14 @@
             "includePath": [
                 "${workspaceFolder}/**/**",
                 "${workspaceFolder}/build/c/oai/tasks/s1ap/r15/", // Requires `make build_oai` to generate
-                "${workspaceFolder}/lte/gateway/c/oai/common/*",
-                "${workspaceFolder}/lte/gateway/c/oai/include/*",
-                "${workspaceFolder}/lte/gateway/c/oai/lib/3gpp/*",
-                "${workspaceFolder}/lte/gateway/c/oai/lib/bstr/*",
-                "${workspaceFolder}/lte/gateway/c/oai/lib/hashtable/*",
-                "${workspaceFolder}/lte/gateway/c/oai/lib/itti/*",
-                "${workspaceFolder}/lte/gateway/c/oai/tasks/mme_app/",
-                "${workspaceFolder}/lte/gateway/c/oai/tasks/nas/util/"
+                "${workspaceFolder}/lte/gateway/c/core/oai/common/*",
+                "${workspaceFolder}/lte/gateway/c/core/oai/include/*",
+                "${workspaceFolder}/lte/gateway/c/core/oai/lib/3gpp/*",
+                "${workspaceFolder}/lte/gateway/c/core/oai/lib/bstr/*",
+                "${workspaceFolder}/lte/gateway/c/core/oai/lib/hashtable/*",
+                "${workspaceFolder}/lte/gateway/c/core/oai/lib/itti/*",
+                "${workspaceFolder}/lte/gateway/c/core/oai/tasks/mme_app/",
+                "${workspaceFolder}/lte/gateway/c/core/oai/tasks/nas/util/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

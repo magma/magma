@@ -6,11 +6,11 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/emakeev/snowflake"
+
 	"magma/gateway/config"
 	"magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/lib/go/security/key"
-
-	"github.com/emakeev/snowflake"
 )
 
 // Get returns Gateway Hardware Id and bootstrapping public key

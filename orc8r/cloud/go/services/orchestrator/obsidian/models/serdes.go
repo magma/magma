@@ -25,6 +25,7 @@ var (
 		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &NetworkDNSConfig{}),
 		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &NetworkFeatures{}),
 		configurator.NewNetworkConfigSerde(orc8r.NetworkSentryConfig, &NetworkSentryConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.StateConfig, &StateConfig{}),
 	)
 	// EntitySerdes contains the package's configurator network entity serdes
 	EntitySerdes = serde.NewRegistry(

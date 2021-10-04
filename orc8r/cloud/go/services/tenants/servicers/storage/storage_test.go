@@ -4,15 +4,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/storage"
-
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -55,13 +54,13 @@ func TestBlobstoreStore_CreateTenant(t *testing.T) {
 
 func TestBlobstoreStore_GetTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("Get", networkWildcard, storage.TypeAndKey{Type: tenants.TenantInfoType, Key: "0"}).Return(sampleTenant0Blob, nil)
+	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.TenantInfoType, Key: "0"}).Return(sampleTenant0Blob, nil)
 	tenant, err := s.GetTenant(0)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleTenant0, *tenant)
 
 	txStore, s = setupTestStore()
-	txStore.On("Get", networkWildcard, storage.TypeAndKey{Type: tenants.TenantInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
+	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.TenantInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
 	_, err = s.GetTenant(0)
 	assert.EqualError(t, err, "error")
 }
@@ -79,7 +78,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(completeSearchResult, nil)
-	txStore.On("GetMany", networkWildcard, []storage.TypeAndKey{
+	txStore.On("GetMany", networkWildcard, storage.TKs{
 		{
 			Type: tenants.TenantInfoType,
 			Key:  "0",
@@ -113,7 +112,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(partialSearchResult, nil)
-	txStore.On("GetMany", networkWildcard, []storage.TypeAndKey{
+	txStore.On("GetMany", networkWildcard, storage.TKs{
 		{
 			Type: tenants.TenantInfoType,
 			Key:  "0",
@@ -129,7 +128,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(partialSearchResult, nil)
-	txStore.On("GetMany", networkWildcard, []storage.TypeAndKey{
+	txStore.On("GetMany", networkWildcard, storage.TKs{
 		{
 			Type: tenants.TenantInfoType,
 			Key:  "0",
@@ -153,12 +152,12 @@ func TestBlobstoreStore_SetTenant(t *testing.T) {
 
 func TestBlobstoreStore_DeleteTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("Delete", networkWildcard, []storage.TypeAndKey{{Type: tenants.TenantInfoType, Key: "0"}}).Return(nil)
+	txStore.On("Delete", networkWildcard, storage.TKs{{Type: tenants.TenantInfoType, Key: "0"}}).Return(nil)
 	err := s.DeleteTenant(0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("Delete", networkWildcard, []storage.TypeAndKey{{Type: tenants.TenantInfoType, Key: "0"}}).Return(errors.New("error"))
+	txStore.On("Delete", networkWildcard, storage.TKs{{Type: tenants.TenantInfoType, Key: "0"}}).Return(errors.New("error"))
 	err = s.DeleteTenant(0)
 	assert.EqualError(t, err, "error")
 }

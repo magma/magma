@@ -16,13 +16,12 @@ package models
 import (
 	"context"
 
-	"github.com/hashicorp/go-multierror"
-
-	"magma/orc8r/cloud/go/obsidian/models"
-
 	"github.com/go-openapi/strfmt"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/obsidian/models"
 )
 
 const (

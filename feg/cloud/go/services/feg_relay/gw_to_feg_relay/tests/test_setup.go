@@ -128,7 +128,7 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 				Epc: &models3.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &models3.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
@@ -143,11 +143,11 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: agwId}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: agwId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: agwId},
 			},
 		},
@@ -170,11 +170,11 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: fegId}},
+			Associations: storage.TKs{{Type: feg.FegGatewayType, Key: fegId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: fegId},
 			},
 		},

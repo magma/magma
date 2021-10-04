@@ -16,6 +16,10 @@ package calculations
 import (
 	"context"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
@@ -26,10 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 type NetworkMetricsCalculation struct {
@@ -94,6 +94,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	outgoingCtx := context.TODO()
 	for _, networkID := range networks {
 		gatewayEnts, _, err := configurator.LoadEntities(
+			context.Background(),
 			networkID,
 			swag.String(orc8r.MagmadGatewayType),
 			nil,

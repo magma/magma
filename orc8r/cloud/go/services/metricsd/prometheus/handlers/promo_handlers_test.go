@@ -14,14 +14,18 @@ limitations under the License.
 package handlers
 
 import (
-	context2 "context"
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sort"
 	"testing"
 
+	"github.com/imdario/mergo"
+	"github.com/labstack/echo"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/mocks"
@@ -29,11 +33,6 @@ import (
 	"magma/orc8r/cloud/go/services/tenants"
 	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/imdario/mergo"
-	"github.com/labstack/echo"
-	"github.com/prometheus/common/model"
-	"github.com/stretchr/testify/assert"
 )
 
 type prometheusAPITestCase struct {
@@ -133,7 +132,7 @@ func TestGetPrometheusQueryHandler(t *testing.T) {
 
 func TestGetTenantQueryHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context2.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -228,7 +227,7 @@ func TestGetPrometheusQueryRangeHandler(t *testing.T) {
 
 func TestGetTenantQueryRangeHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context2.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -318,7 +317,7 @@ func TestGetPrometheusSeriesHandler(t *testing.T) {
 
 func TestGetTenantPromSeriesHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context2.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -397,7 +396,7 @@ func TestGetTenantPromSeriesHandler(t *testing.T) {
 
 func TestGetTenantPromValuesHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context2.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -536,7 +535,7 @@ func TestGetSeriesMatches(t *testing.T) {
 
 func TestTenantSeriesHandlerProvider(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context2.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})

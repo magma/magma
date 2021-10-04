@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // M5GSRegistrationType IE Class
 class M5GSRegistrationTypeMsg {

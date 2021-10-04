@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
-
-	"github.com/stretchr/testify/mock"
 )
 
 // NewMockIndexer returns a do-nothing test indexer with specified elements.

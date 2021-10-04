@@ -17,10 +17,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/dispatcher/broker/memstore"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSyncRPCReqQueuesMap_EnqueueRequest(t *testing.T) {

@@ -20,12 +20,12 @@ import (
 	"os"
 	"sort"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
 )
 
 const (
@@ -514,9 +514,9 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	// If we were given duplicate edges, get rid of those
 	if funk.NotEmpty(createdEnt.Associations) {
 		createdEnt.Associations = funk.Chain(createdEnt.Associations).
-			Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
+			Map(func(id *EntityID) storage.TK { return id.ToTypeAndKey() }).
 			Uniq().
-			Map(func(tk storage.TypeAndKey) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
+			Map(func(tk storage.TK) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
 			Value().([]*EntityID)
 	}
 

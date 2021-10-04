@@ -18,6 +18,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -25,9 +28,6 @@ import (
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/util"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 type Error string

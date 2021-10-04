@@ -14,12 +14,13 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"os"
-
-	"magma/orc8r/cloud/go/services/magmad"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
+
+	"magma/orc8r/cloud/go/services/magmad"
 )
 
 func init() {
@@ -33,7 +34,7 @@ func init() {
 }
 
 func restartServicesCmd(cmd *cobra.Command, args []string) {
-	err := magmad.GatewayRestartServices(networkId, gatewayId, args)
+	err := magmad.GatewayRestartServices(context.Background(), networkId, gatewayId, args)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

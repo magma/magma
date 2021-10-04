@@ -32,7 +32,6 @@
 #include "M5GServiceAccept.h"
 #include "M5GServiceReject.h"
 
-using namespace std;
 namespace magma5g {
 // Amf NAS Msg Header
 struct AmfMsgHeader_s {

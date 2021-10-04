@@ -14,6 +14,9 @@
 package main
 
 import (
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
@@ -30,9 +33,6 @@ import (
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 const (

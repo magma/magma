@@ -20,10 +20,10 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 )
 
 func init() {

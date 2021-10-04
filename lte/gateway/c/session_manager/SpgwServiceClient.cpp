@@ -140,8 +140,8 @@ void AsyncSpgwServiceClient::delete_bearer_rpc(
     std::function<void(Status, DeleteBearerResult)> callback) {
   auto local_resp = new AsyncLocalResponse<DeleteBearerResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(
-      stub_->AsyncDeleteBearer(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncDeleteBearer(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncSpgwServiceClient::create_dedicated_bearer_rpc(
@@ -149,8 +149,8 @@ void AsyncSpgwServiceClient::create_dedicated_bearer_rpc(
     std::function<void(Status, CreateBearerResult)> callback) {
   auto local_resp = new AsyncLocalResponse<CreateBearerResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(
-      stub_->AsyncCreateBearer(local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(
+      stub_->AsyncCreateBearer(local_resp->get_context(), request, &queue_));
 }
 
 }  // namespace magma

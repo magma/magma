@@ -17,7 +17,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/orc8r/math"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -27,10 +32,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 var localBuilders = []mconfig.Builder{
@@ -72,6 +73,11 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 		return nil, err
 	}
 
+	net, err := (configurator.Network{}).FromProto(network, serdes.Network)
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not find network %s in graph", networkID)
+	}
+
 	// Gateway must be present in the graph
 	gateway, err := nativeGraph.GetEntity(orc8r.MagmadGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
@@ -94,6 +100,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 	}
 	vals["control_proxy"] = &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	vals["metricsd"] = &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
+	vals["state"] = getStateMconfig(net, gatewayID)
 
 	configs, err := mconfig.MarshalConfigs(vals)
 	if err != nil {
@@ -190,4 +197,21 @@ func getVpnMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_protos.O
 	}
 
 	return ret
+}
+
+func getStateMconfig(net configurator.Network, gwKey string) *mconfig_protos.State {
+	mconfigProto := &mconfig_protos.State{
+		SyncInterval: 60,
+		LogLevel:     protos.LogLevel_INFO,
+	}
+	netConfig := net.Configs["state_config"]
+	if netConfig != nil {
+		nsConfig := netConfig.(*models.StateConfig)
+		if nsConfig != nil {
+			syncInterval := nsConfig.SyncInterval
+			mconfigProto.SyncInterval = syncInterval
+		}
+	}
+	mconfigProto.SyncInterval = math.JitterUint32(mconfigProto.SyncInterval, gwKey, 0.25)
+	return mconfigProto
 }

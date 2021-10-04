@@ -20,9 +20,11 @@ import (
 	"regexp"
 	"strconv"
 
-	"magma/orc8r/cloud/go/serde"
-
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -34,16 +36,12 @@ import (
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -261,7 +259,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 	}
 
 	// get total number of subscribers
-	count, err := configurator.CountEntitiesOfType(networkID, lte.SubscriberEntityType)
+	count, err := configurator.CountEntitiesOfType(reqCtx, networkID, lte.SubscriberEntityType)
 	if err != nil {
 		return c.JSON(http.StatusOK, nil)
 	}
@@ -502,7 +500,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	currentCfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
+	currentCfg, err := configurator.LoadEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -533,7 +531,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		}
 		reqCtx := c.Request().Context()
 
-		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
+		cfg, err := configurator.LoadEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -629,7 +627,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 
 func loadSubscriber(ctx context.Context, networkID, key string) (*subscribermodels.Subscriber, error) {
 	loadCriteria := getSubscriberLoadCriteria(0, "")
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, loadCriteria, serdes.Entity)
+	ent, err := configurator.LoadEntity(ctx, networkID, lte.SubscriberEntityType, key, loadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -640,6 +638,7 @@ func loadSubscriber(ctx context.Context, networkID, key string) (*subscribermode
 	var policyProfileEnts configurator.NetworkEntities
 	if ppAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType); len(ppAssocs) != 0 {
 		policyProfileEnts, _, err = configurator.LoadEntities(
+			ctx,
 			ent.NetworkID, nil, nil, nil,
 			ppAssocs,
 			apnPolicyProfileLoadCriteria,
@@ -680,7 +679,7 @@ func loadSubscribers(ctx context.Context, networkID string, includeSub subscribe
 }
 
 func loadSubscriberPage(ctx context.Context, networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.Subscriber, string, error) {
-	mutableSubs, nextPageToken, err := loadMutableSubscriberPage(networkID, pageSize, pageToken)
+	mutableSubs, nextPageToken, err := loadMutableSubscriberPage(ctx, networkID, pageSize, pageToken)
 	if err != nil {
 		return nil, "", err
 	}
@@ -703,13 +702,14 @@ func loadSubscriberPage(ctx context.Context, networkID string, pageSize uint32, 
 	return subs, nextPageToken, nil
 }
 
-func loadMutableSubscriberPage(networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.MutableSubscriber, string, error) {
+func loadMutableSubscriberPage(ctx context.Context, networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.MutableSubscriber, string, error) {
 	loadCriteria := getSubscriberLoadCriteria(pageSize, pageToken)
-	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, loadCriteria, serdes.Entity)
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(ctx, networkID, lte.SubscriberEntityType, loadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, "", err
 	}
 	profileEnts, _, err := configurator.LoadAllEntitiesOfType(
+		ctx,
 		networkID, lte.APNPolicyProfileEntityType,
 		apnPolicyProfileLoadCriteria,
 		serdes.Entity,
@@ -750,7 +750,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
 	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
-	found, _, err := configurator.LoadSerializedEntities(networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
+	found, _, err := configurator.LoadSerializedEntities(ctx, networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -795,6 +795,7 @@ func updateSubscriber(ctx context.Context, networkID string, sub *subscribermode
 	var writes []configurator.EntityWriteOperation
 
 	existingSub, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.SubscriberEntityType, string(sub.ID),
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -835,6 +836,7 @@ func updateSubscriber(ctx context.Context, networkID string, sub *subscribermode
 
 func deleteSubscriber(ctx context.Context, networkID, key string) error {
 	ent, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.SubscriberEntityType, key,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -848,6 +850,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 	var policyProfileEnts configurator.NetworkEntities
 	if ppAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType); len(ppAssocs) != 0 {
 		policyProfileEnts, _, err = configurator.LoadEntities(
+			ctx,
 			ent.NetworkID, nil, nil, nil,
 			ppAssocs,
 			apnPolicyProfileLoadCriteria,
@@ -863,7 +866,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 		return err
 	}
 
-	var deletes []storage.TypeAndKey
+	var deletes storage.TKs
 	deletes = append(deletes, sub.ToTK())
 	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
 

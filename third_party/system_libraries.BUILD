@@ -21,10 +21,10 @@ config_setting(
 cc_library(
     name = "folly",
     srcs = select({
-        ":use_folly_so": ["libfolly.so"],
+        ":use_folly_so": ["usr/local/lib/libfolly.so"],
         "//conditions:default": [
-            "libfolly.a",
-            "libfmt.a",
+            "usr/local/lib/libfolly.a",
+            "usr/local/lib/libfmt.a",
         ],
     }),
     linkopts = select({
@@ -42,4 +42,16 @@ cc_library(
             "-liberty",
         ],
     }),
+)
+
+cc_library(
+    name = "libtins",
+    srcs = ["usr/lib/libtins.so"],
+    linkopts = ["-ltins"],
+)
+
+cc_library(
+    name = "libmnl",
+    srcs = ["usr/lib/x86_64-linux-gnu/libmnl.so"],
+    linkopts = ["-lmnl"],
 )

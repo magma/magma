@@ -17,8 +17,8 @@
 #include "M5GMessageType.h"
 #include "M5GPayloadContainerType.h"
 #include "M5GPayloadContainer.h"
+#include "M5GRequestType.h"
 
-using namespace std;
 namespace magma5g {
 // ULNASTransport Message Class
 class ULNASTransportMsg {
@@ -29,6 +29,8 @@ class ULNASTransportMsg {
   MessageTypeMsg message_type;
   PayloadContainerTypeMsg payload_container_type;
   PayloadContainerMsg payload_container;
+  // optinal parameters
+  RequestType request_type;
 #define UL_NAS_TRANSPORT_MINIMUM_LENGTH 7
 
   ULNASTransportMsg();

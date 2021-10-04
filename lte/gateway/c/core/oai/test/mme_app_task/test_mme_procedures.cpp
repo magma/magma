@@ -13,29 +13,41 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <stdio.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
 #include "../mock_tasks/mock_tasks.h"
 #include "mme_app_state_manager.h"
 #include "mme_app_ip_imsi.h"
 #include "proto_msg_to_itti_msg.h"
+#include "mme_app_test_util.h"
 
 extern "C" {
 #include "common_types.h"
 #include "mme_config.h"
-#include "mme_app_defs.h"
 #include "mme_app_extern.h"
 #include "mme_app_state.h"
-#include "security_types.h"
 }
 
 using ::testing::_;
 using ::testing::Return;
 
+extern bool mme_hss_associated;
+extern bool mme_sctp_bounded;
+
 namespace magma {
 namespace lte {
 
+ACTION_P(ReturnFromAsyncTask, cv) {
+  cv->notify_all();
+}
+
 task_zmq_ctx_t task_zmq_ctx_main;
+
+#define END_OF_TEST_SLEEP_MS 500
+#define STATE_MAX_WAIT_MS 1000
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
@@ -47,27 +59,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   free(received_message_p);
   return 0;
 }
-static void send_mme_app_uplink_data_ind(
-    uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
-  MessageDef* message_p =
-      itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
-  ITTI_MSG_LASTHOP_LATENCY(message_p)     = 0;
-  MME_APP_UL_DATA_IND(message_p).ue_id    = 1;
-  MME_APP_UL_DATA_IND(message_p).nas_msg  = blk2bstr(nas_msg, nas_msg_length);
-  MME_APP_UL_DATA_IND(message_p).tai.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).tai.tac  = 1;
-  MME_APP_UL_DATA_IND(message_p).cgi.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).cgi.cell_identity = {0, 0, 0};
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
-  return;
-}
 
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
-    s1ap_handler = std::make_shared<MockS1apHandler>();
-    s6a_handler  = std::make_shared<MockS6aHandler>();
-    spgw_handler = std::make_shared<MockSpgwHandler>();
-
+    mme_hss_associated = false;
+    mme_sctp_bounded   = false;
+    s1ap_handler       = std::make_shared<MockS1apHandler>();
+    s6a_handler        = std::make_shared<MockS6aHandler>();
+    spgw_handler       = std::make_shared<MockSpgwHandler>();
+    service303_handler = std::make_shared<MockService303Handler>();
     itti_init(
         TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
         NULL);
@@ -75,7 +75,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     // initialize mme config
     mme_config_init(&mme_config);
     create_partial_lists(&mme_config);
-    mme_config.use_stateless                              = false;
+    mme_config.use_stateless                              = true;
     mme_config.nas_config.prefered_integrity_algorithm[0] = EIA2_128_ALG_ID;
 
     task_id_t task_id_list[10] = {
@@ -88,7 +88,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     std::thread task_s1ap(start_mock_s1ap_task, s1ap_handler);
     std::thread task_s6a(start_mock_s6a_task, s6a_handler);
     std::thread task_s11(start_mock_s11_task);
-    std::thread task_service303(start_mock_service303_task);
+    std::thread task_service303(start_mock_service303_task, service303_handler);
     std::thread task_sgs(start_mock_sgs_task);
     std::thread task_sgw_s8(start_mock_sgw_s8_task);
     std::thread task_sms_orc8r(start_mock_sms_orc8r_task);
@@ -104,6 +104,10 @@ class MmeAppProcedureTest : public ::testing::Test {
     task_spgw.detach();
 
     mme_app_init(&mme_config);
+    // Fake initialize sctp server.
+    // We can then send activate messages in each test
+    // whenever we need to read mme_app state.
+    send_sctp_mme_server_initialized();
   }
 
   virtual void TearDown() {
@@ -118,44 +122,81 @@ class MmeAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockS1apHandler> s1ap_handler;
   std::shared_ptr<MockS6aHandler> s6a_handler;
   std::shared_ptr<MockSpgwHandler> spgw_handler;
-};
-
-TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
-  MessageDef* message_p = NULL;
-
-  // Initial Attach
-  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
-  /* The following buffer just includes an attach request */
-  uint8_t nas_msg[]       = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
-                       0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
-                       0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
-                       0x04, 0x00, 0x02, 0x1c, 0x00};
-  uint32_t nas_msg_length = 29;
-
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
-
-  ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-}
-
-TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
-  mme_app_desc_t* mme_state_p =
-      magma::lte::MmeNasStateManager::getInstance().get_state(false);
-  MessageDef* message_p = NULL;
-  std::string imsi      = "001010000000001";
-  plmn_t plmn           = {.mcc_digit2 = 0,
+  std::shared_ptr<MockService303Handler> service303_handler;
+  const uint8_t nas_msg_imsi_attach_req[31] = {
+      0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40,
+      0x08, 0x04, 0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
+  const uint8_t nas_msg_guti_attach_req[34] = {
+      0x07, 0x41, 0x71, 0x0b, 0xf6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02, 0x01, 0xd0, 0x11,
+      0x40, 0x08, 0x04, 0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
+  const uint8_t nas_msg_auth_resp[19] = {
+      0x07, 0x53, 0x10, 0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93, 0xf1,
+      0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  const uint8_t nas_msg_smc_resp[19] = {
+      0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07, 0x5e, 0x23, 0x09,
+      0x33, 0x08, 0x45, 0x86, 0x34, 0x12, 0x31, 0x71, 0xf2};
+  const uint8_t nas_msg_ident_resp[11]  = {0x07, 0x56, 0x08, 0x09, 0x10, 0x10,
+                                          0x00, 0x00, 0x00, 0x00, 0x10};
+  const uint8_t nas_msg_attach_comp[13] = {0x27, 0xb6, 0x28, 0x5a, 0x49,
+                                           0x01, 0x07, 0x43, 0x00, 0x03,
+                                           0x52, 0x00, 0xc2};
+  const uint8_t nas_msg_detach_req[21]  = {
+      0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07, 0x45, 0x09, 0x0b, 0xf6,
+      0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
+  std::string imsi = "001010000000001";
+  plmn_t plmn      = {.mcc_digit2 = 0,
                  .mcc_digit1 = 0,
                  .mnc_digit3 = 0x0f,
                  .mcc_digit3 = 1,
                  .mnc_digit2 = 1,
                  .mnc_digit1 = 0};
+};
+
+TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(1)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  // The following buffer just includes an attach request
+  uint8_t nas_msg_faulty[29] = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
+                                0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
+                                0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
+                                0x04, 0x00, 0x02, 0x1c, 0x00};
+  send_mme_app_initial_ue_msg(nas_msg_faulty, sizeof(nas_msg_faulty), plmn);
+
+  // Check MME state: at this point, MME should be sending
+  // EMM_STATUS NAS message and holding onto the UE context
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
 
   EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
@@ -165,165 +206,47 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
   EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
-
-  uint8_t nas_msg[]       = {0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00,
-                       0x00, 0x00, 0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00,
-                       0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04,
-                       0x02, 0x60, 0x04, 0x00, 0x02, 0x1c, 0x00};
-  uint32_t nas_msg_length = 31;
-
-  ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn           = plmn;
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = 1;
-  S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.plmn          = plmn;
-  S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.cell_identity = {0, 0, 0};
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
-  message_p = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
-  s6a_auth_info_ans_t* itti_msg = &message_p->ittiMsg.s6a_auth_info_ans;
-  strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
-  itti_msg->imsi_length        = imsi.size();
-  itti_msg->result.present     = S6A_RESULT_BASE;
-  itti_msg->result.choice.base = DIAMETER_SUCCESS;
-  magma::feg::AuthenticationInformationAnswer aia;
-  magma::feg::AuthenticationInformationAnswer::EUTRANVector eutran_vector;
-  uint8_t xres_buf[XRES_LENGTH_MAX]      = {0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93,
-                                       0xf1, 0x5a, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00};
-  uint8_t rand_buf[RAND_LENGTH_OCTETS]   = {0x68, 0x16, 0xa1, 0x0c, 0x0f, 0xeb,
-                                          0x44, 0xa5, 0x00, 0x5c, 0x9c, 0x9c,
-                                          0x3c, 0x6f, 0xd6, 0x15};
-  uint8_t autn_buf[AUTN_LENGTH_OCTETS]   = {0x4a, 0xe4, 0xe0, 0xd9, 0xaa, 0x4b,
-                                          0x80, 0x00, 0xc4, 0x80, 0xa1, 0x97,
-                                          0x70, 0x4b, 0x7b, 0x8f};
-  uint8_t kasme_buf[KASME_LENGTH_OCTETS] = {
-      0xc3, 0x5f, 0x03, 0x8f, 0x5f, 0xbe, 0xcc, 0x23, 0xc4, 0xd1, 0xa7,
-      0xd6, 0x8a, 0xf7, 0x05, 0x32, 0xf2, 0x37, 0xf6, 0x40, 0x47, 0xdd,
-      0x29, 0x6e, 0x7d, 0x0e, 0xf6, 0xe9, 0x26, 0x5f, 0x24, 0x39};
-  eutran_vector.set_rand((const void*) rand_buf, RAND_LENGTH_OCTETS);
-  eutran_vector.set_xres((const void*) xres_buf, XRES_LENGTH_MAX);
-  eutran_vector.set_autn((const void*) autn_buf, AUTN_LENGTH_OCTETS);
-  eutran_vector.set_kasme((const void*) kasme_buf, KASME_LENGTH_OCTETS);
-  aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
-  auto eutran_vectors = aia.mutable_eutran_vectors();
-  eutran_vectors->Add()->CopyFrom(eutran_vector);
-  magma::convert_proto_msg_to_itti_s6a_auth_info_ans(aia, itti_msg);
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_authentication_info_resp(imsi, true);
 
-  // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  uint8_t nas_msg2[] = {0x07, 0x53, 0x10, 0x66, 0xff, 0x47, 0x2d,
-                        0xd4, 0x93, 0xf1, 0x5a, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00};
-  nas_msg_length     = 19;
-  send_mme_app_uplink_data_ind(&nas_msg2[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
 
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  uint8_t nas_msg3[] = {0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07,
-                        0x5e, 0x23, 0x09, 0x33, 0x08, 0x45, 0x86,
-                        0x34, 0x12, 0x31, 0x71, 0xf2};
-  nas_msg_length     = 19;
-  send_mme_app_uplink_data_ind(&nas_msg3[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
-  message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
-  s6a_update_location_ans_t* itti_msg2 =
-      &message_p->ittiMsg.s6a_update_location_ans;
-  strncpy(itti_msg2->imsi, imsi.c_str(), imsi.size());
-  itti_msg2->imsi_length        = imsi.size();
-  itti_msg2->result.present     = S6A_RESULT_BASE;
-  itti_msg2->result.choice.base = DIAMETER_SUCCESS;
-  magma::feg::UpdateLocationAnswer ula;
-  ula.set_default_context_id(0);
-  auto total_ambr = ula.mutable_total_ambr();
-  total_ambr->set_max_bandwidth_ul(100000000);
-  total_ambr->set_max_bandwidth_dl(200000000);
-  ula.set_all_apns_included(false);
-  magma::feg::UpdateLocationAnswer::APNConfiguration apnconfig;
-  apnconfig.set_context_id(0);
-  apnconfig.set_service_selection("magma.ipv4");
-  auto apn_qosprofile = apnconfig.mutable_qos_profile();
-  apn_qosprofile->set_class_id(9);
-  apn_qosprofile->set_priority_level(15);
-  auto apn_ambr = apnconfig.mutable_ambr();
-  apn_ambr->set_max_bandwidth_ul(10000000);
-  apn_ambr->set_max_bandwidth_dl(75000000);
-  apnconfig.set_pdn(magma::feg::UpdateLocationAnswer::APNConfiguration::IPV4);
-  auto apns = ula.mutable_apn();
-  apns->Add()->CopyFrom(apnconfig);
-  magma::convert_proto_msg_to_itti_s6a_update_location_ans(ula, itti_msg2);
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_s6a_ula(imsi);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  message_p =
-      itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
-  itti_s11_create_session_response_t* create_session_response_p =
-      &message_p->ittiMsg.s11_create_session_response;
-  create_session_response_p->teid                    = 1;
-  create_session_response_p->cause.cause_value       = REQUEST_ACCEPTED;
-  create_session_response_p->paa.pdn_type            = IPv4;
-  create_session_response_p->paa.ipv4_address.s_addr = 1000;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .cause.cause_value = REQUEST_ACCEPTED;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.teid = 1000;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.ipv4 = 1;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.ipv4_address.s_addr = 100;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .eps_bearer_id                                                    = 5;
-  create_session_response_p->bearer_contexts_created.num_bearer_context = 1;
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_create_session_resp();
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
-  message_p =
-      itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id                        = 1;
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items = 1;
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-      .e_rab_setup_list.item[0]
-      .e_rab_id = 5;
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-      .e_rab_setup_list.item[0]
-      .gtp_teid                     = 0;
-  uint8_t transport_address_buff[4] = {0, 0, 0, 0};
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-      .e_rab_setup_list.item[0]
-      .transport_layer_address = blk2bstr(transport_address_buff, 4);
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_ics_response();
 
   // Constructing UE Capability Indication message to mme_app
   // mimicing S1AP with dummy radio capabilities
-  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_UE_CAPABILITIES_IND);
-  itti_s1ap_ue_cap_ind_t* ue_cap_ind_p    = &message_p->ittiMsg.s1ap_ue_cap_ind;
-  ue_cap_ind_p->enb_ue_s1ap_id            = 0;
-  ue_cap_ind_p->mme_ue_s1ap_id            = 1;
-  ue_cap_ind_p->radio_capabilities_length = 200;
-  // using malloc to create uninitialized buffer
-  ue_cap_ind_p->radio_capabilities =
-      (uint8_t*) malloc(ue_cap_ind_p->radio_capabilities_length);
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_ue_capabilities_ind();
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  uint8_t nas_msg4[] = {0x27, 0xb6, 0x28, 0x5a, 0x49, 0x01, 0x07,
-                        0x43, 0x00, 0x03, 0x52, 0x00, 0xc2};
-  nas_msg_length     = 13;
-  send_mme_app_uplink_data_ind(&nas_msg4[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
 
   // Check MME state after attach complete
-  // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -331,41 +254,167 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  uint8_t nas_msg5[] = {0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07,
-                        0x45, 0x09, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                        0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
-  nas_msg_length     = 21;
-  send_mme_app_uplink_data_ind(&nas_msg5[0], nas_msg_length, plmn);
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
-  message_p =
-      itti_alloc_new_message(TASK_SPGW_APP, S11_DELETE_SESSION_RESPONSE);
-  itti_s11_delete_session_response_t* delete_session_resp_p =
-      &message_p->ittiMsg.s11_delete_session_response;
-  delete_session_resp_p->cause.cause_value = REQUEST_ACCEPTED;
-  delete_session_resp_p->teid              = 1;
-  delete_session_resp_p->peer_ip.s_addr    = 100;
-  delete_session_resp_p->lbi               = 5;
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_delete_session_resp();
 
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
-  message_p =
-      itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id = 1;
-  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
-  // Sleep briefly to ensure processing my mme_app
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
   // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(4);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_guti_attach_req, sizeof(nas_msg_guti_attach_req), plmn);
+
+  // Constructing and sending Identity Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_ident_resp, sizeof(nas_msg_ident_resp), plmn);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp();
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Check MME state after attach complete
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  send_delete_session_resp();
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // Sending AIA to mme_app mimicing negative S6A response for AIR
+  send_authentication_info_resp(imsi, false);
+
+  // Check MME state: at this point, MME should be sending attach reject
+  // as well as context release request
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check if the context is properly released
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 }  // namespace lte

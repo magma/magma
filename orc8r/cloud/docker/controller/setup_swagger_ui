@@ -20,7 +20,7 @@ if [ -d "/var/opt/magma/static/swagger-ui" ]; then
   exit 0
 fi
 
-VERSION='3.1.7'
+VERSION='3.52.2'
 
 cd /tmp
 rm -rf "v$VERSION.zip" swagger-ui

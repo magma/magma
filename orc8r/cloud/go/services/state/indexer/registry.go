@@ -20,11 +20,11 @@ import (
 	"strconv"
 	"testing"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/lib/go/registry"
 )
 
 // GetIndexer returns the remote indexer for a desired service.

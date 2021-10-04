@@ -21,7 +21,6 @@ extern "C" {
 }
 
 #include "nas_state_converter.h"
-//#include "spgw_state_converter.h"
 
 namespace magma {
 namespace lte {
@@ -477,6 +476,7 @@ void NasStateConverter::proto_to_esm_ebr_context(
         esm_ebr_context_proto.esm_ebr_timer_data(),
         &state_esm_ebr_context->args);
   }
+  state_esm_ebr_context->timer.id = NAS_TIMER_INACTIVE_ID;
 }
 
 /*************************************************/
@@ -859,6 +859,7 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
   state_nas_emm_attach_proc->ksi       = attach_proc_proto.ksi();
   state_nas_emm_attach_proc->emm_cause = attach_proc_proto.emm_cause();
   state_nas_emm_attach_proc->T3450.sec = T3450_DEFAULT_VALUE;
+  state_nas_emm_attach_proc->T3450.id  = NAS_TIMER_INACTIVE_ID;
   set_callbacks_for_attach_proc(state_nas_emm_attach_proc);
 }
 
@@ -996,6 +997,7 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
 
   state_nas_emm_auth_proc->emm_cause = auth_proc_proto.emm_cause();
   state_nas_emm_auth_proc->T3460.sec = T3460_DEFAULT_VALUE;
+  state_nas_emm_auth_proc->T3460.id  = NAS_TIMER_INACTIVE_ID;
   // update callback functions for auth proc
   set_callbacks_for_auth_proc(state_nas_emm_auth_proc);
   set_notif_callbacks_for_auth_proc(state_nas_emm_auth_proc);
@@ -1066,6 +1068,10 @@ void NasStateConverter::proto_to_nas_emm_smc_proc(
   state_nas_emm_smc_proc->notify_failure = smc_proc_proto.notify_failure();
   state_nas_emm_smc_proc->is_new         = smc_proc_proto.is_new();
   state_nas_emm_smc_proc->imeisv_request = smc_proc_proto.imeisv_request();
+
+  state_nas_emm_smc_proc->T3460.sec = T3460_DEFAULT_VALUE;
+  state_nas_emm_smc_proc->T3460.id  = NAS_TIMER_INACTIVE_ID;
+
   set_notif_callbacks_for_smc_proc(state_nas_emm_smc_proc);
   set_callbacks_for_smc_proc(state_nas_emm_smc_proc);
 }

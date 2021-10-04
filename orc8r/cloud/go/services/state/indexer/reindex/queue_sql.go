@@ -19,15 +19,15 @@ import (
 	"sort"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/services/state/indexer"
-	"magma/orc8r/cloud/go/sqorc"
-	merrors "magma/orc8r/lib/go/errors"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/sqorc"
+	merrors "magma/orc8r/lib/go/errors"
 )
 
 const (

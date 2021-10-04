@@ -17,6 +17,10 @@ import (
 	"context"
 	"testing"
 
+	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_service "magma/lte/cloud/go/services/lte"
@@ -31,10 +35,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	strfmt "github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 // Ensure provider servicer properly forwards update requests
@@ -118,7 +118,7 @@ func initSubscriber(t *testing.T, hwID string) {
 				},
 				StaticIps: map[string]strfmt.IPv4{"apn1": "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
 		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 	}, serdes.Entity)

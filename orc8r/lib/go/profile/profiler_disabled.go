@@ -20,7 +20,6 @@ package profile
 import "os"
 
 // empty stubs for disabled profiler builds
-
 // MemWrite stub
 func MemWrite() error {
 	return nil

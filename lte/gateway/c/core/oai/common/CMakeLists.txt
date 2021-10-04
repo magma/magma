@@ -6,6 +6,15 @@ endif ()
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
+pkg_search_module(OPENSSL openssl REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIRS})
+
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+include_directories(${CRYPTO_INCLUDE_DIRS})
+
+pkg_search_module(NETTLE nettle REQUIRED)
+include_directories(${NETTLE_INCLUDE_DIRS})
+
 # compile the needed protos
 set(COMMON_CPP_PROTOS common_types)
 set(REDIS_CPP_PROTOS redis)
@@ -63,10 +72,31 @@ add_subdirectory(redis_utils)
 
 add_library(COMMON ${COMMON_SRC})
 
+if (EXISTS "/etc/os-release")
+  set(os_file_path "/etc/os-release")
+  file(STRINGS "${os_file_path}" data_list REGEX "^(ID|VERSION_ID|VERSION_CODENAME)=")
+  foreach (_var ${data_list})
+    if ("${_var}" MATCHES "^(ID)=(.*)$")
+      set(os_name "${CMAKE_MATCH_2}")
+    endif ()
+  endforeach ()
+  if ("${os_name}" STREQUAL "\"rhel\"")
+  endif ()
+endif ()
+
+message("os_name", ${os_name})
+if ("${os_name}" STREQUAL "\"rhel\"")
+  target_link_libraries(COMMON
+      lfds710
+      LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB
+      )
+else()
 target_link_libraries(COMMON
-        lfds710
-        LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB
-        )
+      lfds710
+      ${OPENSSL_LIBRARIES}
+      LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper MAGMA_SENTRY SERVICE303_LIB
+      )
+endif()
 
 target_include_directories(COMMON PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

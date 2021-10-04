@@ -16,6 +16,10 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
 	"magma/cwf/cloud/go/serdes"
@@ -31,10 +35,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	orc8r_mconfig "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build(t *testing.T) {
@@ -44,7 +44,7 @@ func TestBuilder_Build(t *testing.T) {
 		nw := configurator.Network{ID: "n1"}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType, Key: "gw1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: cwf.CwfGatewayType, Key: "gw1"},
 			},
 		}
@@ -68,20 +68,20 @@ func TestBuilder_Build(t *testing.T) {
 		}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType, Key: "gw1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: cwf.CwfGatewayType, Key: "gw1"},
 			},
 		}
 		cwfGW := configurator.NetworkEntity{
 			Type: cwf.CwfGatewayType, Key: "gw1",
 			Config:             defaultgwConfig,
-			ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+			ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
 		}
 		haPair := configurator.NetworkEntity{
 			Config: &models.CwfHaPairConfigs{TransportVirtualIP: "10.10.10.11"},
 			Type:   cwf.CwfHAPairType,
 			Key:    "pair1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: cwf.CwfGatewayType, Key: "gw1"},
 				{Type: cwf.CwfGatewayType, Key: "gw2"},
 			},

@@ -1,3 +1,4 @@
+//go:build all || authenticate
 // +build all authenticate
 
 /*

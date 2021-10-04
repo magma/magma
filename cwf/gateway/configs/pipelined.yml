@@ -157,8 +157,7 @@ has_quota_port: 51115
 no_quota_port: 51125
 
 # For 5G Functionality Support flag
-5G_feature_set:
- enable: false
+enable5g_features: false
 
 ###############
 ## IMPORTANT ##

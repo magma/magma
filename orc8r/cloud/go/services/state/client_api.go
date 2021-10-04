@@ -16,14 +16,14 @@ package state
 import (
 	"context"
 
+	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
+
 	"magma/orc8r/cloud/go/serde"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
 
 // GetStateClient returns a client to the state service.

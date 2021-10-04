@@ -16,6 +16,9 @@ package calculations
 import (
 	"context"
 
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -26,9 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -57,6 +57,7 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	outgoingCtx := context.TODO()
 	for _, networkID := range networks {
 		subscriberEnts, _, err := configurator.LoadAllEntitiesOfType(
+			context.Background(),
 			networkID,
 			lte.SubscriberEntityType,
 			configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
@@ -138,6 +139,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	for _, networkID := range networks {
 		if gatewayVersionCfgOk {
 			gatewayEnts, _, err := configurator.LoadAllEntitiesOfType(
+				context.Background(),
 				networkID,
 				lte.CellularGatewayEntityType,
 				configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
@@ -178,6 +180,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 
 		if enbConnectedOk {
 			ents, _, err := configurator.LoadAllEntitiesOfType(
+				context.Background(),
 				networkID,
 				lte.CellularEnodebEntityType,
 				configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
@@ -198,7 +201,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 					continue
 				}
 				enodebState := st.ReportedState.(*lte_models.EnodebState)
-				ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+				ent, err := configurator.LoadEntityForPhysicalID(context.Background(), st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 				if err != nil {
 					continue
 				}

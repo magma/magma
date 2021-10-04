@@ -14,9 +14,15 @@ limitations under the License.
 package servicers_test
 
 import (
+	"context"
 	"crypto/x509"
 	"testing"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
@@ -24,12 +30,6 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 	certifierTestUtils "magma/orc8r/lib/go/security/csr"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestCertifierBlobstore(t *testing.T) {

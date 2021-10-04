@@ -16,6 +16,8 @@ package subscriberdb_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -23,8 +25,6 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	storage2 "magma/orc8r/cloud/go/storage"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // TestConvertSubEntsToProtos is a regression test to check if ConvertSubEntsToProtos

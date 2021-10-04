@@ -18,13 +18,13 @@ import (
 	"testing"
 	"time"
 
-	"magma/lte/cloud/go/services/smsd/storage"
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
+
+	"magma/lte/cloud/go/services/smsd/storage"
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func TestSQLSMSStorage_Integration(t *testing.T) {

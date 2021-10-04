@@ -171,9 +171,6 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             return True
 
         if not res.resync:
-            self._update_root_digest(res.digests.root_digest)
-            self._update_leaf_digests(res.digests.leaf_digests)
-
             # TODO(hcgatewood): switch to bulk editing subscriber data rows
             changeset = self._process_changeset(res.changeset)
             for subscriber_data in changeset.to_renew:
@@ -181,6 +178,9 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             for sid in changeset.deleted:
                 self._store.delete_subscriber(sid)
             self._detach_subscribers_by_ids(changeset.deleted)
+
+            self._update_root_digest(res.digests.root_digest)
+            self._update_leaf_digests(res.digests.leaf_digests)
 
         return res.resync
 

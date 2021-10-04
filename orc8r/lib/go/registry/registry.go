@@ -21,13 +21,13 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/lib/go/protos"
-	registry_client "magma/orc8r/lib/go/registry/client"
-
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+
+	"magma/orc8r/lib/go/protos"
+	registry_client "magma/orc8r/lib/go/registry/client"
 )
 
 const (

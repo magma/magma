@@ -132,7 +132,7 @@ jobs:
       - path_filter
       - feg-precommit
     if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
-    name: cwag pre-commit job
+    name: feg-build
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"

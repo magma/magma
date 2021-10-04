@@ -14,6 +14,8 @@ limitations under the License.
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
@@ -21,8 +23,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/eventd"
 	"magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
-
-	"github.com/golang/glog"
 )
 
 func main() {

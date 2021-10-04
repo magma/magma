@@ -17,6 +17,9 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -24,9 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/ctraced/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type callTraceServicer struct {
@@ -42,7 +42,7 @@ func (srv *callTraceServicer) ReportEndedCallTrace(ctx context.Context, req *pro
 	if err != nil {
 		return nil, err
 	}
-	callTrace, err := getCallTraceModel(networkID, req.TraceId)
+	callTrace, err := getCallTraceModel(ctx, networkID, req.TraceId)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +76,9 @@ func getNetworkID(ctx context.Context) (string, error) {
 	return id.GetNetworkId(), nil
 }
 
-func getCallTraceModel(networkID string, callTraceID string) (*models.CallTrace, error) {
+func getCallTraceModel(ctx context.Context, networkID string, callTraceID string) (*models.CallTrace, error) {
 	ent, err := configurator.LoadEntity(
+		ctx,
 		networkID, orc8r.CallTraceEntityType, callTraceID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

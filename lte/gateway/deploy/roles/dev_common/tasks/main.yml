@@ -222,12 +222,13 @@
     state: link
     force: yes
 
-- name: Create a ~/.ccache directory to be used by Bazel
-  file:
-    path: /home/vagrant/.ccache
-    state: directory
-    mode: 0775
-    recurse: yes
+- name: Set up environment variables for VSCode integration
+  lineinfile:
+    # We set this variable in .profile so that VSCode can determine which build config to use 
+    path: /home/{{ ansible_user }}/.profile
+    line: "export VSCODE_BAZEL_BUILD_CONFIG=vm"
+    state: present
+  when: full_provision
 
 ########################################
 # Install common Magma dev dependencies
@@ -419,6 +420,8 @@
   patch:
     src: patches/multipath-conf.patch
     dest: /etc/multipath.conf
+  become: yes
+  ignore_errors: true
 
 - name: Copy Interface file.
   copy:
