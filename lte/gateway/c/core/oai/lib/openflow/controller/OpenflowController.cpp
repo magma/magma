@@ -62,8 +62,8 @@ void OpenflowController::stop() {
   if (latest_ofconn_ != nullptr) {
     latest_ofconn_->close();
   }
-  OFServer::stop();
   running_ = false;
+  OFServer::stop();
 }
 
 void OpenflowController::message_callback(

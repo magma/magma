@@ -1611,7 +1611,6 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
   ebi_t ebi              = {0};
   uint32_t sequence_number = 0;
   char* pgw_cp_ip_port     = NULL;
-  itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   if (!s11_delete_bearer_response_p) {

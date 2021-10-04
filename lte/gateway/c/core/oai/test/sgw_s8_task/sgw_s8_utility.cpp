@@ -90,12 +90,12 @@ void fill_create_bearer_request(
     s8_create_bearer_request_t* cb_req, uint32_t teid,
     uint8_t default_eps_bearer_id) {
 #define IPV4_LEN 4
-  cb_req->sequence_number                  = 10;
-  cb_req->context_teid                     = teid;
-  cb_req->linked_eps_bearer_id             = default_eps_bearer_id;
-  cb_req->pgw_cp_address                   = (char*) calloc(1, IPV4_LEN + 1);
-  cb_req->bearer_context[0].eps_bearer_id  = 0;
-  cb_req->bearer_context[0].pgw_s8_up.ipv4 = 1;
+  cb_req->sequence_number      = 10;
+  cb_req->context_teid         = teid;
+  cb_req->linked_eps_bearer_id = default_eps_bearer_id;
+  cb_req->pgw_cp_address = reinterpret_cast<char*>(calloc(1, IPV4_LEN + 1));
+  cb_req->bearer_context[0].eps_bearer_id                 = 0;
+  cb_req->bearer_context[0].pgw_s8_up.ipv4                = 1;
   cb_req->bearer_context[0].pgw_s8_up.interface_type      = S5_S8_PGW_GTP_U;
   cb_req->bearer_context[0].pgw_s8_up.teid                = 20;
   cb_req->bearer_context[0].pgw_s8_up.ipv4_address.s_addr = 0xac101496;
@@ -126,14 +126,14 @@ void fill_create_bearer_request(
 
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
-    uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid) {
-  cb_response->cause.cause_value                  = REQUEST_ACCEPTED;
+    uint8_t eps_bearer_id, teid_t s1_u_sgw_fteid, gtpv2c_cause_value_t cause) {
+  cb_response->cause.cause_value                  = cause;
   cb_response->sgw_s11_teid                       = teid;
   cb_response->bearer_contexts.num_bearer_context = 1;
   bearer_context_within_create_bearer_response_t* bc_context =
       &(cb_response->bearer_contexts.bearer_contexts[0]);
   bc_context->eps_bearer_id                     = 6;
-  bc_context->cause.cause_value                 = REQUEST_ACCEPTED;
+  bc_context->cause.cause_value                 = cause;
   bc_context->s1u_enb_fteid.ipv4                = 1;
   bc_context->s1u_enb_fteid.interface_type      = S1_U_ENODEB_GTP_U;
   bc_context->s1u_enb_fteid.teid                = 30;
@@ -142,50 +142,6 @@ void fill_create_bearer_response(
   bc_context->s1u_sgw_fteid.teid = s1_u_sgw_fteid;
 }
 
-void SgwS8Config::sgw_initialize_gtpv1u(void) {
-  int rv = 0;
-  struct in_addr netaddr;
-  uint32_t netmask = 0;
-  int fd0          = 2;
-  int fd1          = 5;
-  int mtu          = 1024;
-  gtp_tunnel_ops   = gtp_tunnel_ops_init_openflow();
-  if (gtp_tunnel_ops == NULL) {
-    OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");
-    return;
-  }
-  // Reset GTP tunnel states
-  rv = gtp_tunnel_ops->reset();
-  if (rv != 0) {
-    OAILOG_CRITICAL(LOG_GTPV1U, "ERROR clean existing gtp states.\n");
-    return;
-  }
-  // The command configures the switch with ip and port, the same port is
-  // used for mme service
-
-  bstring system_cmd = bformat(
-      "ovs-vsctl set-controller gtp_br0 tcp:%s:%d", CONTROLLER_ADDR,
-      CONTROLLER_PORT);
-  system((const char*) system_cmd->data);
-  bdestroy(system_cmd);
-  netaddr.s_addr = INADDR_ANY;
-  netmask        = 0;
-  // Init GTP device, using the same MTU as SGi.
-  gtp_tunnel_ops->init(&netaddr, netmask, mtu, &fd0, &fd1, false);
-
-  // END-GTP quick integration only for evaluation purpose
-
-  // Add route to avoid updating routing during UE attach.
-  add_route_for_ue_block(netaddr, netmask);
-  OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface: DONE\n");
-  return;
-}
-
-void SgwS8Config::sgw_uninitialize_gtpv1u(void) {
-  gtp_tunnel_ops->uninit();
-  OAILOG_DEBUG(LOG_GTPV1U, "Uninitializing GTPV1U interface: DONE\n");
-  return;
-}
 sgw_state_t* SgwS8Config::create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel) {
   sgw_state_init(false, config);
   sgw_state_t* sgw_state     = get_sgw_state(false);

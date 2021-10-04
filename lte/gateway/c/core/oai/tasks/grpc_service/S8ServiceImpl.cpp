@@ -44,8 +44,9 @@ S8ServiceImpl::S8ServiceImpl() {}
 static void convert_proto_msg_to_itti_create_bearer_req(
     const CreateBearerRequestPgw* request,
     s8_create_bearer_request_t* itti_msg) {
-  auto ip                  = request->pgwaddrs();
-  itti_msg->pgw_cp_address = (char*) calloc(1, (ip.size() + 1));
+  auto ip = request->pgwaddrs();
+  itti_msg->pgw_cp_address =
+      reinterpret_cast<char*>(calloc(1, (ip.size() + 1)));
   snprintf(itti_msg->pgw_cp_address, (ip.size() + 1), "%s", ip.c_str());
   itti_msg->context_teid         = request->c_agw_teid();
   itti_msg->sequence_number      = request->sequence_number();
@@ -70,7 +71,7 @@ static void convert_proto_msg_to_itti_create_bearer_req(
 
 grpc::Status S8ServiceImpl::CreateBearer(
     ServerContext* context, const CreateBearerRequestPgw* request,
-    Void* response) {
+    orc8r::Void* response) {
   OAILOG_INFO(
       LOG_SGW_S8,
       " Received Create Bearer Request from roaming network's PGW"
@@ -115,7 +116,7 @@ static void convert_proto_msg_to_itti_delete_bearer_req(
 
 grpc::Status S8ServiceImpl::DeleteBearerRequest(
     ServerContext* context, const DeleteBearerRequestPgw* request,
-    Void* response) {
+    orc8r::Void* response) {
   OAILOG_INFO(
       LOG_SGW_S8,
       " Received Delete Bearer Request from roaming network's PGW"
