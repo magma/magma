@@ -616,7 +616,7 @@ func tksToEntIDs(tks storage2.TKs) []*storage.EntityID {
 
 	return funk.Map(
 		tks,
-		func(tk storage2.TK) *storage.EntityID { return (&storage.EntityID{}).FromTypeAndKey(tk) }).([]*storage.EntityID)
+		func(tk storage2.TK) *storage.EntityID { return (&storage.EntityID{}).FromTK(tk) }).([]*storage.EntityID)
 }
 
 func entIDsToTKs(ids []*storage.EntityID) storage2.TKs {
@@ -626,6 +626,6 @@ func entIDsToTKs(ids []*storage.EntityID) storage2.TKs {
 
 	return funk.Map(
 		ids,
-		func(id *storage.EntityID) storage2.TK { return id.ToTypeAndKey() },
+		func(id *storage.EntityID) storage2.TK { return id.ToTK() },
 	).([]storage2.TK)
 }

@@ -433,7 +433,7 @@ func (l loadedAssoc) getToID() *EntityID {
 }
 
 func (l loadedAssoc) asGraphEdge() *GraphEdge {
-	return &GraphEdge{From: (&EntityID{}).FromTK(l.fromTK), To: (&EntityID{}).FromTypeAndKey(l.toTK)}
+	return &GraphEdge{From: (&EntityID{}).FromTK(l.fromTK), To: (&EntityID{}).FromTK(l.toTK)}
 }
 
 type loadedAssocs []loadedAssoc

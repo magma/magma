@@ -44,6 +44,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
+	gotest.tools/gotestsum v1.7.0 // indirect
 	layeh.com/radius v0.0.0-20201203135236-838e26d0c9be
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
