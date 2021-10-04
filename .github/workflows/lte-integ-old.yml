@@ -9,7 +9,7 @@ on:
       - quentin-test-gha-agw-build
 
 jobs:
-  integ-old:
+  integ-test:
     runs-on: macos-latest
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
@@ -28,7 +28,7 @@ jobs:
           pip3 install ansible fabric3 jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize
         if: always()
-      - name: Build AGW
+      - name: Run the integ test
         run: |
           cd lte/gateway
           sed -i '' 's/1.1.20210928/1.1.20210618/' Vagrantfile

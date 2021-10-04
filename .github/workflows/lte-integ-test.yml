@@ -1,6 +1,6 @@
 ---
 
-name: lte integ test
+name: integ test
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
       - quentin-test-gha-agw-build
 
 jobs:
-  lte-integ-test:
-    runs-on: macOS-11
+  integ-old:
+    runs-on: macos-latest
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
@@ -24,19 +24,11 @@ jobs:
           python-version: '3.8.5'
       - name: Install pre requisites
         run: |
-          brew tap homebrew/cask
-          brew install --cask virtualbox
-          brew install --cask vagrant
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
-          vagrant plugin install vagrant-vbguest vagrant-disksize
-      - name: Restart virtualbox
-        run: |
-          sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart
-        continue-on-error: true
-        timeout-minutes: 1
+          vagrant plugin install vagrant-vbguest vagrant-disksize  vagrant-vbguest vagrant-mutate
         if: always()
-      - name: Build AGW
+      - name: Run the integ test
         run: |
           cd lte/gateway
           fab integ_test

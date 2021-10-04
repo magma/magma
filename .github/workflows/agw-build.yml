@@ -1,6 +1,6 @@
 ---
 
-name: Magma AGW Build
+name: agw build
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
       - quentin-test-gha-agw-build
 
 jobs:
-  magma-agw-build:
-    runs-on: macOS-11
+  agw-build:
+    runs-on: macos-latest
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
@@ -24,15 +24,9 @@ jobs:
           python-version: '3.8.5'
       - name: Install pre requisites
         run: |
-          brew tap homebrew/cask
-          brew install --cask virtualbox
-          brew install --cask vagrant
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
-          vagrant plugin install vagrant-vbguest vagrant-disksize
-      - name: Restart virtualbox
-        run: |
-          sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-vbguest vagrant-mutate
         if: always()
       - name: Build AGW
         run: |
