@@ -481,26 +481,24 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
    */
   esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
-  ue_mm_context_t* ue_context_p =
-      mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
-  bearer_context_t* bc =
-      mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
-  if (bc) {
-    bc->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
-  } else {
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
-        "ESM-PROC  - T3485 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
-        ", ebi=%d), "
-        "but bearer context is already deleted.\n",
-        esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
-    OAILOG_FUNC_OUT(LOG_NAS_ESM);
-  }
-
   if (esm_ebr_timer_data) {
-    /*
-     * Increment the retransmission counter
-     */
+    ue_mm_context_t* ue_context_p =
+        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
+    bearer_context_t* bc =
+        mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
+    // Set timer ID to inactive as it is expired
+    if (bc) {
+      bc->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+    } else {
+      OAILOG_WARNING(
+          LOG_NAS_ESM,
+          "ESM-PROC  - T3485 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
+          ", ebi=%d), "
+          "but bearer context is already deleted.\n",
+          esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+      OAILOG_FUNC_OUT(LOG_NAS_ESM);
+    }
+    // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING(
         LOG_NAS_ESM,
