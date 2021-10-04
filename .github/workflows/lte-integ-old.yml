@@ -1,0 +1,36 @@
+---
+
+name: integ test old
+
+on:
+  push:
+    branches:
+      - master
+      - quentin-test-gha-agw-build
+
+jobs:
+  integ-old:
+    runs-on: macos-latest
+    steps:
+      - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
+        id: date
+      - uses: actions/checkout@v2
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          vagrant plugin install vagrant-vbguest vagrant-disksize
+        if: always()
+      - name: Build AGW
+        run: |
+          cd lte/gateway
+          sed -i '' 's/1.1.20210928/1.1.20210618/' Vagrantfile
+          fab integ_test
+        if: always()
