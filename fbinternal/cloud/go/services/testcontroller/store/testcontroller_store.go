@@ -164,7 +164,7 @@ func (s *TestControllerStore) get(networkID string) (string, int64, error) {
 		Key:  "gateway_version",
 	}
 
-	blob, err := s.store.Get(networkID, TK)
+	blob, err := s.store.Get(networkID, tk)
 	if err != nil {
 		return "", 0, err
 	}
@@ -193,11 +193,11 @@ func (s *TestControllerStore) put(networkID string, version string, timestamp in
 }
 
 func (s *TestControllerStore) incrementVersion(networkID string) error {
-	TK := storage.TK{
+	tk := storage.TK{
 		Type: DBType,
 		Key:  "gateway_version",
 	}
-	err := s.store.IncrementVersion(networkID, TK)
+	err := s.store.IncrementVersion(networkID, tk)
 	if err != nil {
 		return err
 	}
