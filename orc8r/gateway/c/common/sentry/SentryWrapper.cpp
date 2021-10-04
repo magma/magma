@@ -13,7 +13,6 @@
 
 #include "includes/SentryWrapper.h"
 
-#if SENTRY_ENABLED
 #include <experimental/optional>
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
@@ -23,6 +22,7 @@
 #include <limits.h>
 #include <unistd.h>
 
+#define SENTRY_BUILD_STATIC 1
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"
 
@@ -124,15 +124,3 @@ void shutdown_sentry(void) {
 void set_sentry_transaction(const char* name) {
   sentry_set_transaction(name);
 }
-
-#else
-
-void initialize_sentry(
-    __attribute__((unused)) const char* service_tag,
-    __attribute__((unused)) const sentry_config_t* sentry_config) {}
-
-void shutdown_sentry(void) {}
-
-void set_sentry_transaction(__attribute__((unused)) const char* name) {}
-
-#endif

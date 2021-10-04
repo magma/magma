@@ -331,7 +331,7 @@
 - name: Build and Install Sentry Native SDK
   shell: |
     cd {{ tmp_directory }}/sentry-native && \
-    cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
+    cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=OFF -DSENTRY_BUILD_TESTS=0 -DSENTRY_BUILD_EXAMPLES=0 && \
     cmake --build build --parallel && \
     cmake --install build --prefix install --config RelWithDebInfo && \
     cd build && make install

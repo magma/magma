@@ -22,14 +22,14 @@ find_package(MAGMA_CONFIG REQUIRED)
 
 ## Find + link sentry if it exists
 find_library(SENTRY_LIB NAMES sentry sentry-native)
-if (SENTRY_LIB)
-  # Include dir
-  message("Building with sentry!")
-  find_path(SENTRY_INCLUDE_DIR NAMES sentry.h )
-  target_link_libraries(MAGMA_SENTRY ${SENTRY_LIB} MAGMA_CONFIG)
-  set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
-  set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
-endif()
+find_library(DL_LIB NAMES dl)
+find_library(CURL_LIB NAMES curl)
+find_library(BREAKPAD_CLIENT_LIB NAMES breakpad_client)
+
+# Include dir
+message("Building with sentry!")
+find_path(SENTRY_INCLUDE_DIR NAMES sentry.h )
+target_link_libraries(MAGMA_SENTRY ${SENTRY_LIB} MAGMA_CONFIG ${DL_LIB} ${CURL_LIB} ${BREAKPAD_CLIENT_LIB})
 
 target_include_directories(MAGMA_SENTRY PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
