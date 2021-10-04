@@ -63,7 +63,7 @@ func TestStoreNProbeData(t *testing.T) {
 	// Get nprobe data
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
-	tk := storage.TypeAndKey{Type: NProbeBlobType, Key: taskID}
+	tk := storage.TK{Type: NProbeBlobType, Key: taskID}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Get", placeholderNetworkID, tk).Return(blob, nil).Once()
@@ -80,7 +80,7 @@ func TestStoreNProbeData(t *testing.T) {
 	// Delete nprobe data
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
-	tkSet := []storage.TypeAndKey{tk}
+	tkSet := storage.TKs{tk}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Delete", placeholderNetworkID, tkSet).Return(nil).Once()

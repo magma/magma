@@ -239,7 +239,7 @@ func (p *ApnRuleMappingsProvider) GetUpdates(ctx context.Context, gatewayId stri
 }
 
 func getSubscriberPolicySet(ctx context.Context, networkID string, subscriberEnt configurator.NetworkEntity) (*lte_protos.SubscriberPolicySet, error) {
-	apnPolicyProfileTks := []storage.TypeAndKey{}
+	apnPolicyProfileTks := storage.TKs{}
 	globalPolicies := []string{}
 	globalBaseNames := []string{}
 
@@ -280,7 +280,7 @@ func getSubscriberPolicySet(ctx context.Context, networkID string, subscriberEnt
 	}, nil
 }
 
-func loadApnPolicyProfileEnts(ctx context.Context, networkID string, tks []storage.TypeAndKey) (configurator.NetworkEntities, error) {
+func loadApnPolicyProfileEnts(ctx context.Context, networkID string, tks storage.TKs) (configurator.NetworkEntities, error) {
 	if len(tks) == 0 {
 		return configurator.NetworkEntities{}, nil
 	}

@@ -2,6 +2,7 @@
 	"extensions": [
 		"CoenraadS.bracket-pair-colorizer-2",
 		"xaver.clang-format",
+		"golang.go",
 		"notskm.clang-tidy",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
@@ -17,7 +18,7 @@
 		"stackbuild.bazel-stack-vscode-cc",
 		"augustocdias.tasks-shell-input",
 	],
-	"image": "ghcr.io/magma/devcontainer:sha-72b1f20",
+	"image": "ghcr.io/magma/devcontainer:sha-340b46f",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {

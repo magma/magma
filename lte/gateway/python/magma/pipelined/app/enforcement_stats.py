@@ -134,10 +134,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self.ng_config = self._get_ng_config(kwargs['config'], kwargs['rpc_stubs'])
 
     def _get_ng_config(self, config_dict, rpc_stub_dict):
-        ng_service_enabled = False
-        ng_flag = config_dict.get('5G_feature_set', None)
-        if ng_flag:
-            ng_service_enabled = ng_flag['enable']
+        ng_service_enabled = config_dict.get('enable5g_features', None)
 
         sessiond_setinterface = rpc_stub_dict.get('sessiond_setinterface')
 

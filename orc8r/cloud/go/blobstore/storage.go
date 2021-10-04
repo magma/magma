@@ -33,20 +33,20 @@ type Blob struct {
 type Blobs []Blob
 
 // TKs converts blobs to their associated type and key.
-func (bs Blobs) TKs() []storage.TypeAndKey {
-	tks := make([]storage.TypeAndKey, 0, len(bs))
+func (bs Blobs) TKs() storage.TKs {
+	tks := make(storage.TKs, 0, len(bs))
 	for _, blob := range bs {
-		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
+		tks = append(tks, storage.TK{Type: blob.Type, Key: blob.Key})
 	}
 	return tks
 }
 
 // ByTK returns a computed view of a list of blobs as a map of
-// blobs keyed by blob TypeAndKey.
-func (bs Blobs) ByTK() map[storage.TypeAndKey]Blob {
-	ret := make(map[storage.TypeAndKey]Blob, len(bs))
+// blobs keyed by blob TK.
+func (bs Blobs) ByTK() map[storage.TK]Blob {
+	ret := make(map[storage.TK]Blob, len(bs))
 	for _, blob := range bs {
-		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
+		ret[storage.TK{Type: blob.Type, Key: blob.Key}] = blob
 	}
 	return ret
 }
@@ -101,13 +101,13 @@ type TransactionalBlobStorage interface {
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from
 	// magma/orc8r/lib/go/errors will be returned.
-	Get(networkID string, id storage.TypeAndKey) (Blob, error)
+	Get(networkID string, id storage.TK) (Blob, error)
 
 	// GetMany loads and returns a collection of blobs matching the
 	// specifiedIDs.
-	// If there is no blob corresponding to a TypeAndKey, the returned list
+	// If there is no blob corresponding to a TK, the returned list
 	// will not have a corresponding Blob.
-	GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error)
+	GetMany(networkID string, ids storage.TKs) (Blobs, error)
 
 	// Search returns a filtered collection of blobs keyed by the network ID
 	// to which they belong.
@@ -130,11 +130,11 @@ type TransactionalBlobStorage interface {
 	GetExistingKeys(keys []string, filter SearchFilter) ([]string, error)
 
 	// Delete deletes specified blobs from storage.
-	Delete(networkID string, ids []storage.TypeAndKey) error
+	Delete(networkID string, ids storage.TKs) error
 
 	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
 	// increments the version column or inserts 1 if it does not exist.
-	IncrementVersion(networkID string, id storage.TypeAndKey) error
+	IncrementVersion(networkID string, id storage.TK) error
 }
 
 // GetAllOfType returns all blobs in the network of the passed type.
@@ -162,7 +162,7 @@ func ListKeys(store TransactionalBlobStorage, networkID string, typ string) ([]s
 }
 
 // ListKeysByNetwork returns all blob keys, keyed by network ID.
-func ListKeysByNetwork(store TransactionalBlobStorage) (map[string][]storage.TypeAndKey, error) {
+func ListKeysByNetwork(store TransactionalBlobStorage) (map[string]storage.TKs, error) {
 	filter := CreateSearchFilter(nil, nil, nil, nil)
 	criteria := LoadCriteria{LoadValue: false}
 
@@ -171,7 +171,7 @@ func ListKeysByNetwork(store TransactionalBlobStorage) (map[string][]storage.Typ
 		return nil, err
 	}
 
-	tks := map[string][]storage.TypeAndKey{}
+	tks := map[string]storage.TKs{}
 	for network, blobs := range blobsByNetwork {
 		tks[network] = blobs.TKs()
 	}
@@ -198,7 +198,7 @@ type SearchFilter struct {
 
 // DoesTKMatch returns true if the given TK matches the search filter,
 // false otherwise.
-func (sf SearchFilter) DoesTKMatch(tk storage.TypeAndKey) bool {
+func (sf SearchFilter) DoesTKMatch(tk storage.TK) bool {
 	isTypesEmpty, isKeysEmpty, isPrefixEmpty := funk.IsEmpty(sf.Types), funk.IsEmpty(sf.Keys), funk.IsEmpty(sf.KeyPrefix)
 
 	// Empty search filter matches everything

@@ -47,7 +47,7 @@ func (h *healthBlobstore) GetHealth(networkID string, gatewayID string) (*fegpro
 	if err != nil {
 		return nil, err
 	}
-	healthTypeAndKey := storage.TypeAndKey{
+	healthTypeAndKey := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gatewayID,
 	}
@@ -128,7 +128,7 @@ func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*
 		}
 	}
 	clusterID := networkID
-	clusterTypeAndKey := storage.TypeAndKey{
+	clusterTypeAndKey := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  clusterID,
 	}

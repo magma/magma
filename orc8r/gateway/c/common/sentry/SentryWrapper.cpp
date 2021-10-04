@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
+#include <limits.h>
 #include <unistd.h>
 
 #include "sentry.h"
@@ -33,6 +34,7 @@
 #define MME_LOG_PATH "/var/log/mme.log"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
+#define HOSTNAME "hostname"
 #define SERVICE_NAME "service_name"
 #define DEFAULT_SAMPLE_RATE 0.5f
 
@@ -108,6 +110,8 @@ void initialize_sentry(
 
     sentry_init(options);
     if (gethostname(node_name, sizeof(node_name)) == 0) {
+    char node_name[HOST_NAME_MAX]
+    if (gethostname(node_name, HOST_NAME_MAX) == 0) {
       sentry_set_tag(HOSTNAME, node_name);
     }
     sentry_set_tag(SERVICE_NAME, service_tag);

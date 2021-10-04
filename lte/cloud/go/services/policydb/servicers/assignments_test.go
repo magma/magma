@@ -77,7 +77,7 @@ func TestAssignmentsServicer(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: testGwLogicalId,
 			Config: newDefaultGatewayConfig(),
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.SubscriberEntityType, Key: testSubscriberId},
 			},
 		},
@@ -85,7 +85,7 @@ func TestAssignmentsServicer(t *testing.T) {
 			Type: orc8r.MagmadGatewayType, Key: testGwLogicalId,
 			Name: "foobar", Description: "foo bar",
 			PhysicalID:   testGwHwId,
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)

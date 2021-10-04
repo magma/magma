@@ -72,10 +72,8 @@ class NGServiceControllerTest(unittest.TestCase):
             config={
                 'enodeb_iface': 'eth1',
                 'clean_restart': True,
-                '5G_feature_set': {
-                    'enable': True,
-                    'node_identifier': '192.168.220.1',
-                },
+                'enable5g_features': True,
+                'upf_node_identifier': '192.168.220.1',
                 'bridge_name': self.BRIDGE,
             },
             mconfig=None,

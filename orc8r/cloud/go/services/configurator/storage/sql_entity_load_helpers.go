@@ -418,8 +418,8 @@ func validatePaginatedLoadParameters(filter EntityLoadFilter, criteria EntityLoa
 }
 
 type loadedAssoc struct {
-	fromTK storage.TypeAndKey
-	toTK   storage.TypeAndKey
+	fromTK storage.TK
+	toTK   storage.TK
 	fromPK string
 	toPK   string
 }
