@@ -13,6 +13,8 @@
 
 # log_level is set in mconfig. it can be overridden here
 
+log_level: INFO
+
 sync_interval: 60
 
 #state_protos:
