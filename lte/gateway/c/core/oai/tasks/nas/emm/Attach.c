@@ -660,9 +660,7 @@ status_code_e emm_proc_attach_reject(
           (nas_emm_attach_proc_t*) (emm_ctx->emm_procedures->emm_specific_proc);
       attach_proc->emm_cause = emm_cause;
 
-      // TODO could be in callback of attach procedure triggered by
-      // EMMREG_ATTACH_REJ
-      rc = _emm_attach_reject(emm_ctx, (struct nas_base_proc_s*) attach_proc);
+      //rc = _emm_attach_reject(emm_ctx, (struct nas_base_proc_s*) attach_proc);
       emm_sap_t emm_sap               = {0};
       emm_sap.primitive               = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id         = ue_id;
