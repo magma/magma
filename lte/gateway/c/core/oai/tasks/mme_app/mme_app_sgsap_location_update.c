@@ -934,7 +934,7 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs ts6_1 timer");
@@ -943,7 +943,7 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -951,7 +951,7 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
         "Ts6-1  Timer expired, but sgs context is NULL for "
         "ue-id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
