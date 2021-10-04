@@ -122,7 +122,7 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
 }
 
 static void s6a_handle_update_location_ans(
-    const std::string& imsi, uint8_t imsi_length, uint32_t rat_type, 
+    const std::string& imsi, uint8_t imsi_length, uint32_t rat_type,
     const grpc::Status& status, feg::UpdateLocationAnswer response) {
   MessageDef* message_p               = NULL;
   s6a_update_location_ans_t* itti_msg = NULL;
@@ -177,10 +177,11 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
             << std::string(ulr_p->imsi) << std::endl;
 
   magma::S6aClient::update_location_request(
-      ulr_p, [imsiStr = std::string(ulr_p->imsi), imsi_len,
+      ulr_p, [imsiStr  = std::string(ulr_p->imsi), imsi_len,
               rat_type = ulr_p->rat_type](
                  grpc::Status status, feg::UpdateLocationAnswer response) {
-        s6a_handle_update_location_ans(imsiStr, imsi_len, rat_type, status, response);
+        s6a_handle_update_location_ans(
+            imsiStr, imsi_len, rat_type, status, response);
       });
   return true;
 }

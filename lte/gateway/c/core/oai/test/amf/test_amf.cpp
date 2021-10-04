@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 #include "intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
+#include "mme_config.h"
 
 extern "C" {
 #include "dynamic_memory_check.h"
@@ -34,6 +35,7 @@ const task_info_t tasks_info[] = {
 };
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
+struct mme_config_s mme_config;
 
 using ::testing::Test;
 

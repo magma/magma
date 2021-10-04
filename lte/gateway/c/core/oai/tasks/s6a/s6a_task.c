@@ -132,8 +132,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* s6a_thread(void* args) {
   itti_mark_task_ready(TASK_S6A);
   init_task_context(
-      TASK_S6A, (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_AMF_APP}, 3, handle_message,
-      &s6a_task_zmq_ctx);
+      TASK_S6A, (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_AMF_APP}, 3,
+      handle_message, &s6a_task_zmq_ctx);
 
   if (!s6a_viface_open((s6a_config_t*) args)) {
     OAILOG_ERROR(LOG_S6A, "Failed to initialize S6a interface");

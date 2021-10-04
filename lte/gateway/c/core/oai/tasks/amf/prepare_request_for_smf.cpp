@@ -109,26 +109,25 @@ int amf_smf_create_ipv4_session_grpc_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, const ambr_t& state_ambr) {
+  imsi64_t imsi64                   = INVALID_IMSI64;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  amf_context_t* amf_ctxt_p         = NULL;
 
-   imsi64_t imsi64                   = INVALID_IMSI64;
-   ue_m5gmm_context_s* ue_mm_context = NULL;
-   amf_context_t* amf_ctxt_p         = NULL;
-
-   OAILOG_INFO(
+  OAILOG_INFO(
       LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
       imsi);
 
-   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
-   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+  IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
+  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
 
-   if (ue_mm_context) {
-     amf_ctxt_p = &ue_mm_context->amf_context;
-   }
+  if (ue_mm_context) {
+    amf_ctxt_p = &ue_mm_context->amf_context;
+  }
 
-   if (!(amf_ctxt_p)) {
-     OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
-     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-   }
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
 
   return AsyncSmfServiceClient::getInstance().amf_smf_create_pdu_session_ipv4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
@@ -145,32 +144,33 @@ int amf_smf_create_ipv4_session_grpc_req(
  * ***************************************************************************/
 int amf_smf_create_pdu_session(
     amf_smf_establish_t* message, char* imsi, uint32_t version) {
-    imsi64_t imsi64                   = INVALID_IMSI64;
-    amf_context_t* amf_ctxt_p         = NULL;
-    ue_m5gmm_context_s* ue_mm_context = NULL;
+  imsi64_t imsi64                   = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p         = NULL;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
 
-    OAILOG_INFO(
-       LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-       imsi);
+  OAILOG_INFO(
+      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
+      imsi);
 
-    IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
-    ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+  IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
+  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
 
-    if (ue_mm_context) {
-      amf_ctxt_p = &ue_mm_context->amf_context;
-    }
+  if (ue_mm_context) {
+    amf_ctxt_p = &ue_mm_context->amf_context;
+  }
 
-    if (!(amf_ctxt_p)) {
-      OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-    }
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
 
   OAILOG_INFO(
       LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
       imsi);
   AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
       imsi, "internet", message->pdu_session_id, message->pti, AF_INET,
-      message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4, amf_ctxt_p->subscribed_ue_ambr);
+      message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4,
+      amf_ctxt_p->subscribed_ue_ambr);
 
   return (RETURNok);
 }

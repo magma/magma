@@ -45,7 +45,8 @@ namespace magma5g {
 SetSMSessionContext create_sm_pdu_session_v4(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version, const ambr_t& state_ambr) {
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
+    const ambr_t& state_ambr) {
   magma::lte::SetSMSessionContext req;
 
   auto* req_common = req.mutable_common_context();
@@ -101,15 +102,18 @@ SetSMSessionContext create_sm_pdu_session_v4(
   req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
       (char*) ipv4_addr);
 
-    // Set the default QoS values
-  req_rat_specific->mutable_default_ambr()->set_br_ul(state_ambr.br_ul);
-  req_rat_specific->mutable_default_ambr()->set_br_dl(state_ambr.br_dl);
+  // Set the default QoS values
+  req_rat_specific->mutable_default_ambr()->set_max_bandwidth_ul(
+      state_ambr.br_ul);
+  req_rat_specific->mutable_default_ambr()->set_max_bandwidth_dl(
+      state_ambr.br_dl);
 
-  //For UT
-  //state_ambr.br_unit = 1;
+  // For UT
+  // state_ambr.br_unit = 1;
 
   req_rat_specific->mutable_default_ambr()->set_br_unit(
-      static_cast<magma::lte::Ambr::BitrateUnitsAMBR>(state_ambr.br_unit));
+      static_cast<magma::lte::AggregatedMaximumBitrate::BitrateUnitsAMBR>(
+          state_ambr.br_unit));
 
   return (req);
 }
@@ -117,7 +121,8 @@ SetSMSessionContext create_sm_pdu_session_v4(
 int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version, const ambr_t& state_ambr) {
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
+    const ambr_t& state_ambr) {
   magma::lte::SetSMSessionContext req = create_sm_pdu_session_v4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
       gnb_gtp_teid_ip_addr, ipv4_addr, version, state_ambr);
@@ -182,6 +187,5 @@ bool AsyncSmfServiceClient::n11_update_location_req(
     const s6a_update_location_req_t* const ulr_p) {
   return s6a_update_location_req(ulr_p);
 }
-
 
 }  // namespace magma5g

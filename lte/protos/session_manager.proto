@@ -852,22 +852,6 @@ enum SMSessionFSMState {
         RELEASED_4 = 4;
 }
 
- // ambr_t
- message Ambr {
-   uint64 br_ul = 1;
-   uint64 br_dl = 2;
-
-   enum BitrateUnitsAMBR {
-         BPS = 0;
-         KBPS = 1;
-         }
-   // Unit (either bps or Kbps)
-   BitrateUnitsAMBR br_unit = 3;
-
- }
-
-
-
 // PDU session Establishment from AMF to SMF
 // SET MESSSAGE
 message M5GSMSessionContext {
@@ -914,7 +898,7 @@ message M5GSMSessionContext {
   TeidSet upf_endpoint = 24;
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
-  Ambr default_ambr = 26;
+  AggregatedMaximumBitrate default_ambr = 26;
 }
 
 message SetSMSessionContext {

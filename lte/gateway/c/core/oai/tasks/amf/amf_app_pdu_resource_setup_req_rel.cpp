@@ -121,8 +121,10 @@ int pdu_session_resource_setup_request(
   /* preparing for PDU_Session_Resource_Setup_Transfer.
    * amf_pdu_ses_setup_transfer_req is the structure to be filled.
    */
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl = ue_context->amf_context.subscribed_ue_ambr.br_dl;
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul = ue_context->amf_context.subscribed_ue_ambr.br_ul;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl =
+      ue_context->amf_context.subscribed_ue_ambr.br_dl;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul =
+      ue_context->amf_context.subscribed_ue_ambr.br_ul;
 
   // UPF teid 4 octet and respective ip address are from SMF context
   memcpy(

@@ -106,8 +106,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &received_message_p->ittiMsg.s6a_update_location_ans);
     } break;
 
-
-
     /* Handle PDU session resource setup response */
     case NGAP_PDUSESSIONRESOURCE_SETUP_RSP:
       /* This is non-nas message and can be handled directly to check if failure

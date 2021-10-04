@@ -503,7 +503,8 @@ int amf_handle_s6a_update_location_ans(
       &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
 
   OAILOG_DEBUG(
-      LOG_NAS_AMF, "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "and BR unit: %d \n",
+      LOG_NAS_AMF,
+      "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "and BR unit: %d \n",
       ula_pP->subscription_data.subscribed_ambr.br_ul,
       ula_pP->subscription_data.subscribed_ambr.br_dl,
       ula_pP->subscription_data.subscribed_ambr.br_unit);
