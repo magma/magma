@@ -10,7 +10,7 @@ on:
 
 jobs:
   lte-integ-test:
-    runs-on: macos-latest
+    runs-on: macOS-11
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
@@ -24,9 +24,14 @@ jobs:
           python-version: '3.8.5'
       - name: Install pre requisites
         run: |
+          brew tap homebrew/cask
+          brew install --cask virtualbox
+          brew install --cask vagrant
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize
+          VirtualBox restart || true
+          sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart
         if: always()
       - name: Build AGW
         run: |
