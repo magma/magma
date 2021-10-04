@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Get output of debian commands
+- name: Get output of ubuntu commands
   shell: |
     ( echo Command: {{item}} && {{item}} ) | tee -a {{ report_dir_output.stdout }}/commands_output.log
   register: output
   ignore_errors: yes
-  loop: "{{debian_commands}}"
+  loop: "{{ubuntu_commands}}"

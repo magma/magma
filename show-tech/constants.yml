@@ -11,7 +11,7 @@ general_commands:
   - "uname -a"
   - "top -b -n 1"
   - "df -kh"
-debian_commands:
+ubuntu_commands:
   - "dpkg -l magma*"
   - "dpkg -l *openvswitch*"
   - "ovs-vsctl show"
@@ -35,7 +35,8 @@ debian_commands:
 # files to collect from src to relative destination in tar.gz package
 paths_to_collect:
   - "/var/opt/magma/configs/*"
-  - "/etc/magma/configs/*"
+  - "/etc/magma/*"
+  - "/etc/magma/templates/*"
   - "/etc/systemd/system/*"
   - "/usr/local/bin/mme"
   - "/var/core/*"
