@@ -1,3 +1,15 @@
+From 470391a119c0fc708319c0d135b3e1f0c7508824 Mon Sep 17 00:00:00 2001
+From: Nick Yurchenko <urchennko@gmail.com>
+Date: Mon, 4 Oct 2021 19:15:09 +0000
+Subject: [PATCH 1/4] Add TunnelIPv4Dst support
+
+Signed-off-by: Nick Yurchenko <urchennko@gmail.com>
+---
+ fluid/of13/of13match.cc  | 70 ++++++++++++++++++++++++++++++++++++++++
+ fluid/of13/of13match.hh  | 32 +++++++++++++++++-
+ fluid/of13/openflow-13.h |  4 +++
+ 3 files changed, 105 insertions(+), 1 deletion(-)
+
 diff --git a/fluid/of13/of13match.cc b/fluid/of13/of13match.cc
 index 1370195..01b75e8 100644
 --- a/fluid/of13/of13match.cc
@@ -141,3 +153,6 @@ index e810fde..d891f35 100644
  /* The VLAN id is 12-bits, so we can use the entire 16 bits to indicate
   * special conditions.
   */
+-- 
+2.25.1
+
