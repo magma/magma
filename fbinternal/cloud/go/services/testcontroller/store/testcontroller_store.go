@@ -159,7 +159,7 @@ func (s *TestControllerStore) isMinimumWaitTimeElapsed(timestamp int64, minimumW
 }
 
 func (s *TestControllerStore) get(networkID string) (string, int64, error) {
-	TK := storage.TK{
+	tk := storage.TK{
 		Type: DBType,
 		Key:  "gateway_version",
 	}

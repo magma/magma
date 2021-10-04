@@ -875,7 +875,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	}
 
 	// Basic load with type and key filters
-	TKFilters := &testCase{
+	tkFilters := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery("SELECT ent.network_id, ent.pk, ent.\"key\", ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
 				WithArgs("network", "bar", "foo").
@@ -933,7 +933,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	runCase(t, assocsTo)
 	runCase(t, assocsFrom)
 	runCase(t, fullLoadTypeFilter)
-	runCase(t, TKFilters)
+	runCase(t, tkFilters)
 	runCase(t, physicalID)
 }
 
