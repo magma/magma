@@ -32,7 +32,6 @@ jobs:
           vagrant plugin install vagrant-vbguest vagrant-disksize
       - name: Restart virtualbox
         run: |
-          VirtualBox restart
           sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart
         if: always()
       - name: Build AGW
