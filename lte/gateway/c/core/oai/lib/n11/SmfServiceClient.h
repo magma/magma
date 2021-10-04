@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <functional>
 #include <memory>
+#include "common_types.h"
+#include "s6a_client_api.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
@@ -31,7 +33,7 @@ namespace magma5g {
 SetSMSessionContext create_sm_pdu_session_v4(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version);
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version, const ambr_t& state_ambr);
 
 class SmfServiceClient {
  public:
@@ -68,11 +70,13 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
   int amf_smf_create_pdu_session_ipv4(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version);
+      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version, const ambr_t& state_ambr);
 
   bool set_smf_session(SetSMSessionContext& request);
 
   bool set_smf_notification(SetSmNotificationContext& notify);
+
+  bool n11_update_location_req(const s6a_update_location_req_t* const ulr_p);
 };
 
 }  // namespace magma5g

@@ -1231,9 +1231,9 @@ int initial_context_setup_request(
 
         // pdu ambr
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
 
         // pdu session type
         item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =

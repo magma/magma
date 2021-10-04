@@ -101,6 +101,7 @@ static void s6a_handle_authentication_info_ans(
   }
 
   IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }
@@ -121,8 +122,8 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
 }
 
 static void s6a_handle_update_location_ans(
-    const std::string& imsi, uint8_t imsi_length, const grpc::Status& status,
-    feg::UpdateLocationAnswer response) {
+    const std::string& imsi, uint8_t imsi_length, uint32_t rat_type, 
+    const grpc::Status& status, feg::UpdateLocationAnswer response) {
   MessageDef* message_p               = NULL;
   s6a_update_location_ans_t* itti_msg = NULL;
 
@@ -160,7 +161,13 @@ static void s6a_handle_update_location_ans(
   std::cout << "[INFO] sent itti S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
             << std::endl;
   IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
-  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
+
+  if (rat_type == RAT_NG_RAN) {
+    send_msg_to_task(&s6a_task_zmq_ctx, TASK_AMF_APP, message_p);
+  } else {
+    send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
+  }
+
   return;
 }
 
@@ -170,9 +177,10 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
             << std::string(ulr_p->imsi) << std::endl;
 
   magma::S6aClient::update_location_request(
-      ulr_p, [imsiStr = std::string(ulr_p->imsi), imsi_len](
+      ulr_p, [imsiStr = std::string(ulr_p->imsi), imsi_len,
+              rat_type = ulr_p->rat_type](
                  grpc::Status status, feg::UpdateLocationAnswer response) {
-        s6a_handle_update_location_ans(imsiStr, imsi_len, status, response);
+        s6a_handle_update_location_ans(imsiStr, imsi_len, rat_type, status, response);
       });
   return true;
 }
