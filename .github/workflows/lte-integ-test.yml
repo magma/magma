@@ -30,8 +30,12 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize
-          VirtualBox restart || true
+      - name: Restart virtualbox
+        run: |
+          VirtualBox restart
           sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart
+        continue-on-error: true
+        timeout-minutes: 1
         if: always()
       - name: Build AGW
         run: |
