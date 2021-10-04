@@ -2277,7 +2277,14 @@ void sgw_process_release_access_bearer_request(
         OAILOG_ERROR_UE(
             module, imsi64, "ERROR in setting paging rule for IP Addr: %s\n",
             ip_str);
-      } else {
+      }if ((eps_bearer_ctxt->paa.pdn_type == IPv6) ||
+          (eps_bearer_ctxt->paa.pdn_type == IPv4_AND_v6)) {
+      char ip6_str[INET6_ADDRSTRLEN];
+      inet_ntop(
+          AF_INET6, (void*) &eps_bearer_ctxt->paa.ipv6_address, ip6_str,
+          INET6_ADDRSTRLEN);
+    OAILOG_DEBUG(module, "Set the paging rule for IPv6 Addr: %s\n", ip6_str);
+      }else{
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }
       sgw_release_all_enb_related_information(eps_bearer_ctxt);

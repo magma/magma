@@ -244,10 +244,13 @@ static void add_downlink_arp_match(
   downlink_fm.add_oxm_field(uplink_port_match);
   of13::EthType ip_type(0x0806);
   downlink_fm.add_oxm_field(ip_type);
-
+OAILOG_DEBUG(LOG_GTPV1U, "ARP addition - 1 \n");
   // Match UE IP destination
   of13::ARPTPA arptpa(ue_ip.s_addr);
   downlink_fm.add_oxm_field(arptpa);
+OAILOG_DEBUG(LOG_GTPV1U, "ARP addition - 2 \n");
+
+
 }
 
 static void add_downlink_match(
