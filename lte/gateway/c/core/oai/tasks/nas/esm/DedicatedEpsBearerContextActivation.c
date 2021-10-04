@@ -445,7 +445,7 @@ void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
       OAILOG_FUNC_OUT(LOG_NAS_ESM);
     }
     bearer_context =
-        ue_mm_context->bearer_contexts[EBI_TO_INDEX(esm_ebr_timer_data->ebi)];
+        mme_app_get_bearer_context(ue_mm_context, esm_ebr_timer_data->ebi);
     if (bearer_context == NULL) {
       OAILOG_ERROR_UE(
           LOG_NAS_ESM, *imsi64,
