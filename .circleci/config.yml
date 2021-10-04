@@ -363,6 +363,14 @@ commands:
           executable_name: mme
           project: lab-agws-native
           org: lf-9c
+      - sentry-upload:
+          executable_name: sessiond
+          project: radtonics_lab_native
+          org: lf-9c
+      - sentry-upload:
+          executable_name: mme
+          project: radtonics_lab_native
+          org: lf-9c
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
