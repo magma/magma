@@ -131,11 +131,11 @@ const internalNetworkDescription = "Internal network to hold non-network entitie
 // FullNetworkLoadCriteria is a utility variable to specify a full network load
 var FullNetworkLoadCriteria = NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}
 
-func (m *EntityID) ToTypeAndKey() storage.TK {
+func (m *EntityID) ToTK() storage.TK {
 	return storage.TK{Type: m.Type, Key: m.Key}
 }
 
-func (m *EntityID) FromTypeAndKey(tk storage.TK) *EntityID {
+func (m *EntityID) FromTK(tk storage.TK) *EntityID {
 	m.Type = tk.Type
 	m.Key = tk.Key
 	return m
@@ -143,13 +143,13 @@ func (m *EntityID) FromTypeAndKey(tk storage.TK) *EntityID {
 
 func SortIDs(ids []*EntityID) {
 	sort.Slice(ids, func(i, j int) bool {
-		return ids[i].ToTypeAndKey().IsLessThan(ids[j].ToTypeAndKey())
+		return ids[i].ToTK().IsLessThan(ids[j].ToTK())
 	})
 }
 
 func SortEntities(ents []*NetworkEntity) {
 	sort.Slice(ents, func(i, j int) bool {
-		return ents[i].GetTypeAndKey().String() < ents[j].GetTypeAndKey().String()
+		return ents[i].GetTK().String() < ents[j].GetTK().String()
 	})
 }
 
@@ -157,8 +157,8 @@ func (m *NetworkEntity) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (m *NetworkEntity) GetTypeAndKey() storage.TK {
-	return m.GetID().ToTypeAndKey()
+func (m *NetworkEntity) GetTK() storage.TK {
+	return m.GetID().ToTK()
 }
 
 func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
@@ -167,11 +167,11 @@ func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
 
 	edges := make([]*GraphEdge, 0, len(m.Associations))
 	for _, assoc := range m.Associations {
-		if _, exists := existingAssocs[assoc.ToTypeAndKey()]; exists {
+		if _, exists := existingAssocs[assoc.ToTK()]; exists {
 			continue
 		}
 		edges = append(edges, &GraphEdge{From: myID, To: assoc})
-		existingAssocs[assoc.ToTypeAndKey()] = true
+		existingAssocs[assoc.ToTK()] = true
 	}
 
 	return edges
@@ -223,7 +223,7 @@ func (m *EntityUpdateCriteria) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TK {
+func (m *EntityUpdateCriteria) GetTK() storage.TK {
 	return storage.TK{Type: m.Type, Key: m.Key}
 }
 
@@ -235,5 +235,5 @@ func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {
 }
 
 func (m *GraphEdge) ToString() string {
-	return fmt.Sprintf("%s, %s", m.From.ToTypeAndKey(), m.To.ToTypeAndKey())
+	return fmt.Sprintf("%s, %s", m.From.ToTK(), m.To.ToTK())
 }

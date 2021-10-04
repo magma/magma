@@ -51,12 +51,12 @@ func (eg *EntityGraph) GetEntityByTK(id storage.TK) (NetworkEntity, error) {
 func (eg *EntityGraph) GetFirstAncestorOfType(start NetworkEntity, targetType string) (NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 
-	start, found := eg.entsByTK[start.GetTypeAndKey()]
+	start, found := eg.entsByTK[start.GetTK()]
 	if !found {
-		return NetworkEntity{}, errors.Errorf("entity %s is not in graph", start.GetTypeAndKey())
+		return NetworkEntity{}, errors.Errorf("entity %s is not in graph", start.GetTK())
 	}
 
-	ancestor := eg.upwardsDFSForType(start.GetTypeAndKey(), targetType, map[storage.TK]bool{})
+	ancestor := eg.upwardsDFSForType(start.GetTK(), targetType, map[storage.TK]bool{})
 	if ancestor == nil {
 		return NetworkEntity{}, merrors.ErrNotFound
 	}
@@ -66,9 +66,9 @@ func (eg *EntityGraph) GetFirstAncestorOfType(start NetworkEntity, targetType st
 func (eg *EntityGraph) GetAllChildrenOfType(parent NetworkEntity, targetType string) ([]NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 
-	start, found := eg.entsByTK[parent.GetTypeAndKey()]
+	start, found := eg.entsByTK[parent.GetTK()]
 	if !found {
-		return nil, errors.Errorf("entity %s is not in graph", start.GetTypeAndKey())
+		return nil, errors.Errorf("entity %s is not in graph", start.GetTK())
 	}
 
 	ret := []NetworkEntity{}
@@ -111,7 +111,7 @@ func (eg *EntityGraph) cacheGraphHelpers() {
 
 	eg.entsByTK = map[storage.TK]NetworkEntity{}
 	for _, ent := range eg.Entities {
-		eg.entsByTK[ent.GetTypeAndKey()] = ent
+		eg.entsByTK[ent.GetTK()] = ent
 	}
 
 	eg.edgesByTK = map[storage.TK]storage.TKs{}

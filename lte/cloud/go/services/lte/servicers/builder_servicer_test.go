@@ -79,18 +79,18 @@ func TestBuilder_Build(t *testing.T) {
 		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultEnodebConfig(),
-		ParentAssociations: storage.TKs{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+			{From: lteGW.GetTK(), To: enb.GetTK()},
 		},
 	}
 
@@ -322,12 +322,12 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newGatewayConfigNonNat("", "", ""),
-		ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 

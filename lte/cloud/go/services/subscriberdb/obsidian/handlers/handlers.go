@@ -721,7 +721,7 @@ func loadMutableSubscriberPage(ctx context.Context, networkID string, pageSize u
 
 	subs := map[string]*subscribermodels.MutableSubscriber{}
 	for _, ent := range ents {
-		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, profileEntsBySub[ent.GetTypeAndKey()])
+		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, profileEntsBySub[ent.GetTK()])
 		if err != nil {
 			return nil, "", err
 		}

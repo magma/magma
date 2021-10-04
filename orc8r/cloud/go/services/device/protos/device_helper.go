@@ -28,9 +28,9 @@ func EntitiesToBlobs(entities []*PhysicalEntity) blobstore.Blobs {
 	return blobs
 }
 
-// DeviceIDsToTypeAndKey maps a list of DeviceID to a list of
+// DeviceIDsToTK maps a list of DeviceID to a list of
 // storage.TK.
-func DeviceIDsToTypeAndKey(deviceIDs []*DeviceID) storage.TKs {
+func DeviceIDsToTK(deviceIDs []*DeviceID) storage.TKs {
 	tks := storage.TKs{}
 	for _, id := range deviceIDs {
 		tks = append(tks, deviceIDToTK(id))

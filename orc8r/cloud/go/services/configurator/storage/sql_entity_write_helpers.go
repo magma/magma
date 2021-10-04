@@ -79,7 +79,7 @@ func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return NetworkEntity{}, errors.Wrapf(err, "error creating entity %s", ent.GetTypeAndKey())
+		return NetworkEntity{}, errors.Wrapf(err, "error creating entity %s", ent.GetTK())
 	}
 	return ent, nil
 }
@@ -102,8 +102,8 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity Networ
 		Columns(aFrCol, aToCol).
 		OnConflict(nil, aFrCol, aToCol)
 	for _, edge := range entity.GetGraphEdges() {
-		fromPk := entsByTk[edge.From.ToTypeAndKey()].Pk
-		toPk := entsByTk[edge.To.ToTypeAndKey()].Pk
+		fromPk := entsByTk[edge.From.ToTK()].Pk
+		toPk := entsByTk[edge.To.ToTK()].Pk
 		insertBuilder = insertBuilder.Values(fromPk, toPk)
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
@@ -118,7 +118,7 @@ func (store *sqlConfiguratorStorage) loadEntsFromEdges(networkID string, targetE
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	loadedEntsByTk[targetEntity.GetTypeAndKey()] = &targetEntity
+	loadedEntsByTk[targetEntity.GetTK()] = &targetEntity
 	return loadedEntsByTk, nil
 }
 
@@ -147,7 +147,7 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity NetworkEntity, al
 	// and change the graph ID of every entity of the other graphs to this
 	// target graph ID.
 	adjacentGraphs := funk.Chain(createdEntity.Associations).
-		Map(func(id *EntityID) string { return allAssociatedEntsByTk[id.ToTypeAndKey()].GraphID }).
+		Map(func(id *EntityID) string { return allAssociatedEntsByTk[id.ToTK()].GraphID }).
 		Uniq().
 		Value().([]string)
 	noMergeNecessary := funk.IsEmpty(adjacentGraphs) || (len(adjacentGraphs) == 1 && adjacentGraphs[0] == createdEntity.GraphID)
@@ -328,7 +328,7 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	for _, edge := range edgesToDelete {
 		orClause = append(orClause, sq.And{
 			sq.Eq{aFrCol: entToUpdateOut.Pk},
-			sq.Eq{aToCol: loaded[edge.ToTypeAndKey()].Pk},
+			sq.Eq{aToCol: loaded[edge.ToTK()].Pk},
 		})
 	}
 
@@ -347,10 +347,10 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	// Remove deleted edges from the passed in ent
 	edgesToDeleteSet := funk.Map(
 		edgesToDelete,
-		func(id *EntityID) (storage.TK, bool) { return id.ToTypeAndKey(), true },
+		func(id *EntityID) (storage.TK, bool) { return id.ToTK(), true },
 	).(map[storage.TK]bool)
 	entToUpdateOut.Associations = funk.Filter(entToUpdateOut.Associations, func(id *EntityID) bool {
-		_, wasDeleted := edgesToDeleteSet[id.ToTypeAndKey()]
+		_, wasDeleted := edgesToDeleteSet[id.ToTK()]
 		return !wasDeleted
 	}).([]*EntityID)
 

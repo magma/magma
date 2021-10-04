@@ -130,7 +130,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTK()},
 			},
 		}
 
@@ -221,7 +221,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTK()},
 			},
 		}
 
@@ -305,7 +305,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTypeAndKey()},
 			},
 		}
 

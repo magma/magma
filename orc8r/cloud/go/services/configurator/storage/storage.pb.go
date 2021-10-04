@@ -551,7 +551,7 @@ type EntityLoadFilter struct {
 	// given ID.
 	KeyFilter *wrappers.StringValue `protobuf:"bytes,2,opt,name=key_filter,json=keyFilter,proto3" json:"key_filter,omitempty"`
 	// If IDs is provided, the query will return all entities matching the
-	// provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
+	// provided TKs. TypeFilter and KeyFilter are ignored if IDs is
 	// provided.
 	IDs []*EntityID `protobuf:"bytes,3,rep,name=IDs,proto3" json:"IDs,omitempty"`
 	// Internal-only
