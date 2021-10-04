@@ -86,8 +86,8 @@ class ActiveModeControllerTestCase(DBTestCase):
         return CBSDStateResult(
             radio_enabled=True,
             channel=LteChannel(
-                low_freq_hz=3620_000_000,
-                high_freq_hz=3630_000_000,
+                low_frequency_hz=3620_000_000,
+                high_frequency_hz=3630_000_000,
                 max_eirp_dbm_mhz=37.0,
             ),
         )

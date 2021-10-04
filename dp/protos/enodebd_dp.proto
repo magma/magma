@@ -12,8 +12,8 @@ message CBSDStateResult {
 }
 
 message LteChannel {
-  int64 low_freq_hz = 1;
-  int64 high_freq_hz = 2;
+  int64 low_frequency_hz = 1;
+  int64 high_frequency_hz = 2;
   float max_eirp_dbm_mhz = 3;
 }
 

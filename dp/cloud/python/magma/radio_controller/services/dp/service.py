@@ -74,8 +74,8 @@ class DPService(DPServiceServicer):
         return CBSDStateResult(
             radio_enabled=True,
             channel=LteChannel(
-                low_freq_hz=channel.low_frequency,
-                high_freq_hz=channel.high_frequency,
+                low_frequency_hz=channel.low_frequency,
+                high_frequency_hz=channel.high_frequency,
                 max_eirp_dbm_mhz=channel.last_used_max_eirp,
             ),
         )
