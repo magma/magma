@@ -27,7 +27,9 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize
+        if: always()
       - name: Build AGW
         run: |
           cd lte/gateway
           fab integ_test
+        if: always()
