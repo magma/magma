@@ -25,6 +25,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/fbinternal/cloud/go/services/testcontroller/utils"
@@ -39,12 +45,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	structpb "github.com/golang/protobuf/ptypes/struct"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 const (
@@ -111,13 +111,13 @@ const (
 // GatewayClient defines an interface which is used to switch between
 // implementations of its methods between a real implementation and a mock up for unit testing
 type GatewayClient interface {
-	GenerateTraffic(networdId string, gatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error)
-	RebootEnodeb(networkdId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error)
+	GenerateTraffic(ctx context.Context, networkId string, gatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error)
+	RebootEnodeb(ctx context.Context, networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error)
 }
 
 type MagmadClient struct{}
 
-func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error) {
+func (m *MagmadClient) GenerateTraffic(ctx context.Context, networkId string, gatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error) {
 	stringVal := fmt.Sprintf("-c 'python3 /usr/local/bin/traffic_cli.py gen_traffic %s %s http://www.google.com'", ssid, pw)
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
@@ -132,11 +132,11 @@ func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid 
 		Command: "bash",
 		Params:  params,
 	}
-	resp, err := magmad.GatewayGenericCommand(networkId, gatewayId, trafficScriptCmd)
+	resp, err := magmad.GatewayGenericCommand(ctx, networkId, gatewayId, trafficScriptCmd)
 	return resp, err
 }
 
-func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error) {
+func (m *MagmadClient) RebootEnodeb(ctx context.Context, networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error) {
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
 			"shell_params": {Kind: &structpb.Value_StringValue{StringValue: enodebSerial}},
@@ -146,7 +146,7 @@ func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSe
 		Command: "reboot_enodeb",
 		Params:  params,
 	}
-	resp, err := magmad.GatewayGenericCommand(networkId, gatewayId, rebootEndCmd)
+	resp, err := magmad.GatewayGenericCommand(ctx, networkId, gatewayId, rebootEndCmd)
 	return resp, err
 }
 
@@ -157,7 +157,7 @@ func getEnodebStatus(networkID string, enodebSN string) (*ltemodels.EnodebState,
 	}
 	enodebState := st.ReportedState.(*ltemodels.EnodebState)
 	enodebState.TimeReported = st.TimeMs
-	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ent, err := configurator.LoadEntityForPhysicalID(context.Background(), st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err == nil {
 		enodebState.ReportingGatewayID = ent.Key
 	}
@@ -373,7 +373,7 @@ func makeSubscriberStateHandler(desiredState string, successState string) handle
 func subscriberState(desiredState string, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
 	pretext := fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "SUCCEEDED")
 	fallback := "Subscriber state notification"
-	cfg, err := configurator.LoadEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, serdes.Entity)
+	cfg, err := configurator.LoadEntityConfig(context.Background(), *config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, serdes.Entity)
 	if err != nil {
 		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
 		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
@@ -482,7 +482,7 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 			},
 		},
 	}
-	resp, err := gatewayClient.GenerateTraffic(*config.NetworkID, trafficGWID, config.Ssid, config.SsidPw)
+	resp, err := gatewayClient.GenerateTraffic(context.Background(), *config.NetworkID, trafficGWID, config.Ssid, config.SsidPw)
 	// Any result that is not 0 is considered a failure on the traffic script's part
 	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["returncode"], helper.Response.Fields["returncode"]) {
 		if successState == subscriberActiveState {
@@ -523,7 +523,7 @@ func rebootEnodebStateHandler(stateNumber int, gatewayClient GatewayClient, mach
 	targetGWID := *config.AgwConfig.TargetGatewayID
 	enodebSN := *config.EnodebSN
 
-	resp, err := gatewayClient.RebootEnodeb(*config.NetworkID, targetGWID, enodebSN)
+	resp, err := gatewayClient.RebootEnodeb(context.Background(), *config.NetworkID, targetGWID, enodebSN)
 	if resp == nil || err != nil {
 		if stateNumber >= maxRebootEnodebStateCount {
 			pretext := fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "FAILED")
@@ -702,6 +702,7 @@ func getLatestRepoMagmaVersion(client HttpClient, url string, releaseChannel str
 
 func getTargetTierConfig(config *models.EnodebdTestConfig) (*models2.Tier, error) {
 	tierEnt, err := configurator.LoadEntity(
+		context.Background(),
 		*config.NetworkID, orc8r.UpgradeTierEntityType, *config.AgwConfig.TargetTier,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -720,7 +721,7 @@ func getTargetTierConfig(config *models.EnodebdTestConfig) (*models2.Tier, error
 func getCurrentAGWPackageVersion(config *models.EnodebdTestConfig) (string, error) {
 	targetGWID := *config.AgwConfig.TargetGatewayID
 
-	hwID, err := configurator.GetPhysicalIDOfEntity(*config.NetworkID, orc8r.MagmadGatewayType, *config.AgwConfig.TargetGatewayID)
+	hwID, err := configurator.GetPhysicalIDOfEntity(context.Background(), *config.NetworkID, orc8r.MagmadGatewayType, *config.AgwConfig.TargetGatewayID)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load hwID for target gateway %s", targetGWID)
 	}

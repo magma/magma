@@ -17,6 +17,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/directoryd"
@@ -25,10 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	multierrors "magma/orc8r/lib/go/errors"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const (

@@ -16,10 +16,10 @@ package swagger
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-
-	"github.com/golang/glog"
 )
 
 type specServicer struct {

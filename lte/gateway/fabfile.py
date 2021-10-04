@@ -135,6 +135,8 @@ def package(
 
         with cd('release'):
             mirrored_packages_file = 'mirrored_packages'
+            if os == "ubuntu":
+                mirrored_packages_file += '_focal'
             if vm and vm.startswith('magma_'):
                 mirrored_packages_file += vm[5:]
 
@@ -253,8 +255,7 @@ def integ_test(
 
     execute(_dist_upgrade)
     execute(_build_magma)
-    execute(_run_unit_tests)
-    execute(_python_coverage)
+    execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
     # Run suite of integ tests that are required to be run on the access gateway
@@ -288,7 +289,6 @@ def integ_test(
         setup_env_vagrant()
     else:
         env.hosts = [gateway_host]
-    execute(_oai_coverage)
 
 
 def run_integ_tests(tests=None):
@@ -497,16 +497,11 @@ def _oai_coverage():
         run('make coverage_oai')
 
 
-def _run_unit_tests():
+def _run_sudo_python_unit_tests():
     """ Run the magma unit tests """
     with cd(AGW_ROOT):
-        # Run the unit tests
-        run('make test')
-
-
-def _python_coverage():
-    with cd(AGW_PYTHON_ROOT):
-        run('make coverage')
+        # Run all unit tests that are not run as pre-commit checks in CI
+        run('make test_sudo_python')
 
 
 def _start_gateway():
@@ -514,12 +509,6 @@ def _start_gateway():
 
     with cd(AGW_ROOT):
         run('make run')
-
-
-def _run_local_integ_tests():
-    """ Execute integ tests that run on magma access gateway """
-    with cd(AGW_INTEG_ROOT):
-        run('make local_integ_test')
 
 
 def _set_service_config_var(service, var_name, value):

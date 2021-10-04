@@ -14,9 +14,12 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"math/rand"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
@@ -33,9 +36,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 var (

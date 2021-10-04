@@ -420,4 +420,85 @@ int amf_proc_security_mode_control(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_proc_security_mode_reject()                               **
+ **                                                                        **
+ ** Description: Performs the security mode control not accepted by the UE **
+ **                                                                        **
+ **              3GPP TS 24.501, section 5.4.2.5                           **
+ **      Upon receiving the SECURITY MODE REJECT message, the AMF          **
+ **      shall stop timer T3560 and abort the ongoing procedure            **
+ **      that triggered the initiation of the NAS security mode            **
+ **      control procedure.                                                **
+ **      The AMF shall apply the 5G NAS security context in use befo-      **
+ **      re the initiation of the security mode control procedure,         **
+ **      if any, to protect any subsequent messages.                       **
+ **                                                                        **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  amf_context_t* amf_ctx            = NULL;
+  int rc                            = RETURNerror;
+
+  OAILOG_WARNING(
+      LOG_NAS_AMF,
+      "AMF-PROC  - Security mode command not accepted by the UE"
+      "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+      ue_id);
+  /*
+   *     Get the UE context
+   */
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_mm_context) {
+    amf_ctx = &ue_mm_context->amf_context;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+
+  if (smc_proc) {
+    /*
+     * Stop timer T3560
+     */
+    amf_app_stop_timer(smc_proc->T3560.id);
+
+    // restore previous values
+    amf_ctx->_security.selected_algorithms.encryption =
+        smc_proc->saved_selected_eea;
+    amf_ctx->_security.selected_algorithms.integrity =
+        smc_proc->saved_selected_eia;
+    smc_ctrl.amf_ctx_set_security_eksi(amf_ctx, smc_proc->saved_eksi);
+    amf_ctx->_security.dl_count.overflow = smc_proc->saved_overflow;
+    amf_ctx->_security.dl_count.seq_num  = smc_proc->saved_seq_num;
+    smc_ctrl.amf_ctx_set_security_type(amf_ctx, smc_proc->saved_sc_type);
+
+    /*
+     * Notify AMF that the security mode procedure failed
+     */
+    amf_sap_t amf_sap;
+
+    amf_sap.primitive               = AMFREG_COMMON_PROC_REJ;
+    amf_sap.u.amf_reg.ue_id         = ue_id;
+    amf_sap.u.amf_reg.ctx           = amf_ctx;
+    amf_sap.u.amf_reg.notify        = true;
+    amf_sap.u.amf_reg.free_proc     = false;
+    amf_sap.u.amf_reg.u.common_proc = &smc_proc->amf_com_proc;
+    rc                              = amf_sap_send(&amf_sap);
+  }
+  amf_app_handle_deregistration_req(ue_id);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
 }  // namespace magma5g

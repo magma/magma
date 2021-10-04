@@ -21,12 +21,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/obsidian/swagger/spec/mocks"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {

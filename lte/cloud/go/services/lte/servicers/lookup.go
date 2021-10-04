@@ -16,13 +16,13 @@ package servicers
 import (
 	"context"
 
-	"magma/lte/cloud/go/services/lte/protos"
-	lte_storage "magma/lte/cloud/go/services/lte/storage"
-	merrors "magma/orc8r/lib/go/errors"
-
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/lte/cloud/go/services/lte/protos"
+	lte_storage "magma/lte/cloud/go/services/lte/storage"
+	merrors "magma/orc8r/lib/go/errors"
 )
 
 // lookupServicer stores reported enodeb state with additional gatewayID as

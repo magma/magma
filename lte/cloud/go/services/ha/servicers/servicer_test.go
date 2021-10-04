@@ -18,6 +18,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -35,10 +39,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 	orc8r_protos "magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -73,24 +73,24 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: testGwId1,
 			Config:       newDefaultGatewayConfig(1, 255),
-			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
+			Associations: storage.TKs{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
 		},
 		{
 			Type: orc8r.MagmadGatewayType, Key: testGwId1,
 			Name: "foobar", Description: "foo bar",
 			PhysicalID:   testGwHwId1,
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwId1}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: testGwId1}},
 		},
 		{
 			Type: lte.CellularGatewayEntityType, Key: testGwId2,
 			Config:       newDefaultGatewayConfig(2, 1),
-			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
+			Associations: storage.TKs{{Type: lte.CellularEnodebEntityType, Key: enbSn}},
 		},
 		{
 			Type: orc8r.MagmadGatewayType, Key: testGwId2,
 			Name: "foobar2", Description: "foo bar",
 			PhysicalID:   testGwHwId2,
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwId2}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: testGwId2}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -101,7 +101,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 			Config: &lte_models.CellularGatewayPoolConfigs{
 				MmeGroupID: 1,
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularGatewayEntityType, Key: testGwId1},
 				{Type: lte.CellularGatewayEntityType, Key: testGwId2},
 			},

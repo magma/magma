@@ -104,7 +104,7 @@ status_code_e emm_recv_detach_request(
 
 status_code_e emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ueid, tracking_area_update_request_msg* const msg,
-    const bool is_initial, tac_t tac, int* const emm_cause,
+    const bool is_initial, tai_t tai, int* const emm_cause,
     const nas_message_decode_status_t* const decode_status);
 
 status_code_e emm_recv_service_request(

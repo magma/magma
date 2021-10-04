@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "config",
+    srcs = ["config.go"],
+    importpath = "github.com/magma/magma/src/go/agwd/config",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/agwd/config/internal/grpcutil",
+        "//src/go/log",
+        "//src/go/protos/magma/mconfig",
+        "@com_github_pkg_errors//:errors",
+        "@org_golang_google_grpc//resolver",
+        "@org_golang_google_protobuf//encoding/protojson",
+        "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_test(
+    name = "config_test",
+    srcs = ["config_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":config"],
+    deps = [
+        "//src/go/log",
+        "//src/go/protos/magma/mconfig",
+        "@com_github_pkg_errors//:errors",
+        "@com_github_stretchr_testify//assert",
+        "@org_golang_google_grpc//resolver",
+        "@org_golang_google_protobuf//proto",
+    ],
+)

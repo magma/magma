@@ -18,11 +18,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 const (

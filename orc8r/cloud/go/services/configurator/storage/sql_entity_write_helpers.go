@@ -19,15 +19,15 @@ import (
 	"reflect"
 	"sort"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
 )
 
-func (store *sqlConfiguratorStorage) doesEntExist(networkID string, tk storage.TypeAndKey) (bool, error) {
+func (store *sqlConfiguratorStorage) doesEntExist(networkID string, tk storage.TK) (bool, error) {
 	var count uint64
 	err := store.builder.Select("COUNT(1)").
 		From(entityTable).
@@ -347,8 +347,8 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	// Remove deleted edges from the passed in ent
 	edgesToDeleteSet := funk.Map(
 		edgesToDelete,
-		func(id *EntityID) (storage.TypeAndKey, bool) { return id.ToTypeAndKey(), true },
-	).(map[storage.TypeAndKey]bool)
+		func(id *EntityID) (storage.TK, bool) { return id.ToTypeAndKey(), true },
+	).(map[storage.TK]bool)
 	entToUpdateOut.Associations = funk.Filter(entToUpdateOut.Associations, func(id *EntityID) bool {
 		_, wasDeleted := edgesToDeleteSet[id.ToTypeAndKey()]
 		return !wasDeleted

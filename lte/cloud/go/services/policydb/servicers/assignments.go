@@ -18,16 +18,17 @@ services to interact with assignments from policy rules and subscribers.
 package servicers
 
 import (
+	"context"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type PolicyAssignmentServer struct{}
@@ -41,7 +42,7 @@ func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *p
 	if err != nil {
 		return nil, err
 	}
-	if !doesSubscriberAndRulesExist(networkID, req.Imsi, req.RuleIds, req.BaseNames) {
+	if !doesSubscriberAndRulesExist(ctx, networkID, req.Imsi, req.RuleIds, req.BaseNames) {
 		return nil, status.Errorf(codes.InvalidArgument, "Either a subscriber or one more rules/basenames are not found")
 	}
 	var updates []configurator.EntityUpdateCriteria
@@ -63,7 +64,7 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 	if err != nil {
 		return nil, err
 	}
-	if !doesSubscriberAndRulesExist(networkID, req.Imsi, req.RuleIds, req.BaseNames) {
+	if !doesSubscriberAndRulesExist(ctx, networkID, req.Imsi, req.RuleIds, req.BaseNames) {
 		return nil, status.Errorf(codes.InvalidArgument, "Either a subscriber or one more rules/basenames are not found")
 	}
 	var updates []configurator.EntityUpdateCriteria
@@ -80,15 +81,15 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 	return &orcprotos.Void{}, nil
 }
 
-func doesSubscriberAndRulesExist(networkID string, subscriberID string, ruleIDs []string, baseNames []string) bool {
-	ids := []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: subscriberID}}
+func doesSubscriberAndRulesExist(ctx context.Context, networkID string, subscriberID string, ruleIDs []string, baseNames []string) bool {
+	ids := storage.TKs{{Type: lte.SubscriberEntityType, Key: subscriberID}}
 	for _, ruleID := range ruleIDs {
-		ids = append(ids, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: ruleID})
+		ids = append(ids, storage.TK{Type: lte.PolicyRuleEntityType, Key: ruleID})
 	}
 	for _, baseName := range baseNames {
-		ids = append(ids, storage.TypeAndKey{Type: lte.BaseNameEntityType, Key: baseName})
+		ids = append(ids, storage.TK{Type: lte.BaseNameEntityType, Key: baseName})
 	}
-	exists, err := configurator.DoEntitiesExist(networkID, ids)
+	exists, err := configurator.DoEntitiesExist(ctx, networkID, ids)
 	if err != nil {
 		return false
 	}
@@ -99,7 +100,7 @@ func getRuleUpdateForEnable(ruleID string, subscriberID string) configurator.Ent
 	ret := configurator.EntityUpdateCriteria{
 		Type:              lte.SubscriberEntityType,
 		Key:               subscriberID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+		AssociationsToAdd: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 	}
 	return ret
 }
@@ -108,7 +109,7 @@ func getRuleUpdateForDisableRule(ruleID string, subscriberID string) configurato
 	ret := configurator.EntityUpdateCriteria{
 		Type:                 lte.SubscriberEntityType,
 		Key:                  subscriberID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+		AssociationsToDelete: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 	}
 	return ret
 }
@@ -117,7 +118,7 @@ func getBaseNameUpdateForEnable(baseName string, subscriberID string) configurat
 	ret := configurator.EntityUpdateCriteria{
 		Type:              lte.SubscriberEntityType,
 		Key:               subscriberID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+		AssociationsToAdd: storage.TKs{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
 	return ret
 }
@@ -126,7 +127,7 @@ func getBaseNameUpdateForDisable(baseName string, subscriberID string) configura
 	ret := configurator.EntityUpdateCriteria{
 		Type:                 lte.SubscriberEntityType,
 		Key:                  subscriberID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+		AssociationsToDelete: storage.TKs{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
 	return ret
 }

@@ -14,13 +14,13 @@ limitations under the License.
 package storage
 
 import (
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -160,8 +160,8 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	}
 	defer store.Rollback()
 
-	tk := storage.TypeAndKey{Type: CertInfoType, Key: serialNumber}
-	err = store.Delete(placeholderNetworkID, []storage.TypeAndKey{tk})
+	tk := storage.TK{Type: CertInfoType, Key: serialNumber}
+	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
 		return errors.Wrap(err, "failed to delete certificate info")
 	}

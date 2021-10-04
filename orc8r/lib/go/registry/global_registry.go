@@ -17,8 +17,8 @@ package registry
 import (
 	"time"
 
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

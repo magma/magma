@@ -16,7 +16,7 @@ import time
 import unittest
 from unittest.mock import MagicMock
 
-from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.app.base import MagmaController
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pkt_tester.tests.test_topology_builder import check_env
 from netaddr import IPNetwork

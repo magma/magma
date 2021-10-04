@@ -26,7 +26,7 @@ LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
-DEFAULT_RATE = '12Kbit'
+DEFAULT_RATE = '80Kbit'
 DEFAULT_INTF_SPEED = '1000'
 
 
@@ -73,7 +73,10 @@ class TrafficClass:
         return TrafficClass.tc_ops.create_filter(intf, qid_hex, qid_hex)
 
     @staticmethod
-    def init_qdisc(intf: str, show_error=False, enable_pyroute2=False) -> int:
+    def init_qdisc(
+        intf: str, show_error=False, enable_pyroute2=False,
+        default_gbr=DEFAULT_RATE,
+    ) -> int:
         # TODO: Convert this class into an object.
         if TrafficClass.tc_ops is None:
             if enable_pyroute2:
@@ -105,7 +108,7 @@ class TrafficClass:
         tc_cmd = "tc class replace dev {intf} parent 1:{root_qid} classid 1:1 htb "
         tc_cmd += "rate {rate} ceil {speed}Mbit"
         tc_cmd = tc_cmd.format(
-            intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
+            intf=intf, root_qid=qid_hex, rate=default_gbr,
             speed=speed,
         )
         cmd_list.append(tc_cmd)
@@ -231,6 +234,8 @@ class TCManager(object):
         self._uplink = config['nat_iface']
         self._downlink = config['enodeb_iface']
         self._max_rate = config["qos"]["max_rate"]
+        self._gbr_rate = config["qos"].get("gbr_rate", DEFAULT_RATE)
+
         self._enable_pyroute2 = config["qos"].get('enable_pyroute2', False)
         self._start_idx, self._max_idx = (
             config['qos']['linux_tc']['min_idx'],
@@ -260,8 +265,14 @@ class TCManager(object):
 
     def setup(self):
         # initialize new qdisc
-        TrafficClass.init_qdisc(self._uplink, enable_pyroute2=self._enable_pyroute2)
-        TrafficClass.init_qdisc(self._downlink, enable_pyroute2=self._enable_pyroute2)
+        TrafficClass.init_qdisc(
+            self._uplink, enable_pyroute2=self._enable_pyroute2,
+            default_gbr=self._gbr_rate,
+        )
+        TrafficClass.init_qdisc(
+            self._downlink, enable_pyroute2=self._enable_pyroute2,
+            default_gbr=self._gbr_rate,
+        )
 
     def get_action_instruction(self, qid: int):
         # return an action and an instruction corresponding to this qid
@@ -278,10 +289,12 @@ class TCManager(object):
         parent, skip_filter, cleanup_rule,
     ):
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
-
+        gbr = qos_info.gbr
+        if gbr is None:
+            gbr = self._gbr_rate
         err = TrafficClass.create_class(
             intf, qid, qos_info.mbr,
-            rate=qos_info.gbr,
+            rate=gbr,
             parent_qid=parent,
             skip_filter=skip_filter,
         )

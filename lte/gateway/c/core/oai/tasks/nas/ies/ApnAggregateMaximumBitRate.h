@@ -19,6 +19,7 @@
 #define APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN
 
 #include <stdint.h>
+#include "common_types.h"
 
 #define APN_AGGREGATE_MAXIMUM_BIT_RATE_MINIMUM_LENGTH 4
 #define APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_LENGTH 8
@@ -45,6 +46,7 @@ int decode_apn_aggregate_maximum_bit_rate(
     uint8_t* buffer, uint32_t len);
 
 void bit_rate_value_to_eps_qos(
-    ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul);
+    ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul,
+    const apn_ambr_bitrate_unit_t br_unit);
 
 #endif /* APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN */

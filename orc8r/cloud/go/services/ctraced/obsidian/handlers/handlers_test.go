@@ -14,36 +14,35 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
+
+	"github.com/go-openapi/swag"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
 	traceModels "magma/orc8r/cloud/go/services/ctraced/obsidian/models"
 	"magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
-
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-
-	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 )
 
 type MockGWCtracedClient struct{}
 
-func (c MockGWCtracedClient) StartCallTrace(networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
+func (c MockGWCtracedClient) StartCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
 	resp := &protos.StartTraceResponse{
 		Success: true,
 	}
 	return resp, nil
 }
 
-func (c MockGWCtracedClient) EndCallTrace(networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
+func (c MockGWCtracedClient) EndCallTrace(ctx context.Context, networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
 	resp := &protos.EndTraceResponse{
 		Success:      true,
 		TraceContent: []byte("abcdefghijklmnopqrstuvwxyz\n"),
@@ -59,7 +58,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	fact := test_utils.NewSQLBlobstore(t, "ctraced_handlers_test_blobstore")
 	blobstore := storage.NewCtracedBlobstore(fact)
 	obsidianHandlers := handlers.GetObsidianHandlers(mockGWClient, blobstore)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	listTraces := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing", obsidian.GET).HandlerFunc

@@ -236,7 +236,7 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
-	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{PlmnIds: []string{wrongPlmnID6, plmnID6}})
+	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{PlmnIds: []string{plmnID6, wrongPlmnID6}})
 	if err != nil {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
@@ -252,6 +252,19 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	tst := eap_test.Units[eap_test.IMSI1]
 	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
 	peap, err := aaa_client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	if err != nil {
+		t.Fatalf("Error Handling Test EAP: %v", err)
+	}
+	if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
+		t.Fatalf(
+			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), tst.ExpectedChallengeReq)
+	}
+
+	servicer.SetPlmnIdFilter([]string{wrongPlmnID6, plmnID6})
+	tst = eap_test.Units[eap_test.IMSI1]
+	eapCtx = &protos.Context{SessionId: eap.CreateSessionId()}
+	peap, err = aaa_client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}

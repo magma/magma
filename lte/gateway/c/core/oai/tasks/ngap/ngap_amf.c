@@ -32,7 +32,6 @@
 #include "amf_config.h"
 #include "mme_config.h"
 #include "amf_default_values.h"
-#include "timer.h"
 #include "itti_free_defined_msg.h"
 #include "Ngap_TimeToWait.h"
 
@@ -47,7 +46,6 @@
 #include "amf_default_values.h"
 
 #include "ngap_messages_types.h"
-#include "timer_messages_types.h"
 #include "ngap_amf.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;

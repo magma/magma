@@ -3,14 +3,13 @@ package servicers
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/exporters"
-	"magma/orc8r/lib/go/metrics"
-	"magma/orc8r/lib/go/protos"
-
-	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
-
 	prometheusProto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
+	"magma/orc8r/lib/go/protos"
 )
 
 var (

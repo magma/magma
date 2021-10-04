@@ -10,6 +10,7 @@
  */
 
 #include <sstream>
+#include <iomanip>
 #include "M5GPDUSessionEstablishmentRequest.h"
 #include "M5GCommonDefs.h"
 
@@ -100,7 +101,6 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
           decoded += decoded_result;
         }
         break;
-
       case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE:
         if ((decoded_result =
                  pdu_session_estab_request->protocolconfigurationoptions
@@ -114,8 +114,15 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
           decoded += decoded_result;
         }
         break;
-      case REQUEST_5GSM_CAPABILITY_TYPE:
       case REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
+        type_len = sizeof(uint8_t);
+        DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
+        decoded += decoded_result - type_len;
+        MLOG(MDEBUG)
+            << " Encode "
+               "REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE : ";
+        break;
+      case REQUEST_5GSM_CAPABILITY_TYPE:
       case REQUEST_ALWAYS_ON_PDU_SESSION_REQUESTED_TYPE:
       case REQUEST_SM_PDU_DN_REQUEST_CONTAINER_TYPE:
       case REQUEST_HEADER_COMPRESSION_CONFIGURATION_TYPE:
@@ -148,7 +155,83 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
 int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
     uint8_t* buffer, uint32_t len) {
-  // Not yet implemented, will be supported POST MVC
-  return 0;
+  uint32_t encoded        = 0;
+  uint32_t encoded_result = 0;
+
+  if (!pdu_session_estab_request || !buffer || (0 == len)) {
+    MLOG(MDEBUG) << "input arguments are not valid";
+    return -1;
+  }
+
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
+      buffer, PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
+
+  MLOG(MDEBUG) << "EncodePDUSessionEstablishmentRequestMsg : \n";
+  if ((encoded_result =
+           pdu_session_estab_request->extended_protocol_discriminator
+               .EncodeExtendedProtocolDiscriminatorMsg(
+                   &pdu_session_estab_request->extended_protocol_discriminator,
+                   0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result =
+           pdu_session_estab_request->pdu_session_identity
+               .EncodePDUSessionIdentityMsg(
+                   &pdu_session_estab_request->pdu_session_identity, 0,
+                   buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = pdu_session_estab_request->pti.EncodePTIMsg(
+           &pdu_session_estab_request->pti, 0, buffer + encoded,
+           len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result =
+           pdu_session_estab_request->message_type.EncodeMessageTypeMsg(
+               &pdu_session_estab_request->message_type, 0, buffer + encoded,
+               len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result =
+           pdu_session_estab_request->integrity_prot_max_data_rate
+               .EncodeIntegrityProtMaxDataRateMsg(
+                   &pdu_session_estab_request->integrity_prot_max_data_rate, 0,
+                   buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+
+  if ((uint32_t) pdu_session_estab_request->pdu_session_type.type_val) {
+    if ((encoded_result = pdu_session_estab_request->pdu_session_type
+                              .EncodePDUSessionTypeMsg(
+                                  &pdu_session_estab_request->pdu_session_type,
+                                  REQUEST_PDU_SESSION_TYPE_TYPE,
+                                  buffer + encoded, len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
+
+  if ((uint32_t) pdu_session_estab_request->ssc_mode.mode_val) {
+    if ((encoded_result = pdu_session_estab_request->ssc_mode.EncodeSSCModeMsg(
+             &pdu_session_estab_request->ssc_mode, REQUEST_SSC_MODE_TYPE,
+             buffer + encoded, len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
+  return encoded;
 }
+
 }  // namespace magma5g

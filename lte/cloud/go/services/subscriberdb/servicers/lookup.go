@@ -16,16 +16,16 @@ package servicers
 import (
 	"context"
 
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // lookupServicer translates subscriber aliases to their IMSI.
@@ -94,7 +94,7 @@ func (l *lookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNReq
 	defer store.Rollback()
 
 	// Ensure mapping doesn't exist
-	blob, err := store.Get(req.NetworkId, storage.TypeAndKey{Type: lte.MSISDNBlobstoreType, Key: req.Msisdn})
+	blob, err := store.Get(req.NetworkId, storage.TK{Type: lte.MSISDNBlobstoreType, Key: req.Msisdn})
 	if err == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "msisdn already mapped to %s", blob.Value)
 	}
@@ -125,7 +125,7 @@ func (l *lookupServicer) DeleteMSISDN(ctx context.Context, req *protos.DeleteMSI
 	}
 	defer store.Rollback()
 
-	err = store.Delete(req.NetworkId, []storage.TypeAndKey{{
+	err = store.Delete(req.NetworkId, storage.TKs{{
 		Type: lte.MSISDNBlobstoreType,
 		Key:  req.Msisdn,
 	}})

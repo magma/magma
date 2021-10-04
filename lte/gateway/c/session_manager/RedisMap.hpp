@@ -15,6 +15,7 @@
 #include "ObjectMap.h"
 #include "magma_logging.h"
 #include <orc8r/protos/redis.pb.h>
+#include <cpp_redis/cpp_redis>
 
 using magma::orc8r::RedisState;
 

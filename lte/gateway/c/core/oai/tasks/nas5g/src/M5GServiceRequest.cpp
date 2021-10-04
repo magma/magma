@@ -15,7 +15,6 @@
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
 
-using namespace std;
 namespace magma5g {
 ServiceRequestMsg::ServiceRequestMsg(){};
 ServiceRequestMsg::~ServiceRequestMsg(){};

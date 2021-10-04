@@ -1,13 +1,14 @@
 package vpnservice
 
 import (
+	"context"
+
+	"github.com/golang/glog"
+
 	fbprotos "magma/fbinternal/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 const ServiceName = "VPNSERVICE"

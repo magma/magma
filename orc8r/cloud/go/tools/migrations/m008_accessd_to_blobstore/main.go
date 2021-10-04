@@ -17,15 +17,15 @@ import (
 	"context"
 	"flag"
 
-	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
-	"magma/orc8r/cloud/go/tools/migrations"
-	"magma/orc8r/lib/go/protos"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+
+	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/cloud/go/tools/migrations"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (

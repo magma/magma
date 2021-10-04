@@ -1,0 +1,72 @@
+---
+name: "Bazel Build & Test"
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  schedule:
+    # Run once a day to build bazel cache at 0200 hours
+    - cron: '0 2 * * *'
+env:
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-340b46f"
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]'
+
+  bazel_build_and_test:
+    needs:
+      - path_filter
+    # Only run workflow if this is a scheduled run on master branch,
+    # or a pull_request that skip-duplicate-action wants to run again.
+    if: |
+      (github.event_name == `schedule` && github.ref == 'refs/heads/master')
+        || ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: Bazel Build and Test Job
+    runs-on: ubuntu-latest
+    steps:
+        - name: Check Out Repo
+          # This is necessary for overlays into the Docker container below.
+          uses: actions/checkout@v2
+        - name: Bazel Cache
+          uses: actions/cache@v2
+          with:
+            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
+        - name: Bazel Cache Repo
+          uses: actions/cache@v2
+          with:
+            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
+        - name: Bazel Build
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+            run: |
+              cd /workspaces/magma
+              bazel build ... --config=devcontainer
+        - name: Bazel Test
+          if: github.event_name == 'pull_request'
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+            run: |
+              cd /workspaces/magma
+              bazel test ... --test_output=errors --config=devcontainer

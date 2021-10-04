@@ -17,7 +17,6 @@
 #include "M5GMessageType.h"
 #include "M5GSMCause.h"
 
-using namespace std;
 namespace magma5g {
 // PDUSessionReleaseCommand Message Class
 class PDUSessionReleaseCommandMsg {

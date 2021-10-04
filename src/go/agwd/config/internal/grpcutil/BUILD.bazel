@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "grpcutil",
+    srcs = ["target.go"],
+    importpath = "github.com/magma/magma/src/go/agwd/config/internal/grpcutil",
+    visibility = ["//src/go/agwd:__subpackages__"],
+    deps = ["@org_golang_google_grpc//resolver"],
+)
+
+go_test(
+    name = "grpcutil_test",
+    srcs = ["target_test.go"],
+    embed = [":grpcutil"],
+    deps = ["@org_golang_google_grpc//resolver"],
+)

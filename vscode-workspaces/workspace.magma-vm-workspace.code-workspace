@@ -1,0 +1,48 @@
+{
+	"folders": [
+		{
+			"path": "/home/vagrant/magma"
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"llvm-vs-code-extensions.vscode-clangd",
+			"mitaki28.vscode-clang",
+			"stackbuild.bazel-stack-vscode",
+			"coolchyni.beyond-debug",
+			"stackbuild.bazel-stack-vscode-cc",
+			"augustocdias.tasks-shell-input",
+		]
+	},
+	"settings": {
+		"files.watcherExclude": {
+			"**/.bazel-cache/**": true,
+			"**/.bazel-cache-repo/**": true,
+		},		
+		"bsv.bazel.buildFlags": [
+			"--config=vm",
+		],
+		"bsv.bazel.testFlags": [
+			"--compilation_mode=dbg",
+		],
+		"bsv.bes.enabled": false,
+		"bsv.bzl.codesearch.enabled": false,
+		"bsv.bzl.invocation.buildEventPublishAllActions": false,
+		"bsv.bzl.invocation.enabled": false,
+		"bsv.bzl.invocation.invokeWithBuildEventStreaming": false,
+		"bsv.bzl.lsp.enableCodelensStarlarkDebug": false,
+		"bsv.bzl.lsp.enableCodelensRun": false,
+		"bsv.bzl.remoteCache.enabled": false,
+		"bsv.bzl.starlarkDebugger.enabled": false,
+		"clangd.path": "/usr/bin/clangd-12",
+		"clangd.arguments": [
+			"-log=verbose",
+			"-pretty",
+			"--background-index",
+		],
+		"clangd.onConfigChanged": "restart",
+		"bsv.cc.compdb.targets": [
+			"//lte/gateway/c/session_manager:sessiond"
+		]
+	},
+}

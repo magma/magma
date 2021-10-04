@@ -16,13 +16,13 @@ package storage_test
 import (
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	merrors "magma/orc8r/lib/go/errors"
-
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDirectorydStorageBlobstore_Integation(t *testing.T) {

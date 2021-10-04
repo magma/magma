@@ -15,9 +15,9 @@ import (
 	"context"
 	"net"
 
-	"github.com/magma/magma/log"
-	pb "github.com/magma/magma/protos/magma/sctpd"
-	"github.com/magma/magma/service"
+	"github.com/magma/magma/src/go/log"
+	pb "github.com/magma/magma/src/go/protos/magma/sctpd"
+	"github.com/magma/magma/src/go/service"
 )
 
 // ProxyUplinkServer handles SctpdUplinkServer RPCs by calling out to a

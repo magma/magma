@@ -14,6 +14,8 @@
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/cwf/cloud/go/cwf"
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	cwf_analytics "magma/cwf/cloud/go/services/cwf/analytics"
@@ -28,8 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 )
 
 func main() {

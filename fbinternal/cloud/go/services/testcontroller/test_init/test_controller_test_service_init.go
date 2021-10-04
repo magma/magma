@@ -17,6 +17,9 @@ import (
 	"fmt"
 	"testing"
 
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
+
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/protos"
 	"magma/fbinternal/cloud/go/services/testcontroller/servicers"
@@ -25,9 +28,6 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/definitions"
-
-	_ "github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
 )
 
 func StartTestService(t *testing.T) {

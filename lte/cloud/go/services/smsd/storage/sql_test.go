@@ -17,13 +17,13 @@ import (
 	"testing"
 	"time"
 
-	"magma/lte/cloud/go/services/smsd/storage"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+
+	"magma/lte/cloud/go/services/smsd/storage"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 // I'm not totally sold on sqlmock unit tests for a storage impl that's this

@@ -18,9 +18,9 @@ import (
 	"regexp"
 	"testing"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func TestIdentities(t *testing.T) {

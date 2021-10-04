@@ -42,6 +42,8 @@
 #include "sgw_ie_defs.h"
 #include "udp_messages_types.h"
 
+#include <czmq.h>
+
 /** @mainpage
 
   @section intro Introduction
@@ -468,9 +470,8 @@ typedef struct nw_gtpv2c_timer_mgr_entity_s {
   nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle;
   nw_rc_t (*tmrStartCallback)(
       NW_IN nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle,
-      NW_IN uint32_t timeoutSec, NW_IN uint32_t timeoutUsec,
-      NW_IN uint32_t tmrType, NW_IN void* tmrArg,
-      NW_OUT nw_gtpv2c_timer_handle_t* tmrHandle);
+      NW_IN uint32_t timeoutMilliSec, NW_IN uint32_t tmrType,
+      NW_IN void* tmrArg, NW_OUT nw_gtpv2c_timer_handle_t* tmrHandle);
 
   nw_rc_t (*tmrStopCallback)(
       NW_IN nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle,
@@ -638,11 +639,21 @@ nw_rc_t nwGtpv2cProcessUlpReq(
 /**
  Process Timer timeout Request from Timer Manager
 
- @param[in] pLogMgr : Pointer timeout arguments.
+ @param[in] loop : ZMQ zloop_t pointer, unused .
+ @param[in] timer_id : unused.
+ @param[in] arg : Pointer timeout arguments.
  @return NW_OK on success.
  */
+nw_rc_t nwGtpv2cProcessTimeoutExt(
+    NW_IN zloop_t* loop, NW_IN int timer_id, NW_IN void* arg);
 
-nw_rc_t nwGtpv2cProcessTimeout(NW_IN void* timeoutArg);
+/**
+ Process Timer timeout Request from Timer Manager
+
+ @param[in] arg : Pointer timeout arguments.
+ @return NW_OK on success.
+ */
+nw_rc_t nwGtpv2cProcessTimeout(void* arg);
 
 #ifdef __cplusplus
 }

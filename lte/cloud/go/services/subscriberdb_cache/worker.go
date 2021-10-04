@@ -17,17 +17,17 @@ import (
 	"context"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 func MonitorDigests(config Config, store syncstore.SyncStore) {

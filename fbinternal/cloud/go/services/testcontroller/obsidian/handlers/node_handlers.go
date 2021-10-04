@@ -18,11 +18,6 @@ import (
 	"net/http"
 	"sort"
 
-	"magma/fbinternal/cloud/go/services/testcontroller"
-	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"magma/fbinternal/cloud/go/services/testcontroller/storage"
-	"magma/orc8r/cloud/go/obsidian"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
@@ -30,6 +25,11 @@ import (
 	"github.com/labstack/echo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/fbinternal/cloud/go/services/testcontroller"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
+	"magma/orc8r/cloud/go/obsidian"
 )
 
 const (
