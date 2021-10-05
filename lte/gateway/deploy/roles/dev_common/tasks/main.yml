@@ -442,10 +442,13 @@
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
 
+- name: Wait for APT Lock
+  shell:  while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
 
 - name: Remove unattended upgrades
   apt:
     state: absent
+    purge: yes
     pkg:
       - unattended-upgrades
 
