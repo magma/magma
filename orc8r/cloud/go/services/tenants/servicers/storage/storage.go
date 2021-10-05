@@ -55,11 +55,11 @@ func (b *blobstoreStore) GetTenant(tenantID int64) (*protos.Tenant, error) {
 	}
 	defer store.Rollback()
 
-	tenantTypeAndKey := storage.TK{
+	tenantTK := storage.TK{
 		Type: tenants.TenantInfoType,
 		Key:  strconv.FormatInt(tenantID, 10),
 	}
-	tenantBlob, err := store.Get(networkWildcard, tenantTypeAndKey)
+	tenantBlob, err := store.Get(networkWildcard, tenantTK)
 	if err != nil {
 		return nil, err
 	}
@@ -136,11 +136,11 @@ func (b *blobstoreStore) DeleteTenant(tenantID int64) error {
 	}
 	defer store.Rollback()
 
-	tenantTypeAndKey := storage.TKs{{
+	tenantTK := storage.TKs{{
 		Type: tenants.TenantInfoType,
 		Key:  strconv.FormatInt(tenantID, 10),
 	}}
-	err = store.Delete(networkWildcard, tenantTypeAndKey)
+	err = store.Delete(networkWildcard, tenantTK)
 	if err != nil {
 		return err
 	}

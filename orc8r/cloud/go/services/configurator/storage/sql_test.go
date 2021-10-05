@@ -875,7 +875,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	}
 
 	// Basic load with type and key filters
-	typeAndKeyFilters := &testCase{
+	tkFilters := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery("SELECT ent.network_id, ent.pk, ent.\"key\", ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
 				WithArgs("network", "bar", "foo").
@@ -933,7 +933,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	runCase(t, assocsTo)
 	runCase(t, assocsFrom)
 	runCase(t, fullLoadTypeFilter)
-	runCase(t, typeAndKeyFilters)
+	runCase(t, tkFilters)
 	runCase(t, physicalID)
 }
 
@@ -1815,7 +1815,7 @@ func expectMergeGraphs(m sqlmock.Sqlmock, graphIDChanges [][2]string) {
 func expectEdgeQueries(m sqlmock.Sqlmock, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TK]expectedEntQueryResult) {
 	expectedLoads := funk.Map(
 		assocs,
-		func(id *storage.EntityID) expectedEntQueryResult { return edgeLoadsByTk[id.ToTypeAndKey()] },
+		func(id *storage.EntityID) expectedEntQueryResult { return edgeLoadsByTk[id.ToTK()] },
 	).([]expectedEntQueryResult)
 	expectBasicEntityQueries(m, expectedLoads...)
 }
@@ -1845,7 +1845,7 @@ func assocsToEdges(entPk string, assocs []*storage.EntityID, edgeLoadsByTk map[o
 	return funk.Map(
 		assocs,
 		func(id *storage.EntityID) [2]string {
-			return [2]string{entPk, edgeLoadsByTk[id.ToTypeAndKey()].pk}
+			return [2]string{entPk, edgeLoadsByTk[id.ToTK()].pk}
 		},
 	).([][2]string)
 }
