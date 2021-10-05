@@ -1290,7 +1290,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	e := echo.New()
 	subscriberdbHandlers := handlers.GetHandlers()
 
-	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	subURLBase := "/magma/v1/lte/:network_id/subscribers_v2"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
 
 	msisdnURLBase := "/magma/v1/lte/:network_id/msisdns"
@@ -1299,6 +1299,8 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	postMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.POST).HandlerFunc
 	getMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.GET).HandlerFunc
 	deleteMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.DELETE).HandlerFunc
+	expectedTotalCount := int64(0)
+	expectedResult := subscriberModels.PaginatedSubscribers{TotalCount: expectedTotalCount, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
 
 	// MSISDNs initially empty
 	tc := tests.Test{
@@ -1320,7 +1322,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+		ExpectedResult: tests.JSONMarshaler(expectedResult),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1444,7 +1446,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	e := echo.New()
 	subscriberdbHandlers := handlers.GetHandlers()
 
-	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	subURLBase := "/magma/v1/lte/:network_id/subscribers_v2"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
 
 	// List one => none found
@@ -1969,10 +1971,11 @@ func TestSubscriberBasename(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 
 	imsi := "IMSI1234567890"
@@ -1983,12 +1986,12 @@ func TestSubscriberBasename(t *testing.T) {
 	tc := tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX" ]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1997,7 +2000,7 @@ func TestSubscriberBasename(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2006,6 +2009,9 @@ func TestSubscriberBasename(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted subscriber found
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2013,7 +2019,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2045,6 +2051,9 @@ func TestSubscriberBasename(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, updated subscriber matches the expected value
+	expected = subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2052,7 +2061,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -2073,10 +2082,11 @@ func TestSubscriberPolicy(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 
 	imsi := "IMSI1234567890"
@@ -2087,12 +2097,12 @@ func TestSubscriberPolicy(t *testing.T) {
 	tc := tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"policy" key:"ruleXXX" ]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2101,7 +2111,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2110,6 +2120,9 @@ func TestSubscriberPolicy(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted subscriber found
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2117,7 +2130,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2149,6 +2162,9 @@ func TestSubscriberPolicy(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, updated subscriber matches the expected value
+	expected = subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2156,7 +2172,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -2177,10 +2193,11 @@ func TestAPNPolicyProfile(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.GET).HandlerFunc
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.DELETE).HandlerFunc
@@ -2216,7 +2233,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tc = tests.Test{
 			Method:         "POST",
 			URL:            "/magma/v1/lte/n0/subscribers",
-			Payload:        mutableSub,
+			Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 			Handler:        postSubscriber,
 			ParamNames:     []string{"network_id"},
 			ParamValues:    []string{"n0"},
@@ -2285,6 +2302,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	})
 
 	// Get all, initially empty
+	emptySub := subscriberModels.PaginatedSubscribers{TotalCount: 0, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2292,7 +2310,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]subscriberModels.Subscriber{}),
+		ExpectedResult: tests.JSONMarshaler(emptySub),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2301,7 +2319,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
@@ -2315,7 +2333,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
@@ -2331,7 +2349,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2345,6 +2363,9 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 1)
 
 	// Get all, posted subscriber found
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2352,7 +2373,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2464,7 +2485,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2555,7 +2576,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub1,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub1}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
