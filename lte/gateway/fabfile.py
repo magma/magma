@@ -480,7 +480,7 @@ def _copy_out_c_execs_in_magma_vm():
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
-    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade || true')
+    # run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade || true')
 
 
 def _build_magma():
