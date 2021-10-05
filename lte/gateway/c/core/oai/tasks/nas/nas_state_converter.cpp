@@ -858,7 +858,7 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
   state_nas_emm_attach_proc->ue_id     = attach_proc_proto.ue_id();
   state_nas_emm_attach_proc->ksi       = attach_proc_proto.ksi();
   state_nas_emm_attach_proc->emm_cause = attach_proc_proto.emm_cause();
-  state_nas_emm_attach_proc->T3450.sec = T3450_DEFAULT_VALUE;
+  state_nas_emm_attach_proc->T3450.msec = 1000 * T3450_DEFAULT_VALUE;
   state_nas_emm_attach_proc->T3450.id  = NAS_TIMER_INACTIVE_ID;
   set_callbacks_for_attach_proc(state_nas_emm_attach_proc);
 }
@@ -996,7 +996,7 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
   }
 
   state_nas_emm_auth_proc->emm_cause = auth_proc_proto.emm_cause();
-  state_nas_emm_auth_proc->T3460.sec = T3460_DEFAULT_VALUE;
+  state_nas_emm_auth_proc->T3460.msec = 1000 * T3460_DEFAULT_VALUE;
   state_nas_emm_auth_proc->T3460.id  = NAS_TIMER_INACTIVE_ID;
   // update callback functions for auth proc
   set_callbacks_for_auth_proc(state_nas_emm_auth_proc);
@@ -1069,7 +1069,7 @@ void NasStateConverter::proto_to_nas_emm_smc_proc(
   state_nas_emm_smc_proc->is_new         = smc_proc_proto.is_new();
   state_nas_emm_smc_proc->imeisv_request = smc_proc_proto.imeisv_request();
 
-  state_nas_emm_smc_proc->T3460.sec = T3460_DEFAULT_VALUE;
+  state_nas_emm_smc_proc->T3460.msec = 1000 * T3460_DEFAULT_VALUE;
   state_nas_emm_smc_proc->T3460.id  = NAS_TIMER_INACTIVE_ID;
 
   set_notif_callbacks_for_smc_proc(state_nas_emm_smc_proc);
@@ -1838,7 +1838,7 @@ void NasStateConverter::proto_to_emm_context(
       &state_emm_context->ue_additional_security_capability);
 
   state_emm_context->T3422.id  = NAS_TIMER_INACTIVE_ID;
-  state_emm_context->T3422.sec = T3422_DEFAULT_VALUE;
+  state_emm_context->T3422.msec = 1000 * T3422_DEFAULT_VALUE;
   if (emm_context_proto.has_nw_detach_data()) {
     proto_to_nw_detach_data(
         emm_context_proto.nw_detach_data(),

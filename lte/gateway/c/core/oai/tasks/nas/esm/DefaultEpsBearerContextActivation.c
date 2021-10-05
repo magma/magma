@@ -624,7 +624,7 @@ static int default_eps_bearer_activate(
      * Start T3485 retransmission timer
      */
     rc = esm_ebr_start_timer(
-        emm_context, ebi, *msg, mme_config.nas_config.t3485_sec,
+        emm_context, ebi, *msg, 1000 * mme_config.nas_config.t3485_sec,
         default_eps_bearer_activate_t3485_handler);
     if (rc != RETURNerror) {
       OAILOG_DEBUG(
@@ -691,7 +691,7 @@ static int default_eps_bearer_activate_in_bearer_setup_req(
      * Start T3485 retransmission timer
      */
     rc = esm_ebr_start_timer(
-        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_sec,
+        emm_context, ebi, msg_dup, 1000 * mme_config.nas_config.t3485_sec,
         default_eps_bearer_activate_t3485_handler);
   }
 

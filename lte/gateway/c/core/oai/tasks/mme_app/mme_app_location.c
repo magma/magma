@@ -150,7 +150,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   if (ue_context_p->location_info_confirmed_in_hss == false) {
     // Start ULR Response timer
     if ((ue_context_p->ulr_response_timer.id = mme_app_start_timer(
-             ue_context_p->ulr_response_timer.sec * 1000, TIMER_REPEAT_ONCE,
+             ue_context_p->ulr_response_timer.msec, TIMER_REPEAT_ONCE,
              mme_app_handle_ulr_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
         -1) {
       OAILOG_ERROR(
@@ -366,14 +366,14 @@ status_code_e mme_app_handle_s6a_update_location_ans(
    * Mobile Reachability timer
    */
   ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_mm_context->mobile_reachability_timer.sec =
+  ue_mm_context->mobile_reachability_timer.msec =
       ((mme_config.nas_config.t3412_min) +
        MME_APP_DELTA_T3412_REACHABILITY_TIMER) *
-      60;
+      3600;
   ue_mm_context->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_mm_context->implicit_detach_timer.sec =
-      (ue_mm_context->mobile_reachability_timer.sec) +
-      MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 60;
+  ue_mm_context->implicit_detach_timer.msec =
+      (ue_mm_context->mobile_reachability_timer.msec) +
+      MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 3600;
 
   /*
    * Set the flag: send_ue_purge_request to indicate that

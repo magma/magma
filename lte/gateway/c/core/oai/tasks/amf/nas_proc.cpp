@@ -209,7 +209,7 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
   }
   nas_amf_ident_proc_t* ident_proc       = new nas_amf_ident_proc_t;
   ident_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
-  ident_proc->T3570.sec                  = amf_config.nas_config.t3570_sec;
+  ident_proc->T3570.msec                 = 1000 * amf_config.nas_config.t3570_sec;
   ident_proc->T3570.id                   = AMF_APP_TIMER_INACTIVE_ID;
   ident_proc->amf_com_proc.type          = AMF_COMM_PROC_IDENT;
   nas_amf_common_procedure_t* wrapper    = new nas_amf_common_procedure_t;

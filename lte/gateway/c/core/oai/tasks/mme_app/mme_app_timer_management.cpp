@@ -59,24 +59,24 @@ void mme_app_resume_timer(
   /* Below condition validates whether timer has expired before MME recovers
    * from restart, so MME shall handle as timer expiry
    */
-  if (timer->sec <= lapsed_time) {
+  if (timer->msec <= lapsed_time) {
     timer_expiry_handler(mme_app_task_zmq_ctx.event_loop, timer->id, NULL);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  uint32_t remaining_time_in_seconds = timer->sec - lapsed_time;
+  uint32_t remaining_time_in_msecs = timer->msec - lapsed_time;
   OAILOG_DEBUG(
       LOG_MME_APP,
       "Current_time :%ld %s timer start time :%ld "
-      "lapsed time:%ld remaining time:%d \n",
+      "lapsed time:%ld remaining time:%d (ms) \n",
       current_time, timer_name, start_time, lapsed_time,
-      remaining_time_in_seconds);
+      remaining_time_in_msecs);
 
   // Start timer only for remaining duration
   timer_arg_t arg;
   arg.ue_id = ue_mm_context_pP->mme_ue_s1ap_id;
   arg.ebi   = UINT8_MAX;  // fill in an invalid ebi as it is unused
   if ((timer->id = magma::lte::MmeUeContext::Instance().StartTimer(
-           remaining_time_in_seconds * 1000, TIMER_REPEAT_ONCE,
+           remaining_time_in_msecs, TIMER_REPEAT_ONCE,
            timer_expiry_handler, arg)) == -1) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,

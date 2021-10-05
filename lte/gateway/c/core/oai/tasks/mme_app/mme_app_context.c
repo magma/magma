@@ -1131,7 +1131,7 @@ void mme_app_dump_bearer_context(
       bc->esm_ebr_context.timer.id);
   bformata(
       bstr_dump, "%*s -     Timer TO(seconds): %ld\n", indent_spaces, " ",
-      bc->esm_ebr_context.timer.sec);
+      bc->esm_ebr_context.timer.msec);
   bformata(
       bstr_dump, "%*s - PDN id ..........: %u\n", indent_spaces, " ",
       bc->pdn_cx_id);
@@ -1357,7 +1357,7 @@ void mme_ue_context_update_ue_sig_connection_state(
           MME_APP_TIMER_INACTIVE_ID) {
         // Start Mobile Reachability timer only if it is not running
         if ((ue_context_p->mobile_reachability_timer.id = mme_app_start_timer(
-                 ue_context_p->mobile_reachability_timer.sec * 1000,
+                 ue_context_p->mobile_reachability_timer.msec,
                  TIMER_REPEAT_ONCE,
                  mme_app_handle_mobile_reachability_timer_expiry,
                  ue_context_p->mme_ue_s1ap_id)) == -1) {
@@ -2258,7 +2258,7 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
         // Invoke callback registered for default bearer's activation
         if (bearer_context_p->esm_ebr_context.status ==
             ESM_EBR_ACTIVE_PENDING) {
-          bearer_context_p->esm_ebr_context.timer.sec = T3485_DEFAULT_VALUE;
+          bearer_context_p->esm_ebr_context.timer.msec = 1000 * T3485_DEFAULT_VALUE;
           default_eps_bearer_activate_t3485_handler(
               NULL, NAS_TIMER_INACTIVE_ID, (void*) &timer_args);
         } else {  // Invoke callback registered for default bearer's
@@ -2273,7 +2273,7 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
         // Invoke callback registered for dedicated bearer's activation
         if (bearer_context_p->esm_ebr_context.status ==
             ESM_EBR_ACTIVE_PENDING) {
-          bearer_context_p->esm_ebr_context.timer.sec = T3485_DEFAULT_VALUE;
+          bearer_context_p->esm_ebr_context.timer.msec = 1000 * T3485_DEFAULT_VALUE;
           dedicated_eps_bearer_activate_t3485_handler(
               NULL, NAS_TIMER_INACTIVE_ID, (void*) &timer_args);
         } else {  // Invoke callback registered for dedicated bearer's

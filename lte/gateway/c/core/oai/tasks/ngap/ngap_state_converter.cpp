@@ -147,8 +147,8 @@ void NgapStateConverter::ue_to_proto(
   proto->set_sctp_stream_send(ue->sctp_stream_send);
   proto->mutable_ngap_ue_context_rel_timer()->set_id(
       ue->ngap_ue_context_rel_timer.id);
-  proto->mutable_ngap_ue_context_rel_timer()->set_sec(
-      ue->ngap_ue_context_rel_timer.sec);
+  proto->mutable_ngap_ue_context_rel_timer()->set_msec(
+      ue->ngap_ue_context_rel_timer.msec);
 }
 void NgapStateConverter::proto_to_ue(
     const oai::Ngap_UeDescription& proto, m5g_ue_description_t* ue) {
@@ -161,7 +161,7 @@ void NgapStateConverter::proto_to_ue(
   ue->sctp_stream_recv              = proto.sctp_stream_recv();
   ue->sctp_stream_send              = proto.sctp_stream_send();
   ue->ngap_ue_context_rel_timer.id  = proto.ngap_ue_context_rel_timer().id();
-  ue->ngap_ue_context_rel_timer.sec = proto.ngap_ue_context_rel_timer().sec();
+  ue->ngap_ue_context_rel_timer.msec = proto.ngap_ue_context_rel_timer().msec();
 }
 
 void NgapStateConverter::ngap_imsi_map_to_proto(

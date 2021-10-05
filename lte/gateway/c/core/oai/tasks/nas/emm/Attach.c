@@ -2135,7 +2135,7 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Timer T3450 %ld expires in %u seconds\n",
-          attach_proc->ue_id, attach_proc->T3450.id, attach_proc->T3450.sec);
+          attach_proc->ue_id, attach_proc->T3450.id, attach_proc->T3450.msec);
     } else {
       OAILOG_WARNING(
           LOG_NAS_EMM,
