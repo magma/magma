@@ -441,3 +441,11 @@
   copy:
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
+
+
+- name: Remove unattended upgrades
+  apt:
+    state: absent
+    pkg:
+      - unattended-upgrades
+
