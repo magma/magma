@@ -773,6 +773,7 @@ bool SessionState::is_terminating() {
 void SessionState::get_monitor_updates(
     UpdateSessionRequest* update_request_out,
     SessionStateUpdateCriteria* session_uc) {
+  bool increase_seq_number = false;
   for (auto& monitor_pair : monitor_map_) {
     if (!monitor_pair.second->should_send_update()) {
       continue;  // no update
@@ -812,6 +813,12 @@ void SessionState::get_monitor_updates(
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->mutable_update()->CopyFrom(update);
     new_req->set_event_trigger(USAGE_REPORT);
+    increase_seq_number = true;
+  }
+
+  // increment sequence number just +1 no matter how many monitor updates
+  // Feg will merge updates for the same session and just send one CCR-U
+  if (increase_seq_number) {
     request_number_++;
     if (session_uc) {
       session_uc->request_number_increment++;
@@ -1931,6 +1938,7 @@ void SessionState::get_charging_updates(
     UpdateSessionRequest* update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria* session_uc) {
+  bool increase_seq_number = false;
   for (auto& credit_pair : credit_map_) {
     auto& key                              = credit_pair.first;
     auto& grant                            = credit_pair.second;
@@ -1947,6 +1955,7 @@ void SessionState::get_charging_updates(
           break;
         }
         update_request_out->mutable_updates()->Add()->CopyFrom(*op_update);
+        increase_seq_number = true;
       } break;
       case REDIRECT: {
         if (grant->service_state == SERVICE_REDIRECTED) {
@@ -1991,6 +2000,15 @@ void SessionState::get_charging_updates(
         break;
     }
   }
+
+  // increment sequence number just +1 no matter how many updates
+  // Feg will merge updates for the same session and just send one CCR-U
+  if (increase_seq_number) {
+    request_number_++;
+    if (session_uc) {
+      session_uc->request_number_increment++;
+    }
+  }
 }
 
 optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
@@ -2027,10 +2045,6 @@ optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
   key.set_credit_usage(&usage);
 
   auto request = make_credit_usage_update_req(usage);
-  request_number_++;
-  if (session_uc) {
-    session_uc->request_number_increment++;
-  }
   return request;
 }
 
