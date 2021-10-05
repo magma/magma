@@ -58,6 +58,16 @@ int s1_setup_success_event(const char* enb_name, uint32_t enb_id);
  */
 int attach_reject_event(imsi64_t imsi64);
 
+/**
+ * Logs s1 setup failure event
+ * @param enb_name name assigned to eNodeb
+ * @param enb_id unique identifier of eNodeb
+ * @param cause explanation of failure
+ * @return response code
+ */
+int s1_setup_failure_event(
+    const char* enb_name, uint32_t enb_id, const char* cause);
+
 #ifdef __cplusplus
 }
 #endif

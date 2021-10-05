@@ -36,3 +36,14 @@ definitions:
     properties:
       imsi:
         type: string
+  s1_setup_failure:
+    type: object
+    description: Used to track failed establishment of S1 connection
+    properties:
+      enb_name:
+        type: string
+      enb_id:
+        type: integer
+      cause:
+        description: failure cause
+        type: string

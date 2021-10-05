@@ -435,7 +435,24 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   uint8_t bplmn_list_count = 0;  // Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  increment_counter("s1_setup", 1, NO_LABELS);
+
+  if (pdu == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "PDU is NULL\n");
+    return RETURNerror;
+  }
+  container = &pdu->choice.initiatingMessage.value.choice.S1SetupRequest;
+
+  // Get the eNodeB name
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_enb_name, container,
+                             S1ap_ProtocolIE_ID_id_eNBname, false);
+  log_queue_item_t* context = NULL;
+  if (ie_enb_name) {
+    OAILOG_MESSAGE_ADD_SYNC(context, "%*s ",
+                            (int)ie_enb_name->value.choice.ENBname.size,
+                            ie_enb_name->value.choice.ENBname.buf);
+    enb_name = (char*)ie_enb_name->value.choice.ENBname.buf;
+  }
+
   if (!hss_associated) {
     /*
      * Can not process the request, MME is not connected to HSS
@@ -446,21 +463,16 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
         "connected to HSS\n");
     rc = s1ap_mme_generate_s1_setup_failure(assoc_id, S1ap_Cause_PR_misc,
                                             S1ap_CauseMisc_unspecified, -1);
-    increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
-                      "s6a_interface_not_up");
+    increment_counter("s1_setup", 1, 3, "result", "failure", "cause",
+                      "s6a_interface_not_up", "enb_name", enb_name);
+    s1_setup_failure_event(enb_name, enb_id, "s6a_interface_not_up");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
-  if (pdu == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "PDU is NULL\n");
-    return RETURNerror;
-  }
-  container = &pdu->choice.initiatingMessage.value.choice.S1SetupRequest;
   /*
    * We received a new valid S1 Setup Request on a stream != 0.
    * This should not happen -> reject eNB s1 setup request.
    */
-
   if (stream != 0) {
     OAILOG_ERROR(LOG_S1AP, "Received new s1 setup request on stream != 0\n");
     /*
@@ -468,8 +480,9 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
      */
     rc = s1ap_mme_generate_s1_setup_failure(assoc_id, S1ap_Cause_PR_protocol,
                                             S1ap_CauseProtocol_unspecified, -1);
-    increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
-                      "sctp_stream_id_non_zero");
+    increment_counter("s1_setup", 1, 3, "result", "failure", "cause",
+                      "sctp_stream_id_non_zero", "enb_name", enb_name);
+    s1_setup_failure_event(enb_name, enb_id, "sctp_stream_id_non_zero");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
@@ -509,8 +522,9 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
         assoc_id, S1ap_Cause_PR_transport,
         S1ap_CauseTransport_transport_resource_unavailable,
         S1ap_TimeToWait_v20s);
-    increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
-                      "invalid_state");
+    increment_counter("s1_setup", 1, 3, "result", "failure", "cause",
+                      "invalid_state", "enb_name", enb_name);
+    s1_setup_failure_event(enb_name, enb_id, "invalid_state");
     // Check if the UE counters for eNB are equal.
     // If not, the eNB will never switch to INIT state, particularly in
     // stateless mode.
@@ -528,7 +542,6 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
         enb_association->ue_id_coll.num_elements);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
-  log_queue_item_t* context = NULL;
   OAILOG_MESSAGE_START_SYNC(OAILOG_LEVEL_DEBUG, LOG_S1AP, (&context),
                             "New s1 setup request incoming from ");
   // shared_log_queue_item_t *context = NULL;
@@ -536,7 +549,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   // s1 setup request incoming from ");
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_enb_name, container,
-                             S1ap_ProtocolIE_ID_id_eNBname, false);
+                             S1ap_ProtocolIE_ID_id_eNBname, true);
   if (ie_enb_name) {
     OAILOG_MESSAGE_ADD_SYNC(context, "%*s ",
                             (int)ie_enb_name->value.choice.ENBname.size,
@@ -598,8 +611,9 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
                                             S1ap_CauseMisc_unknown_PLMN,
                                             S1ap_TimeToWait_v20s);
 
-    increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
-                      "plmnid_or_tac_mismatch");
+    increment_counter("s1_setup", 1, 3, "result", "failure", "cause",
+                      "plmnid_or_tac_mismatch", "enb_name", enb_name);
+    s1_setup_failure_event(enb_name, enb_id, "plmnid_or_tac_mismatch");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
@@ -655,7 +669,8 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   if (rc == RETURNok) {
     state->num_enbs++;
     set_gauge("s1_connection", 1, 1, "enb_name", enb_association->enb_name);
-    increment_counter("s1_setup", 1, 1, "result", "success");
+    increment_counter("s1_setup", 1, 2, "result", "success", "enb_name",
+                      enb_name);
     s1_setup_success_event(enb_name, enb_id);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);

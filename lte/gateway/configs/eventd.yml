@@ -63,3 +63,10 @@ event_registry:
   attach_reject:
     module: lte
     filename: mme_events.v1.yml
+  s1_setup_failure:
+    module: lte
+    filename: mme_events.v1.yml
+
+# [Experimental] Enable Sentry for this service
+# Allowed values: send_all_errors, send_selected_errors, disabled
+sentry: disabled
