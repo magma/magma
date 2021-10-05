@@ -23,11 +23,14 @@ import time
 from enum import Enum
 
 from magma.common.redis.client import get_default_client
+from magma.configuration.mconfig_managers import get_mconfig_manager
+
 from magma.configuration.service_configs import (
     load_override_config,
     load_service_config,
     save_override_config,
 )
+from lte.protos.mconfig import mconfigs_pb2
 
 return_codes = Enum(
     "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0
@@ -160,21 +163,34 @@ def disable_stateless_agw():
 
 
 def ovs_reset_bridges():
+    mconfig = get_mconfig_manager().load_service_mconfig(
+        'pipelined', mconfigs_pb2.PipelineD(),
+    )
     service_config = load_service_config('pipelined')
-    sgi_interface = service_config['nat_iface']
-    if_up_cmd = "ip link set dev %s up" % sgi_interface
-    subprocess.call(if_up_cmd.split())
-    print("ip up cmd %s", if_up_cmd)
+    if service_config.get('enable_nat', mconfig.nat_enabled):
+        non_nat_sgi_interface = ""
+        sgi_management_iface_ip_addr = ""
+        sgi_management_iface_gw = ""
+    else:
+        non_nat_sgi_interface = service_config['nat_iface']
+        sgi_management_iface_ip_addr = service_config.get(
+           'sgi_management_iface_ip_addr', mconfig.sgi_management_iface_ip_addr,
+        )
+        sgi_management_iface_gw = service_config.get(
+           'sgi_management_iface_gw', mconfig.sgi_management_iface_gw,
+        )
 
-    subprocess.call(
-        "ovs-vsctl --all destroy Flow_Sample_Collector_Set".split())
-    subprocess.call("ifdown uplink_br0".split())
-    subprocess.call("ifdown gtp_br0".split())
-    subprocess.call("ifdown patch-up".split())
-    subprocess.call("service openvswitch-switch restart".split())
-    subprocess.call("ifup uplink_br0".split())
-    subprocess.call("ifup gtp_br0".split())
-    subprocess.call("ifup patch-up".split())
+    sgi_bridge_name = service_config.get('uplink_bridge', "uplink_br0")
+
+    reset_br = "magma-bridge-reset.sh -n %s %s %s %s" % \
+               (
+                   sgi_bridge_name,
+                   non_nat_sgi_interface,
+                   sgi_management_iface_ip_addr,
+                   sgi_management_iface_gw,
+               )
+    print("ovs-restart: ", reset_br)
+    subprocess.call(reset_br.split())
 
 
 def sctpd_pre_start():
