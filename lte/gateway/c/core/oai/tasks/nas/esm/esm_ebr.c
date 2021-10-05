@@ -192,13 +192,11 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
         "ESM-FSM   - Stop retransmission timer %ld for ue "
         "id " MME_UE_S1AP_ID_FMT "\n",
         ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
-    esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
+    esm_ebr_timer_data_t* esm_ebr_timer_data = ebr_ctx->args;
     // stop the timer if it's running
     if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
       nas_timer_stop(&(ebr_ctx->timer));
-    } else {  // Timer has expired, release the args
-      esm_ebr_timer_data = ebr_ctx->args;
-    }
+    } 
     /*
      * Release the retransmisison timer parameters
      */
@@ -383,12 +381,12 @@ status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
   /*
    * Stop the retransmission timer if still running
    */
-  if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
+  if ( ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID || ebr_ctx->args ) {
     OAILOG_INFO(
         LOG_NAS_ESM,
         "ESM-FSM   - Stop retransmission timer %ld " MME_UE_S1AP_ID_FMT "\n",
         ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
-    esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
+    esm_ebr_timer_data_t* esm_ebr_timer_data = ebr_ctx->args;
     nas_timer_stop(&(ebr_ctx->timer));
     /*
      * Release the retransmisison timer parameters
