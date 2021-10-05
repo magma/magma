@@ -11,6 +11,7 @@
 # limitations under the License.
 
 SKIP_CHECK=${1:-""}
+SKIP_CHECK_FLUSH=${2:-""}
 
 echo "This upgrade would result in datapath level downtime for few minutes!"
 
@@ -32,7 +33,7 @@ apt install -y  openvswitch-datapath-dkms libopenvswitch openvswitch-common open
 dkms autoinstall
 service magma@* stop
 
-magma-bridge-reset.sh -y uplink_br0
+magma-bridge-reset.sh -f uplink_br0
 
 service magma@magmad start
 
@@ -40,9 +41,25 @@ kernel_ver=$(cat /sys/module/openvswitch/srcversion)
 mod_ver=$(modinfo /lib/modules/"$(uname -r)"/updates/dkms/openvswitch.ko |grep srcversion|awk '{print $2}')
 
 if [[ "$kernel_ver" == "$mod_ver" ]]; then
-        echo "update successful"
+        OVS_VER=$(dpkg -l openvswitch-datapath-dkms |grep 'ii' |awk '{print $3}')
+        echo "update successful, installed: $OVS_VER"
 else
         echo "update failed"
 fi
 
-echo "To cleanup control plane state run: config_stateless_agw.py flushall_redis"
+
+echo "Do you want to restart control plane services?"
+
+if [[ "$SKIP_CHECK_FLUSH" != '-y' ]];
+then
+    while true; do
+        read -p "Do you want to proceed with upgrade ?(y/n)" yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+fi
+
+config_stateless_agw.py flushall_redis

@@ -87,7 +87,7 @@ func (srv *deviceServicer) GetDeviceInfo(ctx context.Context, req *protos.GetDev
 		return nil, err
 	}
 
-	ids := protos.DeviceIDsToTypeAndKey(req.DeviceIDs)
+	ids := protos.DeviceIDsToTK(req.DeviceIDs)
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (srv *deviceServicer) DeleteDevices(ctx context.Context, req *protos.Delete
 	}
 	defer store.Rollback()
 
-	ids := protos.DeviceIDsToTypeAndKey(req.DeviceIDs)
+	ids := protos.DeviceIDsToTK(req.DeviceIDs)
 	err = store.Delete(req.NetworkID, ids)
 	if err != nil {
 		return nil, err

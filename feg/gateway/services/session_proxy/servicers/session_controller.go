@@ -222,7 +222,7 @@ func (srv *CentralSessionController) UpdateSession(
 		if srv.cfg.DisableGx {
 			return
 		}
-		requests := getGxUpdateRequestsFromUsage(request.UsageMonitors)
+		requests := gx.FromUsageMonitorUpdates(request.UsageMonitors)
 		gxUpdateResponses = srv.sendMultipleGxRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
 		for _, mur := range gxUpdateResponses {
 			if mur != nil {
@@ -240,7 +240,7 @@ func (srv *CentralSessionController) UpdateSession(
 		if srv.cfg.DisableGy {
 			return
 		}
-		requests := getGyUpdateRequestsFromUsage(request.Updates)
+		requests := gy.FromCreditUsageUpdates(request.Updates)
 		gyUpdateResponses = srv.sendMultipleGyRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
 		for _, cur := range gyUpdateResponses {
 			if cur != nil {

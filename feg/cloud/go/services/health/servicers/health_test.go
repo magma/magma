@@ -48,7 +48,7 @@ func TestHealthServer_GetHealth(t *testing.T) {
 		LogicalId: test_utils.TestFegLogicalId1,
 	}
 	healthyReq := test_utils.GetHealthyRequest()
-	id1 := storage.TypeAndKey{
+	id1 := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  test_utils.TestFegLogicalId1,
 	}
@@ -108,7 +108,7 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	assert.NoError(t, err)
 	healthBlob, err := fegstorage.HealthToBlob(test_utils.TestFegLogicalId1, healthyRequest.GetHealthStats())
 	assert.NoError(t, err)
-	clusterTK := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  test_utils.TestFegNetwork,
 	}
@@ -159,15 +159,15 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 	assert.NoError(t, err)
 	clusterBlob, err := fegstorage.ClusterToBlob(test_utils.TestFegNetwork, gwId)
 	assert.NoError(t, err)
-	clusterTK := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  test_utils.TestFegNetwork,
 	}
-	healthTK := storage.TypeAndKey{
+	healthTK := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gwId,
 	}
-	healthTK2 := storage.TypeAndKey{
+	healthTK2 := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gwId2,
 	}
@@ -220,11 +220,11 @@ func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
 	clusterBlob, err := fegstorage.ClusterToBlob(testNetworkID, gwId)
 	assert.NoError(t, err)
 
-	clusterTK := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  test_utils.TestFegNetwork,
 	}
-	healthTK2 := storage.TypeAndKey{
+	healthTK2 := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gwId2,
 	}
@@ -267,11 +267,11 @@ func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
 	assert.NoError(t, err)
 	unhealthyBlob, err := fegstorage.HealthToBlob(gwId, healthyRequestTooLongAgo.GetHealthStats())
 	assert.NoError(t, err)
-	clusterTK := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  test_utils.TestFegNetwork,
 	}
-	healthTK := storage.TypeAndKey{
+	healthTK := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gwId,
 	}
@@ -313,15 +313,15 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 	assert.NoError(t, err)
 	clusterBlob, err := fegstorage.ClusterToBlob(testNetworkID, gwId)
 	assert.NoError(t, err)
-	clusterTK := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  test_utils.TestFegNetwork,
 	}
-	healthTK := storage.TypeAndKey{
+	healthTK := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gwId,
 	}
-	healthTK2 := storage.TypeAndKey{
+	healthTK2 := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gwId2,
 	}

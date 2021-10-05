@@ -102,7 +102,7 @@ func CreateBaseName(c echo.Context) error {
 			w := configurator.EntityUpdateCriteria{
 				Type:              lte.SubscriberEntityType,
 				Key:               tk.Key,
-				AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: bnrEnt.Key}},
+				AssociationsToAdd: storage.TKs{{Type: lte.BaseNameEntityType, Key: bnrEnt.Key}},
 			}
 			writes = append(writes, w)
 		}
@@ -184,7 +184,7 @@ func UpdateBaseName(c echo.Context) error {
 		w := configurator.EntityUpdateCriteria{
 			Type:                 lte.SubscriberEntityType,
 			Key:                  tk.Key,
-			AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+			AssociationsToDelete: storage.TKs{{Type: lte.BaseNameEntityType, Key: baseName}},
 		}
 		writes = append(writes, w)
 	}
@@ -192,7 +192,7 @@ func UpdateBaseName(c echo.Context) error {
 		w := configurator.EntityUpdateCriteria{
 			Type:              lte.SubscriberEntityType,
 			Key:               tk.Key,
-			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+			AssociationsToAdd: storage.TKs{{Type: lte.BaseNameEntityType, Key: baseName}},
 		}
 		writes = append(writes, w)
 	}
@@ -290,7 +290,7 @@ func CreateRule(c echo.Context) error {
 		w := configurator.EntityUpdateCriteria{
 			Type:              lte.SubscriberEntityType,
 			Key:               tk.Key,
-			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: createdEntity.Key}},
+			AssociationsToAdd: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: createdEntity.Key}},
 		}
 		writes = append(writes, w)
 	}
@@ -379,7 +379,7 @@ func UpdateRule(c echo.Context) error {
 		w := configurator.EntityUpdateCriteria{
 			Type:                 lte.SubscriberEntityType,
 			Key:                  tk.Key,
-			AssociationsToDelete: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+			AssociationsToDelete: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 		}
 		writes = append(writes, w)
 	}
@@ -387,7 +387,7 @@ func UpdateRule(c echo.Context) error {
 		w := configurator.EntityUpdateCriteria{
 			Type:              lte.SubscriberEntityType,
 			Key:               tk.Key,
-			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+			AssociationsToAdd: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 		}
 		writes = append(writes, w)
 	}

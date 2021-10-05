@@ -1,0 +1,255 @@
+---
+name: nms-workflow
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["nms/**"]'
+  nms-flow-test:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: nms-flow-test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: install flow
+        run: |
+            cd ${MAGMA_ROOT}/nms
+            # Extract the specified flow version from the .flowconfig
+            yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install  # will run `yarn install` command
+      - name: flow typecheck
+        run: |
+            cd ${MAGMA_ROOT}/nms
+            yarn run flow
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "NMS flow-test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "NMS workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+  nms-eslint:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: nms-eslint job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - run: yarn install
+      - name: run eslint
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn add eslint --dev -W
+          yarn eslint --init
+          yarn run eslint ./
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "NMS eslint failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "NMS workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+  nms-yarn-test:
+    needs:
+      - path_filter
+      - nms-flow-test
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: nms-yarn-test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install  # will run `yarn install` command
+      - name: run yarn test
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn add jest@^26.4.2 -W --dev
+          yarn test:ci
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "NMS yarn test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "NMS workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+  nms-e2e-test:
+    needs:
+      - path_filter
+      - nms-flow-test
+      - nms-eslint
+      - nms-yarn-test
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: nms-e2e-test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
+    steps:
+      - uses: actions/checkout@v2
+      - name: apt install yarn
+        run: |
+            cd ${MAGMA_ROOT}/nms
+            sudo apt-get install -y apt-transport-https
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+            sudo apt-get update -y
+            sudo apt-get install -y yarn
+            yarn add jest@^26.4.2 -W --dev
+      - name: apt install chrome
+        run: |
+            cd ${MAGMA_ROOT}/nms
+            # Install latest chrome dev package
+            # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
+            # installs, work.
+            curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+            sudo apt-get update -y
+            sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
+            sudo rm -rf /var/lib/apt/lists/*
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install  # will run `yarn install` command
+      - name: run e2e_test_setup.sh
+        run: |
+            source $NVM_DIR/nvm.sh
+            nvm install stable
+            cd ${MAGMA_ROOT}/nms/packages/magmalte
+            ./e2e_test_setup.sh
+      - name: Publish Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: NMS Test Results
+          path: "/tmp/nms_artifacts/*"
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "NMS nms-e2e-test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "NMS workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+  nms-build:
+    needs:
+      - path_filter
+      - nms-flow-test
+      - nms-eslint
+      - nms-yarn-test
+      - nms-e2e-test
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: nms-build job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
+      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run docker compose
+        id: nms-docker-compose
+        # yamllint disable rule:line-length
+        run: |
+          cd ${MAGMA_ROOT}/nms/packages/magmalte
+          docker-compose build magmalte
+      - name: Tag and push to Docker Registry
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        # yamllint disable rule:line-length
+        run: |
+            ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest false --project magmalte
+      - name: Tag and push to Jfrog Registry
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+        run: |
+            ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project magmalte
+      - name: Extract commit title
+        id: commit
+        if: github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      # yamllint enable
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Github action nms-build failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "NMS workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "NMS Artifact Has Been Published*"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "NMS workflow"
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '

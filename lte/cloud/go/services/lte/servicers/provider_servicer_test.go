@@ -118,7 +118,7 @@ func initSubscriber(t *testing.T, hwID string) {
 				},
 				StaticIps: map[string]strfmt.IPv4{"apn1": "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
 		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 	}, serdes.Entity)

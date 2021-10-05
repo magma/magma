@@ -520,7 +520,7 @@ func TestListGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -571,8 +571,8 @@ func TestListGateways(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{
+			Associations: storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{
 				{Type: wifi.MeshEntityType, Key: mID},
 				{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 			},
@@ -585,10 +585,10 @@ func TestListGateways(t *testing.T) {
 			Description:        "gateway 1",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
 			GraphID:            "10",
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
 		{Type: orc8r.MagmadGatewayType, Key: gID},
 		{Type: wifi.WifiGatewayType, Key: gID},
 	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
@@ -611,7 +611,7 @@ func TestCreateGateway(t *testing.T) {
 
 	// Initially empty
 	seedNetworks(t)
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -657,8 +657,8 @@ func TestCreateGateway(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			Version:            1,
 		},
 		{
@@ -667,14 +667,14 @@ func TestCreateGateway(t *testing.T) {
 			GraphID:      "2",
 			Name:         "mesh_1",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      1,
 		},
 		{
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "2",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      1,
 		},
 		{
@@ -685,10 +685,10 @@ func TestCreateGateway(t *testing.T) {
 			Description:        "gateway 1",
 			GraphID:            "2",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 
@@ -886,7 +886,7 @@ func TestUpdateGateway(t *testing.T) {
 			Type: wifi.MeshEntityType, Key: nmID,
 			Name:         "not_mesh_1",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -911,8 +911,8 @@ func TestUpdateGateway(t *testing.T) {
 			PhysicalID:         "hw1",
 			GraphID:            "10",
 			Config:             updatedMagmad,
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: nmID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: wifi.MeshEntityType, Key: nmID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			Version:            1,
 		},
 		{
@@ -929,14 +929,14 @@ func TestUpdateGateway(t *testing.T) {
 			Name:         "not_mesh_1",
 			GraphID:      "10",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      1,
 		},
 		{
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		{
@@ -953,11 +953,11 @@ func TestUpdateGateway(t *testing.T) {
 			Description:        updatedDescription,
 			GraphID:            "10",
 			Config:             updatedConfig,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:            1,
 		},
 	}
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 }
@@ -1001,7 +1001,7 @@ func TestDeleteGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
 		{Type: orc8r.MagmadGatewayType, Key: gID},
 		{Type: wifi.WifiGatewayType, Key: gID},
 		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
@@ -1084,8 +1084,8 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			Version:            0,
 		},
 		"mesh": {
@@ -1094,7 +1094,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 			Name:         "mesh_1",
 			GraphID:      "10",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		"mesh2": {
@@ -1109,7 +1109,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		"tier2": {
@@ -1126,7 +1126,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 			Description:        "gateway 1",
 			GraphID:            "10",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:            0,
 		},
 	}
@@ -1157,7 +1157,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1196,7 +1196,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1238,7 +1238,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1256,11 +1256,11 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 
 	// Test updating gateway tier
 	updatedGatewayTier := "t2"
-	expectedEnts["magmad"].ParentAssociations = []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: updatedGatewayTier}}
+	expectedEnts["magmad"].ParentAssociations = storage.TKs{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: updatedGatewayTier}}
 	expectedEnts["tier1"].Associations = nil
 	expectedEnts["tier1"].GraphID = "13"
 	expectedEnts["tier1"].Version++
-	expectedEnts["tier2"].Associations = []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}}
+	expectedEnts["tier2"].Associations = storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}}
 	expectedEnts["tier2"].GraphID = "10"
 	expectedEnts["tier2"].Version++
 	expectedEntsVals = make(configurator.NetworkEntities, 0, len(expectedEnts))
@@ -1280,7 +1280,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1316,7 +1316,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator ents should not have changed
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1370,13 +1370,13 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	expectedEnts["gateway"].Config = updatedWifi
 	expectedEnts["gateway"].Version++
-	expectedEnts["magmad"].ParentAssociations = []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: nmID}, {Type: orc8r.UpgradeTierEntityType, Key: updatedGatewayTier}}
+	expectedEnts["magmad"].ParentAssociations = storage.TKs{{Type: wifi.MeshEntityType, Key: nmID}, {Type: orc8r.UpgradeTierEntityType, Key: updatedGatewayTier}}
 	expectedEnts["mesh"].Associations = nil
 	expectedEnts["mesh"].GraphID = "15"
 	expectedEnts["mesh"].Version++
 	expectedEnts["mesh2"].GraphID = "10"
 	expectedEnts["mesh2"].Version++
-	expectedEnts["mesh2"].Associations = []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}}
+	expectedEnts["mesh2"].Associations = storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}}
 	expectedEntsVals = make(configurator.NetworkEntities, 0, len(expectedEnts))
 	for _, v := range key_order {
 		expectedEntsVals = append(expectedEntsVals, *expectedEnts[v])
@@ -1408,7 +1408,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -1465,7 +1465,7 @@ func TestListMeshes(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -1490,7 +1490,7 @@ func TestListMeshes(t *testing.T) {
 			Name:         "mesh_1",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
 	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", swag.String(wifi.MeshEntityType), nil, nil, nil, configurator.FullEntityLoadCriteria(), serdes.Entity)
@@ -1513,7 +1513,7 @@ func TestCreateMesh(t *testing.T) {
 
 	// Initially empty
 	seedNetworks(t)
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, actualEnts)
 
@@ -1559,8 +1559,8 @@ func TestCreateMesh(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			Version:            0,
 		},
 		{
@@ -1569,13 +1569,13 @@ func TestCreateMesh(t *testing.T) {
 			Name:         "mesh_1",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
 			GraphID:      "2",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 		{
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "2",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		{
@@ -1586,10 +1586,10 @@ func TestCreateMesh(t *testing.T) {
 			Description:        "gateway 1",
 			GraphID:            "2",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 
@@ -1747,8 +1747,8 @@ func TestUpdateMesh(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{
+			Associations: storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{
 				{Type: wifi.MeshEntityType, Key: mID},
 				{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 			},
@@ -1760,14 +1760,14 @@ func TestUpdateMesh(t *testing.T) {
 			Name:         updatedName,
 			Config:       updatedConfig,
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      1,
 		},
 		{
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		{
@@ -1784,10 +1784,10 @@ func TestUpdateMesh(t *testing.T) {
 			Description:        "gateway 1",
 			GraphID:            "10",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
 }
@@ -1895,7 +1895,7 @@ func TestDeleteMesh(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, []storage.TypeAndKey{
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
 		{Type: orc8r.MagmadGatewayType, Key: gID},
 		{Type: wifi.WifiGatewayType, Key: gID},
 		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
@@ -1918,14 +1918,14 @@ func TestDeleteMesh(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: nmID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: wifi.MeshEntityType, Key: nmID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 		},
 		{
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		{
@@ -1936,7 +1936,7 @@ func TestDeleteMesh(t *testing.T) {
 			Description:        "gateway 1",
 			GraphID:            "10",
 			Config:             &payload,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:            1,
 		},
 	}
@@ -1980,8 +1980,8 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: wifi.MeshEntityType, Key: mID}, {Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			Version:            0,
 		},
 		"mesh": {
@@ -1990,14 +1990,14 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 			Name:         "mesh_1",
 			GraphID:      "10",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		"tier1": {
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
 		"tier2": {
@@ -2014,7 +2014,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 			Description:        "gateway 1",
 			GraphID:            "10",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:            0,
 		},
 	}
@@ -2045,7 +2045,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -2094,7 +2094,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, []storage.TypeAndKey{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), nID, nil, nil, nil, storage.TKs{}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEntsVals, actualEnts)
 
@@ -2156,7 +2156,7 @@ func seedPreMesh(t *testing.T) {
 			Name:        "gateway_1",
 			Description: "gateway 1",
 			Config:      models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{
+			ParentAssociations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: gID},
 			},
 		},
@@ -2171,12 +2171,12 @@ func seedPreMesh(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations:       []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: gID},
 			},
 		},
@@ -2194,7 +2194,7 @@ func seedGatewaysAndMeshes(t *testing.T) {
 			Name:               "gateway_1",
 			Description:        "gateway 1",
 			Config:             models2.NewDefaultWifiGatewayConfig(),
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 		{
 			Type: orc8r.MagmadGatewayType, Key: gID,
@@ -2207,15 +2207,15 @@ func seedGatewaysAndMeshes(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gID}},
-			ParentAssociations: []storage.TypeAndKey{
+			Associations: storage.TKs{{Type: wifi.WifiGatewayType, Key: gID}},
+			ParentAssociations: storage.TKs{
 				{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 				{Type: wifi.MeshEntityType, Key: mID},
 			},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: gID},
 			},
 		},
@@ -2226,7 +2226,7 @@ func seedGatewaysAndMeshes(t *testing.T) {
 			Type: wifi.MeshEntityType, Key: mID,
 			Name:         "mesh_1",
 			Config:       models2.NewDefaultMeshWifiConfigs(),
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)

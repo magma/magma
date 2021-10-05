@@ -73,7 +73,7 @@ func UpdateDevice(ctx context.Context, networkID, deviceType, deviceKey string, 
 	return err
 }
 
-func DeleteDevices(ctx context.Context, networkID string, ids []storage.TypeAndKey) error {
+func DeleteDevices(ctx context.Context, networkID string, ids storage.TKs) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func DeleteDevices(ctx context.Context, networkID string, ids []storage.TypeAndK
 
 	requestIDs := funk.Map(
 		ids,
-		func(id storage.TypeAndKey) *protos.DeviceID {
+		func(id storage.TK) *protos.DeviceID {
 			return &protos.DeviceID{Type: id.Type, DeviceID: id.Key}
 		},
 	).([]*protos.DeviceID)
@@ -92,7 +92,7 @@ func DeleteDevices(ctx context.Context, networkID string, ids []storage.TypeAndK
 }
 
 func DeleteDevice(ctx context.Context, networkID, deviceType, deviceKey string) error {
-	return DeleteDevices(ctx, networkID, []storage.TypeAndKey{{Type: deviceType, Key: deviceKey}})
+	return DeleteDevices(ctx, networkID, storage.TKs{{Type: deviceType, Key: deviceKey}})
 }
 
 func GetDevice(ctx context.Context, networkID, deviceType, deviceKey string, serdes serde.Registry) (interface{}, error) {

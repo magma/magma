@@ -242,7 +242,7 @@ func deleteGateway(c echo.Context) error {
 	}
 
 	var deletes storage.TKs
-	deletes = append(deletes, storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: gid})
+	deletes = append(deletes, storage.TK{Type: lte.CellularGatewayEntityType, Key: gid})
 
 	reqCtx := c.Request().Context()
 	gw, err := configurator.LoadEntity(
@@ -641,9 +641,9 @@ func deleteApnConfiguration(c echo.Context) error {
 	}
 
 	// Cascade deletes to all associated apn_resource and apn_policy_profile
-	var deletes []storage.TypeAndKey
+	var deletes storage.TKs
 	deletes = append(deletes, ent.ParentAssociations.MultiFilter(lte.APNResourceEntityType, lte.APNPolicyProfileEntityType)...)
-	deletes = append(deletes, ent.GetTypeAndKey())
+	deletes = append(deletes, ent.GetTK())
 
 	err = configurator.DeleteEntities(reqCtx, networkID, deletes)
 	if err != nil {

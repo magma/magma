@@ -66,7 +66,7 @@ func (c *nprobeBlobStore) GetNProbeData(networkID, taskID string) (*models.Netwo
 
 	blob, err := store.Get(
 		networkID,
-		storage.TypeAndKey{Type: NProbeBlobType, Key: taskID},
+		storage.TK{Type: NProbeBlobType, Key: taskID},
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get nprobe data %s", taskID))
@@ -89,7 +89,7 @@ func (c *nprobeBlobStore) DeleteNProbeData(networkID, taskID string) error {
 
 	err = store.Delete(
 		networkID,
-		[]storage.TypeAndKey{
+		storage.TKs{
 			{Type: NProbeBlobType, Key: taskID},
 		},
 	)

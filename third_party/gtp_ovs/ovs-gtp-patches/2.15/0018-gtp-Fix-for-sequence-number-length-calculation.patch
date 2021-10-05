@@ -1,7 +1,7 @@
-From e747ad0e1cecb3485a4847ec5efb823c5a0eacbf Mon Sep 17 00:00:00 2001
+From 9b622ee7475cfc1d1c13d94a3cad9ed5c4ef32d4 Mon Sep 17 00:00:00 2001
 From: Yogesh Pandey <yogesh@wavelabs.ai>
 Date: Sat, 21 Aug 2021 09:58:46 +0000
-Subject: [PATCH] gtp: Fix for sequence number length calculation
+Subject: [PATCH 18/22] gtp: Fix for sequence number length calculation
 
 Issue:
   Additional 4 bytes getting added in header length
@@ -13,11 +13,11 @@ Fix:
 
 Signed-off-by: Yogesh Pandey <yogesh@wavelabs.ai>
 ---
- datapath/linux/compat/gtp.c | 54 ++++++++++++++++++++++-----------------------
+ datapath/linux/compat/gtp.c | 54 ++++++++++++++++++-------------------
  1 file changed, 27 insertions(+), 27 deletions(-)
 
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
-index 5046bd6..16c06f9 100644
+index 5046bd63a..16c06f91e 100644
 --- a/datapath/linux/compat/gtp.c
 +++ b/datapath/linux/compat/gtp.c
 @@ -101,10 +101,6 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
@@ -89,5 +89,5 @@ index 5046bd6..16c06f9 100644
  	if (!pskb_may_pull(skb, hdrlen))
  		return -1;
 -- 
-2.11.0
+2.25.1
 

@@ -202,7 +202,7 @@ func deleteGateway(c echo.Context) error {
 	err = configurator.DeleteEntities(
 		reqCtx,
 		nid,
-		[]storage.TypeAndKey{
+		storage.TKs{
 			{Type: orc8r.MagmadGatewayType, Key: gid},
 			{Type: wifi.WifiGatewayType, Key: gid},
 		},
@@ -253,9 +253,9 @@ func createMesh(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	gwIDs := []storage.TypeAndKey{}
+	gwIDs := storage.TKs{}
 	for _, gwID := range payload.GatewayIds {
-		gwIDs = append(gwIDs, storage.TypeAndKey{Key: string(gwID), Type: orc8r.MagmadGatewayType})
+		gwIDs = append(gwIDs, storage.TK{Key: string(gwID), Type: orc8r.MagmadGatewayType})
 	}
 
 	_, err := configurator.CreateEntity(
