@@ -12,7 +12,7 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, reopened, synchronize]
 
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-375f28a"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-6c6d62b"
 
 jobs:
   path_filter:
