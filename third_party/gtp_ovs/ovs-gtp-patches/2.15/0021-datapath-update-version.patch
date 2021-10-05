@@ -13,10 +13,10 @@ index ed5b127e5..d48ede187 100644
 +++ b/debian/changelog
 @@ -1,4 +1,4 @@
 -openvswitch (2.15.2-1) unstable; urgency=low
-+openvswitch (2.15.2-5) unstable; urgency=low
++openvswitch (2.15.2-6) unstable; urgency=low
     [ Open vSwitch team ]
     * New upstream version
- 
--- 
+
+--
 2.25.1
 
