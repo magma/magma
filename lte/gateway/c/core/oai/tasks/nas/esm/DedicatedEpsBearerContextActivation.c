@@ -575,7 +575,7 @@ static int dedicated_eps_bearer_activate(
      * Start T3485 retransmission timer
      */
     rc = esm_ebr_start_timer(
-        emm_context, ebi, msg_dup, 1000 * mme_config.nas_config.t3485_sec,
+        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_msec,
         dedicated_eps_bearer_activate_t3485_handler);
   }
   bdestroy_wrapper(&msg_dup);

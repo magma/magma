@@ -615,7 +615,7 @@ nas_emm_attach_proc_t* nas_new_attach_procedure(
   nas_emm_attach_proc_t* proc =
       (nas_emm_attach_proc_t*) emm_context->emm_procedures->emm_specific_proc;
 
-  proc->T3450.msec = 1000 * mme_config.nas_config.t3450_sec;
+  proc->T3450.msec = mme_config.nas_config.t3450_msec;
   proc->T3450.id  = NAS_TIMER_INACTIVE_ID;
 
   OAILOG_TRACE(LOG_NAS_EMM, "New EMM_SPEC_PROC_TYPE_ATTACH\n");
@@ -651,7 +651,7 @@ nas_emm_tau_proc_t* nas_new_tau_procedure(
   nas_emm_tau_proc_t* proc =
       (nas_emm_tau_proc_t*) emm_context->emm_procedures->emm_specific_proc;
 
-  proc->T3450.msec = 1000 * mme_config.nas_config.t3450_sec;
+  proc->T3450.msec = mme_config.nas_config.t3450_msec;
   proc->T3450.id  = NAS_TIMER_INACTIVE_ID;
 
   return proc;
@@ -704,7 +704,7 @@ nas_emm_ident_proc_t* nas_new_identification_procedure(
   ident_proc->emm_com_proc.emm_proc.type           = NAS_EMM_PROC_TYPE_COMMON;
   ident_proc->emm_com_proc.type                    = EMM_COMM_PROC_IDENT;
 
-  ident_proc->T3470.msec = 1000 * mme_config.nas_config.t3470_sec;
+  ident_proc->T3470.msec = mme_config.nas_config.t3470_msec;
   ident_proc->T3470.id  = NAS_TIMER_INACTIVE_ID;
 
   nas_emm_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));
@@ -735,7 +735,7 @@ nas_emm_auth_proc_t* nas_new_authentication_procedure(
   auth_proc->emm_com_proc.emm_proc.type           = NAS_EMM_PROC_TYPE_COMMON;
   auth_proc->emm_com_proc.type                    = EMM_COMM_PROC_AUTH;
 
-  auth_proc->T3460.msec = 1000 * mme_config.nas_config.t3460_sec;
+  auth_proc->T3460.msec = mme_config.nas_config.t3460_msec;
   auth_proc->T3460.id  = NAS_TIMER_INACTIVE_ID;
 
   nas_emm_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));
@@ -766,7 +766,7 @@ nas_emm_smc_proc_t* nas_new_smc_procedure(
   smc_proc->emm_com_proc.emm_proc.type           = NAS_EMM_PROC_TYPE_COMMON;
   smc_proc->emm_com_proc.type                    = EMM_COMM_PROC_SMC;
 
-  smc_proc->T3460.msec = 1000 * mme_config.nas_config.t3460_sec;
+  smc_proc->T3460.msec = mme_config.nas_config.t3460_msec;
   smc_proc->T3460.id  = NAS_TIMER_INACTIVE_ID;
 
   nas_emm_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));

@@ -137,5 +137,5 @@ void esm_init_context(struct esm_context_s* esm_context) {
       ue_mm_context->mme_ue_s1ap_id);
   memset(esm_context, 0, sizeof(*esm_context));
   esm_context->T3489.id  = NAS_TIMER_INACTIVE_ID;
-  esm_context->T3489.msec = 1000 * mme_config.nas_config.t3489_sec;
+  esm_context->T3489.msec = mme_config.nas_config.t3489_msec;
 }

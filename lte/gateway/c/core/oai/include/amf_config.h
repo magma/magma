@@ -82,14 +82,14 @@ typedef struct m5g_nas_config_s {
   uint8_t preferred_ciphering_algorithm[8];
   uint32_t t3402_min;
   uint32_t t3412_min;
-  uint32_t t3422_sec;
-  uint32_t t3450_sec;
-  uint32_t t3460_sec;
-  uint32_t t3470_sec;
-  uint32_t t3485_sec;
-  uint32_t t3486_sec;
-  uint32_t t3489_sec;
-  uint32_t t3495_sec;
+  uint32_t t3422_msec;
+  uint32_t t3450_msec;
+  uint32_t t3460_msec;
+  uint32_t t3470_msec;
+  uint32_t t3485_msec;
+  uint32_t t3486_msec;
+  uint32_t t3489_msec;
+  uint32_t t3495_msec;
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;

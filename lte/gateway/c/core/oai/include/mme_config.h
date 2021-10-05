@@ -307,14 +307,14 @@ typedef struct nas_config_s {
   uint8_t prefered_ciphering_algorithm[8];
   uint32_t t3402_min;
   uint32_t t3412_min;
-  uint32_t t3422_sec;
-  uint32_t t3450_sec;
-  uint32_t t3460_sec;
-  uint32_t t3470_sec;
-  uint32_t t3485_sec;
-  uint32_t t3486_sec;
-  uint32_t t3489_sec;
-  uint32_t t3495_sec;
+  uint32_t t3422_msec;
+  uint32_t t3450_msec;
+  uint32_t t3460_msec;
+  uint32_t t3470_msec;
+  uint32_t t3485_msec;
+  uint32_t t3486_msec;
+  uint32_t t3489_msec;
+  uint32_t t3495_msec;
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;
@@ -325,11 +325,11 @@ typedef struct nas_config_s {
 } nas_config_t;
 
 typedef struct sgs_config_s {
-  uint32_t ts6_1_sec;
-  uint32_t ts8_sec;
-  uint32_t ts9_sec;
-  uint32_t ts10_sec;
-  uint32_t ts13_sec;
+  uint32_t ts6_1_msec;
+  uint32_t ts8_msec;
+  uint32_t ts9_msec;
+  uint32_t ts10_msec;
+  uint32_t ts13_msec;
 } sgs_config_t;
 
 #define MME_CONFIG_MAX_SGW 16
