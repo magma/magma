@@ -1,7 +1,7 @@
-From 02b0c2107b1312cc559204cb74b1ee9ef7dd9e0a Mon Sep 17 00:00:00 2001
+From e22363a9d318240200a23732577561957718dc1e Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 00:58:18 -0800
-Subject: [PATCH 04/17] ovs: Add support to set GTP header fields.
+Subject: [PATCH 04/22] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
@@ -770,5 +770,5 @@ index 3dfd9675d..bf18a5e4c 100644
 +OVS_VSWITCHD_STOP
 +AT_CLEANUP
 -- 
-2.17.1
+2.25.1
 
