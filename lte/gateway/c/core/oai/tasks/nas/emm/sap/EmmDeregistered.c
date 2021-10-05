@@ -147,7 +147,7 @@ status_code_e EmmDeregistered(emm_reg_t* const evt) {
        * enter state EMM-DEREGISTERED.
        */
       rc = emm_fsm_set_state(evt->ue_id, emm_ctx, EMM_DEREGISTERED);
-      if (is_nas_attach_reject_sent(evt->u.attach.proc)) {
+      if ((evt->u.attach.proc) && (is_nas_attach_reject_sent(evt->u.attach.proc))) {
         break;
       }
       if ((emm_ctx) && (evt->u.attach.proc) &&
