@@ -1,7 +1,7 @@
-From ebec83fbe445bbf44879eab81de15475a43baaf5 Mon Sep 17 00:00:00 2001
+From 720d5e54161777e47f8dec570d622ee490903f4a Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 13 Aug 2021 07:15:40 +0000
-Subject: [PATCH 05/17] OVS: gtp echo handling
+Subject: [PATCH 05/22] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
@@ -1247,5 +1247,5 @@ index 000000000..aede93daf
 +    return 0;
 +}
 -- 
-2.17.1
+2.25.1
 

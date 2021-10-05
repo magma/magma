@@ -307,6 +307,9 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     cd / && \
     rm -rf freediameter
 
+##### Go language server support for vscode
+RUN go get -v golang.org/x/tools/gopls
+
 #### Update shared library configuration
 RUN ldconfig -v
 

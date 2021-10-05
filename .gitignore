@@ -84,6 +84,7 @@ orc8r/cloud/test-results/
 
 # IntelliJ
 .idea/
+*.iml
 
 # VS Code
 .vscode/

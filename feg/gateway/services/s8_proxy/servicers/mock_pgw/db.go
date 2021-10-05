@@ -137,7 +137,8 @@ func (mPgw *MockPgw) getHandleDeleteBearerResponse() gtpv2.HandlerFunc {
 		// collect bearer
 		var dCause uint8
 		var dEBI uint8
-		if brCtxIE := dbResFromSGW.BearerContexts; brCtxIE != nil {
+		// TODO: handle multiple bearers
+		if brCtxIE := dbResFromSGW.BearerContexts[0]; brCtxIE != nil {
 			for _, childIE := range brCtxIE.ChildIEs {
 				switch childIE.Type {
 				case ie.EPSBearerID:

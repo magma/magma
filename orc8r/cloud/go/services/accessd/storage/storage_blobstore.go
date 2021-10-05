@@ -183,7 +183,7 @@ func (a *accessdBlobstore) UpdateACLWithEntities(id *protos.Identity, entities [
 	}
 	defer store.Rollback()
 
-	blobRecvd, err := store.Get(placeholderNetworkID, storage.TypeAndKey{Type: AccessdDefaultType, Key: id.HashString()})
+	blobRecvd, err := store.Get(placeholderNetworkID, storage.TK{Type: AccessdDefaultType, Key: id.HashString()})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to get acl: %s", err)
 	}
@@ -229,8 +229,8 @@ func (a *accessdBlobstore) DeleteACL(id *protos.Identity) error {
 	}
 	defer store.Rollback()
 
-	tk := storage.TypeAndKey{Type: AccessdDefaultType, Key: id.HashString()}
-	err = store.Delete(placeholderNetworkID, []storage.TypeAndKey{tk})
+	tk := storage.TK{Type: AccessdDefaultType, Key: id.HashString()}
+	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to delete acl: %s", err)
 	}

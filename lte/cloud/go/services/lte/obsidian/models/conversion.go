@@ -202,17 +202,17 @@ func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 		Config:      m.Cellular,
 	}
 	for _, s := range m.ConnectedEnodebSerials {
-		cellularGateway.Associations = append(cellularGateway.Associations, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: s})
+		cellularGateway.Associations = append(cellularGateway.Associations, storage.TK{Type: lte.CellularEnodebEntityType, Key: s})
 	}
 	for _, r := range m.ApnResources {
-		cellularGateway.Associations = append(cellularGateway.Associations, storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: r.ID})
+		cellularGateway.Associations = append(cellularGateway.Associations, storage.TK{Type: lte.APNResourceEntityType, Key: r.ID})
 	}
 	writes = append(writes, cellularGateway)
 
 	linkGateways := configurator.EntityUpdateCriteria{
 		Type:              orc8r.MagmadGatewayType,
 		Key:               string(m.ID),
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}},
+		AssociationsToAdd: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}},
 	}
 	writes = append(writes, linkGateways)
 
@@ -229,15 +229,15 @@ func (m *MutableLteGateway) GetAdditionalLoadsOnLoad(gateway configurator.Networ
 
 func (m *MutableLteGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	var loads storage.TKs
-	loads = append(loads, storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(m.ID)})
+	loads = append(loads, storage.TK{Type: lte.CellularGatewayEntityType, Key: string(m.ID)})
 	loads = append(loads, m.ApnResources.ToTKs()...)
 	return loads
 }
 
-func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
+func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loadedEntities map[storage.TK]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error) {
 	var writes []configurator.EntityWriteOperation
 
-	existingGateway, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}]
+	existingGateway, ok := loadedEntities[storage.TK{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}]
 	if !ok {
 		return writes, merrors.ErrNotFound
 	}
@@ -261,7 +261,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loa
 		gatewayUpdate.NewDescription = swag.String(string(m.Description))
 	}
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		gatewayUpdate.AssociationsToSet = append(gatewayUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enbSerial})
+		gatewayUpdate.AssociationsToSet = append(gatewayUpdate.AssociationsToSet, storage.TK{Type: lte.CellularEnodebEntityType, Key: enbSerial})
 	}
 	writes = append(writes, gatewayUpdate)
 
@@ -273,8 +273,8 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(ctx context.Context, loa
 func (m *MutableLteGateway) getAPNResourceChanges(
 	ctx context.Context,
 	existingGateway configurator.NetworkEntity,
-	loaded map[storage.TypeAndKey]configurator.NetworkEntity,
-) ([]configurator.EntityWriteOperation, []storage.TypeAndKey, error) {
+	loaded map[storage.TK]configurator.NetworkEntity,
+) ([]configurator.EntityWriteOperation, storage.TKs, error) {
 	var writes []configurator.EntityWriteOperation
 
 	oldIDs := existingGateway.Associations.Filter(lte.APNResourceEntityType).Keys()
@@ -449,7 +449,7 @@ func (m *EnodebSerials) FromBackendModels(ctx context.Context, networkID string,
 func (m *EnodebSerials) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	enodebSerials := storage.TKs{}
 	for _, enodebSerial := range *m {
-		enodebSerials = append(enodebSerials, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enodebSerial})
+		enodebSerials = append(enodebSerials, storage.TK{Type: lte.CellularEnodebEntityType, Key: enodebSerial})
 	}
 	return []configurator.EntityUpdateCriteria{
 		{
@@ -463,14 +463,14 @@ func (m *EnodebSerials) ToUpdateCriteria(ctx context.Context, networkID string, 
 func (m *EnodebSerials) ToDeleteUpdateCriteria(networkID, gatewayID, enodebID string) configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type: lte.CellularGatewayEntityType, Key: gatewayID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enodebID}},
+		AssociationsToDelete: storage.TKs{{Type: lte.CellularEnodebEntityType, Key: enodebID}},
 	}
 }
 
 func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID string) configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type: lte.CellularGatewayEntityType, Key: gatewayID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enodebID}},
+		AssociationsToAdd: storage.TKs{{Type: lte.CellularEnodebEntityType, Key: enodebID}},
 	}
 }
 
@@ -568,8 +568,8 @@ func (m *ApnResources) ToProto() map[string]*protos.APNConfiguration_APNResource
 	return byAPN
 }
 
-func (m *ApnResource) ToTK() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: m.ID}
+func (m *ApnResource) ToTK() storage.TK {
+	return storage.TK{Type: lte.APNResourceEntityType, Key: m.ID}
 }
 
 func (m *ApnResource) ToEntity() configurator.NetworkEntity {
@@ -616,8 +616,8 @@ func (m *ApnResource) ToProto() *protos.APNConfiguration_APNResource {
 	return proto
 }
 
-func (m *ApnResource) getAssocs() []storage.TypeAndKey {
-	apnAssoc := []storage.TypeAndKey{{Type: lte.APNEntityType, Key: string(m.ApnName)}}
+func (m *ApnResource) getAssocs() storage.TKs {
+	apnAssoc := storage.TKs{{Type: lte.APNEntityType, Key: string(m.ApnName)}}
 	return apnAssoc
 }
 
@@ -637,9 +637,9 @@ func (m *CellularGatewayPool) FromBackendModels(ent configurator.NetworkEntity) 
 }
 
 func (m *CellularGatewayPool) ToEntity() configurator.NetworkEntity {
-	assocs := []storage.TypeAndKey{}
+	assocs := storage.TKs{}
 	for _, id := range m.GatewayIds {
-		tk := storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(id)}
+		tk := storage.TK{Type: lte.CellularGatewayEntityType, Key: string(id)}
 		assocs = append(assocs, tk)
 	}
 	ent := configurator.NetworkEntity{
@@ -663,10 +663,10 @@ func (m *CellularGatewayPool) ToEntityUpdateCriteria() configurator.EntityUpdate
 	return update
 }
 
-func (m *CellularGatewayPool) getAssocs() []storage.TypeAndKey {
-	assocs := []storage.TypeAndKey{}
+func (m *CellularGatewayPool) getAssocs() storage.TKs {
+	assocs := storage.TKs{}
 	for _, gwID := range m.GatewayIds {
-		gateway := storage.TypeAndKey{
+		gateway := storage.TK{
 			Type: lte.CellularGatewayEntityType,
 			Key:  string(gwID),
 		}
@@ -734,7 +734,7 @@ func (m *CellularGatewayPoolRecords) ToUpdateCriteria(ctx context.Context, netwo
 		deleteCurrentPoolAssoc := configurator.EntityUpdateCriteria{
 			Type:                 lte.CellularGatewayPoolEntityType,
 			Key:                  string(idToDelete),
-			AssociationsToDelete: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: gatewayID}},
+			AssociationsToDelete: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: gatewayID}},
 		}
 		updates = append(updates, deleteCurrentPoolAssoc)
 	}
@@ -742,7 +742,7 @@ func (m *CellularGatewayPoolRecords) ToUpdateCriteria(ctx context.Context, netwo
 		addNewPoolAssoc := configurator.EntityUpdateCriteria{
 			Type:              lte.CellularGatewayPoolEntityType,
 			Key:               string(idToAdd),
-			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: gatewayID}},
+			AssociationsToAdd: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: gatewayID}},
 		}
 		updates = append(updates, addNewPoolAssoc)
 	}

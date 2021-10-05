@@ -106,7 +106,7 @@ func TestCreateSubscriber(t *testing.T) {
 			StaticIps: payload.StaticIps,
 		},
 		GraphID:      "2",
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -387,7 +387,7 @@ func TestListSubscribers(t *testing.T) {
 				},
 				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
@@ -400,7 +400,7 @@ func TestListSubscribers(t *testing.T) {
 					SubProfile: "foo",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn1}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -616,7 +616,7 @@ func TestListSubscribersV2(t *testing.T) {
 				},
 				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
@@ -629,7 +629,7 @@ func TestListSubscribersV2(t *testing.T) {
 					SubProfile: "foo",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn1}},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI0987654322",
@@ -642,7 +642,7 @@ func TestListSubscribersV2(t *testing.T) {
 					SubProfile: "foo",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -864,7 +864,7 @@ func TestGetSubscriber(t *testing.T) {
 			},
 			StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1631,7 +1631,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				SubProfile: "default",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1669,7 +1669,7 @@ func TestUpdateSubscriber(t *testing.T) {
 		Config:       &subscriberModels.SubscriberConfig{Lte: payload.Lte, StaticIps: payload.StaticIps},
 		GraphID:      "2",
 		Version:      1,
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -1716,7 +1716,7 @@ func TestDeleteSubscriber(t *testing.T) {
 			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:    "ACTIVE",
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1765,7 +1765,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 				State:    "ACTIVE",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	_, err = configurator.CreateEntity(context.Background(), "n1", expected, serdes.Entity)
 	assert.NoError(t, err)
@@ -1854,7 +1854,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				SubProfile: "default",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1918,7 +1918,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 		GraphID:      "2",
 		Version:      1,
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -1949,7 +1949,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 		GraphID:      "2",
 		Version:      2,
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 }

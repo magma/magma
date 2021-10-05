@@ -73,8 +73,8 @@ type entStorage struct {
 	*ent.Tx
 }
 
-func (e *entStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
-	blobs, err := e.GetMany(networkID, []storage.TypeAndKey{id})
+func (e *entStorage) Get(networkID string, id storage.TK) (Blob, error) {
+	blobs, err := e.GetMany(networkID, storage.TKs{id})
 	if err != nil {
 		return Blob{}, err
 	}
@@ -84,7 +84,7 @@ func (e *entStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) 
 	return blobs[0], nil
 }
 
-func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error) {
+func (e *entStorage) GetMany(networkID string, ids storage.TKs) (Blobs, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -144,7 +144,7 @@ func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[str
 	return ret, nil
 }
 
-func (e *entStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
+func (e *entStorage) IncrementVersion(networkID string, id storage.TK) error {
 	ctx := context.Background()
 	switch _, err := e.Get(networkID, id); {
 	case err == magmaerrors.ErrNotFound:
@@ -165,7 +165,7 @@ func (e *entStorage) IncrementVersion(networkID string, id storage.TypeAndKey) e
 	}
 }
 
-func (e *entStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
+func (e *entStorage) Delete(networkID string, ids storage.TKs) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -183,7 +183,7 @@ func (e *entStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
 		return fmt.Errorf("error reading existing blobs: %s", err)
 	}
 	changeSet := partitionBlobsToCreateAndChange(blobs, existingBlobs)
-	for _, id := range getSortedTypeAndKeys(changeSet.blobsToChange) {
+	for _, id := range getSortedTKs(changeSet.blobsToChange) {
 		change := changeSet.blobsToChange[id]
 		version := change.old.Version + 1
 		if change.new.Version != 0 {
@@ -192,7 +192,7 @@ func (e *entStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
 		err := e.Blob.Update().
 			SetVersion(version).
 			SetValue(change.new.Value).
-			Where(P(networkID, []storage.TypeAndKey{id})).
+			Where(P(networkID, storage.TKs{id})).
 			Exec(ctx)
 		if err != nil {
 			return err
@@ -231,7 +231,7 @@ func (e *entStorage) GetExistingKeys(keys []string, filter SearchFilter) ([]stri
 		Strings(ctx)
 }
 
-func P(networkID string, ids []storage.TypeAndKey) predicate.Blob {
+func P(networkID string, ids storage.TKs) predicate.Blob {
 	preds := make([]predicate.Blob, 0, len(ids))
 	for _, id := range ids {
 		preds = append(preds, blob.And(blob.NetworkID(networkID), blob.Type(id.Type), blob.Key(id.Key)))

@@ -158,6 +158,11 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 	return service, nil
 }
 
+// SetPlmnIdFilter resets the service's PLMN ID filter from given PLMN ID list
+func (s *EapAkaSrv) SetPlmnIdFilter(plmnIds []string) {
+	s.plmnFilter = plmn_filter.GetPlmnVals(plmnIds, "EAP-AKA")
+}
+
 // CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
 // one the configured PLMN IDs matches passed IMSI
 func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {

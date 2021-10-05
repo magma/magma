@@ -159,12 +159,12 @@ func (s *TestControllerStore) isMinimumWaitTimeElapsed(timestamp int64, minimumW
 }
 
 func (s *TestControllerStore) get(networkID string) (string, int64, error) {
-	typeAndKey := storage.TypeAndKey{
+	tk := storage.TK{
 		Type: DBType,
 		Key:  "gateway_version",
 	}
 
-	blob, err := s.store.Get(networkID, typeAndKey)
+	blob, err := s.store.Get(networkID, tk)
 	if err != nil {
 		return "", 0, err
 	}
@@ -193,11 +193,11 @@ func (s *TestControllerStore) put(networkID string, version string, timestamp in
 }
 
 func (s *TestControllerStore) incrementVersion(networkID string) error {
-	typeAndKey := storage.TypeAndKey{
+	tk := storage.TK{
 		Type: DBType,
 		Key:  "gateway_version",
 	}
-	err := s.store.IncrementVersion(networkID, typeAndKey)
+	err := s.store.IncrementVersion(networkID, tk)
 	if err != nil {
 		return err
 	}

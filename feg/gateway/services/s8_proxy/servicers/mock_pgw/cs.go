@@ -117,8 +117,8 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		} else {
 			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
 		}
-
-		if brCtxIE := csReqFromSGW.BearerContextsToBeCreated; brCtxIE != nil {
+		// TODO: handle multiple bearers
+		if brCtxIE := csReqFromSGW.BearerContextsToBeCreated[0]; brCtxIE != nil {
 			for _, childIE := range brCtxIE.ChildIEs {
 				switch childIE.Type {
 				case ie.EPSBearerID:

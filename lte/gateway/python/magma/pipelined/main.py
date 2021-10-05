@@ -76,6 +76,12 @@ def main():
     enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
     service.config['enable_nat'] = enable_nat
     logging.info("Nat: %s", enable_nat)
+    enable5g_features = service.config.get(
+        'enable5g_features',
+        service.mconfig.enable5g_features,
+    )
+    service.config['enable5g_features'] = enable5g_features
+    logging.info("enable5g_features: %s", enable5g_features)
     vlan_tag = service.config.get(
         'sgi_management_iface_vlan',
         service.mconfig.sgi_management_iface_vlan,

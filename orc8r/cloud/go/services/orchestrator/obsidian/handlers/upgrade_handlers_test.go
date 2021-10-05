@@ -288,12 +288,12 @@ func Test_Tiers(t *testing.T) {
 	entities, _, err := configurator.LoadEntities(context.Background(), "n1", swag.String(orc8r.UpgradeTierEntityType), nil, nil, nil, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
+		storage.TK{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 			Name:         string(tier.Name),
 			Config:       tier,
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			GraphID:      "4",
 			Version:      0,
 		},
@@ -316,7 +316,7 @@ func Test_Tiers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entitiesToQuery := []storage.TypeAndKey{
+	entitiesToQuery := storage.TKs{
 		{Type: orc8r.MagmadGatewayType, Key: "g1"},
 		{Type: orc8r.MagmadGatewayType, Key: "g2"},
 		{Type: orc8r.UpgradeTierEntityType, Key: "tier1"},
@@ -324,27 +324,27 @@ func Test_Tiers(t *testing.T) {
 	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, entitiesToQuery, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
+		storage.TK{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 			Name:         string(tier.Name),
 			Config:       tier,
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g2"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g2"}},
 			GraphID:      "4",
 			Version:      1,
 		},
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
 			GraphID: "9",
 			Version: 0,
 		},
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g2"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g2"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g2",
 			GraphID:            "4",
 			Version:            0,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}},
 		},
 	}
 	assert.Equal(t, expected, entities.MakeByTK())
@@ -402,13 +402,13 @@ func Test_Tiers(t *testing.T) {
 	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, entitiesToQuery, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
 			GraphID: "9",
 			Version: 0,
 		},
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g2"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g2"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g2",
 			GraphID: "4",
@@ -440,7 +440,7 @@ func TestPartialTierReads(t *testing.T) {
 		Type: orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:         string(tier.Name),
 		Config:       tier,
-		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -535,7 +535,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type: orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:         string(tier.Name),
 		Config:       tier,
-		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -566,7 +566,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:         "new name 1",
 		Config:       tier,
-		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 		GraphID:      "2",
 		Version:      1,
 	}
@@ -592,7 +592,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:         "new name 1",
 		Config:       tier,
-		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 		GraphID:      "2",
 		Version:      2,
 	}
@@ -618,7 +618,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:         "new name 1",
 		Config:       tier,
-		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 		GraphID:      "2",
 		Version:      3,
 	}
@@ -643,7 +643,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:   "new name 1",
 		Config: tier,
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			{Type: orc8r.MagmadGatewayType, Key: "g2"},
 		},
@@ -672,7 +672,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:   "new name 1",
 		Config: tier,
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			{Type: orc8r.MagmadGatewayType, Key: "g2"},
 		},
@@ -712,7 +712,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:   "new name 1",
 		Config: tier,
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			{Type: orc8r.MagmadGatewayType, Key: "g2"},
 		},
@@ -753,7 +753,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:   "new name 1",
 		Config: tier,
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			{Type: orc8r.MagmadGatewayType, Key: "g2"},
 			{Type: orc8r.MagmadGatewayType, Key: "g3"},
@@ -781,7 +781,7 @@ func TestPartialTierUpdates(t *testing.T) {
 		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
 		Name:   "new name 1",
 		Config: tier,
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			{Type: orc8r.MagmadGatewayType, Key: "g2"},
 		},

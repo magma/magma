@@ -82,12 +82,12 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 }
 
 func doesSubscriberAndRulesExist(ctx context.Context, networkID string, subscriberID string, ruleIDs []string, baseNames []string) bool {
-	ids := []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: subscriberID}}
+	ids := storage.TKs{{Type: lte.SubscriberEntityType, Key: subscriberID}}
 	for _, ruleID := range ruleIDs {
-		ids = append(ids, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: ruleID})
+		ids = append(ids, storage.TK{Type: lte.PolicyRuleEntityType, Key: ruleID})
 	}
 	for _, baseName := range baseNames {
-		ids = append(ids, storage.TypeAndKey{Type: lte.BaseNameEntityType, Key: baseName})
+		ids = append(ids, storage.TK{Type: lte.BaseNameEntityType, Key: baseName})
 	}
 	exists, err := configurator.DoEntitiesExist(ctx, networkID, ids)
 	if err != nil {
@@ -100,7 +100,7 @@ func getRuleUpdateForEnable(ruleID string, subscriberID string) configurator.Ent
 	ret := configurator.EntityUpdateCriteria{
 		Type:              lte.SubscriberEntityType,
 		Key:               subscriberID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+		AssociationsToAdd: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 	}
 	return ret
 }
@@ -109,7 +109,7 @@ func getRuleUpdateForDisableRule(ruleID string, subscriberID string) configurato
 	ret := configurator.EntityUpdateCriteria{
 		Type:                 lte.SubscriberEntityType,
 		Key:                  subscriberID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+		AssociationsToDelete: storage.TKs{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 	}
 	return ret
 }
@@ -118,7 +118,7 @@ func getBaseNameUpdateForEnable(baseName string, subscriberID string) configurat
 	ret := configurator.EntityUpdateCriteria{
 		Type:              lte.SubscriberEntityType,
 		Key:               subscriberID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+		AssociationsToAdd: storage.TKs{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
 	return ret
 }
@@ -127,7 +127,7 @@ func getBaseNameUpdateForDisable(baseName string, subscriberID string) configura
 	ret := configurator.EntityUpdateCriteria{
 		Type:                 lte.SubscriberEntityType,
 		Key:                  subscriberID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+		AssociationsToDelete: storage.TKs{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
 	return ret
 }

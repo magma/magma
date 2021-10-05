@@ -60,7 +60,7 @@ func (d *directorydBlobstore) GetHostnameForHWID(hwid string) (string, error) {
 
 	blob, err := store.Get(
 		placeholderNetworkID,
-		storage.TypeAndKey{Type: DirectorydTypeHWIDToHostname, Key: hwid},
+		storage.TK{Type: DirectorydTypeHWIDToHostname, Key: hwid},
 	)
 	if err == merrors.ErrNotFound {
 		return "", err
@@ -97,7 +97,7 @@ func (d *directorydBlobstore) GetIMSIForSessionID(networkID, sessionID string) (
 
 	blob, err := store.Get(
 		networkID,
-		storage.TypeAndKey{Type: DirectorydTypeSessionIDToIMSI, Key: sessionID},
+		storage.TK{Type: DirectorydTypeSessionIDToIMSI, Key: sessionID},
 	)
 	if err == merrors.ErrNotFound {
 		return "", err
@@ -134,7 +134,7 @@ func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string
 
 	blob, err := store.Get(
 		networkID,
-		storage.TypeAndKey{Type: DirectorydTypeSgwCteidToHwid, Key: teid},
+		storage.TK{Type: DirectorydTypeSgwCteidToHwid, Key: teid},
 	)
 	if err == merrors.ErrNotFound {
 		return "", err

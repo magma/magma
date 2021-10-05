@@ -22,8 +22,7 @@ extern "C" {
 
 #include "assertions.h"
 #include "log.h"
-
-#include "sctp_defs.h"
+#include "mme_config.h"
 }
 
 #include <memory>  // for make_unique<>
@@ -110,8 +109,10 @@ constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
 std::unique_ptr<SctpdDownlinkClient> client = nullptr;
 
 int init_sctpd_downlink_client(bool force_restart) {
-  auto channel =
-      grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
+  std::string downstream_sctp_sock(
+      bstr2cstr(mme_config.sctp_config.downstream_sctp_sock, '\0'));
+  auto channel = grpc::CreateChannel(
+      downstream_sctp_sock, grpc::InsecureChannelCredentials());
   client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
   return 0;
 }
