@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sentry",
+    srcs = ["sentry.go"],
+    importpath = "github.com/magma/magma/src/go/trace/sentry",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/trace",
+        "@com_github_getsentry_sentry_go//:sentry-go",
+    ],
+)
+
+go_test(
+    name = "sentry_test",
+    srcs = ["sentry_test.go"],
+    embed = [":sentry"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

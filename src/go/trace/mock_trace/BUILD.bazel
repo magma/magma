@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mock_trace",
+    srcs = ["mock_trace.go"],
+    importpath = "github.com/magma/magma/src/go/trace/mock_trace",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/trace",
+        "@com_github_golang_mock//gomock",
+    ],
+)
