@@ -691,6 +691,43 @@ class UplinkBridgeTestNatIPAddr(unittest.TestCase):
         self.assertIn(cls.SGi_IP, get_iface_ipv4(cls.BRIDGE_ETH_PORT), "ip not found")
 
 
+class UplinkBridgeTestFlowRestore(unittest.TestCase):
+    BRIDGE = 'uplink_br0'
+    FLOWS_FILE = '/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/snapshots/ovs-restart-test1.txt'
+    OVS_RESET_CMD = '/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/magma-bridge-reset.sh'
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Starts the thread which launches ryu apps
+
+        Create a testing bridge, add a port, setup the port interfaces. Then
+        launch the ryu apps for testing pipelined. Gets the references
+        to apps launched by using futures.
+        """
+        super(UplinkBridgeTestFlowRestore, cls).setUpClass()
+        cls.service_manager = create_service_manager([])
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.BRIDGE)
+        cmd1 = ['ovs-ofctl', 'del-flows', cls.BRIDGE]
+        subprocess.check_call(cmd1)
+        cmd1 = ['ovs-ofctl', 'add-flows', cls.BRIDGE, cls.FLOWS_FILE]
+        subprocess.check_call(cmd1)
+
+    @classmethod
+    def tearDownClass(cls):
+        cmd1 = ['ovs-ofctl', 'del-flows', cls.BRIDGE]
+        subprocess.check_call(cmd1)
+
+    def test_flow_snapshot_match(self):
+        cls = self.__class__
+
+        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+        cmd1 = [cls.OVS_RESET_CMD, '-f', cls.BRIDGE]
+        subprocess.check_call(cmd1)
+        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+
+
 if __name__ == "__main__":
     unittest.main()
 

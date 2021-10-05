@@ -80,6 +80,10 @@
   copy: src=set_irq_affinity dest=/usr/local/bin/set_irq_affinity mode=751
   when: full_provision
 
+- name: Copy magma-bridge-reset.sh
+  copy: src=magma-bridge-reset.sh dest=/usr/local/bin/magma-bridge-reset.sh mode=751
+  when: full_provision
+
 - name: Add the sysctl config from the step before
   become: yes
   command: 'sysctl -p /etc/sysctl.d/99-magma.conf'
