@@ -110,34 +110,38 @@ void send_authentication_info_resp(const std::string& imsi, bool success) {
   return;
 }
 
-void send_s6a_ula(const std::string& imsi) {
+void send_s6a_ula(const std::string& imsi, bool success) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   s6a_update_location_ans_t* itti_msg =
       &message_p->ittiMsg.s6a_update_location_ans;
   strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
-  itti_msg->imsi_length        = imsi.size();
-  itti_msg->result.present     = S6A_RESULT_BASE;
-  itti_msg->result.choice.base = DIAMETER_SUCCESS;
-  magma::feg::UpdateLocationAnswer ula;
-  ula.set_default_context_id(0);
-  auto total_ambr = ula.mutable_total_ambr();
-  total_ambr->set_max_bandwidth_ul(100000000);
-  total_ambr->set_max_bandwidth_dl(200000000);
-  ula.set_all_apns_included(false);
-  magma::feg::UpdateLocationAnswer::APNConfiguration apnconfig;
-  apnconfig.set_context_id(0);
-  apnconfig.set_service_selection("magma.ipv4");
-  auto apn_qosprofile = apnconfig.mutable_qos_profile();
-  apn_qosprofile->set_class_id(9);
-  apn_qosprofile->set_priority_level(15);
-  auto apn_ambr = apnconfig.mutable_ambr();
-  apn_ambr->set_max_bandwidth_ul(10000000);
-  apn_ambr->set_max_bandwidth_dl(75000000);
-  apnconfig.set_pdn(magma::feg::UpdateLocationAnswer::APNConfiguration::IPV4);
-  auto apns = ula.mutable_apn();
-  apns->Add()->CopyFrom(apnconfig);
-  magma::convert_proto_msg_to_itti_s6a_update_location_ans(ula, itti_msg);
+  itti_msg->imsi_length    = imsi.size();
+  itti_msg->result.present = S6A_RESULT_BASE;
+  if (success) {
+    itti_msg->result.choice.base = DIAMETER_SUCCESS;
+    magma::feg::UpdateLocationAnswer ula;
+    ula.set_default_context_id(0);
+    auto total_ambr = ula.mutable_total_ambr();
+    total_ambr->set_max_bandwidth_ul(100000000);
+    total_ambr->set_max_bandwidth_dl(200000000);
+    ula.set_all_apns_included(false);
+    magma::feg::UpdateLocationAnswer::APNConfiguration apnconfig;
+    apnconfig.set_context_id(0);
+    apnconfig.set_service_selection("magma.ipv4");
+    auto apn_qosprofile = apnconfig.mutable_qos_profile();
+    apn_qosprofile->set_class_id(9);
+    apn_qosprofile->set_priority_level(15);
+    auto apn_ambr = apnconfig.mutable_ambr();
+    apn_ambr->set_max_bandwidth_ul(10000000);
+    apn_ambr->set_max_bandwidth_dl(75000000);
+    apnconfig.set_pdn(magma::feg::UpdateLocationAnswer::APNConfiguration::IPV4);
+    auto apns = ula.mutable_apn();
+    apns->Add()->CopyFrom(apnconfig);
+    magma::convert_proto_msg_to_itti_s6a_update_location_ans(ula, itti_msg);
+  } else {
+    itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
+  }
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

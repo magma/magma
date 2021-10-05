@@ -1,7 +1,7 @@
-From 18aec0382d3b2e47d482d3f5fc6e8bc0b993f8ff Mon Sep 17 00:00:00 2001
+From 7b4b38b176a86346784ae286a879c44283057b25 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Tue, 21 Sep 2021 22:26:20 +0000
-Subject: [PATCH 20/21] datapath: fix gso length
+Subject: [PATCH 20/22] datapath: fix gso length
 
 In some cases GSO lngth is not calculated in case
 of TSO.

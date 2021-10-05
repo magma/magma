@@ -1,10 +1,10 @@
 # Integrating Bazel into VSCode
 
-**Prerequisite**: Follow [Setting Up VSCode For Magma VM](./VSCodeSetup.md) on setting up a Remote SSH workspace.
+**Prerequisite**: If you wish to work with the Magma VM, go through [Setting Up VSCode For Magma VM](./VSCodeSetup.md) on setting up a Remote SSH workspace. For GitHub Codespaces, all extensions and settings are ready to go. 
 
 ## Build and test all targets
 
-Run **Command+Shift+B** to trigger the default build configuration. In this workspace, that is set as `bazel build --config=vm ...`.
+Run **Command+Shift+B** to trigger the default build configuration. In the Remote SSH workspace, it is set as `bazel build --config=vm ...`. In GitHub codespaces, it is set as `bazel build --config=devcontainer ...`.
 
 ## Build specific targets and unit tests via codelens
 
