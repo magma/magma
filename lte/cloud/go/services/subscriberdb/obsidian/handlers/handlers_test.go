@@ -48,180 +48,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 )
 
-func TestCreateSubscriber(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
-	assert.NoError(t, err)
-
-	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
-	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
-
-	//preseed 2 apns
-	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
-		{Type: lte.APNEntityType, Key: apn1},
-		{Type: lte.APNEntityType, Key: apn2},
-	}, serdes.Entity)
-	assert.NoError(t, err)
-
-	// default sub profile should always succeed
-	payload := &subscriberModels.MutableSubscriber{
-		ID:   "IMSI1234567890",
-		Name: "Jane Doe",
-		Lte: &subscriberModels.LteSubscription{
-			AuthAlgo:   "MILENAGE",
-			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			State:      "ACTIVE",
-			SubProfile: "default",
-		},
-		StaticIps: subscriberModels.SubscriberStaticIps{
-			apn1: "192.168.100.1",
-		},
-		ActiveApns: subscriberModels.ApnList{apn2, apn1},
-	}
-	tc := tests.Test{
-		Method:         "POST",
-		URL:            testURLRoot,
-		Payload:        payload,
-		Handler:        createSubscriber,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 201,
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
-	assert.NoError(t, err)
-	expected := configurator.NetworkEntity{
-		NetworkID: "n1",
-		Type:      lte.SubscriberEntityType,
-		Key:       "IMSI1234567890",
-		Name:      "Jane Doe",
-		Config: &subscriberModels.SubscriberConfig{
-			Lte:       payload.Lte,
-			StaticIps: payload.StaticIps,
-		},
-		GraphID:      "2",
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
-	}
-	assert.Equal(t, expected, actual)
-
-	// no cellular config on network and a non-default sub profile should be 500
-	payload = &subscriberModels.MutableSubscriber{
-		ID: "IMSI0987654321",
-		Lte: &subscriberModels.LteSubscription{
-			AuthAlgo:   "MILENAGE",
-			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			State:      "ACTIVE",
-			SubProfile: "foo",
-		},
-		ActiveApns: subscriberModels.ApnList{apn2, apn1},
-	}
-	tc = tests.Test{
-		Method:         "POST",
-		URL:            testURLRoot,
-		Payload:        payload,
-		Handler:        createSubscriber,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 400,
-		ExpectedError:  "no cellular config found for network",
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	_, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI0987654321", configurator.FullEntityLoadCriteria(), serdes.Entity)
-	assert.EqualError(t, err, "Not found")
-
-	// nonexistent sub profile should be 400
-	err = configurator.UpdateNetworkConfig(context.Background(), "n1", lte.CellularNetworkConfigType, &lteModels.NetworkCellularConfigs{
-		Epc: &lteModels.NetworkEpcConfigs{
-			SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
-				"blah": {
-					MaxDlBitRate: 100,
-					MaxUlBitRate: 100,
-				},
-			},
-		},
-	}, serdes.Network)
-	assert.NoError(t, err)
-	payload = &subscriberModels.MutableSubscriber{
-		ID: "IMSI0987654321",
-		Lte: &subscriberModels.LteSubscription{
-			AuthAlgo:   "MILENAGE",
-			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			State:      "ACTIVE",
-			SubProfile: "foo",
-		},
-		ActiveApns: subscriberModels.ApnList{apn2, apn1},
-	}
-	tc = tests.Test{
-		Method:                 "POST",
-		URL:                    testURLRoot,
-		Payload:                payload,
-		Handler:                createSubscriber,
-		ParamNames:             []string{"network_id"},
-		ParamValues:            []string{"n1"},
-		ExpectedStatus:         400,
-		ExpectedErrorSubstring: "subscriber profile 'foo' does not exist for the network",
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	// other validation failure
-	tc = tests.Test{
-		Method: "POST",
-		URL:    testURLRoot,
-		Payload: &subscriberModels.Subscriber{
-			ID: "IMSI1234567898",
-			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: "default",
-			},
-			ActiveApns: subscriberModels.ApnList{apn2, apn1},
-		},
-		Handler:        createSubscriber,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 400,
-		ExpectedError:  "expected lte auth key to be 16 bytes but got 15 bytes",
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	// Can't assign static IP for inactive APN
-	tc = tests.Test{
-		Method: "POST",
-		URL:    testURLRoot,
-		Payload: &subscriberModels.MutableSubscriber{
-			ID: "IMSI1234567898",
-			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: "default",
-			},
-			StaticIps: subscriberModels.SubscriberStaticIps{
-				"asdf": "192.168.100.1",
-			},
-			ActiveApns: subscriberModels.ApnList{apn2, apn1},
-		},
-		Handler:        createSubscriber,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 400,
-		ExpectedError:  "static IP assigned to APN asdf which is not active for the subscriber",
-	}
-	tests.RunUnitTest(t, e, tc)
-}
-
 func TestCreateSubscribers(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -342,232 +168,6 @@ func TestCreateSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-}
-
-func TestListSubscribers(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	deviceTestInit.StartTestService(t)
-	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
-	assert.NoError(t, err)
-
-	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
-	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
-
-	//preseed 2 apns
-	apn1, apn2 := "foo", "bar"
-	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
-		{Type: lte.APNEntityType, Key: apn1},
-		{Type: lte.APNEntityType, Key: apn2},
-	}, serdes.Entity)
-	assert.NoError(t, err)
-
-	tc := tests.Test{
-		Method:         "GET",
-		URL:            testURLRoot,
-		Handler:        listSubscribers,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
-		{
-			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo: "MILENAGE",
-					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:    "ACTIVE",
-				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
-			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
-		},
-		{
-			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					State:      "ACTIVE",
-					SubProfile: "foo",
-				},
-			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
-		},
-	}, serdes.Entity)
-	assert.NoError(t, err)
-
-	tc = tests.Test{
-		Method:         "GET",
-		URL:            testURLRoot,
-		Handler:        listSubscribers,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
-			"IMSI1234567890": {
-				ID: "IMSI1234567890",
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
-				},
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						State:      "ACTIVE",
-						SubProfile: "default",
-					},
-					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
-				},
-				ActiveApns: subscriberModels.ApnList{apn2, apn1},
-			},
-			"IMSI0987654321": {
-				ID: "IMSI0987654321",
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					State:      "ACTIVE",
-					SubProfile: "foo",
-				},
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						State:      "ACTIVE",
-						SubProfile: "foo",
-					},
-				},
-				ActiveApns: subscriberModels.ApnList{apn1},
-			},
-		}),
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	// Now create some AGW-reported state for 1234567890
-	// First we need to register a gateway which can report state
-	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"}, serdes.Entity)
-	assert.NoError(t, err)
-	frozenClock := int64(1000000)
-	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	defer clock.UnfreezeClock(t)
-
-	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
-	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
-	mmeState := state.ArbitraryJSON{"mme": "foo"}
-	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.State)
-	spgwState := state.ArbitraryJSON{"spgw": "foo"}
-	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.State)
-	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
-	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.State)
-	// Report 2 allocated IP addresses for the subscriber
-	mobilitydState1 := state.ArbitraryJSON{
-		"ip": map[string]interface{}{
-			"address": "wKiArg==",
-		},
-	}
-	mobilitydState2 := state.ArbitraryJSON{
-		"ip": map[string]interface{}{
-			"address": "wKiAhg==",
-		},
-	}
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.State)
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.State)
-	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
-	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.State)
-
-	tc = tests.Test{
-		Method:         "GET",
-		URL:            testURLRoot,
-		Handler:        listSubscribers,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
-			"IMSI1234567890": {
-				ID: "IMSI1234567890",
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
-				},
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						State:      "ACTIVE",
-						SubProfile: "default",
-					},
-					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
-				},
-				ActiveApns: subscriberModels.ApnList{apn2, apn1},
-				Monitoring: &subscriberModels.SubscriberStatus{
-					Icmp: &subscriberModels.IcmpStatus{
-						// LastReportedTime is calculated in milliseconds
-						LastReportedTime: frozenClock * 1000,
-						LatencyMs:        f32Ptr(12.34),
-					},
-				},
-				State: &subscriberModels.SubscriberState{
-					Mme:  mmeState,
-					S1ap: s1apState,
-					Spgw: spgwState,
-					Mobility: []*subscriberModels.SubscriberIPAllocation{
-						{
-							Apn: "magma.apn",
-							IP:  "192.168.128.134",
-						},
-						{
-							Apn: "oai.ipv4",
-							IP:  "192.168.128.174",
-						},
-					},
-					Directory: &subscriberModels.SubscriberDirectoryRecord{
-						LocationHistory: []string{"foo", "bar"},
-					},
-				},
-			},
-			"IMSI0987654321": {
-				ID: "IMSI0987654321",
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					State:      "ACTIVE",
-					SubProfile: "foo",
-				},
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						State:      "ACTIVE",
-						SubProfile: "foo",
-					},
-				},
-				ActiveApns: subscriberModels.ApnList{apn1},
-			},
-		}),
-	}
-	tests.RunUnitTest(t, e, tc)
 }
 
 func TestListSubscribersV2(t *testing.T) {
@@ -1290,7 +890,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	e := echo.New()
 	subscriberdbHandlers := handlers.GetHandlers()
 
-	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	subURLBase := "/magma/v1/lte/:network_id/subscribers_v2"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
 
 	msisdnURLBase := "/magma/v1/lte/:network_id/msisdns"
@@ -1299,6 +899,8 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	postMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.POST).HandlerFunc
 	getMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.GET).HandlerFunc
 	deleteMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.DELETE).HandlerFunc
+	expectedTotalCount := int64(0)
+	expectedResult := subscriberModels.PaginatedSubscribers{TotalCount: expectedTotalCount, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
 
 	// MSISDNs initially empty
 	tc := tests.Test{
@@ -1320,7 +922,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+		ExpectedResult: tests.JSONMarshaler(expectedResult),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1444,7 +1046,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	e := echo.New()
 	subscriberdbHandlers := handlers.GetHandlers()
 
-	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	subURLBase := "/magma/v1/lte/:network_id/subscribers_v2"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
 
 	// List one => none found
@@ -1969,10 +1571,11 @@ func TestSubscriberBasename(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 
 	imsi := "IMSI1234567890"
@@ -1983,12 +1586,12 @@ func TestSubscriberBasename(t *testing.T) {
 	tc := tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX" ]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1997,7 +1600,7 @@ func TestSubscriberBasename(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2006,6 +1609,9 @@ func TestSubscriberBasename(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted subscriber found
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2013,7 +1619,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2045,6 +1651,9 @@ func TestSubscriberBasename(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, updated subscriber matches the expected value
+	expected = subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2052,7 +1661,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -2073,10 +1682,11 @@ func TestSubscriberPolicy(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 
 	imsi := "IMSI1234567890"
@@ -2087,12 +1697,12 @@ func TestSubscriberPolicy(t *testing.T) {
 	tc := tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"policy" key:"ruleXXX" ]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2101,7 +1711,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2110,6 +1720,9 @@ func TestSubscriberPolicy(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted subscriber found
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2117,7 +1730,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2149,6 +1762,9 @@ func TestSubscriberPolicy(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, updated subscriber matches the expected value
+	expected = subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2156,7 +1772,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -2177,10 +1793,11 @@ func TestAPNPolicyProfile(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.GET).HandlerFunc
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.DELETE).HandlerFunc
@@ -2216,7 +1833,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tc = tests.Test{
 			Method:         "POST",
 			URL:            "/magma/v1/lte/n0/subscribers",
-			Payload:        mutableSub,
+			Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 			Handler:        postSubscriber,
 			ParamNames:     []string{"network_id"},
 			ParamValues:    []string{"n0"},
@@ -2285,6 +1902,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	})
 
 	// Get all, initially empty
+	emptySub := subscriberModels.PaginatedSubscribers{TotalCount: 0, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2292,7 +1910,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]subscriberModels.Subscriber{}),
+		ExpectedResult: tests.JSONMarshaler(emptySub),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2301,7 +1919,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
@@ -2315,7 +1933,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:                 "POST",
 		URL:                    "/magma/v1/lte/n0/subscribers",
-		Payload:                mutableSub,
+		Payload:                tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:                postSubscriber,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
@@ -2331,7 +1949,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2345,6 +1963,9 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 1)
 
 	// Get all, posted subscriber found
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		imsi: mutableSub.ToSubscriber(),
+	}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2352,7 +1973,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+		ExpectedResult: tests.JSONMarshaler(expected),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2464,7 +2085,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
@@ -2555,7 +2176,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/subscribers",
-		Payload:        mutableSub1,
+		Payload:        tests.JSONMarshaler(subscriberModels.MutableSubscribers{mutableSub1}),
 		Handler:        postSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},

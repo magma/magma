@@ -68,10 +68,8 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler},
 		{Path: ListSubscribersV2Path, Methods: obsidian.GET, HandlerFunc: listSubscribersV2Handler},
 		{Path: ListSubscribersV2Path, Methods: obsidian.POST, HandlerFunc: createSubscribersV2Handler},
-		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler},
@@ -130,59 +128,6 @@ var allSubscriberStateTypes = append(subscriberStateTypesKeyedByIMSI, subscriber
 type subscriberFilter func(sub *subscribermodels.Subscriber) bool
 
 func acceptAll(*subscribermodels.Subscriber) bool { return true }
-
-// listSubscribersHandler handles the base subscriber endpoint.
-// The returned subscribers can be filtered using the following query
-// parameters
-//	- msisdn
-//	- ip
-//
-// The MSISDN parameter is config-based, and is enforced to be a unique
-// identifier.
-//
-// The IP parameter is state-based, and not guaranteed to be unique. The
-// IP->IMSI mapping is cached as the output of a mobilityd state indexer, then
-// each reported subscriber is checked to ensure it actually is assigned the
-// requested IP.
-func listSubscribersHandler(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	// First check for query params to filter by
-	reqCtx := c.Request().Context()
-	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
-		if err != nil {
-			return makeErr(err)
-		}
-		subs, err := loadSubscribers(reqCtx, networkID, acceptAll, queryIMSI)
-		if err != nil {
-			return makeErr(err)
-		}
-		return c.JSON(http.StatusOK, subs)
-	}
-	if ip := c.QueryParam(ParamIP); ip != "" {
-		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
-		if err != nil {
-			return makeErr(err)
-		}
-		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
-		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
-		if err != nil {
-			return makeErr(err)
-		}
-		return c.JSON(http.StatusOK, subs)
-	}
-
-	// No pagination is used for the v1 endpoint, so load the max page size
-	subs, _, err := loadSubscriberPage(reqCtx, networkID, 0, "")
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, subs)
-}
 
 // listSubscribersV2Handler handles version 2 of the subscriber endpoint.
 // The returned subscribers can be filtered using the following query
