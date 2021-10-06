@@ -235,7 +235,7 @@ func TestCreateSubscribers(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/subscribers_v2"
+	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
 	handlers := handlers.GetHandlers()
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
@@ -262,10 +262,14 @@ func TestCreateSubscribers(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
-	expected := subscriberModels.PaginatedSubscribers{TotalCount: 2, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
-		"IMSI0000000000": sub0.ToSubscriber(),
-		"IMSI0000000001": sub1.ToSubscriber(),
-	}}
+	expected := subscriberModels.PaginatedSubscribers{
+		TotalCount:    2,
+		NextPageToken: "",
+		Subscribers: map[string]*subscriberModels.Subscriber{
+			"IMSI0000000000": sub0.ToSubscriber(),
+			"IMSI0000000001": sub1.ToSubscriber(),
+		},
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -345,6 +349,7 @@ func TestCreateSubscribers(t *testing.T) {
 }
 
 func TestListSubscribers(t *testing.T) {
+<<<<<<< HEAD
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -571,6 +576,8 @@ func TestListSubscribers(t *testing.T) {
 }
 
 func TestListSubscribersV2(t *testing.T) {
+=======
+>>>>>>> fa200c6f4 (replaced listSubscribers v2 handler)
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -578,7 +585,7 @@ func TestListSubscribersV2(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/subscribers_v2"
+	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
 	handlers := handlers.GetHandlers()
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -589,8 +596,11 @@ func TestListSubscribersV2(t *testing.T) {
 		{Type: lte.APNEntityType, Key: apn2},
 	}, serdes.Entity)
 	assert.NoError(t, err)
-	expectedTotalCount := int64(0)
-	expectedResult := subscriberModels.PaginatedSubscribers{TotalCount: expectedTotalCount, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
+	expectedResult := subscriberModels.PaginatedSubscribers{
+		TotalCount:    int64(0),
+		NextPageToken: "",
+		Subscribers:   map[string]*subscriberModels.Subscriber{},
+	}
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -1001,7 +1011,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 
 	e := echo.New()
 	getSubscriberURL := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	createSubscribersURL := "/magma/v1/lte/:network_id/subscribers_v2"
+	createSubscribersURL := "/magma/v1/lte/:network_id/subscribers"
 	handlers := handlers.GetHandlers()
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, getSubscriberURL, obsidian.GET).HandlerFunc
 	createSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, createSubscribersURL, obsidian.POST).HandlerFunc
@@ -1290,7 +1300,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	e := echo.New()
 	subscriberdbHandlers := handlers.GetHandlers()
 
-	subURLBase := "/magma/v1/lte/:network_id/subscribers_v2"
+	subURLBase := "/magma/v1/lte/:network_id/subscribers"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
 
 	msisdnURLBase := "/magma/v1/lte/:network_id/msisdns"
@@ -1299,8 +1309,6 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	postMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.POST).HandlerFunc
 	getMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.GET).HandlerFunc
 	deleteMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.DELETE).HandlerFunc
-	expectedTotalCount := int64(0)
-	expectedResult := subscriberModels.PaginatedSubscribers{TotalCount: expectedTotalCount, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
 
 	// MSISDNs initially empty
 	tc := tests.Test{
@@ -1315,6 +1323,11 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// List all => empty
+	emptyPaginatedSub := subscriberModels.PaginatedSubscribers{
+		TotalCount:    int64(0),
+		NextPageToken: "",
+		Subscribers:   map[string]*subscriberModels.Subscriber{},
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            subURLBase,
@@ -1322,7 +1335,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(expectedResult),
+		ExpectedResult: tests.JSONMarshaler(emptyPaginatedSub),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1446,7 +1459,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	e := echo.New()
 	subscriberdbHandlers := handlers.GetHandlers()
 
-	subURLBase := "/magma/v1/lte/:network_id/subscribers_v2"
+	subURLBase := "/magma/v1/lte/:network_id/subscribers"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
 
 	// List one => none found
@@ -1971,11 +1984,10 @@ func TestSubscriberBasename(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
-	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 
 	imsi := "IMSI1234567890"
@@ -2009,9 +2021,13 @@ func TestSubscriberBasename(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted subscriber found
-	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
-		imsi: mutableSub.ToSubscriber(),
-	}}
+	expected := subscriberModels.PaginatedSubscribers{
+		TotalCount:    1,
+		NextPageToken: "",
+		Subscribers: map[string]*subscriberModels.Subscriber{
+			imsi: mutableSub.ToSubscriber(),
+		},
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2051,9 +2067,13 @@ func TestSubscriberBasename(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, updated subscriber matches the expected value
-	expected = subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
-		imsi: mutableSub.ToSubscriber(),
-	}}
+	expected = subscriberModels.PaginatedSubscribers{
+		TotalCount:    1,
+		NextPageToken: "",
+		Subscribers: map[string]*subscriberModels.Subscriber{
+			imsi: mutableSub.ToSubscriber(),
+		},
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2082,11 +2102,10 @@ func TestSubscriberPolicy(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
-	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 
 	imsi := "IMSI1234567890"
@@ -2120,9 +2139,13 @@ func TestSubscriberPolicy(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted subscriber found
-	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
-		imsi: mutableSub.ToSubscriber(),
-	}}
+	expected := subscriberModels.PaginatedSubscribers{
+		TotalCount:    1,
+		NextPageToken: "",
+		Subscribers: map[string]*subscriberModels.Subscriber{
+			imsi: mutableSub.ToSubscriber(),
+		},
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2162,9 +2185,12 @@ func TestSubscriberPolicy(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, updated subscriber matches the expected value
-	expected = subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
-		imsi: mutableSub.ToSubscriber(),
-	}}
+	expected = subscriberModels.PaginatedSubscribers{
+		TotalCount:    1,
+		NextPageToken: "",
+		Subscribers: map[string]*subscriberModels.Subscriber{
+			imsi: mutableSub.ToSubscriber(),
+		}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2193,11 +2219,10 @@ func TestAPNPolicyProfile(t *testing.T) {
 
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
-	urlBaseV2 := "/magma/v1/lte/:network_id/subscribers_v2"
 	urlManage := urlBase + "/:subscriber_id"
 	subscriberdbHandlers := handlers.GetHandlers()
-	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.GET).HandlerFunc
-	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBaseV2, obsidian.POST).HandlerFunc
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.GET).HandlerFunc
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.DELETE).HandlerFunc
@@ -2302,7 +2327,11 @@ func TestAPNPolicyProfile(t *testing.T) {
 	})
 
 	// Get all, initially empty
-	emptySub := subscriberModels.PaginatedSubscribers{TotalCount: 0, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
+	emptySub := subscriberModels.PaginatedSubscribers{
+		TotalCount:    0,
+		NextPageToken: "",
+		Subscribers:   map[string]*subscriberModels.Subscriber{},
+	}
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -2363,9 +2392,13 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 1)
 
 	// Get all, posted subscriber found
-	expected := subscriberModels.PaginatedSubscribers{TotalCount: 1, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
-		imsi: mutableSub.ToSubscriber(),
-	}}
+	expected := subscriberModels.PaginatedSubscribers{
+		TotalCount:    1,
+		NextPageToken: "",
+		Subscribers: map[string]*subscriberModels.Subscriber{
+			imsi: mutableSub.ToSubscriber(),
+		},
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
