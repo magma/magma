@@ -56,11 +56,11 @@ typedef struct pgw_ni_cbr_proc_s {
       pending_eps_bearers;
 } pgw_ni_cbr_proc_t;
 
-void pgw_delete_procedures(s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+void delete_pending_procedures(sgw_eps_bearer_context_information_t* ctx_p);
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+    sgw_eps_bearer_context_information_t* const ctx_p);
 pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+    sgw_eps_bearer_context_information_t* const ctx_p);
 void pgw_delete_procedure_create_bearer(
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
 void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc);

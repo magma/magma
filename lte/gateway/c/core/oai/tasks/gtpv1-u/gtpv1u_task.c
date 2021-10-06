@@ -42,7 +42,7 @@ static struct in_addr current_ue_net;
 static int current_ue_net_mask;
 
 //------------------------------------------------------------------------------
-static void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
+void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
   if (ue_net.s_addr == htonl(INADDR_ANY) || mask == 0) {
     return;
   }

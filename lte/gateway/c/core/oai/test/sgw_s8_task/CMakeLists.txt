@@ -18,7 +18,9 @@ include_directories("${PROJECT_SOURCE_DIR}/tasks/sgw_s8")
 
 set(SGW_S8_TEST_CONFIG_SRC
     sgw_s8_test.cpp
+    sgw_s8_utility.cpp
     sgw_csr.cpp
+    sgw_dedicated_bearer.cpp
     )
 
 add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC})

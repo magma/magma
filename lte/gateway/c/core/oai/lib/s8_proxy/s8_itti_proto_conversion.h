@@ -11,11 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// WARNING: Do not include this header directly. Use intertask_interface.h
-// instead.
-MESSAGE_DEF(
-    S8_CREATE_SESSION_RSP, s8_create_session_response_t, s8_create_session_rsp)
-MESSAGE_DEF(
-    S8_DELETE_SESSION_RSP, s8_delete_session_response_t, s8_delete_session_rsp)
-MESSAGE_DEF(
-    S8_CREATE_BEARER_REQ, s8_create_bearer_request_t, s8_create_bearer_req)
+#pragma once
+#include "feg/protos/s8_proxy.grpc.pb.h"
+#include "s8_messages_types.h"
+
+void get_pco_from_proto_msg(
+    const magma::feg::ProtocolConfigurationOptions& proto_pco,
+    protocol_configuration_options_t* s8_pco);
+
+void get_qos_from_proto_msg(
+    const magma::feg::QosInformation& proto_qos, bearer_qos_t* bearer_qos);
+
+void get_fteid_from_proto_msg(
+    const magma::feg::Fteid& proto_fteid, fteid_t* pgw_fteid);

@@ -72,14 +72,6 @@ extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
-static void handle_failed_create_bearer_response(
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
-    gtpv2c_cause_value_t cause, imsi64_t imsi64,
-    bearer_context_within_create_bearer_response_t* bearer_context);
-static void generate_dl_flow(
-    packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
-    struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
-
 static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64);
@@ -1531,8 +1523,9 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         "\n",
         s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_create_bearer_response(
-        spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        &bearer_context);
+        &spgw_context->sgw_eps_bearer_context_information,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
+        LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
 
@@ -1543,7 +1536,8 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
   // EPS bearer entry
   //--------------------------------------
   // TODO multiple bearers
-  pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
+  pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
+      &spgw_context->sgw_eps_bearer_context_information);
 
   if (!pgw_ni_cbr_proc) {
     OAILOG_ERROR_UE(
@@ -1553,8 +1547,9 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         "did not create new EPS bearer entry for EBI %u\n",
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
-        spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        &bearer_context);
+        &spgw_context->sgw_eps_bearer_context_information,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
+        LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   // If UE did not accept the request send reject to NW
@@ -1565,8 +1560,9 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         "UE rejected the request for EBI %u\n",
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
-        spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        &bearer_context);
+        &spgw_context->sgw_eps_bearer_context_information,
+        s11_actv_bearer_rsp->cause.cause_value, imsi64, &bearer_context, NULL,
+        LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
 
@@ -1919,19 +1915,20 @@ bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
-static void handle_failed_create_bearer_response(
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
+void handle_failed_create_bearer_response(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
     gtpv2c_cause_value_t cause, imsi64_t imsi64,
-    bearer_context_within_create_bearer_response_t* bearer_context) {
-  OAILOG_FUNC_IN(LOG_SPGW_APP);
+    bearer_context_within_create_bearer_response_t* bearer_context,
+    sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module) {
+  OAILOG_FUNC_IN(module);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
-  ebi_t default_bearer_id = spgw_context->sgw_eps_bearer_context_information
-                                .pdn_connection.default_bearer;
+  ebi_t default_bearer_id = 0;
 
-  if (spgw_context) {
-    pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
+  if (sgw_context_p) {
+    default_bearer_id = sgw_context_p->pdn_connection.default_bearer;
+    pgw_ni_cbr_proc   = pgw_get_procedure_create_bearer(sgw_context_p);
     if (((pgw_ni_cbr_proc) &&
          (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
       sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
@@ -1939,12 +1936,22 @@ static void handle_failed_create_bearer_response(
         if (bearer_context->s1u_sgw_fteid.teid ==
             sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                 ->s_gw_teid_S1u_S12_S4_up) {
-          strcpy(
-              policy_rule_name,
-              sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
+          if (module == LOG_SPGW_APP) {
+            snprintf(
+                policy_rule_name, POLICY_RULE_NAME_MAXLEN + 1, "%s",
+                sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
+          }
+          if (dedicated_bearer_ctxt_p) {
+            memcpy(
+                dedicated_bearer_ctxt_p,
+                sgw_eps_bearer_entry_p->sgw_eps_bearer_entry,
+                sizeof(sgw_eps_bearer_ctxt_t));
+          }
           // Remove the temporary spgw entry
           LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
+            free_wrapper((void**) &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
+                             ->pgw_cp_ip_port);
             free_wrapper(
                 (void**) &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
           }
@@ -1956,29 +1963,29 @@ static void handle_failed_create_bearer_response(
       if (pgw_ni_cbr_proc &&
           (LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers))) {
         pgw_base_proc_t* base_proc1 =
-            LIST_FIRST(spgw_context->sgw_eps_bearer_context_information
-                           .pending_procedures);
+            LIST_FIRST(sgw_context_p->pending_procedures);
         LIST_REMOVE(base_proc1, entries);
-        free_wrapper((void**) &spgw_context->sgw_eps_bearer_context_information
-                         .pending_procedures);
+        free_wrapper((void**) &sgw_context_p->pending_procedures);
         free_wrapper((void**) &pgw_ni_cbr_proc->pending_eps_bearers);
         pgw_free_procedure_create_bearer(
             (pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
       }
     }
   }
-  int rc = spgw_send_nw_init_activate_bearer_rsp(
-      cause, imsi64, bearer_context, default_bearer_id, policy_rule_name);
-  if (rc != RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
+  if (module == LOG_SPGW_APP) {
+    int rc = spgw_send_nw_init_activate_bearer_rsp(
+        cause, imsi64, bearer_context, default_bearer_id, policy_rule_name);
+    if (rc != RETURNok) {
+      OAILOG_ERROR_UE(
+          module, imsi64,
+          "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
+    }
   }
-  OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  OAILOG_FUNC_OUT(module);
 }
 
 // Fills up downlink (DL) flow match rule from packet filters of eps bearer
-static void generate_dl_flow(
+void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow) {
   // Prepare DL flow rule

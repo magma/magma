@@ -11,138 +11,9 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <string>
-#include "sgw_s8_state_manager.h"
-#include "sgw_s8_state.h"
-
-extern "C" {
-#include "log.h"
-#include "sgw_s8_s11_handlers.h"
-#include "spgw_types.h"
-#include "s11_messages_types.h"
-#include "common_types.h"
-#include "sgw_config.h"
-#include "dynamic_memory_check.h"
-#include "sgw_context_manager.h"
-}
+#include "sgw_s8_utility.h"
 
 using ::testing::Test;
-
-void fill_imsi(char* imsi) {
-  uint8_t idx = 0;
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '1';
-  imsi[idx++] = '0';
-  imsi[idx++] = '1';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '0';
-  imsi[idx++] = '1';
-}
-
-void fill_itti_csreq(itti_s11_create_session_request_t* session_req_pP) {
-  uint8_t idx = 0;
-  fill_imsi((reinterpret_cast<char*>(session_req_pP->imsi.digit)));
-  session_req_pP->teid                                    = 0;
-  session_req_pP->imsi.length                             = 15;
-  idx                                                     = 0;
-  session_req_pP->serving_network.mcc[idx++]              = 0;
-  session_req_pP->serving_network.mcc[idx++]              = 0;
-  session_req_pP->serving_network.mcc[idx]                = 0;
-  idx                                                     = 0;
-  session_req_pP->serving_network.mnc[idx++]              = 1;
-  session_req_pP->serving_network.mnc[idx++]              = 1;
-  session_req_pP->serving_network.mnc[idx]                = 15;
-  session_req_pP->rat_type                                = RAT_EUTRAN;
-  session_req_pP->sender_fteid_for_cp.teid                = 1;
-  session_req_pP->sender_fteid_for_cp.ipv4_address.s_addr = 0x8e3ca8c0;
-  session_req_pP->sender_fteid_for_cp.interface_type      = S11_MME_GTP_C;
-
-  session_req_pP->default_ebi = 5;
-  bearer_contexts_to_be_created_t* bc_to_be_created =
-      &session_req_pP->bearer_contexts_to_be_created;
-  bc_to_be_created->num_bearer_context               = 1;
-  bc_to_be_created->bearer_contexts[0].eps_bearer_id = 5;
-}
-
-void fill_itti_csrsp(s8_create_session_response_t* csr_resp, uint32_t teid) {
-  uint8_t idx = 0;
-  fill_imsi((reinterpret_cast<char*>(csr_resp->imsi)));
-  csr_resp->imsi_length = 15;
-
-  csr_resp->pdn_type                = IPv4;
-  csr_resp->paa.pdn_type            = IPv4;
-  csr_resp->paa.ipv4_address.s_addr = 0xc0a87e1;
-  csr_resp->context_teid            = teid;
-  csr_resp->eps_bearer_id           = 5;
-
-  csr_resp->bearer_context[0].eps_bearer_id                 = 5;
-  csr_resp->bearer_context[0].pgw_s8_up.ipv4                = 1;
-  csr_resp->bearer_context[0].pgw_s8_up.interface_type      = S5_S8_PGW_GTP_U;
-  csr_resp->bearer_context[0].pgw_s8_up.teid                = 123;
-  csr_resp->bearer_context[0].pgw_s8_up.ipv4_address.s_addr = 0xc0a87e19;
-
-  csr_resp->pgw_s8_cp_teid.ipv4                = 1;
-  csr_resp->pgw_s8_cp_teid.interface_type      = S5_S8_PGW_GTP_C;
-  csr_resp->pgw_s8_cp_teid.teid                = 124;
-  csr_resp->pgw_s8_cp_teid.ipv4_address.s_addr = 0xc0a87e20;
-
-  csr_resp->cause = 16;
-}
-
-// Initialize config params
-class SgwS8Config : public ::testing::Test {
- public:
-  sgw_state_t* create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel);
-
- protected:
-  sgw_config_t* config =
-      reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
-  uint64_t imsi64 = 1010000000001;
-  virtual void SetUp() {
-    config->itti_config.queue_size     = 0;
-    std::string file_string            = "/var/opt/magma/tmp/spgw.conf";
-    config->itti_config.log_file       = bfromcstr(file_string.c_str());
-    std::string s1u_if_name            = "eth1";
-    config->ipv4.if_name_S1u_S12_S4_up = bfromcstr(s1u_if_name.c_str());
-    config->ipv4.S1u_S12_S4_up.s_addr  = 0x8e3ca8c0;
-    config->ipv4.netmask_S1u_S12_S4_up = 24;
-    std::string s5s8u_if_name          = "eth0";
-    config->ipv4.if_name_S5_S8_up      = bfromcstr(s5s8u_if_name.c_str());
-    config->ipv4.S5_S8_up.s_addr       = 0xf02000a;
-    config->ipv4.netmask_S5_S8_up      = 24;
-    std::string s11                    = "lo";
-    config->ipv4.if_name_S11           = bfromcstr(s11.c_str());
-    config->ipv4.S11.s_addr            = 0x100007f;
-    config->ipv4.netmask_S11           = 8;
-    config->udp_port_S1u_S12_S4_up     = 2152;
-    config->config_file                = bfromcstr(file_string.c_str());
-  }
-  virtual void TearDown() {
-    bdestroy_wrapper(&config->itti_config.log_file);
-    bdestroy_wrapper(&config->ipv4.if_name_S1u_S12_S4_up);
-    bdestroy_wrapper(&config->ipv4.if_name_S5_S8_up);
-    bdestroy_wrapper(&config->ipv4.if_name_S11);
-    bdestroy_wrapper(&config->config_file);
-    free(config);
-  }
-};
-
-sgw_state_t* SgwS8Config::create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel) {
-  sgw_state_init(false, config);
-  sgw_state_t* sgw_state     = get_sgw_state(false);
-  sgw_s11_tunnel->local_teid = sgw_s8_generate_new_cp_teid();
-  sgw_update_teid_in_ue_context(sgw_state, imsi64, sgw_s11_tunnel->local_teid);
-  return sgw_state;
-}
 
 /* TC validates creation of ue context, pdn context and bearer context
  * on reception of Create Session Req
@@ -191,7 +62,7 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
 
   // validates creation of bearer context on reception of Create Session Req
   itti_s11_create_session_request_t session_req = {0};
-  fill_itti_csreq(&session_req);
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
   memcpy(session_req.apn, "internet", sizeof("internet"));
   sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   EXPECT_EQ(
@@ -236,7 +107,7 @@ TEST_F(SgwS8Config, update_pdn_session_on_cs_rsp) {
       sgw_s11_tunnel.local_teid);
 
   itti_s11_create_session_request_t session_req = {0};
-  fill_itti_csreq(&session_req);
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
 
   sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   sgw_update_bearer_context_information_on_csreq(
@@ -277,7 +148,7 @@ TEST_F(SgwS8Config, recv_different_cp_teid_on_cs_rsp) {
       sgw_s11_tunnel.local_teid);
 
   itti_s11_create_session_request_t session_req = {0};
-  fill_itti_csreq(&session_req);
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
 
   sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   sgw_update_bearer_context_information_on_csreq(
@@ -302,7 +173,7 @@ TEST_F(SgwS8Config, failed_to_get_bearer_context_on_cs_rsp) {
       sgw_s11_tunnel.local_teid);
 
   itti_s11_create_session_request_t session_req = {0};
-  fill_itti_csreq(&session_req);
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
 
   sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   sgw_update_bearer_context_information_on_csreq(
