@@ -562,13 +562,6 @@ service:
     Required: false
     ConfigApps:
       - tf
-  wifi_orc8r_chart_version:
-    Description: Version of the Orchestrator wifi module Helm chart to install.
-    Type: string
-    Required: false
-    Default: 0.2.1
-    ConfigApps:
-      - tf
   seed_certs_dir:
     Description: >-
       Directory on LOCAL disk where Orchestrator certificates are stored to seed

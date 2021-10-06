@@ -16,7 +16,6 @@ MAGMA_MODULES := \
 	$(MAGMA_ROOT)/lte \
 	$(MAGMA_ROOT)/feg \
 	$(MAGMA_ROOT)/cwf \
-	$(MAGMA_ROOT)/wifi \
 	$(MAGMA_ROOT)/fbinternal
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
