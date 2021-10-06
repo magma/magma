@@ -108,7 +108,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureHss) {
 
     sctp_stream_id_t stream_id = 0;
     status_code_e rc =
-            s1ap_mme_handle_s1_setup_request(s, assoc_id, stream_id, &pdu_s1);
+            s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1);
     ASSERT_EQ(rc, RETURNok);
 
     // State validation
@@ -142,7 +142,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
 
     sctp_stream_id_t stream_id = 0;
     status_code_e rc =
-            s1ap_mme_handle_s1_setup_request(s, assoc_id, stream_id, &pdu_s1);
+            s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1);
     ASSERT_EQ(rc, RETURNok);
 
     // State validation
@@ -170,7 +170,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
     S1ap_S1AP_PDU_t pdu_s1;
     memset(&pdu_s1, 0, sizeof(pdu_s1));
     ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
-    ASSERT_EQ(RETURNok, s1ap_mme_handle_s1_setup_request(s, assoc_id, stream_id, &pdu_s1));
+    ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1));
 
     uint8_t initial_ue_bytes[] = {
             0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00,
@@ -190,7 +190,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
     memset(&pdu, 0, sizeof(pdu));
 
     ASSERT_EQ(RETURNok, s1ap_mme_decode_pdu(&pdu, payload));
-    ASSERT_EQ(RETURNok, s1ap_mme_handle_initial_ue_message(s, assoc_id, stream_id, &pdu));
+    ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu));
 
     handle_mme_ue_id_notification(s, assoc_id);
 
@@ -219,7 +219,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
     memset(&pdu_nas, 0, sizeof(pdu_nas));
 
     ASSERT_EQ(s1ap_mme_decode_pdu(&pdu_nas, payload_nas), RETURNok);
-    ASSERT_EQ( s1ap_mme_handle_uplink_nas_transport(s, assoc_id, stream_id, &pdu_nas), RETURNok);
+    ASSERT_EQ( s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_nas), RETURNok);
 
     uint8_t ics_bytes[] = {
             0x20, 0x09, 0x00, 0x22, 0x00, 0x00, 0x03, 0x00,
@@ -234,7 +234,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
     memset(&pdu_ics, 0, sizeof(pdu_ics));
 
     ASSERT_EQ(s1ap_mme_decode_pdu(&pdu_ics, payload_ics), RETURNok);
-    ASSERT_EQ( s1ap_mme_handle_initial_context_setup_response(s, assoc_id, stream_id, &pdu_ics), RETURNok);
+    ASSERT_EQ( s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_ics), RETURNok);
 
     // Freeing pdu and payload data
     bdestroy_wrapper(&payload);
@@ -263,7 +263,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
     S1ap_S1AP_PDU_t pdu_s1;
     memset(&pdu_s1, 0, sizeof(pdu_s1));
     ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
-    ASSERT_EQ(RETURNok, s1ap_mme_handle_s1_setup_request(s, assoc_id, stream_id, &pdu_s1));
+    ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1));
 
     uint8_t initial_ue_bytes[] = {
             0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00,
@@ -283,7 +283,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
     memset(&pdu, 0, sizeof(pdu));
 
     ASSERT_EQ(RETURNok, s1ap_mme_decode_pdu(&pdu, payload));
-    ASSERT_EQ(RETURNok, s1ap_mme_handle_initial_ue_message(s, assoc_id, stream_id, &pdu));
+    ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu));
 
     handle_mme_ue_id_notification(s, assoc_id);
 
@@ -307,7 +307,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
     memset(&pdu_cap, 0, sizeof(pdu_cap));
 
     ASSERT_EQ(s1ap_mme_decode_pdu(&pdu_cap, payload_ue_cap), RETURNok);
-    ASSERT_EQ( s1ap_mme_handle_ue_cap_indication(s, assoc_id, stream_id, &pdu_cap), RETURNok);
+    ASSERT_EQ( s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_cap), RETURNok);
 
     // Freeing pdu and payload data
     bdestroy_wrapper(&payload);
