@@ -531,11 +531,27 @@ def _start_trfserver():
     local(
         'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' sh -c "sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off; '
-        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
-        'stty cbreak'
+        ' sh -c "sudo ethtool --offload eth1 rx off tx off; '
+        '";'
         % (key, host, port),
-    )
+        )
+    local(
+        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
+        ' -o StrictHostKeyChecking=no -tt %s -p %s'
+        ' sh -c "sudo ethtool --offload eth2 rx off tx off; '
+        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+        % (key, host, port),
+        )
+    local(
+        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
+        ' -o StrictHostKeyChecking=no -tt %s -p %s'
+        ' sh -c "'
+        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+        % (key, host, port),
+        )
+    #local(
+    #    'stty cbreak'
+    #    )
 
 
 def _make_integ_tests():
