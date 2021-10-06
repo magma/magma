@@ -37,20 +37,24 @@ import (
 const (
 	GtpTimeoutForTest = gtp.DefaultGtpTimeout // use the same the default value defined in s8_proxy
 	//port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
-	s8proxyAddrs      = ":0" // equivalent to sgwAddrs
-	pgwAddrs          = "127.0.0.1:0"
-	IMSI1             = "123456789012345"
-	BEARER            = 5
-	DEDICATEDBEARER   = 6
-	AGWTeidU          = uint32(10)
-	AGWTeidC          = uint32(2)
-	DedicatedPGWTeidU = uint32(16)
-	DedicatedAGWTeidU = uint32(44)
-	DedicatedAGWTeidC = uint32(667)
-	DedicatedPGWuIP   = "127.0.0.10"
-	DedicatedAGWuIP   = "192.1.43.11"
-	PDNType           = protos.PDNType_IPV4
-	PAA               = "10.0.0.10"
+	s8proxyAddrs        = ":0" // equivalent to sgwAddrs
+	pgwAddrs            = "127.0.0.1:0"
+	IMSI1               = "123456789012345"
+	BEARER              = 5
+	DEDICATEDBEARER_1   = 6
+	DEDICATEDBEARER_2   = 7
+	AGWTeidU            = uint32(10)
+	AGWTeidC            = uint32(2)
+	DedicatedPGWTeidU_1 = uint32(16)
+	DedicatedAGWTeidU_1 = uint32(44)
+	DedicatedAGWTeidC_1 = uint32(667)
+	DedicatedPGWTeidU_2 = uint32(26)
+	DedicatedAGWTeidU_2 = uint32(54)
+	DedicatedAGWTeidC_2 = uint32(767)
+	DedicatedPGWuIP     = "127.0.0.10"
+	DedicatedAGWuIP     = "192.1.43.11"
+	PDNType             = protos.PDNType_IPV4
+	PAA                 = "10.0.0.10"
 )
 
 func TestS8proxyCreateAndDeleteSession(t *testing.T) {
@@ -674,9 +678,9 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 			BiLocalFilterPort:  8888,
 			BiRemoteFilterPort: 9990,
 			BearerContext: mock_pgw.DedicatedBearerContext{
-				DedicatedBearereID: DEDICATEDBEARER,
+				DedicatedBearereID: DEDICATEDBEARER_1,
 				Pgw_u_ip:           DedicatedPGWuIP,
-				Pgw_u_teid:         DedicatedPGWTeidU,
+				Pgw_u_teid:         DedicatedPGWTeidU_1,
 			},
 		}
 
@@ -698,13 +702,13 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 	require.NotEmpty(t, cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft)
 	require.NotEmpty(t, cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[0].PacketFilterContents)
 	require.NotNil(t, cbReqReceived.BearerContext.UserPlaneFteid)
-	require.Equal(t, DedicatedPGWTeidU, cbReqReceived.BearerContext.UserPlaneFteid.Teid)
+	require.Equal(t, DedicatedPGWTeidU_1, cbReqReceived.BearerContext.UserPlaneFteid.Teid)
 	require.Equal(t, DedicatedPGWuIP, cbReqReceived.BearerContext.UserPlaneFteid.Ipv4Address)
 
 	// check values
 	assert.Equal(t, csRes.BearerContext.Id, cbReqReceived.LinkedBearerId)
 	assert.Equal(t, csReq.CAgwTeid, cbReqReceived.CAgwTeid)
-	assert.Equal(t, uint32(DEDICATEDBEARER), cbReqReceived.BearerContext.Id)
+	assert.Equal(t, uint32(DEDICATEDBEARER_1), cbReqReceived.BearerContext.Id)
 	assert.Equal(t, uint32(pgwCreateBearerRequest.QosQCI), cbReqReceived.BearerContext.Qos.Qci)
 	packetFilterComponents := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft
 	assert.Equal(t, 2, len(packetFilterComponents))
@@ -766,16 +770,16 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 		CPgwTeid:       PgwTEIDc,
 		UPgwFteid: &protos.Fteid{
 			Ipv4Address: DedicatedPGWuIP,
-			Teid:        DedicatedPGWTeidU,
+			Teid:        DedicatedPGWTeidU_1,
 		},
 
 		ServingNetwork: &protos.ServingNetwork{Mcc: "011", Mnc: "99"},
 		Cause:          uint32(gtpv2.CauseRequestAccepted),
 		BearerContext: &protos.BearerContext{
-			Id: DEDICATEDBEARER,
+			Id: DEDICATEDBEARER_1,
 			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: DedicatedAGWuIP,
-				Teid:        DedicatedAGWTeidU,
+				Teid:        DedicatedAGWTeidU_1,
 			},
 		},
 		ProtocolConfigurationOptions: csReq.ProtocolConfigurationOptions,
@@ -797,29 +801,29 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 	require.NotEmpty(t, cbResGtp.BearerContexts)
 
 	// check teids
-	for _, childIE := range cbResGtp.BearerContexts.ChildIEs {
+	for _, childIE := range cbResGtp.BearerContexts[0].ChildIEs {
 		switch childIE.Type {
 		case ie.FullyQualifiedTEID:
 			switch childIE.Instance() {
 			case 2:
 				assert.Equal(t, gtpv2.IFTypeS5S8SGWGTPU, childIE.MustInterfaceType())
-				assert.Equal(t, DedicatedAGWTeidU, childIE.MustTEID())
+				assert.Equal(t, DedicatedAGWTeidU_1, childIE.MustTEID())
 				assert.Equal(t, DedicatedAGWuIP, childIE.MustIP().String())
 			case 3:
 				assert.Equal(t, gtpv2.IFTypeS5S8PGWGTPU, childIE.MustInterfaceType())
-				assert.Equal(t, DedicatedPGWTeidU, childIE.MustTEID())
+				assert.Equal(t, DedicatedPGWTeidU_1, childIE.MustTEID())
 				assert.Equal(t, DedicatedPGWuIP, childIE.MustIP().String())
 			default:
 				assert.FailNow(t, "There should not be other teid types")
 			}
 		case ie.EPSBearerID:
-			assert.Equal(t, uint8(DEDICATEDBEARER), childIE.MustEPSBearerID())
+			assert.Equal(t, uint8(DEDICATEDBEARER_1), childIE.MustEPSBearerID())
 		}
 	}
 
 	// ------------------------
 	// ---- Delete Bearer ----
-	outDBR, err := mockPgw.DeleteBearerRequest(mock_pgw.DeleteBearerRequest{Imsi: IMSI1, EpsBearerId: DEDICATEDBEARER})
+	outDBR, err := mockPgw.DeleteBearerRequest(mock_pgw.DeleteBearerRequest{Imsi: IMSI1, EpsBearerId: DEDICATEDBEARER_1})
 	assert.NoError(t, err)
 
 	// wait for mock feg_relay to process the request
@@ -828,7 +832,7 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 	dbReqReceived := fegRelayTestSrv.ReceivedDeleteBearerRequest
 	assert.NotEmpty(t, dbReqReceived)
 	assert.Equal(t, BEARER, int(dbReqReceived.LinkedBearerId))
-	assert.Equal(t, DEDICATEDBEARER, int(dbReqReceived.EpsBearerId))
+	assert.Equal(t, DEDICATEDBEARER_1, int(dbReqReceived.EpsBearerId[0]))
 	assert.Equal(t, AGWTeidC, dbReqReceived.CAgwTeid)
 
 	// send the response from agw to feg
@@ -840,9 +844,11 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 		LinkedBearerId:               BEARER,
 		ProtocolConfigurationOptions: nil,
 		Cause:                        uint32(gtpv2.CauseRequestAccepted),
-		BearerContext: &protos.BearerContext{
-			Id:    DEDICATEDBEARER,
-			Cause: uint32(gtpv2.CauseRequestAccepted),
+		BearerContext: []*protos.BearerContext{
+			{
+				Id:    DEDICATEDBEARER_1,
+				Cause: uint32(gtpv2.CauseRequestAccepted),
+			},
 		},
 	}
 
@@ -855,7 +861,7 @@ func TestCreateAndDeleteBearerRequest(t *testing.T) {
 	dbResGtp := dbResFromChan.Res
 	require.NotEmpty(t, dbResGtp)
 	assert.Equal(t, dbReqReceived.SequenceNumber, dbResGtp.SequenceNumber)
-	assert.Equal(t, uint8(DEDICATEDBEARER), dbResGtp.BearerContexts.MustEPSBearerID())
+	assert.Equal(t, uint8(DEDICATEDBEARER_1), dbResGtp.BearerContexts[0].MustEPSBearerID())
 }
 
 func TestS8proxyEcho(t *testing.T) {

@@ -66,10 +66,10 @@ func TestBuilder_Build_BaseCases(t *testing.T) {
 		},
 		ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "gw1"}},
 	}
-	gw.Associations = storage.TKs{wifigw.GetTypeAndKey()}
+	gw.Associations = storage.TKs{wifigw.GetTK()}
 	graph.Entities = []configurator.NetworkEntity{gw, wifigw}
 	graph.Edges = []configurator.GraphEdge{
-		{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+		{From: gw.GetTK(), To: wifigw.GetTK()},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -129,18 +129,18 @@ func TestBuilder_Build(t *testing.T) {
 			AdditionalProps: map[string]string{"mesh1": "meshval1", "mesh2": "meshval2"},
 		},
 		Associations: storage.TKs{
-			wifigw.GetTypeAndKey(),
+			wifigw.GetTK(),
 			{Type: orc8r.MagmadGatewayType, Key: "gw2nd"},
 		},
 	}
 
-	wifigw.ParentAssociations = storage.TKs{mesh.GetTypeAndKey(), gw.GetTypeAndKey()}
+	wifigw.ParentAssociations = storage.TKs{mesh.GetTK(), gw.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, wifigw, mesh},
 		Edges: []configurator.GraphEdge{
-			{From: mesh.GetTypeAndKey(), To: gw.GetTypeAndKey()},
-			{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+			{From: mesh.GetTK(), To: gw.GetTK()},
+			{From: gw.GetTK(), To: wifigw.GetTK()},
 		},
 	}
 
@@ -268,17 +268,17 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 			AdditionalProps: nil,
 		},
 		Associations: storage.TKs{
-			wifigw.GetTypeAndKey(),
+			wifigw.GetTK(),
 		},
 	}
 
-	wifigw.ParentAssociations = storage.TKs{mesh.GetTypeAndKey(), gw.GetTypeAndKey()}
+	wifigw.ParentAssociations = storage.TKs{mesh.GetTK(), gw.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, wifigw, mesh},
 		Edges: []configurator.GraphEdge{
-			{From: mesh.GetTypeAndKey(), To: gw.GetTypeAndKey()},
-			{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+			{From: mesh.GetTK(), To: gw.GetTK()},
+			{From: gw.GetTK(), To: wifigw.GetTK()},
 		},
 	}
 
@@ -414,17 +414,17 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 			AdditionalProps: map[string]string{},
 		},
 		Associations: storage.TKs{
-			wifigw.GetTypeAndKey(),
+			wifigw.GetTK(),
 		},
 	}
 
-	wifigw.ParentAssociations = storage.TKs{mesh.GetTypeAndKey(), gw.GetTypeAndKey()}
+	wifigw.ParentAssociations = storage.TKs{mesh.GetTK(), gw.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, wifigw, mesh},
 		Edges: []configurator.GraphEdge{
-			{From: mesh.GetTypeAndKey(), To: gw.GetTypeAndKey()},
-			{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+			{From: mesh.GetTK(), To: gw.GetTK()},
+			{From: gw.GetTK(), To: wifigw.GetTK()},
 		},
 	}
 

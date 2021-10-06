@@ -183,7 +183,7 @@ func (e *entStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
 		return fmt.Errorf("error reading existing blobs: %s", err)
 	}
 	changeSet := partitionBlobsToCreateAndChange(blobs, existingBlobs)
-	for _, id := range getSortedTypeAndKeys(changeSet.blobsToChange) {
+	for _, id := range getSortedTKs(changeSet.blobsToChange) {
 		change := changeSet.blobsToChange[id]
 		version := change.old.Version + 1
 		if change.new.Version != 0 {

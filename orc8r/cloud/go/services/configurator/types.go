@@ -180,7 +180,7 @@ func (ent NetworkEntity) toProto(serdes serde.Registry) (*storage.NetworkEntity,
 	if ent.Config != nil {
 		bConfigs, err := serde.Serialize(ent.Config, ent.Type, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to serialize entity %s", ent.GetTypeAndKey())
+			return nil, errors.Wrapf(err, "failed to serialize entity %s", ent.GetTK())
 		}
 		ret.Config = bConfigs
 	}
@@ -194,7 +194,7 @@ func (ent NetworkEntity) fromProto(p *storage.NetworkEntity, serdes serde.Regist
 	if len(p.Config) != 0 {
 		iConfig, err := serde.Deserialize(p.Config, e.Type, serdes)
 		if err != nil {
-			return ent, errors.Wrapf(err, "failed to deserialize entity %s", ent.GetTypeAndKey())
+			return ent, errors.Wrapf(err, "failed to deserialize entity %s", ent.GetTK())
 		}
 		e.Config = iConfig
 		e.isSerialized = false
@@ -246,7 +246,7 @@ func (ent NetworkEntity) IsSerialized() bool {
 	return ent.isSerialized
 }
 
-func (ent NetworkEntity) GetTypeAndKey() storage2.TK {
+func (ent NetworkEntity) GetTK() storage2.TK {
 	return storage2.TK{Type: ent.Type, Key: ent.Key}
 }
 
@@ -257,7 +257,7 @@ type NetworkEntities []NetworkEntity
 func (ne NetworkEntities) MakeByTK() NetworkEntitiesByTK {
 	ret := make(map[storage2.TK]NetworkEntity, len(ne))
 	for _, ent := range ne {
-		ret[ent.GetTypeAndKey()] = ent
+		ret[ent.GetTK()] = ent
 	}
 	return ret
 }
@@ -277,7 +277,7 @@ func (ne NetworkEntities) MakeByParentTK() map[storage2.TK]NetworkEntities {
 func (ne NetworkEntities) TKs() storage2.TKs {
 	var tks storage2.TKs
 	for _, e := range ne {
-		tks = append(tks, e.GetTypeAndKey())
+		tks = append(tks, e.GetTK())
 	}
 	return tks
 }
@@ -366,7 +366,7 @@ func (eg EntityGraph) FromProto(protoGraph *storage.EntityGraph, serdes serde.Re
 	for _, protoEnt := range protoGraph.Entities {
 		ent, err := (NetworkEntity{}).fromProtoWithDefault(protoEnt, serdes)
 		if err != nil {
-			return eg, errors.Wrapf(err, "failed to deserialize entity %s", protoEnt.GetTypeAndKey())
+			return eg, errors.Wrapf(err, "failed to deserialize entity %s", protoEnt.GetTK())
 		}
 		eg.Entities = append(eg.Entities, ent)
 	}
@@ -386,7 +386,7 @@ func (eg EntityGraph) ToProto(serdes serde.Registry) (*storage.EntityGraph, erro
 	for _, ent := range eg.Entities {
 		protoEnt, err := ent.toProto(serdes)
 		if err != nil {
-			return protoGraph, errors.Wrapf(err, "failed to convert entity %s to storage proto", ent.GetTypeAndKey())
+			return protoGraph, errors.Wrapf(err, "failed to convert entity %s to storage proto", ent.GetTK())
 		}
 		protoGraph.Entities = append(protoGraph.Entities, protoEnt)
 	}
@@ -404,14 +404,14 @@ type GraphEdge struct {
 }
 
 func (ge GraphEdge) fromProto(protoEdge *storage.GraphEdge) GraphEdge {
-	ge.From = protoEdge.From.ToTypeAndKey()
-	ge.To = protoEdge.To.ToTypeAndKey()
+	ge.From = protoEdge.From.ToTK()
+	ge.To = protoEdge.To.ToTK()
 	return ge
 }
 
 func (ge GraphEdge) toProto() *storage.GraphEdge {
-	protoTo := (&storage.EntityID{}).FromTypeAndKey(ge.To)
-	protoFrom := (&storage.EntityID{}).FromTypeAndKey(ge.From)
+	protoTo := (&storage.EntityID{}).FromTK(ge.To)
+	protoFrom := (&storage.EntityID{}).FromTK(ge.From)
 	return &storage.GraphEdge{
 		To:   protoTo,
 		From: protoFrom,
@@ -429,7 +429,7 @@ type EntityLoadFilter struct {
 	KeyFilter *string
 
 	// If IDs is provided, the query will return all entities matching the
-	// provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
+	// provided TKs. TypeFilter and KeyFilter are ignored if IDs is
 	// provided.
 	IDs storage2.TKs
 
@@ -552,7 +552,7 @@ func (euc EntityUpdateCriteria) toProto(serdes serde.Registry) (*storage.EntityU
 	if euc.NewConfig != nil {
 		bConfig, err := serde.Serialize(euc.NewConfig, euc.Type, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to serialize update %s", euc.GetTypeAndKey())
+			return nil, errors.Wrapf(err, "failed to serialize update %s", euc.GetTK())
 		}
 		ret.NewConfig = &wrappers.BytesValue{Value: bConfig}
 	}
@@ -563,7 +563,7 @@ func (euc EntityUpdateCriteria) toProto(serdes serde.Registry) (*storage.EntityU
 	return ret, nil
 }
 
-func (euc EntityUpdateCriteria) GetTypeAndKey() storage2.TK {
+func (euc EntityUpdateCriteria) GetTK() storage2.TK {
 	return storage2.TK{Type: euc.Type, Key: euc.Key}
 }
 
@@ -616,7 +616,7 @@ func tksToEntIDs(tks storage2.TKs) []*storage.EntityID {
 
 	return funk.Map(
 		tks,
-		func(tk storage2.TK) *storage.EntityID { return (&storage.EntityID{}).FromTypeAndKey(tk) }).([]*storage.EntityID)
+		func(tk storage2.TK) *storage.EntityID { return (&storage.EntityID{}).FromTK(tk) }).([]*storage.EntityID)
 }
 
 func entIDsToTKs(ids []*storage.EntityID) storage2.TKs {
@@ -626,6 +626,6 @@ func entIDsToTKs(ids []*storage.EntityID) storage2.TKs {
 
 	return funk.Map(
 		ids,
-		func(id *storage.EntityID) storage2.TK { return id.ToTypeAndKey() },
+		func(id *storage.EntityID) storage2.TK { return id.ToTK() },
 	).([]storage2.TK)
 }

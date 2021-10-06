@@ -151,18 +151,21 @@ func buildDeleteBearerResMsg(res *protos.DeleteBearerResponsePgw) (message.Messa
 		return nil, fmt.Errorf("DeleteBearerResponse could not be sent. Missing Bearer Contex")
 	}
 
-	// TODO: handle more than one bearer
-	bearerCause := ie.NewCause(uint8(res.BearerContext.Cause), 0, 0, 0, nil)
-	bearerId := ie.NewEPSBearerID(uint8(res.BearerContext.Id))
-	bearer := ie.NewBearerContext(bearerId, bearerCause)
-
-	return message.NewDeleteBearerResponse(
-		res.CPgwTeid, res.SequenceNumber,
+	// create message and add bearers
+	newMessage := []*ie.IE{
 		ie.NewCause(uint8(res.Cause), 0, 0, 0, nil),
 		ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0),
-		bearer,
 		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
-	), nil
+	}
+	for _, bearerCtx := range res.BearerContext {
+		bearerCause := ie.NewCause(uint8(bearerCtx.Cause), 0, 0, 0, nil)
+		bearerId := ie.NewEPSBearerID(uint8(bearerCtx.Id))
+		bearer := ie.NewBearerContext(bearerId, bearerCause)
+		newMessage = append(newMessage, bearer)
+	}
+
+	return message.NewDeleteBearerResponse(
+		res.CPgwTeid, res.SequenceNumber, newMessage...), nil
 }
 
 func buildCreateBearerResWithErrorCauseMsg(cause uint32, cPgwTeid uint32, seq uint32) message.Message {

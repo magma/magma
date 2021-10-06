@@ -33,7 +33,7 @@ apt install -y  openvswitch-datapath-dkms libopenvswitch openvswitch-common open
 dkms autoinstall
 service magma@* stop
 
-magma-bridge-reset.sh -y uplink_br0
+magma-bridge-reset.sh -f uplink_br0
 
 service magma@magmad start
 
