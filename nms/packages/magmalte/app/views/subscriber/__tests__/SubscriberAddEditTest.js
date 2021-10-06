@@ -427,7 +427,7 @@ describe('<AddSubscriberButton />', () => {
     // Save subscriber
     fireEvent.click(getByTestId('saveSubscriber'));
     expect(
-      MagmaAPIBindings.postLteByNetworkIdSubscribersV2,
+      MagmaAPIBindings.postLteByNetworkIdSubscribers,
     ).toHaveBeenCalledWith({
       networkId: 'test',
       subscribers: [

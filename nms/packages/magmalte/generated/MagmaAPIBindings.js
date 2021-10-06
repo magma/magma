@@ -7133,7 +7133,7 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getLteByNetworkIdSubscribersV2(
+    static async getLteByNetworkIdSubscribers(
             parameters: {
                 'networkId': string,
                 'msisdn' ? : string,
@@ -7143,7 +7143,7 @@ export default class MagmaAPIBindings {
             }
         ): Promise < paginated_subscribers >
         {
-            let path = '/lte/{network_id}/subscribers_v2';
+            let path = '/lte/{network_id}/subscribers';
             let body;
             let query = {};
             if (parameters['networkId'] === undefined) {
@@ -7170,13 +7170,13 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
-    static async postLteByNetworkIdSubscribersV2(
+    static async postLteByNetworkIdSubscribers(
         parameters: {
             'networkId': string,
             'subscribers': mutable_subscribers,
         }
     ): Promise < "Success" > {
-        let path = '/lte/{network_id}/subscribers_v2';
+        let path = '/lte/{network_id}/subscribers';
         let body;
         let query = {};
         if (parameters['networkId'] === undefined) {
