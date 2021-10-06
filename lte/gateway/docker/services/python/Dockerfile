@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y \
   python3-pip \
   python3-dev \
   python3-eventlet \
-  python3-pystemd \ 
+  python3-pystemd \
   python3-protobuf \
   git \
   virtualenv \
@@ -140,7 +140,7 @@ COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_service_config.
 COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_fluent_bit_config.py /usr/local/bin/generate_fluent_bit_config.py
 COPY --from=builder /magma/lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
 
-RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity && \
+RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
   dpkg -i /var/tmp/python3-aioeventlet* && \
   pip install jsonpointer>$JSONPOINTER_VERSION && \
   mkdir -p /var/opt/magma/
