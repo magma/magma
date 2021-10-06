@@ -110,7 +110,7 @@ std::unique_ptr<SctpdDownlinkClient> client = nullptr;
 
 int init_sctpd_downlink_client(bool force_restart) {
   std::string downstream_sctp_sock(
-      bstr2cstr(mme_config.sctp_config.downstream_sctp_sock, '\0'));
+      bdata(mme_config.sctp_config.downstream_sctp_sock));
   auto channel = grpc::CreateChannel(
       downstream_sctp_sock, grpc::InsecureChannelCredentials());
   client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
