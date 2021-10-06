@@ -9,7 +9,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   lte-integ-test:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
