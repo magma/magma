@@ -36,6 +36,7 @@ static_services: [
   'proxy',
   'access_control',
   'startup_flows',
+  'ipv6_solicitation',
 ]
 
 of_server_port: 3333

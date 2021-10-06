@@ -141,7 +141,7 @@ int start_sctpd_uplink_server(void) {
 
   ServerBuilder builder;
   std::string upstream_sctp_sock(
-      bstr2cstr(mme_config.sctp_config.upstream_sctp_sock, '\0'));
+      bdata(mme_config.sctp_config.upstream_sctp_sock));
   builder.AddListeningPort(
       upstream_sctp_sock, grpc::InsecureServerCredentials());
   builder.RegisterService(service.get());
