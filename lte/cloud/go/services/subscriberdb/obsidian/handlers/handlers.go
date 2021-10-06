@@ -46,10 +46,8 @@ import (
 
 const (
 	Subscribers               = "subscribers"
-	SubscribersV2             = "subscribers_v2"
 	SubscriberState           = "subscriber_state"
 	ListSubscribersPath       = ltehandlers.ManageNetworkPath + obsidian.UrlSep + Subscribers
-	ListSubscribersV2Path     = ltehandlers.ManageNetworkPath + obsidian.UrlSep + SubscribersV2
 	ManageSubscriberPath      = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
 	ListSubscriberStatePath   = ltehandlers.ManageNetworkPath + obsidian.UrlSep + SubscriberState
 	ManageSubscriberStatePath = ListSubscriberStatePath + obsidian.UrlSep + ":subscriber_id"
@@ -68,8 +66,8 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		{Path: ListSubscribersV2Path, Methods: obsidian.GET, HandlerFunc: listSubscribersV2Handler},
-		{Path: ListSubscribersV2Path, Methods: obsidian.POST, HandlerFunc: createSubscribersV2Handler},
+		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler},
+		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscribersHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler},
@@ -129,7 +127,7 @@ type subscriberFilter func(sub *subscribermodels.Subscriber) bool
 
 func acceptAll(*subscribermodels.Subscriber) bool { return true }
 
-// listSubscribersV2Handler handles version 2 of the subscriber endpoint.
+// listSubscribersHandler handles the subscriber endpoint.
 // The returned subscribers can be filtered using the following query
 // parameters
 //	- msisdn
@@ -153,7 +151,7 @@ func acceptAll(*subscribermodels.Subscriber) bool { return true }
 // The page token parameter is an opaque token used to fetch the next page of
 // subscribers. Each API response will contain a page token that can be used
 // to fetch the next page.
-func listSubscribersV2Handler(c echo.Context) error {
+func listSubscribersHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -216,34 +214,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 	return c.JSON(http.StatusOK, paginatedSubs)
 }
 
-func createSubscriberHandler(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	payload := &subscribermodels.MutableSubscriber{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-
-	reqCtx := c.Request().Context()
-	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
-		return nerr
-	}
-
-	nerr = createSubscribers(reqCtx, networkID, payload)
-	if nerr != nil {
-		return nerr
-	}
-
-	return c.NoContent(http.StatusCreated)
-}
-
-func createSubscribersV2Handler(c echo.Context) error {
+func createSubscribersHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
